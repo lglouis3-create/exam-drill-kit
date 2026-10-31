@@ -131,12 +131,12 @@ whats-new (`c01b619`), explain-more-links (`d9b6a4e`), concept statuses
 built a second time in PK: most-likely-stars (`f4710c3`) and recorded-narration
 (`f013ced`).
 
-Two defects found by reading the code, neither reported in any course's notes:
+Three defects found in this phase, by reading or scanning the code:
 
 - **BDK's service worker deletes other sites' caches.** `sw.js:8-9` deletes every
   cache whose name is not `bdk-v15`. All of Louis's Pages sites share the
   `lglouis3-create.github.io` origin, so BDK's activation would delete MC's
-  `phar4342-drill-v1` cache. MC's `sw.js:13-18` was written to avoid exactly this.
+  `phar4342-drill-v1` cache. MC's `sw.js:14-18` was written to avoid exactly this.
   Not run in a browser.
 - **PK's exam draw can put both wordings of a fact on one paper.** `beginExam`
   (`src/views.js:3270-3282`) calls `drawMixed` once per pool, and each call
@@ -144,6 +144,9 @@ Two defects found by reading the code, neither reported in any course's notes:
   sit in two pools can both be drawn. This is the defect MC fixed in `ed38dbd`
   after PK had forked. Whether any pair in PK's current bank spans two pools was
   not tested (NOT RUN).
+- **Regex lookbehind ships in three of the four drills** (PK, PH, BDK; §6.5).
+  The brief records PK's three; PH's one and BDK's two are not in any course's
+  notes.
 
 ## 5. Hand fixes that a SKILL.md step should have prevented
 
@@ -157,10 +160,10 @@ the skill (v1, v2, share draft) has the step.
 | MC | `4a32dad` | page 8.82 MB, 86.4% inline JPEG | Missing: image format and quality (v2 lines 104-105 name only the harvester) |
 | MC | `ed38dbd` | a `dupOf` pair across two pools shared a paper about once in 300 | v2 line 147 states the rule; missing: a test that forces every pair. PK still has the defect (§4) |
 | MC | `ed38dbd` | offline use; cache cleanup scoped to the drill on a shared origin | Missing. BDK's `sw.js` shows the cost (§4) |
-| MC | before `7aa5816` (MC corrected notes §2.8-2.10) | three checks passed while unable to fail (figures at zero, `NaN` in base64, `cite_check` over zero references) | v2 lines 160-161 cover a check that cannot run; missing: a check must be shown to fail on a bad input |
+| MC | fixed code first on GitHub in `7aa5816` (MC corrected notes §2.8-2.10) | three checks passed while unable to fail (figures at zero, `NaN` in base64, `cite_check` over zero references) | v2 lines 160-161 cover a check that cannot run; missing: a check must be shown to fail on a bad input |
 | MC | 09/21 round | 92 questions, `course.js`, `ingest.py` and the template never reached GitHub after a refused push | v2 lines 234-236 hand over a zip; missing: compare the published build's counts with the state record afterwards |
-| MC | before `7aa5816` | reading `localStorage` at load threw and left a blank page | Missing: storage must go through a shim |
-| MC | before `7aa5816` | a figure's `aria-label` named its answer | Missing |
+| MC | fixed code first on GitHub in `7aa5816` | reading `localStorage` at load threw and left a blank page | Missing: storage must go through a shim |
+| MC | fixed code first on GitHub in `7aa5816` | a figure's `aria-label` named its answer | Missing |
 | PK | `f4b60c3`, `1c35a71`, `7a9f325` | 29 slips in the bank and 8 printed results on teaching pages did not follow from the numbers shown | v2 lines 132-134 require worked steps; missing: recompute every printed `expression = value` |
 | PK | `0f266e5`, `bc8321d`, `f013ced` | regex lookbehind, removed for older Safari in `db37384`, came back three times | Missing: a device check (capability 5) |
 | PK | `4ce505d` | a student's name in four source comments | v2 lines 239-240 state the rule; missing: a scan step |
@@ -174,14 +177,148 @@ the skill (v1, v2, share draft) has the step.
 | PH | `2395ea7` (branch) | the daily paper's correct answer was option A on 28 of 40 questions | Missing: every generated paper shuffles options |
 | PH | `d1df52f` | phone buttons under 40 px | Missing: device check |
 | PH | `c1ae4b0` | the exam clock scaled when `questions` was `null` | v2 line 87 assumes the count is set; missing: a rule for an unannounced count |
-| BDK | not fixed | the 10/30 daily review had no write access, did no review, and the task ended without a failure | v2 Mode 5 (lines 220-230) has no requirement that a run confirm it wrote its log entry (brief §9 Mode 5 adds it) |
+| BDK | not fixed | the 10/30 daily review had no write access and did no review; its own report asked Louis to add write permission (BDK notes §2) | v2 Mode 5 (lines 220-230) has no requirement that a run confirm it wrote its log entry (brief §9 Mode 5 adds it) |
 | BDK | `80738a4` | iPhone Safari kept hover on the last tapped choice, which looked like a hint | Missing: device check |
 | BDK | `71da38b` | 16 generated questions named their own answer | v2 Mode 4 asks "does the stem give the answer away", as review only; missing: an automated check |
 | BDK | not done | the spec's ID1 Organism wording check was neither done nor reported as skipped | v2 lines 244-246 cover checks, not spec steps; brief §7.6 adds "skipped steps are listed" |
 
 ## 6. Check results per drill
 
-Pending. The check suites were running in scratch clones when this commit was made; this section is filled in a later commit. Until then, no check in any drill is reported here as passed, failed or skipped.
+How the runs were done (2026-10-31): each repo was cloned into the session
+scratchpad at the same commit as `origin/main`, and every check ran there, one
+command at a time, so one failure could not hide another. Afterwards the four
+source clones still showed an empty `git status` and the same `HEAD`. Tools:
+node v22.22.0, Python 3.13.17, Playwright 1.63.0 (Node, installed globally; Python,
+installed into a scratch venv), Chromium build 1243 from `/opt/pw-browsers`,
+pdfplumber 0.11.10. Several PK scripts hard-code `/mnt/user-data/outputs`; that path
+was redirected to a scratch folder for the PK run and stayed empty.
+
+**WebKit / mobile Safari: NOT RUN in all four drills.** This container has no
+WebKit engine, and no drill has a Safari test. BDK's `tests/ui.js:105` uses
+`devices['iPhone 13']`, which emulates an iPhone screen inside Chromium; it is not
+Safari. No check ran on a real phone, and no live site was opened.
+
+A report-only check is listed as REPORT: it always exits 0 and has no failing
+condition, so it cannot pass or fail.
+
+### 6.1 Medicinal-chemistry (`03a314d`, run from `src/`)
+
+| Check | Result | Output |
+|---|---|---|
+| `python3 build.py` | PASS | "19 sources and sw.js parse cleanly"; wrote `index.html` (6.55 MB) |
+| `node test.js` | PASS | "All checks passed": 387 questions, 13 topics, 189 images; randomized, so run 10 times: 10 of 10 passed |
+| `node style_check.js` | PASS | all 387 stems clean; 387 of 387 citations name a slide (369 by number, 18 by title) |
+| `node render_test.js` | PASS | "Render smoke test passed" (9 views) |
+| `node explain_check.js` | REPORT | 363 of 387 questions carry at least one issue (332 with a wrong option that names no error, 101 thin option explanations, 1 vague reference, 1 missing gloss) |
+| `python3 cite_check.py` | NOT RUN | printed "NOT RUN: no lecture PDFs found under yen/ or the working directory." The decks are not in the repo |
+| `python3 coverage_check.py` | PASS | "no holes found against the stated scope" (24 topics ok); the scope is written into the script |
+| `python3 browser_test.py` | PASS | "Browser smoke test passed", 65 ok, 0 fail (Python Playwright from the venv) |
+| `python3 sw_test.py` | PASS | "Service worker test passed (20/20)" |
+
+Totals for the 8 check scripts: 6 PASS, 1 REPORT, 1 NOT RUN.
+Build reproducibility: the rebuilt `index.html` and `PHAR4342_Final_Drill.html` are
+byte-identical to the committed files (no tracked file changed).
+Exit codes: `cite_check.py` exits 0 when it does not run (`src/cite_check.py:171`,
+`185`), and `coverage_check.py` always exits 0 (`src/coverage_check.py:196`), so
+neither can stop a chained command; only their printed text shows the result.
+
+### 6.2 Basic-Pharmacokinetics- (`ac2eb73`, run from `src/`)
+
+| Check | Result | Output |
+|---|---|---|
+| `python3 build.py` | PASS | 37 sources parse; 8.78 MB written to the outputs path and the repo root |
+| `node test.js` | PASS | 829 questions; 40 of 40 marks drawable; "All checks passed" |
+| `node style_check.js` | PASS | all 829 stems clean |
+| `node render_test.js` | PASS | "Render smoke test passed" |
+| `node step_check.js` | PASS | 2468 lines parsed, 140 skipped; 525 final values checked; no arithmetic hits |
+| `node explain_check.js` | REPORT | 70 of 829 questions carry an issue (62 thin, 10 with no diagnosis) |
+| `node sources_check.js` | PASS, name scan skipped | the name list `decks/private_names.txt` is gitignored and not on hand |
+| `python3 cite_check.py` | SKIP | "SKIP: no lecture PDFs found under decks or ." |
+| `python3 browser_test.py` | PASS | 75 ok, 0 fail |
+| `python3 problemset_test.py` | PASS | 11 ok |
+| `python3 equation_test.py` | PASS | 33 ok |
+| `python3 review_test.py` | PASS | 213 ok |
+| `python3 stepper_test.py` | PASS | 231 ok |
+| `python3 sweep_test.py` | PASS | 236 ok |
+| `python3 sheets_test.py` (after `gen/sheets.py`: 140 PDFs, 0 reprinted) | PASS, name scan skipped | also reports 185 parts worded differently from `STYLE.md` and 4 quizzes with no Drive original, as reports |
+| `python3 ink_test.py` | PASS | 100 ok |
+| `python3 modcolor_test.py` | PASS | 8 ok |
+| `python3 notes_test.py` | PASS | 36 ok |
+| `python3 place_test.py` | PASS | 24 ok |
+| `python3 var_test.py` | PASS | 22 ok |
+| `python3 walk_test.py` | PASS | 475 ok |
+| `python3 weak_test.py` | PASS | 28 ok |
+| `python3 why_test.py` | PASS | 34 ok |
+| `node rewrite_check.js <file>` over 23 committed files | FAIL on 8 files | 40 passages exceed its limits (paragraph 320, bullet 240, explanation 340 characters): 16 in `guide.js`, 11 in `q7_module6.js`, 13 in six other files. Its header says it checks a rewrite against the committed version, and neither README lists it, so this measures committed text against the rewrite limits; it is not a gate that broke |
+| `node guide_check.js` | NOT RUN | needs a rewritten-guide fragment as input; none in the repo |
+| `node tell_check.js` | NOT RUN | needs a tell-apart fragment as input; none in the repo |
+
+Totals for the 25 check scripts: 20 PASS (two with their name scan skipped),
+1 REPORT, 1 SKIP, 1 FAIL, 2 NOT RUN.
+Five further `verify_q*.py` scripts: `verify_q3.py`, `verify_q4_module4.py` and
+`verify_q5_module5.py` PASS; `verify_q1_module1.py` and `verify_q2_module2.py`
+FAIL before checking anything ("OSError: [Errno 7] Argument list too long"),
+because each passes its whole question file as one argument to `node -e`
+(`verify_q1_module1.py:12`). The files are 147,043 and 135,861 bytes; this
+container refuses a single argument of 131,072 bytes and accepts 131,071
+(tested), so both scripts stopped working once the banks grew past that size.
+Build reproducibility: only the build stamp changed (`BUILD_AT` in
+`PHAR4221_Drill.html` and `version.json`, 1 line each).
+
+### 6.3 Intro-Pharmacology- (`85c220f`, run from `exam1-drill/src/`)
+
+| Check | Result | Output |
+|---|---|---|
+| `python3 build.py` | PASS | antidotes (7 pages) built; 76 sources parse; 13,485 KB written |
+| `node test.js` | PASS | 2742 questions; "passed (0 failures, 0 warnings)" |
+| `node style_check.js` | PASS | "passed (0 failures)" |
+| `node stepper_test.js` | PASS | 43 step-throughs, 0 problems |
+| `NODE_PATH=$(npm root -g) node browser_test.js` | PASS | answered 40 quiz items (3 select-all) and an exam of 50 |
+| `node daily/glitch.js` (site served locally) | PASS | "no issues" at 390 and 1200 px; the script has no `process.exit`, so it exits 0 whatever it finds |
+| simulated-student review (`daily/STUDENT.md`) | NOT RUN | it needs AI "students" to sit the paper; no script runs it |
+| light/dark sweep (`share/PORTING.md` §4) | NOT RUN | no script in the repo |
+| `cite_check`, `explain_check`, `coverage_check` | NOT RUN | not built for this course (`claude/drill-app-state.md`, top section) |
+
+Totals for the 4 check scripts plus `glitch.js`: 5 PASS.
+Build reproducibility: only the `BUILD_INFO` line changed (id, time, commit), in
+`exam1-drill/PHAR4344_Exam1_Drill.html`, `exam1-drill/version.json` and `index.html`,
+1 line each; no generated source file changed.
+
+### 6.4 BDK (`340a396`, run from the repo root)
+
+| Check | Result | Output |
+|---|---|---|
+| `python3 tools/build.py pages.json pages_prior.json out/` | NOT RUN | `FileNotFoundError: ... 'pages.json'`; its inputs come from `tools/extract.py` run on the BDK PDFs, which are not in the repo |
+| `node --check assets/app.js` | PASS | inside each `run-all.sh` call |
+| `tests/run-all.sh data` | PASS | 14 pass, 0 fail |
+| `tests/run-all.sh ui` | PASS | 21 pass, 0 fail |
+| `tests/run-all.sh refresh` | PASS | 11 pass, 0 fail, including "version.json matches APP_VERSION" |
+| `tests/run-all.sh cram` | PASS | 13 pass, 0 fail |
+| `tests/run-all.sh regression` | PASS | 18 pass, 0 fail; answered 3510 of 3510 questions |
+
+Totals for the 5 suites: 5 PASS; the deck build NOT RUN. Each suite ran on its
+own; the five were not run together in one `run-all.sh` call.
+Build reproducibility: not checked, because the deck build could not run; the
+app itself has no build step.
+
+### 6.5 Device lint (capability 5): regex lookbehind in the shipped pages
+
+| Drill | Occurrences | Where | Form |
+|---|---|---|---|
+| MC | 0 | — | — |
+| PK | 4 on 3 lines | `src/views.js:1087` (`askSentence`, variables quiz, added in `f013ced`), `4937` (`whySentences`, set-up reasoning, `0f266e5`), `5796` (`gwSents`, guide walkthroughs, `bc8321d`) | regex literals in the page script |
+| PH | 1 | `exam1-drill/src/app.js:2377` (`drLane`) | regex literal in the page script |
+| BDK | 2 | `assets/app.js:295` (`maskNames`, single-fact questions), `655` (`loadGlossary`) | strings passed to `new RegExp` |
+
+PK's notes say older Safari rejects lookbehind, which is why `db37384` removed it.
+What follows comes from reading the code and from the JavaScript rule that an
+invalid regex literal is a syntax error for the whole script; it was not run,
+because there is no WebKit here. In a browser that rejects lookbehind, PK's and
+PH's page script would fail to parse, so the drill would not start. BDK's
+patterns are built at run time: `maskNames` runs during start-up, and its error
+would reach the `.catch` at `assets/app.js:2493`, which shows "The decks could not
+be loaded"; the glossary error is discarded by the `.catch` at `assets/app.js:2491`,
+so tap-to-define would be missing.
 
 ## 7. Brief §10 findings: status after this phase
 
@@ -191,16 +328,16 @@ Pending. The check suites were running in scratch clones when this commit was ma
 | MC: 12 sources named in `src/README.md` not in the repo | Confirmed: none of the 12 is in any commit on any branch | `git log --all -- src/<name>` |
 | MC: three missing SKILL.md steps fixed in `4a32dad`, `ed38dbd` | Confirmed: both commits exist and touch the files named | `git show --stat` |
 | MC: `main` unprotected | NOT VERIFIED this session: the repo was not attached, so the GitHub API was not available | MC notes §5 |
-| PK: SKILL.md names 7 checks, the repo runs 25 | 7 confirmed (v2 lines 152-157); 25 check scripts present on `main` (15 `*_test.py`, 7 `*_check.js`, `cite_check.py`, `test.js`, `render_test.js`); results in §6 | `ls src` |
+| PK: SKILL.md names 7 checks, the repo runs 25 | Confirmed: 7 in v2 (lines 152-157); 25 check scripts on `main` (15 `*_test.py`, 7 `*_check.js`, `cite_check.py`, `test.js`, `render_test.js`); results in §6.2 | `ls src` |
 | PK: `ingest.py` never used | Confirmed: no commit on any branch contains it | `git log --all -- src/ingest.py ingest.py` |
-| PK: lookbehind returned in three places | see §6 | |
-| PK: README count stale | Confirmed: `README.md:14` says 620 questions; PK notes count 829 in the build | |
+| PK: lookbehind returned in three places | Confirmed: `src/views.js:1087`, `4937`, `5796` | §6.5 |
+| PK: README count stale | Confirmed: `README.md:14` says 620 questions; `test.js` counts 829 in the build (§6.2) | |
 | PH: installed SKILL.md is not the share draft | Confirmed: 245 vs 317 lines | |
 | PH: scripts SKILL.md names do not exist | Confirmed: no commit on any branch has `ingest.py`, `harvest.py`, `render_test.js`, `explain_check.js`, `cite_check.py`, `coverage_check.py` or `browser_test.py` in `exam1-drill/src/` | `git log --all -- exam1-drill/src/<name>` |
 | PH: state doc last updated 2026-09-28 | Confirmed: header reads "Updated 2026-09-28" (`claude/drill-app-state.md:3`) while entries run to 10-30 | |
 | PH: Exam 4 has no question count | Confirmed: `questions:null` at `exam1-drill/src/course.js:101` | |
 | BDK: skill never invoked | Not checkable from git; BDK notes cite the transcript | |
-| BDK: 10/30 review had no write access and reported success | Not checkable from git; consistent with `reviews/LOG.md`, whose last entry is 2026-10-28 | |
+| BDK: 10/30 review had no write access and reported success | Partly sourced: BDK notes §2 say the run had no write access, did no review, and its report asked for write permission; they do not say the task was marked succeeded, and that is not checkable from git. `reviews/LOG.md`'s last entry is 2026-10-28 | |
 | BDK: ID1 Organism check neither done nor reported | Not checkable from git; BDK notes §3 | |
 | BDK: "Louis" in five files | Confirmed, plus `claude/drill-notes.md` since `47fc231` | §3.6 |
 
@@ -257,9 +394,9 @@ No learning-science research was done in this phase, so nothing below rests on i
    like: one script in `core/checks/`. Cost: small. Risk: none to content.
 2. **WebKit in CI.** A GitHub Actions workflow that runs the browser test in
    Playwright's WebKit on every push. Why: this container has Chromium only (§6),
-   and three of the four drills hit faults that only Safari shows or that phones
-   show (PK lookbehind three times; BDK iPhone hover `80738a4`; PH tap targets
-   `d1df52f`). Cost: Actions minutes per push. Risk: Playwright's WebKit is not the
+   three of the four drills ship regex lookbehind today (§6.5), and earlier faults
+   showed only on Safari or on phones (BDK iPhone hover `80738a4`; PH tap targets
+   `d1df52f`). A static lint for lookbehind can run now, in every container. Cost: Actions minutes per push. Risk: Playwright's WebKit is not the
    same build as iOS Safari, so a pass does not prove an iPhone pass.
 3. **A negative control for every check.** Each check ships with an input it must
    reject, and the suite fails if that input passes. Why: MC's three checks that
@@ -267,3 +404,10 @@ No learning-science research was done in this phase, so nothing below rests on i
    until its colours changed. Cost: one fixture per check.
 4. **Shared-origin rule as a check.** A check that fails when a service worker
    deletes caches outside its own prefix. Why: §4, BDK `sw.js:8-9`. Cost: small.
+5. **Exit codes that a chain can trust.** Every check exits 0 on pass, 1 on fail
+   and a separate code for NOT RUN or SKIP. Why: MC's `cite_check.py` and
+   `coverage_check.py` exit 0 whatever they find (§6.1), so the `&&` chain in v1
+   lines 120-122, which runs both, carries on past a NOT RUN or a coverage hole;
+   PH's `glitch.js` also exits 0 whatever it finds (§6.3), so a scheduled run
+   cannot tell from the exit code that it found a glitch. Cost: a few lines per
+   script.

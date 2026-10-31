@@ -241,7 +241,7 @@ Proposed shared suite, each check taken from the drill named:
 | `sw_test` | medchem (`ed38dbd`) | offline open, network-first, update offer, prefix-scoped cleanup |
 | `place_test` | PK (`fb39200`) | reload returns to the same place |
 | browser test | pharmacology `browser_test.js` (Node) or PK `browser_test.py` | answers questions through the real controls; denies `localStorage` |
-| new: device lint | none exists | fails on regex lookbehind and other syntax older Safari rejects |
+| new: device lint | none exists | fails on regex lookbehind and other syntax older Safari rejects; PK, PH and BDK ship lookbehind today (`findings.md` §6.5) |
 | new: WebKit run | none exists | the browser test in WebKit (capability 5) |
 | new: state freshness | none exists | `CLAUDE.md` updated after the newest lecture (brief §7.8) |
 
@@ -251,8 +251,16 @@ RUN (medchem `cite_check.py` crashed on a missing `pdfplumber` at
 (medchem `claude/drill-checks.md`, quoted in the corrected notes §2.8-2.10);
 each new check is shown to fail once on a known-bad input (PK `041274d` body).
 
-Which browser test to keep depends on the runs in `findings.md` §6: this
-container has Node Playwright installed and no Python Playwright.
+Browser test: all three ran and passed (`findings.md` §6): MC `browser_test.py`
+(65 ok) and PK `browser_test.py` (75 ok) needed Python Playwright installed into a
+venv first; PH `browser_test.js` ran on the Node Playwright this container already
+has. **Proposal:** the Node harness as core, because it needs no install step in a
+cloud session, with PK's cases (every question answered through the real
+controls, `localStorage` denied) ported into it.
+
+Exit codes: a check exits 0 on pass, 1 on fail, and a separate code for NOT RUN
+or SKIP. MC `cite_check.py` and `coverage_check.py` and PH `daily/glitch.js` exit
+0 whatever they find (`findings.md` §6.1, §6.3).
 
 ## 8. Pages setup and delivery
 

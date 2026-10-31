@@ -416,7 +416,7 @@ Versions:
   v2  2026-10-07  from PK (`164ac5a`; sheet print layout `33789e3` 2026-10-27)   best for: equation sheets   weaker at: not evaluated   current/
 Evidence: Louis asked that reordered factors count as right while order still matters in some equations (PK notes §1, from session memory).
 Used by: PK (v2)
-Known issues: none open.
+Known issues: the set-up reasoning's `whySentences` uses regex lookbehind (`src/views.js:4937`, added in `0f266e5`).
 Test: `src/equation_test.py`, `src/review_test.py` (two Letter pages) (PK).
 
 ## wrong-number-diagnosis
@@ -465,7 +465,7 @@ Versions:
   v1  2026-10-27  from PK (`f013ced`)   best for: kinetics symbols   weaker at: not evaluated   current/
 Evidence: Louis's request (PK notes §1).
 Used by: PK (v1)
-Known issues: none recorded.
+Known issues: `askSentence` uses regex lookbehind (`src/views.js:1087`, added in `f013ced`).
 Test: `src/var_test.py` (PK).
 
 ---
@@ -562,7 +562,7 @@ Versions:
   v2  2026-10-26  from PK (`bc8321d`; concept-first rewrite `71ce449`)   best for: concept-first explanation of formulas   weaker at: not evaluated   current/
 Evidence: Louis asked for PK's to be built the way PH built its walkthroughs (PK notes §1).
 Used by: PH (v1), PK (v2)
-Known issues: separate code in PH and PK; PH Exam 4 walkthroughs unrecorded pending approval of the cost (PH notes §5).
+Known issues: separate code in PH and PK; PH Exam 4 walkthroughs unrecorded pending approval of the cost (PH notes §5); PK's `gwSents` uses regex lookbehind (`src/views.js:5796`, added in `bc8321d`), which older Safari rejects.
 Test: `src/walk_test.py` (PK).
 
 ## break-clip
@@ -643,7 +643,7 @@ Versions:
   v1  2026-10-25  from BDK (`71da38b`; merges `e362e6a` 2026-10-27)   best for: drug-list facts   weaker at: not evaluated   current/
 Evidence: Louis approved the formulations (BDK notes §4, 2026-10-25).
 Used by: BDK (v1)
-Known issues: 16 questions named their own answer before masking (fixed `71da38b`).
+Known issues: 16 questions named their own answer before masking (fixed `71da38b`); `maskNames` builds a lookbehind pattern at run time (`assets/app.js:295`), and in a browser that rejects it the decks would not load (`findings.md` §6.5).
 Test: `tests/data.js`, `tests/regression.js` (BDK).
 
 ## glossary
@@ -657,7 +657,7 @@ Versions:
   v3  2026-10-22  from BDK (`bf91dc0`, `data/glossary.json`)   best for: drug-list terms   weaker at: not evaluated   current/
 Evidence: Louis asked for tap-to-define (BDK notes §4).
 Used by: MC (v1), PH (v2), BDK (v3)
-Known issues: BDK's MedlinePlus link points outside the course material; decision 3 bars outside content from questions, explanations and tables, and a link is not covered by its wording. **Decision for Louis.**
+Known issues: BDK's MedlinePlus link points outside the course material; decision 3 bars outside content from questions, explanations and tables, and a link is not covered by its wording. **Decision for Louis.** BDK's `loadGlossary` builds a lookbehind pattern (`assets/app.js:655`); where that is rejected, tap-to-define would be missing.
 Test: `explain_check.js` `WEIGHTY` table (MC, PK).
 
 ## table-recall-drill
