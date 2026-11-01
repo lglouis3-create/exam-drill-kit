@@ -241,7 +241,32 @@ const TOPICS = /*__TOPICS__*/[];"""
 if old not in shell:
     sys.exit('ERROR: data placeholder block not found in shell.html')
 shell = shell.replace(old, DATA)
-n_q = sum(len(re.findall(r"(?m)^\s*\{id:'", open(f, encoding='utf-8').read())) for f in DATA_FILES if f.startswith('q'))
+
+
+def bank_size(data):
+    """QUESTIONS.length and TOPICS.length, from course.js and the data files run
+    in node in the order the page runs them, so the count the page shows is the
+    number of questions it holds. (Counting `{id:'` lines in the question files
+    also counted the TOPICS entries: 551 for Medicinal-chemistry's 479.)"""
+    with tempfile.NamedTemporaryFile('w', suffix='.js', delete=False, encoding='utf-8') as t:
+        t.write(course_src + '\n' + data + '\n;JSON.stringify({questions: QUESTIONS.length, topics: TOPICS.length});\n')
+        tmp = t.name
+    js = ("const vm=require('vm'),fs=require('fs');const sb={console};vm.createContext(sb);"
+          "process.stdout.write(String(vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),sb,{filename:'data'})))")
+    try:
+        r = subprocess.run(['node', '-e', js, tmp], capture_output=True, text=True)
+    finally:
+        os.unlink(tmp)
+    if r.returncode != 0:
+        sys.exit('ERROR: course.js and the data files did not run in node, so the questions cannot be counted\n'
+                 + (r.stderr or r.stdout).strip()[-1500:])
+    return json.loads(r.stdout)
+
+
+BANK = bank_size(DATA)
+n_q = BANK['questions']
+print(f'  {n_q} questions in {BANK["topics"]} topics, from {len(QUESTION_FILES)} question file'
+      f'{"" if len(QUESTION_FILES) == 1 else "s"}: {", ".join(QUESTION_FILES)}')
 now = datetime.datetime.now(datetime.timezone.utc)
 stamp = now.astimezone(zoneinfo.ZoneInfo('America/Chicago')).strftime('%Y-%m-%d %H:%M CT')
 # `built` is the same moment in UTC, written so that a later build sorts after

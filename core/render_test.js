@@ -51,11 +51,17 @@ X.renderDiagrams();      ok &= check('diagrams', sinks['#v-diagrams'].innerHTML)
 console.log('         figures registered: ' + Object.keys(X.DIA).length +
             ', step-throughs: ' + Object.keys(X.DIA).filter(k => /data-anim/.test(X.DIA[k])).length);
 X.renderSettings();      ok &= check('settings', sinks['#v-settings'].innerHTML);
+// the question count Settings shows is the number of questions in the page
+const said = (sinks['#v-settings'].innerHTML.match(/· (\d+) questions ·/) || [])[1];
+const countOk = Number(said) === X.QUESTIONS.length;
+console.log(`  ${countOk ? 'ok  ' : 'FAIL'}  settings says ${said === undefined ? 'no' : said} questions; the page holds ${X.QUESTIONS.length}`);
 X.beginExam();           ok &= check('exam paper', sinks['#v-exam'].innerHTML);
 console.log('         exam question count: '+X.EXref().qs.length);
 // verify an image actually embeds
 const withImg = X.QUESTIONS.filter(q=>q.img).length;
 console.log(`         ${withImg} questions carry an image`);
-console.log(ok?'\nRender smoke test passed\n':'\nRENDER PROBLEMS FOUND\n');
-console.log(ok?'PASS: render_test.js: every view rendered clean':'FAIL: render_test.js: a view rendered undefined, NaN, [object Object] or unbalanced markup');
-process.exit(ok?0:1);
+console.log(ok&&countOk?'\nRender smoke test passed\n':'\nRENDER PROBLEMS FOUND\n');
+console.log(!ok?'FAIL: render_test.js: a view rendered undefined, NaN, [object Object] or unbalanced markup'
+  :!countOk?`FAIL: render_test.js: Settings says ${said === undefined ? 'no' : said} questions; the page holds ${X.QUESTIONS.length}`
+  :'PASS: render_test.js: every view rendered clean');
+process.exit(ok&&countOk?0:1);

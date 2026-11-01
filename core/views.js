@@ -2104,7 +2104,7 @@ function renderSettings(){
     <ul style="margin:0 0 12px;padding-left:20px;font-size:14px">${c.items.map(t => `<li>${esc(t)}</li>`).join('')}</ul>`).join('')}
     <p class="meta" style="margin:0">Every update to this drill is listed here, newest first.</p></div>` : ''}
 
-  <p class="sub" style="margin-top:18px">Build ${esc(BUILD.stamp || '')} · ${BUILD.questions || QUESTIONS.length} questions · ${BUILD.images || Object.keys(IMAGES).length} figures · ${esc(COURSE.title)}</p>
+  <p class="sub" style="margin-top:18px">Build ${esc(BUILD.stamp || '')} · ${QUESTIONS.length} questions · ${BUILD.images || Object.keys(IMAGES).length} figures · ${esc(COURSE.title)}</p>
   <div class="note" style="margin-top:20px">
     <b>Sharing this with classmates.</b> Each person's history lives in their own browser on their own
     device, so nobody can see anyone else's. On a shared computer, use the Switch button at the top

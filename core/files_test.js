@@ -92,6 +92,7 @@ fs.rmSync(plain.repo, {recursive: true, force: true});
         ownIds.every(id => after.ids.includes(id)) && ['zfiles0', 'zfiles1'].every(id => after.ids.includes(id)),
     `after build.py is copied from the core, the page holds every question of the ${nq} listed question files (${(after.ids || []).length} = ${ownIds.length} + ${EXTRA.length})`,
     after.error || `${(after.ids || []).length} questions, want ${ownIds.length + EXTRA.length}`);
+  check(after.built === (after.ids || []).length, `the page's question count says ${after.built}, the number of questions it holds`, `${after.built} vs ${(after.ids || []).length}`);
   const bpy = fs.readFileSync(path.join(src, 'build.py'), 'utf8');
   check(!EXTRA.some(f => bpy.includes(f)), 'build.py names none of the course\'s question files: the list is the course\'s');
   const lf = listFiles(src);

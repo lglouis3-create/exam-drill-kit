@@ -39,6 +39,9 @@ const warn = m => { console.log('  warn  ' + m); warns++; };
 
 console.log('\n=== 1. Question bank integrity ===');
 console.log(`  ${QUESTIONS.length} questions, ${TOPICS.length} topics, ${Object.keys(IMAGES).length} images`);
+// the count the build writes into the page (Settings shows it) is the number of questions
+if (X.BUILD.questions !== QUESTIONS.length) bad(`the build's question count is ${X.BUILD.questions}, but the page holds ${QUESTIONS.length} questions`);
+else console.log(`  ok    the build's question count equals QUESTIONS.length (${QUESTIONS.length})`);
 
 const ids = new Set();
 const topicIds = new Set(TOPICS.map(t=>t.id));
