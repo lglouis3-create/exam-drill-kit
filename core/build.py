@@ -21,20 +21,20 @@ os.chdir(HERE)
 # that name still opens the drill.
 OUTPUT_NAME = 'index.html'
 
-# The data files, in the order they are concatenated into the page. TOPICS is
-# declared at the top of the first question file, so it has to precede the
-# other question files; atlas.js precedes any question file that draws on it.
-DATA_FILES = ['atlas.js', 'diagrams.js',
-              'q1_topics.js']          # add each new question file here, in order
-
-# Everything that has to parse before a build is allowed to proceed. Derived
-# from DATA_FILES rather than listed again, so adding a question file cannot
-# leave it syntax-checked in one place and unchecked in the other.
-SOURCES = ['course.js'] + DATA_FILES + ['glossary.js', 'links.js', 'reference.js', 'tell.js', 'guide.js', 'views.js']
-# Every source file that ends up on the student's device. device_lint.js reads
-# this list (python3 build.py --list-sources) rather than keeping its own copy.
-# sw.js is not part of the page; the build fills it in and writes it beside it.
-SHIPPED = SOURCES + ['shell.html', 'sw.js']
+# The course's data files, in the order they are concatenated into the page,
+# are listed in course.js `files`, which belongs to the course: a core update
+# copies this file over the course's build.py and never touches course.js, so
+# the list cannot be lost in an update. TOPICS and QUESTIONS are declared at
+# the top of the first question file, so it precedes the other question files;
+# atlas.js precedes any question file that draws on it. A course.js without
+# `files` gets the template's list below. Question files are named
+# q<N>_<topic>.js; a file of that form in src/ that is not in the list stops
+# the build, because its questions would silently be left out of the page.
+DEFAULT_FILES = ['atlas.js', 'diagrams.js', 'q1_topics.js']
+QUESTION_FILE = re.compile(r'q[0-9][A-Za-z0-9._-]*\.js')
+# The sources every course has, after the data files; they cannot be listed in
+# `files` as well, or they would be put into the page twice.
+FIXED_SOURCES = ['glossary.js', 'links.js', 'reference.js', 'tell.js', 'guide.js', 'views.js']
 
 # The home-screen and install icons. A course supplies its own as PNG files
 # under src/icons/ with these names; any it does not supply is written as a
@@ -43,9 +43,6 @@ SHIPPED = SOURCES + ['shell.html', 'sw.js']
 ICONS = [('icon-192.png', 192), ('icon-512.png', 512), ('icon-maskable-512.png', 512),
          ('apple-touch-icon.png', 180)]
 ACCENT = (0x2F, 0x5F, 0xA8)
-if '--list-sources' in sys.argv:
-    print(json.dumps(SHIPPED))
-    sys.exit(0)
 
 # `python3 build.py --preview` builds the same page into preview/ under the
 # repository root, which Pages serves at <site>/preview/, so a design change or a
@@ -88,10 +85,12 @@ def node_check(path, label):
 def course_fields():
     """The COURSE fields the build itself needs, from course.js evaluated by
     node, so the file is read the way the page reads it whatever its quoting."""
+    node_check('course.js', 'course.js')
     js = ("const fs=require('fs');"
           "const C=new Function(fs.readFileSync('course.js','utf8')+';return COURSE;')();"
           "process.stdout.write(JSON.stringify({title:C.title,short:C.short,ns:C.ns,output:C.output,"
-          "oldCachePrefix:C.oldCachePrefix||''}))")
+          "oldCachePrefix:C.oldCachePrefix||'',files:C.files===undefined?null:C.files,"
+          "manifest:C.manifest===undefined?null:C.manifest}))")
     r = subprocess.run(['node', '-e', js], capture_output=True, text=True)
     if r.returncode != 0:
         sys.exit('ERROR: course.js could not be evaluated\n' + (r.stderr or r.stdout).strip())
@@ -99,6 +98,81 @@ def course_fields():
     if not c.get('ns'):
         sys.exit('ERROR: course.js has no `ns`; storage and the offline cache are named from it')
     return c
+
+
+def data_files(c):
+    """The data files in build order: course.js `files`, or DEFAULT_FILES when
+    the field is absent. Stops the build on a list that would leave questions
+    out of the page or put a file in twice."""
+    files = c.get('files')
+    given = files is not None
+    if not given:
+        files = list(DEFAULT_FILES)
+    where = 'course.js `files`' if given else f'the default file list {DEFAULT_FILES} (course.js has no `files`)'
+    if not isinstance(files, list) or not files or not all(isinstance(f, str) for f in files):
+        sys.exit('ERROR: course.js `files` must be a non-empty list of file names, in build order')
+    bad = [f for f in files if not re.fullmatch(r'[A-Za-z0-9._-]+\.js', f)]
+    if bad:
+        sys.exit(f'ERROR: {where} names {bad}: each entry is a .js file name in src/, with no folder')
+    twice = sorted({f for f in files if files.count(f) > 1})
+    if twice:
+        sys.exit(f'ERROR: {where} lists {twice} more than once')
+    fixed = [f for f in files if f in ['course.js', 'sw.js'] + FIXED_SOURCES]
+    if fixed:
+        sys.exit(f'ERROR: {where} lists {fixed}, which the build already includes; list only the data files')
+    missing = [f for f in files if not os.path.isfile(f)]
+    if missing:
+        sys.exit(f'ERROR: {where} lists {missing}, which are not in src/')
+    if not any(QUESTION_FILE.fullmatch(f) for f in files):
+        sys.exit(f'ERROR: {where} lists no question file (q<N>_<topic>.js); the first one declares TOPICS and QUESTIONS')
+    unlisted = sorted((f for f in os.listdir('.') if QUESTION_FILE.fullmatch(f) and f not in files),
+                      key=lambda f: [int(t) if t.isdigit() else t for t in re.split(r'(\d+)', f)])
+    if unlisted:
+        sys.exit(f'ERROR: {unlisted} {"is" if len(unlisted) == 1 else "are"} in src/ but not in {where}, so '
+                 f'{"its" if len(unlisted) == 1 else "their"} questions would be left out of the page; '
+                 'list every question file in course.js `files`, in build order')
+    return files
+
+
+def manifest_extra(c):
+    """course.js `manifest`: the two optional web-manifest members a course had
+    in its own manifest before the core (Medicinal-chemistry's: description and
+    orientation). orientation takes the values the Web Application Manifest
+    names for it. Checked before anything is written."""
+    extra = c.get('manifest')
+    if extra is None:
+        return {}
+    if not isinstance(extra, dict) or set(extra) - {'description', 'orientation'}:
+        sys.exit('ERROR: course.js `manifest` takes only `description` and `orientation`')
+    if 'description' in extra and not (isinstance(extra['description'], str) and extra['description'].strip()):
+        sys.exit('ERROR: course.js `manifest.description` must be a non-empty string')
+    if 'orientation' in extra and extra['orientation'] not in ORIENTATIONS:
+        sys.exit(f"ERROR: course.js `manifest.orientation` is {extra['orientation']!r}; it must be one of {ORIENTATIONS}")
+    return extra
+
+
+ORIENTATIONS = ['any', 'natural', 'landscape', 'portrait', 'portrait-primary', 'portrait-secondary',
+                'landscape-primary', 'landscape-secondary']
+COURSE_FIELDS = course_fields()
+DATA_FILES = data_files(COURSE_FIELDS)
+MANIFEST_EXTRA = manifest_extra(COURSE_FIELDS)
+QUESTION_FILES = [f for f in DATA_FILES if QUESTION_FILE.fullmatch(f)]
+# Everything that has to parse before a build is allowed to proceed. Derived
+# from DATA_FILES rather than listed again, so adding a question file cannot
+# leave it syntax-checked in one place and unchecked in the other.
+SOURCES = ['course.js'] + DATA_FILES + FIXED_SOURCES
+# Every source file that ends up on the student's device. device_lint.js reads
+# this list (python3 build.py --list-sources) rather than keeping its own copy.
+# sw.js is not part of the page; the build fills it in and writes it beside it.
+SHIPPED = SOURCES + ['shell.html', 'sw.js']
+if '--list-sources' in sys.argv:
+    print(json.dumps(SHIPPED))
+    sys.exit(0)
+# The data files and, of those, the question files, in build order, for the
+# checks that need them (scheduler_test.js, browser_test.js, files_test.js).
+if '--list-files' in sys.argv:
+    print(json.dumps({'files': DATA_FILES, 'questions': QUESTION_FILES}))
+    sys.exit(0)
 
 
 def plain_png(size, rgb):
@@ -156,7 +230,6 @@ print('checking sources...')
 for f in SOURCES + ['sw.js']:
     node_check(f, f)
 print(f'  {len(SOURCES)} sources and sw.js parse cleanly')
-COURSE_FIELDS = course_fields()
 
 shell = scheduler_library(open('shell.html', encoding='utf-8').read())
 images = json.load(open('images.json'))
@@ -189,7 +262,32 @@ const TOPICS = /*__TOPICS__*/[];"""
 if old not in shell:
     sys.exit('ERROR: data placeholder block not found in shell.html')
 shell = shell.replace(old, DATA)
-n_q = sum(len(re.findall(r"(?m)^\s*\{id:'", open(f, encoding='utf-8').read())) for f in DATA_FILES if f.startswith('q'))
+
+
+def bank_size(data):
+    """QUESTIONS.length and TOPICS.length, from course.js and the data files run
+    in node in the order the page runs them, so the count the page shows is the
+    number of questions it holds. (Counting `{id:'` lines in the question files
+    also counted the TOPICS entries: 551 for Medicinal-chemistry's 479.)"""
+    with tempfile.NamedTemporaryFile('w', suffix='.js', delete=False, encoding='utf-8') as t:
+        t.write(course_src + '\n' + data + '\n;JSON.stringify({questions: QUESTIONS.length, topics: TOPICS.length});\n')
+        tmp = t.name
+    js = ("const vm=require('vm'),fs=require('fs');const sb={console};vm.createContext(sb);"
+          "process.stdout.write(String(vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),sb,{filename:'data'})))")
+    try:
+        r = subprocess.run(['node', '-e', js, tmp], capture_output=True, text=True)
+    finally:
+        os.unlink(tmp)
+    if r.returncode != 0:
+        sys.exit('ERROR: course.js and the data files did not run in node, so the questions cannot be counted\n'
+                 + (r.stderr or r.stdout).strip()[-1500:])
+    return json.loads(r.stdout)
+
+
+BANK = bank_size(DATA)
+n_q = BANK['questions']
+print(f'  {n_q} questions in {BANK["topics"]} topics, from {len(QUESTION_FILES)} question file'
+      f'{"" if len(QUESTION_FILES) == 1 else "s"}: {", ".join(QUESTION_FILES)}')
 now = datetime.datetime.now(datetime.timezone.utc)
 stamp = now.astimezone(zoneinfo.ZoneInfo('America/Chicago')).strftime('%Y-%m-%d %H:%M CT')
 # `built` is the same moment in UTC, written so that a later build sorts after
@@ -295,15 +393,19 @@ for name, size in ICONS:
 if placeholders:
     print(f'  note: placeholder icons (a plain square) for {", ".join(placeholders)}; '
           'put the course\'s own PNGs under src/icons/ to replace them')
-write_root('manifest.json', json.dumps({
-    'name': COURSE_FIELDS.get('title') or 'Exam drill',
-    'short_name': COURSE_FIELDS.get('short') or COURSE_FIELDS.get('title') or 'Drill',
-    'start_url': './index.html', 'scope': './', 'display': 'standalone',
-    'background_color': '#F2F4F7', 'theme_color': '#2F5FA8',
-    'icons': [{'src': './icon-192.png', 'sizes': '192x192', 'type': 'image/png'},
-              {'src': './icon-512.png', 'sizes': '512x512', 'type': 'image/png'},
-              {'src': './icon-maskable-512.png', 'sizes': '512x512', 'type': 'image/png', 'purpose': 'maskable'}],
-}, ensure_ascii=False, indent=1) + '\n')
+extra = MANIFEST_EXTRA
+man = {'name': COURSE_FIELDS.get('title') or 'Exam drill',
+       'short_name': COURSE_FIELDS.get('short') or COURSE_FIELDS.get('title') or 'Drill'}
+if 'description' in extra:
+    man['description'] = extra['description']
+man.update({'start_url': './index.html', 'scope': './', 'display': 'standalone'})
+if 'orientation' in extra:
+    man['orientation'] = extra['orientation']
+man.update({'background_color': '#F2F4F7', 'theme_color': '#2F5FA8',
+            'icons': [{'src': './icon-192.png', 'sizes': '192x192', 'type': 'image/png'},
+                      {'src': './icon-512.png', 'sizes': '512x512', 'type': 'image/png'},
+                      {'src': './icon-maskable-512.png', 'sizes': '512x512', 'type': 'image/png', 'purpose': 'maskable'}]})
+write_root('manifest.json', json.dumps(man, ensure_ascii=False, indent=1) + '\n')
 print('wrote manifest.json and the icons')
 
 # The worker's cache names start with the course's storage namespace, so its

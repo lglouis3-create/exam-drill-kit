@@ -1789,6 +1789,7 @@ function showExplain(group, key){
   if(!out) return null;
   const t = key && document.querySelector(`template[data-x="${group}:${key}"]`);
   out.innerHTML = t ? t.innerHTML : '';
+  boxTables(out);
   if(sel) sel.value = key || '';
   return out;
 }
@@ -1830,7 +1831,7 @@ function xBack(target){
    shown inside a question appears here too, which is where a reader goes to
    work through a process without being asked anything. */
 const DIA_LIST = () => (typeof DIAGRAMS !== 'undefined' ? DIAGRAMS : [])
-  .map(([name, keys]) => [name, keys.filter(k => DIA && DIA[k])])
+  .map(([name, keys]) => [name, keys.filter(k => typeof DIA !== 'undefined' && DIA[k])])
   .filter(([, keys]) => keys.length);
 function renderDiagrams(){
   const el = $('#v-diagrams');
@@ -1890,7 +1891,7 @@ function refFigures(html){
              `<figcaption>${c}</figcaption></figure>`;
     })
     // a figure drawn in diagrams.js, step-through controls and all
-    .replace(/<!--DIA:([\w-]+)-->/g, (_, key) => (DIA && DIA[key]) ? DIA[key] : '');
+    .replace(/<!--DIA:([\w-]+)-->/g, (_, key) => (typeof DIA !== 'undefined' && DIA[key]) ? DIA[key] : '');
 }
 
 /* ==========================================================================
@@ -2009,6 +2010,7 @@ function renderDoc(el, html, prefix){
         `<a href="#${h.id}">${esc(h.label)}</a>`).join('')}</nav></details>`
     : '';
   el.innerHTML = body.replace('</p>', '</p>' + nav);
+  boxTables(el);
   // anchor links inside a scrolling panel need handling rather than a page jump,
   // and the target has to clear the sticky header and nav
   el.querySelectorAll('.refnav a').forEach(a => a.onclick = e => {
@@ -2016,6 +2018,22 @@ function renderDoc(el, html, prefix){
     const t = el.querySelector(a.getAttribute('href'));
     const d = el.querySelector('.refnav-wrap'); if (d) d.open = false;
     scrollToEl(t);
+  });
+}
+/* A table wider than the screen (a phone, most often) scrolls sideways inside
+   a box of its own (.tscroll in shell.html), so the page itself never scrolls
+   sideways. The table, its rows and their order are as written; only the box
+   is added around it. The table's top and bottom margins move to the box: a
+   scrolling box keeps its children's margins inside, so left on the table they
+   would no longer collapse with the heading after it and the tab would grow. */
+function boxTables(root){
+  root.querySelectorAll('table').forEach(t => {
+    if(t.parentElement && t.parentElement.classList.contains('tscroll')) return;
+    const box = document.createElement('div'), cs = getComputedStyle(t);
+    box.className = 'tscroll';
+    box.style.marginTop = cs.marginTop; box.style.marginBottom = cs.marginBottom;
+    t.before(box); box.appendChild(t);
+    t.style.marginTop = '0'; t.style.marginBottom = '0';
   });
 }
 function renderRef(){ renderDoc($('#v-ref'), refFigures(REFERENCE_HTML), 'ref'); }
@@ -2104,7 +2122,7 @@ function renderSettings(){
     <ul style="margin:0 0 12px;padding-left:20px;font-size:14px">${c.items.map(t => `<li>${esc(t)}</li>`).join('')}</ul>`).join('')}
     <p class="meta" style="margin:0">Every update to this drill is listed here, newest first.</p></div>` : ''}
 
-  <p class="sub" style="margin-top:18px">Build ${esc(BUILD.stamp || '')} · ${BUILD.questions || QUESTIONS.length} questions · ${BUILD.images || Object.keys(IMAGES).length} figures · ${esc(COURSE.title)}</p>
+  <p class="sub" style="margin-top:18px">Build ${esc(BUILD.stamp || '')} · ${QUESTIONS.length} questions · ${BUILD.images || Object.keys(IMAGES).length} figures · ${esc(COURSE.title)}</p>
   <div class="note" style="margin-top:20px">
     <b>Sharing this with classmates.</b> Each person's history lives in their own browser on their own
     device, so nobody can see anyone else's. On a shared computer, use the Switch button at the top

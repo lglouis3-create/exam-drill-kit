@@ -13,16 +13,22 @@
  *
  *     node browser_test.js
  */
-const fs = require('fs');
+const fs = require('fs'), child = require('child_process');
 const L = require('./check_lib');
 const NAME = 'browser_test.js';
 L.PAGE.need(NAME);
 const URL_ = 'file://' + L.PAGE.PAGE;
 const {check, skip} = L;
 
-// Every question file, found rather than listed, so a new one is picked up here
-// the moment it is built into the page instead of quietly going uncounted.
-const QSRC = fs.readdirSync('.').filter(f => /^q[0-9].*\.js$/.test(f)).sort();
+// Every question file, from course.js `files` as build.py reads it (the build
+// itself stops when a q<N>_*.js file in src/ is missing from that list), so a
+// new one is counted here the moment it is built into the page.
+function questionFiles(){
+  const r = child.spawnSync('python3', ['build.py', '--list-files'], {cwd: L.PAGE.SRC, encoding: 'utf8'});
+  try { const q = JSON.parse(r.stdout).questions; if(Array.isArray(q) && q.length) return q; } catch(e){}
+  console.log('FAIL: browser_test.js: build.py --list-files named no question file: ' + ((r.stderr || r.stdout || '').trim().split('\n').pop() || 'no output'));
+  process.exit(1);
+}
 // A question object opens at column 0 and carries a prof field; the TOPICS
 // entries in the first question file are indented and have no prof, so they are not counted.
 const QRE = /^\{id:'[^']+',(?: *(?:lowYield|dupOf|skill|type):[^,]+,)* *prof:'/gm;
@@ -30,7 +36,7 @@ const QRE = /^\{id:'[^']+',(?: *(?:lowYield|dupOf|skill|type):[^,]+,)* *prof:'/g
 /* How many questions and images the sources hold, so the page can be compared
    against them instead of against a number written here. */
 function sourceCounts(){
-  const n = QSRC.reduce((s, f) => s + (fs.readFileSync(f, 'utf8').match(QRE) || []).length, 0);
+  const n = questionFiles().reduce((s, f) => s + (fs.readFileSync(f, 'utf8').match(QRE) || []).length, 0);
   if(!n){ console.log('FAIL: browser_test.js: counted no questions in the sources — the count pattern is wrong'); process.exit(1); }
   return [n, Object.keys(JSON.parse(fs.readFileSync('images.json', 'utf8'))).length];
 }
@@ -699,6 +705,42 @@ function sourceCounts(){
   }
   check(!errors.length, 'no uncaught error after interaction', errors.slice(0, 2).join('; '));
 
+  // ---- wide tables and long chips in the reading tabs, on a phone ----
+  // A table wider than the screen scrolls sideways inside its own box
+  // (boxTables in views.js, .tscroll in shell.html) and the page does not; a
+  // jump-list chip longer than the screen wraps. A table built here, wider
+  // than any phone, is checked on every course; the course's own wide tables
+  // are checked when it has any.
+  async function phoneTables(p, tabs){
+    const boxed = () => [...document.querySelectorAll('main > section:not(.hide) table')]
+      .filter(t => t.getBoundingClientRect().width > innerWidth).map(t => {
+        const box = t.parentElement, r = box.getBoundingClientRect();
+        const inBox = box.classList.contains('tscroll') && r.right <= innerWidth + 1 && box.scrollWidth > box.clientWidth + 2;
+        if(inBox){ box.scrollLeft = 60; }
+        const moved = inBox && box.scrollLeft > 0 && scrollX === 0 && document.documentElement.scrollWidth - innerWidth <= 2;
+        if(inBox) box.scrollLeft = 0;
+        return {ok: !!moved, table: Math.round(t.getBoundingClientRect().width), box: Math.round(r.width)};
+      });
+    const own = [], chips = [];
+    for(const v of ['guide', 'tell', 'ref'].filter(v => tabs.includes(v))){
+      own.push(...(await p.evaluate(([v, f]) => { show(v); return eval(f)(); }, [v, '(' + boxed + ')'])).map(x => Object.assign({v}, x)));
+      chips.push(...await p.evaluate(v => { const d = document.querySelector(`#v-${v} .refnav-wrap`); if(!d) return [];
+        d.open = true; const out = [...d.querySelectorAll('.refnav a')].filter(a => a.getBoundingClientRect().right > innerWidth + 1)
+          .map(a => `${v}: ${a.textContent.slice(0, 40)}`); d.open = false; return out; }, v));
+    }
+    const planted = await p.evaluate(f => {
+      show('ref');
+      const cells = Array.from({length: 8}, (_, i) => `<td style="white-space:nowrap">Column ${i + 1} of a test table built by browser_test.js</td>`).join('');
+      renderDoc(document.getElementById('v-ref'), `<p>Test table.</p><table class="reftab"><tr>${cells}</tr></table>`, 'ref');
+      const r = eval(f)(); show('ref'); return r;
+    }, '(' + boxed + ')');
+    check(planted.length === 1 && planted[0].ok, `a table wider than the screen scrolls inside its own box and the page does not (${planted[0] ? planted[0].table + ' px table, ' + planted[0].box + ' px wide around it' : 'no wide table'})`, planted);
+    if(!own.length) skip('the course\'s own tables wider than the screen', 'none in this bank at 375 px');
+    else check(own.every(x => x.ok), `each of the course's ${own.length} reading-tab tables wider than the screen scrolls inside its own box`,
+      own.filter(x => !x.ok).slice(0, 3));
+    check(!chips.length, 'every jump-list chip in the reading tabs fits on the phone screen', chips.slice(0, 3).join(' | '));
+  }
+
   // ---- every tab, on a phone and on a desktop, light and dark --------
   // Three faults live only here: a page that scrolls sideways on a phone,
   // a value that renders as "undefined" or "NaN" in one view only, and a
@@ -724,6 +766,7 @@ function sourceCounts(){
       }
       check(!wide.length, `no sideways scroll on ${label} (${scheme})`, wide.join(', '));
       check(!worst.length, `no undefined or NaN on screen on ${label} (${scheme})`, worst.slice(0, 4).join(', '));
+      if(label === 'phone' && scheme === 'light') await phoneTables(p2, tabs);
       check(!errs2.length, `no page error on ${label} (${scheme})`, errs2.slice(0, 2).join('; '));
       await p2.close();
     }

@@ -3,6 +3,26 @@
 Dated kit changes, newest first.
 
 ## 2026-11-01
+- `core/`: the site opens straight to the drill and never asks for a name on its own
+  (Louis): with no name stored it opens the saved progress used most recently, else a
+  profile named "me"; the Switch button still asks. `storage_test.js` and `test.js`
+  check it.
+- `core/`: fixes found moving Medicinal-chemistry onto the core. The data files are
+  listed in `course.js` `files` instead of `build.py` (copying the `9f2f2a4` `build.py`
+  over Medicinal-chemistry's left 39 of its 479 questions in the page, with no error), and
+  the build stops on a question file the list leaves out; `build.py --list-files`. The
+  page's question count is `QUESTIONS.length` (it said 13 for the template's 7 and 551
+  for Medicinal-chemistry's 479). `scheduler_test.js` finds the first question file from
+  the list; `test.js` and `render_test.js` run without a `DIAGRAMS` list; the offline,
+  old-cache and preview tests run on a course with its own `oldCachePrefix` and a large
+  page; `update_test.js` pauses its fake clock (its 15-minute check failed in 4 of 20 runs
+  on Medicinal-chemistry, then in 0 of 20 on each course); the comparison's arms are
+  hashed with `COURSE.ns`, the same in a preview; `course.js` `manifest` gives the web
+  manifest `description` and `orientation`; wide tables in the reading tabs scroll in
+  their own box on a phone (approved by Louis). New check `files_test.js`. With these,
+  `run_checks.sh` on a template scratch course: 21 PASS, 0 FAIL, 1 NOT RUN, 1 REPORT; on a
+  scratch copy of Medicinal-chemistry's `kit/move-to-core`: 20 PASS, 0 FAIL, 2 NOT RUN,
+  1 REPORT.
 - `core/`: `course.js` `oldCachePrefix` for a drill that had its own service worker
   before the core (Medicinal-chemistry: `phar4342-drill-`); the worker deletes those
   caches and no other; `oldcache_test.js`.

@@ -13,13 +13,14 @@ catch (e) { console.error('FAIL: ' + e.message); process.exit(1); }
 const store = {};
 const el = () => ({ innerHTML:'', textContent:'', classList:{toggle(){},add(){},remove(){},contains(){return false}},
                     setAttribute(){}, querySelectorAll(){return []}, onclick:null, dataset:{}, style:{}, click(){} });
+let PROMPTS = 0;   // the page must never ask for a name on its own
 const sandbox = {
   console,
   localStorage:{ getItem:k=>(k in store?store[k]:null), setItem:(k,v)=>{store[k]=String(v)}, removeItem:k=>{delete store[k]} },
   document:{ querySelector:el, querySelectorAll:()=>[], getElementById:el, createElement:el, body:el(),
              addEventListener(){} },   // the page delegates clicks and changes from document
   window:{ scrollTo(){} },
-  prompt:()=> 'TestUser',
+  prompt:()=> { PROMPTS++; return 'TestUser'; },
   alert:()=>{}, confirm:()=>true,
   setTimeout:(f)=>{ f(); return 0; }, clearTimeout(){}, setInterval:()=>0, clearInterval(){},
   Blob:function(){}, URL:{createObjectURL:()=>'', revokeObjectURL(){}}, FileReader:function(){},
@@ -27,7 +28,9 @@ const sandbox = {
 };
 sandbox.globalThis = sandbox;
 vm.createContext(sandbox);
-code += "\nglobalThis.__X={QUESTIONS,TOPICS,IMAGES,COURSE,EXAM,DIA,DIAGRAMS,READ_LINKS,BUILD,record,pickNext,st,score,drawN,drawMixed,drawPaper,drawBlueprint,bpCat,EXAM_SATA,askProfile,markGuessed,markShaky,isMulti,gradeMulti,correctSet,gradeNumeric,lecOf,skillOf,linksFor,sessionLog,solidEntry,getDB:()=>DB};\n";
+// DIA, DIAGRAMS and READ_LINKS are optional: a course without drawn figures or
+// read links may leave them out (views.js reads them the same way).
+code += "\nglobalThis.__X={QUESTIONS,TOPICS,IMAGES,COURSE,EXAM,DIA:typeof DIA!=='undefined'?DIA:{},DIAGRAMS:typeof DIAGRAMS!=='undefined'?DIAGRAMS:[],READ_LINKS:typeof READ_LINKS!=='undefined'?READ_LINKS:{},BUILD,record,pickNext,st,score,drawN,drawMixed,drawPaper,drawBlueprint,bpCat,EXAM_SATA,askProfile,markGuessed,markShaky,isMulti,gradeMulti,correctSet,gradeNumeric,lecOf,skillOf,linksFor,sessionLog,solidEntry,getDB:()=>DB};\n";
 try { vm.runInContext(code, sandbox); }
 catch (e) { console.error('FAIL: script threw at load — ' + e.message + '\n' + e.stack); process.exit(1); }
 
@@ -39,6 +42,9 @@ const warn = m => { console.log('  warn  ' + m); warns++; };
 
 console.log('\n=== 1. Question bank integrity ===');
 console.log(`  ${QUESTIONS.length} questions, ${TOPICS.length} topics, ${Object.keys(IMAGES).length} images`);
+// the count the build writes into the page (Settings shows it) is the number of questions
+if (X.BUILD.questions !== QUESTIONS.length) bad(`the build's question count is ${X.BUILD.questions}, but the page holds ${QUESTIONS.length} questions`);
+else console.log(`  ok    the build's question count equals QUESTIONS.length (${QUESTIONS.length})`);
 
 const ids = new Set();
 const topicIds = new Set(TOPICS.map(t=>t.id));
@@ -246,8 +252,10 @@ else console.log('  ok    the paper carries the intended number of select-all it
 
 console.log('\n=== 6. Storage isolation ===');
 const keys = Object.keys(store);
-if (!keys.some(k=>k.includes('TestUser'))) bad('profile-namespaced key not written');
-else console.log(`  ok    progress written under namespaced key: ${keys.find(k=>k.includes('TestUser'))}`);
+if (!keys.some(k=>/:data:./.test(k))) bad('profile-namespaced key not written');
+else console.log(`  ok    progress written under namespaced key: ${keys.find(k=>/:data:./.test(k))}`);
+if (PROMPTS) bad(`the page asked for a name on its own (${PROMPTS} prompt${PROMPTS > 1 ? 's' : ''}); it must open straight to the drill`);
+else console.log('  ok    the page opened without asking for a name');
 
 
 

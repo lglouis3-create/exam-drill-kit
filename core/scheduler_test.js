@@ -3,8 +3,10 @@
  *
  * Each part builds its own copy of this source tree (check_lib scratchRepo):
  * course.js gets a few lines appended (the scheduler setting, test lectures,
- * test exams) and q1_topics.js gets a test topic with concepts that have more
- * than one question each, which the sample bank does not. The course's own
+ * test exams) and the course's first question file (the first q<N>_*.js in
+ * course.js `files`, from build.py --list-files) gets a test topic with
+ * concepts that have more than one question each, which the sample bank does
+ * not. The course's own
  * files are not changed. The days below are fixed dates read by a fake clock
  * (Playwright page.clock), so nothing depends on today's date.
  *
@@ -44,14 +46,22 @@ COURSE.lectures.push({id:'ZS1', deck:'ZS-L1.pdf', label:'Test lecture 1', prof:C
                      {id:'ZS2', deck:'ZS-L2.pdf', label:'Test lecture 2', prof:COURSE.professors[0], exam:99, module:'ZS'});
 `;
 
+/* The course's first question file, which declares TOPICS and QUESTIONS:
+   the first question file in course.js `files`, as build.py reads it. */
+function firstQuestionFile(src){
+  const r = child.spawnSync('python3', ['build.py', '--list-files'], {cwd: src, encoding: 'utf8'});
+  try { const q = JSON.parse(r.stdout).questions[0]; if(q) return {file: q}; } catch(e){}
+  return {error: 'build.py --list-files named no question file: ' + ((r.stderr || r.stdout || '').trim().split('\n').pop() || 'no output')};
+}
 /* A scratch copy of this source tree with course.js and the first question
    file extended, built; returns the page's path or the build's last line. */
 function variant(label, courseExtra){
   const repo = L.scratchRepo(L.PAGE.SRC, 'sched-' + label);
   const src = path.join(repo, 'src');
-  if(!fs.existsSync(path.join(src, 'q1_topics.js'))) return {error: 'no q1_topics.js to add the test topic to'};
+  const first = firstQuestionFile(src);
+  if(first.error) return first;
   fs.appendFileSync(path.join(src, 'course.js'), '\n' + COURSE_BASE + (courseExtra || '') + '\n');
-  fs.appendFileSync(path.join(src, 'q1_topics.js'), '\n' + QEXTRA + '\n');
+  fs.appendFileSync(path.join(src, first.file), '\n' + QEXTRA + '\n');
   const b = child.spawnSync('python3', ['build.py'], {cwd: src, encoding: 'utf8'});
   if(b.status !== 0) return {error: ((b.stderr || '') + (b.stdout || '')).trim().split('\n').pop()};
   return {repo, page: path.join(repo, 'index.html'), out: b.stdout};
@@ -618,7 +628,7 @@ COURSE.exams.push({id:'zsA', name:'Test exam', date:'12 Nov', when:'2026-11-12T0
       // ---- the comparison
       ({ctx, page: p, errors} = await open(browser, cmp.page, T0));
       const fnv = id => { let h = 0x811c9dc5; for(let i = 0; i < id.length; i++){ h ^= id.charCodeAt(i); h = Math.imul(h, 0x01000193); } return h >>> 0; };
-      const ns = await p.evaluate(() => typeof NS !== 'undefined' ? NS : '');
+      const ns = await p.evaluate(() => typeof COURSE !== 'undefined' ? COURSE.ns : '');
       const ids = ['c1', 'c2', 'c3', 'c4', 'c5'];
       const hashArm = c => (fnv(c + '|' + ns) >>> 31) ? 'concept-fsrs' : 'concept';
       const arms0 = await p.evaluate(ids => ids.map(c => typeof armOf === 'function' ? armOf(c) : null), ids);
@@ -640,6 +650,20 @@ COURSE.exams.push({id:'zsA', name:'Test exam', date:'12 Nov', when:'2026-11-12T0
       await p.reload(); await p.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
       const arms1 = await p.evaluate(ids => ids.map(c => typeof armOf === 'function' ? armOf(c) : null), ids);
       check(arms1[0] === arms0[0] && arms1[1] === flip && arms1.slice(2).join() === arms0.slice(2).join(), 'after a reload every concept keeps its arm; a stored one wins over the hash', arms1);
+      // a preview build keeps its progress under <ns>-preview; the arms are hashed with the course's ns, so they are the same there
+      const pv = child.spawnSync('python3', ['build.py', '--preview'], {cwd: path.join(cmp.repo, 'src'), encoding: 'utf8'});
+      if(pv.status !== 0) check(false, 'the comparison course builds a preview', (pv.stderr || pv.stdout).trim().split('\n').pop());
+      else {
+        const many = ids.concat(Array.from({length: 2000}, (_, i) => 'concept-' + i));
+        const liveArms = await p.evaluate(ids => ids.map(c => armHash(c)), many);
+        const P = await open(browser, path.join(cmp.repo, 'preview', 'index.html'), T0);
+        const pvNs = await P.page.evaluate(() => NS);
+        const pvArms = await P.page.evaluate(ids => ids.map(c => typeof armOf === 'function' ? armOf(c) : null), many);
+        const differ = many.filter((c, i) => pvArms[i] !== liveArms[i]);
+        check(pvNs === ns + '-preview' && !differ.length,
+          `in the preview (namespace ${pvNs}) every concept is in the arm the live page gives it (${many.length - differ.length} of ${many.length} the same)`, differ.slice(0, 5));
+        await P.ctx.close();
+      }
 
       // a session on the test topic with c1, c3 on the combination and c2, c4, c5 on the concept scheduler
       const sess = await p.evaluate(() => { try {

@@ -77,7 +77,12 @@ async function sameLine(page, before, label){
     page.on('pageerror', e => errors.push(e.message));
     page.on('console', m => { if(m.type() === 'error' && !/Failed to load resource/.test(m.text())) errors.push(m.text()); });
     page.on('dialog', d => d.accept());
-    if(opts && opts.clock) await page.clock.install();
+    // Playwright's fake clock, once installed, also runs on with real time; paused,
+    // it moves only in runFor. The 15-minute check counts on that: running on, the
+    // test's own waits (600 + 500 + 800 ms) and the load of a large page used up all
+    // but 7 to 22 ms of its 2000 ms margin on Medicinal-chemistry (6.86 MB), and in
+    // 4 of 20 runs the 15-minute check came before the "not before" one did.
+    if(opts && opts.clock){ await page.clock.install(); await page.clock.pauseAt(Date.now() + 1000); }
     await page.goto(URL_);
     await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3);
     await page.waitForTimeout(600);
@@ -112,11 +117,14 @@ async function sameLine(page, before, label){
     }
     {
       const {ctx, page, errors} = await openSite(1200, {clock: true});
+      const t0 = await page.evaluate(() => performance.now());
       await page.clock.runFor(6000);              // the check made 5 s after load finds nothing new
       await page.waitForTimeout(500);
       newer();
       await page.clock.runFor(15 * 60000 - 6000 - 2000);
       await page.waitForTimeout(800);
+      const moved = Math.round(await page.evaluate(() => performance.now()) - t0);
+      check(moved === 15 * 60000 - 2000, `the page's clock moved only by the test's own steps (${moved} ms; 898000 wanted, 2 s before the 15-minute check)`);
       check(!(await offered(page)), 'with the tab left open, nothing is offered before 15 minutes');
       await page.clock.runFor(3000);
       let bar = null;

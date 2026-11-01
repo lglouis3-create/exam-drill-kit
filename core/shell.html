@@ -365,12 +365,19 @@ body.swbar-on{padding-bottom:76px}
 .refnav-wrap[open] summary::before{content:"\25BE  "}
 .refnav{display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:4px 14px 14px}
 .refnav a{font-size:12.5px;padding:4px 9px;border:1px solid var(--line);border-radius:999px;
-  background:var(--paper);color:var(--text);text-decoration:none;white-space:nowrap}
+  background:var(--paper);color:var(--text);text-decoration:none;max-width:100%}
 .refnav a:hover{background:var(--line-soft)}
 .reffig{margin:0 0 20px;padding:0}
 .reffig img{width:100%;max-width:760px;display:block;border:1px solid var(--line-soft);border-radius:6px;background:#fff}
 .reffig figcaption{font-size:12.5px;color:var(--text-dim);margin-top:6px}
 #v-ref h3{scroll-margin-top:12px}
+/* Wide tables and long unbroken text in the reading tabs, on a narrow screen:
+   a table sits in a box of its own (boxTables in views.js) that scrolls
+   sideways when the table is wider than the screen, so the page never does;
+   a word or link longer than its line breaks instead of running off it, and a
+   jump-list chip (.refnav a) longer than the line wraps. */
+.tscroll{overflow-x:auto;max-width:100%}
+#v-guide,#v-tell,#v-ref{overflow-wrap:break-word}
 input[type=text]{font:inherit;padding:8px 11px;border:1px solid var(--line);border-radius:7px;background:var(--paper);color:var(--text)}
 .kbd{font:12px ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:1px 5px}
 
@@ -510,7 +517,8 @@ body:has(#backbtn) #xback{bottom:64px}
 /*__COURSE__*/
 /* stamp: when this file was built, as shown. built: the same moment in UTC,
    compared with version.json to tell whether a newer build is published.
-   changelog: CHANGELOG.md parsed into [{date, items:[…]}], newest first, which
+   questions: QUESTIONS.length as the build counted it (test.js checks they
+   agree); images: the number of slide crops in images.json. changelog: CHANGELOG.md parsed into [{date, items:[…]}], newest first, which
    the Topics page shows as "What's new" since this browser last marked an
    entry seen, and Settings shows whole. preview: true in a page built with
    `build.py --preview`, which is served at /preview/ beside the live drill. */
@@ -759,13 +767,36 @@ function save(){
     store.set(keyFor(PROFILE), JSON.stringify(DB));
   },150);
 }
+/* Which profile opens when no choice is stored: the one with saved progress used
+   most recently (by its last answer, else when it was created), else 'me'. The
+   site opens straight to the drill and never asks for a name on its own (Louis,
+   2026-11-01); the Switch button at the top still asks, for a shared browser. */
+function pickProfile(){
+  const pre = NS + ':data:';
+  let best = '', bestAt = -1;
+  try {
+    for(let i = 0; i < localStorage.length; i++){
+      const k = localStorage.key(i);
+      if(!k || !k.startsWith(pre) || k.length === pre.length) continue;
+      let at = 0;
+      try {
+        const d = JSON.parse(localStorage.getItem(k)) || {};
+        const a = Array.isArray(d.answers) ? d.answers : [];
+        at = a.length ? (Number(a[a.length - 1].at) || 0) : (Number(d.created) || 0);
+      } catch(e){ /* unreadable save: still a profile, ranked last */ }
+      if(at > bestAt){ best = k.slice(pre.length); bestAt = at; }
+    }
+  } catch(e){ /* storage unreadable: the default profile */ }
+  return best || 'me';
+}
 function askProfile(force){
   // A save still waiting on its timer belongs to the profile on screen now. It
   // is written before the switch; left to fire later, it would write the next
   // profile's progress and drop this one's last answer.
   if(saveTimer && PROFILE){ clearTimeout(saveTimer); saveTimer = null; store.set(keyFor(PROFILE), JSON.stringify(DB)); }
   let n = PROFILE;
-  if(force || !n){
+  if(!force && !n) n = pickProfile();
+  if(force){
     n = (prompt(
       'Your name or initials.\n\n'+
       'This keeps your progress separate from anyone else using this same browser. '+
@@ -823,8 +854,11 @@ const SCHED = (() => {
    what counts from then on. Design choices: the top bit, since FNV-1a's low
    bit is only the parity of the characters; the concept id first, since
    the top bit hardly depends on the last characters hashed, so with the
-   ns last, ids that differ only at the end (c1, c2, ...) still split. */
-const armHash = concept => (parseInt(cardCode(concept + '|' + NS), 16) >>> 31) ? 'concept-fsrs' : 'concept';
+   ns last, ids that differ only at the end (c1, c2, ...) still split.
+   The ns hashed is the course's own (COURSE.ns), not the storage namespace
+   NS, which is <ns>-preview in a preview build: a concept is in the same arm
+   in the preview and on the live page. */
+const armHash = concept => (parseInt(cardCode(concept + '|' + COURSE.ns), 16) >>> 31) ? 'concept-fsrs' : 'concept';
 const armOf = concept => SCHED.model !== 'concept-fsrs' ? SCHED.model
   : !SCHED.compare ? 'concept-fsrs'
   : (DB.arms && DB.arms[concept]) || armHash(concept);
