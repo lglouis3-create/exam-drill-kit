@@ -44,7 +44,11 @@ after Phase 1 and overrides earlier sections where they differ.
   BDK about 33 (quizzes still on 11/17-11/19 and 11/30), Intro to Pharmacology about
   42 (its last exam Mon 11/2, 8:30-10:30 am CT). Louis's decision for Pharmacokinetics:
   no move now; its Tier 1 features are ported into the kit now and its Tier 2 features
-  one per night (`review/port-queue.md`, scheduled task "Kit feature port").
+  one per night (`review/port-queue.md`, scheduled task "Kit feature port"). Tier 1
+  (feature modules, `formulas-in-text`, fair number grading via `course.js` `numeric`,
+  calculations on exam papers via `exams[].typed`, `chained-problem-sets`,
+  `equation-drill`, `wrong-number-diagnosis`) is in kit pull request #6. Start-up safety
+  fix merged in #5.
 - **Phase 3 (test) and Phase 4 (install): not started.**
 
 ## Rules for kit sessions
