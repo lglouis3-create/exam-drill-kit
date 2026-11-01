@@ -13,7 +13,7 @@
  *     tap, kept across a reload), the question type (its card, its grader, the
  *     answer recorded), the step after an answer (it sees the kept entry), the
  *     pass after the engine draws a view, a reading tab's HTML before it is
- *     drawn, the Settings section, the start-up step
+ *     drawn, a new exam paper, the Settings section, the start-up step
  *     (once, after the progress is loaded), the progress converter (on a saved
  *     progress and on Import), the build step's output, and FX.api;
  *   - a module that throws while it loads is skipped and the rest of the page
@@ -70,6 +70,7 @@ X.after((q, result, picked, mode, entry) => {
 });
 X.rendered((pane, view) => { seen.rendered[view] = (seen.rendered[view] || 0) + 1; });
 X.reading(html => html + '<p id="probeRead">probe reading</p>');
+X.paper(qs => { seen.paper = qs.map(q => q.id); return qs.slice().reverse(); });
 X.settings({title: 'Probe settings', html: () => '<p><button class="chip" id="probeSet">probe setting</button></p>',
             wire: el => { el.querySelector('#probeSet').onclick = () => { seen.setting = true; }; }});
 X.start(() => { seen.start++; seen.startDB = !!(DB && DB.answers); });
@@ -159,8 +160,8 @@ const ALL = {'fx-probe': {version: 'v1', word: 'zz-word'}, 'fx-probe-throws': {v
     const st = await page.evaluate(() => ({mods: FX.modules(), errors: FX.errors.slice(), wrapped: FX.wrapped.slice(),
       nav: [...document.querySelectorAll('#nav button')].map(b => b.dataset.v), probe: window.__probe,
       api: FX.api('fx-probe') && FX.api('fx-probe').hello(), apiOff: FX.api('fx-probe-throws')}));
-    check(['show', 'renderQuiz', 'record', 'renderSettings', 'refFigures', 'load', 'upgradeDB'].every(w => st.wrapped.includes(w)),
-          'the hooks attach to show, renderQuiz, record, renderSettings, refFigures, load and upgradeDB', st.wrapped.join(', '));
+    check(['show', 'renderQuiz', 'record', 'renderSettings', 'refFigures', 'drawPaper', 'load', 'upgradeDB'].every(w => st.wrapped.includes(w)),
+          'the hooks attach to show, renderQuiz, record, renderSettings, refFigures, drawPaper, load and upgradeDB', st.wrapped.join(', '));
     const probes = st.mods.map(m => m.name).filter(n => n.startsWith('fx-probe'));
     check(probes.join(',') === 'fx-probe,fx-probe-throws,fx-probe-badtab',
           'the modules load in course order, a module after the ones it needs (the course\'s own modules first)', st.mods.map(m => m.name).join(','));
@@ -205,6 +206,11 @@ const ALL = {'fx-probe': {version: 'v1', word: 'zz-word'}, 'fx-probe-throws': {v
           'the keyed pick is graded right');
     const rendered = await page.evaluate(() => window.__probe.rendered);
     check(rendered.quiz > 0 && rendered.topics > 0 && rendered.probe > 0, 'the pass after the engine draws ran on Topics, Quiz and the tab', rendered);
+
+    // an exam paper
+    const paper = await page.evaluate(() => ({got: drawPaper().map(q => q.id), seen: window.__probe.paper}));
+    check(paper.seen && paper.seen.length && JSON.stringify(paper.got) === JSON.stringify(paper.seen.slice().reverse()),
+          'the paper hook gets a new paper\'s questions in order and what it returns is the paper', paper);
 
     // a reading tab's HTML
     await page.click('#nav button[data-v="ref"]');

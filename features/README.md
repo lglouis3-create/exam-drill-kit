@@ -93,14 +93,15 @@ On `X`, the handle a module gets (`core/features.js` holds the code and the same
 | `X.after(fn(q, result, picked, mode, entry))` | after every recorded answer (quiz, sweep, exam); `entry` is the answer as kept in the progress (`DB.answers`), so a module can add a field to it |
 | `X.rendered(fn(pane, view))` | after the engine draws into a view's pane, once per batch of changes |
 | `X.reading(fn(html))` | the HTML of a reading tab (Guides, Tell apart, Reference) before it is drawn; returns the HTML to draw |
+| `X.paper(fn(qs))` | the questions of a new exam paper, in order, before it starts; returns the same questions, in the order to ask them |
 | `X.settings({title, html(), wire(el)})` | a section at the end of Settings |
 | `X.start(fn())` | once, after the first progress load |
 | `X.progress(fn(db))` | on every saved progress read in (page load, profile switch, Import), before the engine uses it: a converter for answers saved in an older shape |
 | `X.api(object)` | what the module offers other modules, read with `FX.api('<name>')` |
 
 The engine functions these attach to are wrapped in `features.js` and nowhere else:
-`show`, `renderQuiz`, `renderSettings` and `refFigures` (`views.js`), `record`, `load`
-and `upgradeDB` (`shell.html`). Each wrapper calls the engine's own function and adds the
+`show`, `renderQuiz`, `renderSettings`, `refFigures` and `drawPaper` (`views.js`), `record`,
+`load` and `upgradeDB` (`shell.html`). Each wrapper calls the engine's own function and adds the
 module's part before or after it, so the engine's own code is unchanged. If one of
 them cannot be wrapped (renamed in a later core), the page still runs, the hooks that
 need it are missing, `FX.errors` says which, and `features_test.js` fails.

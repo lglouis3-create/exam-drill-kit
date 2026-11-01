@@ -215,7 +215,8 @@ console.log(`  drew ${paper.length}`);
 if (paper.length !== EXAMQ) bad(`exam paper is ${paper.length} questions, expected ${EXAMQ}`);
 if (new Set(paper.map(q=>q.id)).size !== paper.length) bad('duplicate questions on one exam paper');
 else console.log('  ok    no duplicate questions on a single paper');
-if (paper.some(q => q.type)) bad('a typed (numeric or matching) item reached the paper');
+// with exams[].typed (exam_typed.js) numeric and matching items may be on the paper; nothing else typed is
+if (paper.some(q => q.type && !(X.EXAM.typed && (q.type === 'numeric' || q.type === 'match')))) bad(X.EXAM.typed ? 'an item of a type the exam paper cannot draw reached the paper' : 'a typed (numeric or matching) item reached the paper');
 // dupOf: every target exists, and 20 papers never carry a question with its dupOf partner or a lowYield item
 const allIds = new Set(QUESTIONS.map(q=>q.id));
 QUESTIONS.filter(q=>q.dupOf && !allIds.has(q.dupOf)).forEach(q=>bad(`${q.id} dupOf points at missing ${q.dupOf}`));

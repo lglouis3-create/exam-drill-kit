@@ -28,6 +28,8 @@
      X.rendered(fn(pane, view))  after the engine draws into a view's pane
      X.reading(fn(html))      the HTML of a reading tab (Guides, Tell apart,
                               Reference) before it is drawn; returns the HTML
+     X.paper(fn(qs))          the questions of a new exam paper, in order,
+                              before it starts; returns them
      X.settings({title, html(), wire(el)})  a section at the end of Settings
      X.start(fn())            once, after the first progress load
      X.progress(fn(db))       on every saved progress read or imported, before
@@ -35,8 +37,8 @@
      X.api(object)            what the module offers other modules: FX.api(name)
 
    The engine functions these hooks attach to are wrapped here and nowhere
-   else: show, renderQuiz, renderSettings and refFigures (views.js), record,
-   load and upgradeDB (shell.html). Each stays the engine's own function: the
+   else: show, renderQuiz, renderSettings, refFigures and drawPaper
+   (views.js), record, load and upgradeDB (shell.html). Each stays the engine's own function: the
    wrapper calls it and adds the module's part before or after.
 
    A module that throws while it loads is not registered; a hook that throws
@@ -46,7 +48,7 @@
    ========================================================================== */
 const FX = (() => {
   const mods = {}, order = [], errors = [], apis = {};
-  const tabs = {}, types = {}, afters = [], renders = [], sections = [], starts = [], progs = [], readings = [];
+  const tabs = {}, types = {}, afters = [], renders = [], sections = [], starts = [], progs = [], readings = [], papers = [];
   let started = false, domDone = false;
   const on = n => !!(mods[n] && !mods[n].off);
   const note = (n, where, e) => {
@@ -80,6 +82,7 @@ const FX = (() => {
       after:    f => staged.push(() => afters.push({n: name, f})),
       rendered: f => staged.push(() => renders.push({n: name, f})),
       reading:  f => staged.push(() => readings.push({n: name, f})),
+      paper:    f => staged.push(() => papers.push({n: name, f})),
       settings: s => staged.push(() => sections.push(Object.assign({n: name}, s))),
       start:    f => staged.push(() => starts.push({n: name, f})),
       progress: f => staged.push(() => progs.push({n: name, f})),
@@ -171,6 +174,11 @@ const FX = (() => {
   wrap('refFigures', () => refFigures, f => { refFigures = f; }, orig => function(html){
     readings.forEach(r => { html = run(r.n, 'reading', () => { const out = r.f(html); if(typeof out !== 'string') throw new Error('X.reading must return the HTML'); return out; }, html); });
     return orig.call(this, html);
+  });
+  wrap('drawPaper', () => drawPaper, f => { drawPaper = f; }, orig => function(){
+    let qs = orig.apply(this, arguments);
+    papers.forEach(p => { qs = run(p.n, 'paper', () => { const out = p.f(qs.slice()); if(!Array.isArray(out) || out.length !== qs.length) throw new Error('X.paper must return the same questions'); return out; }, qs); });
+    return qs;
   });
   wrap('load', () => load, f => { load = f; }, orig => function(){
     const r = orig.apply(this, arguments);

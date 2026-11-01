@@ -3,6 +3,16 @@
 Dated kit changes, newest first.
 
 ## 2026-11-01
+- `core/`: an exam in `course.js` with `typed: true` (new, off unless set) puts
+  `exam_typed.js` in the page, and that exam's papers draw numeric and matching items by
+  the same rules as the rest (the engine's own draw, with their `type` set aside while it
+  runs); on the paper a calculation is typed and a matching item picked row by row, kept
+  through a reload, graded as in the quiz, recorded on submit and reviewed with the answer
+  and the working. New check `exam_typed_test.js` (17 checks pass; on the `d187207` core
+  4 pass, 5 fail, then it stops: no box to type the number). `test.js`, `browser_test.js`
+  and `history_test.js` answer a calculation or matching item when one is first on a paper.
+  Feature modules get one more hook, `X.paper`: a new paper's questions, in order, before
+  it starts (`features_test.js`: 40 checks).
 - `core/`: `course.js` `numeric` (new, off unless a course sets it) puts `numeric.js` in
   the page: a typed number is read with its unit after it (`2.6 hr`, `0.17 1/hr`,
   `0.17 hr-1`), two numbers are never joined into one, and with `numeric.margin` an item is

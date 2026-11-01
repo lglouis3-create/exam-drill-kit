@@ -36,7 +36,8 @@ that course's repository. Both folders come from the recovered exam-drill templa
 | `state_check_test.js` | core | `state_check.js` on repositories with known histories |
 | `oldcache_test.js` | core | `course.js` `oldCachePrefix`: an old worker's caches deleted, every other cache kept |
 | `scheduler_test.js` | core | the scheduler (`review/scheduler-proposal.md` §4-§5), with a fixed clock, on scratch builds with a test topic |
-| `features.js` | core | the hooks a feature module uses (tab, question type, step after an answer, pass after a view is drawn, reading-tab HTML, Settings section, start-up step, progress converter); in the page only when `course.js` `features` switches a module on |
+| `features.js` | core | the hooks a feature module uses (tab, question type, step after an answer, pass after a view is drawn, reading-tab HTML, a new exam paper, Settings section, start-up step, progress converter); in the page only when `course.js` `features` switches a module on |
+| `exam_typed.js`, `exam_typed_test.js` | core | `course.js` `exams[].typed`: numeric and matching items drawn onto that exam's papers, typed and picked there, graded and reviewed; in the page and run only when an exam sets it |
 | `numeric.js`, `numeric_test.js` | core | `course.js` `numeric`: a typed number read with its unit, never two numbers joined, graded to a course margin; in the page and run only when the course sets it |
 | `features_test.js` | core | feature modules: the build's refusals, every hook, a module that fails, and no change to a page with no module on; runs when a module is on |
 | `vendor/` | core | ts-fsrs 6.0.0's own UMD bundle and the licence texts of the code in it; `build.py` inlines them only for a course whose scheduler model needs FSRS |
@@ -89,8 +90,8 @@ feature modules existed, except the build stamp: on the template course, built f
 same sources by the kit at `d187207` and by this core, the two `index.html` files
 (240,996 bytes each) differ only in `BUILD.stamp` and `BUILD.built` (2026-11-01).
 
-`features.js` adds the hooks by wrapping seven engine functions (`show`, `renderQuiz`,
-`renderSettings`, `refFigures`, `record`, `load`, `upgradeDB`) and watching `main` for redrawn views
+`features.js` adds the hooks by wrapping eight engine functions (`show`, `renderQuiz`,
+`renderSettings`, `refFigures`, `drawPaper`, `record`, `load`, `upgradeDB`) and watching `main` for redrawn views
 (a `MutationObserver`), so neither `views.js` nor `shell.html` has a line for modules.
 A module that throws while it loads is skipped; a hook that throws switches its module
 off for the visit; the page carries on either way. `features_test.js` checks all of
@@ -521,6 +522,20 @@ marked `dupOf` it, and chains of those; it is named by the id at the end of the 
 original is not drawn or not in the bank (Intro-Pharmacology). One blocked set runs through
 every pool of a paper (Medicinal-chemistry `ed38dbd`), because a family can span pools;
 the draw by announced counts (`exams[].blueprint`) uses the same rule.
+
+**Calculations on a paper.** The draw keeps numeric and matching items off every paper
+(`!q.type` in `drawPaper` and `drawBlueprint`), so a course whose exam asks
+calculations could not practise them under the clock (Basic-Pharmacokinetics' Exam 3
+was 20 multiple choice and 20 fill in the blank: its `course.js` at `ac2eb73`). An exam
+with `typed: true` puts `exam_typed.js` into the page; that exam's papers then draw
+numeric and matching items by the same rules as every other item (pools, one per
+concept first, one wording per `dupOf` family, the select-all count): the engine's own
+draw runs, with those items' `type` set aside while it runs and put back after it, so a
+later fix to the draw applies to them too. On the paper a calculation is typed and a
+matching item is picked row by row; both are kept through a reload, graded as in the
+quiz (with `numeric`, to the course's margin), recorded on submit with what was typed
+and picked, and shown on the result page with the answer, the margin and the working or
+the pairs. Without `typed` the papers are as before. `exam_typed_test.js` checks it.
 
 ## Checks
 

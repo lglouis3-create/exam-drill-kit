@@ -24,6 +24,9 @@
                       an array meaning "one of". Pools' marks add up to `questions`.
                       `date` is the string shown in the header; add `when` (ISO)
                       and the page counts the days down to it.
+                      Optional `typed: true`: this exam's papers draw the
+                      numeric and matching items too (typed and picked on the
+                      paper); without it they stay off papers.
                       Optional `blueprint`: use it only when the professor has
                       announced counts per topic. See the commented example.
    activeExam         which exam the simulator and the weighted pass follow
