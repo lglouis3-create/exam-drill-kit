@@ -232,7 +232,8 @@ serves exactly what the `5014f27` core served (`scheduler_test.js`).
   and the rolldown runtime (MIT; `LICENSE` read from rolldown 1.2.16, the version that
   built the bundle is not recorded in it). All four licence texts are in `vendor/` and go
   into the page above the library. Inlined, library and licences are 203,801 bytes; the
-  sample course's page grows from 225,031 to 428,828 bytes. A course on the concept
+  sample course's page is 436,181 bytes with them and 232,384 without (it was 204,031 at
+  `5014f27`; the rest of the growth is the scheduler code and its comments). A course on the concept
   scheduler carries none of it.
 - *FSRS-7 by default.* The package README: "`DefaultScheduler()` uses FSRS-7 when
   `version` is omitted"; its CHANGELOG for 6.0.0: "It defaults to FSRS-7". The bundle's
