@@ -91,6 +91,12 @@
                       (the kit's features/README.md). The version pins it; only
                       Mode 7 changes it. Leave it out and the page has no
                       module code at all.
+   numeric            optional, for a course with typed calculations:
+                      {margin: 0.02} reads a typed number with its unit after
+                      it (2.6 hr, 0.17 1/hr), never joins two numbers, and
+                      grades an item within max(tol, margin x |key|). Leave it
+                      out and typed numbers are read and graded as before
+                      (core/README.md, Typed numbers).
    kit                {core:'<kit commit>'}: the exam-drill-kit commit this
                       src/ engine was copied from (core/), written when the
                       course is set up; only Mode 7 (a drill update) changes it

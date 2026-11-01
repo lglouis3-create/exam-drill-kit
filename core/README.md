@@ -37,6 +37,7 @@ that course's repository. Both folders come from the recovered exam-drill templa
 | `oldcache_test.js` | core | `course.js` `oldCachePrefix`: an old worker's caches deleted, every other cache kept |
 | `scheduler_test.js` | core | the scheduler (`review/scheduler-proposal.md` §4-§5), with a fixed clock, on scratch builds with a test topic |
 | `features.js` | core | the hooks a feature module uses (tab, question type, step after an answer, pass after a view is drawn, reading-tab HTML, Settings section, start-up step, progress converter); in the page only when `course.js` `features` switches a module on |
+| `numeric.js`, `numeric_test.js` | core | `course.js` `numeric`: a typed number read with its unit, never two numbers joined, graded to a course margin; in the page and run only when the course sets it |
 | `features_test.js` | core | feature modules: the build's refusals, every hook, a module that fails, and no change to a page with no module on; runs when a module is on |
 | `vendor/` | core | ts-fsrs 6.0.0's own UMD bundle and the licence texts of the code in it; `build.py` inlines them only for a course whose scheduler model needs FSRS |
 | `harvest.py`, `harvest_mask.py`, `ingest.py` | core | tools for adding a lecture; `harvest_mask.py` takes the crops to mask from `course.js` `tools` |
@@ -481,6 +482,36 @@ and a paper, Settings) and fails if one offers to skip a question or mark it kno
 As coded, the concept scheduler ranks never-seen material (tier 3) above due reviews
 (tier 2); the rule list in `shell.html` said "wrong > due > never-seen". The list now says
 so; the order itself is unchanged.
+
+## Typed numbers
+
+Without `course.js` `numeric` the engine reads a typed number by dropping every
+character that is not part of a number (`parseNum` in `views.js`) and grades it within
+the item's `tol`, or 1% of the key when it has none, as before. That reading joins two
+numbers into one (`8 5` reads 85, `0.25 1/hr` reads 0.251) and refuses a unit with an
+`e` in it (`64.96 inches` reads as no number). A course that sets `numeric` gets
+`numeric.js` in its page, which reads and grades as Basic-Pharmacokinetics does
+(`src/shell.html` lines 1236-1269 at `ac2eb73`): a number with its unit after it reads
+as the number (`2.6 hr`, `188.2 (mg/L)hr`, `55%`, `0.17 hr-1`, `0.17 1/hr`); anything
+else, a second number included, reads as no number; and with `numeric.margin` (a
+fraction of the key) an item is right within max(`tol`, margin × |key|). PK's value is
+`{margin: 0.02}`, from her Canvas quizzes' 2% and 3% margins. The verdict line names
+the margin an answer was graded to. `numeric_test.js` checks it.
+
+On PK's 534 numeric items (its `QUESTIONS` at `ac2eb73`), each typed eight ways and
+graded by PK's own `gradeNumeric`, by this core without the option, and with
+`numeric: {margin: 0.02}` (2026-11-01):
+
+| Typed | Right in PK | Right in the core without `numeric` | Right with `numeric` | Without = PK | With = PK |
+|---|---|---|---|---|---|
+| the key | 534 | 534 | 534 | 534 | 534 |
+| the key and its own unit | 534 | 519 | 534 | 519 | 534 |
+| the key + 1.5% | 534 | 145 | 534 | 145 | 534 |
+| the key + 2.5% | 63 | 63 | 63 | 534 | 534 |
+| the key and ` 1/hr` | 534 | 400 | 534 | 400 | 534 |
+| the key and ` hr-1` | 534 | 0 | 534 | 0 | 534 |
+| the key and ` 5` (two numbers) | 0 | 382 | 0 | 152 | 534 |
+| blank | 0 | 0 | 0 | 534 | 534 |
 
 ## Exam draw
 

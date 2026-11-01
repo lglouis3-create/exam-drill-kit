@@ -3,6 +3,15 @@
 Dated kit changes, newest first.
 
 ## 2026-11-01
+- `core/`: `course.js` `numeric` (new, off unless a course sets it) puts `numeric.js` in
+  the page: a typed number is read with its unit after it (`2.6 hr`, `0.17 1/hr`,
+  `0.17 hr-1`), two numbers are never joined into one, and with `numeric.margin` an item is
+  right within max(`tol`, margin × |key|) (Basic-Pharmacokinetics: `{margin: 0.02}`); the
+  verdict names the margin. On PK's 534 numeric items, PK's own grader and this option
+  agree on every item typed eight ways; without the option the core agrees with PK on 145
+  of 534 at the key + 1.5%, 400 at the key and ` 1/hr`, 0 at ` hr-1`, and on 152 at the key
+  and ` 5` (382 right only in the core) (`core/README.md` "Typed numbers"). New check
+  `numeric_test.js` (16 checks pass; 9 of 16 fail on the `d187207` core).
 - New feature module `formulas-in-text` v1 (`features/formulas-in-text/`), from
   Basic-Pharmacokinetics `ac2eb73`: formulas typed in plain text are drawn as the slides
   print them, as each question is drawn (`{{frac:a|b}}` stacked, powers, the course's
