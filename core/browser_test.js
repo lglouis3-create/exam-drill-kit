@@ -524,8 +524,9 @@ function sourceCounts(){
   // the exam paper survives a reload and can be submitted in part
   const ex = await page.evaluate(() => {
     if(EXAM.questions === null || EXAM.questions === undefined) return {noPaper: true};   // nullexam.js: no paper without a count
-    beginExam();
-    if(!EX || !EX.qs || !EX.qs.length) return {empty: true};   // a count is set, so an empty paper is a fault
+    // a count is set, so an empty paper is a fault: the engine's renderExamQ throws on it, so say so instead
+    try { beginExam(); } catch(e){ if(!EX || !EX.qs || !EX.qs.length) return {empty: true}; throw e; }
+    if(!EX || !EX.qs || !EX.qs.length) return {empty: true};
     const q0 = EX.qs[0]; EX.picks[0] = isMulti(q0) ? correctSet(q0) : q0.type === 'numeric' ? String(q0.answer)   // a calculation or matching item (exams[].typed)
       : q0.type === 'match' ? q0.pairs.map((p, i) => i) : q0.options.findIndex(o => o.correct);
     saveExam();
