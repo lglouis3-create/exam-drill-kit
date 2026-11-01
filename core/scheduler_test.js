@@ -141,6 +141,111 @@ COURSE.exams.push({id:'zsA', name:'Test exam', date:'12 Nov', when:'2026-11-12T0
     }
   }
 
+  console.log('\n=== 1b. Confident-error check ===');
+  {
+    const v = variant('sure', '');
+    if(v.error){ check(false, 'the confident-error test course builds', v.error); }
+    else {
+      let {ctx, page: p, errors} = await open(browser, v.page, T0);
+      await p.evaluate(() => { DB.settings.pace = 'semester'; });
+      // put one question on screen in the adaptive runner (pool: a subtopic of the test topic)
+      const showQ = (id, sub) => p.evaluate(([id, sub]) => { startQuiz('zsched', sub || null); Q.current = byId(id); Q.order = Q.current.options.map((o, i) => i);
+        Q.picked = null; Q.revealed = false; renderQuiz(); }, [id, sub]);
+      const pick = right => p.evaluate(right => { const i = Q.current.options.findIndex(o => right ? o.correct : !o.correct);
+        document.querySelector(`#v-quiz button[data-o="${i}"]`).click(); }, right);
+      const next = () => p.evaluate(() => { document.getElementById('btnNext').click(); return Q.current && {id: Q.current.id, concept: Q.current.concept}; });
+      const lastLog = () => p.evaluate(() => LOG[LOG.length - 1]);
+      // click a control if it is on screen (an older core may not have it)
+      const tap = sel => p.evaluate(sel => { const b = document.querySelector(sel); if(b && !b.disabled) b.click(); return !!b; }, sel);
+
+      await showQ('z1a', 'a'); await pick(true);
+      check(!(await p.$('#btnSure')), 'after a right answer there is no "I was sure of that" button');
+      await next();
+      await showQ('z1a', 'a'); await pick(false);
+      const btn = await p.$('#btnSure');
+      check(!!btn && (await btn.textContent()).trim() === 'I was sure of that', 'after a miss the screen offers "I was sure of that"');
+      const cls = await p.evaluate(() => { const b = document.getElementById('btnSure'); return b && b.className; });
+      check(cls === 'btn amber', 'it is styled like the "Not sure" and "I guessed" buttons (btn amber)', cls);
+      check(!(await p.$('#btnShaky')) && !(await p.$('#btnGuess')), 'after a miss there is no "Not sure" or "I guessed"');
+      if(btn) await btn.click();
+      const lg = await lastLog();
+      check(lg && lg[2] === 0 && lg[5] === 'sure', 'the miss is logged with confidence "sure"', JSON.stringify(lg));
+      const st1 = await p.evaluate(() => ({check: DB.concepts.c1.check, conf: DB.answers[DB.answers.length - 1].conf,
+        note: (document.getElementById('sureNote') || {}).textContent, btn: (document.getElementById('btnSure') || {}).disabled}));
+      check(st1.check && st1.check.day === '2026-11-02' && st1.conf === 'sure', 'the concept carries the check, dated the day of the error', JSON.stringify(st1));
+      check(st1.btn && /different question on this concept comes next/.test(st1.note || ''), 'the line under the button says a different question on the concept comes next', st1.note);
+      let n = await next();
+      check(n && n.concept === 'c1' && n.id !== 'z1a', 'the next question is a different question on the same concept', JSON.stringify(n));
+
+      // a concept with one question: the normal GAP rule
+      await showQ('z2a', null); await pick(false);
+      await tap('#btnSure');
+      const note2 = await p.evaluate(() => (document.getElementById('sureNote') || {}).textContent || '');
+      check(/asked again on a later day/.test(note2) && !/different question/.test(note2), 'for a concept with one question the line says only that it comes back on a later day', note2);
+      n = await next();
+      check(n && n.concept !== 'c2', 'a concept with no other question does not come straight back (the GAP rule)', JSON.stringify(n));
+
+      // without the button, a miss keeps the GAP rule
+      await showQ('z4a', 'b'); await pick(false);
+      n = await next();
+      check(n && n.concept !== 'c4', 'a miss without the button does not bring its concept straight back', JSON.stringify(n));
+
+      // same day: right answers move the box but the check stays
+      await showQ('z1b', 'a'); await pick(true); await next();
+      await showQ('z1c', 'a'); await pick(true); await next();
+      let s = await p.evaluate(() => ({box: DB.concepts.c1.box, check: DB.concepts.c1.check, due: isDue(DB.concepts.c1)}));
+      check(s.box === 2 && s.check && !s.due, 'right answers on the day of the error raise the box and leave the check in place', JSON.stringify(s));
+      // c4 the same way, without the check: missed, then right twice
+      await showQ('z4a', 'b'); await pick(true); await next();
+      await showQ('z4b', 'b'); await pick(true); await next();
+      // two more answers, so c1 has cooled (GAP) by the next day's pick
+      await showQ('z3a', 'b'); await pick(true); await next();
+      await showQ('z5a', 'b'); await pick(true); await next();
+
+      // the next day: due whatever its box, and ranked with the misses
+      await p.clock.setFixedTime(new Date(ms(T0) + DAY));
+      s = await p.evaluate(() => ({due1: isDue(DB.concepts.c1), box1: DB.concepts.c1.box, due4: isDue(DB.concepts.c4), box4: DB.concepts.c4.box,
+        tier1: (score(byId('z1a')) || {}).tier}));
+      check(s.due1 && s.box1 === 2, 'the next day the concept is due although its box (2: 3 days) is not', JSON.stringify(s));
+      check(!s.due4 && s.box4 === 2, 'the same history without the check is not due the next day', JSON.stringify(s));
+      check(s.tier1 === 4, 'the check ranks with missed concepts (tier 4)', JSON.stringify(s));
+      await showQ('z1a', 'a'); await pick(true);
+      s = await p.evaluate(() => ({check: DB.concepts.c1.check}));
+      check(!s.check, 'a right answer on a later calendar day clears the check', JSON.stringify(s));
+      await tap('#btnGuess');
+      s = await p.evaluate(() => ({check: DB.concepts.c1.check}));
+      check(s.check && s.check.day === '2026-11-02', '"I guessed" on that answer puts the check back', JSON.stringify(s));
+      await next();
+      await showQ('z1b', 'a'); await pick(false); await next();
+      s = await p.evaluate(() => ({check: DB.concepts.c1.check}));
+      check(s.check && s.check.day === '2026-11-02', 'a miss on a later day does not clear the check', JSON.stringify(s));
+      await showQ('z1c', 'a'); await pick(true); await next();
+      // two days on, at 07:00: box 1 is due at 09:00, so only a check would make it due now
+      await p.clock.setFixedTime(new Date(ms(T0) + 2 * DAY - 2 * 3600000));
+      s = await p.evaluate(() => ({check: DB.concepts.c1.check, due: isDue(DB.concepts.c1), box: DB.concepts.c1.box}));
+      check(!s.check && !s.due && s.box === 1, 'once cleared, the concept follows its box again (box 1 not yet due)', JSON.stringify(s));
+
+      // the miss screen of a typed question carries the button too
+      const typed = await p.evaluate(() => { const q = QUESTIONS.find(x => x.type === 'numeric'); if(!q) return null;
+        startQuiz(q.topic, q.sub); Q.current = q; Q.order = []; Q.revealed = false; renderQuiz();
+        document.getElementById('numIn').value = String(q.answer + 1000); document.getElementById('btnCheck').click();
+        return !!document.getElementById('btnSure'); });
+      if(typed === null) L.skip('a typed question offers "I was sure of that"', 'no numeric question in this bank');
+      else check(typed, 'a typed (numeric) question offers "I was sure of that" after a miss');
+
+      // a one-pass sweep: the retry moves up in the queue
+      const sw = await p.evaluate(() => { drillList(['z1a', 'z2a', 'z4a', 'z1b'].map(byId), 'test sweep');
+        Q.sweep = ['z1a', 'z2a', 'z4a', 'z1b']; Q.i = 0; nextQuestion();
+        const first = Q.current.id;
+        document.querySelector(`#v-quiz button[data-o="${Q.current.options.findIndex(o => !o.correct)}"]`).click();
+        const b = document.getElementById('btnSure'); if(b) b.click(); document.getElementById('btnNext').click();
+        return {first, second: Q.current.id, len: Q.sweep.length}; });
+      check(sw.first === 'z1a' && sw.second === 'z1b' && sw.len === 4, 'in a one-pass sweep the other question on the concept moves up to come next', JSON.stringify(sw));
+      check(!errors.length, 'no page errors', errors.slice(0, 2).join('; '));
+      await ctx.close();
+    }
+  }
+
   await browser.close();
   L.finish(NAME);
 })().catch(e => { console.log(e.stack); console.log(`FAIL: ${NAME}: the test stopped: ${String(e.message).split('\n')[0]}`); process.exit(1); });

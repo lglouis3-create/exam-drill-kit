@@ -626,7 +626,8 @@ function load(){
    concept        the question's concept id, which the scheduler works on
    confidence     'knew' (a right answer left as it was: Next counts as
                   "Knew it"), 'unsure' ("Not sure"), 'guessed' ("I guessed"),
-                  or '' when none was asked (a miss, an exam paper)
+                  'sure' ("I was sure of that" on a miss), or '' when none
+                  was given (a miss left as it was, an exam paper)
    item type      'mc', 'multi' (select all), 'numeric', 'match'
 
    The history has its own key per profile, apart from the progress, so it
@@ -720,6 +721,12 @@ function askProfile(force){
      5 priority -> wrong > due > never-seen > recently mastered
      6 concept-level tracking, not wording-level
      7 mastery  -> needs repeated correct answers on separate occasions
+     8 sure and wrong -> "I was sure of that" on a miss: a different question
+                   on the concept comes next, and the concept is due on every
+                   later day until it is answered right on a later calendar
+                   day than the error (scheduler proposal §4.1.2)
+   (Rule 5 as coded ranks never-seen material ahead of due reviews: tier 3
+   above tier 2 in score() below.)
    ========================================================================== */
 const GAP = 4;                                   // min other questions before a missed concept returns
 /* Review paces. Cram spaces a mastered concept by how many questions are
@@ -815,21 +822,35 @@ function schedule(s, concept){
   if(cap !== null && cap < gap) gap = cap;
   s.dueAt = now + gap;
 }
+/* The calendar day of a time, in the browser's own time zone, as YYYY-MM-DD,
+   so that two days compare as text. */
+const dayKey = t => { const d = new Date(t);
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+/* Rule 8: a concept with a confident error waiting for its check is due on
+   any calendar day after the error, whatever its box. */
+const checkDue = s => !!(s && s.check && dayKey(Date.now()) > s.check.day);
 function isDue(s){
+  if(checkDue(s)) return true;
   return cram() ? (DB.qn >= s.dueQ) : (Date.now() >= s.dueAt);
 }
 // result: 'correct' | 'wrong' | 'guessed'; mode: 'exam' from a paper, otherwise
 // read off the quiz on screen (a fixed pass is a sweep)
 function record(q, result, picked, ms, mode){
   const s = st(q.concept);
+  const now = Date.now();
   DB.qn++;
   s.seen++;
   s.lastQ = DB.qn;
   if(!s.asked.includes(q.id)) s.asked.push(q.id);
+  (s.last = s.last || {})[q.id] = DB.qn;     // when each question of the concept was last shown
+  let cleared = null;
 
   if(result === 'correct'){
     s.correct++; s.streak++;
     s.box = Math.min(s.box + 1, DAYS.length - 1);
+    // rule 8: the check after a confident error is passed by a right answer
+    // on a later calendar day than the error, and only by that
+    if(s.check && dayKey(now) > s.check.day){ cleared = s.check.day; delete s.check; }
   }else if(result === 'guessed'){
     s.guessed++;                     // the right pick, but not understood
     s.streak = 0;
@@ -839,9 +860,10 @@ function record(q, result, picked, ms, mode){
     s.box = 0;                       // rule 4: a miss resets to active review
   }
   schedule(s, q.concept);
-  const entry = {qid:q.id, concept:q.concept, result, at:Date.now(), qn:DB.qn};
+  const entry = {qid:q.id, concept:q.concept, result, at:now, qn:DB.qn};
   if(picked !== undefined && picked !== null) entry.picked = picked;
   if(ms) entry.ms = ms;
+  if(cleared) entry.cleared = cleared;      // markGuessed puts the check back
   DB.answers.push(entry);
   if(DB.answers.length > 4000) DB.answers.splice(0, DB.answers.length-4000);
   save();
@@ -873,11 +895,40 @@ function markGuessed(q){
     last.result = 'guessed';
     s.guessed++; s.correct = Math.max(0, s.correct - 1); s.streak = 0;
     s.box = 0;
+    // a guess is not a right answer, so a check it passed is waiting again
+    if(last.cleared){ s.check = {day: last.cleared}; delete last.cleared; }
     schedule(s, q.concept); save();
     logConf(q, 'guessed');
     return true;
   }
   return false;
+}
+/* "I was sure of that" on a miss (rule 8, scheduler proposal §4.1.2: errors
+   made with high confidence are corrected after feedback but are more likely
+   than low-confidence errors to come back a week later, its reference 14).
+   The miss was already recorded; this sets the check and the confidence. */
+function markSure(q){
+  const last = DB.answers[DB.answers.length-1];
+  if(!(last && last.qid === q.id && last.result === 'wrong' && !last.conf)) return false;
+  last.conf = 'sure';
+  st(q.concept).check = {day: dayKey(Date.now())};
+  save();
+  logConf(q, 'sure');
+  return true;
+}
+/* The question that comes straight after a confident error: another question
+   on the same concept, from the pool on screen first and then from the bank;
+   one never shown before first (in random order), then the one shown least
+   recently. null when the concept has no other question. */
+function retryQuestion(concept, notId, pool){
+  const s = DB.concepts[concept] || {}, last = s.last || {}, asked = s.asked || [];
+  const when = q => q.id in last ? last[q.id] : asked.includes(q.id) ? 0 : -1;
+  const other = list => list.filter(q => q && q.concept === concept && q.id !== notId);
+  let c = other(pool || []);
+  if(!c.length) c = other(conceptQs(concept));
+  if(!c.length) return null;
+  c = c.map(q => ({q, w: when(q), r: Math.random()})).sort((a, b) => a.w - b.w || a.r - b.r);
+  return c[0].q;
 }
 
 /* Select-all questions carry more than one correct option and are marked
@@ -894,6 +945,8 @@ function score(q){
   const s = DB.concepts[q.concept];
   if(!s) return {tier:3, sub:0};                       // never tested
   const cooled = (DB.qn - s.lastQ) >= GAP;
+  // rule 8: a confident error's check, on a later day, ranks with the misses
+  if(checkDue(s)) return cooled ? {tier:4, sub: s.wrong*10 + s.guessed*5} : null;
   if(s.box === 0 && s.seen > 0){                       // missed / unresolved
     if(!cooled) return null;                           // too soon — rule 2
     return {tier:4, sub: s.wrong*10 + s.guessed*5};

@@ -124,8 +124,9 @@ history kept under `<ns>:log:<profile>`, apart from the progress:
 
 The question code is an FNV-1a hash of the question id (8 hex digits); mode is `quiz`,
 `sweep` or `exam`; confidence is `knew` (a right answer left as it is: the screen says
-Next counts as "Knew it"), `unsure` ("Not sure"), `guessed` ("I guessed"), or empty
-where none was asked (a miss, an exam paper); item type is `mc`, `multi`, `numeric` or
+Next counts as "Knew it"), `unsure` ("Not sure"), `guessed` ("I guessed"), `sure` ("I
+was sure of that" on a miss), or empty where none was given (a miss left as it was, an
+exam paper); item type is `mc`, `multi`, `numeric` or
 `match`. Export progress writes the progress and the history into one file; Import
 progress replaces the progress, as before, and merges the history without duplicating
 an answer; Erase my history clears both. When the browser refuses to save the history,
@@ -164,6 +165,18 @@ such exams the nearest one counts; an exam without a `when` is ignored. Nothing 
 when the exam has passed: the box schedule continues. The question (cram) clock is not
 changed.
 
+*Confident-error check* (§4.1.2). Confidence used to be asked only after a right answer,
+so a confident error could not be seen. The miss screen now has one optional button, "I
+was sure of that", styled like "Not sure" and "I guessed" (a new screen element). Tapped,
+it logs the confidence `sure` on that miss; the next question is a different question on
+the same concept when the concept has one (from the pool on screen, else the bank; one
+never shown first, else the one shown least recently; in a one-pass sweep it moves up the
+queue), otherwise the GAP rule holds; and the concept carries a check (`check:{day}` in
+its state) that only a right answer on a later calendar day than the error clears ("I
+guessed" on that answer puts it back). While the check waits, the concept is due on every
+later day whatever its box, and it ranks with the missed concepts (tier 4), still after
+`GAP` other questions; that rank is a design choice.
+
 ## Exam draw
 
 Questions marked `dupOf` are wordings of one fact. A family is an original, everything
@@ -200,8 +213,8 @@ the built page.
 
 ## Not in core yet
 
-- The rest of the approved scheduler changes (`review/scheduler-proposal.md` §4.1.2-§4.3);
-  exam-date spacing (§4.1.1) is in.
+- The rest of the approved scheduler changes (`review/scheduler-proposal.md` §4.1.3-§4.3);
+  exam-date spacing (§4.1.1) and the confident-error check (§4.1.2) are in.
 - Intro-Pharmacology's exam-result page coming back after a reload, and its generator
   step in the build (`gen_*.py`), both named in `review/proposed-core.md` §5-§6.
 - The check that a course's `CLAUDE.md` was updated after its newest lecture (§7 there),
