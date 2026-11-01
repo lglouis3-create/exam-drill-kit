@@ -95,6 +95,23 @@ from memory for the rest of the visit, and the first refusal shows one notice th
 points to Settings → Export progress. A later write that succeeds clears the key's
 failure. Switching profile writes any save still waiting on its timer first.
 
+**Saved progress from an earlier core** (`upgradeDB` in `shell.html`). The scheduler work
+of 2026-11-01 only added to the progress: question ids, `ns`, and every field a save
+already has keep their names and meaning. The progress now carries `v: 2`; a save without
+it gets the new top-level fields (`fsrsQ`, `fsrsC`, `arms`, `fsUndo`) empty, and each
+concept gets `last` (question id → the answer count when it was last shown), rebuilt from
+the answers kept. Import progress runs the same conversion. Under an FSRS model, questions
+(or, under `concept-fsrs`, concepts) that have answers but no card get one by replaying
+those answers, oldest first, through the library, with the grades above; only when the
+answers kept are the whole history (the first is answer 1), because a card built from part
+of a history would be a state the student never had (design choice, after ts-fsrs's
+CHANGELOG 6.0.0: "rebuild memory from complete review history"). Otherwise those questions
+start as new under FSRS and `DB.fsHistory` is `incomplete`. `scheduler_test.js` checks
+this on a progress object and history saved by the `5014f27` core (recorded with
+`--print-progress`): every saved field reads back unchanged, `last` is rebuilt, the
+scheduler ranks every test question as `5014f27` did, the seven-field history reads back
+unchanged, and under `fsrs` and the comparison the rebuilt cards equal the library's own.
+
 ## Offline
 
 `sw.js` is Medicinal-chemistry's service worker (`ed38dbd`) made course-agnostic. The page

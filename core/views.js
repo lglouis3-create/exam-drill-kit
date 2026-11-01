@@ -2129,7 +2129,7 @@ function renderSettings(){
       try{
         const j = JSON.parse(r.result);
         if(!j.db || !j.db.concepts) throw new Error('not a progress file');
-        DB = Object.assign(BLANK(), j.db); save();
+        DB = upgradeDB(j.db); save(); fsFromHistory();
         // the history is merged, not replaced: an answer already here is kept once
         if(Array.isArray(j.log)) mergeLog(j.log);
         alert('Progress loaded.'); renderSettings();

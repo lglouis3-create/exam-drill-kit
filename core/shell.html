@@ -588,7 +588,9 @@ let PROFILE = store.get(NS + ':profile') || '';
 const keyFor = p => NS + ':data:' + p;
 
 const BLANK = () => ({
-  concepts:{},        // conceptId -> {seen,correct,wrong,guessed,streak,box,dueAt,dueQ,lastQ,asked:[]}
+  v:2,                // the shape's version (upgradeDB); a save without it is from before 2026-11-01
+  concepts:{},        // conceptId -> {seen,correct,wrong,guessed,streak,box,dueAt,dueQ,lastQ,asked:[],
+                      //               last:{qid: qn when last shown}, check?:{day}}
   answers:[],         // {qid,concept,result,at,qn,picked,ms}
                       //   picked: option index, or a sorted array of indices for a
                       //   select-all question; ms: time from render to answer.
@@ -604,13 +606,35 @@ const BLANK = () => ({
 });
 let DB = BLANK();
 
+/* Saved progress from an earlier core. The scheduler work of 2026-11-01 only
+   added to the shape: question ids, `ns`, and every field a save already
+   has keep their names and meaning. A save without `v` (version 1) gets
+   the new top-level fields (fsrsQ, fsrsC, arms, fsUndo) from BLANK, and each
+   concept gets `last`, rebuilt from the answers kept (the latest answer
+   count at which each question was shown). Nothing else is changed. The
+   same conversion runs on Import progress. */
+function upgradeDB(raw){
+  const old = !(raw && raw.v >= 2);
+  const db = Object.assign(BLANK(), raw || {});
+  if(old){
+    for(const a of db.answers || []){
+      const s = a && db.concepts[a.concept];
+      if(!s || typeof a.qn !== 'number') continue;
+      s.last = s.last || {};
+      if(!(a.qid in s.last) || s.last[a.qid] < a.qn) s.last[a.qid] = a.qn;
+    }
+    db.v = 2;
+  }
+  return db;
+}
 function load(){
   if(!PROFILE) return;
   try{
     const raw = store.get(keyFor(PROFILE));
-    DB = raw ? Object.assign(BLANK(), JSON.parse(raw)) : BLANK();
+    DB = raw ? upgradeDB(JSON.parse(raw)) : BLANK();
   }catch(e){ DB = BLANK(); }
   loadLog();
+  fsFromHistory();
 }
 
 /* ==========================================================================
@@ -874,6 +898,37 @@ function fsRegrade(q){
     if(!u || u.qid !== q.id) return;
     try { fsStore(u.arm)[u.key] = fsReview(u.prev, u.key, false, u.at); }
     catch(e){ FS_ERROR = String(e && e.message || e); }
+    save();
+  });
+}
+/* A save made before the course's model was an FSRS one (an older core, or
+   the concept scheduler) has answers but no cards. Its cards are rebuilt by
+   replaying those answers, oldest first, through the library, with the
+   grades above, but only when the answers kept are the whole history (the
+   first one is answer 1): a card built from part of a history would be a
+   state the student never had (design choice, after ts-fsrs's own
+   migration note, CHANGELOG 6.0.0: "rebuild memory from complete review
+   history"). Otherwise those questions start as new under FSRS, and
+   DB.fsHistory says so. */
+function fsFromHistory(){
+  whenFs(() => {
+    if(SCHED.model === 'concept') return;
+    const need = new Set();
+    for(const a of DB.answers || []){
+      const arm = armOf(a.concept); if(arm === 'concept') continue;
+      const k = arm === 'concept-fsrs' ? a.concept : a.qid;
+      if(!(fsStore(arm)[k])) need.add(arm + '|' + k);
+    }
+    if(!need.size) return;
+    if(!(DB.answers[0] && DB.answers[0].qn === 1)){ DB.fsHistory = 'incomplete'; save(); return; }
+    for(const a of DB.answers){
+      const arm = armOf(a.concept); if(arm === 'concept') continue;
+      const k = arm === 'concept-fsrs' ? a.concept : a.qid;
+      if(!need.has(arm + '|' + k)) continue;
+      try { fsStore(arm)[k] = fsReview(fsStore(arm)[k] || null, k, a.result === 'correct', a.at); }
+      catch(e){ FS_ERROR = String(e && e.message || e); }
+    }
+    DB.fsHistory = 'replayed';
     save();
   });
 }

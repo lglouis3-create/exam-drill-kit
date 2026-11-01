@@ -142,8 +142,36 @@ const SEQUENCE = seed => {
    Without the calculation preset the order must stay exactly this. */
 const SEQUENCE_5014F27 = {"1":["z4a","z1c","z5a","z2a","z3b","-","z1b","-","-","z3a","z4b","z5a","z2a","-","-","z1a","-","-","z3b","-","-","-","-","-","-","-","-","-","-","-","-","z4a","z5a","z2a","-","-","z1c","-","-","z3a"],"2":["z1c","z4b","z3b","z2a","z5a","-","z4a","-","-","z5a","z1a","z3a","z2a","-","-","z4a","-","-","z5a","-","-","-","-","-","-","-","-","-","-","-","-","z1b","z3a","z2a","-","-","z4a","-","-","z5a"],"3":["z4b","z2a","z1b","z5a","z3b","-","z2a","-","-","z3a","z4a","z1c","z5a","-","-","z2a","-","-","z3b","-","-","-","-","-","-","-","-","-","-","-","-","z4b","z1a","z5a","-","-","z2a","-","-","z3b"]};
 
+/* A study history made through the engine's own functions at fixed times:
+   right, wrong, "Not sure", "I guessed", over three days, on the test topic
+   and two sample questions. Run on a 5014f27 course (--print-progress), it
+   gives SAVED_5014F27 below: what that core saved, and how its scheduler
+   ranked each test question afterwards. */
+const PROGRESS = () => {
+  const t0 = Date.now(), H = 3600000;
+  const steps = [[0, 'z1a', 'correct'], [1, 'z1b', 'wrong'], [2, 'z3a', 'correct', 'shaky'], [3, 'z4a', 'correct', 'guess'],
+                 [4, 'z5a', 'correct'], [5, 'z2a', 'wrong'], [24, 'z1c', 'correct'], [25, 'z3b', 'correct'], [26, 'z1b', 'correct'],
+                 [27, 'z4b', 'wrong'], [50, 'z1a', 'correct'], [51, 'z3a', 'correct'], [52, 'z2a', 'correct']];
+  for(const [h, id, res, conf] of steps){
+    Date.now = () => t0 + h * H;
+    const q = byId(id); record(q, res, 0, 1000);
+    if(conf === 'shaky') markShaky(q); if(conf === 'guess') markGuessed(q);
+  }
+  Date.now = () => t0 + 53 * H;
+  const ranks = {}; QUESTIONS.filter(q => q.topic === 'zsched').forEach(q => { ranks[q.id] = score(q); });
+  return {db: JSON.parse(JSON.stringify(DB)), log: LOG.slice(), ranks, end: t0 + 53 * H};
+};
+const SAVED_5014F27 = {"db":{"concepts":{"c1":{"seen":5,"correct":4,"wrong":1,"guessed":0,"streak":3,"box":3,"dueAt":1794135600000,"dueQ":56,"lastQ":11,"asked":["z1a","z1b","z1c"]},"c3":{"seen":3,"correct":3,"wrong":0,"guessed":0,"streak":2,"box":2,"dueAt":1793966400000,"dueQ":32,"lastQ":12,"asked":["z3a","z3b"]},"c4":{"seen":2,"correct":0,"wrong":1,"guessed":1,"streak":0,"box":0,"dueAt":1793707200000,"dueQ":10,"lastQ":10,"asked":["z4a","z4b"]},"c5":{"seen":1,"correct":1,"wrong":0,"guessed":0,"streak":1,"box":1,"dueAt":1793710800000,"dueQ":13,"lastQ":5,"asked":["z5a"]},"c2":{"seen":2,"correct":1,"wrong":1,"guessed":0,"streak":1,"box":1,"dueAt":1793883600000,"dueQ":21,"lastQ":13,"asked":["z2a"]}},"answers":[{"qid":"z1a","concept":"c1","result":"correct","at":1793610000000,"qn":1,"picked":0,"ms":1000},{"qid":"z1b","concept":"c1","result":"wrong","at":1793613600000,"qn":2,"picked":0,"ms":1000},{"qid":"z3a","concept":"c3","result":"correct","at":1793617200000,"qn":3,"picked":0,"ms":1000,"conf":"shaky"},{"qid":"z4a","concept":"c4","result":"guessed","at":1793620800000,"qn":4,"picked":0,"ms":1000},{"qid":"z5a","concept":"c5","result":"correct","at":1793624400000,"qn":5,"picked":0,"ms":1000},{"qid":"z2a","concept":"c2","result":"wrong","at":1793628000000,"qn":6,"picked":0,"ms":1000},{"qid":"z1c","concept":"c1","result":"correct","at":1793696400000,"qn":7,"picked":0,"ms":1000},{"qid":"z3b","concept":"c3","result":"correct","at":1793700000000,"qn":8,"picked":0,"ms":1000},{"qid":"z1b","concept":"c1","result":"correct","at":1793703600000,"qn":9,"picked":0,"ms":1000},{"qid":"z4b","concept":"c4","result":"wrong","at":1793707200000,"qn":10,"picked":0,"ms":1000},{"qid":"z1a","concept":"c1","result":"correct","at":1793790000000,"qn":11,"picked":0,"ms":1000},{"qid":"z3a","concept":"c3","result":"correct","at":1793793600000,"qn":12,"picked":0,"ms":1000},{"qid":"z2a","concept":"c2","result":"correct","at":1793797200000,"qn":13,"picked":0,"ms":1000}],"qn":13,"settings":{"mode":"cram"},"created":1793610000000},"log":[[1793610000,"ac1f3baf",1,"quiz","c1","knew","mc"],[1793613600,"ad1f3d42",0,"quiz","c1","","mc"],[1793617200,"b823cbc1",1,"quiz","c3","unsure","mc"],[1793620800,"b816ffce",1,"quiz","c4","guessed","mc"],[1793624400,"9414888b",1,"quiz","c5","knew","mc"],[1793628000,"9c25de44",0,"quiz","c2","","mc"],[1793696400,"ae1f3ed5",1,"quiz","c1","knew","mc"],[1793700000,"b523c708",1,"quiz","c3","knew","mc"],[1793703600,"ad1f3d42",1,"quiz","c1","knew","mc"],[1793707200,"b716fe3b",0,"quiz","c4","","mc"],[1793790000,"ac1f3baf",1,"quiz","c1","knew","mc"],[1793793600,"b823cbc1",1,"quiz","c3","knew","mc"],[1793797200,"9c25de44",1,"quiz","c2","knew","mc"]],"ranks":{"z1a":null,"z1b":null,"z1c":null,"z2a":null,"z3a":null,"z3b":null,"z4a":null,"z4b":null,"z5a":{"tier":2,"sub":5}},"end":1793800800000};
+
 (async () => {
   const {browser} = await L.launch(NAME);
+  if(process.argv.includes('--print-progress')){
+    const v = variant('progress', '');
+    if(v.error){ console.log(v.error); process.exit(1); }
+    const {ctx, page: p} = await open(browser, v.page, T0);
+    console.log(JSON.stringify(await p.evaluate(PROGRESS)));
+    await ctx.close(); await browser.close(); process.exit(0);
+  }
   if(process.argv.includes('--print-sequence')){
     const v = variant('seq', '');
     if(v.error){ console.log(v.error); process.exit(1); }
@@ -649,6 +677,99 @@ COURSE.exams.push({id:'zsA', name:'Test exam', date:'12 Nov', when:'2026-11-12T0
       } catch(e){ return {err: e.message, concept: {}, combo: {}}; } });
       check(sure.concept.note && sure.concept.check && sure.concept.retry === 'c1', 'under the comparison, "I was sure of that" on a concept-arm concept sets its check and retry', sure);
       check(!sure.combo.note && !sure.combo.check && !sure.combo.retry, 'on a combination concept it records the confidence only', sure);
+      check(!errors.length, 'no page errors', errors.slice(0, 2).join('; '));
+      await ctx.close();
+    }
+  }
+
+  console.log('\n=== 4. Saved progress from the 5014f27 core ===');
+  {
+    const F = SAVED_5014F27;
+    const conv = variant('conv', ''), convf = variant('convf', `COURSE.scheduler = {model:'fsrs'};`),
+          convc = variant('convc', `COURSE.scheduler = {model:'concept-fsrs', compare:true};`);
+    if(conv.error || convf.error || convc.error){ check(false, 'the converter test courses build', conv.error || convf.error || convc.error); }
+    else {
+      const nsOf = repo => new Function(fs.readFileSync(path.join(repo, 'src', 'course.js'), 'utf8') + ';return COURSE.ns;')();
+      // the saved progress and history under this course's keys, before the page's script runs
+      const openSaved = async (v, db) => {
+        const ns = nsOf(v.repo);
+        const ctx = await browser.newContext({viewport: {width: 390, height: 844}});
+        await ctx.addInitScript(() => { window.prompt = () => 'TestUser'; });
+        await ctx.addInitScript(([ns, db, log]) => { if(sessionStorage.getItem('seeded')) return; sessionStorage.setItem('seeded', '1');
+          localStorage.setItem(ns + ':profile', 'TestUser'); localStorage.setItem(ns + ':data:TestUser', JSON.stringify(db));
+          localStorage.setItem(ns + ':log:TestUser', JSON.stringify(log)); }, [ns, db, F.log]);
+        const page = await ctx.newPage(); const errors = [];
+        page.on('pageerror', e => errors.push(e.message)); page.on('dialog', d => d.accept());
+        await page.clock.setFixedTime(new Date(F.end));
+        await page.goto('file://' + v.page);
+        await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+        await page.waitForTimeout(200);
+        return {ctx, page, errors, ns};
+      };
+      const ADDED = ['v', 'fsrsQ', 'fsrsC', 'arms', 'fsUndo', 'fsHistory'];
+      const strip = db => { const o = JSON.parse(JSON.stringify(db)); ADDED.forEach(k => delete o[k]);
+        Object.values(o.concepts || {}).forEach(s => { delete s.last; }); return o; };
+      const lastWant = {};
+      for(const a of F.db.answers){ const m = lastWant[a.concept] = lastWant[a.concept] || {}; if(!(a.qid in m) || m[a.qid] < a.qn) m[a.qid] = a.qn; }
+
+      // the concept scheduler
+      let {ctx, page: p, errors, ns} = await openSaved(conv, F.db);
+      let db = await p.evaluate(() => JSON.parse(JSON.stringify(DB)));
+      check(JSON.stringify(strip(db)) === JSON.stringify(F.db), 'every field the 5014f27 core saved is read back unchanged (concepts, answers, question count, settings)', JSON.stringify(strip(db)).slice(0, 200));
+      check(db.v === 2, 'the progress is marked as the new shape (v 2)', db.v);
+      check(Object.keys(lastWant).every(c => JSON.stringify(db.concepts[c].last) === JSON.stringify(lastWant[c])), 'each concept\'s `last` is rebuilt from the saved answers', JSON.stringify(Object.fromEntries(Object.keys(lastWant).map(c => [c, db.concepts[c].last]))));
+      const ids = await p.evaluate(ids => ({missing: ids.filter(id => !byId(id)), ns: NS}), F.db.answers.map(a => a.qid));
+      check(!ids.missing.length && ids.ns === ns, `every saved question id is in the bank and the progress is read under the same ns (${ns})`, ids);
+      const ranks = await p.evaluate(() => { const r = {}; QUESTIONS.filter(q => q.topic === 'zsched').forEach(q => { r[q.id] = score(q); }); return r; });
+      check(JSON.stringify(ranks) === JSON.stringify(F.ranks), 'the scheduler ranks every test question as the 5014f27 core did from the same save', JSON.stringify({ranks, was: F.ranks}).slice(0, 300));
+      const log = await p.evaluate(() => LOG.slice());
+      check(JSON.stringify(log) === JSON.stringify(F.log) && log.every(e => e.length === 7), 'the saved seven-field history is read back unchanged', JSON.stringify(log.slice(0, 2)));
+      await p.evaluate(() => record(byId('z5a'), 'correct', 0, 1000));
+      await p.waitForTimeout(400);
+      const saved = await p.evaluate(ns => JSON.parse(localStorage.getItem(ns + ':data:TestUser')), ns);
+      check(saved.v === 2 && saved.answers.length === F.db.answers.length + 1 && JSON.stringify(saved.answers.slice(0, -1)) === JSON.stringify(F.db.answers),
+        'the next save writes the new shape with every earlier answer kept', {v: saved.v, n: saved.answers.length});
+      check(!errors.length, 'no page errors', errors.slice(0, 2).join('; '));
+      // Import progress converts the same way
+      const file = path.join(conv.repo, 'saved-5014f27.json');
+      fs.writeFileSync(file, JSON.stringify({app: 'exam-drill', ns, db: F.db, log: F.log}));
+      await p.evaluate(() => { DB = BLANK(); show('settings'); });
+      await p.setInputFiles('#fileIn', file);
+      await p.waitForTimeout(600);
+      db = await p.evaluate(() => JSON.parse(JSON.stringify(DB)));
+      check(db.v === 2 && JSON.stringify(strip(db)) === JSON.stringify(F.db) && JSON.stringify(db.concepts.c1.last) === JSON.stringify(lastWant.c1),
+        'Import progress of a 5014f27 export gives the same converted progress', {v: db.v});
+      await ctx.close();
+
+      // an FSRS course reading the same save: cards rebuilt from the whole history, through the library
+      ({ctx, page: p, errors} = await openSaved(convf, F.db));
+      db = await p.evaluate(() => JSON.parse(JSON.stringify(DB)));
+      const grade = a => a.result === 'correct' ? 3 : 1;
+      const byQ = {}; F.db.answers.forEach(a => (byQ[a.qid] = byQ[a.qid] || []).push([a.at, grade(a)]));
+      const LP = await libraryPage(browser), wantQ = {};
+      for(const [id, steps] of Object.entries(byQ)) wantQ[id] = (await LP.replay(id, steps)).pop().card;
+      const norm = o => JSON.stringify(Object.keys(o || {}).sort().reduce((a, k) => (a[k] = o[k], a), {}));
+      const badQ = Object.keys(wantQ).filter(id => norm((db.fsrsQ || {})[id]) !== norm(wantQ[id]));
+      check(db.fsHistory === 'replayed' && Object.keys(wantQ).length >= 8 && !badQ.length,
+        `under 'fsrs' each of the ${Object.keys(wantQ).length} answered questions gets the card the library builds from its saved answers`, {fsHistory: db.fsHistory, badQ});
+      check(JSON.stringify(strip(db)) === JSON.stringify(F.db), 'and the saved fields themselves are unchanged');
+      check(!errors.length, 'no page errors', errors.slice(0, 2).join('; '));
+      await ctx.close();
+      // part of a history only (the oldest answer gone): no card is made up from it
+      const cut = JSON.parse(JSON.stringify(F.db)); cut.answers.shift();
+      ({ctx, page: p, errors} = await openSaved(convf, cut));
+      db = await p.evaluate(() => ({h: DB.fsHistory, n: Object.keys(DB.fsrsQ || {}).length, pick: (pickNext(QUESTIONS.filter(q => q.topic === 'zsched'), null) || {}).id}));
+      check(db.h === 'incomplete' && db.n === 0 && !!db.pick, 'when the saved answers are not the whole history, no card is built and the questions start as new under FSRS', db);
+      await ctx.close();
+      // the comparison: cards only for the concepts on the combination arm
+      ({ctx, page: p, errors} = await openSaved(convc, F.db));
+      db = await p.evaluate(() => ({fsrsC: JSON.parse(JSON.stringify(DB.fsrsC || {})), arms: Object.fromEntries(Object.keys(DB.concepts).map(c => [c, armOf(c)])), h: DB.fsHistory}));
+      const byC = {}; F.db.answers.forEach(a => (byC[a.concept] = byC[a.concept] || []).push([a.at, grade(a)]));
+      const wantC = {};
+      for(const [c, steps] of Object.entries(byC)) if(db.arms[c] === 'concept-fsrs') wantC[c] = (await LP.replay(c, steps)).pop().card;
+      await LP.ctx.close();
+      const okC = Object.keys(db.fsrsC).sort().join() === Object.keys(wantC).sort().join() && Object.keys(wantC).every(c => norm(db.fsrsC[c]) === norm(wantC[c]));
+      check(okC, `under the comparison only the combination's concepts get a card, the library's from their saved answers (${Object.keys(wantC).join(', ') || 'none on that arm'})`, db);
       check(!errors.length, 'no page errors', errors.slice(0, 2).join('; '));
       await ctx.close();
     }
