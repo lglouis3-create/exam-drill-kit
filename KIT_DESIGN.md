@@ -356,10 +356,19 @@ section is current.
      few at a time, so a daily run brings a merged fix to every course within a day;
      at night it never replaces a page during study; and a run with nothing behind
      changes nothing.
+   - **Where it runs** (Louis asked for the gap to be fixed, 2026-11-01): in one
+     dedicated session, "Kit updater", which started with the kit as its repository
+     and keeps every course repository attached with push access. A test on
+     2026-11-01 showed that a scheduled task starting a fresh session each time
+     cannot reach any repository, because a session's repositories are chosen when it
+     starts and such a session starts with none. Each run begins with a preflight
+     (push access, the Pages run lookup, Node, Python, Chromium) and makes nothing
+     live if any step fails; it confirms each live update from that commit's Pages
+     run with `gh api`, which needs no connector, and reverts the update if the
+     deploy fails or does not finish within 10 minutes.
 
 Facts from Phase 1 that correct §2 and §10: BDK has no `course.js`; v2 was written
 before PK's first engine commit, not after it; `exam-drill-template/` was never on
 GitHub and was recovered from Louis's own files (`review/findings.md` §1-§3, §11).
 
-Not yet tested: whether a scheduled run can attach the kit and course repositories
-with push access and read the Pages workflow runs (`CLAUDE.md`, access table).
+The results of the 2026-11-01 tests are in `CLAUDE.md`, access table.

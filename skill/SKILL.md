@@ -173,7 +173,10 @@ every automated check; only an adversarial review against the sources (Mode 4) f
   `.git/config` (§7.10).
 - Push to the course repo following its own rule in `CLAUDE.md` (course repos merge
   automatically, decision 1). Confirm the deploy from the Pages workflow run for the
-  pushed commit; a cloud session cannot open the live site.
+  pushed commit: `gh api 'repos/<owner>/<repo>/actions/runs?head_sha=<sha>'` and the run
+  named "pages build and deployment" (works through the session's proxy without any
+  connector, once the repo is attached), or `mcp__github__actions_list` where present.
+  A cloud session cannot open the live site.
 - **A refused push stops the session with a report.** Do not hand over a zip or bundle
   as a workaround: that is how a whole round of work (92 questions, the course manifest
   and the template) once never reached GitHub.
@@ -208,6 +211,9 @@ The checks fail the build when `CLAUDE.md` was not updated after the newest lect
    `course.js` from the syllabus, propose the skill taxonomy and the exam/module map and
    confirm both, ingest the first lecture (Mode 2), build, run the checks, publish, add
    the course to `COURSES.md` by kit pull request, and offer a daily review (Mode 5).
+   Tell Louis to attach the new repository to the "Kit updater" session with one
+   message there ("attach lglouis3-create/<repo> to this session with push access"),
+   so the daily kit-update run can reach it.
 
 ## Mode 2: add material
 
@@ -273,24 +279,40 @@ A course that had a service worker under another cache prefix before the core
 (Medicinal-chemistry: `phar4342-drill-`) names that prefix in `course.js` so the first
 update deletes those caches once; the core never deletes another course's cache.
 
-**The kit-update run** (`KIT_DESIGN.md` §12.9) is one scheduled task for all courses on
-the core, created with the scheduled-task tools at a time Louis chooses, with push
-notifications on, write access to each course repo, and the kit attached. Each run
-compares every course's `kit` pins in `course.js` with the kit's `main`. For each course
-that is behind:
+**The kit-update run** (`KIT_DESIGN.md` §12.9) runs in one dedicated session, "Kit
+updater", which started with the kit as its repository and keeps every course repository
+attached with push access; the scheduled task "Kit update run" sends it the run every day
+at 2:47 AM Central. A scheduled task that starts a fresh session each time cannot do this
+work, because a session's repositories are chosen when it starts and such a session
+starts with none (tested 2026-11-01). Each run:
+0. **Preflight.** A course in `COURSES.md` that is not attached to the session is
+   reported by name; the session does not attach it (a repository attached there must
+   come from Louis's own message in that session, which the permission system requires;
+   tested 2026-11-01). For the kit and every attached course repo: `git fetch`, `git push --dry-run` to a scratch
+   branch name, and `gh api 'repos/<owner>/<repo>/actions/runs?per_page=1'`; and Node,
+   Python and Chromium start. If any of these fails, nothing goes live in this run; the
+   run reports FAILED with the failing step and its output.
+Then it compares every course's `kit` pins in `course.js` with the kit's `main`. For each
+course that is behind:
 1. Build the update at `/preview/`, run every check, and append the result to the
    course's `reviews/LOG.md`.
 2. If every kit change since the pin is catalog bookkeeping or `small-fix`, every check
    passes on every affected course's preview, today (America/Chicago) is not the date
    of one of that course's exams (`exams[].when`; no recorded date means no automatic
    update), and neither the saved-progress format nor `ns` changes: make the preview
-   live as one commit "kit update: <old pins> → <new pins>", delete `preview/`,
-   confirm the deploy, and log it.
+   live as one commit "kit update: <old pins> → <new pins>", delete `preview/`, and
+   push. Then wait for that commit's "pages build and deployment" run to complete, for
+   up to 10 minutes (a design choice: the longest of BDK's last five Pages deploys,
+   2026-10-30 to 2026-11-01, took 2 min 51 s). On success, log it. On failure, or with
+   no completed run after 10 minutes, revert the update commit, push, confirm that
+   deploy the same way, log both, and report FAILED.
 3. Otherwise leave the preview waiting and send Louis a summary: what changed in plain
    words, the check results, the preview address, and whether an exam is today.
    "approve updates for <course>" makes it live as in step 2.
 A run that could not build, check, push or confirm the deploy reports failure and never
-ends as succeeded.
+ends as succeeded. The run sends Louis a push notification only when a preview waits for
+his reply, an update went live or was reverted, or the run failed; a run with nothing
+behind ends with one line per course and no notification.
 
 **Undo:** "undo the last kit update for <course>" reverts that update commit, restores
 the previous pins in `course.js`, confirms the deploy, and logs it in `reviews/LOG.md`.

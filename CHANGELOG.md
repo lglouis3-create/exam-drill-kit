@@ -20,6 +20,11 @@ Dated kit changes, newest first.
   the scheduled task "Kit update run" runs daily at 2:47 AM Central.
 - `core/`: `build.py --preview` with `preview_test.js`; `state_check.js` with
   `state_check_test.js`.
+- The kit-update run moved into a dedicated session, "Kit updater", after a test showed
+  a fresh scheduled session starts with no repository. Each run begins with a preflight,
+  confirms deploys with `gh api` (no connector needed), reverts an update whose deploy
+  fails or does not finish in 10 minutes, and notifies Louis only when something needs
+  him. Course repositories are attached to that session by Louis's own message.
 - `review/recommendation-proposal.md`: how the kit recommends features (material-profile
   signals, a rule table with evidence levels, a within-course random comparison of
   concept clusters, decision rules), with nine questions for Louis; research notes in
