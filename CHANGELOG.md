@@ -18,6 +18,12 @@ Dated kit changes, newest first.
   Then, also from Louis: Claude explains each feature or core pull request in plain
   terms and merges it after his yes; automatic updates skip only the day of an exam;
   the scheduled task "Kit update run" runs daily at 2:47 AM Central.
+- `core/`: the approved scheduler (`review/scheduler-proposal.md` §4-§5): exam-date
+  spacing, "I was sure of that" with a later-day check, the calculation preset, the
+  FSRS-7 option through ts-fsrs 6.0.0 (MIT, in `core/vendor/`), the per-concept
+  combination with its comparison, three new answer-log fields, and a converter for
+  progress saved by the earlier core; `scheduler_test.js` (109 checks). Parameter
+  fitting is not built.
 - `core/`: `build.py --preview` with `preview_test.js`; `state_check.js` with
   `state_check_test.js`.
 - The kit-update run moved into a dedicated session, "Kit updater", after a test showed

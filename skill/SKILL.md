@@ -59,7 +59,7 @@ COURSE = {id, title, short, ns, output, professors:[…],
   exams:[{id, name, scope, date, when, questions | null, minutes, sata?, blurb, facts?,
           pools:[{key, name, marks | null, filter:{exam:N} | {prof:'X', tier:'new'} | {lecture:[…]} | {module:N}}]}],
   activeExam, skills:[{id, label, short}], paceDefault:'cram'|'weekly'|'semester',
-  scheduler:{model:'concept' | 'fsrs' | 'concept-fsrs', compare?:true},
+  scheduler:{model:'concept' | 'fsrs' | 'concept-fsrs', compare?:true, preset?:'calc'},
   features:{<name>:{version, ...options}},
   kit:{core:'<kit commit or tag>'}}
 ```
@@ -207,7 +207,8 @@ The checks fail the build when `CLAUDE.md` was not updated after the newest lect
    syllabus, decks, transcripts and the professor's questions, and the Claude Project
    when the session can open it.
 3. Recommend features (above) and wait for Louis's approval.
-4. Copy `template/` and `core/` (and the approved features) into the repo, fill
+4. Copy `template/` and `core/` (with `core/vendor/`, as `core/README.md` "Setting up a
+   new course" says) and the approved features into the repo, fill
    `course.js` from the syllabus, propose the skill taxonomy and the exam/module map and
    confirm both, ingest the first lecture (Mode 2), build, run the checks, publish, add
    the course to `COURSES.md` by kit pull request, and offer a daily review (Mode 5).
@@ -317,6 +318,9 @@ attaching, a preview waits for his reply, an update went live or was reverted, o
 run failed; a run with nothing
 behind ends with one line per course and no notification.
 
+Bringing in a newer core means copying every file of the kit's `core/` except
+`README.md`, and `core/vendor/`, into the course's `src/`.
+
 **Undo:** "undo the last kit update for <course>" reverts that update commit, restores
 the previous pins in `course.js`, confirms the deploy, and logs it in `reviews/LOG.md`.
 
@@ -331,16 +335,19 @@ answer log, and turn what it shows into improvement proposals.
 Set by `course.js` `scheduler.model` (decisions in `KIT_DESIGN.md` §12.3):
 - `concept` (default): concepts, not single questions, are scheduled; a missed concept
   returns after at least 4 other questions as a different question; reviews before an
-  exam are spaced by the days left; a confident error gets a check on a later day; in
-  calculation courses no two problems of one type come in a row.
-- `fsrs`: FSRS-7 per card, on default parameters until enough reviews exist, then fitted
-  to the student's own answers.
+  exam are spaced by the days left; "I was sure of that" after a miss brings a different
+  question on the concept next and a check on a later day; `preset:'calc'` keeps two
+  questions of one skill from coming in a row.
+- `fsrs`: FSRS-7 per question through ts-fsrs 6.0.0, inlined from `core/vendor/`, on the
+  library's default parameters. Fitting the parameters to Louis's own answers is not
+  built yet (findings in `core/README.md`).
 - `concept-fsrs` (off by default): a memory model per concept with question rotation;
-  ships with `compare:true`, which assigns each concept at random to this model or the
-  default so the answer log shows which works better for Louis.
+  `compare` is on unless set to `false`, so each concept is assigned at random to this
+  model or the default and the answer log shows which works better for Louis.
 
-Every answer is logged (time, card or concept, item, right or wrong, confidence, mode,
-scheduler) for retros and for fitting the model.
+`core/README.md` "The scheduler" lists every design choice that has no source value.
+Every answer is logged (time, question, right or wrong, mode, concept, confidence, item
+type, scheduler, arm, predicted recall) for retros and for fitting the model.
 
 ## Standing principles
 

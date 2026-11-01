@@ -13,11 +13,17 @@ after Phase 1 and overrides earlier sections where they differ.
   `history/exam-drill-template-2026-10-02/`; `FEATURES.md`, `COURSES.md`, this file,
   `CHANGELOG.md`, `features/README.md`, a first draft of `skill/SKILL.md`; `core/` and
   `template/` from the recovered template with the picks in `review/proposed-core.md`
-  (merged in `5014f27`; on a fresh scratch course `run_checks.sh` gave 15 PASS, 0 FAIL,
-  1 NOT RUN (`cite_check.py`, no PDFs), 1 REPORT (`explain_check.js`); what is not in it
-  yet is listed in `core/README.md` "Not in core yet"). Still to do:
-  - the approved scheduler changes (`review/scheduler-proposal.md` §4) in `core/`
-    (in progress);
+  (merged in `5014f27`); the approved scheduler changes (merged in `c4be612`); the
+  `/preview/` build and the state-file check. On fresh scratch courses with each
+  scheduler setting (`concept`, `fsrs`, `concept-fsrs` with `compare`, `preset:'calc'`),
+  `run_checks.sh` gave 19 PASS, 0 FAIL, 1 NOT RUN (`cite_check.py`, no PDFs), 1 REPORT
+  (`explain_check.js`). What is not in the core yet is listed in `core/README.md` "Not
+  in core yet". Still to do:
+  - fitting FSRS parameters to Louis's own answers (`review/scheduler-proposal.md`
+    4.2.3; findings in `core/README.md`: `@open-spaced-repetition/binding` needs Node 24
+    and this container has Node 22; `fsrs-browser` does not confirm FSRS-7);
+  - a WebKit (Safari) run of the browser checks: NOT RUN so far; the FSRS page contains
+    BigInt syntax;
   - a `course.js` field naming a course's old cache prefix, which the core's `sw.js`
     deletes once when the course moves onto the core (Medicinal-chemistry's old prefix
     is `phar4342-drill-`);
