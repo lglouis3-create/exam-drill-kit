@@ -8,6 +8,10 @@
    atlas              true only when atlas.js carries drawn structures for an Atlas tab
    ns                 storage namespace: keep it the same for the whole course so
                       progress carries from Exam 1 through the final
+   oldCachePrefix     optional, only for a drill that had its own service worker
+                      before it moved onto the core: that worker's cache name
+                      prefix (for example 'phar4342-drill-'); the core's worker
+                      deletes those caches. It must end with '-'.
    professors         names exactly as the questions' `prof` field spells them
    lectures           one entry per deck: `deck` is the file name as the citations
                       spell it (dots in the stem become underscores), `exam` the

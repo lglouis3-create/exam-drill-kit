@@ -18,9 +18,14 @@
    only ever deletes caches named exactly that way, so another course's offline
    copy is never touched, including one whose `ns` starts with this one's.
 
+   A course that had its own worker before it moved onto the core names that
+   worker's cache prefix in course.js `oldCachePrefix`; caches whose names start
+   with it are deleted too. build.py refuses a prefix that would match this
+   course's own caches.
+
    Generalized from Medicinal-chemistry's sw.js (ed38dbd). */
 
-const SITE = /*__SITE__*/{prefix:'drill-', files:['index.html'], aliases:[]};
+const SITE = /*__SITE__*/{prefix:'drill-', files:['index.html'], aliases:[], old:''};
 const PREFIX = SITE.prefix;
 // Bump only when the shape of what is cached changes; content updates do not
 // need a bump, because the page is refreshed from the network on every load.
@@ -54,7 +59,8 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil((async () => {
     const names = await caches.keys();
-    await Promise.all(names.filter((n) => OURS(n) && n !== CACHE).map((n) => caches.delete(n)));
+    const left = (n) => (OURS(n) && n !== CACHE) || (SITE.old && n.startsWith(SITE.old) && !OURS(n));
+    await Promise.all(names.filter(left).map((n) => caches.delete(n)));
     await self.clients.claim();
   })());
 });

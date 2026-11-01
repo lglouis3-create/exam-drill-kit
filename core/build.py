@@ -90,7 +90,8 @@ def course_fields():
     node, so the file is read the way the page reads it whatever its quoting."""
     js = ("const fs=require('fs');"
           "const C=new Function(fs.readFileSync('course.js','utf8')+';return COURSE;')();"
-          "process.stdout.write(JSON.stringify({title:C.title,short:C.short,ns:C.ns,output:C.output}))")
+          "process.stdout.write(JSON.stringify({title:C.title,short:C.short,ns:C.ns,output:C.output,"
+          "oldCachePrefix:C.oldCachePrefix||''}))")
     r = subprocess.run(['node', '-e', js], capture_output=True, text=True)
     if r.returncode != 0:
         sys.exit('ERROR: course.js could not be evaluated\n' + (r.stderr or r.stdout).strip())
@@ -308,11 +309,24 @@ print('wrote manifest.json and the icons')
 # The worker's cache names start with the course's storage namespace, so its
 # cleanup can tell this course's old caches from every other drill's on the
 # shared origin. What it saves at install is exactly what this build wrote.
-site = {'prefix': COURSE_FIELDS['ns'] + '-',
+# A course that had its own service worker before it moved onto the core names
+# that worker's cache prefix in course.js `oldCachePrefix` (Medicinal-chemistry:
+# 'phar4342-drill-'), and this worker deletes those caches once. The prefix must
+# end with '-' and must not match this course's own cache names, so a mistyped
+# value cannot delete the cache the worker is about to use.
+old_prefix = COURSE_FIELDS.get('oldCachePrefix') or ''
+own_prefix = COURSE_FIELDS['ns'] + '-'
+if old_prefix:
+    if not re.fullmatch(r'[A-Za-z0-9._-]+-', old_prefix):
+        sys.exit(f'ERROR: oldCachePrefix {old_prefix!r} must be letters, digits, ".", "_" or "-", ending with "-"')
+    if (own_prefix + 'v1').startswith(old_prefix) or old_prefix.startswith(own_prefix):
+        sys.exit(f'ERROR: oldCachePrefix {old_prefix!r} would match this course\'s own caches ({own_prefix}v<n>)')
+site = {'prefix': own_prefix,
         'files': [OUTPUT_NAME] + ([legacy] if legacy else []) + ['manifest.json'] + [n for n, _ in ICONS],
-        'aliases': [legacy] if legacy else []}
+        'aliases': [legacy] if legacy else [],
+        'old': old_prefix}
 sw = open('sw.js', encoding='utf-8').read()
-sw_old = "const SITE = /*__SITE__*/{prefix:'drill-', files:['index.html'], aliases:[]};"
+sw_old = "const SITE = /*__SITE__*/{prefix:'drill-', files:['index.html'], aliases:[], old:''};"
 if sw_old not in sw:
     sys.exit('ERROR: SITE placeholder not found in sw.js')
 sw = sw.replace(sw_old, 'const SITE = ' + json.dumps(site) + ';')
@@ -324,4 +338,5 @@ try:
 finally:
     os.unlink(tmp_sw)
 write_root('sw.js', sw)
-print(f'wrote sw.js  (caches named {site["prefix"]}v<n>; {len(site["files"])} files saved at install)')
+print(f'wrote sw.js  (caches named {site["prefix"]}v<n>; {len(site["files"])} files saved at install'
+      + (f'; deletes caches named {old_prefix}*' if old_prefix else '') + ')')

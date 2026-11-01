@@ -32,6 +32,7 @@ that course's repository. Both folders come from the recovered exam-drill templa
 | `preview_test.js` | core | `build.py --preview`: the live site unchanged, the preview's own namespace |
 | `state_check.js` | core | the course's root `CLAUDE.md` was updated with or after the newest lecture (§7.8) |
 | `state_check_test.js` | core | `state_check.js` on repositories with known histories |
+| `oldcache_test.js` | core | `course.js` `oldCachePrefix`: an old worker's caches deleted, every other cache kept |
 | `scheduler_test.js` | core | the scheduler (`review/scheduler-proposal.md` §4-§5), with a fixed clock, on scratch builds with a test topic |
 | `vendor/` | core | ts-fsrs 6.0.0's own UMD bundle and the licence texts of the code in it; `build.py` inlines them only for a course whose scheduler model needs FSRS |
 | `harvest.py`, `harvest_mask.py`, `ingest.py` | core | tools for adding a lecture; `harvest_mask.py` keeps a course-specific table at the top, empty in the kit |
@@ -134,9 +135,11 @@ a reload, never forcing one. The worker is registered only on https, `localhost`
 are named `<ns>-v<n>`, and cleanup deletes only names of exactly that form, because every
 drill on `lglouis3-create.github.io` shares one origin and one Cache Storage: another
 course's offline copy is never touched, including one whose `ns` starts with this course's.
-A course that already has a worker under another prefix (Medicinal-chemistry's is
-`phar4342-drill-`, its `ns` is `phar4342final`) leaves that old cache behind when it moves
-onto the core; Mode 7 deletes it once.
+A course that had a worker under another prefix before it moved onto the core
+(Medicinal-chemistry's is `phar4342-drill-`, its `ns` is `phar4342final`) names that
+prefix in `course.js` `oldCachePrefix`, and the worker deletes caches whose names start
+with it. The build refuses a prefix that does not end with `-` or that would match the
+course's own `<ns>-v<n>` caches.
 
 ## A newer version, and the place after a reload
 

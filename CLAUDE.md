@@ -25,9 +25,6 @@ after Phase 1 and overrides earlier sections where they differ.
     and this container has Node 22; `fsrs-browser` does not confirm FSRS-7);
   - a WebKit (Safari) run of the browser checks: NOT RUN so far; the FSRS page contains
     BigInt syntax;
-  - a `course.js` field naming a course's old cache prefix, which the core's `sw.js`
-    deletes once when the course moves onto the core (Medicinal-chemistry's old prefix
-    is `phar4342-drill-`);
   - from `core/README.md` "Not in core yet": Intro-Pharmacology's exam-result page after
     a reload and its generator step; `coverage_check.py`, `step_check.js`,
     `sources_check.js`;
