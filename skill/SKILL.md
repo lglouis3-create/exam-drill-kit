@@ -43,6 +43,8 @@ Reusable logic goes to the kit; one course's data stays in its repo.
 | "set up nightly ingest for <course>" / "set up a daily review for <course>" / "stop …" | 5 Scheduled ingest or review |
 | "retro the drill skill against <course>" | 6 Retro |
 | "update the <course> drill to the latest kit" | 7 Update a drill |
+| "approve updates for <course>" | 7 Update a drill (make the waiting preview live) |
+| "undo the last kit update for <course>" | 7 Update a drill (revert it) |
 | "exam <N> outcome for <course>" | 8 Exam outcome |
 
 If the request names no mode, ask which one in one line.
@@ -139,9 +141,12 @@ Open one whenever a session:
 - fixes or improves a core part (with the failing case shown before the fix);
 - adds evidence or a "Used by" line to `FEATURES.md`, or updates `COURSES.md`.
 
-Louis merges feature, upgrade, core and `SKILL.md` pull requests. Catalog bookkeeping
-(a "Used by" line, a dated evidence note) may merge automatically (decision 1). A course
-gets kit changes only through Mode 7.
+Louis merges feature, upgrade, core and `SKILL.md` pull requests (decision 1). Catalog
+bookkeeping (a "Used by" line, a dated evidence note) and pull requests labelled
+`small-fix` merge themselves once every required check passes (`KIT_DESIGN.md` §12.9);
+until the kit has required checks, they wait for Louis like the rest. A fix is
+`small-fix` only if it meets every condition in §12.9, and the pull request states each
+one; when in doubt, it is a core change. Courses get kit changes only through Mode 7.
 
 ## Checks
 
@@ -253,10 +258,31 @@ older one was best for.
 
 ## Mode 7: update a drill
 
-Move one course to the current core and feature versions: build the update at
-`/preview/`, run every check, show Louis the differences, and replace the live page only
-after he approves. Question ids and `ns` stay the same; if the saved-progress format
-changed, the update includes a converter that reads the old format on first load.
+**Moving a course onto the core, or any update Louis asks for by name:** build the
+update at `/preview/`, run every check, show Louis the differences, and replace the live
+page only after he approves. Question ids and `ns` stay the same; if the saved-progress
+format changed, the update includes a converter that reads the old format on first load.
+
+**The kit-update run** (`KIT_DESIGN.md` §12.9) is one scheduled task for all courses on
+the core, created with the scheduled-task tools at a time Louis chooses, with push
+notifications on, write access to each course repo, and the kit attached. Each run
+compares every course's `kit` pins in `course.js` with the kit's `main`. For each course
+that is behind:
+1. Build the update at `/preview/`, run every check, and append the result to the
+   course's `reviews/LOG.md`.
+2. If every kit change since the pin is catalog bookkeeping or `small-fix`, every check
+   passes on every affected course's preview, the course has no exam within N days
+   (§12.9; while N is not set, this condition is never met), and neither the
+   saved-progress format nor `ns` changes: make the preview live as one commit
+   "kit update: <old pins> → <new pins>", confirm the deploy, and log it.
+3. Otherwise leave the preview waiting and send Louis a summary: what changed, the check
+   results, the preview address, and any exam within N days. "approve updates for
+   <course>" makes it live as in step 2.
+A run that could not build, check, push or confirm the deploy reports failure and never
+ends as succeeded.
+
+**Undo:** "undo the last kit update for <course>" reverts that update commit, restores
+the previous pins in `course.js`, confirms the deploy, and logs it in `reviews/LOG.md`.
 
 ## Mode 8: exam outcome
 

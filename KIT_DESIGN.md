@@ -327,10 +327,31 @@ section is current.
    `restore/2026-09-21-round` in that repo and joins its live drill when the course
    moves onto the core (Mode 7).
 
+9. **How kit updates reach courses** (Louis, 2026-11-01). This changes decision 1
+   for small fixes, and for courses already on the core it replaces §7.5.
+   - **New features, upgrades, core changes and `SKILL.md` changes:** Louis merges
+     the kit pull request (decision 1). A scheduled kit-update run then builds each
+     affected course's update at `/preview/`, runs every check, and sends Louis a
+     summary; his reply "approve updates for <course>" makes that preview live.
+   - **Catalog bookkeeping and small bug fixes:** the kit pull request merges itself
+     once every check passes. Each affected course's update then goes live without a
+     reply only when every check passes on every affected course's preview, the
+     course has no exam within the next N days (N is Louis's to set; a course whose
+     exam dates are not recorded counts as having one), and neither the
+     saved-progress format nor `ns` changes. Otherwise it waits at the preview as
+     above. Each automatic update is one commit in the course repo, logged in its
+     `reviews/LOG.md`, and "undo the last kit update for <course>" reverts it.
+   - **A small bug fix** fixes a defect shown by a test that fails before the fix and
+     passes after it; changes no question content, saved-progress format, `ns`,
+     scheduler setting or feature list; adds no feature, option or screen; and is
+     labelled `small-fix`, with each of these stated in the pull request. A change
+     that does not meet all of them is a core change.
+   - Moving a course onto the core for the first time stays manual (Mode 7).
+
 Facts from Phase 1 that correct §2 and §10: BDK has no `course.js`; v2 was written
 before PK's first engine commit, not after it; `exam-drill-template/` was never on
 GitHub and was recovered from Louis's own files (`review/findings.md` §1-§3, §11).
 
-Open: whether kit updates reach existing courses automatically, which would change
-decision 1 (Louis merges kit pull requests) and principle §7.5 (no silent upgrades).
-Asked 2026-11-01.
+Open: N in item 9, the number of days before a course's exam within which no
+automatic update goes live. Until Louis sets it, small fixes wait at the preview like
+core changes.

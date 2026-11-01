@@ -3,6 +3,11 @@
 Dated kit changes, newest first.
 
 ## 2026-11-01
+- `KIT_DESIGN.md` §12.9: how kit updates reach courses (Louis's choice). Feature and core
+  updates are built to each course's preview automatically and go live on his reply;
+  catalog bookkeeping and `small-fix` changes go live automatically when every check
+  passes, the progress format is unchanged, and no exam is within N days (N not set).
+  `skill/SKILL.md` Mode 7 and the phrase table describe the kit-update run and undo.
 - `review/recommendation-proposal.md`: how the kit recommends features (material-profile
   signals, a rule table with evidence levels, a within-course random comparison of
   concept clusters, decision rules), with nine questions for Louis; research notes in

@@ -21,14 +21,18 @@ after Phase 1 and overrides earlier sections where they differ.
   - after Louis approves `review/recommendation-proposal.md` and sets its §6 values:
     `RULES.md` from its §4, rule names on the "Use when" lines of `FEATURES.md`, the
     experiment-file format, and `core/profile.py` (the material-profile script);
+  - for §12.9: a kit workflow that runs the core checks on every pull request and is
+    required before a `small-fix` or bookkeeping pull request merges itself; the
+    kit-update scheduled task, created once the first course is on the core, at a time
+    Louis chooses;
   - one pull request to `main` for Louis to merge.
 - **Phase 3 (test) and Phase 4 (install): not started.**
 
 ## Rules for kit sessions
 
-- Kit changes reach `main` only by pull request that Louis merges (decision 1).
-  Catalog bookkeeping (a "Used by" line, a dated evidence note) may merge
-  automatically.
+- Feature, upgrade, core and `SKILL.md` changes reach `main` only by pull request
+  that Louis merges (decision 1). Catalog bookkeeping and `small-fix` pull requests
+  merge themselves once every required check passes (`KIT_DESIGN.md` §12.9).
 - Only Louis's own data informs recommendations and evidence (§12.4).
 - Citations in kit documents: AMA 11th edition, with a DOI or link on each reference
   (§12.5). Every number in a kit document comes from a named source checked in the
@@ -48,12 +52,15 @@ after Phase 1 and overrides earlier sections where they differ.
 | Google Drive: search, metadata, download | works | 2026-11-01 |
 | Claude Projects | not reachable from a cloud session | 2026-10-31 |
 | Create a new repository (Mode 1, decision 8) | not tested yet | — |
+| A kit pull request merging itself after required checks (§12.9) | not tested yet | — |
 | WebKit / Safari browser engine | not installed in the cloud container; Chromium only | 2026-10-31 |
 
 ## Open questions for Louis
 
-1. Whether kit updates should reach existing courses automatically (changes decision 1
-   and §7.5). Asked 2026-11-01.
+1. N in `KIT_DESIGN.md` §12.9: how many days before a course's exam no automatic
+   update goes live. Louis chose the update split on 2026-11-01 (features and core stop
+   at the preview for his reply; catalog bookkeeping and small fixes go live
+   automatically); N is not set, so until then small fixes also wait at the preview.
 2. `review/recommendation-proposal.md` (written 2026-11-01) waits for Louis's approval
    and the nine answers in its §6. `skill/SKILL.md` already describes the method and
    says that its in-course comparison starts nowhere until then.
