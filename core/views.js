@@ -369,41 +369,40 @@ function newsCard(){
    takes the student through Export, Add to Home Screen, Import. A browser that
    offers an install prompt gets an Install button. Ported from BDK
    (assets/app.js: homeCard, homeCardInner, wireHome, refreshHomeCards). The
-   card shows on Topics until "Not now" and always in Settings, where Export
-   and Import are. */
+   card shows only in Settings, where Export and Import are, as a section that
+   starts closed: its heading is the one line on show until it is opened
+   (Louis, 2026-11-01). Topics shows no card; the `<ns>:homeTipDismissed` key
+   its "Not now" button wrote is no longer read. */
 const WEBKIT_ITP = 'https://webkit.org/tracking-prevention/';
-const HOME_KEY = () => NS + ':homeTipDismissed';
 // navigator and matchMedia are read only when asked, so the engine still loads
 // where they are absent (the node checks)
 const isStandalone = () => { try { return matchMedia('(display-mode: standalone)').matches || navigator.standalone === true; } catch(e){ return false; } };
 const isIOS = () => { try { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); } catch(e){ return false; } };
 let installPrompt = null;
-function homeCardInner(onTopics){
-  const later = onTopics ? ' <button class="btn ghost" data-hs-dismiss>Not now</button>' : '';
+/* The section's heading (its <summary>) and what opening it shows. */
+function homeCardInner(){
   const name = esc(COURSE.short || COURSE.title);
   if(isStandalone()){
     if(!isIOS() || DB.answers.length) return '';
-    return `<b>Progress from Safari</b>
-      <p class="meta" style="margin:6px 0 8px">This Home Screen copy of ${name} keeps its own progress, separate from Safari's. To bring your progress here, open the drill in Safari, tap <b>Export progress</b> in Settings, then come back here and use <b>Import progress</b> in Settings.</p>
-      ${onTopics ? `<div class="row">${later.trim()}</div>` : ''}`;
+    return `<summary>Progress from Safari</summary>
+      <p class="meta" style="margin:8px 0 2px">This Home Screen copy of ${name} keeps its own progress, separate from Safari's. To bring your progress here, open the drill in Safari, tap <b>Export progress</b> in Settings, then come back here and use <b>Import progress</b> in Settings.</p>`;
   }
   if(isIOS()){
-    return `<b>Keep your progress: add ${name} to your Home Screen</b>
-      <p class="meta" style="margin:6px 0 4px">Safari on iPhone and iPad deletes a website's saved data after 7 days without use, unless the site is on the Home Screen (<a href="${WEBKIT_ITP}" target="_blank" rel="noopener">WebKit</a>). The Home Screen copy keeps its own progress, separate from Safari's, so bring yours across:</p>
+    return `<summary>Keep your progress: add ${name} to your Home Screen</summary>
+      <p class="meta" style="margin:8px 0 4px">Safari on iPhone and iPad deletes a website's saved data after 7 days without use, unless the site is on the Home Screen (<a href="${WEBKIT_ITP}" target="_blank" rel="noopener">WebKit</a>). The Home Screen copy keeps its own progress, separate from Safari's, so bring yours across:</p>
       <ol class="hs-steps"><li>Tap <b>Export progress</b> below. It saves a file.</li><li>In Safari, tap <b>Share</b>, then <b>Add to Home Screen</b>.</li><li>Open the drill from the new icon, go to <b>Settings</b>, tap <b>Import progress</b> and choose the file.</li></ol>
-      <div class="row"><button class="btn" data-hs-export>Export progress</button>${later}</div>`;
+      <div class="row"><button class="btn" data-hs-export>Export progress</button></div>`;
   }
   if(installPrompt){
-    return `<b>Install ${name}</b>
-      <p class="meta" style="margin:6px 0 8px">Installing adds the drill to this device as an app with its own icon. After the first visit it also opens without a connection.</p>
-      <div class="row"><button class="btn" data-install>Install ${name}</button>${later}</div>`;
+    return `<summary>Install ${name}</summary>
+      <p class="meta" style="margin:8px 0 8px">Installing adds the drill to this device as an app with its own icon. After the first visit it also opens without a connection.</p>
+      <div class="row"><button class="btn" data-install>Install ${name}</button></div>`;
   }
   return '';
 }
-function homeCard(onTopics){
-  if(onTopics && store.get(HOME_KEY()) === '1') return '';
-  const inner = homeCardInner(onTopics);
-  return inner ? `<div class="panel hs-card" data-hs="${onTopics ? 'topics' : 'settings'}">${inner}</div>` : '';
+function homeCard(){
+  const inner = homeCardInner();
+  return inner ? `<details class="panel hs-card" data-hs="settings">${inner}</details>` : '';
 }
 function wireHome(root){
   root.querySelectorAll('[data-hs]').forEach(card => {
@@ -417,13 +416,13 @@ function wireHome(root){
       try { await p.prompt(); await p.userChoice; } catch(e){ /* the browser declined to show it */ }
       refreshHomeCards();
     };
-    const later = card.querySelector('[data-hs-dismiss]');
-    if(later) later.onclick = () => { store.set(HOME_KEY(), '1'); card.remove(); };
   });
 }
+/* Redraw a card on screen when the browser's offer changes; the section stays
+   open or closed as the student left it. */
 function refreshHomeCards(){
   document.querySelectorAll('[data-hs]').forEach(card => {
-    const inner = homeCardInner(card.dataset.hs === 'topics');
+    const inner = homeCardInner();
     if(!inner){ card.remove(); return; }
     card.innerHTML = inner;
   });
@@ -471,7 +470,7 @@ function renderTopics(){
   ${EXAM.blurb ? esc(EXAM.blurb) + '. ' : ''}Question bank: ${QUESTIONS.length} across ${conceptsIn(QUESTIONS).length} concepts.
   ${examCountdown() ? '<b>' + esc(examCountdown()) + '</b>' : ''}</p>
   <p class="stamp">Built ${esc(BUILD.stamp || '')}${(BUILD.changelog||[]).length ? ' · <a href="#" id="whatsnew">all changes</a>' : ''}</p>
-  ${newsCard()}${homeCard(true)}`;
+  ${newsCard()}`;
 
   h += filterBar();
 
@@ -536,7 +535,6 @@ function renderTopics(){
   </div></div>`;
 
   $('#v-topics').innerHTML = h;
-  wireHome($('#v-topics'));
 
   const wn = $('#whatsnew'); if(wn) wn.onclick = e => { e.preventDefault(); show('settings'); };
   const nok = $('#newsok'); if(nok) nok.onclick = () => {
@@ -2106,7 +2104,7 @@ function renderSettings(){
       so the review schedule can later be fitted to your own answers; Export progress includes it.
     </p>
   </div>
-  ${homeCard(false)}
+  ${homeCard()}
 
   <h3>Start over</h3>
   <div class="filters">
@@ -2228,7 +2226,8 @@ if(COURSE.atlas === false || typeof ATLAS === 'undefined' || !ATLAS.boards || !A
 if(!DIA_LIST().length) dropTab('diagrams');
 askProfile(false);
 // Chrome offers installing the drill after the first render; the Home Screen
-// card turns into an Install button where one is on screen, and on the next view.
+// section in Settings turns into an Install button where it is on screen, and
+// shows one the next time Settings is drawn.
 window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installPrompt = e; refreshHomeCards(); });
 window.addEventListener('appinstalled', () => { installPrompt = null; refreshHomeCards(); });
 

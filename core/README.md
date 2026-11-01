@@ -29,7 +29,7 @@ that course's repository. Both folders come from the recovered exam-drill templa
 | `update_test.js` | core | a newer version is offered; a reload comes back to the same place |
 | `sw.js` | core | the service worker; `build.py` fills in the course's cache prefix and file list and writes it to the root |
 | `offline_test.js` | core | the offline copy: other sites' caches kept, server down, server slow |
-| `home_test.js` | core | the Home Screen card for each kind of browser |
+| `home_test.js` | core | the Home Screen card for each kind of browser: a closed section in Settings, nothing on Topics |
 | `history_test.js` | core | the answer history: its fields, Export, Import, Erase, a refused write |
 | `preview_test.js` | core | `build.py --preview`: the live site unchanged, the preview's own namespace |
 | `state_check.js` | core | the course's root `CLAUDE.md` was updated with or after the newest lecture (§7.8) |
@@ -281,12 +281,18 @@ my history clears both. When the browser refuses to save the history, the oldest
 dropped and no notice is shown, so the history never stops progress from saving. No
 scheduler reads the history; the progress (`DB`) holds what they schedule from.
 
-The Home Screen card appears on Topics (until "Not now") and in Settings. In Safari on
-iPhone and iPad it gives the steps export, Add to Home Screen, import, because Safari
-deletes a site's data after 7 days without use unless the site is on the Home Screen
-(webkit.org/tracking-prevention) and a Home Screen copy keeps its own storage (WebKit bug
-181849). A Home Screen copy with no progress says how to bring it over; a browser with an
-install prompt gets an Install button; any other browser sees no card.
+The Home Screen card appears only in Settings, as a section that starts closed (a
+`<details>` whose `<summary>` is the card's one-line heading), and never on Topics
+(Louis, 2026-11-01, after trying Medicinal-chemistry's preview on his phone; until then it
+also showed on Topics until "Not now", whose `<ns>:homeTipDismissed` key is no longer
+read). In Safari on iPhone and iPad the line reads "Keep your progress: add <short> to
+your Home Screen" and opening it gives the steps export, Add to Home Screen, import, with
+an Export progress button, because Safari deletes a site's data after 7 days without use
+unless the site is on the Home Screen (webkit.org/tracking-prevention) and a Home Screen
+copy keeps its own storage (WebKit bug 181849). A Home Screen copy with no progress gets
+"Progress from Safari", which says how to bring it over; a browser with an install prompt
+gets "Install <short>" with an Install button; any other browser sees no card.
+`home_test.js` checks each of these, closed and opened.
 
 ## The scheduler
 

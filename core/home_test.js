@@ -1,12 +1,16 @@
 /* The Home Screen card: what each kind of browser is offered, and that its
  * buttons work. Modeled on BDK's tests/home.js.
  *
- *   iPhone/iPad in Safari   steps to export, add to the Home Screen and import;
- *                           "Not now" hides it on Topics only
- *   Home Screen copy with   how to bring progress over from Safari
- *     no progress yet
- *   a browser with an       an Install button that calls the prompt
- *     install prompt
+ * The card is a section in Settings that starts closed (a <details> whose
+ * <summary> is its one-line heading), and Topics shows none (Louis, 2026-11-01):
+ *
+ *   iPhone/iPad in Safari   "Keep your progress: add <short> to your Home
+ *                           Screen"; opened, the steps to export, add to the
+ *                           Home Screen and import, and Export progress
+ *   Home Screen copy with   "Progress from Safari"; opened, how to bring
+ *     no progress yet       progress over from Safari
+ *   a browser with an       "Install <short>"; opened, an Install button that
+ *     install prompt        calls the prompt
  *   any other browser       no card
  *
  * The iPhone is Playwright's iPhone 13 profile in Chromium (its screen and
@@ -22,6 +26,23 @@ L.PAGE.need(NAME);
 const text = (page, sel) => page.$eval(sel, el => el.textContent.replace(/\s+/g, ' ').trim()).catch(() => '');
 const go = (page, v) => page.click(`#nav button[data-v="${v}"]`);
 const overflow = page => page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+const CARD = '#v-settings [data-hs]';
+// click only what is there, so a missing element fails its own check and the rest still run
+const tap = async (page, sel) => { if(!(await page.$(sel))) return false; await page.click(sel); return true; };
+// the card in Settings: a closed <details> whose summary is the given heading
+async function closedSection(page, heading, label){
+  const s = await page.$eval(CARD, el => ({tag: el.tagName, open: el.open,
+    summary: (el.querySelector(':scope > summary') || {}).textContent || ''})).catch(() => null);
+  check(s && s.tag === 'DETAILS' && s.open === false, `${label}: Settings has the card as a closed section`, JSON.stringify(s));
+  check(s && s.summary.replace(/\s+/g, ' ').trim() === heading, `${label}: its one line reads "${heading}"`, s && s.summary);
+  return s;
+}
+// Topics shows no card, whatever the browser
+async function noneOnTopics(page, label){
+  await go(page, 'topics');
+  check(!(await page.$('#v-topics [data-hs]')) && !/Home Screen|Install /.test(await text(page, '#v-topics')),
+    `${label}: Topics shows no Home Screen card`);
+}
 
 (async () => {
   const {pw, browser} = await L.launch(NAME);
@@ -31,29 +52,36 @@ const overflow = page => page.evaluate(() => document.documentElement.scrollWidt
   {
     const {ctx, page, errors} = await L.openFile(browser, IPHONE);
     const id = await page.evaluate(() => COURSE.id);
-    const topics = await text(page, '[data-hs="topics"]');
-    check(/to your Home Screen/.test(topics), 'Topics shows the Home Screen card', topics.slice(0, 80));
-    check(/7 days/.test(topics) && !!(await page.$('[data-hs="topics"] a[href="https://webkit.org/tracking-prevention/"]')),
-      'the card names the 7-day rule with its source');
+    const short = await page.evaluate(() => COURSE.short || COURSE.title);
+    await noneOnTopics(page, 'iPhone');
+    await go(page, 'settings');
+    await closedSection(page, `Keep your progress: add ${short} to your Home Screen`, 'iPhone');
+    check(!(await page.isVisible(`${CARD} .hs-steps`)) && !(await page.isVisible(`${CARD} [data-hs-export]`)),
+      'closed, the steps and the Export button are not shown');
+    await tap(page, `${CARD} > summary`);
+    check(await page.$eval(CARD, el => el.open).catch(() => false), 'tapping the line opens the section');
+    const body = await text(page, CARD);
+    check(await page.isVisible(`${CARD} .hs-steps`) && /Export progress/.test(body) && /Add to Home Screen/.test(body) &&
+          /Import progress/.test(body), 'opened, it shows the steps: Export, Add to Home Screen, Import', body.slice(0, 120));
+    check(/7 days/.test(body) && !!(await page.$(`${CARD} a[href="https://webkit.org/tracking-prevention/"]`)),
+      'the section names the 7-day rule with its source');
     let dl = null;
-    if(await page.$('[data-hs="topics"] [data-hs-export]'))
-      [dl] = await Promise.all([page.waitForEvent('download'), page.click('[data-hs="topics"] [data-hs-export]')]);
+    if(await page.isVisible(`${CARD} [data-hs-export]`))
+      [dl] = await Promise.all([page.waitForEvent('download'), page.click(`${CARD} [data-hs-export]`)]);
     const fname = dl ? dl.suggestedFilename() : '';
-    check(new RegExp(`^${id}-progress-.+\\.json$`).test(fname), 'Export progress on the card saves a progress file', fname);
+    check(new RegExp(`^${id}-progress-.+\\.json$`).test(fname), 'Export progress in the section saves a progress file', fname);
     let file = null;
     try { file = JSON.parse(fs.readFileSync(await dl.path(), 'utf8')); } catch(e){}
     check(file && file.db && file.db.concepts && Array.isArray(file.log), 'the file holds the progress and the answer history');
-    check(!(await overflow(page)), 'no sideways scroll with the card');
-    if(await page.$('[data-hs="topics"] [data-hs-dismiss]')) await page.click('[data-hs="topics"] [data-hs-dismiss]');
-    check(!(await page.$('[data-hs="topics"]')), 'Not now hides the card');
+    check(!(await overflow(page)), 'no sideways scroll with the section open');
+    check(!(await page.$('[data-hs-dismiss]')), 'there is no Not now button');
+    // a browser that pressed the old card's "Not now" still sees nothing on Topics, and the section in Settings
+    await page.evaluate(() => localStorage.setItem(NS + ':homeTipDismissed', '1'));
     await page.reload();
     await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3);
-    await go(page, 'topics');
-    check(!(await page.$('[data-hs="topics"]')), 'the card stays hidden on Topics after a reload');
+    await noneOnTopics(page, 'after the old "Not now" and a reload');
     await go(page, 'settings');
-    const settings = await text(page, '[data-hs="settings"]');
-    check(/Add to Home Screen/.test(settings) && /Import progress/.test(settings), 'Settings still shows the steps', settings.slice(0, 80));
-    check(!(await page.$('[data-hs="settings"] [data-hs-dismiss]')), 'the Settings card has no Not now button');
+    await closedSection(page, `Keep your progress: add ${short} to your Home Screen`, 'after a reload');
     check(!errors.length, 'no page errors', errors.slice(0, 2).join('; '));
     await ctx.close();
   }
@@ -62,15 +90,17 @@ const overflow = page => page.evaluate(() => document.documentElement.scrollWidt
   {
     const {ctx, page, errors} = await L.openFile(browser, IPHONE,
       () => Object.defineProperty(Navigator.prototype, 'standalone', {get: () => true, configurable: true}));
-    const topics = await text(page, '[data-hs="topics"]');
-    check(/Progress from Safari/.test(topics) && /Import progress/.test(topics), 'Topics says how to bring progress from Safari', topics.slice(0, 80));
+    await noneOnTopics(page, 'Home Screen copy');
     await go(page, 'settings');
-    check(/Progress from Safari/.test(await text(page, '[data-hs="settings"]')), 'Settings says the same');
+    await closedSection(page, 'Progress from Safari', 'Home Screen copy');
+    await tap(page, `${CARD} > summary`);
+    const body = await text(page, CARD);
+    check(/open the drill in Safari/.test(body) && /Export progress/.test(body) && /Import progress/.test(body),
+      'opened, it says how to bring progress from Safari', body.slice(0, 120));
     await page.evaluate(() => { startQuiz(TOPICS[0].id); const b = document.querySelector('#v-quiz button[data-o]'); if(b) b.click(); });
     await go(page, 'settings');
     check(!(await page.$('#v-settings [data-hs]')), 'once this copy has progress of its own, the card is gone from Settings');
-    await go(page, 'topics');
-    check(!(await page.$('#v-topics [data-hs]')), 'and from Topics');
+    await noneOnTopics(page, 'with progress');
     check(!errors.length, 'no page errors', errors.slice(0, 2).join('; '));
     await ctx.close();
   }
@@ -78,7 +108,7 @@ const overflow = page => page.evaluate(() => document.documentElement.scrollWidt
   console.log('\n=== Desktop, no install prompt ===');
   {
     const {ctx, page, errors} = await L.openFile(browser, {viewport: {width: 1200, height: 900}});
-    check(!(await page.$('#v-topics [data-hs]')), 'no card on Topics');
+    await noneOnTopics(page, 'desktop');
     await go(page, 'settings');
     check(!(await page.$('#v-settings [data-hs]')), 'no card in Settings');
     check(!errors.length, 'no page errors', errors.slice(0, 2).join('; '));
@@ -88,6 +118,7 @@ const overflow = page => page.evaluate(() => document.documentElement.scrollWidt
   console.log('\n=== A browser that offers an install prompt ===');
   {
     const {ctx, page, errors} = await L.openFile(browser, {viewport: {width: 1200, height: 900}});
+    const short = await page.evaluate(() => COURSE.short || COURSE.title);
     // The prompt arrives after the first render, as it does in Chrome; the card is drawn on the next view.
     await page.evaluate(() => {
       const e = new Event('beforeinstallprompt', {cancelable: true});
@@ -95,9 +126,13 @@ const overflow = page => page.evaluate(() => document.documentElement.scrollWidt
       e.userChoice = Promise.resolve({outcome: 'accepted'});
       window.dispatchEvent(e);
     });
+    await noneOnTopics(page, 'install prompt');
     await go(page, 'settings');
-    check(/Install/.test(await text(page, '[data-hs="settings"]')), 'Settings shows Install');
-    if(await page.$('[data-hs="settings"] [data-install]')) await page.click('[data-hs="settings"] [data-install]');
+    await closedSection(page, `Install ${short}`, 'install prompt');
+    check(!(await page.isVisible(`${CARD} [data-install]`)), 'closed, the Install button is not shown');
+    await tap(page, `${CARD} > summary`);
+    check(await page.isVisible(`${CARD} [data-install]`), 'opened, it shows the Install button');
+    if(await page.isVisible(`${CARD} [data-install]`)) await page.click(`${CARD} [data-install]`);
     await page.waitForTimeout(200);
     check(await page.evaluate(() => window.__prompted === true), 'Install calls the browser prompt');
     check(!(await page.$('[data-hs]')), 'the card is gone after the prompt');

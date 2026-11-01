@@ -3,6 +3,15 @@
 Dated kit changes, newest first.
 
 ## 2026-11-01
+- `core/`: the Home Screen card no longer appears on Topics; in Settings it is a section
+  that starts closed, its one line the card's heading ("Keep your progress: add <short>
+  to your Home Screen" in Safari on iPhone and iPad, "Progress from Safari" in a Home
+  Screen copy with no progress, "Install <short>" where the browser offers an install
+  prompt), opening to the same steps and buttons as before (Louis, after trying
+  Medicinal-chemistry's preview on his phone). "Not now" is gone. `home_test.js` checks
+  it (33 checks; 15 of them fail on the d13462e core). `run_checks.sh`: template scratch
+  course 22 PASS, 0 FAIL, 1 NOT RUN, 1 REPORT; the Medicinal-chemistry copy 21 PASS,
+  0 FAIL, 2 NOT RUN, 1 REPORT.
 - `core/`: the course tables of `cite_check.py` (`ALIASES`, `LECTURES`, `BARE_MAP`),
   `explain_check.js` (`WEIGHTY`) and `harvest_mask.py` (`SPEC`) move into `course.js`
   `tools` (`citeAliases`, `citeLectures`, `citeBareMap`, `explainTerms`, `harvestMasks`),
