@@ -3,6 +3,16 @@
 Dated kit changes, newest first.
 
 ## 2026-11-01
+- New feature module `formulas-in-text` v1 (`features/formulas-in-text/`), from
+  Basic-Pharmacokinetics `ac2eb73`: formulas typed in plain text are drawn as the slides
+  print them, as each question is drawn (`{{frac:a|b}}` stacked, powers, the course's
+  subscripts from the `symbols` option, t½, × and −), and fractions in the reading tabs
+  stack; stored text is unchanged. A module, not core: the symbol table is course data and
+  only calculation courses need it. Its test: on 8 PK questions and 1 calculation, every
+  stem (8), option (32) and worked step (3) is drawn exactly as PK's own formatter draws
+  it, plus PK's control cases (6 formulas, 3 runs of ordinary text); 11 checks pass, 1 skip
+  on the template course (no fractions in its bank). With the module's code left out the
+  same test fails 4 checks and then stops (`FX.api('formulas-in-text')` is null).
 - Feature modules (`features/README.md`): `course.js` `features: {<name>: {version,
   ...options}}` now switches on a module copied from the kit's `features/<name>/current/`
   to the course's `src/features/<name>/`. `build.py` checks the pinned version, the

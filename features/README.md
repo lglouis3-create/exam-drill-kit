@@ -115,4 +115,4 @@ is off says so on its card and offers the next question.
 
 | Module | Version | Ported from | What it adds |
 |---|---|---|---|
-| (none yet) | | | |
+| `formulas-in-text` | v1 | Basic-Pharmacokinetics `ac2eb73` | formulas set as the slides print them: stacked fractions, powers, the course's subscripts |

@@ -143,5 +143,56 @@ function scratchRepo(srcDir, label){
   return root;
 }
 
+/* For the checks of feature modules and of the core's calculation options: a
+   scratch copy of this source tree, with `files` ({name: text}) written into its
+   src/, `courseLine` appended to course.js after the COURSE object, `edit(src)`
+   run on it, then built. A file whose name starts q<N>_ is added to course.js
+   `files` as well. Returns {repo, src, page, code, out}; rm() removes it. */
+function scratchBuild(label, opts){
+  opts = opts || {};
+  const repo = scratchRepo(PAGE.SRC, label);
+  const src = path.join(repo, 'src');
+  const qs = [];
+  for(const [f, text] of Object.entries(opts.files || {})){
+    fs.writeFileSync(path.join(src, f), text);
+    if(/^q[0-9]/.test(f)) qs.push(f);
+  }
+  let line = qs.length ? `COURSE.files = (COURSE.files || ['atlas.js', 'diagrams.js', 'q1_topics.js']).concat(${JSON.stringify(qs)});` : '';
+  if(opts.courseLine) line += opts.courseLine;
+  if(line) fs.appendFileSync(path.join(src, 'course.js'), '\n;' + line + '\n');
+  if(opts.edit) opts.edit(src);
+  const r = child.spawnSync('python3', ['build.py'], {cwd: src, encoding: 'utf8', timeout: 600000});
+  return {repo, src, page: path.join(repo, 'index.html'), code: r.status, out: ((r.stdout || '') + (r.stderr || '')).trim(),
+          rm: () => fs.rmSync(repo, {recursive: true, force: true})};
+}
+/* `course.js` line that switches module `name` on with these options (kept
+   with any other module the course has on), at the version in its module.json. */
+function featureOn(dir, opts){
+  const meta = JSON.parse(fs.readFileSync(path.join(dir, 'module.json'), 'utf8'));
+  return `COURSE.features = Object.assign({}, COURSE.features, {${JSON.stringify(meta.name)}: ` +
+         `Object.assign({}, (COURSE.features || {})[${JSON.stringify(meta.name)}], ${JSON.stringify(Object.assign({version: meta.version}, opts || {}))})});`;
+}
+/* openFile for any built page, not only the course's own */
+async function openPage(browser, file, ctxOpts, init){
+  const ctx = await browser.newContext(Object.assign({viewport: {width: 390, height: 844}}, ctxOpts || {}));
+  await ctx.addInitScript(() => { window.prompt = () => (window.__name || 'TestUser'); });
+  if(init) await ctx.addInitScript(init);
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on('pageerror', e => errors.push(e.message));
+  page.on('dialog', d => d.accept());
+  await page.goto('file://' + file);
+  await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+  return {ctx, page, errors};
+}
+/* Start the quiz on one question (or a fixed list of ids), as a sweep. */
+const quizOn = (page, ids) => page.evaluate(ids => {
+  const pool = ids.map(byId).filter(Boolean);
+  Q = {pool, label: 'check', sweep: ids.slice(), i: 0, current: null, answered: 0, lastId: null, examMode: false, picked: null, revealed: false};
+  nextQuestion(); show('quiz');
+  return !!Q.current;
+}, [].concat(ids));
+
 module.exports = {PAGE, check, skip, notRun, finish, playwright, launch, openFile, serve, engine, scratchRepo,
+                  scratchBuild, featureOn, openPage, quizOn,
                   counts: () => ({fails, passes, skipped: skipped.length})};
