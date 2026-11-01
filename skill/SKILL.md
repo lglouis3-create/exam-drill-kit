@@ -277,8 +277,9 @@ update at `/preview/`, run every check, show Louis the differences, and replace 
 page only after he approves. Question ids and `ns` stay the same; if the saved-progress
 format changed, the update includes a converter that reads the old format on first load.
 A course that had a service worker under another cache prefix before the core
-(Medicinal-chemistry: `phar4342-drill-`) names that prefix in `course.js` so the first
-update deletes those caches once; the core never deletes another course's cache.
+(Medicinal-chemistry: `phar4342-drill-`) names that prefix in `course.js`
+`oldCachePrefix`, and the core's worker deletes those caches; it never deletes another
+course's cache.
 
 **The kit-update run** (`KIT_DESIGN.md` §12.9) runs in one dedicated session, "Kit
 updater", which started with the kit as its repository and keeps every course repository

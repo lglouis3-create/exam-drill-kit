@@ -25,9 +25,6 @@ after Phase 1 and overrides earlier sections where they differ.
     and this container has Node 22; `fsrs-browser` does not confirm FSRS-7);
   - a WebKit (Safari) run of the browser checks: NOT RUN so far; the FSRS page contains
     BigInt syntax;
-  - a `course.js` field naming a course's old cache prefix, which the core's `sw.js`
-    deletes once when the course moves onto the core (Medicinal-chemistry's old prefix
-    is `phar4342-drill-`);
   - from `core/README.md` "Not in core yet": Intro-Pharmacology's exam-result page after
     a reload and its generator step; `coverage_check.py`, `step_check.js`,
     `sources_check.js`;
@@ -70,7 +67,7 @@ after Phase 1 and overrides earlier sections where they differ.
 | Scheduled task that starts a fresh session each time (first "Kit update run", now deleted) | does not work for this: the fired session started with no repository, `gh` and `git` were refused, and it reported FAILED by push notification | 2026-11-01 |
 | `gh api 'repos/<owner>/<repo>/actions/runs?head_sha=<sha>'` for Pages deploys | works through the session proxy without any connector, for repos attached to the session; `gh api …/pages/builds/latest` is refused by the proxy | 2026-11-01 |
 | Session "Kit updater" (`session_01LVkWFDAbAtw7kDGwqd43Qg`, started with the kit as its repository) | kit fetch and push dry run work; Python, Node and Chromium work; `mcp__github__*` tools present; `add_repo` for a course repo from a seeded message was blocked by the permission system; after Louis's own message there, all four course repos were attached with push access, and fetch, `git push --dry-run` and `gh api …/actions/runs` worked in each (the session's stored sources list the kit and the four course repos) | 2026-11-01 |
-| Scheduled task "Kit update run" (`trig_01QduqhookGDD8HxANEbLq4w`, daily 2:47 AM America/Chicago, fires into "Kit updater") | created; first run 2026-11-01 08:47 UTC; not yet checked whether a run after the container is replaced still has the repos | 2026-11-01 |
+| Scheduled task "Kit update run" (`trig_01QduqhookGDD8HxANEbLq4w`, daily 2:47 AM America/Chicago, fires into "Kit updater") | first run 2026-11-01 08:48 UTC ended "Nothing to update: the kit's main has no core yet" (correct: PR #1 merged at about 12:10 UTC), changed nothing and sent no notification; not yet checked whether a run after the container is replaced still has the repos | 2026-11-01 |
 | WebKit / Safari browser engine | not installed in the cloud container; Chromium only | 2026-10-31 |
 
 ## Open questions for Louis

@@ -3,6 +3,9 @@
 Dated kit changes, newest first.
 
 ## 2026-11-01
+- `core/`: `course.js` `oldCachePrefix` for a drill that had its own service worker
+  before the core (Medicinal-chemistry: `phar4342-drill-`); the worker deletes those
+  caches and no other; `oldcache_test.js`.
 - `core/` and `template/`: the recovered template split into the shared engine and the
   new-course skeleton, with the build writing to the repository root, `store` for
   refused writes, the offline copy scoped to each course's own caches, the exam draw
