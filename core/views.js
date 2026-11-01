@@ -2033,6 +2033,14 @@ function schedulerNote(){
       when a question comes back is worked out from your answers to it, so the paces above do not change it.
       "Ask everything" still serves every question, lowest predicted recall first.
       "I was sure of that" records the confidence.</p>`;
+  const combo = `FSRS-7 (the ts-fsrs library, version 6.0.0, with its default settings) keeps one memory model
+      per concept, updated by whichever of its questions you answer, and shows the concept's question you saw least recently`;
+  if(SCHED.model === 'concept-fsrs' && SCHED.compare) return `<p style="font-size:13.5px;color:var(--text-dim);margin:8px 0 0">
+      This course compares two schedulers. Each concept is assigned at random to one of them: the paces above, or
+      ${combo}. The questions of each session are shared evenly between the two, and the answer history records
+      which one scheduled each answer.</p>`;
+  if(SCHED.model === 'concept-fsrs') return `<p style="font-size:13.5px;color:var(--text-dim);margin:8px 0 0">
+      In this course ${combo}; the paces above do not change when a concept comes back.</p>`;
   return '';
 }
 function renderSettings(){

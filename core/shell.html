@@ -596,6 +596,8 @@ const BLANK = () => ({
                       //   signal the app has, so it is kept.
   qn:0,               // questions answered counter (drives cram scheduling)
   fsrsQ:{},           // scheduler.model 'fsrs': question id -> ts-fsrs card (dates in ms)
+  fsrsC:{},           // 'concept-fsrs': concept id -> ts-fsrs card
+  arms:{},            // the comparison: concept id -> 'concept' | 'concept-fsrs', from its first answer
   fsUndo:null,        // the card before the last FSRS step, for "I guessed"
   settings:{mode:'cram'},
   created:Date.now()
@@ -755,20 +757,50 @@ function askProfile(force){
    ========================================================================== */
 const GAP = 4;                                   // min other questions before a missed concept returns
 /* The course's scheduler setting (course.js `scheduler`). model: 'concept'
-   (the default), or 'fsrs' (FSRS-7 per question, scheduler proposal §4.2).
+   (the default), 'fsrs' (FSRS-7 per question, scheduler proposal §4.2) or
+   'concept-fsrs' (FSRS-7 per concept with question rotation, §4.3; it ships
+   with the comparison of §5 on, so compare is true unless set to false).
    preset 'calc' is the calculation preset (§4.1.3); see pickNext. A model
    that needs the FSRS library runs only when build.py put it in the page;
    without it the page falls back to the concept scheduler (build.py stops a
    build that names an unknown model, so this is not expected). */
 const SCHED = (() => {
   const c = COURSE.scheduler || {};
-  const wants = ['concept', 'fsrs'].includes(c.model) ? c.model : 'concept';
+  const wants = ['concept', 'fsrs', 'concept-fsrs'].includes(c.model) ? c.model : 'concept';
   const lib = typeof FSRS !== 'undefined' && FSRS && typeof FSRS.DefaultScheduler === 'function';
-  return {wants, model: wants !== 'concept' && !lib ? 'concept' : wants,
+  const model = wants !== 'concept' && !lib ? 'concept' : wants;
+  return {wants, model, compare: model === 'concept-fsrs' && c.compare !== false,
           preset: c.preset || '', calc: c.preset === 'calc'};
 })();
-/* Which scheduler a concept is under: the course's model. */
-const armOf = concept => SCHED.model;
+/* Which scheduler a concept is under. With the comparison on (§5), each
+   concept is assigned at random to the combination ('concept-fsrs') or the
+   default concept scheduler ('concept'): the top bit of the FNV-1a hash of
+   "<ns>|<concept id>" (design choice: the top bit, since FNV-1a's low bit
+   is only the parity of the characters), so the assignment is the same on
+   every visit and device; the first answer stores it in DB.arms, and a
+   stored assignment is what counts from then on. */
+const armHash = concept => (parseInt(cardCode(NS + '|' + concept), 16) >>> 31) ? 'concept-fsrs' : 'concept';
+const armOf = concept => SCHED.model !== 'concept-fsrs' ? SCHED.model
+  : !SCHED.compare ? 'concept-fsrs'
+  : (DB.arms && DB.arms[concept]) || armHash(concept);
+/* The comparison's review budget (§5: "review time is matched"; the
+   classroom study it cites matched its schedulers for number of review
+   trials, research notes Finding 1.6): within one session (the drill's own
+   "This session", answers with no gap longer than SESSION_GAP), the arm
+   that has had fewer quiz answers picks the next question; on a tie the arm
+   is drawn at random. An arm with nothing to ask leaves the turn to the
+   other, so neither decides how many questions a session shows. */
+function sessionArms(){
+  const n = {concept: 0, 'concept-fsrs': 0};
+  let t = Date.now() / 1000;
+  for(let i = LOG.length - 1; i >= 0; i--){
+    const e = LOG[i];
+    if(!Array.isArray(e) || t - e[0] >= SESSION_GAP / 1000) break;
+    t = e[0];
+    if(e[3] === 'quiz' && e[8] in n) n[e[8]]++;
+  }
+  return n;
+}
 
 /* ---------- FSRS (scheduler proposal §4.2) ---------------------------------
    ts-fsrs 6.0.0, the library's own bundle (core/vendor/), which build.py puts
@@ -784,7 +816,8 @@ const armOf = concept => SCHED.model;
    guessed", is Again (the mapping of §4.3, used for both FSRS models).
    A card keeps the library's own fields; its two dates (dueAt, lastReviewAt)
    are stored as milliseconds. 'fsrs' keeps one card per question in
-   DB.fsrsQ. DefaultScheduler() returns a promise, which settles within the
+   DB.fsrsQ; 'concept-fsrs' one card per concept in DB.fsrsC, stepped by
+   whichever of its questions is answered (§4.3). DefaultScheduler() returns a promise, which settles within the
    microtasks after this script runs, before any tap can reach the page;
    until then FS is null, an answer's FSRS step waits in FS_WAIT, and a
    question answered meanwhile counts as answered, not new (this is what a
@@ -796,7 +829,7 @@ if(SCHED.model !== 'concept'){
   // ts-fsrs calls Object.hasOwn, which older browsers lack
   if(!Object.hasOwn) Object.hasOwn = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
   FSRS.DefaultScheduler().then(s => { FS = s; FS_WAIT.splice(0).forEach(f => f()); })
-    .catch(e => { FS_ERROR = String(e && e.message || e); SCHED.model = 'concept'; FS_WAIT.length = 0; });
+    .catch(e => { FS_ERROR = String(e && e.message || e); SCHED.model = 'concept'; SCHED.compare = false; FS_WAIT.length = 0; });
 }
 const whenFs = f => { if(FS) f(); else if(SCHED.model !== 'concept') FS_WAIT.push(f); };
 const fsIn  = c => Object.assign({}, c, {dueAt: new Date(c.dueAt), lastReviewAt: c.lastReviewAt == null ? null : new Date(c.lastReviewAt)});
@@ -817,10 +850,11 @@ function fsRecall(card, at){
   const c = fsIn(card);
   return FS.model.forgettingCurve(c, Math.max(0, FS.chrono.difference(c.lastReviewAt, new Date(at))));
 }
-const fsStore = arm => arm === 'fsrs' ? (DB.fsrsQ = DB.fsrsQ || {}) : null;
+const fsStore = arm => arm === 'fsrs' ? (DB.fsrsQ = DB.fsrsQ || {}) : arm === 'concept-fsrs' ? (DB.fsrsC = DB.fsrsC || {}) : null;
 // answered, with its FSRS step still waiting for the library
-const fsAnswered = (q, arm) => { const s = DB.concepts[q.concept]; return !!(s && s.last && q.id in s.last); };
-const fsKey = (q, arm) => q.id;
+const fsAnswered = (q, arm) => { const s = DB.concepts[q.concept];
+  return !!(s && s.last && (arm === 'concept-fsrs' ? Object.keys(s.last).length : q.id in s.last)); };
+const fsKey = (q, arm) => arm === 'concept-fsrs' ? q.concept : q.id;
 const fsCard = (q, arm) => { const S = fsStore(arm); return S ? S[fsKey(q, arm)] || null : null; };
 /* An answer's FSRS step. The card before it is kept in DB.fsUndo, so "I
    guessed" can redo that step as Again from the same card and time. */
@@ -965,7 +999,8 @@ function record(q, result, picked, ms, mode){
   // the scheduler fields of the answer history, read before this answer
   // changes anything (the concept scheduler predicts no recall)
   const arm = armOf(q.concept);
-  const how = {model: arm, arm: '', recall: arm === 'concept' ? null : fsRecall(fsCard(q, arm), now)};
+  if(SCHED.compare && !(DB.arms = DB.arms || {})[q.concept]) DB.arms[q.concept] = arm;   // the assignment, kept
+  const how = {model: arm, arm: SCHED.compare ? arm : '', recall: arm === 'concept' ? null : fsRecall(fsCard(q, arm), now)};
   DB.qn++;
   s.seen++;
   s.lastQ = DB.qn;
@@ -1138,17 +1173,33 @@ function pickNext(pool, justAsked){
     const other = cands.filter(c => skillOf(c.q) !== skillOf(prev));
     if(other.length) cands = other;
   }
+  // the comparison: the arm with fewer answers this session takes the turn
+  if(SCHED.compare && cands.some(c => c.arm !== cands[0].arm)){
+    const n = sessionArms(), a = n.concept, b = n['concept-fsrs'];
+    const arm = a < b ? 'concept' : b < a ? 'concept-fsrs' : (Math.random() < 0.5 ? 'concept' : 'concept-fsrs');
+    cands = cands.filter(c => c.arm === arm);
+  }
   return cands[0].arm === 'concept' ? conceptPick(cands) : fsPick(cands);
 }
 /* The FSRS models' pick: the due card with the lowest predicted recall, else
    a question never answered (one of up to five, at random), else, with "Ask
-   everything", the lowest recall. */
+   everything", the lowest recall. Under 'concept-fsrs' the card is the
+   concept's, and the question shown is the concept's question seen least
+   recently (one never shown first), so a concept answered with "Not sure"
+   comes back as a different question when it has one (§4.3). */
 function fsPick(cands){
   const due = cands.filter(c => c.due);
-  if(due.length) return due.sort((a, b) => b.sub - a.sub || a.r - b.r)[0].q;
-  const fresh = cands.filter(c => c.tier === 3).sort((a, b) => a.r - b.r);
-  if(fresh.length) return fresh[Math.floor(Math.random() * Math.min(fresh.length, 5))].q;
-  return cands.sort((a, b) => b.sub - a.sub || a.r - b.r)[0].q;
+  let chosen;
+  if(due.length) chosen = due.sort((a, b) => b.sub - a.sub || a.r - b.r)[0];
+  else {
+    const fresh = cands.filter(c => c.tier === 3).sort((a, b) => a.r - b.r);
+    chosen = fresh.length ? fresh[Math.floor(Math.random() * Math.min(fresh.length, 5))]
+                          : cands.sort((a, b) => b.sub - a.sub || a.r - b.r)[0];
+  }
+  if(chosen.arm !== 'concept-fsrs') return chosen.q;
+  const s = DB.concepts[chosen.q.concept] || {}, last = s.last || {}, asked = s.asked || [];
+  const when = q => q.id in last ? last[q.id] : asked.includes(q.id) ? 0 : -1;
+  return cands.filter(c => c.q.concept === chosen.q.concept).sort((a, b) => when(a.q) - when(b.q) || a.r - b.r)[0].q;
 }
 /* The concept scheduler's pick from its ranked candidates. */
 function conceptPick(cands){

@@ -271,6 +271,32 @@ serves exactly what the `5014f27` core served (`scheduler_test.js`).
   `computeParameters` takes whole-day `delta_ts` with no model-version option, so FSRS-7
   support is not confirmed. Neither has been run here.
 
+**`concept-fsrs`** (§4.3, off by default): a memory model per concept with the concept
+scheduler's question rotation. Each concept keeps one FSRS-7 card (`DB.fsrsC`), stepped by
+whichever of its questions is answered; the due concept with the lowest predicted recall
+goes next, and within it the question seen least recently (one never shown first), so a
+concept answered with "Not sure" comes back as a different question when it has one.
+Grades: right left as "Knew it" = Good (pass); "Not sure" right = Good, and the
+explanation stays on screen as after every answer; "I guessed" = Again (fail); wrong =
+Again. Never-seen concepts come after due ones, as under `fsrs`.
+
+*The comparison* (§5), `scheduler.compare`, on unless set to `false` (the combination
+ships with it). Each concept is assigned at random to the combination or the default
+concept scheduler: the top bit of the FNV-1a hash of `"<ns>|<concept id>"`, so the same
+on every visit and device (design choice: the top bit, because FNV-1a's lowest bit is only
+the parity of the characters); the first answer stores the assignment in `DB.arms`, and a
+stored one is what counts from then on. In `scheduler_test.js` 1007 of 2000 test ids go
+to the combination. A concept on the concept arm gets everything of §4.1 (exam-date spacing, the
+confident-error check, the calculation preset); one on the combination is scheduled by its
+card. Every history entry carries the arm (fields 8 and 9). Both arms get the same review
+budget, counted in questions as in the classroom study §5 cites (matched for number of
+review trials, `review/research-notes/scheduler-2026-11-01.md` Finding 1.6): within one
+session (the drill's own "This session", answers with no gap longer than `SESSION_GAP`),
+the arm with fewer quiz answers picks the next question, a tie is drawn at random, and an
+arm with nothing to ask leaves the turn to the other, so the arm decides scheduling only,
+not how many questions a session shows. In `scheduler_test.js` a 30-question session in
+which both arms can ask splits 15 and 15.
+
 *No "I know this, skip it" control* (§4.1.4; its reference 15: letting learners drop
 cards they thought they knew had small but consistent negative effects). The core has
 none; `scheduler_test.js` reads every control on 24 screens (Topics, a question before
@@ -317,9 +343,8 @@ the built page.
 
 ## Not in core yet
 
-- The combination (`review/scheduler-proposal.md` §4.3); §4.1 and the FSRS option (§4.2,
-  on default parameters) are in. Fitting FSRS parameters to the student's answers (§4.2.3)
-  is not built; see "The scheduler".
+- Fitting FSRS parameters to the student's answers (`review/scheduler-proposal.md`
+  §4.2.3); the rest of §4.1-§4.3 and §5 is in, on default parameters. See "The scheduler".
 - Intro-Pharmacology's exam-result page coming back after a reload, and its generator
   step in the build (`gen_*.py`), both named in `review/proposed-core.md` §5-§6.
 - The check that a course's `CLAUDE.md` was updated after its newest lecture (§7 there),

@@ -526,6 +526,130 @@ COURSE.exams.push({id:'zsA', name:'Test exam', date:'12 Nov', when:'2026-11-12T0
     }
   }
 
+  console.log('\n=== 3. Combination (scheduler.model \'concept-fsrs\') and the comparison ===');
+  {
+    const one = variant('combo1', `COURSE.scheduler = {model:'concept-fsrs', compare:false};`);
+    const cmp = variant('combo', `COURSE.scheduler = {model:'concept-fsrs', compare:true};`);
+    if(one.error || cmp.error){ check(false, 'the combination test courses build', one.error || cmp.error); }
+    else {
+      // ---- one FSRS state per concept, rotation, grades (comparison off: every concept on the combination)
+      let {ctx, page: p, errors} = await open(browser, one.page, T0);
+      const has = await p.evaluate(() => typeof SCHED !== 'undefined' && SCHED.model === 'concept-fsrs' && typeof FS !== 'undefined' && !!FS);
+      check(has, 'the combination course runs concept-fsrs with the library ready');
+      const showQ = (id, sub) => p.evaluate(([id, sub]) => { startQuiz('zsched', sub || null); Q.current = byId(id); Q.order = Q.current.options.map((o, i) => i);
+        Q.picked = null; Q.revealed = false; renderQuiz(); }, [id, sub]);
+      const pick = right => p.evaluate(right => { const i = Q.current.options.findIndex(o => right ? o.correct : !o.correct);
+        document.querySelector(`#v-quiz button[data-o="${i}"]`).click(); }, right);
+      const tap = sel => p.evaluate(sel => { const b = document.querySelector(sel); if(b && !b.disabled) b.click(); return !!b; }, sel);
+      // [minutes after T0, question, right, button, grade the proposal gives it]
+      const STEPS = [[0, 'z1a', true, null, 3], [1440, 'z1b', true, '#btnShaky', 3], [3 * 1440, 'z1c', true, '#btnGuess', 1],
+                     [10 * 1440, 'z1a', false, null, 1], [10 * 1440 + 60, 'z1b', true, null, 3]];
+      const LP = await libraryPage(browser);
+      const want = await LP.replay('c1', STEPS.map(([m, , , , g]) => [ms(T0) + m * 60000, g]));
+      await LP.ctx.close();
+      const got = [], logs = [];
+      let whyAfterUnsure = null;
+      for(const [m, id, right, btn] of STEPS){
+        await p.clock.setFixedTime(new Date(ms(T0) + m * 60000));
+        await showQ(id, 'a'); await pick(right); if(btn) await tap(btn);
+        if(btn === '#btnShaky') whyAfterUnsure = await p.evaluate(() => !!document.querySelector('#v-quiz .why .verdict') && !!document.querySelector('#v-quiz .why .wrow'));
+        got.push(await p.evaluate(() => DB.fsrsC && DB.fsrsC.c1 ? JSON.parse(JSON.stringify(DB.fsrsC.c1)) : null));
+        logs.push(await p.evaluate(() => LOG[LOG.length - 1]));
+      }
+      const norm = o => JSON.stringify(Object.keys(o || {}).sort().reduce((a, k) => (a[k] = o[k], a), {}));
+      const same = got.map((g, i) => norm(g) === norm(want[i].card));
+      check(same.every(Boolean), 'one card per concept: after answers to three different questions of c1 it equals the library\'s review of the same sequence (Knew it = Good, Not sure = Good, I guessed = Again, wrong = Again, same-day right = Good)',
+        JSON.stringify(same.map((x, i) => x ? 'ok' : {step: i, got: got[i], want: want[i].card}).filter(x => x !== 'ok').slice(0, 1)));
+      check(await p.evaluate(() => !Object.keys(DB.fsrsQ || {}).length), 'no per-question cards are kept under the combination');
+      check(whyAfterUnsure === true, 'after "Not sure" the explanation stays on screen');
+      const rec = logs.map(e => e[9]), wantRec = want.map(w => w.recall === null ? null : Math.round(w.recall * 10000) / 10000);
+      check(logs.every(e => e[7] === 'concept-fsrs' && e[8] === '') && JSON.stringify(rec) === JSON.stringify(wantRec),
+        'each answer logs scheduler "concept-fsrs", no arm (no comparison) and the library\'s predicted recall for the concept', JSON.stringify({log: logs.map(e => e.slice(7)), wantRec}));
+      const rot = await p.evaluate(() => { try {
+        const out = {}, z = id => byId(id), at = t => { Date.now = () => t; }, t0 = Date.now();
+        const poolA = QUESTIONS.filter(q => q.topic === 'zsched' && q.sub === 'a'), poolB = QUESTIONS.filter(q => q.topic === 'zsched' && q.sub === 'b');
+        // the concept is due: its question seen least recently comes (z1c was last seen before z1a and z1b)
+        at(DB.fsrsC.c1.dueAt + 1000); out.leastRecent = (pickNext(poolA, null) || {}).id;
+        // "Not sure", then the concept's next turn is another of its questions
+        DB = BLANK(); at(t0); record(z('z4a'), 'correct', 0, 1000); markShaky(z('z4a'));
+        at(DB.fsrsC.c4.dueAt + 1000); out.afterUnsure = (pickNext([z('z4a'), z('z4b')], null) || {}).id;
+        // three due concepts: the one with the lowest predicted recall goes next
+        DB = BLANK();
+        at(t0); record(z('z3a'), 'correct', 0, 1000); at(t0 + 2 * 86400000); record(z('z4a'), 'correct', 0, 1000);
+        at(t0 + 4 * 86400000); record(z('z5a'), 'correct', 0, 1000); at(t0 + 40 * 86400000);
+        out.r = ['c3', 'c4', 'c5'].map(c => [c, fsRecall(DB.fsrsC[c], Date.now())]);
+        out.lowest = out.r.slice().sort((a, b) => a[1] - b[1])[0][0];
+        const q = pickNext(poolB, null) || {}; out.pickConcept = q.concept; out.pickId = q.id;
+        return out; } catch(e){ return {err: e.message, r: []}; } });
+      check(rot.leastRecent === 'z1c', 'within a due concept the question seen least recently is shown (z1c)', rot);
+      check(rot.afterUnsure === 'z4b', 'after "Not sure" the concept comes back as a different question', rot);
+      check(rot.pickConcept === rot.lowest && rot.pickId === 'z3b', `the due concept with the lowest predicted recall goes next (${rot.r.map(([c, r]) => c + ' ' + Number(r).toFixed(3)).join(', ')}), as its question not yet shown`, rot);
+      check(!errors.length, 'no page errors', errors.slice(0, 2).join('; '));
+      await ctx.close();
+
+      // ---- the comparison
+      ({ctx, page: p, errors} = await open(browser, cmp.page, T0));
+      const fnv = id => { let h = 0x811c9dc5; for(let i = 0; i < id.length; i++){ h ^= id.charCodeAt(i); h = Math.imul(h, 0x01000193); } return h >>> 0; };
+      const ns = await p.evaluate(() => typeof NS !== 'undefined' ? NS : '');
+      const ids = ['c1', 'c2', 'c3', 'c4', 'c5'];
+      const hashArm = c => (fnv(ns + '|' + c) >>> 31) ? 'concept-fsrs' : 'concept';
+      const arms0 = await p.evaluate(ids => ids.map(c => typeof armOf === 'function' ? armOf(c) : null), ids);
+      check(JSON.stringify(arms0) === JSON.stringify(ids.map(hashArm)), `each concept's arm is the top bit of FNV-1a("${ns}|<concept>") (${ids.map((c, i) => c + ' ' + arms0[i]).join(', ')})`, arms0);
+      const share = await p.evaluate(() => { let n = 0; for(let i = 0; i < 2000; i++) if(typeof armOf === 'function' && armOf('concept-' + i) === 'concept-fsrs') n++; return n; });
+      check(share >= 900 && share <= 1100, `over 2000 concept ids, ${share} go to the combination and ${2000 - share} to the concept scheduler`, share);
+      await p.evaluate(() => { record(byId('z1a'), 'correct', 0, 1000); });
+      await p.waitForTimeout(400);
+      const stored = await p.evaluate(() => { const d = JSON.parse(localStorage.getItem(NS + ':data:' + PROFILE) || '{}'); return d.arms || null; });
+      check(stored && stored.c1 === arms0[0], 'the first answer stores the concept\'s arm with the progress', stored);
+      // a stored assignment holds across visits, even where the hash would say otherwise
+      const flip = arms0[1] === 'concept' ? 'concept-fsrs' : 'concept';
+      await p.evaluate(flip => { DB.arms = DB.arms || {}; DB.arms.c2 = flip; save(); }, flip);
+      await p.waitForTimeout(400);
+      await p.reload(); await p.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+      const arms1 = await p.evaluate(ids => ids.map(c => typeof armOf === 'function' ? armOf(c) : null), ids);
+      check(arms1[0] === arms0[0] && arms1[1] === flip && arms1.slice(2).join() === arms0.slice(2).join(), 'after a reload every concept keeps its arm; a stored one wins over the hash', arms1);
+
+      // a session on the test topic with c1, c3 on the combination and c2, c4, c5 on the concept scheduler
+      const sess = await p.evaluate(() => { try {
+        DB = BLANK(); LOG.length = 0; DB.arms = {c1: 'concept-fsrs', c3: 'concept-fsrs', c2: 'concept', c4: 'concept', c5: 'concept'};
+        DB.settings.mode = 'all'; DB.settings.pace = 'cram';
+        const pool = QUESTIONS.filter(q => q.topic === 'zsched'), n = {concept: 0, 'concept-fsrs': 0};
+        let last = null, worst = 0, t = Date.now(); const both = [], logs = [];
+        for(let i = 0; i < 30; i++){
+          Date.now = () => t + i * 60000;
+          const q = pickNext(pool, last); if(!q) break;
+          const arm = armOf(q.concept); n[arm]++; worst = Math.max(worst, Math.abs(n.concept - n['concept-fsrs']));
+          record(q, i % 4 === 3 ? 'wrong' : 'correct', 0, 1000); last = q.id; logs.push(LOG[LOG.length - 1]);
+        }
+        return {n, worst, logsOk: logs.every(e => e[8] === armOf(e[4]) && e[7] === e[8]),
+                recallOk: logs.every(e => e[8] === 'concept' ? e[9] === null : (e[9] === null || (e[9] > 0 && e[9] < 1)))};
+      } catch(e){ return {err: e.message, n: {}}; } });
+      check(sess.n.concept + sess.n['concept-fsrs'] === 30 && sess.worst <= 1, `with both arms able to ask, a 30-question session shares its questions evenly (${sess.n.concept} concept, ${sess.n['concept-fsrs']} combination; never more than ${sess.worst} apart)`, sess);
+      check(sess.logsOk, 'every answer logs its concept\'s arm, and the scheduler named is that arm', sess);
+      check(sess.recallOk, 'the concept arm logs no predicted recall; the combination logs the library\'s', sess);
+      const cont = await p.evaluate(() => { try {
+        DB = BLANK(); LOG.length = 0; DB.arms = {c1: 'concept-fsrs', c3: 'concept-fsrs', c2: 'concept', c4: 'concept', c5: 'concept'};
+        DB.settings.mode = 'normal'; DB.settings.pace = 'semester';
+        for(const id of ['z2a', 'z4a', 'z4b', 'z5a']) record(byId(id), 'correct', 0, 1000);   // every concept-arm concept answered, none due
+        const q = pickNext(QUESTIONS.filter(x => x.topic === 'zsched'), null);
+        return {id: q && q.id, arm: q && armOf(q.concept)};
+      } catch(e){ return {err: e.message}; } });
+      check(cont.arm === 'concept-fsrs', 'when one arm has nothing to ask the other arm takes the turn, so the session goes on', cont);
+      // "I was sure of that": the concept arm's check and retry; the combination records the confidence only
+      const sure = await p.evaluate(() => { try {
+        DB = BLANK(); DB.arms = {c1: 'concept', c3: 'concept-fsrs'};
+        const run = id => { startQuiz('zsched', null); Q.current = byId(id); Q.order = [0, 1, 2]; Q.revealed = false; renderQuiz();
+          document.querySelector('#v-quiz button[data-o="1"]').click(); const b = document.getElementById('btnSure'); if(b) b.click();
+          return {note: !!document.getElementById('sureNote'), check: !!(DB.concepts[Q.current.concept] || {}).check, retry: Q.retryConcept || null}; };
+        return {concept: run('z1a'), combo: run('z3a')};
+      } catch(e){ return {err: e.message, concept: {}, combo: {}}; } });
+      check(sure.concept.note && sure.concept.check && sure.concept.retry === 'c1', 'under the comparison, "I was sure of that" on a concept-arm concept sets its check and retry', sure);
+      check(!sure.combo.note && !sure.combo.check && !sure.combo.retry, 'on a combination concept it records the confidence only', sure);
+      check(!errors.length, 'no page errors', errors.slice(0, 2).join('; '));
+      await ctx.close();
+    }
+  }
+
   await browser.close();
   L.finish(NAME);
 })().catch(e => { console.log(e.stack); console.log(`FAIL: ${NAME}: the test stopped: ${String(e.message).split('\n')[0]}`); process.exit(1); });

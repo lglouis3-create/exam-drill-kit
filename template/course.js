@@ -38,6 +38,10 @@
                       row, and due questions of earlier lectures mixed in.
                       model 'fsrs': FSRS-7 per question (ts-fsrs, from the
                       kit's core/vendor/, which the build then inlines).
+                      model 'concept-fsrs' (off by default): FSRS-7 per
+                      concept with question rotation; it ships with
+                      compare:true, which assigns each concept at random to
+                      it or to 'concept' and logs which.
    ========================================================================== */
 const COURSE = {
   id: 'course-id',                       // e.g. 'phar4351'
