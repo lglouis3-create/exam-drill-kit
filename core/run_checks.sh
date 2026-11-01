@@ -18,6 +18,12 @@ CHECKS=(test.js style_check.js render_test.js explain_check.js stepper_test.js c
         device_lint.js output_test.js files_test.js tables_test.js checks_test.js draw_test.js browser_test.js storage_test.js
         update_test.js offline_test.js home_test.js history_test.js scheduler_test.js
         preview_test.js state_check.js state_check_test.js oldcache_test.js)
+# Checks of what this course switches on (build.py --list-checks): features_test.js
+# and each module's own test when course.js `features` has a module on,
+# numeric_test.js with `numeric`, exam_typed_test.js with an exam's `typed`.
+OPTIONAL=()
+while IFS= read -r c; do [ -n "$c" ] && OPTIONAL+=("$c"); done < <(python3 build.py --list-checks 2>/dev/null)
+CHECKS+=("${OPTIONAL[@]}")
 [ $# -gt 0 ] && CHECKS=("$@")
 
 LOGS=$(mktemp -d "${TMPDIR:-/tmp}/drill-checks-XXXXXX")

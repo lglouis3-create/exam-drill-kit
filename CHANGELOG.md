@@ -3,6 +3,19 @@
 Dated kit changes, newest first.
 
 ## 2026-11-01
+- Feature modules (`features/README.md`): `course.js` `features: {<name>: {version,
+  ...options}}` now switches on a module copied from the kit's `features/<name>/current/`
+  to the course's `src/features/<name>/`. `build.py` checks the pinned version, the
+  options and the modules a module needs, runs its build step, and puts `core/features.js`
+  (the hooks: a tab, a question type, a step after an answer, a pass after a view is drawn,
+  reading-tab HTML, a Settings section, a start-up step, a progress converter) and the
+  module into the page; a module that throws is skipped and the page carries on. With no
+  module on the page is unchanged: the template course built from the same sources by the
+  `d187207` core and by this one differs only in the build stamp (240,996 bytes each).
+  `run_checks.sh` adds `build.py --list-checks`: the checks of what a course switches on.
+  New check `features_test.js` (39 checks; on the `d187207` core 4 pass, 9 fail, then it
+  stops at the first browser step: `FX is not defined`). `run_checks.sh` on the template
+  scratch course: 22 PASS, 0 FAIL, 1 NOT RUN, 1 REPORT, as before.
 - `core/`: the Home Screen card no longer appears on Topics; in Settings it is a section
   that starts closed, its one line the card's heading ("Keep your progress: add <short>
   to your Home Screen" in Safari on iPhone and iPad, "Progress from Safari" in a Home

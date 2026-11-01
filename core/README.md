@@ -36,6 +36,8 @@ that course's repository. Both folders come from the recovered exam-drill templa
 | `state_check_test.js` | core | `state_check.js` on repositories with known histories |
 | `oldcache_test.js` | core | `course.js` `oldCachePrefix`: an old worker's caches deleted, every other cache kept |
 | `scheduler_test.js` | core | the scheduler (`review/scheduler-proposal.md` §4-§5), with a fixed clock, on scratch builds with a test topic |
+| `features.js` | core | the hooks a feature module uses (tab, question type, step after an answer, pass after a view is drawn, reading-tab HTML, Settings section, start-up step, progress converter); in the page only when `course.js` `features` switches a module on |
+| `features_test.js` | core | feature modules: the build's refusals, every hook, a module that fails, and no change to a page with no module on; runs when a module is on |
 | `vendor/` | core | ts-fsrs 6.0.0's own UMD bundle and the licence texts of the code in it; `build.py` inlines them only for a course whose scheduler model needs FSRS |
 | `harvest.py`, `harvest_mask.py`, `ingest.py` | core | tools for adding a lecture; `harvest_mask.py` takes the crops to mask from `course.js` `tools` |
 | `STEPPERS.md` | core | the rules step-through figures are written to |
@@ -69,6 +71,30 @@ course's `src/README.md` comes from `template/`.
 
 No file name appears in both folders except `README.md`, so the copy order does not
 matter for any other file.
+
+A course that switches a feature module on also copies the module's `current/` folder
+to `src/features/<name>/` (`features/README.md`).
+
+## Feature modules
+
+`course.js` `features: {<name>: {version, ...options}}` switches modules on. The build
+reads each from `src/features/<name>/` (a copy of the kit's `features/<name>/current/`),
+checks the pinned version, the options and the modules it needs, runs its build step,
+and puts `features.js` and the module into the page between the data and `views.js`;
+the layout, `module.json`, the build step and every hook are in `features/README.md`.
+With no module on (no `features` field, or `{}`) neither `features.js` nor any module
+code is in the page, which is then byte for byte the page this core built before
+feature modules existed, except the build stamp: on the template course, built from the
+same sources by the kit at `d187207` and by this core, the two `index.html` files
+(240,996 bytes each) differ only in `BUILD.stamp` and `BUILD.built` (2026-11-01).
+
+`features.js` adds the hooks by wrapping seven engine functions (`show`, `renderQuiz`,
+`renderSettings`, `refFigures`, `record`, `load`, `upgradeDB`) and watching `main` for redrawn views
+(a `MutationObserver`), so neither `views.js` nor `shell.html` has a line for modules.
+A module that throws while it loads is skipped; a hook that throws switches its module
+off for the visit; the page carries on either way. `features_test.js` checks all of
+this with three probe modules it writes into a scratch copy, and runs whenever the
+course has a module on, with each module's own test (`build.py --list-checks`).
 
 ## The course's files
 
@@ -471,7 +497,13 @@ the draw by announced counts (`exams[].blueprint`) uses the same rule.
     ./run_checks.sh test.js browser_test.js
 
 `run_checks.sh` runs the build and then each check separately, so one failure cannot
-hide another, and prints one line per check with the check's own summary:
+hide another, and prints one line per check with the check's own summary. Besides the
+checks every course runs, it runs the checks of what the course switches on, as
+`build.py --list-checks` names them: `features_test.js` and each module's own test when
+a feature module is on, `numeric_test.js` with `course.js` `numeric`, and
+`exam_typed_test.js` with an exam's `typed: true`. A course that switches none of them
+on runs the same checks as before. The kit's own checks of a core change run on the
+template course and on a scratch course with every module and option on.
 
 | Line | Exit code of the check | Meaning |
 |---|---|---|

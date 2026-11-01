@@ -28,7 +28,9 @@ How the fields were filled:
   Files were searched for citation patterns and method names on 2026-10-31 and
   commit messages on 2026-11-01. Where a method is named in code without a source,
   the entry says so.
-- **Enable** lines are proposed names; nothing reads `features` yet.
+- **Enable** lines: `course.js` `features` switches on a module that has been ported
+  into `features/<name>/` (the build reads it since 2026-11-01; `features/README.md`).
+  For a feature not yet ported, the line is the name it will have.
 - Courses: MC = Medicinal-chemistry (PHAR 4342), PK = Basic-Pharmacokinetics-
   (PHAR 4221), PH = Intro-Pharmacology- (PHAR 4344), BDK = BDK (PHAR 4232).
 

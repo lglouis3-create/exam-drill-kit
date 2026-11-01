@@ -85,6 +85,12 @@
                                       ['phrase', ...]] for each question crop
                                       that prints its own answer; the phrases
                                       are whited out on the question image
+   features           optional: the feature modules this course switches on,
+                      {<name>: {version:'v1', ...options}}, each copied from
+                      the kit's features/<name>/current/ to src/features/<name>/
+                      (the kit's features/README.md). The version pins it; only
+                      Mode 7 changes it. Leave it out and the page has no
+                      module code at all.
    kit                {core:'<kit commit>'}: the exam-drill-kit commit this
                       src/ engine was copied from (core/), written when the
                       course is set up; only Mode 7 (a drill update) changes it

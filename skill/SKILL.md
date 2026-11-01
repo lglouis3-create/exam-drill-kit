@@ -330,7 +330,11 @@ run failed; a run with nothing
 behind ends with one line per course and no notification.
 
 Bringing in a newer core means copying every file of the kit's `core/` except
-`README.md`, and `core/vendor/`, into the course's `src/`. A course whose `build.py`
+`README.md`, and `core/vendor/`, into the course's `src/`. A course with feature modules on
+(`course.js` `features`) keeps the copies in `src/features/<name>/` at their pinned
+versions; a module moves to a newer version only when Louis asks for it by name, by
+copying the kit's `features/<name>/current/` over the course's copy and changing its
+`version` in `course.js` in the same commit (`features/README.md`). A course whose `build.py`
 still carries its own list of question files (a core before 2026-11-01's `files`) gets
 that list in `course.js` `files` first; the new build names any question file left out.
 The tables `cite_check.py`, `explain_check.js` and `harvest_mask.py` need from a course
