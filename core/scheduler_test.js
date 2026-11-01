@@ -3,8 +3,10 @@
  *
  * Each part builds its own copy of this source tree (check_lib scratchRepo):
  * course.js gets a few lines appended (the scheduler setting, test lectures,
- * test exams) and q1_topics.js gets a test topic with concepts that have more
- * than one question each, which the sample bank does not. The course's own
+ * test exams) and the course's first question file (the first q<N>_*.js in
+ * course.js `files`, from build.py --list-files) gets a test topic with
+ * concepts that have more than one question each, which the sample bank does
+ * not. The course's own
  * files are not changed. The days below are fixed dates read by a fake clock
  * (Playwright page.clock), so nothing depends on today's date.
  *
@@ -44,14 +46,22 @@ COURSE.lectures.push({id:'ZS1', deck:'ZS-L1.pdf', label:'Test lecture 1', prof:C
                      {id:'ZS2', deck:'ZS-L2.pdf', label:'Test lecture 2', prof:COURSE.professors[0], exam:99, module:'ZS'});
 `;
 
+/* The course's first question file, which declares TOPICS and QUESTIONS:
+   the first question file in course.js `files`, as build.py reads it. */
+function firstQuestionFile(src){
+  const r = child.spawnSync('python3', ['build.py', '--list-files'], {cwd: src, encoding: 'utf8'});
+  try { const q = JSON.parse(r.stdout).questions[0]; if(q) return {file: q}; } catch(e){}
+  return {error: 'build.py --list-files named no question file: ' + ((r.stderr || r.stdout || '').trim().split('\n').pop() || 'no output')};
+}
 /* A scratch copy of this source tree with course.js and the first question
    file extended, built; returns the page's path or the build's last line. */
 function variant(label, courseExtra){
   const repo = L.scratchRepo(L.PAGE.SRC, 'sched-' + label);
   const src = path.join(repo, 'src');
-  if(!fs.existsSync(path.join(src, 'q1_topics.js'))) return {error: 'no q1_topics.js to add the test topic to'};
+  const first = firstQuestionFile(src);
+  if(first.error) return first;
   fs.appendFileSync(path.join(src, 'course.js'), '\n' + COURSE_BASE + (courseExtra || '') + '\n');
-  fs.appendFileSync(path.join(src, 'q1_topics.js'), '\n' + QEXTRA + '\n');
+  fs.appendFileSync(path.join(src, first.file), '\n' + QEXTRA + '\n');
   const b = child.spawnSync('python3', ['build.py'], {cwd: src, encoding: 'utf8'});
   if(b.status !== 0) return {error: ((b.stderr || '') + (b.stdout || '')).trim().split('\n').pop()};
   return {repo, page: path.join(repo, 'index.html'), out: b.stdout};
