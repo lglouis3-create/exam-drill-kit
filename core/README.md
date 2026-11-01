@@ -25,6 +25,8 @@ that course's repository. Both folders come from the recovered exam-drill templa
 | `storage_test.js` | core | progress when the browser refuses to save |
 | `draw_test.js` | core | no exam paper carries two wordings of one fact, across pools too |
 | `update_test.js` | core | a newer version is offered; a reload comes back to the same place |
+| `sw.js` | core | the service worker; `build.py` fills in the course's cache prefix and file list and writes it to the root |
+| `offline_test.js` | core | the offline copy: other sites' caches kept, server down, server slow |
 | `harvest.py`, `harvest_mask.py`, `ingest.py` | core | tools for adding a lecture; `harvest_mask.py` keeps a course-specific table at the top, empty in the kit |
 | `STEPPERS.md` | core | the rules step-through figures are written to |
 | `course.js` | template | the course manifest: names, `ns`, lectures, exams, skills, pace |
@@ -68,6 +70,9 @@ serves:
 | `.nojekyll` | stops Pages running Jekyll, which drops files whose names start with `_` |
 | the `output` name in `course.js` | a redirect to `index.html`, so old links keep working |
 | `version.json` | `{"built": "<UTC time of the build>"}`, the same value as `BUILD.built` in the page |
+| `sw.js` | the service worker, from `src/sw.js` with the course's cache prefix and file list filled in |
+| `manifest.json` | the web manifest: `title` and `short` from `course.js`, start page `index.html` |
+| `icon-192.png`, `icon-512.png`, `icon-maskable-512.png`, `apple-touch-icon.png` | copied from `src/icons/` when the course supplies them; otherwise a plain square in the accent colour, and the build says so |
 
 Each file is written through a `.tmp` file and renamed, so a failed build leaves the
 last good file in place. Nothing is written outside the repository. Every check reads
@@ -82,6 +87,19 @@ refuses a write (quota full, private window, blocked site data), that key is ser
 from memory for the rest of the visit, and the first refusal shows one notice that
 points to Settings → Export progress. A later write that succeeds clears the key's
 failure. Switching profile writes any save still waiting on its timer first.
+
+## Offline
+
+`sw.js` is Medicinal-chemistry's service worker (`ed38dbd`) made course-agnostic. The page
+is fetched network-first; the saved copy is used when the network is down or slower than
+3500 ms (`NET_TIMEOUT`), and when the network copy then turns out to differ the page offers
+a reload, never forcing one. The worker is registered only on https or localhost. Caches
+are named `<ns>-v<n>`, and cleanup deletes only names of exactly that form, because every
+drill on `lglouis3-create.github.io` shares one origin and one Cache Storage: another
+course's offline copy is never touched, including one whose `ns` starts with this course's.
+A course that already has a worker under another prefix (Medicinal-chemistry's is
+`phar4342-drill-`, its `ns` is `phar4342final`) leaves that old cache behind when it moves
+onto the core; Mode 7 deletes it once.
 
 ## A newer version, and the place after a reload
 

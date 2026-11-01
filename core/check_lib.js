@@ -88,8 +88,12 @@ function serve(root, opts){
           file = path.normalize(path.join(root, rel));
           if(file.startsWith(root) && fs.existsSync(file) && fs.statSync(file).isFile()) body = fs.readFileSync(file);
         }
-        if(body && rel === 'index.html' && S.indexExtra)
-          body = Buffer.from(body.toString('utf8').replace('</body>', S.indexExtra + '</body>'));
+        // a "new deploy": a marker before the page's own closing body tag, the
+        // last one (the script holds the string </body> too, in readingHtml)
+        if(body && rel === 'index.html' && S.indexExtra){
+          const t = body.toString('utf8'), at = t.lastIndexOf('</body>');
+          body = Buffer.from(t.slice(0, at) + S.indexExtra + t.slice(at));
+        }
       } else if(opts.other && p in opts.other) body = Buffer.from(opts.other[p]);
       if(!body){ res.writeHead(404); res.end(); return; }
       const etag = '"' + crypto.createHash('md5').update(body).digest('hex') + '"';

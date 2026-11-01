@@ -2099,6 +2099,34 @@ function offerReload(text){
   });
 }
 
+/* ---------- offline: the service worker (hosted copy only) ----------
+   Registered only on https or on localhost: a service worker needs a secure
+   origin, and opened from disk the file is already self-contained. It never
+   reloads on its own; a student part-way through an exam paper decides when
+   (Medicinal-chemistry, ed38dbd). */
+(function offline(){
+  const sw = navigator.serviceWorker;
+  const hosted = location.protocol === 'https:' ||
+                 location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  if(!sw || !hosted) return;
+  const firstTime = !sw.controller;
+  // The worker sends this when it served the saved copy because the network
+  // was slow, and the network copy then turned out to be newer.
+  sw.addEventListener('message', e => {
+    if(e.data && e.data.type === 'drill-updated') offerReload('A newer version of the drill is ready.');
+  });
+  sw.register('./sw.js').then(() => {
+    if(!firstTime) return;
+    // Fires once the drill is actually saved, not merely requested.
+    sw.addEventListener('controllerchange', () => {
+      const key = NS + ':offline-ready';
+      if(store.get(key) === '1') return;
+      store.set(key, '1');
+      bar('Saved for offline use: the drill now opens with no connection.', null, null, 7000);
+    }, {once: true});
+  }).catch(() => {});
+})();
+
 /* ---------- a newer version is published ----------
    A page left open keeps the copy it loaded. Every 15 minutes, and when the tab
    comes back, it reads version.json beside it (written by build.py) and, when a

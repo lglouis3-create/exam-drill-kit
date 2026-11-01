@@ -33,7 +33,16 @@ DATA_FILES = ['atlas.js', 'diagrams.js',
 SOURCES = ['course.js'] + DATA_FILES + ['glossary.js', 'links.js', 'reference.js', 'tell.js', 'guide.js', 'views.js']
 # Every source file that ends up on the student's device. device_lint.js reads
 # this list (python3 build.py --list-sources) rather than keeping its own copy.
-SHIPPED = SOURCES + ['shell.html']
+# sw.js is not part of the page; the build fills it in and writes it beside it.
+SHIPPED = SOURCES + ['shell.html', 'sw.js']
+
+# The home-screen and install icons. A course supplies its own as PNG files
+# under src/icons/ with these names; any it does not supply is written as a
+# plain square in the page's accent colour, so the manifest is complete from
+# the first build and a course replaces the placeholders when it has artwork.
+ICONS = [('icon-192.png', 192), ('icon-512.png', 512), ('icon-maskable-512.png', 512),
+         ('apple-touch-icon.png', 180)]
+ACCENT = (0x2F, 0x5F, 0xA8)
 if '--list-sources' in sys.argv:
     print(json.dumps(SHIPPED))
     sys.exit(0)
@@ -67,10 +76,36 @@ def node_check(path, label):
         sys.exit(f'ERROR: {label} has a JavaScript syntax error\n{msg}')
 
 
+def course_fields():
+    """The COURSE fields the build itself needs, from course.js evaluated by
+    node, so the file is read the way the page reads it whatever its quoting."""
+    js = ("const fs=require('fs');"
+          "const C=new Function(fs.readFileSync('course.js','utf8')+';return COURSE;')();"
+          "process.stdout.write(JSON.stringify({title:C.title,short:C.short,ns:C.ns,output:C.output}))")
+    r = subprocess.run(['node', '-e', js], capture_output=True, text=True)
+    if r.returncode != 0:
+        sys.exit('ERROR: course.js could not be evaluated\n' + (r.stderr or r.stdout).strip())
+    c = json.loads(r.stdout)
+    if not c.get('ns'):
+        sys.exit('ERROR: course.js has no `ns`; storage and the offline cache are named from it')
+    return c
+
+
+def plain_png(size, rgb):
+    """A square PNG of one colour, written with the standard library only."""
+    import struct, zlib
+    raw = (b'\x00' + bytes(rgb) * size) * size
+    def chunk(tag, data):
+        return struct.pack('>I', len(data)) + tag + data + struct.pack('>I', zlib.crc32(tag + data) & 0xffffffff)
+    return (b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', struct.pack('>IIBBBBB', size, size, 8, 2, 0, 0, 0))
+            + chunk(b'IDAT', zlib.compress(raw, 9)) + chunk(b'IEND', b''))
+
+
 print('checking sources...')
-for f in SOURCES:
+for f in SOURCES + ['sw.js']:
     node_check(f, f)
-print(f'  {len(SOURCES)} sources parse cleanly')
+print(f'  {len(SOURCES)} sources and sw.js parse cleanly')
+COURSE_FIELDS = course_fields()
 
 shell = open('shell.html', encoding='utf-8').read()
 images = json.load(open('images.json'))
@@ -138,14 +173,14 @@ finally:
     os.unlink(tmp_js)
 print('  assembled script parses cleanly')
 
-def write_root(name, text):
+def write_root(name, data):
     """Write a file into the repository root through a temporary file, so a
     failed build never leaves a half-written or truncated file in place of the
     last good one."""
     path = os.path.join(ROOT, name)
     tmp = path + '.tmp'
-    with open(tmp, 'w', encoding='utf-8') as fh:
-        fh.write(text)
+    with open(tmp, 'wb') as fh:
+        fh.write(data if isinstance(data, bytes) else data.encode('utf-8'))
     os.replace(tmp, path)
     return path
 
@@ -157,11 +192,10 @@ print(f'wrote {OUTPUT_NAME}  ({len(shell)/1024/1024:.2f} MB)')
 # leaves out files and folders whose names start with an underscore.
 write_root('.nojekyll', '')
 
-m = re.search(r"output:\s*'([^']+)'", course_src)
-legacy = m.group(1) if m else ''
-t = re.search(r"title:\s*'([^']+)'", course_src)
-title = htmlmod.escape(t.group(1) if t else 'Exam drill')
-if legacy and legacy != OUTPUT_NAME:
+legacy = COURSE_FIELDS.get('output') or ''
+legacy = legacy if legacy != OUTPUT_NAME else ''
+title = htmlmod.escape(COURSE_FIELDS.get('title') or 'Exam drill')
+if legacy:
     write_root(legacy, (
         '<!doctype html><html lang="en"><head><meta charset="utf-8">'
         f'<title>{title}</title>'
@@ -178,3 +212,49 @@ if legacy and legacy != OUTPUT_NAME:
 # so it cannot fall out of step with the page.
 write_root('version.json', json.dumps({'built': built}) + '\n')
 print(f'wrote version.json  (built {built})')
+
+# ---- installing and working offline -------------------------------------------
+# The web manifest and icons let a phone add the drill to its Home Screen or
+# install it; the service worker keeps a copy for opening with no connection.
+placeholders = []
+for name, size in ICONS:
+    own = os.path.join(HERE, 'icons', name)
+    if os.path.exists(own):
+        write_root(name, open(own, 'rb').read())
+    else:
+        write_root(name, plain_png(size, ACCENT))
+        placeholders.append(name)
+if placeholders:
+    print(f'  note: placeholder icons (a plain square) for {", ".join(placeholders)}; '
+          'put the course\'s own PNGs under src/icons/ to replace them')
+write_root('manifest.json', json.dumps({
+    'name': COURSE_FIELDS.get('title') or 'Exam drill',
+    'short_name': COURSE_FIELDS.get('short') or COURSE_FIELDS.get('title') or 'Drill',
+    'start_url': './index.html', 'scope': './', 'display': 'standalone',
+    'background_color': '#F2F4F7', 'theme_color': '#2F5FA8',
+    'icons': [{'src': './icon-192.png', 'sizes': '192x192', 'type': 'image/png'},
+              {'src': './icon-512.png', 'sizes': '512x512', 'type': 'image/png'},
+              {'src': './icon-maskable-512.png', 'sizes': '512x512', 'type': 'image/png', 'purpose': 'maskable'}],
+}, ensure_ascii=False, indent=1) + '\n')
+print('wrote manifest.json and the icons')
+
+# The worker's cache names start with the course's storage namespace, so its
+# cleanup can tell this course's old caches from every other drill's on the
+# shared origin. What it saves at install is exactly what this build wrote.
+site = {'prefix': COURSE_FIELDS['ns'] + '-',
+        'files': [OUTPUT_NAME] + ([legacy] if legacy else []) + ['manifest.json'] + [n for n, _ in ICONS],
+        'aliases': [legacy] if legacy else []}
+sw = open('sw.js', encoding='utf-8').read()
+sw_old = "const SITE = /*__SITE__*/{prefix:'drill-', files:['index.html'], aliases:[]};"
+if sw_old not in sw:
+    sys.exit('ERROR: SITE placeholder not found in sw.js')
+sw = sw.replace(sw_old, 'const SITE = ' + json.dumps(site) + ';')
+with tempfile.NamedTemporaryFile('w', suffix='.js', delete=False, encoding='utf-8') as t:
+    t.write(sw)
+    tmp_sw = t.name
+try:
+    node_check(tmp_sw, 'the filled-in sw.js')
+finally:
+    os.unlink(tmp_sw)
+write_root('sw.js', sw)
+print(f'wrote sw.js  (caches named {site["prefix"]}v<n>; {len(site["files"])} files saved at install)')
