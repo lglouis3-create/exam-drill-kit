@@ -40,7 +40,8 @@ Dated kit changes, newest first.
   reading-tab HTML, a Settings section, a start-up step, a progress converter) and the
   module into the page; a module that throws is skipped and the page carries on. With no
   module on the page is unchanged: the template course built from the same sources by the
-  `d187207` core and by this one differs only in the build stamp (240,996 bytes each).
+  `d187207` core and by this one differs only in the build stamp (241,642 bytes each, with
+  the 15 lines of documentation this change adds to `template/course.js`'s header).
   `run_checks.sh` adds `build.py --list-checks`: the checks of what a course switches on.
   New check `features_test.js` (39 checks; on the `d187207` core 4 pass, 9 fail, then it
   stops at the first browser step: `FX is not defined`). `run_checks.sh` on the template

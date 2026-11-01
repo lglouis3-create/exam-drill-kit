@@ -88,7 +88,10 @@ With no module on (no `features` field, or `{}`) neither `features.js` nor any m
 code is in the page, which is then byte for byte the page this core built before
 feature modules existed, except the build stamp: on the template course, built from the
 same sources by the kit at `d187207` and by this core, the two `index.html` files
-(240,996 bytes each) differ only in `BUILD.stamp` and `BUILD.built` (2026-11-01).
+(241,642 bytes each) differ only in `BUILD.stamp` and `BUILD.built`; the same holds with
+`numeric` and `typed` left unset, and the page of a template course set up before
+2026-11-01 differs from today's only in the 15 comment lines that document `features`,
+`numeric` and `typed` at the top of `template/course.js` (2026-11-01).
 
 `features.js` adds the hooks by wrapping eight engine functions (`show`, `renderQuiz`,
 `renderSettings`, `refFigures`, `drawPaper`, `record`, `load`, `upgradeDB`) and watching `main` for redrawn views
