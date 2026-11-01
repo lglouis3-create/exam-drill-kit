@@ -36,17 +36,32 @@ hold:
 ## Decisions before code (assessment §5)
 
 Each recommendation keeps what BDK does today, so the move changes as little as possible
-in how Louis studies. Louis's answers are recorded here when he gives them.
+in how Louis studies. Louis answered on 2026-11-01: "Yes to all but its okay to switch to
+FSRS-7".
 
 | # | Decision | Recommended | Louis |
 |---|---|---|---|
 | 1 | When | now (the work); the live switch as above | now (2026-11-01) |
-| 2 | Wrong choices fixed, or drawn fresh at each showing | drawn fresh, as today (pull request K9) | |
-| 3 | Question ids: BDK's text ids, or short ids with an id map | short ids: 2,481,498 characters stored after 8,000 answers against 4,947,038 with text ids (assessment §3), on a storage quota every drill on the origin shares | |
-| 4 | How cards with FSRS-4.5 history start | keep BDK's FSRS-4.5 scheduler on the core for BDK, so every card keeps its stability, difficulty and due date exactly; move to FSRS-7 later by replaying the answer history kept since v18. The assessment's two options both change due dates before the quizzes: start every card answered before 11/01 as new, or seed FSRS-7 from S and D with a `stabilityFast` value that has no source (assessment §3). Keeping FSRS-4.5 is a scheduler design change and needs Louis's approval (§12.3 names FSRS-7 as the FSRS option) | |
-| 5 | Quiz lengths and minutes for the exam simulator | no simulator until Louis gives the numbers; the syllabus states none | |
-| 6 | Features that must exist before go-live | every feature in assessment §1 that BDK has today | |
-| 7 | The MedlinePlus link in the glossary (open question 7) | unchanged during the move; the open question stays open | |
+| 2 | Wrong choices fixed, or drawn fresh at each showing | drawn fresh, as today (pull request K9) | yes |
+| 3 | Question ids: BDK's text ids, or short ids with an id map | short ids: 2,481,498 characters stored after 8,000 answers against 4,947,038 with text ids (assessment §3), on a storage quota every drill on the origin shares | yes |
+| 4 | How cards with FSRS-4.5 history start | keep BDK's FSRS-4.5 scheduler on the core for BDK, so every card keeps its stability, difficulty and due date exactly; move to FSRS-7 later by replaying the answer history kept since v18. The assessment's two options both change due dates before the quizzes: start every card answered before 11/01 as new, or seed FSRS-7 from S and D with a `stabilityFast` value that has no source (assessment §3). Keeping FSRS-4.5 is a scheduler design change and needs Louis's approval (§12.3 names FSRS-7 as the FSRS option) | FSRS-7 ("its okay to switch to FSRS-7"); see below |
+| 5 | Quiz lengths and minutes for the exam simulator | no simulator until Louis gives the numbers; the syllabus states none | yes |
+| 6 | Features that must exist before go-live | every feature in assessment §1 that BDK has today | yes |
+| 7 | The MedlinePlus link in the glossary (open question 7) | unchanged during the move; the open question stays open | yes |
+
+**Decision 4 as built.** BDK moves to FSRS-7 (ts-fsrs 6.0.0 in the core). A card whose
+whole answer history is in BDK's answer log (kept since v18, `c2f87ae`, 2026-11-01) is
+rebuilt by replaying that history. A card with earlier answers starts as a new FSRS-7
+card, because seeding FSRS-7 from FSRS-4.5's S and D needs a `stabilityFast` value that
+has no source (assessment §3). Its counts (right, wrong, streak, lapses) carry over for
+Progress. After the switch those cards are shown again as new until they are answered;
+from the first answer on, FSRS-7 schedules them.
+
+**Checks each pull request reports:** `core/run_checks.sh` on a fresh template course, on
+a scratch course with the change switched on, and on a copy of Medicinal-chemistry's
+live course; each new test shown failing before the change; and the checks that cannot
+run in the cloud container named as NOT RUN (`cite_check.py` without decks;
+Safari/WebKit).
 
 BDK's rule 1 ("flag, don't decide") also applies at the preview: the generated `why`
 text for each wrong choice and any change in how a card is asked are shown to Louis for
@@ -68,7 +83,7 @@ K and F numbers are the assessment's.
 | 7 | K7 select-all with more than 10 options | core | |
 | 8 | K8 typed and self-check item kinds | core | |
 | 9 | K2 course files beside the page, saved offline (page images, Quizlet zip) | core | |
-| 10 | K6 scheduler start for cards with earlier history (decision 4) | core | |
+| 10 | K6 FSRS-7 start for cards with earlier history: replay where the log is complete, otherwise new (decision 4) | core | |
 | 11 | K4 exam-date cap under the FSRS scheduler (scheduler design approval) | core | |
 | 12 | K9 wrong choices drawn at each showing (decision 2) | core | |
 | 13 | K14 `SKILL.md` Mode 7 for a course with its own engine | SKILL.md | |
