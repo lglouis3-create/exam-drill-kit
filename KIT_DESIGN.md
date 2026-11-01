@@ -361,7 +361,10 @@ section is current.
      and keeps every course repository attached with push access. A test on
      2026-11-01 showed that a scheduled task starting a fresh session each time
      cannot reach any repository, because a session's repositories are chosen when it
-     starts and such a session starts with none. Each run begins with a preflight
+     starts and such a session starts with none. Louis attaches each course
+     repository there with one message of his own; a new course that `COURSES.md` lists
+     but the session does not have is skipped, and the run sends him a notification
+     naming it. Each run begins with a preflight
      (push access, the Pages run lookup, Node, Python, Chromium) and makes nothing
      live if any step fails; it confirms each live update from that commit's Pages
      run with `gh api`, which needs no connector, and reverts the update if the

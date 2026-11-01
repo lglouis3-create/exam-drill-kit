@@ -285,10 +285,12 @@ attached with push access; the scheduled task "Kit update run" sends it the run 
 at 2:47 AM Central. A scheduled task that starts a fresh session each time cannot do this
 work, because a session's repositories are chosen when it starts and such a session
 starts with none (tested 2026-11-01). Each run:
-0. **Preflight.** A course in `COURSES.md` that is not attached to the session is
-   reported by name; the session does not attach it (a repository attached there must
-   come from Louis's own message in that session, which the permission system requires;
-   tested 2026-11-01). For the kit and every attached course repo: `git fetch`, `git push --dry-run` to a scratch
+0. **Preflight.** The run compares the course repositories in `COURSES.md` with the
+   ones attached to the session. A course that is listed but not attached (a new
+   course) is skipped in that run, and Louis gets a push notification naming it and the
+   message to send in the session: "attach lglouis3-create/<repo> to this session with
+   push access". The session does not attach it itself: the permission system requires
+   that request to come from Louis in that session (tested 2026-11-01). For the kit and every attached course repo: `git fetch`, `git push --dry-run` to a scratch
    branch name, and `gh api 'repos/<owner>/<repo>/actions/runs?per_page=1'`; and Node,
    Python and Chromium start. If any of these fails, nothing goes live in this run; the
    run reports FAILED with the failing step and its output.
@@ -310,8 +312,9 @@ course that is behind:
    words, the check results, the preview address, and whether an exam is today.
    "approve updates for <course>" makes it live as in step 2.
 A run that could not build, check, push or confirm the deploy reports failure and never
-ends as succeeded. The run sends Louis a push notification only when a preview waits for
-his reply, an update went live or was reverted, or the run failed; a run with nothing
+ends as succeeded. The run sends Louis a push notification only when a new course needs
+attaching, a preview waits for his reply, an update went live or was reverted, or the
+run failed; a run with nothing
 behind ends with one line per course and no notification.
 
 **Undo:** "undo the last kit update for <course>" reverts that update commit, restores
