@@ -43,7 +43,7 @@ const answerOne = page => page.evaluate(() => {
   console.log('\n=== Saving refused part-way through a visit ===');
   {
     const {ctx, page, errors} = await L.openFile(browser, {}, QUOTA);
-    check(await page.evaluate(() => localStorage.getItem(NS + ':profile') === 'TestUser'), 'before the quota fills, the profile is saved');
+    check(await page.evaluate(() => localStorage.getItem(NS + ':profile') === 'me'), 'before the quota fills, the profile is saved (the default, me)');
     await page.evaluate(() => { window.__quota = true; });
 
     const card = await page.evaluate(() => { show('topics'); return !!document.getElementById('news'); });
@@ -59,10 +59,10 @@ const answerOne = page => page.evaluate(() => {
     await page.evaluate(() => { window.__name = 'Other'; });
     await page.click('#btnWho');
     const other = await page.evaluate(() => DB.answers.length);
-    await page.evaluate(() => { window.__name = 'TestUser'; });
+    await page.evaluate(() => { window.__name = 'me'; });
     await page.click('#btnWho');
     const kept = await page.evaluate(() => ({n: DB.answers.length, who: document.getElementById('whoName').textContent}));
-    check(other === 0 && kept.n === 1 && kept.who === 'TestUser',
+    check(other === 0 && kept.n === 1 && kept.who === 'me',
       'the answer is still there after switching to another profile and back', JSON.stringify({other, back: kept}));
 
     const warns = await page.$$('#savewarn');
@@ -96,7 +96,7 @@ const answerOne = page => page.evaluate(() => {
     await answerOne(page);
     await page.waitForTimeout(300);
     check(!(await page.$('#savewarn')), 'no notice when saving works');
-    check(await page.evaluate(() => JSON.parse(localStorage.getItem(NS + ':data:TestUser') || '{}').answers.length === 1), 'the answer is in localStorage');
+    check(await page.evaluate(() => (JSON.parse(localStorage.getItem(NS + ':data:' + PROFILE) || '{}').answers || []).length === 1), 'the answer is in localStorage');
     check(!errors.length, 'no page errors', errors.slice(0, 2).join('; '));
     await ctx.close();
   }
@@ -111,6 +111,50 @@ const answerOne = page => page.evaluate(() => {
     check(!!t && /Export progress/.test(await t.textContent()), 'the notice is shown');
     check(!errors.length, 'no page errors with storage denied', errors.slice(0, 2).join('; '));
     await ctx.close();
+  }
+
+  // The site opens straight to the drill and never asks for a name on its own
+  // (Louis, 2026-11-01). With no name stored, it opens the saved progress used
+  // most recently, else a profile named "me". The Switch button still asks.
+  console.log('\n=== Opening without asking for a name ===');
+  const opened = async (seed) => {
+    const ctx = await browser.newContext({viewport: {width: 390, height: 844}});
+    await ctx.addInitScript(([s]) => {
+      window.__prompts = 0;
+      window.prompt = () => { window.__prompts++; return window.__name || 'Asked'; };
+      if(s && !sessionStorage.getItem('__seeded')){
+        sessionStorage.setItem('__seeded', '1');
+        for(const [k, v] of Object.entries(s)) localStorage.setItem(k, v);
+      }
+    }, [seed]);
+    const page = await ctx.newPage();
+    const errors = [];
+    page.on('pageerror', e => errors.push(e.message));
+    await page.goto('file://' + L.PAGE.PAGE);
+    await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+    const r = await page.evaluate(() => ({prompts: window.__prompts, who: PROFILE, n: DB.answers.length, stored: localStorage.getItem(NS + ':profile')}));
+    return {ctx, page, errors, r};
+  };
+  const NSV = await (async () => { const o = await opened(null); const ns = await o.page.evaluate(() => NS); await o.ctx.close(); return ns; })();
+  {
+    const {ctx, r, errors} = await opened(null);
+    check(r.prompts === 0, 'a first visit opens the drill without asking for a name', JSON.stringify(r));
+    check(r.who === 'me' && r.stored === 'me', 'a first visit uses the profile "me" and remembers it', JSON.stringify(r));
+    check(!errors.length, 'no page errors on a first visit', errors.slice(0, 2).join('; '));
+    await ctx.close();
+  }
+  {
+    const save = (n, at) => JSON.stringify({v: 2, answers: Array.from({length: n}, (_, i) => ({qid: 'x' + i, concept: 'c', result: 'correct', at: at + i, qn: i + 1})), concepts: {}, created: 1});
+    const {ctx, r} = await opened({[NSV + ':data:Louis']: save(3, 1700000000000)});
+    check(r.prompts === 0 && r.who === 'Louis' && r.n === 3, 'progress saved under a name, with no name stored, opens without asking', JSON.stringify(r));
+    await ctx.close();
+    const two = await opened({[NSV + ':data:Older']: save(5, 1600000000000), [NSV + ':data:Newer']: save(2, 1750000000000)});
+    check(two.r.prompts === 0 && two.r.who === 'Newer' && two.r.n === 2, 'of two saved profiles, the one answered most recently opens', JSON.stringify(two.r));
+    await two.page.evaluate(() => { window.__name = 'Other'; });
+    await two.page.click('#btnWho');
+    const sw = await two.page.evaluate(() => ({prompts: window.__prompts, who: PROFILE}));
+    check(sw.prompts === 1 && sw.who === 'Other', 'the Switch button still asks for a name', JSON.stringify(sw));
+    await two.ctx.close();
   }
   await browser.close();
   L.finish(NAME);

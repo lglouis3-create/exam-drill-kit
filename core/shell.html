@@ -767,13 +767,36 @@ function save(){
     store.set(keyFor(PROFILE), JSON.stringify(DB));
   },150);
 }
+/* Which profile opens when no choice is stored: the one with saved progress used
+   most recently (by its last answer, else when it was created), else 'me'. The
+   site opens straight to the drill and never asks for a name on its own (Louis,
+   2026-11-01); the Switch button at the top still asks, for a shared browser. */
+function pickProfile(){
+  const pre = NS + ':data:';
+  let best = '', bestAt = -1;
+  try {
+    for(let i = 0; i < localStorage.length; i++){
+      const k = localStorage.key(i);
+      if(!k || !k.startsWith(pre) || k.length === pre.length) continue;
+      let at = 0;
+      try {
+        const d = JSON.parse(localStorage.getItem(k)) || {};
+        const a = Array.isArray(d.answers) ? d.answers : [];
+        at = a.length ? (Number(a[a.length - 1].at) || 0) : (Number(d.created) || 0);
+      } catch(e){ /* unreadable save: still a profile, ranked last */ }
+      if(at > bestAt){ best = k.slice(pre.length); bestAt = at; }
+    }
+  } catch(e){ /* storage unreadable: the default profile */ }
+  return best || 'me';
+}
 function askProfile(force){
   // A save still waiting on its timer belongs to the profile on screen now. It
   // is written before the switch; left to fire later, it would write the next
   // profile's progress and drop this one's last answer.
   if(saveTimer && PROFILE){ clearTimeout(saveTimer); saveTimer = null; store.set(keyFor(PROFILE), JSON.stringify(DB)); }
   let n = PROFILE;
-  if(force || !n){
+  if(!force && !n) n = pickProfile();
+  if(force){
     n = (prompt(
       'Your name or initials.\n\n'+
       'This keeps your progress separate from anyone else using this same browser. '+

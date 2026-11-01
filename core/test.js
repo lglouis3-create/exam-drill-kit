@@ -13,13 +13,14 @@ catch (e) { console.error('FAIL: ' + e.message); process.exit(1); }
 const store = {};
 const el = () => ({ innerHTML:'', textContent:'', classList:{toggle(){},add(){},remove(){},contains(){return false}},
                     setAttribute(){}, querySelectorAll(){return []}, onclick:null, dataset:{}, style:{}, click(){} });
+let PROMPTS = 0;   // the page must never ask for a name on its own
 const sandbox = {
   console,
   localStorage:{ getItem:k=>(k in store?store[k]:null), setItem:(k,v)=>{store[k]=String(v)}, removeItem:k=>{delete store[k]} },
   document:{ querySelector:el, querySelectorAll:()=>[], getElementById:el, createElement:el, body:el(),
              addEventListener(){} },   // the page delegates clicks and changes from document
   window:{ scrollTo(){} },
-  prompt:()=> 'TestUser',
+  prompt:()=> { PROMPTS++; return 'TestUser'; },
   alert:()=>{}, confirm:()=>true,
   setTimeout:(f)=>{ f(); return 0; }, clearTimeout(){}, setInterval:()=>0, clearInterval(){},
   Blob:function(){}, URL:{createObjectURL:()=>'', revokeObjectURL(){}}, FileReader:function(){},
@@ -251,8 +252,10 @@ else console.log('  ok    the paper carries the intended number of select-all it
 
 console.log('\n=== 6. Storage isolation ===');
 const keys = Object.keys(store);
-if (!keys.some(k=>k.includes('TestUser'))) bad('profile-namespaced key not written');
-else console.log(`  ok    progress written under namespaced key: ${keys.find(k=>k.includes('TestUser'))}`);
+if (!keys.some(k=>/:data:./.test(k))) bad('profile-namespaced key not written');
+else console.log(`  ok    progress written under namespaced key: ${keys.find(k=>/:data:./.test(k))}`);
+if (PROMPTS) bad(`the page asked for a name on its own (${PROMPTS} prompt${PROMPTS > 1 ? 's' : ''}); it must open straight to the drill`);
+else console.log('  ok    the page opened without asking for a name');
 
 
 

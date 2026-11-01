@@ -3,6 +3,10 @@
 Dated kit changes, newest first.
 
 ## 2026-11-01
+- `core/`: the site opens straight to the drill and never asks for a name on its own
+  (Louis): with no name stored it opens the saved progress used most recently, else a
+  profile named "me"; the Switch button still asks. `storage_test.js` and `test.js`
+  check it.
 - `core/`: fixes found moving Medicinal-chemistry onto the core. The data files are
   listed in `course.js` `files` instead of `build.py` (copying the `9f2f2a4` `build.py`
   over Medicinal-chemistry's left 39 of its 479 questions in the page, with no error), and
