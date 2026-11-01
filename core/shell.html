@@ -617,7 +617,7 @@ function load(){
    LOG_KEY, cardCode, logAnswer, mergeLog, saveLog). An entry is
 
      [time in seconds, question code, 1 right / 0 wrong, mode, concept,
-      confidence, item type]
+      confidence, item type, scheduler, arm, predicted recall]
 
    question code  FNV-1a hash of the question id, 8 hex digits; ids are
                   recovered by hashing the current bank
@@ -629,6 +629,17 @@ function load(){
                   'sure' ("I was sure of that" on a miss), or '' when none
                   was given (a miss left as it was, an exam paper)
    item type      'mc', 'multi' (select all), 'numeric', 'match'
+   scheduler      the model that schedules the question's concept and, in
+                  mode 'quiz', picked the question: 'concept', 'fsrs' or
+                  'concept-fsrs' (scheduler proposal §5)
+   arm            the comparison arm the concept is assigned to, or '' when
+                  the course runs no comparison
+   predicted recall  the probability of a right answer that the model in
+                  use gave at that moment, before this answer updated it;
+                  null for the concept scheduler, which predicts none
+
+   The first seven fields are as they were, so entries written before the
+   last three were added (and BDK's four) still read the same way.
 
    The history has its own key per profile, apart from the progress, so it
    never stops progress from saving: when the browser refuses the write, the
@@ -653,9 +664,12 @@ function saveLog(){
   }
 }
 const itemType = q => q.type || (q.multi ? 'multi' : 'mc');
-function logAnswer(q, result, mode){
+function logAnswer(q, result, mode, how){
   const conf = result === 'guessed' ? 'guessed' : (result === 'correct' && mode !== 'exam' ? 'knew' : '');
-  LOG.push([Math.round(Date.now() / 1000), cardCode(q.id), result === 'wrong' ? 0 : 1, mode, q.concept, conf, itemType(q)]);
+  how = how || {};
+  const recall = typeof how.recall === 'number' && isFinite(how.recall) ? Math.round(how.recall * 10000) / 10000 : null;
+  LOG.push([Math.round(Date.now() / 1000), cardCode(q.id), result === 'wrong' ? 0 : 1, mode, q.concept, conf, itemType(q),
+            how.model || 'concept', how.arm || '', recall]);
   if(LOG.length > LOG_MAX) LOG.splice(0, LOG.length - LOG_MAX);
   saveLog();
 }
@@ -671,11 +685,19 @@ function logConf(q, conf){
    which merges two answers to one question given in the same second in
    different modes or with different results (history_test.js answers that
    fast). The confidence is not part of the match: it can change after an
-   export, and the answer is still the same one. */
+   export, and the answer is still the same one. Entries of either length
+   merge: when the copy here is the shorter (written before the scheduler
+   fields were added) and the imported copy of the same answer carries them,
+   the copy here gains those fields; nothing it already has is changed. */
 function mergeLog(entries){
   const key = e => e.slice(0, 4).join('|');
-  const seen = new Set(LOG.map(key));
-  for(const e of entries) if(Array.isArray(e) && e.length >= 3 && !seen.has(key(e))){ LOG.push(e); seen.add(key(e)); }
+  const here = new Map(LOG.map(e => [key(e), e]));
+  for(const e of entries){
+    if(!Array.isArray(e) || e.length < 3) continue;
+    const k = key(e), mine = here.get(k);
+    if(!mine){ LOG.push(e); here.set(k, e); }
+    else if(e.length > mine.length) for(let i = mine.length; i < e.length; i++) mine.push(e[i]);
+  }
   LOG.sort((x, y) => x[0] - y[0]);
   if(LOG.length > LOG_MAX) LOG.splice(0, LOG.length - LOG_MAX);
   saveLog();
@@ -844,6 +866,9 @@ function isDue(s){
 function record(q, result, picked, ms, mode){
   const s = st(q.concept);
   const now = Date.now();
+  // the scheduler fields of the answer history, read before this answer
+  // changes anything (the concept scheduler predicts no recall)
+  const how = {model: 'concept', arm: '', recall: null};
   DB.qn++;
   s.seen++;
   s.lastQ = DB.qn;
@@ -873,7 +898,7 @@ function record(q, result, picked, ms, mode){
   DB.answers.push(entry);
   if(DB.answers.length > 4000) DB.answers.splice(0, DB.answers.length-4000);
   save();
-  logAnswer(q, result, mode || (typeof Q !== 'undefined' && Q && Q.sweep ? 'sweep' : 'quiz'));
+  logAnswer(q, result, mode || (typeof Q !== 'undefined' && Q && Q.sweep ? 'sweep' : 'quiz'), how);
 }
 
 /* Confidence on a correct answer. "Not sure" undoes the box advance the

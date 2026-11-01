@@ -3,8 +3,11 @@
  * of saving progress. Modeled on BDK's tests/history.js.
  *
  * An entry is [seconds, question code, right, mode, concept, confidence, item
- * type] (shell.html, ANSWER HISTORY). The question code is checked here
- * against an FNV-1a hash written in this file, not the page's own.
+ * type, scheduler, arm, predicted recall] (shell.html, ANSWER HISTORY); the
+ * first seven are the older format, which still has to merge. The question
+ * code is checked here against an FNV-1a hash written in this file, not the
+ * page's own. The last three fields under the FSRS models are checked in
+ * scheduler_test.js; here the course's own model is read from course.js.
  *
  *     node history_test.js
  */
@@ -48,6 +51,14 @@ const next = p => p.evaluate(() => { const b = document.getElementById('btnNext'
   check(log.every((e, i) => e[4] === asked[i].concept), 'each entry carries the concept id', JSON.stringify(log.map(e => e[4])));
   check(log.every((e, i) => e[6] === asked[i].type), 'each entry carries the item type', JSON.stringify(log.map(e => e[6])));
   check(log.every(e => e[5] === 'knew'), 'a right answer left as it is records "knew"', JSON.stringify(log.map(e => e[5])));
+  const model = await p.evaluate(() => (COURSE.scheduler && COURSE.scheduler.model) || 'concept');
+  check(log.every(e => e.length === 10), 'each entry has ten fields: the seven before, then scheduler, arm, predicted recall', JSON.stringify(log[0]));
+  if(model === 'concept')
+    check(log.every(e => e[7] === 'concept' && e[8] === '' && e[9] === null),
+      'under the concept scheduler each entry ends "concept", "" (no comparison), null (no predicted recall)', JSON.stringify(log.map(e => e.slice(7))));
+  else
+    check(log.every(e => ['concept', 'fsrs', 'concept-fsrs'].includes(e[7]) && typeof e[8] === 'string' && (e[9] === null || (e[9] > 0 && e[9] < 1))),
+      `under the ${model} model each entry names its scheduler, an arm and a recall that is null or between 0 and 1`, JSON.stringify(log.map(e => e.slice(7))));
 
   // the confidence buttons after a right answer, and a miss
   const conf = {}, notes = [];
@@ -106,6 +117,23 @@ const next = p => p.evaluate(() => { const b = document.getElementById('btnNext'
   await fresh.page.setInputFiles('#fileIn', file);
   await fresh.page.waitForTimeout(600);
   check((await readLog(fresh.page)).length === total, 'importing the same file twice adds nothing', (await readLog(fresh.page)).length);
+  // the older seven-field format: an entry of it merges as it is, and a
+  // seven-field copy here gains the fields an imported copy of the same answer carries
+  {
+    const old = [exported.log[0][0] - 3600, 'abcdef01', 1, 'quiz', 'some-concept', 'knew', 'mc'];
+    const cut = await fresh.page.evaluate(() => { LOG[0] = LOG[0].slice(0, 7); saveLog(); return LOG[0].slice(); });
+    const file2 = file + '.old.json';
+    fs.writeFileSync(file2, JSON.stringify(Object.assign({}, exported, {log: [old, exported.log[0]]})));
+    await fresh.page.click('#nav button[data-v="settings"]');
+    await fresh.page.setInputFiles('#fileIn', file2);
+    await fresh.page.waitForTimeout(600);
+    const after = await readLog(fresh.page);
+    const kept = after.find(e => e[1] === 'abcdef01'), filled = after.find(e => e.slice(0, 4).join('|') === cut.slice(0, 4).join('|'));
+    check(after.length === total + 1 && kept && kept.length === 7 && JSON.stringify(kept) === JSON.stringify(old),
+      'an entry in the older seven-field format is imported as it is', JSON.stringify({n: after.length, kept}));
+    check(filled && filled.length === 10 && JSON.stringify(filled) === JSON.stringify(exported.log[0]),
+      'a seven-field entry here gains the scheduler fields from the imported copy of the same answer', JSON.stringify({cut, filled}));
+  }
   check(!fresh.errors.length, 'no page errors on import', fresh.errors.slice(0, 2).join('; '));
   await fresh.ctx.close();
 

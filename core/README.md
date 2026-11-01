@@ -120,19 +120,29 @@ before.
 Both are ported from BDK (`assets/app.js`). Every answer adds an entry to an answer
 history kept under `<ns>:log:<profile>`, apart from the progress:
 
-    [time in seconds, question code, 1 right / 0 wrong, mode, concept, confidence, item type]
+    [time in seconds, question code, 1 right / 0 wrong, mode, concept, confidence, item type,
+     scheduler, arm, predicted recall]
 
 The question code is an FNV-1a hash of the question id (8 hex digits); mode is `quiz`,
 `sweep` or `exam`; confidence is `knew` (a right answer left as it is: the screen says
 Next counts as "Knew it"), `unsure` ("Not sure"), `guessed` ("I guessed"), `sure` ("I
 was sure of that" on a miss), or empty where none was given (a miss left as it was, an
-exam paper); item type is `mc`, `multi`, `numeric` or
-`match`. Export progress writes the progress and the history into one file; Import
-progress replaces the progress, as before, and merges the history without duplicating
-an answer; Erase my history clears both. When the browser refuses to save the history,
-the oldest half is dropped and no notice is shown, so the history never stops progress
-from saving. The scheduler does not read the history yet; it is there for the approved
-scheduler work (`review/scheduler-proposal.md` §4-§5), which is a later step.
+exam paper); item type is `mc`, `multi`, `numeric` or `match`. The last three are the
+answer log for comparing schedulers (`review/scheduler-proposal.md` §4.1.5 and §5):
+scheduler is the model that schedules the question's concept and, in mode `quiz`, picked
+the question (`concept`, `fsrs` or `concept-fsrs`); arm is the comparison arm the concept
+is assigned to, or empty when the course runs no comparison; predicted recall is the
+probability of a right answer the model in use gave at that moment, before the answer
+updated it, rounded to 4 decimal places (a design choice, to keep the history small), and
+`null` for the concept scheduler, which predicts none. The first seven fields are as they
+were, so entries written before the last three were added still read the same, and BDK's
+four (`[seconds, card code, 1/0, mode]`) are the first four here. Export progress writes
+the progress and the history into one file; Import progress replaces the progress, as
+before, and merges the history without duplicating an answer (an entry here in the older
+seven-field format gains the last three from an imported copy of the same answer); Erase
+my history clears both. When the browser refuses to save the history, the oldest half is
+dropped and no notice is shown, so the history never stops progress from saving. No
+scheduler reads the history; the progress (`DB`) holds what they schedule from.
 
 The Home Screen card appears on Topics (until "Not now") and in Settings. In Safari on
 iPhone and iPad it gives the steps export, Add to Home Screen, import, because Safari
@@ -235,9 +245,9 @@ the built page.
 
 ## Not in core yet
 
-- The rest of the approved scheduler changes (`review/scheduler-proposal.md` §4.1.5-§4.3);
-  exam-date spacing (§4.1.1), the confident-error check (§4.1.2), the calculation
-  preset (§4.1.3) and the check that no skip control exists (§4.1.4) are in.
+- The FSRS option and the combination (`review/scheduler-proposal.md` §4.2-§4.3); §4.1
+  (exam-date spacing, the confident-error check, the calculation preset, no skip control,
+  the answer log) is in.
 - Intro-Pharmacology's exam-result page coming back after a reload, and its generator
   step in the build (`gen_*.py`), both named in `review/proposed-core.md` §5-§6.
 - The check that a course's `CLAUDE.md` was updated after its newest lecture (§7 there),

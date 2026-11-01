@@ -2063,7 +2063,7 @@ function renderSettings(){
     </div>
     <p style="font-size:13.5px;color:var(--text-dim);margin:4px 0 0">
       Storage does not sync between your phone and your laptop. Export on one, import on the other.
-      Each answer is also kept in an answer history (time, question, right or wrong, the confidence button)
+      Each answer is also kept in an answer history (time, question, right or wrong, the confidence button, the scheduler that chose it)
       so the review schedule can later be fitted to your own answers; Export progress includes it.
     </p>
   </div>
