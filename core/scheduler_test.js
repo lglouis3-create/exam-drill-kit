@@ -628,7 +628,7 @@ COURSE.exams.push({id:'zsA', name:'Test exam', date:'12 Nov', when:'2026-11-12T0
       // ---- the comparison
       ({ctx, page: p, errors} = await open(browser, cmp.page, T0));
       const fnv = id => { let h = 0x811c9dc5; for(let i = 0; i < id.length; i++){ h ^= id.charCodeAt(i); h = Math.imul(h, 0x01000193); } return h >>> 0; };
-      const ns = await p.evaluate(() => typeof NS !== 'undefined' ? NS : '');
+      const ns = await p.evaluate(() => typeof COURSE !== 'undefined' ? COURSE.ns : '');
       const ids = ['c1', 'c2', 'c3', 'c4', 'c5'];
       const hashArm = c => (fnv(c + '|' + ns) >>> 31) ? 'concept-fsrs' : 'concept';
       const arms0 = await p.evaluate(ids => ids.map(c => typeof armOf === 'function' ? armOf(c) : null), ids);
@@ -650,6 +650,20 @@ COURSE.exams.push({id:'zsA', name:'Test exam', date:'12 Nov', when:'2026-11-12T0
       await p.reload(); await p.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
       const arms1 = await p.evaluate(ids => ids.map(c => typeof armOf === 'function' ? armOf(c) : null), ids);
       check(arms1[0] === arms0[0] && arms1[1] === flip && arms1.slice(2).join() === arms0.slice(2).join(), 'after a reload every concept keeps its arm; a stored one wins over the hash', arms1);
+      // a preview build keeps its progress under <ns>-preview; the arms are hashed with the course's ns, so they are the same there
+      const pv = child.spawnSync('python3', ['build.py', '--preview'], {cwd: path.join(cmp.repo, 'src'), encoding: 'utf8'});
+      if(pv.status !== 0) check(false, 'the comparison course builds a preview', (pv.stderr || pv.stdout).trim().split('\n').pop());
+      else {
+        const many = ids.concat(Array.from({length: 2000}, (_, i) => 'concept-' + i));
+        const liveArms = await p.evaluate(ids => ids.map(c => armHash(c)), many);
+        const P = await open(browser, path.join(cmp.repo, 'preview', 'index.html'), T0);
+        const pvNs = await P.page.evaluate(() => NS);
+        const pvArms = await P.page.evaluate(ids => ids.map(c => typeof armOf === 'function' ? armOf(c) : null), many);
+        const differ = many.filter((c, i) => pvArms[i] !== liveArms[i]);
+        check(pvNs === ns + '-preview' && !differ.length,
+          `in the preview (namespace ${pvNs}) every concept is in the arm the live page gives it (${many.length - differ.length} of ${many.length} the same)`, differ.slice(0, 5));
+        await P.ctx.close();
+      }
 
       // a session on the test topic with c1, c3 on the combination and c2, c4, c5 on the concept scheduler
       const sess = await p.evaluate(() => { try {

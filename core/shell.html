@@ -824,8 +824,11 @@ const SCHED = (() => {
    what counts from then on. Design choices: the top bit, since FNV-1a's low
    bit is only the parity of the characters; the concept id first, since
    the top bit hardly depends on the last characters hashed, so with the
-   ns last, ids that differ only at the end (c1, c2, ...) still split. */
-const armHash = concept => (parseInt(cardCode(concept + '|' + NS), 16) >>> 31) ? 'concept-fsrs' : 'concept';
+   ns last, ids that differ only at the end (c1, c2, ...) still split.
+   The ns hashed is the course's own (COURSE.ns), not the storage namespace
+   NS, which is <ns>-preview in a preview build: a concept is in the same arm
+   in the preview and on the live page. */
+const armHash = concept => (parseInt(cardCode(concept + '|' + COURSE.ns), 16) >>> 31) ? 'concept-fsrs' : 'concept';
 const armOf = concept => SCHED.model !== 'concept-fsrs' ? SCHED.model
   : !SCHED.compare ? 'concept-fsrs'
   : (DB.arms && DB.arms[concept]) || armHash(concept);
