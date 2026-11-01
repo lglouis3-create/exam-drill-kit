@@ -279,3 +279,99 @@ Report each result; NOT RUN stays NOT RUN.
 **Phase 4: Install.** Tell Louis how to replace the installed skill with
 `skill/SKILL.md`, and list the obsolete copies (`share/skill/` in
 pharmacology) to delete or replace.
+
+## 12. Design changes approved after Phase 1 (2026-10-31 to 2026-11-01)
+
+Each item was approved by Louis in the Phase 1 session; the evidence and options
+behind it are in `review/`. Where an item changes an earlier section, this
+section is current.
+
+1. **Every course session attaches the kit first** (Louis, 2026-10-31). Before
+   doing anything, a course session attaches `exam-drill-kit` alongside the course
+   repo, with push access, reads `FEATURES.md`, `COURSES.md` and `core/` from it,
+   and opens kit pull requests for new features, upgrades and catalog updates. If
+   push access to the kit is refused, the session stops and tells Louis. Course
+   content stays in the course repo (§7.3).
+2. **The core is assembled from the best version of each part**, not taken whole
+   from one drill, starting from the recovered template (`history/exam-drill-template-2026-10-02/`)
+   with the picks in `review/proposed-core.md`. Existing drills move onto it one at
+   a time with Mode 7, previewed first, with question ids and `ns` unchanged.
+3. **Scheduler** (`review/scheduler-proposal.md`). The concept scheduler is the
+   default for every course, with exam-date spacing, a later-day check after a
+   confident error, a calculation preset that never puts two problems of one type
+   in a row, and an answer log. The FSRS option is FSRS-7, on default parameters
+   until enough reviews exist and then fitted to the student's own answers with
+   recency weighting. A combination (a memory model per concept, with question
+   rotation) is an option, off by default, shipped with a within-course random
+   comparison against the default.
+4. **Only Louis's own data** informs recommendations and evidence. The sites do not
+   collect classmates' data (Louis, 2026-11-01).
+5. **Citations** in kit documents follow AMA style, 11th edition, with a DOI or link
+   on every reference (Louis left the choice to Claude, 2026-11-01).
+6. **State record.** Phase 1 confirmed §7.8: course state lives in the course
+   repo's `CLAUDE.md`, `reviews/LOG.md` and `reviews/OPEN_QUESTIONS.md`, with a
+   dated header and pharmacology's restore-after-restart section added
+   (`review/proposed-core.md` §11).
+7. **Recommendations.** Mode 1's feature selection and Mode 2's design check follow
+   a written method: the material profile is measured by a script from the course
+   files, including the professor's transcripts and example questions; each catalog
+   entry's "Use when" is a rule over that profile; each recommendation states its
+   reason, evidence and confidence; Louis's own answer logs, exam outcomes and notes
+   update the rules in each retro. The method is proposed in
+   `review/recommendation-proposal.md` (2026-11-01): signals counted per topic, a
+   versioned rule table with a GRADE-like evidence level per rule, a within-course
+   random comparison of concept clusters for each approved feature, and decision
+   rules whose values Louis sets (its §6). Ratings are logged but never count as
+   evidence of learning. It takes effect when Louis approves it and sets those values.
+8. **Medicinal-chemistry's 09/21 round** is preserved as branch
+   `restore/2026-09-21-round` in that repo and joins its live drill when the course
+   moves onto the core (Mode 7).
+
+9. **How kit updates reach courses** (Louis, 2026-11-01). This changes decision 1
+   for small fixes, and for courses already on the core it replaces §7.5.
+   - **New features, upgrades, core changes and `SKILL.md` changes:** for each kit
+     pull request, Claude tells Louis in plain terms what merging it provides and
+     changes, and merges it only after he answers yes to that pull request (Louis,
+     2026-11-01; this replaces Louis merging on GitHub himself in decision 1). A
+     scheduled kit-update run then builds each
+     affected course's update at `/preview/`, runs every check, and sends Louis a
+     summary; his reply "approve updates for <course>" makes that preview live.
+   - **Catalog bookkeeping and small bug fixes:** the kit pull request merges itself
+     once every check passes. Each affected course's update then goes live without a
+     reply only when every check passes on every affected course's preview, the day
+     is not the calendar day of one of that course's exams (Louis, 2026-11-01: "just
+     not the day of"; the date of `exams[].when` in America/Chicago, and a course
+     with no exam date recorded gets no automatic live update), and neither the
+     saved-progress format nor `ns` changes. Otherwise it waits at the preview as
+     above. Each automatic update is one commit in the course repo, logged in its
+     `reviews/LOG.md`, and "undo the last kit update for <course>" reverts it.
+   - **A small bug fix** fixes a defect shown by a test that fails before the fix and
+     passes after it; changes no question content, saved-progress format, `ns`,
+     scheduler setting or feature list; adds no feature, option or screen; and is
+     labelled `small-fix`, with each of these stated in the pull request. A change
+     that does not meet all of them is a core change.
+   - Moving a course onto the core for the first time stays manual (Mode 7).
+   - **When the run happens** (Louis left it to Claude, 2026-11-01): once a day at
+     2:47 AM Central, as the scheduled task "Kit update run". Kit changes are merged a
+     few at a time, so a daily run brings a merged fix to every course within a day;
+     at night it never replaces a page during study; and a run with nothing behind
+     changes nothing.
+   - **Where it runs** (Louis asked for the gap to be fixed, 2026-11-01): in one
+     dedicated session, "Kit updater", which started with the kit as its repository
+     and keeps every course repository attached with push access. A test on
+     2026-11-01 showed that a scheduled task starting a fresh session each time
+     cannot reach any repository, because a session's repositories are chosen when it
+     starts and such a session starts with none. Louis attaches each course
+     repository there with one message of his own; a new course that `COURSES.md` lists
+     but the session does not have is skipped, and the run sends him a notification
+     naming it. Each run begins with a preflight
+     (push access, the Pages run lookup, Node, Python, Chromium) and makes nothing
+     live if any step fails; it confirms each live update from that commit's Pages
+     run with `gh api`, which needs no connector, and reverts the update if the
+     deploy fails or does not finish within 10 minutes.
+
+Facts from Phase 1 that correct §2 and §10: BDK has no `course.js`; v2 was written
+before PK's first engine commit, not after it; `exam-drill-template/` was never on
+GitHub and was recovered from Louis's own files (`review/findings.md` §1-§3, §11).
+
+The results of the 2026-11-01 tests are in `CLAUDE.md`, access table.
