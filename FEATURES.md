@@ -449,13 +449,13 @@ Test: `features/equation-drill/current/test.js` (PK `src/equation_test.py` and `
 Does: reads an entered wrong number back to the error that produces it (wrong combination of givens, unit factor, reciprocal, missing 0.693, mid-working value, copied given, near miss) before naming the kind of miss.
 Use when: numeric items with worked steps (PK).
 Do not use when: no numeric items.
-Enable: course.js → features.wrong-number-diagnosis = { version: 'v1' }
+Enable: course.js → features['wrong-number-diagnosis'] = { version: 'v1' } (with `numeric` set, a number typed with its unit is read too)
 Versions:
-  v1  2026-10-07  from PK (`ae9dcb1`, `src/shell.html:1316-1366`)   best for: calculation courses   weaker at: not evaluated   current/
+  v1  2026-10-07  from PK (`ae9dcb1`, `src/shell.html:1316-1366`)   best for: calculation courses   weaker at: not evaluated   current/ (ported 2026-11-01 from PK `ac2eb73` `src/shell.html` 1270-1338 by `features/wrong-number-diagnosis/port_from_pk.py`)
 Evidence: none recorded; the course reason is from session memory (PK notes §1).
-Used by: PK (v1)
-Known issues: none recorded. Feeds the core analytics log (`missKind`).
-Test: `src/test.js` (PK).
+Used by: PK (v1, its own copy); the kit module: none yet.
+Known issues: none recorded. In the kit the student's pick is the engine's `miss` (what Weak spots counts) and the number's reading is kept beside it as `missSuggest`; PK keeps the pick as `missKind`, which the module converts to `miss` when a progress is loaded or imported. The reading is shown in the quiz and on an exam paper's result page; PK's own placements in its other views are not ported.
+Test: `features/wrong-number-diagnosis/current/test.js` (PK `src/test.js` lines 368-387 ported: 15 checks).
 
 ## chained-problem-sets
 Does: a problem set asked in parts, each part stating the earlier results it uses, kept together and in order on a paper.

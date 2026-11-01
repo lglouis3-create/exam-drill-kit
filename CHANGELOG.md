@@ -3,6 +3,14 @@
 Dated kit changes, newest first.
 
 ## 2026-11-01
+- New feature module `wrong-number-diagnosis` v1 (`features/wrong-number-diagnosis/`), from
+  Basic-Pharmacokinetics `ac2eb73` (`missDiagnosis`, its `src/shell.html` 1270-1338, written
+  into the module by `port_from_pk.py`): after a wrong typed number, in the quiz and on a
+  paper's result page, up to two lines say what the number is and which kind of miss that
+  is, and the engine's miss chip it points to is marked. The pick stays the answer's `miss`
+  (what Weak spots counts), the reading is kept as `missSuggest`, and a progress saved with
+  PK's `missKind` gets `miss` from it when loaded or imported. Its test (PK `test.js`
+  368-387 ported): 15 checks pass; with the module's code left out, 1 of 1 fails.
 - New feature module `equation-drill` v2 (`features/equation-drill/`), from
   Basic-Pharmacokinetics `ac2eb73`: an Equations tab over the course's `EQUATIONS`, grouped
   by module, each equation marked on the sheet, not on it, or to memorise, and opening what
