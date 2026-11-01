@@ -503,6 +503,7 @@ body:has(#backbtn) #xback{bottom:64px}
 </main>
 
 <script>
+/*__SCHEDULER_LIB__*/
 /* ==========================================================================
    DATA  (injected at build time)
    ========================================================================== */
@@ -594,6 +595,8 @@ const BLANK = () => ({
                       //   Which wrong option was chosen is the most diagnostic
                       //   signal the app has, so it is kept.
   qn:0,               // questions answered counter (drives cram scheduling)
+  fsrsQ:{},           // scheduler.model 'fsrs': question id -> ts-fsrs card (dates in ms)
+  fsUndo:null,        // the card before the last FSRS step, for "I guessed"
   settings:{mode:'cram'},
   created:Date.now()
 });
@@ -751,12 +754,105 @@ function askProfile(force){
    above tier 2 in score() below.)
    ========================================================================== */
 const GAP = 4;                                   // min other questions before a missed concept returns
-/* The course's scheduler setting (course.js `scheduler`). preset 'calc' is the
-   calculation preset (scheduler proposal §4.1.3); see pickNext. */
+/* The course's scheduler setting (course.js `scheduler`). model: 'concept'
+   (the default), or 'fsrs' (FSRS-7 per question, scheduler proposal §4.2).
+   preset 'calc' is the calculation preset (§4.1.3); see pickNext. A model
+   that needs the FSRS library runs only when build.py put it in the page;
+   without it the page falls back to the concept scheduler (build.py stops a
+   build that names an unknown model, so this is not expected). */
 const SCHED = (() => {
   const c = COURSE.scheduler || {};
-  return {preset: c.preset || '', calc: c.preset === 'calc'};
+  const wants = ['concept', 'fsrs'].includes(c.model) ? c.model : 'concept';
+  const lib = typeof FSRS !== 'undefined' && FSRS && typeof FSRS.DefaultScheduler === 'function';
+  return {wants, model: wants !== 'concept' && !lib ? 'concept' : wants,
+          preset: c.preset || '', calc: c.preset === 'calc'};
 })();
+/* Which scheduler a concept is under: the course's model. */
+const armOf = concept => SCHED.model;
+
+/* ---------- FSRS (scheduler proposal §4.2) ---------------------------------
+   ts-fsrs 6.0.0, the library's own bundle (core/vendor/), which build.py puts
+   in the page only for a course whose model needs it. It is created with
+   DefaultScheduler() and no options, so everything is the library's default:
+   its README says "DefaultScheduler() uses FSRS-7 when `version` is
+   omitted", and its default parameters and target retention apply. No
+   number about FSRS is written in this file.
+   Every answer is a review, same-day answers included (§4.2.2): the
+   library's review() steps the memory state on every call, using the
+   fractional days since the last review (fractionalDays is on for FSRS-7).
+   Grades: right, with or without "Not sure", is Good; a miss, or "I
+   guessed", is Again (the mapping of §4.3, used for both FSRS models).
+   A card keeps the library's own fields; its two dates (dueAt, lastReviewAt)
+   are stored as milliseconds. 'fsrs' keeps one card per question in
+   DB.fsrsQ. DefaultScheduler() returns a promise, which settles within the
+   microtasks after this script runs, before any tap can reach the page;
+   until then FS is null, an answer's FSRS step waits in FS_WAIT, and a
+   question answered meanwhile counts as answered, not new (this is what a
+   check that runs the engine without waiting, like test.js, sees). If the
+   library ever fails to start, the course runs the concept scheduler. */
+let FS = null, FS_ERROR = '';
+const FS_WAIT = [];
+if(SCHED.model !== 'concept'){
+  // ts-fsrs calls Object.hasOwn, which older browsers lack
+  if(!Object.hasOwn) Object.hasOwn = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
+  FSRS.DefaultScheduler().then(s => { FS = s; FS_WAIT.splice(0).forEach(f => f()); })
+    .catch(e => { FS_ERROR = String(e && e.message || e); SCHED.model = 'concept'; FS_WAIT.length = 0; });
+}
+const whenFs = f => { if(FS) f(); else if(SCHED.model !== 'concept') FS_WAIT.push(f); };
+const fsIn  = c => Object.assign({}, c, {dueAt: new Date(c.dueAt), lastReviewAt: c.lastReviewAt == null ? null : new Date(c.lastReviewAt)});
+const fsOut = c => Object.assign({}, c, {dueAt: +c.dueAt, lastReviewAt: c.lastReviewAt == null ? null : +c.lastReviewAt});
+/* One review through the library: card (stored form, or null for a first
+   answer), its id, right or not, and the time. A device clock set back
+   behind the last review is read as the time of that review (design choice:
+   the library rejects a negative elapsed time). */
+function fsReview(card, id, good, at){
+  const now = new Date(card && card.lastReviewAt != null ? Math.max(at, card.lastReviewAt) : at);
+  const c = card ? fsIn(card) : FS.newCard({now, cardId: id});
+  return fsOut(FS.review({card: c, grade: good ? FSRS.Rating.Good : FSRS.Rating.Again, now}).card);
+}
+/* The library's predicted recall for a card at a time (its README,
+   "Retrievability"); null for a card never reviewed. */
+function fsRecall(card, at){
+  if(!FS || !card || card.lastReviewAt == null) return null;
+  const c = fsIn(card);
+  return FS.model.forgettingCurve(c, Math.max(0, FS.chrono.difference(c.lastReviewAt, new Date(at))));
+}
+const fsStore = arm => arm === 'fsrs' ? (DB.fsrsQ = DB.fsrsQ || {}) : null;
+// answered, with its FSRS step still waiting for the library
+const fsAnswered = (q, arm) => { const s = DB.concepts[q.concept]; return !!(s && s.last && q.id in s.last); };
+const fsKey = (q, arm) => q.id;
+const fsCard = (q, arm) => { const S = fsStore(arm); return S ? S[fsKey(q, arm)] || null : null; };
+/* An answer's FSRS step. The card before it is kept in DB.fsUndo, so "I
+   guessed" can redo that step as Again from the same card and time. */
+function fsAnswer(q, arm, good, at){
+  whenFs(() => {
+    const S = fsStore(arm), k = fsKey(q, arm), prev = S[k] || null;
+    try { S[k] = fsReview(prev, k, good, at); DB.fsUndo = {qid: q.id, arm, key: k, prev, at}; }
+    catch(e){ FS_ERROR = String(e && e.message || e); }
+    save();
+  });
+}
+function fsRegrade(q){
+  whenFs(() => {
+    const u = DB.fsUndo;
+    if(!u || u.qid !== q.id) return;
+    try { fsStore(u.arm)[u.key] = fsReview(u.prev, u.key, false, u.at); }
+    catch(e){ FS_ERROR = String(e && e.message || e); }
+    save();
+  });
+}
+/* How an FSRS-scheduled question ranks: a due card first (lowest predicted
+   recall first), then a question never answered, then, only with "Ask
+   everything", the rest by lowest recall. null when it is not to be asked. */
+function fsScore(q, arm, now){
+  const c = fsCard(q, arm);
+  if(!c && !FS && fsAnswered(q, arm)) return (DB.settings.mode || 'cram') === 'all' ? {tier: 1, sub: 0, due: false} : null;
+  if(!c) return {tier: 3, sub: 0, due: false};
+  const r = fsRecall(c, now);
+  const sub = 1 - (r === null ? 0 : r);
+  if(now >= c.dueAt) return {tier: 5, sub, due: true};
+  return (DB.settings.mode || 'cram') === 'all' ? {tier: 1, sub, due: false} : null;
+}
 /* Review paces. Cram spaces a mastered concept by how many questions are
    answered after it; the other two by real days. Weekly is for a course that
    examines every week: everything comes back within a fortnight. Semester is
@@ -868,7 +964,8 @@ function record(q, result, picked, ms, mode){
   const now = Date.now();
   // the scheduler fields of the answer history, read before this answer
   // changes anything (the concept scheduler predicts no recall)
-  const how = {model: 'concept', arm: '', recall: null};
+  const arm = armOf(q.concept);
+  const how = {model: arm, arm: '', recall: arm === 'concept' ? null : fsRecall(fsCard(q, arm), now)};
   DB.qn++;
   s.seen++;
   s.lastQ = DB.qn;
@@ -896,6 +993,9 @@ function record(q, result, picked, ms, mode){
   if(ms) entry.ms = ms;
   if(cleared) entry.cleared = cleared;      // markGuessed puts the check back
   DB.answers.push(entry);
+  // the FSRS models step their card on every answer (the box above is still
+  // kept: Weak spots and mastery read it)
+  if(arm !== 'concept') fsAnswer(q, arm, result === 'correct', now);
   if(DB.answers.length > 4000) DB.answers.splice(0, DB.answers.length-4000);
   save();
   logAnswer(q, result, mode || (typeof Q !== 'undefined' && Q && Q.sweep ? 'sweep' : 'quiz'), how);
@@ -928,7 +1028,9 @@ function markGuessed(q){
     s.box = 0;
     // a guess is not a right answer, so a check it passed is waiting again
     if(last.cleared){ s.check = {day: last.cleared}; delete last.cleared; }
-    schedule(s, q.concept); save();
+    schedule(s, q.concept);
+    if(armOf(q.concept) !== 'concept') fsRegrade(q);   // the FSRS step again, as Again
+    save();
     logConf(q, 'guessed');
     return true;
   }
@@ -942,7 +1044,9 @@ function markSure(q){
   const last = DB.answers[DB.answers.length-1];
   if(!(last && last.qid === q.id && last.result === 'wrong' && !last.conf)) return false;
   last.conf = 'sure';
-  st(q.concept).check = {day: dayKey(Date.now())};
+  // the later-day check is the concept scheduler's; an FSRS model logs the
+  // confidence and schedules the miss as it schedules any miss
+  if(armOf(q.concept) === 'concept') st(q.concept).check = {day: dayKey(Date.now())};
   save();
   logConf(q, 'sure');
   return true;
@@ -1010,16 +1114,19 @@ function earlierDue(pool){
 }
 function pickNext(pool, justAsked){
   let cands = [];
+  const now = Date.now();
   const add = (q, earlier) => {
     if(justAsked && q.id === justAsked) return;
-    const sc = score(q);
+    const arm = armOf(q.concept);
+    const sc = arm === 'concept' ? score(q) : fsScore(q, arm, now);
     if(!sc) return;
-    if(earlier && sc.tier !== 2 && sc.tier !== 4) return;   // earlier lectures: due or missed only
+    const due = arm === 'concept' ? (sc.tier === 2 || sc.tier === 4) : sc.due;
+    if(earlier && !due) return;                       // earlier lectures: due or missed only
     const s = DB.concepts[q.concept];
     const fresh = !s || !s.asked.includes(q.id);       // unseen wording of this concept
     // calculation preset: a due review ranks with never-seen material (tier 3)
     // instead of after it, so earlier material is mixed in rather than waiting
-    cands.push({q, tier: SCHED.calc && sc.tier === 2 ? 3 : sc.tier, sub:sc.sub, fresh:fresh?1:0, r:Math.random()});
+    cands.push({q, arm, due, tier: arm === 'concept' && SCHED.calc && sc.tier === 2 ? 3 : sc.tier, sub:sc.sub, fresh:fresh?1:0, r:Math.random()});
   };
   for(const q of pool) add(q, false);
   if(SCHED.calc) for(const q of earlierDue(pool)) add(q, true);
@@ -1031,6 +1138,20 @@ function pickNext(pool, justAsked){
     const other = cands.filter(c => skillOf(c.q) !== skillOf(prev));
     if(other.length) cands = other;
   }
+  return cands[0].arm === 'concept' ? conceptPick(cands) : fsPick(cands);
+}
+/* The FSRS models' pick: the due card with the lowest predicted recall, else
+   a question never answered (one of up to five, at random), else, with "Ask
+   everything", the lowest recall. */
+function fsPick(cands){
+  const due = cands.filter(c => c.due);
+  if(due.length) return due.sort((a, b) => b.sub - a.sub || a.r - b.r)[0].q;
+  const fresh = cands.filter(c => c.tier === 3).sort((a, b) => a.r - b.r);
+  if(fresh.length) return fresh[Math.floor(Math.random() * Math.min(fresh.length, 5))].q;
+  return cands.sort((a, b) => b.sub - a.sub || a.r - b.r)[0].q;
+}
+/* The concept scheduler's pick from its ranked candidates. */
+function conceptPick(cands){
   cands.sort((a,b)=>
       b.tier - a.tier
    || b.fresh - a.fresh
@@ -1077,12 +1198,17 @@ function conceptsIn(pool){ return [...new Set(pool.map(q=>q.concept))]; }
 /** Concepts in a pool that are still waiting: never seen, missed, or due again. */
 function remainingIn(pool){
   let n = 0;
+  const now = Date.now();
   for(const c of conceptsIn(pool)){
-    const st = DB.concepts[c];
-    if(!st || !st.seen || st.box === 0 || isDue(st)) n++;
+    const st = DB.concepts[c], arm = armOf(c);
+    if(arm === 'concept'){ if(!st || !st.seen || st.box === 0 || isDue(st)) n++; }
+    else if(pool.some(q => q.concept === c && fsWaiting(q, arm, now))) n++;
   }
   return n;
 }
+/* Under an FSRS model a question is waiting when it was never answered or
+   its card is due. */
+const fsWaiting = (q, arm, now) => { const c = fsCard(q, arm); return !c || now >= c.dueAt; };
 function masteryOf(pool){
   const cs = conceptsIn(pool);
   let m=0, t=0;

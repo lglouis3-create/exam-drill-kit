@@ -37,7 +37,9 @@ QUESTIONS.push(...${JSON.stringify(BANK.map(([id, concept, skill, lec, sub]) => 
             {t: 'Another one marked wrong', correct: false, why: 'Marked wrong in this test bank.'}],
   teach: 'Test bank item.', cite: `Test (${lec}.pdf) slide 1`})))}.map(q => Object.assign(q, {prof: COURSE.professors[0]})));
 `;
+// every part names its scheduler; this is the default unless the part's own lines set another
 const COURSE_BASE = `
+COURSE.scheduler = {model:'concept'};
 COURSE.lectures.push({id:'ZS1', deck:'ZS-L1.pdf', label:'Test lecture 1', prof:COURSE.professors[0], exam:99, module:'ZS'},
                      {id:'ZS2', deck:'ZS-L2.pdf', label:'Test lecture 2', prof:COURSE.professors[0], exam:99, module:'ZS'});
 `;
@@ -67,6 +69,43 @@ async function open(browser, page_, at, init){
   await page.goto('file://' + page_);
   await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
   return {ctx, page, errors};
+}
+/* The vendored ts-fsrs, run directly in node (not through the page): its
+   DefaultScheduler() settings, to compare with the page's. Date comes from
+   this realm so the library accepts it. */
+async function library(){
+  try {
+    const vm = require('vm');
+    const sb = {console, Date}; sb.globalThis = sb; vm.createContext(sb);
+    vm.runInContext(fs.readFileSync(path.join(L.PAGE.SRC, 'vendor', 'ts-fsrs-6.0.0.umd.js'), 'utf8'), sb);
+    const ref = await sb.FSRS.DefaultScheduler();
+    const out = c => Object.assign({}, c, {dueAt: +c.dueAt, lastReviewAt: c.lastReviewAt == null ? null : +c.lastReviewAt});
+    const replay = (id, steps) => { let card = null;
+      return steps.map(([t, g]) => { const now = new Date(t);
+        const recall = card && card.lastReviewAt ? ref.model.forgettingCurve(card, ref.chrono.difference(card.lastReviewAt, now)) : null;
+        card = ref.review({card: card || ref.newCard({now, cardId: id}), grade: g, now}).card;
+        return {card: out(card), recall}; }); };
+    return {F: sb.FSRS, ref, replay};
+  } catch(e){ return {error: 'the vendored ts-fsrs did not load in node: ' + e.message}; }
+}
+/* The same library alone in a blank Chromium page, for comparing the page's
+   cards with the library's own reviews in the same engine (node's V8 and
+   Chromium's differ in the last digit of some results). replay(id,
+   [[ms, grade]]) gives the card after each review and the recall the
+   library predicted just before it. */
+async function libraryPage(browser){
+  const ctx = await browser.newContext(), pg = await ctx.newPage();
+  await pg.setContent('<!doctype html><meta charset="utf-8"><title>ts-fsrs</title>');
+  await pg.addScriptTag({content: fs.readFileSync(path.join(L.PAGE.SRC, 'vendor', 'ts-fsrs-6.0.0.umd.js'), 'utf8')});
+  const replay = (id, steps) => pg.evaluate(async ([id, steps]) => {
+    const ref = await FSRS.DefaultScheduler(); let card = null;
+    const out = c => Object.assign({}, c, {dueAt: +c.dueAt, lastReviewAt: c.lastReviewAt == null ? null : +c.lastReviewAt});
+    return steps.map(([t, g]) => { const now = new Date(t);
+      const recall = card && card.lastReviewAt ? ref.model.forgettingCurve(card, ref.chrono.difference(card.lastReviewAt, now)) : null;
+      card = ref.review({card: card || ref.newCard({now, cardId: id}), grade: g, now}).card;
+      return {card: out(card), recall}; });
+  }, [id, steps]);
+  return {ctx, replay};
 }
 const T0 = '2026-11-02T09:00:00';        // a Monday, local time
 const ms = s => new Date(s).getTime();
@@ -395,6 +434,96 @@ COURSE.exams.push({id:'zsA', name:'Test exam', date:'12 Nov', when:'2026-11-12T0
     check(screens.length >= 10 && !found.size, `no control offers to skip a question or mark it known, on ${screens.length} screens`, [...found].slice(0, 3).join('; '));
     check(!errors.length, 'no page errors', errors.slice(0, 2).join('; '));
     await ctx.close();
+  }
+
+  console.log('\n=== 2. FSRS option (scheduler.model \'fsrs\') ===');
+  {
+    const lib = await library();
+    const v = variant('fsrs', `COURSE.scheduler = {model:'fsrs'};`), c = variant('conceptlib', `COURSE.scheduler = {model:'concept'};`);
+    if(v.error || c.error || lib.error){ check(false, 'the FSRS test course builds and the vendored library loads in node', v.error || c.error || lib.error); }
+    else {
+      const html = fs.readFileSync(v.page, 'utf8'), plainHtml = fs.readFileSync(c.page, 'utf8');
+      const umd = fs.readFileSync(path.join(L.PAGE.SRC, 'vendor', 'ts-fsrs-6.0.0.umd.js'), 'utf8');
+      check(html.includes(umd) && /MIT License/.test(html) && /BSD 3-Clause License/.test(html) && /ts-fsrs 6\.0\.0 \(npm, dist\/index\.umd\.js, unchanged\)/.test(html),
+        'the FSRS course\'s page carries the vendored ts-fsrs bundle unchanged, with the licence texts above it');
+      check(!plainHtml.includes(umd.slice(0, 400)) && !plainHtml.includes('exports.DefaultScheduler') && !/BSD 3-Clause License/.test(plainHtml),
+        `a concept-scheduler page carries no library (pages ${(plainHtml.length / 1024).toFixed(0)} KB and ${(html.length / 1024).toFixed(0)} KB)`);
+      check(/scheduler: fsrs; ts-fsrs 6\.0\.0 inlined/.test(v.out) && /scheduler: concept \(no library\)/.test(c.out), 'the build says which scheduler it built and whether it inlined the library', v.out.split('\n').filter(l => /scheduler:/.test(l)).join(' / '));
+
+      const {ctx, page: p, errors} = await open(browser, v.page, T0);
+      // (typeof guards: on an older core these names do not exist, and the checks fail instead of stopping)
+      const ready = await p.evaluate(() => typeof FS === 'undefined' ? {ok: false, why: 'no FS in this page'}
+        : {ok: !!FS, model: FS && FS.definition.model.name, err: FS_ERROR, sched: SCHED.model});
+      check(ready.ok && ready.model === 'fsrs-7' && ready.sched === 'fsrs', 'the page\'s scheduler is ready as soon as the page has loaded, and it is FSRS-7', ready);
+      const cfg = await p.evaluate(() => typeof FS !== 'undefined' && FS ? JSON.stringify(FS.config) : '');
+      check(cfg === JSON.stringify(lib.ref.config), 'its settings are exactly what DefaultScheduler() with no options gives (default parameters and target retention)', cfg.slice(0, 160));
+
+      // a fixed answer sequence through the screen, compared with the library run directly
+      const showQ = (id, sub) => p.evaluate(([id, sub]) => { startQuiz('zsched', sub || null); Q.current = byId(id); Q.order = Q.current.options.map((o, i) => i);
+        Q.picked = null; Q.revealed = false; renderQuiz(); }, [id, sub]);
+      const pick = right => p.evaluate(right => { const i = Q.current.options.findIndex(o => right ? o.correct : !o.correct);
+        document.querySelector(`#v-quiz button[data-o="${i}"]`).click(); }, right);
+      const tap = sel => p.evaluate(sel => { const b = document.querySelector(sel); if(b && !b.disabled) b.click(); return !!b; }, sel);
+      const STEPS = [[0, true, null, 3], [60, true, null, 3], [120, false, null, 1], [1440, true, null, 3],
+                     [1445, true, '#btnGuess', 1], [3 * 1440, true, '#btnShaky', 3], [10 * 1440, false, '#btnSure', 1]];
+      const LP = await libraryPage(browser);
+      const want = await LP.replay('z3a', STEPS.map(([m, , , g]) => [ms(T0) + m * 60000, g]));
+      await LP.ctx.close();
+      const got = [], logs = [];
+      for(const [m, right, btn] of STEPS){
+        await p.clock.setFixedTime(new Date(ms(T0) + m * 60000));
+        await showQ('z3a', 'b'); await pick(right); if(btn) await tap(btn);
+        got.push(await p.evaluate(() => DB.fsrsQ && DB.fsrsQ.z3a ? JSON.parse(JSON.stringify(DB.fsrsQ.z3a)) : null));
+        logs.push(await p.evaluate(() => LOG[LOG.length - 1]));
+      }
+      const norm = o => JSON.stringify(Object.keys(o || {}).sort().reduce((a, k) => (a[k] = o[k], a), {}));
+      const same = got.map((g, i) => norm(g) === norm(want[i].card));
+      check(same.every(Boolean), 'after each of 7 answers (right, wrong, same day, next day, "I guessed", "Not sure", "I was sure of that") the stored card equals the library\'s own review of the same sequence',
+        JSON.stringify(same.map((x, i) => x ? 'ok' : {got: got[i], want: want[i].card}).filter(x => x !== 'ok').slice(0, 1)));
+      check(got[0] && got[1] && got[1].stability !== got[0].stability && got[1].stabilityFast !== got[0].stabilityFast && norm(got[1]) === norm(want[1].card),
+        `a second answer an hour later, the same day, changes the memory state (stability ${(got[0] || {}).stability} -> ${(got[1] || {}).stability})`);
+      const rec = logs.map(e => e[9]), wantRec = want.map(w => w.recall === null ? null : Math.round(w.recall * 10000) / 10000);
+      check(JSON.stringify(rec) === JSON.stringify(wantRec), 'each answer logs the library\'s predicted recall before that answer (null for the first)', JSON.stringify({rec, wantRec}));
+      check(logs.every(e => e[7] === 'fsrs' && e[8] === ''), 'each answer logs scheduler "fsrs" and no comparison arm', JSON.stringify(logs.map(e => e.slice(7, 9))));
+      check(logs[6][5] === 'sure' && logs[4][5] === 'guessed' && logs[5][5] === 'unsure', 'the confidence buttons are logged as before', JSON.stringify(logs.map(e => e[5])));
+      const sure = await p.evaluate(() => ({note: !!document.getElementById('sureNote'), check: (DB.concepts.c3 || {}).check, retry: Q.retryConcept}));
+      check(!sure.note && !sure.check && !sure.retry, 'under FSRS "I was sure of that" records the confidence only: no later-day check, no forced retry, no line about one', sure);
+
+      // what comes next
+      const sched = await p.evaluate(() => { try {
+        const out = {}, pool = QUESTIONS.filter(q => q.topic === 'zsched' && q.sub === 'b'), z = id => byId(id);
+        const at = t => { Date.now = () => t; };      // the page clock is fixed; move it here for the picks
+        const t0 = Date.now();
+        DB = BLANK(); DB.settings.mode = 'normal';
+        record(z('z4a'), 'correct', 0, 1000);
+        const card = DB.fsrsQ.z4a;
+        out.notDue = [...Array(30)].map(() => pickNext(pool, null)).every(q => q && q.id !== 'z4a');
+        out.nothing = pickNext([z('z4a')], null) === null;
+        DB.settings.mode = 'all'; out.all = (pickNext([z('z4a')], null) || {}).id; DB.settings.mode = 'normal';
+        at(card.dueAt + 1000); out.dueFirst = (pickNext(pool, null) || {}).id;
+        // three due cards with different recall: the lowest goes first
+        at(t0 + 3 * 86400000); record(z('z5a'), 'correct', 0, 1000);
+        at(t0 + 5 * 86400000); record(z('z3a'), 'correct', 0, 1000);
+        at(t0 + 40 * 86400000);
+        const due = ['z3a', 'z4a', 'z5a'].map(id => ({id, r: fsRecall(DB.fsrsQ[id], Date.now()), due: Date.now() >= DB.fsrsQ[id].dueAt}));
+        out.due = due; out.lowest = due.slice().sort((a, b) => a.r - b.r)[0].id; out.pick = (pickNext(pool, null) || {}).id;
+        // a miss comes back when the library's card falls due, not before
+        at(t0 + 41 * 86400000); record(z('z5a'), 'wrong', 0, 1000);
+        const miss = DB.fsrsQ.z5a; out.missStep = (miss.dueAt - Date.now()) / 60000;
+        out.beforeDue = (pickNext([z('z5a'), z('z3b')], null) || {}).id;
+        at(miss.dueAt); out.atDue = (pickNext([z('z5a'), z('z3b')], null) || {}).id;
+        out.left = remainingIn(pool);
+        return out;
+      } catch(e){ return {err: e.message, due: [], missStep: NaN}; } });
+      check(sched.notDue && sched.nothing, 'a question whose card is not due is not served (30 picks), and a pool of only that question has nothing to serve', sched);
+      check(sched.all === 'z4a', '"Ask everything" serves it anyway', sched);
+      check(sched.dueFirst === 'z4a', 'once its card is due it comes before questions never answered', sched);
+      check(sched.due.length === 3 && sched.due.every(d => d.due) && sched.pick === sched.lowest, `among due cards the one with the lowest predicted recall comes first (${sched.due.map(d => d.id + ' ' + Number(d.r).toFixed(3)).join(', ')})`, sched);
+      check(sched.missStep > 0 && sched.beforeDue === 'z3b' && sched.atDue === 'z5a', `a missed question comes back when its card falls due (${Number(sched.missStep).toFixed(1)} minutes later, the library's step), not before`, sched);
+      check(sched.left === 3, 'the quiz header counts the concepts that have a question never answered or due (3 of 3 here)', sched);
+      check(!errors.length, 'no page errors', errors.slice(0, 2).join('; '));
+      await ctx.close();
+    }
   }
 
   await browser.close();

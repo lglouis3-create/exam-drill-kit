@@ -30,6 +30,7 @@ that course's repository. Both folders come from the recovered exam-drill templa
 | `home_test.js` | core | the Home Screen card for each kind of browser |
 | `history_test.js` | core | the answer history: its fields, Export, Import, Erase, a refused write |
 | `scheduler_test.js` | core | the scheduler (`review/scheduler-proposal.md` §4-§5), with a fixed clock, on scratch builds with a test topic |
+| `vendor/` | core | ts-fsrs 6.0.0's own UMD bundle and the licence texts of the code in it; `build.py` inlines them only for a course whose scheduler model needs FSRS |
 | `harvest.py`, `harvest_mask.py`, `ingest.py` | core | tools for adding a lecture; `harvest_mask.py` keeps a course-specific table at the top, empty in the kit |
 | `STEPPERS.md` | core | the rules step-through figures are written to |
 | `course.js` | template | the course manifest: names, `ns`, lectures, exams, skills, pace |
@@ -58,6 +59,7 @@ course's `src/README.md` comes from `template/`.
     mkdir -p COURSE_REPO/src
     cp -r template/. COURSE_REPO/src/
     find core -maxdepth 1 -type f ! -name README.md -exec cp {} COURSE_REPO/src/ \;
+    cp -r core/vendor COURSE_REPO/src/
 
 No file name appears in both folders except `README.md`, so the copy order does not
 matter for any other file.
@@ -77,8 +79,10 @@ serves:
 | `manifest.json` | the web manifest: `title` and `short` from `course.js`, start page `index.html` |
 | `icon-192.png`, `icon-512.png`, `icon-maskable-512.png`, `apple-touch-icon.png` | copied from `src/icons/` when the course supplies them; otherwise a plain square in the accent colour, and the build says so |
 
-Each file is written through a `.tmp` file and renamed, so a failed build leaves the
-last good file in place. Nothing is written outside the repository. Every check reads
+For a course whose `scheduler.model` is `fsrs` or `concept-fsrs`, `index.html` also
+carries `vendor/ts-fsrs-6.0.0.umd.js`, with the licence texts above it; for `concept` it
+carries no library. Any other model name stops the build. Each file is written through a
+`.tmp` file and renamed, so a failed build leaves the last good file in place. Nothing is written outside the repository. Every check reads
 the page through `built_page.js`; `DRILL_PAGE=<file>` points them all at another page.
 
 ## Storage
@@ -199,6 +203,74 @@ after a confident error is one of another skill when the concept has one. One-pa
 sweeps keep their shuffled order. Without the preset nothing changes: a seeded session
 serves exactly what the `5014f27` core served (`scheduler_test.js`).
 
+**`fsrs`** (§4.2): FSRS-7, one memory model per question, through the ts-fsrs library.
+
+- *The library.* ts-fsrs 6.0.0 from npm (`npm view ts-fsrs` and `npm pack ts-fsrs@6.0.0`
+  through the proxy, 2026-11-01; tarball shasum `900b2ff1b375cbebab098001b3c54dcaf9be4f5b`),
+  its `dist/index.umd.js` copied unchanged to `vendor/ts-fsrs-6.0.0.umd.js` (198,410 bytes,
+  sha256 `6ef23308221a59a524c18153e665480159bc4e26e9d437a70d9e1e912cc54554`). Licence:
+  MIT (the package's own `LICENSE`, "Copyright (c) 2026 Open Spaced Repetition"). The
+  bundle also contains `@open-spaced-repetition/srs-kit` 1.0.0 (BSD-3-Clause, its own
+  `LICENSE` read from its npm tarball), helpers from `@oxc-project/runtime` 0.154.0 (MIT)
+  and the rolldown runtime (MIT; `LICENSE` read from rolldown 1.2.16, the version that
+  built the bundle is not recorded in it). All four licence texts are in `vendor/` and go
+  into the page above the library. Inlined, library and licences are 203,801 bytes; the
+  sample course's page grows from 225,031 to 428,828 bytes. A course on the concept
+  scheduler carries none of it.
+- *FSRS-7 by default.* The package README: "`DefaultScheduler()` uses FSRS-7 when
+  `version` is omitted"; its CHANGELOG for 6.0.0: "It defaults to FSRS-7". The bundle's
+  own code agrees (`options.version ?? "FSRS-7"`), and the page's scheduler reports
+  model `fsrs-7`. The page calls `DefaultScheduler()` with no options, so the library's
+  default parameters and target retention apply; `scheduler_test.js` checks that the
+  page's settings equal those of `DefaultScheduler()` run in node on the vendored file.
+- *Same-day answers update the model* (§4.2.2). In the bundle, `review()` always runs
+  the model's `step` on the card (the learning-step middleware changes only the next
+  interval and the card's state), and with FSRS-7 the elapsed time is the fractional
+  days since the last review (`fractionalDays: isFSRS7`). Every answer is a review,
+  exam papers and sweeps included; `scheduler_test.js` shows a second right answer an
+  hour later changing the memory state.
+- *Grades* (the mapping of §4.3, used for both FSRS models): right, with or without
+  "Not sure", is Good; a miss, or "I guessed", is Again ("I guessed" redoes that review
+  as Again from the card before it, kept in `DB.fsUndo`). "I was sure of that" records
+  the confidence only; the later-day check is the concept scheduler's.
+- *Picking*: a due card first, lowest predicted recall first (the library's
+  `forgettingCurve`); then a question never answered (one of up to five at random); with
+  "Ask everything", the rest by lowest recall. A missed question returns when its card
+  falls due (the library's relearning step). Cards are kept in `DB.fsrsQ` by question
+  id, the library's own fields with its two dates as milliseconds. The box of each
+  concept is still kept, for Weak spots and mastery. Settings says the course runs
+  FSRS-7. Design choices: the order due, then new; the five-way random pick among new
+  questions; a device clock set back behind a card's last review counts as the time of
+  that review (the library rejects a negative elapsed time).
+- *Checked against the library itself*: after each of 7 answers through the screen
+  (right, right an hour later, wrong, next day, "I guessed", "Not sure", "I was sure of
+  that"), the stored card equals the library's own review of the same sequence, run on
+  its own in a blank Chromium page, and each logged predicted recall equals the
+  library's. (Run in node instead, one field, `scheduledDays`, differs in the last digit:
+  node's V8 and Chromium's round some results differently.)
+- *Starting*: `DefaultScheduler()` returns a promise, which settles in the microtasks
+  right after the page's script, before any tap; an answer made before that (only a
+  check that runs the engine without waiting, such as `test.js`) waits for it, and its
+  question counts as answered. If the library fails to start, the course runs the
+  concept scheduler.
+- *Older browsers*: the bundle calls `Object.hasOwn`, for which the page supplies a
+  stand-in where it is missing, and it contains a BigInt literal (`0n`), so a browser
+  without BigInt syntax cannot parse a page that carries it. WebKit is not installed
+  here, so no FSRS page has been run in Safari (NOT RUN).
+- *Fitting parameters to Louis's answers* (§4.2.3, §6) is not built; the page runs the
+  defaults. Findings from the packages' own files (2026-11-01):
+  `@open-spaced-repetition/binding` 0.6.0 (MIT) trains FSRS-7 by default ("'FSRS-7'
+  (default) or 'FSRS-6'"), needs Node.js 24 or later (this container has Node 22), and
+  in a browser runs as WASI in a Worker; its CHANGELOG says the threadless
+  `binding-wasm32-wasip1` build "requires no COOP/COEP headers or shared memory, so
+  static sites hosted on GitHub Pages can run training locally in a browser Worker"
+  (that package is 1,565,023 bytes unpacked). Its training options (`modelVersion`,
+  `cardIds`, `enableShortTerm`, `enableSchedPenalties`, `trainingConfig`) name no
+  recency weighting. `fsrs-browser` 6.6.0 (BSD-3-Clause) "runs fsrs-rs in the browser
+  with support for training FSRS parameters"; its README does not mention FSRS-7, and its
+  `computeParameters` takes whole-day `delta_ts` with no model-version option, so FSRS-7
+  support is not confirmed. Neither has been run here.
+
 *No "I know this, skip it" control* (§4.1.4; its reference 15: letting learners drop
 cards they thought they knew had small but consistent negative effects). The core has
 none; `scheduler_test.js` reads every control on 24 screens (Topics, a question before
@@ -245,9 +317,9 @@ the built page.
 
 ## Not in core yet
 
-- The FSRS option and the combination (`review/scheduler-proposal.md` §4.2-§4.3); §4.1
-  (exam-date spacing, the confident-error check, the calculation preset, no skip control,
-  the answer log) is in.
+- The combination (`review/scheduler-proposal.md` §4.3); §4.1 and the FSRS option (§4.2,
+  on default parameters) are in. Fitting FSRS parameters to the student's answers (§4.2.3)
+  is not built; see "The scheduler".
 - Intro-Pharmacology's exam-result page coming back after a reload, and its generator
   step in the build (`gen_*.py`), both named in `review/proposed-core.md` §5-§6.
 - The check that a course's `CLAUDE.md` was updated after its newest lecture (§7 there),

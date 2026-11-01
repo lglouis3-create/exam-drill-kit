@@ -547,6 +547,12 @@ function sourceCounts(){
   const sess = await page.evaluate(() => {
     // answer a handful through the real UI, getting one wrong on purpose
     startQuiz(TOPICS[0].id);
+    // Under an FSRS model a topic answered earlier in this run can have
+    // nothing due yet (a miss comes back after the library's relearning
+    // step), so the session line is read on a question the drill can serve.
+    const mode = DB.settings.mode;
+    if(!Q || !Q.current) startQuiz(null);
+    if(!Q || !Q.current){ DB.settings.mode = 'all'; startQuiz(null); }
     const out = {};
     for(let i = 0; i < 4; i++){
       if(!Q || !Q.current) break;
@@ -557,6 +563,7 @@ function sourceCounts(){
       const nx = document.getElementById('btnNext'); if(nx) nx.click();
     }
     out.logged = sessionLog().length;
+    DB.settings.mode = mode;
     show('gaps');
     const el = document.getElementById('v-gaps');
     out.sessionCard = !!el.querySelector('.sdots10');

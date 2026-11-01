@@ -101,13 +101,54 @@ def plain_png(size, rgb):
             + chunk(b'IDAT', zlib.compress(raw, 9)) + chunk(b'IEND', b''))
 
 
+def scheduler_library(shell):
+    """Put the FSRS library into the page only when the course's scheduler needs it.
+
+    course.js `scheduler.model` is 'concept' (the default; no library), 'fsrs' or
+    'concept-fsrs' (both run ts-fsrs). The library is ts-fsrs 6.0.0's own UMD
+    bundle from npm, unchanged, in vendor/; the licence texts of everything in
+    that bundle go in a comment above it, because they must travel with the
+    code. Any other model name stops the build rather than running the default.
+    """
+    mark = '/*__SCHEDULER_LIB__*/'
+    if mark not in shell:
+        sys.exit('ERROR: scheduler library placeholder not found in shell.html')
+    js = ("const fs=require('fs');"
+          "const C=new Function(fs.readFileSync('course.js','utf8')+';return COURSE;')();"
+          "process.stdout.write(JSON.stringify((C.scheduler&&C.scheduler.model)||'concept'))")
+    r = subprocess.run(['node', '-e', js], capture_output=True, text=True)
+    if r.returncode != 0:
+        sys.exit('ERROR: course.js could not be evaluated\n' + (r.stderr or r.stdout).strip())
+    model = json.loads(r.stdout)
+    if model not in ('concept', 'fsrs', 'concept-fsrs'):
+        sys.exit(f"ERROR: course.js scheduler.model is {model!r}; it must be 'concept', 'fsrs' or 'concept-fsrs'")
+    if model == 'concept':
+        print('  scheduler: concept (no library)')
+        return shell.replace(mark, '')
+    lib_name = 'ts-fsrs-6.0.0.umd.js'
+    notices = [('ts-fsrs 6.0.0', 'LICENSE-ts-fsrs'), ('@open-spaced-repetition/srs-kit 1.0.0, bundled in it', 'LICENSE-srs-kit'),
+               ('@oxc-project/runtime 0.154.0 helpers, bundled in it', 'LICENSE-oxc-runtime'),
+               ('the rolldown runtime at the top of the bundle', 'LICENSE-rolldown')]
+    for f in [lib_name] + [n for _, n in notices]:
+        if not os.path.exists(os.path.join('vendor', f)):
+            sys.exit(f'ERROR: vendor/{f} is missing; the {model} scheduler needs it')
+    lib = open(os.path.join('vendor', lib_name), encoding='utf-8').read()
+    head = ('/* ts-fsrs 6.0.0 (npm, dist/index.umd.js, unchanged), the FSRS scheduler for\n'
+            f'   course.js scheduler.model "{model}". Licences of the code in it:\n\n'
+            + '\n'.join(f'   ---- {what} ----\n' + open(os.path.join('vendor', n), encoding='utf-8').read().replace('*/', '* /')
+                        for what, n in notices) + '\n*/\n')
+    block = head + lib + '\n'
+    print(f'  scheduler: {model}; ts-fsrs 6.0.0 inlined ({len(block.encode("utf-8")) / 1024:.0f} KB with its licences)')
+    return shell.replace(mark, block)
+
+
 print('checking sources...')
 for f in SOURCES + ['sw.js']:
     node_check(f, f)
 print(f'  {len(SOURCES)} sources and sw.js parse cleanly')
 COURSE_FIELDS = course_fields()
 
-shell = open('shell.html', encoding='utf-8').read()
+shell = scheduler_library(open('shell.html', encoding='utf-8').read())
 images = json.load(open('images.json'))
 
 # the course manifest goes first, then a build stamp so the page can say which

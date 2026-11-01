@@ -36,6 +36,8 @@
                       concepts its pools cover. preset:'calc' for a
                       calculation course: no two questions of one skill in a
                       row, and due questions of earlier lectures mixed in.
+                      model 'fsrs': FSRS-7 per question (ts-fsrs, from the
+                      kit's core/vendor/, which the build then inlines).
    ========================================================================== */
 const COURSE = {
   id: 'course-id',                       // e.g. 'phar4351'

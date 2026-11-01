@@ -836,21 +836,23 @@ function confidenceButtons(){
    happens, so the record matches what the student saw. */
 const SURE_NOTE = {
   retry: 'A different question on this concept comes next, and the concept is asked again on a later day.',
-  later: 'This concept is asked again on a later day.'};
+  later: 'This concept is asked again on a later day.',
+  fsrs: ''};      // under an FSRS model the tap only records the confidence
+const sureNote = k => SURE_NOTE[k] ? `<span class="meta" id="sureNote">${esc(SURE_NOTE[k])}</span>` : '';
 function sureButton(){
-  if(Q.sureLogged) return `<button class="btn amber" id="btnSure" disabled>Marked as sure</button>
-    <span class="meta" id="sureNote">${esc(SURE_NOTE[Q.sureLogged] || '')}</span>`;
+  if(Q.sureLogged) return `<button class="btn amber" id="btnSure" disabled>Marked as sure</button>${sureNote(Q.sureLogged)}`;
   return `<button class="btn amber" id="btnSure">I was sure of that</button>`;
 }
 function wireConfidence(){
   const bu = $('#btnSure'); if(bu && !bu.disabled) bu.onclick = () => {
     const q = Q.current;
     if(!markSure(q)) return;
-    const other = retryQuestion(q.concept, q.id, Q.pool);
+    const concept = armOf(q.concept) === 'concept';
+    const other = concept ? retryQuestion(q.concept, q.id, Q.pool) : null;
     if(other){ Q.retryConcept = q.concept; Q.retryNot = q.id; }
-    Q.sureLogged = other ? 'retry' : 'later';
+    Q.sureLogged = other ? 'retry' : concept ? 'later' : 'fsrs';
     bu.textContent = 'Marked as sure'; bu.disabled = true;
-    bu.insertAdjacentHTML('afterend', `<span class="meta" id="sureNote">${esc(SURE_NOTE[Q.sureLogged])}</span>`);
+    bu.insertAdjacentHTML('afterend', sureNote(Q.sureLogged));
   };
   const note = () => { const n = $('#knewNote'); if(n) n.remove(); };
   const bg = $('#btnGuess'); if(bg) bg.onclick = () => {
@@ -2023,6 +2025,16 @@ function renderGuide(){ renderDoc($('#v-guide'), refFigures(GUIDE_HTML), 'guide'
 /* ==========================================================================
    SETTINGS
    ========================================================================== */
+/* Which scheduler this course runs, in Settings, when it is not the concept
+   scheduler the pace buttons above describe. */
+function schedulerNote(){
+  if(SCHED.model === 'fsrs') return `<p style="font-size:13.5px;color:var(--text-dim);margin:8px 0 0">
+      This course schedules each question with FSRS-7 (the ts-fsrs library, version 6.0.0, with its default settings):
+      when a question comes back is worked out from your answers to it, so the paces above do not change it.
+      "Ask everything" still serves every question, lowest predicted recall first.
+      "I was sure of that" records the confidence.</p>`;
+  return '';
+}
 function renderSettings(){
   const p = pace(), all = DB.settings.mode === 'all';
   $('#v-settings').innerHTML = `<h2>Settings</h2>
@@ -2040,6 +2052,7 @@ function renderSettings(){
       After a correct answer, "Not sure" brings that concept back at the shortest interval and "I guessed" treats it as not yet known.
       After a wrong answer, "I was sure of that" brings a different question on the same concept next and asks the concept again on a later day.
     </p>
+    ${schedulerNote()}
   </div>
 
   <h3>Export</h3>
