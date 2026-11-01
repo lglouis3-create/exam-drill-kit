@@ -117,3 +117,4 @@ is off says so on its card and offers the next question.
 | Module | Version | Ported from | What it adds |
 |---|---|---|---|
 | `formulas-in-text` | v1 | Basic-Pharmacokinetics `ac2eb73` | formulas set as the slides print them: stacked fractions, powers, the course's subscripts |
+| `chained-problem-sets` | v2 | Basic-Pharmacokinetics `ac2eb73` | problems asked in parts, worked in the professor's order; parts kept together on a paper |

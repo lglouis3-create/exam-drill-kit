@@ -461,14 +461,14 @@ Test: `src/test.js` (PK).
 Does: a problem set asked in parts, each part stating the earlier results it uses, kept together and in order on a paper.
 Use when: the professor asks one vignette in parts (PK: "at the rate you determined above", `src/BANK_SPEC.md` line 166).
 Do not use when: questions are independent.
-Enable: course.js → features.chained-problem-sets = { version: 'v2' }
+Enable: course.js → features['chained-problem-sets'] = { version: 'v2' }, with the sets in a data file listed in `files` (`const CHAINS = [{id, name, setup, parts: [...]}]`)
 Versions:
-  v1  2026-10-07  from PK (`3d9fb75`)   best for: vignette exams   weaker at: 45 parts used an earlier result without stating it   archive/v1/
-  v2  2026-10-17  from PK (`095fdae`, with a test that reads the working)   best for: vignette exams   weaker at: not evaluated   current/
+  v1  2026-10-07  from PK (`3d9fb75`)   best for: vignette exams   weaker at: 45 parts used an earlier result without stating it   not ported (kept in PK at `3d9fb75`)
+  v2  2026-10-17  from PK (`095fdae`, with a test that reads the working)   best for: vignette exams   weaker at: not evaluated   current/ (ported 2026-11-01 from PK `ac2eb73`)
 Evidence: PK `notes/PORT_EVALUATION_2026-10-17.md` §5, R5.
-Used by: PK (v2)
-Known issues: none open.
-Test: `src/problemset_test.py` (PK).
+Used by: PK (v2, its own copy); the kit module: none yet.
+Known issues: the history of PK (searched for the names, 2026-11-01) has `startChain` and `CHAINS` first in `91f1d5f` (2026-09-22); the v1 line names `3d9fb75`, the first commit of `paperOrder`. Not ported with the module: PK's per-module listing of sets on Topics, its review switch ("Stepwise calculations") and its worksheet pages; the kit module lists every set in one "Problems asked in parts" card.
+Test: `features/chained-problem-sets/current/test.js` (PK `src/problemset_test.py`, `src/test.js` section 5c and lines 760-807 ported); the build step stops the build on a set that names a missing question or a question in two sets.
 
 ## calc-stopwatch
 Does: a stopwatch on each calculation and time per kind of item on Weak spots.

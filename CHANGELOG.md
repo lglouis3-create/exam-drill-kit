@@ -3,6 +3,15 @@
 Dated kit changes, newest first.
 
 ## 2026-11-01
+- New feature module `chained-problem-sets` v2 (`features/chained-problem-sets/`), from
+  Basic-Pharmacokinetics `ac2eb73`: the course's `CHAINS` (problems asked in parts) get a
+  "Problems asked in parts" card on Topics; a set runs in the professor's order with "part i
+  of n", the vignette above each part and a closing card naming it; a part met alone names
+  its set and offers it from part 1; a paper keeps a set's parts together and in order (the
+  new `X.paper` hook). Its build step stops the build on a set naming a missing question.
+  Its test (PK `problemset_test.py` and `test.js` 5c, 760-807 ported, including the check
+  that every earlier result a part uses is stated in its stem): 17 checks pass; with the
+  module's code left out, 5 pass, 2 fail, then it stops (no Start button).
 - `core/`: an exam in `course.js` with `typed: true` (new, off unless set) puts
   `exam_typed.js` in the page, and that exam's papers draw numeric and matching items by
   the same rules as the rest (the engine's own draw, with their `type` set aside while it
