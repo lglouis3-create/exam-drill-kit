@@ -63,6 +63,9 @@ Mid-course design changes:
   2026-10-22  FSRS scheduling, Match, Compare (`0fab858`); why: Louis asked for research on improving memory and for side-by-side comparisons; preview approved: no preview step existed.
   2026-10-25  single-fact questions (`71da38b`); why: Louis approved the formulations ("Let’s follow you suggestions, and what’s you recommend approve all"); preview approved: Louis approved a written proposal, not a preview page.
   2026-10-28  Select ALL as one checkbox per item in Learn (`577d5b6`); why: Louis's concern about bundled answers, approved "Yes make the changes 1-3"; preview approved: approved a written proposal, not a preview page.
+  2026-11-01  offline cache cleanup scoped to `bdk-*`, slow-network fallback, progress kept when saving fails (`c78e78d`, v16); why: the old cleanup deleted other drill sites' offline copies on the shared origin; approved by Louis in chat; no preview step existed.
+  2026-11-01  Home Screen card (`080d5fa`, v17); why: Safari deletes a site's data after 7 days without use unless it is on the Home Screen, and a Home Screen copy keeps separate storage; approved by Louis ("a neat tool to utilize"); no preview step existed.
+  2026-11-01  answer history for fitting FSRS-7 later (`c2f87ae`, v18); why: BDK keeps only the last 10 results per card, without times; approved by Louis ("Whatever you recommend"); no preview step existed.
 Proposals declined: none recorded. Two offers have no decision (per-column colour in Compare; the daily review reading an exported progress file; both from session memory, unverified, BDK notes §5).
 Exam outcomes: none recorded.
 Louis's notes:
