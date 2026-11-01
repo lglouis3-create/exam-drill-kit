@@ -5,7 +5,9 @@
  *
  *   1. another site's caches on the same origin survive the worker's cleanup,
  *      including one whose name starts with this course's namespace, while
- *      this course's own old cache is deleted
+ *      this course's own old cache is deleted, and so is a cache of the
+ *      course's pre-core worker when course.js names its `oldCachePrefix`
+ *      (that prefix's own cases are in oldcache_test.js)
  *   2. with the server down the page opens from the saved copy, at the site
  *      root and at the old file name
  *   3. with the server slower than NET_TIMEOUT the saved copy opens without
@@ -55,12 +57,18 @@ check(/<link rel="manifest" href="\.\/manifest\.json">/.test(L.PAGE.read()), 'th
   const waitApp = (ms) => page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3 && typeof QUESTIONS !== 'undefined', null, {timeout: ms}).then(() => true, () => false);
   try {
     console.log('\n=== Caches on a shared origin ===');
-    const FOREIGN = ['phar4342-drill-v1', 'bdk-v18', NS + '-extra-v1'];
+    // Other sites' caches. Medicinal-chemistry's pre-core cache is another
+    // site's for every course but that one, which names it in oldCachePrefix
+    // and so must delete it: a name the course's own oldCachePrefix matches is
+    // checked as deleted, never as kept.
+    const OLDP = (site && site.old) || '';
+    const FOREIGN = ['phar4342-drill-v1', 'bdk-v18', 'other-drill-v2', NS + '-extra-v1'].filter(n => !(OLDP && n.startsWith(OLDP)));
+    const PRECORE = OLDP ? [OLDP + 'v1'] : [];
     await page.goto(S.origin + '/other-site/index.html');
     await page.evaluate(async ([foreign, old]) => {
       for(const n of foreign) await (await caches.open(n)).put('/' + n + '/index.html', new Response('another site'));
-      await (await caches.open(old)).put('/old', new Response('old copy'));
-    }, [FOREIGN, NS + '-v0']);
+      for(const n of old) await (await caches.open(n)).put('/old', new Response('old copy'));
+    }, [FOREIGN.concat(PRECORE), [NS + '-v0']]);
     await page.goto(URL_);
     const controlled = await page.waitForFunction(() => navigator.serviceWorker && navigator.serviceWorker.controller, null, {timeout: 20000}).then(() => true, () => false);
     check(controlled, 'the worker installs and controls the page on the first visit');
@@ -68,8 +76,10 @@ check(/<link rel="manifest" href="\.\/manifest\.json">/.test(L.PAGE.read()), 'th
     if(controlled){ try { note = await page.waitForSelector('#swbar', {timeout: 8000}); } catch(e){} }
     check(!!note && /offline/i.test(await page.textContent('#swbar').catch(() => '')), 'the student is told the drill now opens offline');
     const keys = await page.evaluate(() => caches.keys());
+    check(FOREIGN.length >= 3, `the shared origin holds ${FOREIGN.length} other sites' caches for this check`, FOREIGN);
     for(const n of FOREIGN) check(keys.includes(n), `another site's cache ${n} is kept`, keys);
     check(!keys.includes(NS + '-v0'), `this course's old cache ${NS}-v0 is deleted`, keys);
+    for(const n of PRECORE) check(!keys.includes(n), `this course's pre-core cache ${n} (oldCachePrefix '${OLDP}') is deleted`, keys);
     check(keys.includes(NS + '-v1'), `this course's cache ${NS}-v1 is there`, keys);
     const saved = await page.evaluate(async ([cache, files]) => {
       const c = await caches.open(cache);

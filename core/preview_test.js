@@ -61,6 +61,12 @@ L.check(/preview:false/.test(livePage) && !/id="previewnote"/.test(livePage), 't
     await page.goto(site.url + 'index.html');
     await page.waitForFunction(() => typeof NS === 'string' && typeof store === 'object' && document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
     const ns = await page.evaluate(() => NS);
+    // The live page writes <ns>:offline-ready once its worker takes control,
+    // which on a large page comes after it opens; its keys are read only after
+    // that, so a write by the live page is not taken for one by the preview.
+    const settled = await page.waitForFunction(n => navigator.serviceWorker && navigator.serviceWorker.controller &&
+      localStorage.getItem(n + ':offline-ready') === '1', ns, {timeout: 30000}).then(() => true, () => false);
+    L.check(settled, 'the live page\'s worker takes control and the page records it before the live keys are read');
     await page.evaluate(n => { localStorage.setItem(n + ':data:default', JSON.stringify({marker: 'live progress'})); }, ns);
     const liveKeys = await page.evaluate(n => Object.fromEntries(Object.keys(localStorage).filter(k => k.startsWith(n + ':')).map(k => [k, localStorage.getItem(k)])), ns);
 
@@ -79,7 +85,9 @@ L.check(/preview:false/.test(livePage) && !/id="previewnote"/.test(livePage), 't
     const kept = await page.evaluate(n => localStorage.getItem(n + '-preview:data:default'), ns);
     L.check(kept === JSON.stringify({marker: 'preview answer'}), 'the preview keeps its own answers across a reload (it does not copy the live progress again)', kept);
     const liveNow = await page.evaluate(n => Object.fromEntries(Object.keys(localStorage).filter(k => k.startsWith(n + ':')).map(k => [k, localStorage.getItem(k)])), ns);
-    L.check(JSON.stringify(liveNow) === JSON.stringify(liveKeys), `no live key was written or removed (${Object.keys(liveKeys).length} live keys compared)`,
+    // compared key by key: the order localStorage lists its keys in is not part of what is checked
+    const sorted = o => JSON.stringify(Object.keys(o).sort().map(k => [k, o[k]]));
+    L.check(sorted(liveNow) === sorted(liveKeys), `no live key was written or removed (${Object.keys(liveKeys).length} live keys compared)`,
       {before: Object.keys(liveKeys), after: Object.keys(liveNow)});
     await page.waitForTimeout(1500);
     const regs = await page.evaluate(() => navigator.serviceWorker ? navigator.serviceWorker.getRegistrations().then(r => r.map(x => x.scope)) : []);

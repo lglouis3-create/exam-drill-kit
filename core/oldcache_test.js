@@ -4,7 +4,10 @@
  * old worker named its caches 'phar4342-drill-v<n>'. The core's worker deletes
  * caches whose names start with the prefix the course names, and nothing else.
  *
- * Checked on scratch copies of this source tree:
+ * Checked on scratch copies of this source tree, whose course.js gets one line
+ * appended that removes the field or sets it, so the cases are the same for a
+ * course that names its own oldCachePrefix (Medicinal-chemistry) and one that
+ * names none (the template):
  *   - without the field, the worker deletes no other prefix;
  *   - with it, caches starting with that prefix are deleted, and a cache whose
  *     name only resembles it, another site's cache and this course's own cache
@@ -21,12 +24,10 @@ console.log('\n=== Deleting an old worker\'s caches ===');
 const build = (prefix) => {
   const repo = L.scratchRepo(__dirname, 'oldcache-test');
   const src = path.join(repo, 'src');
-  if(prefix !== null){
-    const p = path.join(src, 'course.js'), s = fs.readFileSync(p, 'utf8');
-    const out = s.replace(/^(\s*ns:\s*'[^']*',)$/m, `$1\n  oldCachePrefix: '${prefix}',`);
-    if(out === s) L.notRun(NAME, 'course.js has no `ns:` line to add oldCachePrefix after');
-    fs.writeFileSync(p, out);
-  }
+  // after the COURSE object, whatever the course wrote in it (build.py and the
+  // page both run course.js as it is, this line included)
+  fs.appendFileSync(path.join(src, 'course.js'), prefix === null ? '\n;delete COURSE.oldCachePrefix;\n'
+    : `\n;COURSE.oldCachePrefix = ${JSON.stringify(prefix)};\n`);
   const r = child.spawnSync('python3', ['build.py'], {cwd: src, encoding: 'utf8'});
   return {repo, code: r.status, out: (r.stdout + r.stderr).trim()};
 };
