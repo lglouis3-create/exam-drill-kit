@@ -775,11 +775,13 @@ const SCHED = (() => {
 /* Which scheduler a concept is under. With the comparison on (§5), each
    concept is assigned at random to the combination ('concept-fsrs') or the
    default concept scheduler ('concept'): the top bit of the FNV-1a hash of
-   "<ns>|<concept id>" (design choice: the top bit, since FNV-1a's low bit
-   is only the parity of the characters), so the assignment is the same on
-   every visit and device; the first answer stores it in DB.arms, and a
-   stored assignment is what counts from then on. */
-const armHash = concept => (parseInt(cardCode(NS + '|' + concept), 16) >>> 31) ? 'concept-fsrs' : 'concept';
+   "<concept id>|<ns>", so the assignment is the same on every visit and
+   device; the first answer stores it in DB.arms, and a stored assignment is
+   what counts from then on. Design choices: the top bit, since FNV-1a's low
+   bit is only the parity of the characters; the concept id first, since
+   the top bit hardly depends on the last characters hashed, so with the
+   ns last, ids that differ only at the end (c1, c2, ...) still split. */
+const armHash = concept => (parseInt(cardCode(concept + '|' + NS), 16) >>> 31) ? 'concept-fsrs' : 'concept';
 const armOf = concept => SCHED.model !== 'concept-fsrs' ? SCHED.model
   : !SCHED.compare ? 'concept-fsrs'
   : (DB.arms && DB.arms[concept]) || armHash(concept);

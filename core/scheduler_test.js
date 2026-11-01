@@ -592,11 +592,15 @@ COURSE.exams.push({id:'zsA', name:'Test exam', date:'12 Nov', when:'2026-11-12T0
       const fnv = id => { let h = 0x811c9dc5; for(let i = 0; i < id.length; i++){ h ^= id.charCodeAt(i); h = Math.imul(h, 0x01000193); } return h >>> 0; };
       const ns = await p.evaluate(() => typeof NS !== 'undefined' ? NS : '');
       const ids = ['c1', 'c2', 'c3', 'c4', 'c5'];
-      const hashArm = c => (fnv(ns + '|' + c) >>> 31) ? 'concept-fsrs' : 'concept';
+      const hashArm = c => (fnv(c + '|' + ns) >>> 31) ? 'concept-fsrs' : 'concept';
       const arms0 = await p.evaluate(ids => ids.map(c => typeof armOf === 'function' ? armOf(c) : null), ids);
-      check(JSON.stringify(arms0) === JSON.stringify(ids.map(hashArm)), `each concept's arm is the top bit of FNV-1a("${ns}|<concept>") (${ids.map((c, i) => c + ' ' + arms0[i]).join(', ')})`, arms0);
-      const share = await p.evaluate(() => { let n = 0; for(let i = 0; i < 2000; i++) if(typeof armOf === 'function' && armOf('concept-' + i) === 'concept-fsrs') n++; return n; });
-      check(share >= 900 && share <= 1100, `over 2000 concept ids, ${share} go to the combination and ${2000 - share} to the concept scheduler`, share);
+      check(JSON.stringify(arms0) === JSON.stringify(ids.map(hashArm)), `each concept's arm is the top bit of FNV-1a("<concept>|${ns}") (${ids.map((c, i) => c + ' ' + arms0[i]).join(', ')})`, arms0);
+      check(new Set(arms0).size === 2, 'the five test concepts, whose ids differ only in the last character, are not all on one arm', arms0);
+      const share = await p.evaluate(() => { let n = 0, sw = 0, prev = null;
+        for(let i = 0; i < 2000; i++){ const a = typeof armOf === 'function' ? armOf('concept-' + i) : null; if(a === 'concept-fsrs') n++; if(prev !== null && a !== prev) sw++; prev = a; }
+        return {n, sw}; });
+      check(share.n >= 900 && share.n <= 1100, `over 2000 concept ids, ${share.n} go to the combination and ${2000 - share.n} to the concept scheduler`, share);
+      check(share.sw >= 900 && share.sw <= 1100, `neighbouring ids (concept-0, concept-1, ...) change arm ${share.sw} times in 1999, about half, so the arm does not follow the numbering`, share);
       await p.evaluate(() => { record(byId('z1a'), 'correct', 0, 1000); });
       await p.waitForTimeout(400);
       const stored = await p.evaluate(() => { const d = JSON.parse(localStorage.getItem(NS + ':data:' + PROFILE) || '{}'); return d.arms || null; });

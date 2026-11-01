@@ -282,11 +282,14 @@ Again. Never-seen concepts come after due ones, as under `fsrs`.
 
 *The comparison* (§5), `scheduler.compare`, on unless set to `false` (the combination
 ships with it). Each concept is assigned at random to the combination or the default
-concept scheduler: the top bit of the FNV-1a hash of `"<ns>|<concept id>"`, so the same
-on every visit and device (design choice: the top bit, because FNV-1a's lowest bit is only
-the parity of the characters); the first answer stores the assignment in `DB.arms`, and a
-stored one is what counts from then on. In `scheduler_test.js` 1007 of 2000 test ids go
-to the combination. A concept on the concept arm gets everything of §4.1 (exam-date spacing, the
+concept scheduler: the top bit of the FNV-1a hash of `"<concept id>|<ns>"`, so the same
+on every visit and device (design choices: the top bit, because FNV-1a's lowest bit is only
+the parity of the characters; the concept id first, because the top bit hardly depends on
+the last characters hashed, so with `ns` last the ids `c1` to `c5` still split between the
+arms); the first answer stores the assignment in `DB.arms`, and a
+stored one is what counts from then on. In `scheduler_test.js` 1010 of 2000 test ids go
+to the combination, and neighbouring ids (`concept-0`, `concept-1`, ...) change arm 981 times
+in 1999. A concept on the concept arm gets everything of §4.1 (exam-date spacing, the
 confident-error check, the calculation preset); one on the combination is scheduled by its
 card. Every history entry carries the arm (fields 8 and 9). Both arms get the same review
 budget, counted in questions as in the classroom study §5 cites (matched for number of
