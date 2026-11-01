@@ -69,7 +69,9 @@ after Phase 1 and overrides earlier sections where they differ.
   pages) (BDK `assets/app.js` `QUIZZES`, `c2f87ae`); no switch happens on those days,
   and the assessment judged the whole move unlikely to finish before 11/17. With
   Pharmacokinetics held and Intro to Pharmacology staying as it is, BDK is the only
-  course move in progress.
+  course move in progress. The plan, the pre-move decisions and the order of its pull
+  requests: `review/bdk-move-plan.md`; the three move assessments are kept in
+  `review/assessments/`.
 - **Phase 3 (test) and Phase 4 (install): not started.**
 
 ## Rules for kit sessions
