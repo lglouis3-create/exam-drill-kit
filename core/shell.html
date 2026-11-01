@@ -227,11 +227,12 @@ body.swbar-on{padding-bottom:76px}
 .hs-steps{margin:4px 0 10px;padding-left:1.3em;font-size:13.5px;color:var(--text-dim)}
 .hs-steps li{margin:4px 0}
 
-/* ---------- the notice shown once when the browser refuses to save ---------- */
-#savewarn{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:50;
+/* ---------- the notices shown once when the browser refuses to save, and when
+   the saved progress could not be loaded ---------- */
+#savewarn,#loadwarn{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:50;
   max-width:720px;margin:0 auto;background:var(--warn-bg);color:var(--text);border:1px solid var(--warn);
   border-radius:8px;padding:10px 12px;font-size:14px;line-height:1.45;box-shadow:0 2px 10px rgba(0,0,0,.25)}
-#savewarn .btn{margin-left:8px;padding:4px 10px;font-size:13px}
+#savewarn .btn,#loadwarn .btn{margin-left:8px;padding:4px 10px;font-size:13px}
 
 /* ---------- misc ---------- */
 .note{background:var(--warn-bg);border:1px solid #E8CFA2;color:#6B4200;border-radius:var(--r);padding:12px 14px;font-size:13.5px;margin-bottom:16px}
@@ -614,6 +615,24 @@ function saveWarn(){
   d.querySelector('button').onclick = () => d.remove();
   document.body.appendChild(d);
 }
+/* The saved progress could not be read (load, below): say so once, in plain
+   words, and that nothing is saved during this visit. loadWarn(false) takes
+   the notice away again when a later load works (another profile). */
+const LOAD_FAIL = 'Your saved progress could not be loaded. Nothing will be saved during this visit, and the saved progress is left as it was.';
+let LOAD_WARN_EL = null;   // the notice while it is on screen
+function loadWarn(on){
+  if(!on){ if(LOAD_WARN_EL){ LOAD_WARN_EL.remove(); LOAD_WARN_EL = null; } return; }
+  if(LOAD_WARN_EL) return;
+  if(!document.body){ document.addEventListener('DOMContentLoaded', () => loadWarn(!canSave()), {once: true}); return; }
+  const d = LOAD_WARN_EL = document.createElement('div');
+  d.id = 'loadwarn'; d.setAttribute('role', 'alert');
+  d.textContent = LOAD_FAIL + ' ';
+  const b = document.createElement('button');
+  b.type = 'button'; b.className = 'btn ghost'; b.textContent = 'OK';
+  b.onclick = () => { d.remove(); if(LOAD_WARN_EL === d) LOAD_WARN_EL = null; };
+  d.appendChild(b);
+  document.body.appendChild(d);
+}
 
 let PROFILE = store.get(NS + ':profile') || '';
 const keyFor = p => NS + ':data:' + p;
@@ -636,6 +655,18 @@ const BLANK = () => ({
   created:Date.now()
 });
 let DB = BLANK();
+/* Whether the saved progress of the profile on screen was read in this visit.
+   Every write of the progress, the answer history and the exam paper asks
+   canSave() first, and nothing is written while it is false: before load()
+   has run (a fault earlier in start-up), and after a load that could not read
+   what is stored (not valid JSON, not a progress object, or a value upgradeDB
+   cannot convert). The stored value is then left exactly as it was. Before
+   2026-11-01, start-up built the tabs before it loaded the progress; when one
+   of those steps threw, DB stayed blank and the next answer's save() wrote
+   that one answer over the saved progress (startup_test.js shows it on the
+   core of that date). */
+let LOADED = '';        // the profile whose saved progress load() read in this visit; '' for none
+const canSave = () => !!PROFILE && LOADED === PROFILE;
 
 /* Saved progress from an earlier core. The scheduler work of 2026-11-01 only
    added to the shape: question ids, `ns`, and every field a save already
@@ -659,11 +690,22 @@ function upgradeDB(raw){
   return db;
 }
 function load(){
+  LOADED = '';
   if(!PROFILE) return;
   try{
     const raw = store.get(keyFor(PROFILE));
-    DB = raw ? upgradeDB(JSON.parse(raw)) : BLANK();
-  }catch(e){ DB = BLANK(); }
+    let db = BLANK();
+    if(raw){
+      const v = JSON.parse(raw);
+      if(!v || typeof v !== 'object' || Array.isArray(v)) throw new Error('the stored value is not a progress object');
+      db = upgradeDB(v);
+    }
+    DB = db; LOADED = PROFILE;
+  }catch(e){
+    DB = BLANK();
+    console.error('The saved progress could not be loaded; nothing is saved during this visit.', e);
+  }
+  loadWarn(!LOADED);
   loadLog();
   fsFromHistory();
 }
@@ -713,11 +755,20 @@ const cardCode = id => {
   return (h >>> 0).toString(16).padStart(8, '0');
 };
 let LOG = [];
+/* LOG_OK is false when a stored history is there but cannot be read (not
+   valid JSON, or not a list): it is then never written over, and progress
+   still saves. No notice is shown for it, as for a refused history write. */
+let LOG_OK = true;
 function loadLog(){
-  try { const v = JSON.parse(localStorage.getItem(logKey()) || '[]'); LOG = Array.isArray(v) ? v : []; }
-  catch(e){ LOG = []; }
+  LOG = []; LOG_OK = true;
+  let raw = null;
+  try { raw = localStorage.getItem(logKey()); } catch(e){ return; }   // storage unreadable: nothing stored to keep
+  if(!raw) return;
+  try { const v = JSON.parse(raw); if(!Array.isArray(v)) throw new Error('the stored history is not a list'); LOG = v; }
+  catch(e){ LOG_OK = false; console.error('The saved answer history could not be loaded; it is not written during this visit.', e); }
 }
 function saveLog(){
+  if(!canSave() || !LOG_OK) return;
   for(;;){
     try { localStorage.setItem(logKey(), JSON.stringify(LOG)); return; }
     catch(e){ if(LOG.length < 100) return; LOG.splice(0, Math.ceil(LOG.length / 2)); }
@@ -764,11 +815,11 @@ function mergeLog(entries){
 }
 let saveTimer=null;
 function save(){
-  if(!PROFILE) return;
+  if(!canSave()) return;
   clearTimeout(saveTimer);
   saveTimer=setTimeout(()=>{
     saveTimer=null;
-    store.set(keyFor(PROFILE), JSON.stringify(DB));
+    if(canSave()) store.set(keyFor(PROFILE), JSON.stringify(DB));
   },150);
 }
 /* Which profile opens when no choice is stored: the one with saved progress used
@@ -797,7 +848,7 @@ function askProfile(force){
   // A save still waiting on its timer belongs to the profile on screen now. It
   // is written before the switch; left to fire later, it would write the next
   // profile's progress and drop this one's last answer.
-  if(saveTimer && PROFILE){ clearTimeout(saveTimer); saveTimer = null; store.set(keyFor(PROFILE), JSON.stringify(DB)); }
+  if(saveTimer && PROFILE){ clearTimeout(saveTimer); saveTimer = null; if(canSave()) store.set(keyFor(PROFILE), JSON.stringify(DB)); }
   let n = PROFILE;
   if(!force && !n) n = pickProfile();
   if(force){

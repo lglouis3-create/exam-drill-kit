@@ -25,6 +25,7 @@ that course's repository. Both folders come from the recovered exam-drill templa
 | `run_checks.sh` | core | builds, then runs every check on its own, one line per check |
 | `checks_test.js` | core | the checks' own exit codes, the device lint, `run_checks.sh`, and `test.js` and `render_test.js` on a course with no `DIAGRAMS` list |
 | `storage_test.js` | core | progress when the browser refuses to save |
+| `startup_test.js` | core | saved progress when a start-up step or the load itself fails: nothing is written over it, and the rest of start-up runs |
 | `draw_test.js` | core | no exam paper carries two wordings of one fact, across pools too |
 | `update_test.js` | core | a newer version is offered; a reload comes back to the same place |
 | `sw.js` | core | the service worker; `build.py` fills in the course's cache prefix and file list and writes it to the root |
@@ -209,6 +210,68 @@ this on a progress object and history saved by the `5014f27` core (recorded with
 `--print-progress`): every saved field reads back unchanged, `last` is rebuilt, the
 scheduler ranks every test question as `5014f27` did, the seven-field history reads back
 unchanged, and under `fsrs` and the comparison the rebuilt cards equal the library's own.
+
+## Start-up and the saved progress
+
+**The load comes first.** Start-up (the end of `views.js`) picks the profile and loads its
+saved progress before any step that builds the page. `load()` needs the answer history
+and the scheduler code, which `shell.html` defines after the storage code, so the start of
+start-up is the earliest point it can run; before it, only a preview's first-visit copy of
+the live keys writes to storage, and that copies them unchanged. Until 2026-11-01 the tab
+steps ran first: in a scratch move of the Pharmacokinetics drill a `DIAGRAMS` list of
+another shape made one of them throw, start-up stopped before the load, the drill ran on a
+blank progress, and the next answer's save replaced the saved progress. `startup_test.js`
+shows the same on the `d187207` core and on Medicinal-chemistry's live page (its
+`index.html` at `d7331be`): 5 saved answers, then a save of 1. Louis approved the fix on
+2026-11-01.
+
+**Writes wait for a load that worked.** `canSave()` in `shell.html` is true only when the
+progress of the profile on screen was read in this visit. `save()`, the save a profile
+switch writes first, the answer history (`saveLog`) and the exam paper (`saveExam`,
+`clearExam`) write nothing while it is false: before `load()` has run, and after a load
+that could not read what is stored (not valid JSON, not a progress object, or a value
+`upgradeDB` cannot convert). The stored value is left exactly as it was, the drill still
+runs for the visit, and one notice (`#loadwarn`) says:
+
+    Your saved progress could not be loaded. Nothing will be saved during this visit, and the saved progress is left as it was.
+
+Import progress and Erase my history replace the saved progress, so they do nothing then
+and say so (design choice: a student with an export file can switch to another profile
+name and import it there). Switching to a profile whose progress loads takes the notice
+away, and that profile saves as usual. A stored answer history that cannot be read (not
+valid JSON, or not a list) is never written over either; progress still saves, and no
+notice is shown for it, as for a refused history write. Erase my history replaces it.
+
+**Each later step on its own.** Every start-up step after the load runs in `bootStep`: the
+page title, the tab buttons, the Atlas and Diagrams tabs, the Home Screen section's
+install listeners, the offline copy, the update check, keeping the place, bringing back a
+running exam paper or the place before a reload, and opening Topics. A step that throws is
+skipped with its error on the console (`Start-up step skipped: <step>.`), and start-up goes
+on. A tab whose list cannot be built is removed, as an empty one is. A place that cannot be
+brought back (a reading tab that throws, for example) opens Topics, as before, and now logs
+its error. The structure index built from an optional `FG` table while the script starts is
+left empty, with the error on the console, when the table has the wrong shape. When nothing
+fails, nothing changes: on the template scratch course every other check passed with the
+same number of checks as on the `d187207` core.
+
+Not covered: a fault in a view's own drawing after start-up (a reading tab opened later, a
+glossary entry of the wrong shape in an explanation) still breaks that screen, with the
+progress loaded and saving as usual; and an error at the top level of a course data file
+stops the page's script before any button works, so nothing can be answered or saved.
+
+`startup_test.js` puts each fault into a copy of the built page just before its start-up
+block (the marker `built_page.js` uses), so it runs on any course and on a page an older
+core built (`DRILL_PAGE`). From 5 answers saved through the page (fewer in a bank of fewer
+than 5 questions), it checks that with nothing failing the progress is loaded and shown
+and an answer and an exam paper are saved; that with `DIAGRAMS` of the wrong shape, a
+throwing offline step or a throwing reading tab on the place a reload comes back to, the
+fault is on the console, Topics opens, the 5 answers are loaded and shown, an answer is
+saved and no write stores fewer answers or history entries than were saved; that with
+stored progress that is not valid JSON, a value the load cannot convert, or a load that
+throws, nothing is written over the progress, the history or an exam paper, Erase and
+Import change nothing, the notice is shown once, and another profile saves; and that a
+history that cannot be read is left as it was. 77 checks; 40 of them fail on the
+`d187207` core (template scratch course) and on Medicinal-chemistry's live page.
 
 ## Offline
 

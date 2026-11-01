@@ -3,6 +3,21 @@
 Dated kit changes, newest first.
 
 ## 2026-11-01
+- `core/`: a fault at start-up can no longer cost saved progress (Louis approved the fix).
+  Found in a scratch move of Pharmacokinetics: a `DIAGRAMS` list of another shape made a
+  tab step throw, start-up stopped before the saved progress was loaded, and the next
+  answer's save replaced it. Start-up now loads the progress before any step that builds
+  the page; every write of the progress, the answer history and the exam paper waits for
+  a load that worked in this visit; when the load fails (not valid JSON, or a value it
+  cannot convert) the stored value is left as it was, Import and Erase do nothing, and one
+  notice says "Your saved progress could not be loaded. Nothing will be saved during this
+  visit, and the saved progress is left as it was." Each later start-up step runs on its
+  own: one that throws is skipped with its error on the console, and a tab whose list
+  cannot be built is removed. A stored answer history that cannot be read is no longer
+  written over. New check `startup_test.js` (77 checks; 40 of them fail on the d187207
+  core and on Medicinal-chemistry's live page, where 5 saved answers were replaced by a
+  save of 1). `run_checks.sh`: template scratch course 23 PASS, 0 FAIL, 1 NOT RUN,
+  1 REPORT; the Medicinal-chemistry copy 22 PASS, 0 FAIL, 2 NOT RUN, 1 REPORT.
 - `core/`: the Home Screen card no longer appears on Topics; in Settings it is a section
   that starts closed, its one line the card's heading ("Keep your progress: add <short>
   to your Home Screen" in Safari on iPhone and iPad, "Progress from Safari" in a Home

@@ -165,8 +165,8 @@ course; a change for every course goes to the kit): `shell.html`, `views.js`,
 `build.py`, `sw.js`, `built_page.js`, `check_lib.js`, `run_checks.sh`, the
 checks (`test.js`, `style_check.js`, `render_test.js`, `stepper_test.js`,
 `device_lint.js`, `output_test.js`, `checks_test.js`, `draw_test.js`,
-`browser_test.js`, `storage_test.js`, `update_test.js`, `offline_test.js`,
-`home_test.js`, `history_test.js`, `scheduler_test.js`), `harvest.py`,
+`browser_test.js`, `storage_test.js`, `startup_test.js`, `update_test.js`,
+`offline_test.js`, `home_test.js`, `history_test.js`, `scheduler_test.js`), `harvest.py`,
 `harvest_mask.py`, `ingest.py`, `STEPPERS.md`, and `vendor/` (the FSRS library
 and its licences, which the build puts in the page only when `course.js`
 `scheduler.model` is `fsrs` or `concept-fsrs`).

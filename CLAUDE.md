@@ -36,11 +36,15 @@ after Phase 1 and overrides earlier sections where they differ.
   Each of these goes to `main` in its own pull request, with a plain-terms summary for
   Louis's yes or no.
 - **Moving the courses onto the core** (Louis's order, 2026-11-01: Medicinal-chemistry,
-  Pharmacokinetics, BDK, Intro to Pharmacology). Medicinal-chemistry: branch
-  `kit/move-to-core` in its repo; preview published at `/preview/` on 2026-11-01
-  (Louis approved); his name for the course is "Intro to Medicinal Chemistry (P2 Fall
-  2026)"; going live waits for the core fixes found by the move (kit PR #3), the slide
-  check he asked for, and his approval of the preview.
+  Pharmacokinetics, BDK, Intro to Pharmacology). Medicinal-chemistry: live on the core
+  since 2026-11-01 (commit `d7331be` in its repo, kit pin `ff7bd51`), after kit pull
+  requests #2, #3 and #4 and Louis's approval of its preview.
+  Read-only assessments (2026-11-01) of a move for the other three: Pharmacokinetics
+  about 35 kit pull requests (a straight move broke start-up and lost most features),
+  BDK about 33 (quizzes still on 11/17-11/19 and 11/30), Intro to Pharmacology about
+  42 (its last exam Mon 11/2, 8:30-10:30 am CT). Louis's decision for Pharmacokinetics:
+  no move now; its Tier 1 features are ported into the kit now and its Tier 2 features
+  one per night (`review/port-queue.md`, scheduled task "Kit feature port").
 - **Phase 3 (test) and Phase 4 (install): not started.**
 
 ## Rules for kit sessions
@@ -74,6 +78,7 @@ after Phase 1 and overrides earlier sections where they differ.
 | `gh api 'repos/<owner>/<repo>/actions/runs?head_sha=<sha>'` for Pages deploys | works through the session proxy without any connector, for repos attached to the session; `gh api …/pages/builds/latest` is refused by the proxy | 2026-11-01 |
 | Session "Kit updater" (`session_01LVkWFDAbAtw7kDGwqd43Qg`, started with the kit as its repository) | kit fetch and push dry run work; Python, Node and Chromium work; `mcp__github__*` tools present; `add_repo` for a course repo from a seeded message was blocked by the permission system; after Louis's own message there, all four course repos were attached with push access, and fetch, `git push --dry-run` and `gh api …/actions/runs` worked in each (the session's stored sources list the kit and the four course repos) | 2026-11-01 |
 | Scheduled task "Kit update run" (`trig_01QduqhookGDD8HxANEbLq4w`, daily 2:47 AM America/Chicago, fires into "Kit updater") | first run 2026-11-01 08:48 UTC ended "Nothing to update: the kit's main has no core yet" (correct: PR #1 merged at about 12:10 UTC), changed nothing and sent no notification; not yet checked whether a run after the container is replaced still has the repos | 2026-11-01 |
+| Session "Kit feature porter" (`session_01LVkWFDVVDwgsL5WF7yWqcV`, started with the kit) and scheduled task "Kit feature port" (`trig_017nw2kiZvgqCKkgWcKuvA8V`, daily 12:45 AM America/Chicago) | setup test 2026-11-01: kit fetch and push dry run, a read-only clone of Pharmacokinetics, `mcp__github__create_pull_request`, Python, Node and Chromium all work; a real push and pull request not yet tried | 2026-11-01 |
 | WebKit / Safari browser engine | not installed in the cloud container; Chromium only | 2026-10-31 |
 
 ## Open questions for Louis
