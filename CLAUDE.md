@@ -56,6 +56,14 @@ after Phase 1 and overrides earlier sections where they differ.
   Pharmacokinetics; they can be changed only from the "Kit feature porter" session
   (an `update_trigger` from this session was refused on 2026-11-01), so that change
   waits for a message from Louis there.
+  Louis's decision on 2026-11-01 ("Lets do what you recommend that will result in the
+  least mistakes", after Claude recommended option B of the Intro to Pharmacology
+  assessment): Intro to Pharmacology is not moved; its site stays as it is and its
+  features are ported into the kit from its code (port queue items 18-21, not before
+  2026-11-02 11:00 CT). BDK is not moved before its last quiz on 11/30, as its
+  assessment recommended; whether it moves at all is decided after that. With
+  Pharmacokinetics also held, no course besides Medicinal-chemistry moves for now, and
+  the features of all three reach future courses through the port queue.
 - **Phase 3 (test) and Phase 4 (install): not started.**
 
 ## Rules for kit sessions

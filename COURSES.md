@@ -49,7 +49,7 @@ Mid-course design changes:
   2026-10-22  Exam 3 bank rewritten to her quiz format with "Most likely" buttons (`b41039d` (branch)); why: her format (4 options, no absolute words, no length cue; PH notes §1); preview approved: no preview step existed.
   2026-10-23  Exam 3 guide rewritten to teach the reasoning (`a243a93` (branch)); why: Louis: "Make it isn't just reiterated what was said but giving the student a proper explanation" (PH notes §4); preview approved: no preview step existed.
   2026-10-26  focus switch states what it hides (`54a3c4a` (branch)); why: Louis asked why Exam 3 material disappeared; preview approved: no preview step existed.
-Proposals declined: none recorded. UX review items R2 to R9 of 2026-10-17 are recorded as waiting on Louis, not declined (PH notes §5).
+Proposals declined: 2026-11-01, moving this drill onto the kit core (options A, a full move of about 42 kit pull requests, and C, a minimal move that drops many tabs and the audio, in the move assessment of 2026-11-01); Louis chose option B, the drill stays as it is and its features are ported into the kit from its code: "Lets do what you recommend that will result in the least mistakes". UX review items R2 to R9 of 2026-10-17 are recorded as waiting on Louis, not declined (PH notes §5).
 Exam outcomes: Quiz 4: "quiz 4 is correct as i got a 100" (Louis, PH notes §4; a quiz, not an exam). No exam score recorded.
 Louis's notes:
 
