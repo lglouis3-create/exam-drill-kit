@@ -634,7 +634,10 @@ With every number set the page is unchanged: the `index.html` this core and the
 `7a6e81b` core build are identical once the two build stamps are removed, for the
 template course (248,119 bytes each) and for Medicinal-chemistry's live course at
 `d7331be` (7,208,805 bytes each). `nullexam_test.js` checks the five cases on scratch
-copies of any course.
+copies of any course. On the template course 34 of its 55 checks fail on the `7a6e81b`
+core and 11 of its 60 on `d0f9223` (this change before the mixed-marks and time-limit
+corrections, all 11 in those two cases); on this core 68 pass and 1 is skipped (the
+Weighting chips: no pool of the template filters by tier).
 
 ## Checks
 
