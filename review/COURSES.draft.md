@@ -9,7 +9,7 @@ preview; the preview column reads "no preview step existed".
 
 ---
 
-## PHAR 4342 Medicinal Chemistry (cumulative final drill)   repo: Medicinal-chemistry   site: https://lglouis3-create.github.io/Medicinal-chemistry/   term: not stated in the repo
+## PHAR 4342 PT I: Intro to Medicinal Chemistry (cumulative final drill)   repo: Medicinal-chemistry   site: https://lglouis3-create.github.io/Medicinal-chemistry/   term: Fall 2026 (from the syllabus file name in Drive, `SyllabusF26---PHAR-4342---PT-I-Intro-to--Med-Chem_052126.pdf`; the repo does not state it)
 Material profile: structures (functional groups drawn as skeletal structures); two professors with separate pools; slide decks cited by slide number or by title; transcripts; professor polls; documents that define the exam scope (`Final-Review.pdf`, `Ex4-Prep-Work`); Louis's three Quizlet sets. Exam: 50 questions, select-all spread across three pools in a 38:8:4 ratio, 75-minute timer (`src/views.js:370`, `970-982`).
   Bank: 387 questions and 189 images in the published build (MC corrected notes §0, verified there from a clone); the course's Claude Project state doc records 479 questions on 2026-09-21, a round that never reached GitHub.
 Features and versions used: structure-atlas v1, structure-compare v1, full-pass v1, glossary v1; core parts from this drill: service worker, Pages layout, exam draw with one blocked set.
