@@ -12,16 +12,17 @@ that course's repository. Both folders come from the recovered exam-drill templa
 |---|---|---|
 | `shell.html` | core | page skeleton, styles, storage, scheduler; reads `COURSE` and nothing else about the course |
 | `views.js` | core | every view and the boot code |
-| `build.py` | core | assembles the page from the shell, the course files and the views, and writes it to the repository root |
+| `build.py` | core | assembles the page from the shell, the course files listed in `course.js` `files` and the views, and writes it to the repository root |
 | `built_page.js` | core | the one place every check takes the built page's location from |
 | `check_lib.js` | core | what the newer checks share: summary line and exit code, Playwright loading, a test server |
 | `output_test.js` | core | the build writes to the repository root and the checks read from there |
+| `files_test.js` | core | `course.js` `files`: every listed question file reaches the page after the core's `build.py` is copied over the course's; the lists the build refuses |
 | `test.js`, `style_check.js`, `render_test.js`, `explain_check.js`, `stepper_test.js` | core | checks that run on any course's built page |
 | `cite_check.py` | core | citation check; its course-specific tables at the top start empty |
-| `browser_test.js` | core | browser smoke test (Node Playwright port of the template's `browser_test.py`, which stays in `history/`) |
+| `browser_test.js` | core | browser smoke test (Node Playwright port of the template's `browser_test.py`, which stays in `history/`), including no sideways scroll on a 375 px phone and wide reading-tab tables scrolling in their own box |
 | `device_lint.js` | core | fails on syntax older Safari rejects (regex lookbehind) in anything that ships |
 | `run_checks.sh` | core | builds, then runs every check on its own, one line per check |
-| `checks_test.js` | core | the checks' own exit codes, the device lint and `run_checks.sh` |
+| `checks_test.js` | core | the checks' own exit codes, the device lint, `run_checks.sh`, and `test.js` and `render_test.js` on a course with no `DIAGRAMS` list |
 | `storage_test.js` | core | progress when the browser refuses to save |
 | `draw_test.js` | core | no exam paper carries two wordings of one fact, across pools too |
 | `update_test.js` | core | a newer version is offered; a reload comes back to the same place |
@@ -37,8 +38,8 @@ that course's repository. Both folders come from the recovered exam-drill templa
 | `vendor/` | core | ts-fsrs 6.0.0's own UMD bundle and the licence texts of the code in it; `build.py` inlines them only for a course whose scheduler model needs FSRS |
 | `harvest.py`, `harvest_mask.py`, `ingest.py` | core | tools for adding a lecture; `harvest_mask.py` keeps a course-specific table at the top, empty in the kit |
 | `STEPPERS.md` | core | the rules step-through figures are written to |
-| `course.js` | template | the course manifest: names, `ns`, lectures, exams, skills, pace |
-| `q1_topics.js` | template | `TOPICS` and the first question file (samples to replace) |
+| `course.js` | template | the course manifest: names, `ns`, lectures, exams, skills, pace, scheduler, the data files (`files`), the kit pin (`kit`) |
+| `q1_topics.js` | template | the first question file: it declares `TOPICS` and `QUESTIONS` (samples to replace) |
 | `links.js` | template | which reading section explains a question (course-specific table) |
 | `reference.js`, `tell.js`, `guide.js` | template | the reading tabs (samples to replace) |
 | `diagrams.js` | template | drawn figures and the Diagrams tab list (one sample step-through) |
@@ -68,6 +69,42 @@ course's `src/README.md` comes from `template/`.
 No file name appears in both folders except `README.md`, so the copy order does not
 matter for any other file.
 
+## The course's files
+
+`course.js` `files` lists the course's data files in the order the build puts them into
+the page: `atlas.js` and `diagrams.js`, then every question file, named
+`q<N>_<topic>.js`, the first of which declares `TOPICS` and `QUESTIONS`. A course adds
+each new question file there. The list belongs to the course: bringing in a newer core
+replaces `build.py` and never `course.js`, so the list survives a core update. (Until
+2026-11-01 the list was `DATA_FILES` inside `build.py`; copying the `9f2f2a4` core's
+`build.py` over Medicinal-chemistry's, whose own copy listed its 15 question files,
+left 39 of its 479 questions in the page, with no error.) Without the field the build
+uses the template's list, `['atlas.js', 'diagrams.js', 'q1_topics.js']`.
+
+The build stops, before it writes anything, when the list names a file that is not in
+`src/`, names one twice, names a folder, names a source it always includes
+(`course.js`, `glossary.js`, `links.js`, `reference.js`, `tell.js`, `guide.js`,
+`views.js`, `sw.js`), has no question file, or leaves out a `q<N>_*.js` file that is in
+`src/`, because that file's questions would be missing from the page. A course moving
+from a core whose `build.py` carried its list copies that list into `files` before the
+new `build.py` is copied in; the build names every question file the default would
+leave out.
+
+Everything else reads the same list from the build: `python3 build.py --list-sources`
+(every shipped source, which `device_lint.js` scans) and `python3 build.py --list-files`
+(`{"files": [...], "questions": [...]}`, the data files and the question files among
+them, in build order), which `scheduler_test.js` reads to find the first question file
+and `browser_test.js` to count the questions in the sources. `files_test.js` checks it.
+
+The question count the page shows in Settings is `QUESTIONS.length`, and the build writes
+the same number into `BUILD.questions`, from `course.js` and the data files run in node in
+page order (it used to count lines starting `{id:'` in the question files, which counted
+the `TOPICS` entries too: 13 for the template's 7 questions, 551 for
+Medicinal-chemistry's 479). `test.js` and `render_test.js` check both.
+
+`DIA`, `DIAGRAMS` and `READ_LINKS` are optional: the engine and the checks run without
+them (`checks_test.js` runs `test.js` and `render_test.js` on a copy with no `DIAGRAMS`).
+
 ## What the build writes
 
 `python3 src/build.py` writes into the repository root, which is what GitHub Pages
@@ -80,7 +117,7 @@ serves:
 | the `output` name in `course.js` | a redirect to `index.html`, so old links keep working |
 | `version.json` | `{"built": "<UTC time of the build>"}`, the same value as `BUILD.built` in the page |
 | `sw.js` | the service worker, from `src/sw.js` with the course's cache prefix and file list filled in |
-| `manifest.json` | the web manifest: `title` and `short` from `course.js`, start page `index.html` |
+| `manifest.json` | the web manifest: `title` and `short` from `course.js`, start page `index.html`; `description` and `orientation` too when `course.js` `manifest` gives them (Medicinal-chemistry's manifest before the core had both; `orientation` takes the values the web manifest allows, and any other value or field stops the build) |
 | `icon-192.png`, `icon-512.png`, `icon-maskable-512.png`, `apple-touch-icon.png` | copied from `src/icons/` when the course supplies them; otherwise a plain square in the accent colour, and the build says so |
 
 `python3 src/build.py --preview` writes only `preview/index.html` and
@@ -89,7 +126,9 @@ site stays as it was. The preview page says it is a preview, links no manifest a
 registers no service worker. It keeps everything under the namespace `<ns>-preview`,
 copied once from the live keys the first time it opens in a browser, so answering in a
 preview never changes the live drill's progress, and a preview with a new progress
-format cannot convert the live data. Delete `preview/` when the update goes live.
+format cannot convert the live data. The comparison's arms (see "The scheduler") are
+hashed with the course's `ns`, not the storage namespace, so a concept is in the same arm
+in the preview as on the live page. Delete `preview/` when the update goes live.
 
 For a course whose `scheduler.model` is `fsrs` or `concept-fsrs`, `index.html` also
 carries `vendor/ts-fsrs-6.0.0.umd.js`, with the licence texts above it; for `concept` it
@@ -97,6 +136,21 @@ carries no library. Any other model name stops the build. Each file is written t
 `.tmp` file and renamed, so a failed build leaves the last good file in place. Nothing
 is written outside the repository. Every check reads
 the page through `built_page.js`; `DRILL_PAGE=<file>` points them all at another page.
+
+## Narrow screens
+
+The reading tabs (Guides, Tell apart, Reference) put every table in a box of its own
+(`boxTables` in `views.js`, `.tscroll` in `shell.html`) that scrolls sideways when the
+table is wider than the screen, so the page itself never scrolls sideways; the table, its
+rows and their order are as written, and its top and bottom margins move to the box so
+the spacing is unchanged. A word or link longer than its line breaks, and a jump-list chip
+longer than the line wraps. Louis approved this on 2026-11-01: on a 375 px phone,
+Medicinal-chemistry's three tabs scrolled the whole page sideways by 226, 95 and 176 px
+(17 tables wider than the screen), and its longest jump-list chip ended at 979 px.
+Screenshots of the three tabs at 1100 px are pixel-identical before and after on
+Medicinal-chemistry and on the template course (and at 375 px on the template course).
+`browser_test.js` checks a table it builds wider than any phone, the course's own wide
+tables, and the chips.
 
 ## Storage
 
@@ -139,7 +193,12 @@ A course that had a worker under another prefix before it moved onto the core
 (Medicinal-chemistry's is `phar4342-drill-`, its `ns` is `phar4342final`) names that
 prefix in `course.js` `oldCachePrefix`, and the worker deletes caches whose names start
 with it. The build refuses a prefix that does not end with `-` or that would match the
-course's own `<ns>-v<n>` caches.
+course's own `<ns>-v<n>` caches. `offline_test.js` treats a cache that the course's own
+`oldCachePrefix` matches as one to delete, not as another site's; `oldcache_test.js` sets
+or removes the field with a line appended to `course.js`, so both run the same on a
+course that names a prefix and on one that does not. `preview_test.js` reads the live
+keys only after the live page's worker has taken control and the page has recorded that
+(`<ns>:offline-ready`), and compares them key by key.
 
 ## A newer version, and the place after a reload
 
@@ -150,6 +209,17 @@ the same open sections, the same question (answered or not, with nothing recorde
 and the same line at the top of the screen. The place is kept in `sessionStorage` under
 `<ns>:place`, so it belongs to one browser tab. A running exam paper comes back first, as
 before.
+
+`update_test.js` checks the 15-minute offer with Playwright's fake clock paused, so the
+page's time moves only by the test's own steps: once installed, that clock also runs on
+with real time, so the test's own waits (1.9 s) and the page's load used up the 2 s it
+keeps before the 15-minute check. With the page's clock read at that point, 8 runs on
+Medicinal-chemistry's 6.86 MB page had 7 to 22 ms left in 7 runs and were 12 ms past the
+mark in 1; 5 runs on the template course had 86 to 95 ms left. In 20 runs each, the check
+"nothing is offered before 15 minutes" failed 4 times on Medicinal-chemistry and never on
+the template course; with the clock paused, 20 of 20 passed on each. The test now also
+checks that the page's clock moved exactly 898,000 ms (2 s short of 15 minutes) before it
+looks for the offer.
 
 ## Answer history and the Home Screen card
 
@@ -247,8 +317,10 @@ serves exactly what the `5014f27` core served (`scheduler_test.js`).
   and the rolldown runtime (MIT; `LICENSE` read from rolldown 1.2.16, the version that
   built the bundle is not recorded in it). All four licence texts are in `vendor/` and go
   into the page above the library. Inlined, library and licences are 203,801 bytes; the
-  sample course's page is 436,181 bytes with them and 232,384 without (it was 204,031 at
-  `5014f27`; the rest of the growth is the scheduler code and its comments). A course on the concept
+  sample course's page was 436,181 bytes with them and 232,384 without when the scheduler
+  went in (204,031 at `5014f27`; the rest of that growth is the scheduler code and its
+  comments), and is 440,973 and 237,136 after the fixes of 2026-11-01's Medicinal-chemistry
+  move. A course on the concept
   scheduler carries none of it.
 - *FSRS-7 by default.* The package README: "`DefaultScheduler()` uses FSRS-7 when
   `version` is omitted"; its CHANGELOG for 6.0.0: "It defaults to FSRS-7". The bundle's
@@ -315,8 +387,12 @@ Again. Never-seen concepts come after due ones, as under `fsrs`.
 
 *The comparison* (§5), `scheduler.compare`, on unless set to `false` (the combination
 ships with it). Each concept is assigned at random to the combination or the default
-concept scheduler: the top bit of the FNV-1a hash of `"<concept id>|<ns>"`, so the same
-on every visit and device (design choices: the top bit, because FNV-1a's lowest bit is only
+concept scheduler: the top bit of the FNV-1a hash of `"<concept id>|<ns>"`, with `ns`
+the course's own (`COURSE.ns`, also in a preview build), so the same on every visit and
+device and in the preview (in `scheduler_test.js` on the template scratch course, all 2005
+test ids get the same arm in a preview build as on the live page; hashed with the
+preview's namespace, 1004 did)
+(design choices: the top bit, because FNV-1a's lowest bit is only
 the parity of the characters; the concept id first, because the top bit hardly depends on
 the last characters hashed, so with `ns` last the ids `c1` to `c5` still split between the
 arms); the first answer stores the assignment in `DB.arms`, and a
@@ -385,3 +461,9 @@ the built page.
   step in the build (`gen_*.py`), both named in `review/proposed-core.md` §5-§6.
 - `coverage_check.py`, `step_check.js` and `sources_check.js` from the drills.
 - A WebKit run of the browser checks.
+- Course tables kept outside the core files: `cite_check.py` (`ALIASES`, `LECTURES`,
+  `BARE_MAP`), `explain_check.js` (`WEIGHTY`) and `harvest_mask.py` (`SPEC`) still hold
+  course-specific tables at their tops, empty in the kit, so copying a newer core over a
+  course replaces the course's tables (Medicinal-chemistry's `kit/move-to-core` has
+  entries in all three). Until they move into course files, a core update keeps the
+  course's tables by hand.

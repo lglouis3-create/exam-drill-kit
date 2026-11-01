@@ -60,6 +60,8 @@ COURSE = {id, title, short, ns, output, professors:[…],
           pools:[{key, name, marks | null, filter:{exam:N} | {prof:'X', tier:'new'} | {lecture:[…]} | {module:N}}]}],
   activeExam, skills:[{id, label, short}], paceDefault:'cram'|'weekly'|'semester',
   scheduler:{model:'concept' | 'fsrs' | 'concept-fsrs', compare?:true, preset?:'calc'},
+  files:['atlas.js', 'diagrams.js', 'q1_topics.js', 'q2_<lecture>.js', …],
+  oldCachePrefix?, manifest?:{description?, orientation?},
   features:{<name>:{version, ...options}},
   kit:{core:'<kit commit or tag>'}}
 ```
@@ -70,6 +72,9 @@ COURSE = {id, title, short, ns, output, professors:[…],
   except Mode 7 (§7.5).
 - `questions: null` means the count is not announced; the exam draw then uses pool
   eligibility, and the clock does not scale.
+- `files` lists the data files in build order; every new question file goes there. A
+  core update replaces `build.py`, never `course.js`, so the list is kept
+  (`core/README.md` "The course's files").
 
 ## Questions
 
@@ -320,7 +325,13 @@ run failed; a run with nothing
 behind ends with one line per course and no notification.
 
 Bringing in a newer core means copying every file of the kit's `core/` except
-`README.md`, and `core/vendor/`, into the course's `src/`.
+`README.md`, and `core/vendor/`, into the course's `src/`. A course whose `build.py`
+still carries its own list of question files (a core before 2026-11-01's `files`) gets
+that list in `course.js` `files` first; the new build names any question file left out.
+Three core files still hold course tables at their tops, which a plain copy replaces with
+the kit's empty ones: `cite_check.py` (`ALIASES`, `LECTURES`, `BARE_MAP`),
+`explain_check.js` (`WEIGHTY`) and `harvest_mask.py` (`SPEC`); keep the course's tables
+when copying (Medicinal-chemistry has entries in all three).
 
 **Undo:** "undo the last kit update for <course>" reverts that update commit, restores
 the previous pins in `course.js`, confirms the deploy, and logs it in `reviews/LOG.md`.
