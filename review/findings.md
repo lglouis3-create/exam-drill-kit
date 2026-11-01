@@ -393,6 +393,13 @@ there, as the brief requires for design changes Louis approves.
     the FSRS option; BDK's own FSRS upgrade is a separate decision.
 13. Decided 2026-11-01: add a Home Screen tool to BDK (Louis: "a neat tool to
     utilize").
+14. Decided 2026-11-01 (Louis: "lets do what you best recommend"): MC's recovered
+    history is preserved on GitHub as branch `restore/2026-09-21-round` (`baed236`)
+    in Medicinal-chemistry, with `main` and the live site unchanged, and the
+    template is kept in the kit at `history/exam-drill-template-2026-10-02/`. The
+    09/21 round joins MC's live drill when MC moves onto the kit core (Mode 7).
+15. Decided 2026-11-01 ("lets go with your best recommendation"): BDK keeps
+    FSRS-4.5 until it moves onto the kit core; the FSRS-7 upgrade happens then.
 
 ## 10. Improvement proposals
 
