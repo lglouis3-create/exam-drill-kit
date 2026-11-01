@@ -3,6 +3,19 @@
 Dated kit changes, newest first.
 
 ## 2026-11-01
+- `core/`: the course tables of `cite_check.py` (`ALIASES`, `LECTURES`, `BARE_MAP`),
+  `explain_check.js` (`WEIGHTY`) and `harvest_mask.py` (`SPEC`) move into `course.js`
+  `tools` (`citeAliases`, `citeLectures`, `citeBareMap`, `explainTerms`, `harvestMasks`),
+  so a core update no longer resets them to the kit's empty ones; the three files hold
+  no course data. Each tool prints what it read with `--tables`; the build stops on a
+  `tools` field no tool reads or a table of the wrong shape. New check `tables_test.js`
+  (20 checks; 15 of them fail on the 47bf534 core). On a scratch copy of
+  Medicinal-chemistry's `kit/move-to-core` with its tables moved into `tools`, the tools
+  read the same tables, and `explain_check.js` (816 lines) and `cite_check.py` against
+  its 20 decks (PASS, 1191 slide references) print the same output as with the course's
+  own three files; with the kit's empty tables `cite_check.py` fails on 1 citation.
+  `run_checks.sh`: template scratch course 22 PASS, 0 FAIL, 1 NOT RUN, 1 REPORT; the
+  Medicinal-chemistry copy 21 PASS, 0 FAIL, 2 NOT RUN, 1 REPORT.
 - `core/`: the site opens straight to the drill and never asks for a name on its own
   (Louis): with no name stored it opens the saved progress used most recently, else a
   profile named "me"; the Switch button still asks. `storage_test.js` and `test.js`

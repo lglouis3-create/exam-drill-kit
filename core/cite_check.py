@@ -14,7 +14,10 @@ slide numbers appear in all four.
 Decks are looked for under decks/ and the working directory. A citation spells
 a deck the way `course.js` does (dots in the file stem written as underscores),
 and that spelling is resolved against the files on disk automatically; the
-tables under COURSE-SPECIFIC cover any other spelling a citation uses.
+course's own tables in course.js `tools` (see COURSE TABLES below) cover any
+other spelling a citation uses.
+
+    python3 cite_check.py --tables   print the tables read from course.js and stop
 """
 import glob, json, os, re, subprocess, sys
 
@@ -27,35 +30,65 @@ def not_run(why):
 try:
     import pdfplumber
 except ImportError:
-    not_run("pdfplumber is not installed, so no deck can be read")
+    pdfplumber = None       # main() says NOT RUN; --tables still works
 
 DECK_DIRS = ["decks", "."]
 
 # --------------------------------------------------------------------------
-# COURSE-SPECIFIC (usually empty): spellings that cannot be derived.
+# COURSE TABLES (usually empty): spellings that cannot be derived. They belong
+# to the course and live in its course.js `tools`, which a core update never
+# replaces (a core update copies this file over the course's own), so this
+# file holds no course data. Each field is optional:
+#
+#   citeAliases   how a citation spells a deck (lower case) -> the file on
+#                 disk, or null when the deck is not a PDF on hand (its slide
+#                 numbers are then reported unchecked)
+#   citeLectures  lecture number -> file, for citations that say "Lecture #11"
+#                 instead of a file name. Filled from course.js `lectures` (the
+#                 digits of each lecture id); add here only when a citation
+#                 numbers a lecture differently.
+#   citeBareMap   a deck named in words inside a citation ("... slides 13;
+#                 Absorption I slide 24") -> its file, or null, so the slide
+#                 number is not attributed to the previous deck
 # --------------------------------------------------------------------------
-# how a citation spells a deck (lower case) -> the file on disk, or None when
-# the deck is not a PDF on hand (its slide numbers are then reported unchecked)
-ALIASES = {}
-# lecture number -> file, for citations that say "Lecture #11" instead of a
-# file name. Filled from course.js (the digits of each lecture id); add here
-# only when a citation numbers a lecture differently.
-LECTURES = {}
-# a deck named in words inside a citation ("... slides 13; Absorption I slide
-# 24") -> its file, so the slide number is not attributed to the previous deck
-BARE_MAP = {}
-
-# --------------------------------------------------------------------------
+TABLES = ("citeAliases", "citeLectures", "citeBareMap")
 
 # The built page is located by built_page.js, the helper every check uses.
 HERE = os.path.dirname(os.path.abspath(__file__))
 os.chdir(HERE)
 
 PDF_IN_TEXT = re.compile(r"([A-Za-z0-9_.\-]+\.pdf)", re.I)
-BARE_DECK = re.compile(r"\b(" + "|".join(re.escape(k) for k in BARE_MAP) + r")\b") if BARE_MAP else None
 LECTURE_IN_TEXT = re.compile(r"[Ll]ecture\s*#\s*(\d+)")
 # "slide 34", "slides 29-30", "slides 46, 50, 56", "slides 42 to 62"
 SLIDES = re.compile(r"slides?\s+((?:\d+\s*(?:[-–]|,|and|to)?\s*)+)", re.I)
+
+
+def course_tables():
+    """course.js `tools`: this check's tables, from course.js evaluated by node
+    the way build.py reads it. A field the course leaves out is empty."""
+    tools = {}
+    if os.path.exists("course.js"):
+        js = ("const fs=require('fs');"
+              "const C=new Function(fs.readFileSync('course.js','utf8')+';return COURSE;')();"
+              "process.stdout.write(JSON.stringify(C.tools===undefined?{}:C.tools))")
+        r = subprocess.run(["node", "-e", js], capture_output=True, text=True)
+        if r.returncode != 0:
+            print("ERROR: course.js could not be evaluated\n" + (r.stderr or r.stdout).strip())
+            print("FAIL: cite_check.py: course.js could not be evaluated")
+            sys.exit(1)
+        tools = json.loads(r.stdout)
+    if not isinstance(tools, dict):
+        print("FAIL: cite_check.py: course.js `tools` must be an object")
+        sys.exit(1)
+    out = {}
+    for name in TABLES:
+        t = tools.get(name)
+        t = {} if t is None else t
+        if not isinstance(t, dict) or not all(v is None or isinstance(v, str) for v in t.values()):
+            print(f"FAIL: cite_check.py: course.js `tools.{name}` must be an object of file names (or null)")
+            sys.exit(1)
+        out[name] = t
+    return out
 
 
 def course_lectures():
@@ -117,7 +150,7 @@ def load_questions():
     return json.loads(out.stdout)
 
 
-def make_resolver(counts):
+def make_resolver(counts, aliases):
     """A deck as written in a citation -> the file on disk, or None.
 
     The derived spellings: the file name itself, and the file stem with its
@@ -130,18 +163,23 @@ def make_resolver(counts):
 
     def resolve(name):
         key = name.lower()
-        if key in ALIASES:
-            return ALIASES[key]
+        if key in aliases:
+            return aliases[key]
         return derived.get(key, name)
     return resolve
 
 
 def main():
+    if pdfplumber is None:
+        not_run("pdfplumber is not installed, so no deck can be read")
+    tables = course_tables()
+    aliases, extra_lectures, bare_map = (tables[k] for k in TABLES)
+    bare_deck = re.compile(r"\b(" + "|".join(re.escape(k) for k in bare_map) + r")\b") if bare_map else None
     counts = page_counts()
     qs = load_questions()
-    resolve = make_resolver(counts)
+    resolve = make_resolver(counts, aliases)
     lectures = dict(course_lectures())
-    lectures.update(LECTURES)
+    lectures.update(extra_lectures)
 
     bad, unchecked, checked = [], {}, 0
     for q in qs:
@@ -157,9 +195,9 @@ def main():
                 marks.append((m.start(), resolve(m.group(1)), m.group(1)))
             for m in LECTURE_IN_TEXT.finditer(text):
                 marks.append((m.start(), lectures.get(m.group(1)), "Lecture #" + m.group(1)))
-            if BARE_DECK:
-                for m in BARE_DECK.finditer(text):
-                    marks.append((m.start(), BARE_MAP.get(m.group(1)), m.group(1)))
+            if bare_deck:
+                for m in bare_deck.finditer(text):
+                    marks.append((m.start(), bare_map.get(m.group(1)), m.group(1)))
             marks.sort()
             for sm in SLIDES.finditer(text):
                 prior = [x for x in marks if x[0] < sm.start()]
@@ -204,4 +242,7 @@ def main():
 
 
 if __name__ == "__main__":
+    if "--tables" in sys.argv[1:]:
+        print(json.dumps(course_tables(), ensure_ascii=False))
+        sys.exit(0)
     sys.exit(main())

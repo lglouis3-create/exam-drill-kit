@@ -17,8 +17,9 @@ that course's repository. Both folders come from the recovered exam-drill templa
 | `check_lib.js` | core | what the newer checks share: summary line and exit code, Playwright loading, a test server |
 | `output_test.js` | core | the build writes to the repository root and the checks read from there |
 | `files_test.js` | core | `course.js` `files`: every listed question file reaches the page after the core's `build.py` is copied over the course's; the lists the build refuses |
+| `tables_test.js` | core | `course.js` `tools`: `cite_check.py`, `explain_check.js` and `harvest_mask.py` read the course's tables from it after the core is copied over; the tables the build refuses |
 | `test.js`, `style_check.js`, `render_test.js`, `explain_check.js`, `stepper_test.js` | core | checks that run on any course's built page |
-| `cite_check.py` | core | citation check; its course-specific tables at the top start empty |
+| `cite_check.py` | core | citation check; the deck spellings it cannot derive come from `course.js` `tools` |
 | `browser_test.js` | core | browser smoke test (Node Playwright port of the template's `browser_test.py`, which stays in `history/`), including no sideways scroll on a 375 px phone and wide reading-tab tables scrolling in their own box |
 | `device_lint.js` | core | fails on syntax older Safari rejects (regex lookbehind) in anything that ships |
 | `run_checks.sh` | core | builds, then runs every check on its own, one line per check |
@@ -36,9 +37,9 @@ that course's repository. Both folders come from the recovered exam-drill templa
 | `oldcache_test.js` | core | `course.js` `oldCachePrefix`: an old worker's caches deleted, every other cache kept |
 | `scheduler_test.js` | core | the scheduler (`review/scheduler-proposal.md` §4-§5), with a fixed clock, on scratch builds with a test topic |
 | `vendor/` | core | ts-fsrs 6.0.0's own UMD bundle and the licence texts of the code in it; `build.py` inlines them only for a course whose scheduler model needs FSRS |
-| `harvest.py`, `harvest_mask.py`, `ingest.py` | core | tools for adding a lecture; `harvest_mask.py` keeps a course-specific table at the top, empty in the kit |
+| `harvest.py`, `harvest_mask.py`, `ingest.py` | core | tools for adding a lecture; `harvest_mask.py` takes the crops to mask from `course.js` `tools` |
 | `STEPPERS.md` | core | the rules step-through figures are written to |
-| `course.js` | template | the course manifest: names, `ns`, lectures, exams, skills, pace, scheduler, the data files (`files`), the kit pin (`kit`) |
+| `course.js` | template | the course manifest: names, `ns`, lectures, exams, skills, pace, scheduler, the data files (`files`), the tools' course tables (`tools`), the kit pin (`kit`) |
 | `q1_topics.js` | template | the first question file: it declares `TOPICS` and `QUESTIONS` (samples to replace) |
 | `links.js` | template | which reading section explains a question (course-specific table) |
 | `reference.js`, `tell.js`, `guide.js` | template | the reading tabs (samples to replace) |
@@ -104,6 +105,36 @@ Medicinal-chemistry's 479). `test.js` and `render_test.js` check both.
 
 `DIA`, `DIAGRAMS` and `READ_LINKS` are optional: the engine and the checks run without
 them (`checks_test.js` runs `test.js` and `render_test.js` on a copy with no `DIAGRAMS`).
+
+## Course tables
+
+Three core tools need tables that only the course can supply. They live in `course.js`
+`tools`, which a core update never replaces, so no core file holds course data and
+copying a newer core over a course keeps the course's tables. (Until 2026-11-01 each
+tool kept its table at the top of its own file, and a core update reset them to the
+kit's empty ones; Medicinal-chemistry's `kit/move-to-core` had entries in all three.)
+Every field is optional:
+
+| Field | Read by | What it holds |
+|---|---|---|
+| `citeAliases` | `cite_check.py` | how a citation spells a deck, in lower case, to the file on disk, or `null` for a deck that is not a PDF on hand (its slide numbers are then reported unchecked) |
+| `citeLectures` | `cite_check.py` | lecture number to file, for `Lecture #11` citations, only where the digits of the `lectures` ids do not give it |
+| `citeBareMap` | `cite_check.py` | a deck named in words in a citation (`Absorption I slide 24`) to its file, or `null` |
+| `explainTerms` | `explain_check.js` | `['gloss key', 'regex source']` for each term the course leans on; one whose key is not in the glossary is reported where an explanation uses it. Appended to the kit's own list in the file (`KIT_TERMS`, empty so far) |
+| `harvestMasks` | `harvest_mask.py` | `['images.json key', ['phrase', ...]]` for each question crop that prints its own answer; the phrases are whited out |
+
+The Python tools read `course.js` by evaluating it with node, as `build.py` does, and
+`explain_check.js` evaluates it the same way; none of them needs anything else of the
+course for this. Each prints what it read with `--tables` (JSON) and stops. Each tool
+reads only its own fields, so the build checks `tools` before it writes anything: a
+field no tool reads (a misspelt name would otherwise leave a tool without its table and
+say nothing) or a table of the wrong shape stops the build. `course.js` ships in the
+page, so the tables do too, and `device_lint.js` scans them with the rest of it.
+`tables_test.js` checks all of this on scratch copies, with the course's own tables and
+with test tables: what each tool reads, that `explain_check.js` reports a course term
+with no gloss only while the term is listed, that `cite_check.py` checks citations
+against a deck only an alias names (when `pdfplumber` is installed), that without
+`tools` every table is empty, and the tables the build refuses.
 
 ## What the build writes
 
@@ -461,9 +492,3 @@ the built page.
   step in the build (`gen_*.py`), both named in `review/proposed-core.md` §5-§6.
 - `coverage_check.py`, `step_check.js` and `sources_check.js` from the drills.
 - A WebKit run of the browser checks.
-- Course tables kept outside the core files: `cite_check.py` (`ALIASES`, `LECTURES`,
-  `BARE_MAP`), `explain_check.js` (`WEIGHTY`) and `harvest_mask.py` (`SPEC`) still hold
-  course-specific tables at their tops, empty in the kit, so copying a newer core over a
-  course replaces the course's tables (Medicinal-chemistry's `kit/move-to-core` has
-  entries in all three). Until they move into course files, a core update keeps the
-  course's tables by hand.

@@ -59,6 +59,32 @@
                       orientation: 'portrait-primary', 'any', ... as the web
                       manifest allows). Leave it out and the manifest has
                       neither.
+   tools              optional: the course's own tables for three core tools.
+                      They live here because a core update copies the tools
+                      over the course's copies (Mode 7) and never replaces
+                      course.js. Every field is optional; the build stops on a
+                      field name that no tool reads.
+                        citeAliases   cite_check.py: how a citation spells a
+                                      deck, in lower case -> the file on disk,
+                                      or null for a deck that is not a PDF on
+                                      hand (its slide numbers are then
+                                      reported unchecked)
+                        citeLectures  cite_check.py: lecture number -> file,
+                                      only for "Lecture #11" citations that
+                                      number a lecture differently from the
+                                      digits of its `lectures` id
+                        citeBareMap   cite_check.py: a deck named in words in
+                                      a citation ('Absorption I slide 24') ->
+                                      its file, or null
+                        explainTerms  explain_check.js: ['gloss key', 'regex
+                                      source'] for each term the course leans
+                                      on; one whose key is not in the glossary
+                                      is reported where it is used. Appended
+                                      to the kit's own list.
+                        harvestMasks  harvest_mask.py: ['images.json key',
+                                      ['phrase', ...]] for each question crop
+                                      that prints its own answer; the phrases
+                                      are whited out on the question image
    kit                {core:'<kit commit>'}: the exam-drill-kit commit this
                       src/ engine was copied from (core/), written when the
                       course is set up; only Mode 7 (a drill update) changes it
@@ -115,6 +141,9 @@ const COURSE = {
 
   files: ['atlas.js', 'diagrams.js',
           'q1_topics.js'],                 // add each new question file here, in order
+
+  tools: {citeAliases:{}, citeLectures:{}, citeBareMap:{},   // the course's tables for cite_check.py,
+          explainTerms:[], harvestMasks:[]},                  // explain_check.js and harvest_mask.py
 
   kit: {core: ''},                         // the kit commit src/ was copied from (set at setup)
 };

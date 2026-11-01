@@ -90,7 +90,7 @@ def course_fields():
           "const C=new Function(fs.readFileSync('course.js','utf8')+';return COURSE;')();"
           "process.stdout.write(JSON.stringify({title:C.title,short:C.short,ns:C.ns,output:C.output,"
           "oldCachePrefix:C.oldCachePrefix||'',files:C.files===undefined?null:C.files,"
-          "manifest:C.manifest===undefined?null:C.manifest}))")
+          "manifest:C.manifest===undefined?null:C.manifest,tools:C.tools===undefined?null:C.tools}))")
     r = subprocess.run(['node', '-e', js], capture_output=True, text=True)
     if r.returncode != 0:
         sys.exit('ERROR: course.js could not be evaluated\n' + (r.stderr or r.stdout).strip())
@@ -153,9 +153,47 @@ def manifest_extra(c):
 
 ORIENTATIONS = ['any', 'natural', 'landscape', 'portrait', 'portrait-primary', 'portrait-secondary',
                 'landscape-primary', 'landscape-secondary']
+
+# course.js `tools`: the course's own tables for three core tools, kept in
+# course.js because a core update copies the tools over the course's copies
+# (cite_check.py: citeAliases, citeLectures, citeBareMap; explain_check.js:
+# explainTerms; harvest_mask.py: harvestMasks). Each tool reads only its own
+# fields, so a misspelt field would leave a tool without its table and nothing
+# would say so; the build stops on one instead.
+TOOL_TABLES = {'citeAliases': 'files', 'citeLectures': 'files', 'citeBareMap': 'files',
+               'explainTerms': 'terms', 'harvestMasks': 'masks'}
+
+
+def tool_tables(c):
+    """Check course.js `tools` before anything is written."""
+    t = c.get('tools')
+    if t is None:
+        return
+    if not isinstance(t, dict):
+        sys.exit('ERROR: course.js `tools` must be an object')
+    unknown = [k for k in t if k not in TOOL_TABLES]
+    if unknown:
+        sys.exit(f'ERROR: course.js `tools` has {unknown}, which no tool reads; its fields are {list(TOOL_TABLES)}')
+    strs = lambda xs: isinstance(xs, list) and all(isinstance(x, str) for x in xs)
+    shape = {
+        'files': (lambda v: isinstance(v, dict) and all(f is None or isinstance(f, str) for f in v.values()),
+                  'an object of how a citation names a deck -> its file name (or null)'),
+        'terms': (lambda v: isinstance(v, list) and all(strs(e) and len(e) == 2 for e in v),
+                  "a list of ['gloss key', 'regex source'] pairs"),
+        'masks': (lambda v: isinstance(v, list) and all(isinstance(e, list) and len(e) == 2 and
+                                                        isinstance(e[0], str) and strs(e[1]) for e in v),
+                  "a list of ['images.json key', ['phrase', ...]] entries"),
+    }
+    for k, v in t.items():
+        ok, what = shape[TOOL_TABLES[k]]
+        if v is not None and not ok(v):
+            sys.exit(f'ERROR: course.js `tools.{k}` must be {what}')
+
+
 COURSE_FIELDS = course_fields()
 DATA_FILES = data_files(COURSE_FIELDS)
 MANIFEST_EXTRA = manifest_extra(COURSE_FIELDS)
+tool_tables(COURSE_FIELDS)
 QUESTION_FILES = [f for f in DATA_FILES if QUESTION_FILE.fullmatch(f)]
 # Everything that has to parse before a build is allowed to proceed. Derived
 # from DATA_FILES rather than listed again, so adding a question file cannot

@@ -8,16 +8,49 @@ with a margin, and the masked crop replaces the key. The printed version is
 kept under `<key>_labeled` for the concept block, where the answer is wanted.
 
     python3 harvest_mask.py
-"""
-import base64, csv, io, json, subprocess, sys
-from PIL import Image, ImageDraw
+    python3 harvest_mask.py --tables   print the list read from course.js and stop
 
-# One entry per crop that prints its own answer: the images.json key, and the
-# phrases to white out. Course-specific — fill it in as such crops appear.
-# key                       phrases to mask on the question image
-SPEC = [
-  # ("rx_oxidation", ["the enzyme name the slide prints", "the product name"]),
-]
+The list of crops to mask belongs to the course: course.js `tools.harvestMasks`,
+one entry per crop that prints its own answer, the images.json key and the
+phrases to white out on the question image. A core update copies this file over
+the course's own and never replaces course.js, so this file holds no course data.
+
+    tools: {harvestMasks: [
+      ['rx_oxidation', ['the enzyme name the slide prints', 'the product name']],
+    ]}
+"""
+import base64, csv, io, json, os, subprocess, sys
+try:
+    from PIL import Image, ImageDraw
+except ImportError:
+    Image = ImageDraw = None    # main() stops; --tables still works
+
+# images.json and course.js are the ones beside this file, in the course's src/,
+# whatever directory it is started from
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
+
+def course_masks():
+    """course.js `tools.harvestMasks`, from course.js evaluated by node the way
+    build.py reads it: [[key, [phrase, ...]], ...]; empty when the course has none."""
+    if not os.path.exists("course.js"):
+        sys.exit("ERROR: no course.js beside harvest_mask.py, so the crops to mask are not known")
+    js = ("const fs=require('fs');"
+          "const C=new Function(fs.readFileSync('course.js','utf8')+';return COURSE;')();"
+          "process.stdout.write(JSON.stringify(C.tools===undefined?{}:C.tools))")
+    r = subprocess.run(["node", "-e", js], capture_output=True, text=True)
+    if r.returncode != 0:
+        sys.exit("ERROR: course.js could not be evaluated\n" + (r.stderr or r.stdout).strip())
+    tools = json.loads(r.stdout)
+    spec = tools.get("harvestMasks") if isinstance(tools, dict) else None
+    spec = [] if spec is None else spec
+    if not (isinstance(spec, list) and all(
+            isinstance(e, list) and len(e) == 2 and isinstance(e[0], str) and isinstance(e[1], list)
+            and all(isinstance(p, str) for p in e[1]) for e in spec)):
+        sys.exit("ERROR: course.js `tools.harvestMasks` must be a list of [images.json key, [phrases]]")
+    return spec
+
+
 SCALE = 2       # OCR upscale
 PAD = 4         # px of margin around each masked word, at crop scale
 QUALITY = 70
@@ -52,8 +85,11 @@ def phrase_boxes(words, phrase):
 
 
 def main():
+    spec = course_masks()
+    if Image is None:
+        sys.exit("ERROR: Pillow (PIL) is not installed")
     images = json.load(open("images.json"))
-    for key, phrases in SPEC:
+    for key, phrases in spec:
         src = images.get(key + "_labeled") or images[key]     # always mask from the printed original
         hdr, b64 = src.split(",", 1)
         img = Image.open(io.BytesIO(base64.b64decode(b64))).convert("RGB")
@@ -82,4 +118,7 @@ def main():
 
 
 if __name__ == "__main__":
+    if "--tables" in sys.argv[1:]:
+        print(json.dumps({"harvestMasks": course_masks()}, ensure_ascii=False))
+        sys.exit(0)
     main()
