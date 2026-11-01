@@ -17,9 +17,44 @@
  *
  * Reported worst-first, weighted by how many exam questions the pool supplies,
  * so the ranking follows the blueprint rather than the raw count.
+ *
+ *     node explain_check.js            the report
+ *     node explain_check.js <topic>    only the questions of one topic or pool
+ *     node explain_check.js --tables   print the term list read from course.js and stop
  */
 const fs = require('fs'), vm = require('vm');
 const PAGE = require('./built_page');
+
+/* COURSE TABLE: [gloss key, regex] for the terms this course leans on. It
+ * belongs to the course and lives in course.js `tools.explainTerms`, which a
+ * core update never replaces (a core update copies this file over the course's
+ * own), so this file holds no course data. KIT_TERMS is the kit's own generic
+ * list (none yet); the course's terms are appended to it. A term whose key is
+ * in the GLOSS table is covered; the rest are reported where they appear in an
+ * explanation with no definition. Read from course.js the way build.py reads
+ * it, so it needs no built page. */
+const KIT_TERMS = [
+];
+function courseTerms(){
+  const bad = why => { console.log(`FAIL: explain_check.js: ${why}`); process.exit(1); };
+  if(!fs.existsSync('course.js')) return [];
+  let C;
+  try { C = new Function(fs.readFileSync('course.js', 'utf8') + ';return COURSE;')(); }
+  catch(e){ bad('course.js could not be evaluated: ' + e.message); }
+  const tools = C.tools === undefined ? {} : C.tools;
+  if(!tools || typeof tools !== 'object' || Array.isArray(tools)) bad('course.js `tools` must be an object');
+  const terms = tools.explainTerms == null ? [] : tools.explainTerms;
+  if(!Array.isArray(terms) || !terms.every(t => Array.isArray(t) && t.length === 2 && t.every(x => typeof x === 'string')))
+    bad('course.js `tools.explainTerms` must be a list of [gloss key, regex source] pairs of strings');
+  return terms;
+}
+const COURSE_TERMS = courseTerms();
+const WEIGHTY = KIT_TERMS.concat(COURSE_TERMS);
+if(process.argv.includes('--tables')){
+  console.log(JSON.stringify({explainTerms: COURSE_TERMS, inUse: WEIGHTY}));
+  process.exit(0);
+}
+
 PAGE.need('explain_check.js');
 let c = PAGE.engine();
 c += '\nglobalThis.__Q=QUESTIONS;globalThis.GLOSS=typeof GLOSS!=="undefined"?GLOSS:[];globalThis.__EXAM=EXAM;globalThis.__poolOf=poolOf;';
@@ -98,12 +133,7 @@ const VAGUE = [
  * which therefore reaches the page with no definition anywhere. The table is
  * read from the built page so the two can never drift apart. */
 const COVERED = new Set((sb.GLOSS || []).map(g => g.k));
-/* COURSE-SPECIFIC: [gloss key, regex] for the terms this course leans on. A
- * term whose key is in the GLOSS table is covered; the rest are reported where
- * they appear in an explanation with no definition. Empty until the course's
- * vocabulary is known. */
-const WEIGHTY = [
-];
+// WEIGHTY, the terms to look for, is KIT_TERMS and course.js `tools.explainTerms` (above)
 
 /* Exam weight per pool, from the manifest: a pool's marks on the paper. */
 const EXAM = sb.__EXAM, poolOf = sb.__poolOf;

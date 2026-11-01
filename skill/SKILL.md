@@ -62,6 +62,7 @@ COURSE = {id, title, short, ns, output, professors:[…],
   scheduler:{model:'concept' | 'fsrs' | 'concept-fsrs', compare?:true, preset?:'calc'},
   files:['atlas.js', 'diagrams.js', 'q1_topics.js', 'q2_<lecture>.js', …],
   oldCachePrefix?, manifest?:{description?, orientation?},
+  tools?:{citeAliases?, citeLectures?, citeBareMap?, explainTerms?, harvestMasks?},
   features:{<name>:{version, ...options}},
   kit:{core:'<kit commit or tag>'}}
 ```
@@ -75,6 +76,10 @@ COURSE = {id, title, short, ns, output, professors:[…],
 - `files` lists the data files in build order; every new question file goes there. A
   core update replaces `build.py`, never `course.js`, so the list is kept
   (`core/README.md` "The course's files").
+- `tools` holds the course's tables for `cite_check.py` (deck spellings it cannot
+  derive), `explain_check.js` (the terms the course leans on) and `harvest_mask.py`
+  (question crops that print their own answer), kept here for the same reason
+  (`core/README.md` "Course tables").
 
 ## Questions
 
@@ -328,10 +333,11 @@ Bringing in a newer core means copying every file of the kit's `core/` except
 `README.md`, and `core/vendor/`, into the course's `src/`. A course whose `build.py`
 still carries its own list of question files (a core before 2026-11-01's `files`) gets
 that list in `course.js` `files` first; the new build names any question file left out.
-Three core files still hold course tables at their tops, which a plain copy replaces with
-the kit's empty ones: `cite_check.py` (`ALIASES`, `LECTURES`, `BARE_MAP`),
-`explain_check.js` (`WEIGHTY`) and `harvest_mask.py` (`SPEC`); keep the course's tables
-when copying (Medicinal-chemistry has entries in all three).
+The tables `cite_check.py`, `explain_check.js` and `harvest_mask.py` need from a course
+live in `course.js` `tools` (`core/README.md` "Course tables"), so the copy keeps them. A
+course whose copies of those three files still carry their own tables at the top (a core
+before 2026-11-01's `tools`) gets those entries into `tools` first; `--tables` on each
+tool then prints what it reads.
 
 **Undo:** "undo the last kit update for <course>" reverts that update commit, restores
 the previous pins in `course.js`, confirms the deploy, and logs it in `reviews/LOG.md`.

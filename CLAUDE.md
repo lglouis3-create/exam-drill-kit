@@ -25,10 +25,6 @@ after Phase 1 and overrides earlier sections where they differ.
     and this container has Node 22; `fsrs-browser` does not confirm FSRS-7);
   - a WebKit (Safari) run of the browser checks: NOT RUN so far; the FSRS page contains
     BigInt syntax;
-  - course-specific tables kept at the top of `cite_check.py`, `explain_check.js` and
-    `harvest_mask.py`: copying the core over a course replaces them with the kit's empty
-    ones (found in Medicinal-chemistry's move; Medicinal-chemistry has entries in all
-    three); they need to move into a course file before the course takes a core update;
   - from `core/README.md` "Not in core yet": Intro-Pharmacology's exam-result page after
     a reload and its generator step; `coverage_check.py`, `step_check.js`,
     `sources_check.js`;
