@@ -47,10 +47,11 @@ after Phase 1 and overrides earlier sections where they differ.
   one per night (`review/port-queue.md`, scheduled task "Kit feature port"). Tier 1
   (feature modules, `formulas-in-text`, fair number grading via `course.js` `numeric`,
   calculations on exam papers via `exams[].typed`, `chained-problem-sets`,
-  `equation-drill`, `wrong-number-diagnosis`) is in kit pull request #6. Start-up safety
-  fix merged in #5. Louis approved on 2026-11-01 adding BDK's and Intro to
-  Pharmacology's features after Pharmacokinetics' Tier 2 (`review/port-queue.md` items
-  11-21, also in #6); no work on Intro to Pharmacology's files before 2026-11-02 11:00
+  `equation-drill`, `wrong-number-diagnosis`) merged in kit pull request #6 (`dedd0dd`,
+  Louis's yes on 2026-11-01); no course switches any of it on yet, and Tier 2 ports
+  start with the porter's next nightly run. Start-up safety fix merged in #5. Louis
+  approved on 2026-11-01 adding BDK's and Intro to Pharmacology's features after
+  Pharmacokinetics' Tier 2 (`review/port-queue.md` items 11-21, merged in #6); no work on Intro to Pharmacology's files before 2026-11-02 11:00
   CT (after its Exam 4). The "Kit feature port" task's instructions still name only
   Pharmacokinetics; they can be changed only from the "Kit feature porter" session
   (an `update_trigger` from this session was refused on 2026-11-01), so that change
