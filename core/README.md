@@ -177,6 +177,22 @@ guessed" on that answer puts it back). While the check waits, the concept is due
 later day whatever its box, and it ranks with the missed concepts (tier 4), still after
 `GAP` other questions; that rank is a design choice.
 
+*Calculation preset* (§4.1.3), `scheduler.preset:'calc'`. Two questions in a row never
+share a `skill` when a question of another skill is eligible, and due questions from
+earlier lectures stay in the mix: a quiz on part of the bank also draws the questions of
+lectures listed before the latest lecture the pool covers, while their concept is due or
+missed (never-seen or not-yet-due earlier material is not drawn in). Design choices that
+make "stay in the mix" happen: with the preset a due review ranks with never-seen
+material (tier 3) instead of below it, and that tier is drawn from evenly (keeping a
+concept's unseen wordings when it has any) instead of from the top five; the question
+after a confident error is one of another skill when the concept has one. One-pass
+sweeps keep their shuffled order. Without the preset nothing changes: a seeded session
+serves exactly what the `5014f27` core served (`scheduler_test.js`).
+
+As coded, the concept scheduler ranks never-seen material (tier 3) above due reviews
+(tier 2); the rule list in `shell.html` said "wrong > due > never-seen". The list now says
+so; the order itself is unchanged.
+
 ## Exam draw
 
 Questions marked `dupOf` are wordings of one fact. A family is an original, everything
@@ -213,8 +229,9 @@ the built page.
 
 ## Not in core yet
 
-- The rest of the approved scheduler changes (`review/scheduler-proposal.md` §4.1.3-§4.3);
-  exam-date spacing (§4.1.1) and the confident-error check (§4.1.2) are in.
+- The rest of the approved scheduler changes (`review/scheduler-proposal.md` §4.1.4-§4.3);
+  exam-date spacing (§4.1.1), the confident-error check (§4.1.2) and the calculation
+  preset (§4.1.3) are in.
 - Intro-Pharmacology's exam-result page coming back after a reload, and its generator
   step in the build (`gen_*.py`), both named in `review/proposed-core.md` §5-§6.
 - The check that a course's `CLAUDE.md` was updated after its newest lecture (§7 there),

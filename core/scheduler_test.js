@@ -78,8 +78,42 @@ const ms = s => new Date(s).getTime();
 const frac = d => d <= 7 ? 0.40 : d >= 365 ? 0.10 : 0.40 + (0.10 - 0.40) * Math.log(d / 7) / Math.log(365 / 7);
 const examGapDays = d => Math.max(1, frac(d) * d);
 
+/* A scripted session with Math.random seeded (mulberry32), so the order the
+   scheduler serves is reproducible: 40 turns on the test topic at cram pace,
+   misses at turns 1, 4, 8, 13 and 21, right answers otherwise. When nothing
+   in the topic is due, the turn answers a question from outside it ('-'),
+   which moves the question clock on as other study would. */
+const SEQUENCE = seed => {
+  let a = seed >>> 0;
+  Math.random = () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  DB = BLANK(); DB.settings.pace = 'cram'; LAST_TIER = 0;
+  const pool = QUESTIONS.filter(q => q.topic === 'zsched'), wrongAt = new Set([1, 4, 8, 13, 21]);
+  const other = QUESTIONS.find(q => q.topic !== 'zsched');
+  const seq = []; let last = null;
+  for(let i = 0; i < 40; i++){
+    const q = pickNext(pool, last);
+    if(!q){ seq.push('-'); record(other, 'correct', 0, 1000); last = null; continue; }
+    seq.push(q.id); record(q, wrongAt.has(i) ? 'wrong' : 'correct', 0, 1000); last = q.id;
+  }
+  return seq;
+};
+/* What the 5014f27 core serves in that session with seeds 1, 2 and 3
+   (node scheduler_test.js --print-sequence on a course set up from 5014f27).
+   Without the calculation preset the order must stay exactly this. */
+const SEQUENCE_5014F27 = {"1":["z4a","z1c","z5a","z2a","z3b","-","z1b","-","-","z3a","z4b","z5a","z2a","-","-","z1a","-","-","z3b","-","-","-","-","-","-","-","-","-","-","-","-","z4a","z5a","z2a","-","-","z1c","-","-","z3a"],"2":["z1c","z4b","z3b","z2a","z5a","-","z4a","-","-","z5a","z1a","z3a","z2a","-","-","z4a","-","-","z5a","-","-","-","-","-","-","-","-","-","-","-","-","z1b","z3a","z2a","-","-","z4a","-","-","z5a"],"3":["z4b","z2a","z1b","z5a","z3b","-","z2a","-","-","z3a","z4a","z1c","z5a","-","-","z2a","-","-","z3b","-","-","-","-","-","-","-","-","-","-","-","-","z4b","z1a","z5a","-","-","z2a","-","-","z3b"]};
+
 (async () => {
   const {browser} = await L.launch(NAME);
+  if(process.argv.includes('--print-sequence')){
+    const v = variant('seq', '');
+    if(v.error){ console.log(v.error); process.exit(1); }
+    const {ctx, page: p} = await open(browser, v.page, T0);
+    const out = {};
+    for(const seed of [1, 2, 3]) out[seed] = await p.evaluate(SEQUENCE, seed);
+    console.log(JSON.stringify(out));
+    await ctx.close(); await browser.close(); process.exit(0);
+  }
 
   console.log('\n=== 1a. Exam-date spacing ===');
   {
@@ -243,6 +277,84 @@ COURSE.exams.push({id:'zsA', name:'Test exam', date:'12 Nov', when:'2026-11-12T0
       check(sw.first === 'z1a' && sw.second === 'z1b' && sw.len === 4, 'in a one-pass sweep the other question on the concept moves up to come next', JSON.stringify(sw));
       check(!errors.length, 'no page errors', errors.slice(0, 2).join('; '));
       await ctx.close();
+    }
+  }
+
+  console.log('\n=== 1c. Calculation preset ===');
+  {
+    const plain = variant('plain', ''), calc = variant('calc', `COURSE.scheduler = {model:'concept', preset:'calc'};`);
+    if(plain.error || calc.error){ check(false, 'the calculation-preset test courses build', plain.error || calc.error); }
+    else {
+      const P = await open(browser, plain.page, T0), C = await open(browser, calc.page, T0);
+      // without the preset the scheduler serves exactly what the 5014f27 core served
+      for(const seed of [1, 2, 3]){
+        const got = await P.page.evaluate(SEQUENCE, seed);
+        check(JSON.stringify(got) === JSON.stringify(SEQUENCE_5014F27[seed]), `without the preset, a seeded session (seed ${seed}) serves the same 40 turns as the 5014f27 core`,
+          JSON.stringify(got));
+      }
+      // sessions on the whole test topic: each turn, is a question of another skill eligible, and did the pick share the last skill?
+      const SKILLS = mode => {
+        let opp = 0, bad = 0, picks = 0;
+        for(let t = 0; t < 40; t++){
+          DB = BLANK(); DB.settings.pace = 'cram'; DB.settings.mode = mode; LAST_TIER = 0;
+          const pool = QUESTIONS.filter(q => q.topic === 'zsched');
+          let last = null;
+          for(let i = 0; i < 20; i++){
+            const prev = last && byId(last);
+            const elig = pool.filter(q => q.id !== last && score(q)).concat((typeof earlierDue === 'function' ? earlierDue(pool) : []).filter(q => q.id !== last && score(q) && [2, 4].includes(score(q).tier)));
+            const q = pickNext(pool, last); if(!q) break;
+            picks++;
+            if(prev && elig.some(x => skillOf(x) !== skillOf(prev))){ opp++; if(skillOf(q) === skillOf(prev)) bad++; }
+            record(q, (i % 5 === 1) ? 'wrong' : 'correct', 0, 1000); last = q.id;
+          }
+        }
+        return {opp, bad, picks};
+      };
+      for(const mode of ['normal', 'all']){
+        const c = await C.page.evaluate(SKILLS, mode), d = await P.page.evaluate(SKILLS, mode);
+        check(c.opp > 50 && c.bad === 0, `with the preset (${mode === 'all' ? 'Ask everything' : 'cram pace'}), no two questions in a row share a skill when another skill was eligible (${c.bad} of ${c.opp} turns)`, c);
+        check(d.opp > 50 && d.bad > 0, `without the preset the same sessions do put two questions of one skill in a row (${d.bad} of ${d.opp} turns), so the rule is the preset's`, d);
+      }
+      // a quiz on lecture 2 only, with a concept of lecture 1 due
+      const EARLIER = () => {
+        let served = 0, whileNew = 0, other = 0, trials = 40;
+        for(let t = 0; t < trials; t++){
+          DB = BLANK(); DB.settings.pace = 'cram'; LAST_TIER = 0;
+          Object.assign(st('c1'), {seen:1, correct:1, box:1, asked:['z1a'], lastQ:-999, dueQ:0, dueAt:0});
+          const pool = QUESTIONS.filter(q => q.topic === 'zsched' && q.sub === 'b');
+          let last = null, got = false;
+          for(let i = 0; i < 12; i++){
+            const q = pickNext(pool, last); if(!q) break;
+            if(q.concept === 'c1' && !got){ got = true; served++;
+              if(pool.some(x => !DB.concepts[x.concept])) whileNew++; }
+            if(!pool.includes(q) && q.concept !== 'c1') other++;
+            record(q, 'correct', 0, 1000); last = q.id;
+          }
+        }
+        return {served, whileNew, other, trials};
+      };
+      const ce = await C.page.evaluate(EARLIER), de = await P.page.evaluate(EARLIER);
+      check(ce.served === ce.trials, `with the preset, a due concept from an earlier lecture is served in a quiz on a later lecture (${ce.served} of ${ce.trials} sessions)`, ce);
+      check(ce.whileNew * 2 >= ce.trials, `it is mixed in while the later lecture still has new material (${ce.whileNew} of ${ce.trials} sessions), not held back until that runs out`, ce);
+      check(ce.other === 0, 'nothing from an earlier lecture that is not due (never seen, or not yet due) is drawn in', ce);
+      check(de.served === 0, `without the preset the quiz stays on its own pool (${de.served} of ${de.trials} sessions served the earlier concept)`, de);
+      // the retry after "I was sure of that" prefers another skill on the same concept
+      const RETRY = () => {
+        const out = {};
+        for(let t = 0; t < 20; t++){
+          DB = BLANK(); startQuiz('zsched', 'a'); Q.current = byId('z1c'); Q.order = [0, 1, 2]; Q.revealed = false; renderQuiz();
+          document.querySelector(`#v-quiz button[data-o="1"]`).click();
+          const b = document.getElementById('btnSure'); if(b) b.click();
+          document.getElementById('btnNext').click();
+          const id = Q.current ? Q.current.id : 'none'; out[id] = (out[id] || 0) + 1;
+        }
+        return out;
+      };
+      const cr = await C.page.evaluate(RETRY), dr = await P.page.evaluate(RETRY);
+      check(cr.z1b === 20, 'with the preset, the question after a confident error on a recall item is the concept\'s calculation item (z1b, 20 of 20)', cr);
+      check((dr.z1a || 0) > 0 && (dr.z1b || 0) > 0, 'without the preset it is either of the concept\'s other questions', dr);
+      check(!P.errors.length && !C.errors.length, 'no page errors', P.errors.concat(C.errors).slice(0, 2).join('; '));
+      await P.ctx.close(); await C.ctx.close();
     }
   }
 

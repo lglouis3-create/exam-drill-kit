@@ -729,6 +729,12 @@ function askProfile(force){
    above tier 2 in score() below.)
    ========================================================================== */
 const GAP = 4;                                   // min other questions before a missed concept returns
+/* The course's scheduler setting (course.js `scheduler`). preset 'calc' is the
+   calculation preset (scheduler proposal §4.1.3); see pickNext. */
+const SCHED = (() => {
+  const c = COURSE.scheduler || {};
+  return {preset: c.preset || '', calc: c.preset === 'calc'};
+})();
 /* Review paces. Cram spaces a mastered concept by how many questions are
    answered after it; the other two by real days. Weekly is for a course that
    examines every week: everything comes back within a fortnight. Semester is
@@ -927,7 +933,10 @@ function retryQuestion(concept, notId, pool){
   let c = other(pool || []);
   if(!c.length) c = other(conceptQs(concept));
   if(!c.length) return null;
-  c = c.map(q => ({q, w: when(q), r: Math.random()})).sort((a, b) => a.w - b.w || a.r - b.r);
+  // calculation preset: a question of another skill first, when the concept has one
+  const was = SCHED.calc && byId(notId) ? skillOf(byId(notId)) : null;
+  const same = q => was !== null && skillOf(q) === was ? 1 : 0;
+  c = c.map(q => ({q, k: same(q), w: when(q), r: Math.random()})).sort((a, b) => a.k - b.k || a.w - b.w || a.r - b.r);
   return c[0].q;
 }
 
@@ -963,17 +972,40 @@ function score(q){
  * Prefers a question on the concept that has NOT been asked before (rule 2/6:
  * re-test the concept with different wording rather than the identical item).
  */
+/* Calculation preset (scheduler proposal §4.1.3, its references 16 and 17 on
+   interleaving): due questions from earlier lectures stay in the mix. With
+   the preset, a quiz on part of the bank also draws the questions of earlier
+   lectures (lectures listed before the latest lecture the pool covers) that
+   are not in the pool, but only while their concept is due or missed. */
+const lecIndex = q => { const l = lecOf(q); return l ? COURSE.lectures.indexOf(l) : -1; };
+function earlierDue(pool){
+  const top = Math.max(-1, ...pool.map(lecIndex));
+  const inPool = new Set(pool.map(q => q.id));
+  return QUESTIONS.filter(q => !inPool.has(q.id) && lecIndex(q) >= 0 && lecIndex(q) < top);
+}
 function pickNext(pool, justAsked){
-  const cands = [];
-  for(const q of pool){
-    if(justAsked && q.id === justAsked) continue;
+  let cands = [];
+  const add = (q, earlier) => {
+    if(justAsked && q.id === justAsked) return;
     const sc = score(q);
-    if(!sc) continue;
+    if(!sc) return;
+    if(earlier && sc.tier !== 2 && sc.tier !== 4) return;   // earlier lectures: due or missed only
     const s = DB.concepts[q.concept];
     const fresh = !s || !s.asked.includes(q.id);       // unseen wording of this concept
-    cands.push({q, tier:sc.tier, sub:sc.sub, fresh:fresh?1:0, r:Math.random()});
-  }
+    // calculation preset: a due review ranks with never-seen material (tier 3)
+    // instead of after it, so earlier material is mixed in rather than waiting
+    cands.push({q, tier: SCHED.calc && sc.tier === 2 ? 3 : sc.tier, sub:sc.sub, fresh:fresh?1:0, r:Math.random()});
+  };
+  for(const q of pool) add(q, false);
+  if(SCHED.calc) for(const q of earlierDue(pool)) add(q, true);
   if(!cands.length) return null;
+  // calculation preset: two questions in a row never share a skill when a
+  // question of another skill is eligible
+  const prev = SCHED.calc && justAsked ? byId(justAsked) : null;
+  if(prev){
+    const other = cands.filter(c => skillOf(c.q) !== skillOf(prev));
+    if(other.length) cands = other;
+  }
   cands.sort((a,b)=>
       b.tier - a.tier
    || b.fresh - a.fresh
@@ -981,6 +1013,16 @@ function pickNext(pool, justAsked){
    || a.r    - b.r);
   // sample from the top of the ranked list so the order is not identical every run
   let top = cands.filter(c => c.tier===cands[0].tier && c.fresh===cands[0].fresh);
+  if(SCHED.calc && cands[0].tier === 3){
+    // new and due material side by side: every tier-3 candidate, keeping the
+    // unseen wordings of a concept when it has any, drawn from evenly
+    const t3 = cands.filter(c => c.tier === 3);
+    const withFresh = new Set(t3.filter(c => c.fresh).map(c => c.q.concept));
+    top = t3.filter(c => c.fresh || !withFresh.has(c.q.concept));
+    const pick = top[Math.floor(Math.random() * top.length)];
+    LAST_TIER = pick.tier;
+    return pick.q;
+  }
   // Rule 5 puts a missed concept ahead of a never-seen one. Taken literally,
   // a pool with many open misses serves them back to back and the never-seen
   // material waits, so the "not yet seen" count in Weak spots stands still

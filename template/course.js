@@ -33,7 +33,9 @@
                       "The scheduler"). model 'concept' (the default when the
                       field is absent): concepts are scheduled by box, and an
                       exam with a `when` shortens the day-clock gap for the
-                      concepts its pools cover.
+                      concepts its pools cover. preset:'calc' for a
+                      calculation course: no two questions of one skill in a
+                      row, and due questions of earlier lectures mixed in.
    ========================================================================== */
 const COURSE = {
   id: 'course-id',                       // e.g. 'phar4351'
