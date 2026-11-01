@@ -3,6 +3,13 @@
 Dated kit changes, newest first.
 
 ## 2026-11-01
+- `core/` and `template/`: the recovered template split into the shared engine and the
+  new-course skeleton, with the build writing to the repository root, `store` for
+  refused writes, the offline copy scoped to each course's own caches, the exam draw
+  keeping dupOf families off one paper across pools, the update offer and place after
+  a reload, check exit codes with `run_checks.sh` and the Safari lint, the answer
+  history and the Home Screen card. Each change has a test shown failing on the
+  template first.
 - `KIT_DESIGN.md` §12.9: how kit updates reach courses (Louis's choice). Feature and core
   updates are built to each course's preview automatically and go live on his reply;
   catalog bookkeeping and `small-fix` changes go live automatically when every check

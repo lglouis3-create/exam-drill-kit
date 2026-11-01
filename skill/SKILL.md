@@ -73,7 +73,8 @@ COURSE = {id, title, short, ns, output, professors:[…],
 
 ## Questions
 
-Schema and rules are in `core/README.md`; the essentials:
+The question schema is in `template/README.md` (each course's `src/README.md`); the
+essentials:
 
 - Content comes only from the course: slides, transcripts, the professor's polls,
   practice sets and review material, and Louis's own material (decision 3). A fact
@@ -95,7 +96,9 @@ The method is `review/recommendation-proposal.md` in the kit (2026-11-01). Until
 approves it and sets the values in its §6, steps 1 to 3 run as written, and steps 4
 and 5 start in no course; say so in the recommendation.
 
-1. **Measure the material** with `core/profile.py` from the course files: the syllabus
+1. **Measure the material** with `core/profile.py` (not built yet; until it exists this
+   step is NOT RUN, so recommend from the material read and the `FEATURES.md` "Use when"
+   lines and say that no profile was measured) from the course files: the syllabus
    (exam dates, formats, weights), the decks, the transcripts (exam cues, emphasis,
    exclusions, the formats the professor names), the professor's polls, practice and
    example questions, and the readings. It counts the signals in the proposal's §3 for
@@ -262,6 +265,9 @@ older one was best for.
 update at `/preview/`, run every check, show Louis the differences, and replace the live
 page only after he approves. Question ids and `ns` stay the same; if the saved-progress
 format changed, the update includes a converter that reads the old format on first load.
+A course that had a service worker under another cache prefix before the core
+(Medicinal-chemistry: `phar4342-drill-`) names that prefix in `course.js` so the first
+update deletes those caches once; the core never deletes another course's cache.
 
 **The kit-update run** (`KIT_DESIGN.md` §12.9) is one scheduled task for all courses on
 the core, created with the scheduled-task tools at a time Louis chooses, with push

@@ -11,10 +11,19 @@ after Phase 1 and overrides earlier sections where they differ.
 - **Phase 2 (build): in progress** on branch `claude/elegant-ptolemy-pqxb8y`. Done:
   `KIT_DESIGN.md` §12; skill archives moved to `history/`; the recovered template in
   `history/exam-drill-template-2026-10-02/`; `FEATURES.md`, `COURSES.md`, this file,
-  `CHANGELOG.md`, `features/README.md`, a first draft of `skill/SKILL.md`. Still to do:
-  - `core/` and `template/` from the recovered template with the picks in
-    `review/proposed-core.md` (in progress);
-  - the approved scheduler changes (`review/scheduler-proposal.md` §4) in `core/`;
+  `CHANGELOG.md`, `features/README.md`, a first draft of `skill/SKILL.md`; `core/` and
+  `template/` from the recovered template with the picks in `review/proposed-core.md`
+  (merged in `5014f27`; on a fresh scratch course `run_checks.sh` gave 15 PASS, 0 FAIL,
+  1 NOT RUN (`cite_check.py`, no PDFs), 1 REPORT (`explain_check.js`); what is not in it
+  yet is listed in `core/README.md` "Not in core yet"). Still to do:
+  - the approved scheduler changes (`review/scheduler-proposal.md` §4) in `core/`
+    (in progress);
+  - a `course.js` field naming a course's old cache prefix, which the core's `sw.js`
+    deletes once when the course moves onto the core (Medicinal-chemistry's old prefix
+    is `phar4342-drill-`);
+  - from `core/README.md` "Not in core yet": Intro-Pharmacology's exam-result page after
+    a reload and its generator step; `coverage_check.py`, `step_check.js`,
+    `sources_check.js`;
   - two tools `skill/SKILL.md` names that do not exist yet: the check that a course's
     `CLAUDE.md` was updated after its newest lecture, and the `/preview/` build (the
     third, `core/profile.py`, waits for the approval below);
@@ -57,11 +66,16 @@ after Phase 1 and overrides earlier sections where they differ.
 
 ## Open questions for Louis
 
-1. N in `KIT_DESIGN.md` §12.9: how many days before a course's exam no automatic
+1. Open since Phase 1 (`review/findings.md` §9): MC's corrected notes `3b87e8a` into
+   MC's `main` (4); one source order when sources conflict (6); BDK's MedlinePlus
+   glossary links against decision 3 (7); personal names in state files against §7.9
+   (8); agent definitions in `core/agents/` (9); PK's cross-pool `dupOf` defect, which
+   matters only if PK's drill is reused (10); searching `Heb-pharmacy-guide` (11).
+2. N in `KIT_DESIGN.md` §12.9: how many days before a course's exam no automatic
    update goes live. Louis chose the update split on 2026-11-01 (features and core stop
    at the preview for his reply; catalog bookkeeping and small fixes go live
    automatically); N is not set, so until then small fixes also wait at the preview.
-2. `review/recommendation-proposal.md` (written 2026-11-01) waits for Louis's approval
+3. `review/recommendation-proposal.md` (written 2026-11-01) waits for Louis's approval
    and the nine answers in its §6. `skill/SKILL.md` already describes the method and
    says that its in-course comparison starts nowhere until then.
 

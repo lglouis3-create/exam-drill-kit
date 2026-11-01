@@ -368,7 +368,8 @@ there, as the brief requires for design changes Louis approves.
 
 ## 9. Decisions for Louis
 
-1. Engine for the core: PK's (proposed) or pharmacology's (`proposed-core.md` §0).
+1. ~~Engine for the core~~ Decided 2026-11-01: the core is assembled from the best
+   version of each part, starting from the recovered template (`KIT_DESIGN.md` §12.2).
 2. ~~Default scheduler~~ Decided 2026-11-01: the concept scheduler is the default and FSRS
    is an option a course can switch on; research on improvements and on a combination
    was requested and is reported separately before anything is built.
