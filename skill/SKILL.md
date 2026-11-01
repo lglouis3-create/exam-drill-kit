@@ -74,9 +74,13 @@ COURSE = {id, title, short, ns, output, professors:[…],
   except Mode 7 (§7.5).
 - `questions: null` means the count is not announced: the Exam tab then draws no
   practice paper and says the number of questions is not set, and Topics and Weak
-  spots leave the count out. `marks: null` on a pool makes the exam unweighted: a
-  paper (with a count) is drawn from all the pools together, and no marks figure or
-  exam-weighted pass is shown (`core/nullexam.js`; `core/README.md` "Exam draw").
+  spots leave the count out. `marks: null` on any pool makes the whole exam
+  unweighted, even when other pools have marks: a paper (with a count) is drawn from
+  all the pools together, every list is ordered by accuracy, and no marks figure or
+  exam-weighted pass is shown. `minutes: null` with a count set makes the paper
+  untimed: no countdown, the time taken is shown and reported, and the paper ends
+  only when it is submitted; no time limit is made up (`core/nullexam.js`;
+  `core/README.md` "Exam draw").
 - `files` lists the data files in build order; every new question file goes there. A
   core update replaces `build.py`, never `course.js`, so the list is kept
   (`core/README.md` "The course's files").

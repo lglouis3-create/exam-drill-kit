@@ -4,6 +4,7 @@ Dated kit changes, newest first.
 
 ## 2026-11-01
 - `core/`: an exam with `questions: null` or a pool with `marks: null` no longer breaks the page (`nullexam.js`).
+- `core/`: a pool without marks makes the whole exam unweighted; `minutes: null` with a count gives an untimed paper.
 - `core/`: a fault at start-up can no longer cost saved progress (Louis approved the fix).
   Found in a scratch move of Pharmacokinetics: a `DIAGRAMS` list of another shape made a
   tab step throw, start-up stopped before the saved progress was loaded, and the next

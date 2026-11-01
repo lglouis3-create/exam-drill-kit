@@ -97,7 +97,7 @@ def course_fields():
           "manifest:C.manifest===undefined?null:C.manifest,tools:C.tools===undefined?null:C.tools,"
           "features:C.features===undefined?null:C.features,numeric:C.numeric===undefined?null:C.numeric,"
           "typedExams:(C.exams||[]).filter(e=>e&&e.typed!==undefined).map(e=>({id:e.id,typed:e.typed})),"
-          "unset:(E=>E?{questions:E.questions==null,marks:(E.pools||[]).some(p=>p&&p.marks==null)}:null)"
+          "unset:(E=>E?{questions:E.questions==null,marks:(E.pools||[]).some(p=>p&&p.marks==null),minutes:E.minutes==null}:null)"
           "((C.exams||[]).find(e=>e&&e.id===C.activeExam)||(C.exams||[])[0])}))")
     r = subprocess.run(['node', '-e', js], capture_output=True, text=True)
     if r.returncode != 0:
@@ -315,13 +315,15 @@ def calc_options(c):
 
 def unset_counts(c):
     """The active exam with `questions: null` (the number of questions is not
-    announced) or a pool with `marks: null` (a missing field counts the same):
-    core/nullexam.js, which keeps the Exam view from starting a paper with no
-    count and leaves the marks figures out (skill/SKILL.md, the course
-    manifest). Returns the core files it puts in the page: none when every
-    number is set, so such a page is byte for byte what the core built before."""
+    announced), a pool with `marks: null`, or `minutes: null` (no time limit is
+    announced); a missing field counts the same: core/nullexam.js, which keeps
+    the Exam view from starting a paper with no count, makes the exam
+    unweighted when a pool has no marks, and makes the paper untimed when there
+    is a count and no time limit (skill/SKILL.md, the course manifest). Returns
+    the core files it puts in the page: none when every number is set, so such
+    a page is byte for byte what the core built before."""
     u = c.get('unset') or {}
-    return ['nullexam.js'] if u.get('questions') or u.get('marks') else []
+    return ['nullexam.js'] if u.get('questions') or u.get('marks') or u.get('minutes') else []
 
 
 COURSE_FIELDS = course_fields()
@@ -550,7 +552,7 @@ FEATURE_JS = feature_block()
 for f in CALC_FILES:
     print(f'  core option on: {f}')
 for f in UNSET_FILES:
-    print(f'  exam count or pool marks not set: {f} in the page (no paper without a count; no marks figures)')
+    print(f'  exam count, pool marks or time limit not set: {f} in the page (no paper without a count; unweighted without marks; untimed without minutes)')
 if MODULE_CSS:
     if shell.count('</style>') != 1:
         sys.exit("ERROR: shell.html must hold exactly one </style> for the feature modules' styles")

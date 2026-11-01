@@ -16,7 +16,24 @@
  *   2. `questions: null`, the marks as the course sets them (2 on each pool
  *      when the course sets none, so the case is the same on every course);
  *   3. every pool `marks: null`, the count as the course sets it (4 when the
- *      course sets none).
+ *      course sets none);
+ *   4. `minutes: null` with the count set (4 when the course sets none): the
+ *      paper is untimed (Louis, 2026-11-01). The opening page says no time
+ *      limit is set; a started paper is still running after more than the
+ *      engine's one-second tick, its clock counts the time taken up, the paper
+ *      saved for a reload is the engine's with `ends: null` and `started`,
+ *      a reload brings the same paper back with its answers and the time
+ *      taken still counting, submitting logs only the answered items and says
+ *      how long the paper took, the saved paper is then removed, and a reload
+ *      after submitting starts no paper. In case 3 the saved paper of a timed
+ *      exam keeps the engine's fields exactly;
+ *   5. some pools with marks and some without (Louis, 2026-11-01: "when any
+ *      section lacks points, use unweighted behavior consistently"): two pools
+ *      made from two of the course's topics, one with 1 mark and one without.
+ *      The topic table lists the topic answered worse first, by accuracy; the
+ *      pool cards come in the manifest's order with no marks figure; and the
+ *      paper is drawn from both pools together, so it carries more of the
+ *      first pool's items than its 1 mark.
  * In each: some questions are answered, every tab in the nav is opened, and an
  * exam paper is started from the Exam tab and by calling beginExam. No page
  * error, no error on the console, and no visible "null", "NaN" or "undefined"
@@ -56,7 +73,12 @@ const CASES = [
    line: `{ ${ACTIVE} E.questions = null; E.pools.forEach(p => { if(p.marks == null) p.marks = 2; }); }`},
   {label: 'marks not set', count: true, marks: false,
    line: `{ ${ACTIVE} E.pools.forEach(p => { p.marks = null; }); if(E.questions == null) E.questions = 4; }`},
+  {label: 'time limit not set', count: true, marks: true, minutes: false,
+   line: `{ ${ACTIVE} E.minutes = null; if(E.questions == null) E.questions = 4; E.pools.forEach(p => { if(p.marks == null) p.marks = 2; }); }`},
 ];
+const UNTIMED = /No time limit is set in the course manifest, so this paper is untimed/;
+const TAKEN = /^(\d\d):(\d\d) taken$/;
+const secs = t => { const m = TAKEN.exec(String(t || '').trim()); return m ? Number(m[1]) * 60 + Number(m[2]) : NaN; };
 
 // answers the question on screen through its controls (startup_test.js), then Next
 const ANSWER = right => {
@@ -122,7 +144,8 @@ const badWords = page => page.evaluate(src => {
         // Exam: the Start button if there is one, then beginExam itself
         await page.click('#nav button[data-v="exam"]');
         const exam = await page.evaluate(() => {
-          const out = {start: !!document.getElementById('startExam')};
+          const out = {start: !!document.getElementById('startExam'), intro: document.getElementById('v-exam').innerText,
+                       button: (document.getElementById('startExam') || {}).textContent || ''};
           try { if(out.start) document.getElementById('startExam').click(); } catch(e){ out.clickError = e.message; }
           out.afterClick = document.getElementById('v-exam').innerText;
           out.runningAfterClick = !!(EX && EX.running);
@@ -149,10 +172,66 @@ const badWords = page => page.evaluate(src => {
           check(!exam.beginError && exam.running && exam.n === want, `the paper holds ${want} questions (the exam's ${exam.questions}; ${exam.eligible} in its pools)`,
                 `${exam.n} drawn${exam.beginError ? '; ' + exam.beginError : ''}`);
           if(exam.running){
+            // the paper saved for a reload: a timed exam keeps the engine's fields exactly
+            const saved = await page.evaluate(() => JSON.parse(localStorage.getItem(NS + ':exam:' + PROFILE) || 'null'));
+            if(c.minutes !== false) check(saved && Object.keys(saved).sort().join(',') === 'ends,i,ids,orders,picks' && typeof saved.ends === 'number',
+              'a timed paper is saved with the engine\'s fields only (ids, picks, orders, i, ends)', saved && Object.keys(saved).join(','));
             await page.click('#exEnd');
             await page.waitForTimeout(300);
             await look('the exam result page');
           }
+        }
+
+        // the time limit not set: an untimed paper, through a reload and a submission
+        if(c.minutes === false){
+          check(!/minutes/.test(topics.sub.split('.')[0]), 'Topics leaves the minutes out of the exam line', topics.sub.slice(0, 120));
+          check(UNTIMED.test(exam.intro) && exam.button.trim() === 'Start the untimed paper',
+                'the opening page says no time limit is set, so the paper is untimed, and the button starts an untimed paper', exam.button);
+          await page.evaluate(() => { if(EX){ clearInterval(EX.timer); EX = null; } clearExam(); renderExam(); });
+          await page.click('#startExam');
+          await page.waitForTimeout(3200);
+          const run = await page.evaluate(() => ({running: !!(EX && EX.running), done: !!(EX && EX.done), clock: (document.getElementById('exClock') || {}).textContent,
+            n: EX ? EX.qs.length : 0, saved: JSON.parse(localStorage.getItem(NS + ':exam:' + PROFILE) || 'null')}));
+          check(run.running && !run.done, 'an untimed paper is still running after 3 seconds (the engine ended it at its first one-second tick)', JSON.stringify({running: run.running, done: run.done}));
+          check(secs(run.clock) >= 2, `the clock counts the time taken up (${run.clock})`, run.clock);
+          check(run.saved && Object.keys(run.saved).sort().join(',') === 'ends,i,ids,orders,picks,started' && run.saved.ends === null && typeof run.saved.started === 'number',
+                'the saved paper is the engine\'s with ends: null and started', run.saved && JSON.stringify(Object.keys(run.saved)));
+          // answer the first item, then reload
+          const first = await page.evaluate(() => {
+            const q = EX.qs[0];
+            if(q.type === 'numeric'){ const n = document.getElementById('exNum'); n.value = String(q.answer); n.dispatchEvent(new Event('input')); }
+            else if(q.type === 'match'){ EX.picks[0] = q.pairs.map((p, i) => i); saveExam(); }
+            else if(isMulti(q)){ for(const i of correctSet(q)){ const b = document.querySelector(`#v-exam button.opt[data-o="${i}"]`) || [...document.querySelectorAll('#v-exam button.opt')][EX.orders[0].indexOf(i)]; if(b) b.click(); } }
+            else { const b = [...document.querySelectorAll('#v-exam button.opt')][EX.orders[0].indexOf(q.options.findIndex(o => o.correct))]; if(b) b.click(); }
+            return {ids: EX.qs.map(q => q.id), pick: JSON.stringify(EX.picks[0]), started: EX.started};
+          });
+          check(first.pick !== 'null' && first.pick !== '[]', 'the first item is answered', first.pick);
+          await page.reload();
+          await page.waitForFunction(() => typeof NS === 'string' && document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+          await page.click('#nav button[data-v="exam"]');
+          await page.waitForTimeout(1200);
+          const back = await page.evaluate(() => ({running: !!(EX && EX.running), ids: EX ? EX.qs.map(q => q.id) : [], pick: EX ? JSON.stringify(EX.picks[0]) : '',
+            started: EX && EX.started, clock: (document.getElementById('exClock') || {}).textContent}));
+          check(back.running && back.ids.join() === first.ids.join() && back.pick === first.pick && back.started === first.started,
+                'after a reload the same paper comes back with its answer and its start time', JSON.stringify({running: back.running, pick: back.pick}));
+          check(secs(back.clock) >= secs(run.clock), `after a reload the time taken goes on from where it was (${run.clock}, then ${back.clock})`, back.clock);
+          const before = await page.evaluate(() => (JSON.parse(localStorage.getItem(NS + ':log:' + PROFILE) || '[]')).length);
+          await page.click('#exEnd');
+          await page.waitForTimeout(400);
+          const res = await page.evaluate(() => ({done: !!(EX && EX.done), took: (document.getElementById('exTook') || {}).textContent || '',
+            log: JSON.parse(localStorage.getItem(NS + ':log:' + PROFILE) || '[]'), saved: localStorage.getItem(NS + ':exam:' + PROFILE)}));
+          const added = res.log.slice(before);
+          check(res.done && /^Time taken: \d\d:\d\d\. No time limit is set in the course manifest, so the paper was untimed\.$/.test(res.took),
+                'submitting ends the paper and the result says how long it took', res.took);
+          check(added.length === 1 && added[0][3] === 'exam', `only the answered item is logged, as an exam answer (${added.length} logged)`, JSON.stringify(added));
+          check(res.saved === null, 'the saved paper is removed once it is submitted');
+          await look('the untimed result page');
+          await page.reload();
+          await page.waitForFunction(() => typeof NS === 'string' && document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+          await page.click('#nav button[data-v="exam"]');
+          await page.waitForTimeout(300);
+          const after = await page.evaluate(() => ({running: !!(EX && EX.running), start: !!document.getElementById('startExam')}));
+          check(!after.running && after.start, 'a reload after submitting starts no paper and offers a new one (the result is not kept after a reload, as with a timed paper)');
         }
 
         // Weak spots
@@ -177,6 +256,57 @@ const badWords = page => page.evaluate(src => {
         if(errors.length) check(false, 'no page errors', errors.slice(0, 2).join('; '));
       } finally {
         await ctx.close();
+      }
+    }
+
+    // 5. some pools with marks and some without
+    console.log('\n=== some pools with marks, some without ===');
+    const X0 = L.engine('{TOPICS, QUESTIONS}');
+    const eligible = q => !q.lowYield && !q.type;
+    const topicsWith = X0.TOPICS.map(t => ({id: t.id, name: t.name, qs: X0.QUESTIONS.filter(q => q.topic === t.id && eligible(q))}))
+      .map(t => Object.assign(t, {concepts: new Set(t.qs.map(q => q.concept)).size}));
+    const A = topicsWith.find(t => t.concepts >= 2), B = topicsWith.find(t => t !== A && t.qs.length >= 1);
+    if(!A || !B) L.skip('pools with and without marks', 'the course has no two topics with questions a paper can draw (one with two concepts)');
+    else {
+      const n = A.qs.length + B.qs.length;
+      const line = `{ ${ACTIVE} E.questions = ${n}; delete E.blueprint;
+        E.pools = [{key:'za', name:'Section A', marks:1, filter:{topic:${JSON.stringify(A.id)}}}, {key:'zb', name:'Section B', marks:null, filter:{topic:${JSON.stringify(B.id)}}}]; }`;
+      const b = L.scratchBuild('nullexam-test', {courseLine: line});
+      built.push(b);
+      if(check(b.code === 0, 'the scratch copy builds', b.out.split('\n').slice(-3).join(' | '))){
+        const {ctx, page, errors} = await L.openPage(browser, b.page);
+        try {
+          // topic A answered 9 of 10 right, topic B 2 of 10: by accuracy B comes first
+          const out = await page.evaluate(([a, b]) => {
+            let k = 0;
+            const add = (q, ok) => DB.answers.push({qid: q.id, concept: q.concept, result: ok ? 'correct' : 'wrong', at: Date.now() - 1e6 + k, qn: ++k});
+            const qa = QUESTIONS.filter(q => q.topic === a), qb = QUESTIONS.filter(q => q.topic === b);
+            for(let i = 0; i < 10; i++) add(qa[i % qa.length], i !== 0);
+            for(let i = 0; i < 10; i++) add(qb[i % qb.length], i < 2);
+            show('gaps');
+            const h = [...document.querySelectorAll('#v-gaps h3')].find(x => x.textContent.trim() === 'Accuracy by topic');
+            let t = h && h.nextElementSibling; while(t && !t.matches('table')) t = t.nextElementSibling;
+            const rows = t ? [...t.querySelectorAll('tbody tr')].map(r => ({name: r.children[0].childNodes[0].textContent.trim(),
+              pct: Number((r.lastElementChild.textContent.match(/(\d+)%/) || [])[1])})) : [];
+            const cards = [...document.querySelectorAll('#v-gaps .nextcard')].map(c => ({name: c.querySelector('.nexthead b').textContent, head: c.querySelector('.nexthead span').textContent}));
+            const papers = Array.from({length: 20}, () => drawPaper());
+            return {rows, cards, heading: !!h,
+              paperN: papers.map(p => p.length), aOn: papers.map(p => p.filter(q => q.topic === a).length),
+              other: papers.some(p => p.some(q => q.topic !== a && q.topic !== b))};
+          }, [A.id, B.id]);
+          const names = out.rows.map(r => r.name);
+          check(out.heading && names.indexOf(B.name) === 0 && names.indexOf(A.name) === 1,
+                `the topic table lists ${B.name} (20%) before ${A.name} (90%), by accuracy`, JSON.stringify(out.rows));
+          check(out.rows.every((r, i) => i === 0 || r.pct >= out.rows[i - 1].pct), 'every row of the topic table is in order of accuracy, lowest first', JSON.stringify(out.rows));
+          check(out.cards.map(c => c.name).join('|') === 'Section A|Section B' && out.cards.every(c => /^\d+ concepts?$/.test(c.head)),
+                'the pool cards come in the manifest\'s order with their concepts and no marks figure', JSON.stringify(out.cards));
+          check(out.paperN.every(x => x >= 2) && !out.other, `each of 20 papers holds questions from the two pools only (${Math.min(...out.paperN)} to ${Math.max(...out.paperN)} questions)`);
+          check(out.aOn.every(x => x > 1), `every paper carries more than the first pool's 1 mark of its items (${Math.min(...out.aOn)} to ${Math.max(...out.aOn)}): the pools are drawn together, unweighted`,
+                JSON.stringify(out.aOn));
+          check(!errors.length, 'no page errors', errors.slice(0, 2).join('; '));
+        } catch(e) {
+          check(false, 'the case ran to the end', e.message.split('\n')[0]);
+        } finally { await ctx.close(); }
       }
     }
   } finally {

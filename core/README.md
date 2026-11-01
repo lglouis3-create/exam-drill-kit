@@ -39,7 +39,7 @@ that course's repository. Both folders come from the recovered exam-drill templa
 | `scheduler_test.js` | core | the scheduler (`review/scheduler-proposal.md` §4-§5), with a fixed clock, on scratch builds with a test topic |
 | `features.js` | core | the hooks a feature module uses (tab, question type, step after an answer, pass after a view is drawn, reading-tab HTML, a new exam paper, Settings section, start-up step, progress converter); in the page only when `course.js` `features` switches a module on |
 | `exam_typed.js`, `exam_typed_test.js` | core | `course.js` `exams[].typed`: numeric and matching items drawn onto that exam's papers, typed and picked there, graded and reviewed; in the page and run only when an exam sets it |
-| `nullexam.js`, `nullexam_test.js` | core | an active exam with `questions: null` or a pool with `marks: null`: no paper without a count, no marks figures; in the page only when the active exam leaves one unset, the test runs on every course |
+| `nullexam.js`, `nullexam_test.js` | core | an active exam with `questions: null`, a pool with `marks: null` or `minutes: null`: no paper without a count, unweighted without marks, untimed without a time limit; in the page only when the active exam leaves one unset, the test runs on every course |
 | `numeric.js`, `numeric_test.js` | core | `course.js` `numeric`: a typed number read with its unit, never two numbers joined, graded to a course margin; in the page and run only when the course sets it |
 | `features_test.js` | core | feature modules: the build's refusals, every hook, a module that fails, and no change to a page with no module on; runs when a module is on |
 | `vendor/` | core | ts-fsrs 6.0.0's own UMD bundle and the licence texts of the code in it; `build.py` inlines them only for a course whose scheduler model needs FSRS |
@@ -604,8 +604,8 @@ quiz (with `numeric`, to the course's margin), recorded on submit with what was 
 and picked, and shown on the result page with the answer, the margin and the working or
 the pairs. Without `typed` the papers are as before. `exam_typed_test.js` checks it.
 
-**A count or marks not set.** `skill/SKILL.md` allows `questions: null` on an exam and
-`marks: null` on a pool (a missing field counts the same). Until `nullexam.js` such a
+**A count, marks or time limit not set.** `skill/SKILL.md` allows `questions: null` and
+`minutes: null` on an exam and `marks: null` on a pool (a missing field counts the same). Until `nullexam.js` such a
 course drew a paper of 0 questions and stopped with a TypeError in `renderExamQ`, Topics
 said "null questions", and Weak spots said "null of null marks" (BDK move assessment,
 2026-11-01, §4). The build puts `nullexam.js` into the page only when the active exam
@@ -613,15 +613,28 @@ leaves one of them unset. Without a count the Exam tab says "The number of quest
 <exam> is not set in the course manifest, so no practice paper is drawn.", `beginExam`
 starts none, `drawPaper` returns none, and Topics and the Weak spots pool cards leave the
 count out; a paper saved earlier still comes back. A pool without marks makes the whole
-exam unweighted: a paper with a count is drawn from all the pools together (the engine's
-draw with the pools taken as one), the Weighting chips, the pool cards' marks, the "Marks
-at risk" columns and the exam-weighted pass are left out, and "Where you are losing
-marks" is headed "Accuracy by topic". With every number set the page is unchanged: the
-`index.html` this core and the `7a6e81b` core build are identical once the build stamp
-is removed, for the template course (248,119 bytes each) and for Medicinal-chemistry's
-live course at `d7331be` (7,208,805 bytes each). `nullexam_test.js` checks the three cases
-on scratch copies of any course; on the template course 21 of its 34 checks fail on the
-`7a6e81b` core.
+exam unweighted, also when other pools have marks (Louis, 2026-11-01: "when any section
+lacks points, use unweighted behavior consistently"): every question weighs 0 in
+`markWeight`, so the topic table and the kinds of question are ordered by accuracy; a
+paper with a count is drawn from all the pools together (the engine's draw with the
+pools taken as one); the Weighting chips, the pool cards' marks, the "Marks at risk"
+columns and the exam-weighted pass are left out; and "Where you are losing marks" is
+headed "Accuracy by topic". Before this, with some pools' marks set, the table kept the
+engine's marks-at-risk order under that heading, so a topic answered 9 of 10 right was
+listed above one answered 2 of 10. A count with no time limit gives an untimed paper
+(Louis, 2026-11-01): the opening page says no time limit is set in the course manifest;
+the paper has no countdown, its clock counts the time taken up, and it ends only when it
+is submitted, after which the result gives the time taken. The paper saved for a reload
+is the engine's (`ids`, `picks`, `orders`, `i`, `ends`) with `ends: null` and one more
+field, `started`, so a reload brings it back with the time still counting; a timed paper
+is saved exactly as before. No time limit is made up. Before this, the engine's clock
+read `null` minutes as 0 and ended the paper at its first one-second tick, with every
+item blank. As with a timed paper, the result is not kept after a reload.
+With every number set the page is unchanged: the `index.html` this core and the
+`7a6e81b` core build are identical once the two build stamps are removed, for the
+template course (248,119 bytes each) and for Medicinal-chemistry's live course at
+`d7331be` (7,208,805 bytes each). `nullexam_test.js` checks the five cases on scratch
+copies of any course.
 
 ## Checks
 
