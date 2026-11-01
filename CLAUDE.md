@@ -31,17 +31,17 @@ after Phase 1 and overrides earlier sections where they differ.
     `RULES.md` from its §4, rule names on the "Use when" lines of `FEATURES.md`, the
     experiment-file format, and `core/profile.py` (the material-profile script);
   - for §12.9: a kit workflow that runs the core checks on every pull request and is
-    required before a `small-fix` or bookkeeping pull request merges itself; the
-    kit-update scheduled task, created once the first course is on the core, at a time
-    Louis chooses;
+    required before a `small-fix` or bookkeeping pull request merges itself;
   - one pull request to `main` for Louis to merge.
 - **Phase 3 (test) and Phase 4 (install): not started.**
 
 ## Rules for kit sessions
 
-- Feature, upgrade, core and `SKILL.md` changes reach `main` only by pull request
-  that Louis merges (decision 1). Catalog bookkeeping and `small-fix` pull requests
-  merge themselves once every required check passes (`KIT_DESIGN.md` §12.9).
+- Feature, upgrade, core and `SKILL.md` changes reach `main` only by pull request.
+  For each one, tell Louis in plain terms what merging it provides and changes, and
+  merge it only after he says yes to that pull request (`KIT_DESIGN.md` §12.9).
+  Catalog bookkeeping and `small-fix` pull requests merge themselves once every
+  required check passes.
 - Only Louis's own data informs recommendations and evidence (§12.4).
 - Citations in kit documents: AMA 11th edition, with a DOI or link on each reference
   (§12.5). Every number in a kit document comes from a named source checked in the
@@ -62,6 +62,7 @@ after Phase 1 and overrides earlier sections where they differ.
 | Claude Projects | not reachable from a cloud session | 2026-10-31 |
 | Create a new repository (Mode 1, decision 8) | not tested yet | — |
 | A kit pull request merging itself after required checks (§12.9) | not tested yet | — |
+| Scheduled task "Kit update run" (`trig_01DUa6bkEYr8MnzHkoguFZvw`, daily 2:47 AM America/Chicago, fresh session, push notifications) | created; stores no connectors, so its sessions may lack the GitHub tools that read Pages workflow runs; attaching repos with push from it not tested yet | 2026-11-01 |
 | WebKit / Safari browser engine | not installed in the cloud container; Chromium only | 2026-10-31 |
 
 ## Open questions for Louis
@@ -71,11 +72,7 @@ after Phase 1 and overrides earlier sections where they differ.
    glossary links against decision 3 (7); personal names in state files against §7.9
    (8); agent definitions in `core/agents/` (9); PK's cross-pool `dupOf` defect, which
    matters only if PK's drill is reused (10); searching `Heb-pharmacy-guide` (11).
-2. N in `KIT_DESIGN.md` §12.9: how many days before a course's exam no automatic
-   update goes live. Louis chose the update split on 2026-11-01 (features and core stop
-   at the preview for his reply; catalog bookkeeping and small fixes go live
-   automatically); N is not set, so until then small fixes also wait at the preview.
-3. `review/recommendation-proposal.md` (written 2026-11-01) waits for Louis's approval
+2. `review/recommendation-proposal.md` (written 2026-11-01) waits for Louis's approval
    and the nine answers in its §6. `skill/SKILL.md` already describes the method and
    says that its in-course comparison starts nowhere until then.
 

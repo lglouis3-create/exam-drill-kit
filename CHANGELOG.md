@@ -15,6 +15,11 @@ Dated kit changes, newest first.
   catalog bookkeeping and `small-fix` changes go live automatically when every check
   passes, the progress format is unchanged, and no exam is within N days (N not set).
   `skill/SKILL.md` Mode 7 and the phrase table describe the kit-update run and undo.
+  Then, also from Louis: Claude explains each feature or core pull request in plain
+  terms and merges it after his yes; automatic updates skip only the day of an exam;
+  the scheduled task "Kit update run" runs daily at 2:47 AM Central.
+- `core/`: `build.py --preview` with `preview_test.js`; `state_check.js` with
+  `state_check_test.js`.
 - `review/recommendation-proposal.md`: how the kit recommends features (material-profile
   signals, a rule table with evidence levels, a within-course random comparison of
   concept clusters, decision rules), with nine questions for Louis; research notes in

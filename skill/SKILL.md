@@ -144,7 +144,11 @@ Open one whenever a session:
 - fixes or improves a core part (with the failing case shown before the fix);
 - adds evidence or a "Used by" line to `FEATURES.md`, or updates `COURSES.md`.
 
-Louis merges feature, upgrade, core and `SKILL.md` pull requests (decision 1). Catalog
+For each feature, upgrade, core or `SKILL.md` pull request, tell Louis in plain terms
+what merging it provides, what it changes on his sites and when, what it does not
+change, the check results, and any risk; merge it (`merge_pull_request`) only after he
+answers yes to that pull request in the conversation (`KIT_DESIGN.md` §12.9). A no
+leaves it open, with his reason recorded in the pull request. Catalog
 bookkeeping (a "Used by" line, a dated evidence note) and pull requests labelled
 `small-fix` merge themselves once every required check passes (`KIT_DESIGN.md` §12.9);
 until the kit has required checks, they wait for Louis like the rest. A fix is
@@ -277,13 +281,14 @@ that is behind:
 1. Build the update at `/preview/`, run every check, and append the result to the
    course's `reviews/LOG.md`.
 2. If every kit change since the pin is catalog bookkeeping or `small-fix`, every check
-   passes on every affected course's preview, the course has no exam within N days
-   (§12.9; while N is not set, this condition is never met), and neither the
-   saved-progress format nor `ns` changes: make the preview live as one commit
-   "kit update: <old pins> → <new pins>", confirm the deploy, and log it.
-3. Otherwise leave the preview waiting and send Louis a summary: what changed, the check
-   results, the preview address, and any exam within N days. "approve updates for
-   <course>" makes it live as in step 2.
+   passes on every affected course's preview, today (America/Chicago) is not the date
+   of one of that course's exams (`exams[].when`; no recorded date means no automatic
+   update), and neither the saved-progress format nor `ns` changes: make the preview
+   live as one commit "kit update: <old pins> → <new pins>", delete `preview/`,
+   confirm the deploy, and log it.
+3. Otherwise leave the preview waiting and send Louis a summary: what changed in plain
+   words, the check results, the preview address, and whether an exam is today.
+   "approve updates for <course>" makes it live as in step 2.
 A run that could not build, check, push or confirm the deploy reports failure and never
 ends as succeeded.
 
