@@ -145,9 +145,9 @@ pharmacology's concept statuses. FSRS goes into the feature library as
 `memory-model-fsrs`, implementing the same interface, for courses whose
 material is a fixed list of facts studied over weeks (BDK's case). Design (b)
 is archived as `scheduler` v1 from pharmacology rather than discarded
-(decision 4). **Decision for Louis:** whether FSRS should become the default
-for every course; nothing in the repos measures which design works better for
-him.
+(decision 4). **Decided by Louis, 2026-11-01:** the concept scheduler is the default
+and FSRS is an option a course switches on; he asked for research on how to
+improve it and whether a combination can serve a course that needs one.
 
 ## 4. Offline mode (service worker)
 

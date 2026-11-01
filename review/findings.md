@@ -65,7 +65,8 @@ the MC round is not in git.
 ## 2. Where a template exists
 
 - **No `exam-drill-template/` exists in any commit on any branch** of the four
-  course repos or of `exam-drill-kit`. No path containing "template" exists
+  course repos or of `exam-drill-kit`. (On 2026-11-01 Louis supplied it from his own
+  files, outside GitHub; see §11.) No path containing "template" exists
   either (`git log --all --name-only`, checked on every repo).
 - The name appears only in text: MC's notes (`f9369c8`, `3b87e8a`), PH's
   `notes/ENGINE_UPGRADES.md` (`f517148`, which calls it "an older version of the
@@ -366,12 +367,15 @@ there, as the brief requires for design changes Louis approves.
 ## 9. Decisions for Louis
 
 1. Engine for the core: PK's (proposed) or pharmacology's (`proposed-core.md` §0).
-2. Default scheduler: concept-level Leitner (proposed) or FSRS (§3 there).
-3. BDK's service worker clears other sites' caches (§4): fix BDK now, as a
-   course-repo change outside the kit work, or record it for Mode 7.
+2. ~~Default scheduler~~ Decided 2026-11-01: the concept scheduler is the default and FSRS
+   is an option a course can switch on; research on improvements and on a combination
+   was requested and is reported separately before anything is built.
+3. ~~BDK's service worker~~ Decided 2026-11-01: fix it now in BDK, and improve how BDK
+   keeps the offline copy and progress.
 4. Merge MC's corrected notes `3b87e8a` into MC's `main`?
-5. Do you still have `PHAR4342-medchem.bundle` (MC's 09/21 round with the template
-   and 92 questions)?
+5. ~~Do you still have `PHAR4342-medchem.bundle`?~~ Answered 2026-11-01: Louis supplied
+   it (§11). New question: restore MC's 09/21 round to the MC repo, keep it only in
+   the kit, or both?
 6. One source order for conflicts: PK's (her worked solution, her correction in
    lecture, slide, textbook) and PH's (transcript, slide, reading as discussed)
    differ (`FEATURES.draft.md`, content patterns).
@@ -411,3 +415,48 @@ No learning-science research was done in this phase, so nothing below rests on i
    PH's `glitch.js` also exits 0 whatever it finds (§6.3), so a scheduled run
    cannot tell from the exit code that it found a glitch. Cost: a few lines per
    script.
+
+## 11. Update 2026-11-01: the recovered bundle and template
+
+Louis uploaded two files on 2026-11-01: `medchem-repo.bundle` (11,987,186 bytes,
+md5 `0f18c31d3284b4050dfdd590af9111be`) and `exam-drill-template.zip` (121,544
+bytes, md5 `98dadd13fbe0383fa59d1ea5a519a48f`). Both were inspected in scratch
+folders with `git` and `unzip` only; nothing from them was run, and nothing was
+pushed anywhere.
+
+- **The bundle is the local medchem history that never reached GitHub.** Its `main`
+  is `baed236` and it has 10 commits. It shares only the initial commit `697ae8b`
+  with GitHub's `main`; the other 9 are its own (`65e2aff` on 2026-09-20 through
+  `2ebfade` on 2026-09-21 and `baed236` on 2026-10-02). GitHub's uploads
+  (`966c82e` to `9103bc6`) and fixes (`4a32dad`, `ed38dbd`) are not in it, so each
+  side has work the other lacks.
+- **`2ebfade` (2026-09-21) is the 09/21 round** the MC state doc describes: commit
+  message "Course manifest, tell-apart and typed items, confidence and pace,
+  exports, ingest script; reusable template". At `baed236` the drill lives at
+  `medicinal-chemistry/PHAR4342-final-drill/` (the path v2 lines 17-18 name) with
+  `course.js`, `ingest.py`, `q14_tell.js` and `q15_types.js`, and the template at
+  `exam-drill-template/` (29 files).
+- **The 92 questions are there.** Every question id in GitHub's 13 question files
+  is also in the bundle (0 missing), and the bundle has 92 ids GitHub lacks, all in
+  `q14_tell.js` (89) and `q15_types.js` (3). 479 − 387 = 92, the gap in MC
+  corrected notes §0. The shared question files differ from GitHub's by added
+  fields, for example a `skill:` line on 39 questions in `q1_cyp.js`.
+- **7 of the 12 missing sources are in the bundle** (`harvest_yen.py`,
+  `harvest_yen2.py`, `harvest_yen3.py`, `cyp_images_spec.json`,
+  `yen_images_spec.json`, `yen2_images_spec.json`, `yen3_images_spec.json`).
+  `add_cyp_q.py`, `attach_cyp.py`, `attach_yen.py`, `attach_yen2.py` and
+  `attach_yen3.py` are in no commit of the bundle either.
+- **The zip is the bundle's template, byte for byte:** its 29 files match
+  `exam-drill-template/` at `baed236` with 0 differences. `baed236` (2026-10-02)
+  ported PH's engine upgrades into the template ("rewritten against this engine;
+  no course content carried over"): change log, session and review plan,
+  `links.js`, step-through figures with `stepper_test.js`, Diagrams tab,
+  Explain-one cards, optional blueprint draw, exam countdown. The MC notes listed
+  this port as not done (§5 there); it was done on 2026-10-02 and never pushed.
+- **The template is not PK's parent.** PK's first engine (`08f16b6`, 2026-09-22)
+  and the 09/21 template (`2ebfade:exam-drill-template/`) both come from MC's
+  engine but differ throughout (for example `views.js`: 1,640 and 1,204 lines with
+  1,434 differing lines by `diff`). So engine 1 in `proposed-core.md` §0 exists in
+  four copies: MC on GitHub, MC in the bundle, the template, and PK.
+- **What only the bundle has:** `ingest.py`, which v2's Mode 2 depends on and which
+  no GitHub repo contains, and a course-agnostic template with no course content.
