@@ -40,7 +40,13 @@ async function closedSection(page, heading, label){
 // Topics shows no card, whatever the browser
 async function noneOnTopics(page, label){
   await go(page, 'topics');
-  check(!(await page.$('#v-topics [data-hs]')) && !/Home Screen|Install /.test(await text(page, '#v-topics')),
+  // The What's new card (#news) may quote a change-log line that names the Home
+  // Screen; only the Home Screen card's own text counts here.
+  const shown = await page.evaluate(() => {
+    const v = document.querySelector('#v-topics'); if(!v) return '';
+    const c = v.cloneNode(true); c.querySelectorAll('#news').forEach(n => n.remove()); return c.textContent;
+  });
+  check(!(await page.$('#v-topics [data-hs]')) && !/Home Screen|Install /.test(shown),
     `${label}: Topics shows no Home Screen card`);
 }
 
