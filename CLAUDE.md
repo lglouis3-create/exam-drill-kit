@@ -8,7 +8,8 @@ after Phase 1 and overrides earlier sections where they differ.
 - **Phase 1 (evaluate): done.** `review/` holds the findings, the proposed core, the
   scheduler proposal, the Phase 1 drafts of the catalog and registry, and research
   notes.
-- **Phase 2 (build): in progress** on branch `claude/elegant-ptolemy-pqxb8y`. Done:
+- **Phase 2 (build): merged to `main`** by pull request lglouis3-create/exam-drill-kit#1
+  from branch `claude/elegant-ptolemy-pqxb8y` (Louis said yes on 2026-11-01). Done:
   `KIT_DESIGN.md` §12; skill archives moved to `history/`; the recovered template in
   `history/exam-drill-template-2026-10-02/`; `FEATURES.md`, `COURSES.md`, this file,
   `CHANGELOG.md`, `features/README.md`, a first draft of `skill/SKILL.md`; `core/` and
@@ -30,15 +31,13 @@ after Phase 1 and overrides earlier sections where they differ.
   - from `core/README.md` "Not in core yet": Intro-Pharmacology's exam-result page after
     a reload and its generator step; `coverage_check.py`, `step_check.js`,
     `sources_check.js`;
-  - two tools `skill/SKILL.md` names that do not exist yet: the check that a course's
-    `CLAUDE.md` was updated after its newest lecture, and the `/preview/` build (the
-    third, `core/profile.py`, waits for the approval below);
   - after Louis approves `review/recommendation-proposal.md` and sets its §6 values:
     `RULES.md` from its §4, rule names on the "Use when" lines of `FEATURES.md`, the
     experiment-file format, and `core/profile.py` (the material-profile script);
   - for §12.9: a kit workflow that runs the core checks on every pull request and is
-    required before a `small-fix` or bookkeeping pull request merges itself;
-  - one pull request to `main` for Louis to merge.
+    required before a `small-fix` or bookkeeping pull request merges itself.
+  Each of these goes to `main` in its own pull request, with a plain-terms summary for
+  Louis's yes or no.
 - **Phase 3 (test) and Phase 4 (install): not started.**
 
 ## Rules for kit sessions
