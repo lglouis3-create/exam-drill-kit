@@ -750,12 +750,70 @@ function pace(){
 }
 const cram = () => PACES[pace()].by === 'questions';
 
-function schedule(s){
+/* Exam-date spacing (the kit's review/scheduler-proposal.md §4.1.1, approved
+   2026-11-01). The proposal's figures (Cepeda et al. 2008, its reference 11):
+   the best gap between reviews is about 20% to 40% of the time left at a
+   1-week test delay and about 5% to 10% at a 1-year delay, and "if a gap must
+   err, it errs longer". DESIGN CHOICE, not a source value: the fraction is the
+   top of each range, 0.40 when the exam is 7 days or less away and 0.10 when
+   it is 365 days or more away, interpolated linearly in log(days left) in
+   between. Days left are counted from now to the exam's `when`, in fractions
+   of a day.
+   A concept in the scope of an upcoming exam (any of its questions passes one
+   of that exam's pool filters; an exam without a `when` is ignored; with
+   several, the nearest one counts) gets its next day-clock review at the
+   earlier of the box interval and max(1 day, fraction x days left). After the
+   exam has started nothing is reset: the box schedule simply continues. The
+   question-count (cram) clock is not changed. */
+const EXAM_GAP = {nearDays: 7, near: 0.40, farDays: 365, far: 0.10, minDays: 1};
+function examFraction(days){
+  const G = EXAM_GAP;
+  if(days <= G.nearDays) return G.near;
+  if(days >= G.farDays) return G.far;
+  const x = (Math.log(days) - Math.log(G.nearDays)) / (Math.log(G.farDays) - Math.log(G.nearDays));
+  return G.near + (G.far - G.near) * x;
+}
+const BY_CONCEPT = {};
+QUESTIONS.forEach(q => { (BY_CONCEPT[q.concept] = BY_CONCEPT[q.concept] || []).push(q); });
+const conceptQs = c => BY_CONCEPT[c] || QUESTIONS.filter(q => q.concept === c);
+const EXAM_SCOPE = new WeakMap();      // exam -> Set of concept ids its pools cover
+function examConcepts(ex){
+  let set = EXAM_SCOPE.get(ex);
+  if(!set){
+    const tests = (ex.pools || []).map(p => poolFilter(p.filter || {}));
+    set = new Set(QUESTIONS.filter(q => tests.some(t => t(q))).map(q => q.concept));
+    EXAM_SCOPE.set(ex, set);
+  }
+  return set;
+}
+/* Days from `now` to the nearest exam that has a `when` still ahead and covers
+   this concept, or null when there is none. */
+function examDaysLeft(concept, now){
+  let best = null;
+  for(const ex of COURSE.exams || []){
+    const t = ex && ex.when ? new Date(ex.when).getTime() : NaN;
+    if(!isFinite(t) || t <= now || !examConcepts(ex).has(concept)) continue;
+    const days = (t - now) / 86400000;
+    if(best === null || days < best) best = days;
+  }
+  return best;
+}
+/* The day-clock gap the exam allows, in ms, or null when no exam applies. */
+function examGap(concept, now){
+  const d = examDaysLeft(concept, now);
+  return d === null ? null : Math.max(EXAM_GAP.minDays, examFraction(d) * d) * 86400000;
+}
+
+function schedule(s, concept){
   const P = PACES[pace()];
   const b = Math.max(0, Math.min(s.box, P.steps.length-1));
+  const now = Date.now();
   // both clocks are set, so switching pace later keeps every concept schedulable
   s.dueQ  = DB.qn + (cram() ? P.steps[b] : PACES.cram.steps[b]);
-  s.dueAt = Date.now() + (cram() ? PACES.semester.steps[b] : P.steps[b])*86400000;
+  let gap = (cram() ? PACES.semester.steps[b] : P.steps[b])*86400000;
+  const cap = concept === undefined ? null : examGap(concept, now);
+  if(cap !== null && cap < gap) gap = cap;
+  s.dueAt = now + gap;
 }
 function isDue(s){
   return cram() ? (DB.qn >= s.dueQ) : (Date.now() >= s.dueAt);
@@ -780,7 +838,7 @@ function record(q, result, picked, ms, mode){
     s.wrong++; s.streak = 0;
     s.box = 0;                       // rule 4: a miss resets to active review
   }
-  schedule(s);
+  schedule(s, q.concept);
   const entry = {qid:q.id, concept:q.concept, result, at:Date.now(), qn:DB.qn};
   if(picked !== undefined && picked !== null) entry.picked = picked;
   if(ms) entry.ms = ms;
@@ -799,7 +857,7 @@ function markShaky(q){
   if(last && last.qid === q.id && last.result === 'correct' && !last.conf){
     last.conf = 'shaky';
     s.box = Math.max(0, s.box - 1); s.streak = 0;
-    schedule(s); save();
+    schedule(s, q.concept); save();
     logConf(q, 'unsure');
     return true;
   }
@@ -815,7 +873,7 @@ function markGuessed(q){
     last.result = 'guessed';
     s.guessed++; s.correct = Math.max(0, s.correct - 1); s.streak = 0;
     s.box = 0;
-    schedule(s); save();
+    schedule(s, q.concept); save();
     logConf(q, 'guessed');
     return true;
   }

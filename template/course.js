@@ -29,6 +29,11 @@
                       tests (a drug course: brand, generic, category, indication,
                       essential; a calculation course: setup, unit, algebra, …).
    paceDefault        review pace for a new profile: cram | weekly | semester
+   scheduler          which scheduler picks the next question (core/README.md
+                      "The scheduler"). model 'concept' (the default when the
+                      field is absent): concepts are scheduled by box, and an
+                      exam with a `when` shortens the day-clock gap for the
+                      concepts its pools cover.
    ========================================================================== */
 const COURSE = {
   id: 'course-id',                       // e.g. 'phar4351'
@@ -77,4 +82,6 @@ const COURSE = {
   ],
 
   paceDefault: 'weekly',
+
+  scheduler: {model:'concept'},
 };

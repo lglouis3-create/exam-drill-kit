@@ -29,6 +29,7 @@ that course's repository. Both folders come from the recovered exam-drill templa
 | `offline_test.js` | core | the offline copy: other sites' caches kept, server down, server slow |
 | `home_test.js` | core | the Home Screen card for each kind of browser |
 | `history_test.js` | core | the answer history: its fields, Export, Import, Erase, a refused write |
+| `scheduler_test.js` | core | the scheduler (`review/scheduler-proposal.md` §4-§5), with a fixed clock, on scratch builds with a test topic |
 | `harvest.py`, `harvest_mask.py`, `ingest.py` | core | tools for adding a lecture; `harvest_mask.py` keeps a course-specific table at the top, empty in the kit |
 | `STEPPERS.md` | core | the rules step-through figures are written to |
 | `course.js` | template | the course manifest: names, `ns`, lectures, exams, skills, pace |
@@ -139,6 +140,30 @@ deletes a site's data after 7 days without use unless the site is on the Home Sc
 181849). A Home Screen copy with no progress says how to bring it over; a browser with an
 install prompt gets an Install button; any other browser sees no card.
 
+## The scheduler
+
+`course.js` `scheduler.model` picks it; the approved changes are
+`review/scheduler-proposal.md` §4.1-§4.3 and §5 (Louis, 2026-11-01).
+
+**`concept` (the default, and what an absent `scheduler` means).** Concepts, not single
+questions, are scheduled. A miss puts the concept back in box 0; it returns after at
+least 4 other questions (`GAP`), as a different question when it has one. A right answer
+moves it up a box; the box sets the next review on two clocks, questions answered (cram
+pace) and days (weekly and semester paces).
+
+*Exam-date spacing* (§4.1.1). The proposal's figures (its reference 11, Cepeda et al.
+2008): the best gap between reviews is about 20% to 40% of the time left at a 1-week test
+delay and about 5% to 10% at a 1-year delay, and "if a gap must err, it errs longer".
+**Design choice, not a source value:** the fraction is the top of each range, 0.40 when
+the exam is 7 days or less away and 0.10 when it is 365 days or more away, interpolated
+linearly in log(days left) between (`EXAM_GAP` in `shell.html`). For a concept in the
+scope of an exam whose `when` is still ahead (any of its questions passes one of that
+exam's pool filters), the next day-clock review is the earlier of the box interval and
+max(1 day, fraction × days left); days left are counted in fractions of a day; with several
+such exams the nearest one counts; an exam without a `when` is ignored. Nothing is reset
+when the exam has passed: the box schedule continues. The question (cram) clock is not
+changed.
+
 ## Exam draw
 
 Questions marked `dupOf` are wordings of one fact. A family is an original, everything
@@ -175,8 +200,8 @@ the built page.
 
 ## Not in core yet
 
-- The approved scheduler changes (`review/scheduler-proposal.md` §4); the scheduler is the
-  template's, unchanged. The answer history records what they need.
+- The rest of the approved scheduler changes (`review/scheduler-proposal.md` §4.1.2-§4.3);
+  exam-date spacing (§4.1.1) is in.
 - Intro-Pharmacology's exam-result page coming back after a reload, and its generator
   step in the build (`gen_*.py`), both named in `review/proposed-core.md` §5-§6.
 - The check that a course's `CLAUDE.md` was updated after its newest lecture (§7 there),
