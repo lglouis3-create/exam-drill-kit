@@ -18,6 +18,75 @@ Dated kit changes, newest first.
   core and on Medicinal-chemistry's live page, where 5 saved answers were replaced by a
   save of 1). `run_checks.sh`: template scratch course 23 PASS, 0 FAIL, 1 NOT RUN,
   1 REPORT; the Medicinal-chemistry copy 22 PASS, 0 FAIL, 2 NOT RUN, 1 REPORT.
+- New feature module `wrong-number-diagnosis` v1 (`features/wrong-number-diagnosis/`), from
+  Basic-Pharmacokinetics `ac2eb73` (`missDiagnosis`, its `src/shell.html` 1270-1338, written
+  into the module by `port_from_pk.py`): after a wrong typed number, in the quiz and on a
+  paper's result page, up to two lines say what the number is and which kind of miss that
+  is, and the engine's miss chip it points to is marked. The pick stays the answer's `miss`
+  (what Weak spots counts), the reading is kept as `missSuggest`, and a progress saved with
+  PK's `missKind` gets `miss` from it when loaded or imported. Its test (PK `test.js`
+  368-387 ported): 15 checks pass; with the module's code left out, 1 of 1 fails.
+- New feature module `equation-drill` v2 (`features/equation-drill/`), from
+  Basic-Pharmacokinetics `ac2eb73`: an Equations tab over the course's `EQUATIONS`, grouped
+  by module, each equation marked on the sheet, not on it, or to memorise, and opening what
+  each symbol is, when it holds, how to reach it and its source; a writing drill types the
+  right-hand side (any spelling of the same algebra counts) or builds it from pieces, some
+  wrong, learned at 3 right in a row. It needs `formulas-in-text`. Its code is PK's,
+  assembled by `features/equation-drill/port_from_pk.py`. Not ported: the set-up drill, "How
+  she asks it", the variables quiz, the sheet map. Its test (PK `equation_test.py` and
+  `test.js` 5d ported): 30 checks pass; with the module's code left out, 1 of 1 fails.
+- New feature module `chained-problem-sets` v2 (`features/chained-problem-sets/`), from
+  Basic-Pharmacokinetics `ac2eb73`: the course's `CHAINS` (problems asked in parts) get a
+  "Problems asked in parts" card on Topics; a set runs in the professor's order with "part i
+  of n", the vignette above each part and a closing card naming it; a part met alone names
+  its set and offers it from part 1; a paper keeps a set's parts together and in order (the
+  new `X.paper` hook). Its build step stops the build on a set naming a missing question.
+  Its test (PK `problemset_test.py` and `test.js` 5c, 760-807 ported, including the check
+  that every earlier result a part uses is stated in its stem): 17 checks pass; with the
+  module's code left out, 5 pass, 2 fail, then it stops (no Start button).
+- `core/`: an exam in `course.js` with `typed: true` (new, off unless set) puts
+  `exam_typed.js` in the page, and that exam's papers draw numeric and matching items by
+  the same rules as the rest (the engine's own draw, with their `type` set aside while it
+  runs); on the paper a calculation is typed and a matching item picked row by row, kept
+  through a reload, graded as in the quiz, recorded on submit and reviewed with the answer
+  and the working. New check `exam_typed_test.js` (17 checks pass; on the `d187207` core
+  4 pass, 5 fail, then it stops: no box to type the number). `test.js`, `browser_test.js`
+  and `history_test.js` answer a calculation or matching item when one is first on a paper.
+  Feature modules get one more hook, `X.paper`: a new paper's questions, in order, before
+  it starts (`features_test.js`: 40 checks).
+- `core/`: `course.js` `numeric` (new, off unless a course sets it) puts `numeric.js` in
+  the page: a typed number is read with its unit after it (`2.6 hr`, `0.17 1/hr`,
+  `0.17 hr-1`), two numbers are never joined into one, and with `numeric.margin` an item is
+  right within max(`tol`, margin × |key|) (Basic-Pharmacokinetics: `{margin: 0.02}`); the
+  verdict names the margin. On PK's 534 numeric items, PK's own grader and this option
+  agree on every item typed eight ways; without the option the core agrees with PK on 145
+  of 534 at the key + 1.5%, 400 at the key and ` 1/hr`, 0 at ` hr-1`, and on 152 at the key
+  and ` 5` (382 right only in the core) (`core/README.md` "Typed numbers"). New check
+  `numeric_test.js` (16 checks pass; 9 of 16 fail on the `d187207` core).
+- New feature module `formulas-in-text` v1 (`features/formulas-in-text/`), from
+  Basic-Pharmacokinetics `ac2eb73`: formulas typed in plain text are drawn as the slides
+  print them, as each question is drawn (`{{frac:a|b}}` stacked, powers, the course's
+  subscripts from the `symbols` option, t½, × and −), and fractions in the reading tabs
+  stack; stored text is unchanged. A module, not core: the symbol table is course data and
+  only calculation courses need it. Its test: on 8 PK questions and 1 calculation, every
+  stem (8), option (32) and worked step (3) is drawn exactly as PK's own formatter draws
+  it, plus PK's control cases (6 formulas, 3 runs of ordinary text); 11 checks pass, 1 skip
+  on the template course (no fractions in its bank). With the module's code left out the
+  same test fails 4 checks and then stops (`FX.api('formulas-in-text')` is null).
+- Feature modules (`features/README.md`): `course.js` `features: {<name>: {version,
+  ...options}}` now switches on a module copied from the kit's `features/<name>/current/`
+  to the course's `src/features/<name>/`. `build.py` checks the pinned version, the
+  options and the modules a module needs, runs its build step, and puts `core/features.js`
+  (the hooks: a tab, a question type, a step after an answer, a pass after a view is drawn,
+  reading-tab HTML, a Settings section, a start-up step, a progress converter) and the
+  module into the page; a module that throws is skipped and the page carries on. With no
+  module on the page is unchanged: the template course built from the same sources by the
+  `d187207` core and by this one differs only in the build stamp (241,642 bytes each, with
+  the 15 lines of documentation this change adds to `template/course.js`'s header).
+  `run_checks.sh` adds `build.py --list-checks`: the checks of what a course switches on.
+  New check `features_test.js` (39 checks; on the `d187207` core 4 pass, 9 fail, then it
+  stops at the first browser step: `FX is not defined`). `run_checks.sh` on the template
+  scratch course: 22 PASS, 0 FAIL, 1 NOT RUN, 1 REPORT, as before.
 - `core/`: the Home Screen card no longer appears on Topics; in Settings it is a section
   that starts closed, its one line the card's heading ("Keep your progress: add <short>
   to your Home Screen" in Safari on iPhone and iPad, "Progress from Safari" in a Home

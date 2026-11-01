@@ -35,6 +35,9 @@ QUESTION_FILE = re.compile(r'q[0-9][A-Za-z0-9._-]*\.js')
 # The sources every course has, after the data files; they cannot be listed in
 # `files` as well, or they would be put into the page twice.
 FIXED_SOURCES = ['glossary.js', 'links.js', 'reference.js', 'tell.js', 'guide.js', 'views.js']
+# Engine files the build puts in only when the course switches them on (below:
+# feature_modules, calc_options); they cannot be listed in `files` either.
+ENGINE_EXTRAS = ['features.js', 'numeric.js', 'exam_typed.js']
 
 # The home-screen and install icons. A course supplies its own as PNG files
 # under src/icons/ with these names; any it does not supply is written as a
@@ -90,7 +93,9 @@ def course_fields():
           "const C=new Function(fs.readFileSync('course.js','utf8')+';return COURSE;')();"
           "process.stdout.write(JSON.stringify({title:C.title,short:C.short,ns:C.ns,output:C.output,"
           "oldCachePrefix:C.oldCachePrefix||'',files:C.files===undefined?null:C.files,"
-          "manifest:C.manifest===undefined?null:C.manifest,tools:C.tools===undefined?null:C.tools}))")
+          "manifest:C.manifest===undefined?null:C.manifest,tools:C.tools===undefined?null:C.tools,"
+          "features:C.features===undefined?null:C.features,numeric:C.numeric===undefined?null:C.numeric,"
+          "typedExams:(C.exams||[]).filter(e=>e&&e.typed!==undefined).map(e=>({id:e.id,typed:e.typed}))}))")
     r = subprocess.run(['node', '-e', js], capture_output=True, text=True)
     if r.returncode != 0:
         sys.exit('ERROR: course.js could not be evaluated\n' + (r.stderr or r.stdout).strip())
@@ -117,7 +122,7 @@ def data_files(c):
     twice = sorted({f for f in files if files.count(f) > 1})
     if twice:
         sys.exit(f'ERROR: {where} lists {twice} more than once')
-    fixed = [f for f in files if f in ['course.js', 'sw.js'] + FIXED_SOURCES]
+    fixed = [f for f in files if f in ['course.js', 'sw.js'] + FIXED_SOURCES + ENGINE_EXTRAS]
     if fixed:
         sys.exit(f'ERROR: {where} lists {fixed}, which the build already includes; list only the data files')
     missing = [f for f in files if not os.path.isfile(f)]
@@ -190,19 +195,140 @@ def tool_tables(c):
             sys.exit(f'ERROR: course.js `tools.{k}` must be {what}')
 
 
+# ---- feature modules and the core's calculation options -----------------------
+# course.js `features` switches on modules: {<name>: {version: 'v1', ...options}}.
+# Each module is a folder src/features/<name>/, a copy of the kit's
+# features/<name>/current/ (features/README.md), described by its module.json:
+#   {name, version, does, js: [...], css: [...], step?: 'step.js',
+#    needs?: [module names], types?: [question types it renders],
+#    options?: {<option>: {default, about}}, test?: 'test.js'}
+# The course's `version` must equal the folder's (the course pins the module,
+# KIT_DESIGN §7.5), and every option it sets must be one the module declares.
+# A switched-on module puts core/features.js (the hooks) and its own files into
+# the page; with no module switched on neither is in the page, so the page is
+# the one this core built before feature modules existed.
+FEATURES_DIR = 'features'
+FEATURE_NAME = re.compile(r'[a-z][a-z0-9-]*')
+META_FIELDS = {'name', 'version', 'does', 'js', 'css', 'step', 'needs', 'types', 'options', 'test', 'source'}
+
+
+def feature_modules(c):
+    """course.js `features` -> [{name, dir, meta, opt}] in page order (a module
+    after the ones it needs, otherwise in course.js order); [] when the field is
+    absent or empty. Stops the build, before anything is written, on a module
+    that is not on disk, a version the folder does not hold, an option the module
+    does not declare, or a module whose `needs` are not switched on."""
+    f = c.get('features')
+    if f is None or f == {}:
+        return []
+    if not isinstance(f, dict):
+        sys.exit("ERROR: course.js `features` must be an object: {<module name>: {version: 'v1', ...options}}")
+    mods = {}
+    for name, cfg in f.items():
+        where = f'course.js `features.{name}`'
+        if not FEATURE_NAME.fullmatch(name):
+            sys.exit(f'ERROR: {where}: a module name is lower-case letters, digits and "-"')
+        if not isinstance(cfg, dict) or not isinstance(cfg.get('version'), str) or not cfg['version']:
+            sys.exit(f"ERROR: {where} must be an object with the module's version, e.g. {{version: 'v1'}}")
+        d = os.path.join(FEATURES_DIR, name)
+        mp = os.path.join(d, 'module.json')
+        if not os.path.isfile(mp):
+            sys.exit(f'ERROR: {where} switches on {name}, but src/{mp} is not there; copy the kit\'s '
+                     f'features/{name}/current/ to src/{d}/ (features/README.md)')
+        try:
+            meta = json.load(open(mp, encoding='utf-8'))
+        except ValueError as e:
+            sys.exit(f'ERROR: src/{mp} is not valid JSON: {e}')
+        bad = set(meta) - META_FIELDS if isinstance(meta, dict) else {'(not an object)'}
+        if bad:
+            sys.exit(f'ERROR: src/{mp} has {sorted(bad)}; its fields are {sorted(META_FIELDS)}')
+        if meta.get('name') != name:
+            sys.exit(f'ERROR: src/{mp} names the module {meta.get("name")!r}, not {name!r}')
+        if meta.get('version') != cfg['version']:
+            sys.exit(f'ERROR: {where} pins {name} {cfg["version"]}, but src/{d}/ holds {meta.get("version")}; '
+                     'a course changes a pinned version only in a drill update (Mode 7)')
+        declared = meta.get('options') or {}
+        opts = {k: v for k, v in cfg.items() if k != 'version'}
+        unknown = sorted(set(opts) - set(declared))
+        if unknown:
+            sys.exit(f'ERROR: {where} sets {unknown}, which {name} {meta["version"]} does not take; '
+                     f'its options are {sorted(declared) or "none"}')
+        merged = {k: (s or {}).get('default') for k, s in declared.items()}
+        for k, v in opts.items():
+            dv = merged.get(k)
+            num = lambda x: isinstance(x, (int, float)) and not isinstance(x, bool)
+            if dv is not None and v is not None and not (type(dv) is type(v) or (num(dv) and num(v))):
+                sys.exit(f'ERROR: {where}.{k} is {type(v).__name__}; {name} expects {type(dv).__name__} '
+                         f'(default {json.dumps(dv)})')
+            merged[k] = v
+        for kind in ('js', 'css'):
+            for fn in meta.get(kind) or []:
+                if not os.path.isfile(os.path.join(d, fn)):
+                    sys.exit(f'ERROR: src/{mp} lists {kind} file {fn!r}, which is not in src/{d}/')
+        if meta.get('step') and not os.path.isfile(os.path.join(d, meta['step'])):
+            sys.exit(f'ERROR: src/{mp} names the build step {meta["step"]!r}, which is not in src/{d}/')
+        mods[name] = {'name': name, 'dir': d, 'meta': meta, 'opt': merged}
+    for m in mods.values():
+        missing = [n for n in (m['meta'].get('needs') or []) if n not in mods]
+        if missing:
+            sys.exit(f'ERROR: {m["name"]} needs {missing} switched on in course.js `features` as well')
+    out, placed = [], set()
+    def place(m, trail):
+        if m['name'] in placed:
+            return
+        if m['name'] in trail:
+            sys.exit(f'ERROR: feature modules need each other in a circle: {" -> ".join(trail + [m["name"]])}')
+        for n in m['meta'].get('needs') or []:
+            place(mods[n], trail + [m['name']])
+        placed.add(m['name'])
+        out.append(m)
+    for m in mods.values():
+        place(m, [])
+    return out
+
+
+def calc_options(c):
+    """The core's two calculation options, each off unless the course sets it:
+    course.js `numeric` (how a typed number is read and graded: core/numeric.js)
+    and `typed: true` on an exam (calculation and matching items on that exam's
+    papers: core/exam_typed.js). Returns the core files they put in the page."""
+    out = []
+    n = c.get('numeric')
+    if n is not None:
+        if not isinstance(n, dict) or set(n) - {'margin'}:
+            sys.exit('ERROR: course.js `numeric` takes only `margin` (a fraction of the key, e.g. 0.02 for 2%)')
+        m = n.get('margin')
+        if m is not None and not (isinstance(m, (int, float)) and not isinstance(m, bool) and 0 <= m < 1):
+            sys.exit('ERROR: course.js `numeric.margin` must be a number from 0 up to 1 (0.02 is 2% of the key)')
+        out.append('numeric.js')
+    typed = c.get('typedExams') or []
+    bad = [e['id'] for e in typed if not isinstance(e['typed'], bool)]
+    if bad:
+        sys.exit(f'ERROR: course.js exams {bad}: `typed` is true or false')
+    if any(e['typed'] for e in typed):
+        out.append('exam_typed.js')
+    return out
+
+
 COURSE_FIELDS = course_fields()
 DATA_FILES = data_files(COURSE_FIELDS)
 MANIFEST_EXTRA = manifest_extra(COURSE_FIELDS)
 tool_tables(COURSE_FIELDS)
+MODULES = feature_modules(COURSE_FIELDS)
+CALC_FILES = calc_options(COURSE_FIELDS)
+# what goes into the page between the data and views.js, in this order
+EXTRA_CORE = CALC_FILES + (['features.js'] if MODULES else [])
+MODULE_JS = [os.path.join(m['dir'], f) for m in MODULES for f in (m['meta'].get('js') or [])]
+MODULE_CSS = [os.path.join(m['dir'], f) for m in MODULES for f in (m['meta'].get('css') or [])]
 QUESTION_FILES = [f for f in DATA_FILES if QUESTION_FILE.fullmatch(f)]
 # Everything that has to parse before a build is allowed to proceed. Derived
 # from DATA_FILES rather than listed again, so adding a question file cannot
 # leave it syntax-checked in one place and unchecked in the other.
-SOURCES = ['course.js'] + DATA_FILES + FIXED_SOURCES
+SOURCES = ['course.js'] + DATA_FILES + FIXED_SOURCES + EXTRA_CORE + MODULE_JS
 # Every source file that ends up on the student's device. device_lint.js reads
 # this list (python3 build.py --list-sources) rather than keeping its own copy.
 # sw.js is not part of the page; the build fills it in and writes it beside it.
-SHIPPED = SOURCES + ['shell.html', 'sw.js']
+SHIPPED = SOURCES + MODULE_CSS + ['shell.html', 'sw.js']
 if '--list-sources' in sys.argv:
     print(json.dumps(SHIPPED))
     sys.exit(0)
@@ -210,6 +336,20 @@ if '--list-sources' in sys.argv:
 # checks that need them (scheduler_test.js, browser_test.js, files_test.js).
 if '--list-files' in sys.argv:
     print(json.dumps({'files': DATA_FILES, 'questions': QUESTION_FILES}))
+    sys.exit(0)
+# The checks that apply only to what this course switches on, for run_checks.sh:
+# features_test.js when any module is on, each module's own test, numeric_test.js
+# with `numeric`, exam_typed_test.js with an exam's `typed`.
+OPTIONAL_CHECKS = ((['features_test.js'] if MODULES else [])
+                   + [os.path.join(m['dir'], m['meta']['test']) for m in MODULES if m['meta'].get('test')]
+                   + (['numeric_test.js'] if 'numeric.js' in CALC_FILES else [])
+                   + (['exam_typed_test.js'] if 'exam_typed.js' in CALC_FILES else []))
+if '--list-checks' in sys.argv:
+    print('\n'.join(OPTIONAL_CHECKS))
+    sys.exit(0)
+if '--list-features' in sys.argv:
+    print(json.dumps([{'name': m['name'], 'version': m['meta']['version'], 'dir': m['dir'], 'options': m['opt'],
+                       'types': m['meta'].get('types') or []} for m in MODULES]))
     sys.exit(0)
 
 
@@ -308,7 +448,8 @@ def bank_size(data):
     number of questions it holds. (Counting `{id:'` lines in the question files
     also counted the TOPICS entries: 551 for Medicinal-chemistry's 479.)"""
     with tempfile.NamedTemporaryFile('w', suffix='.js', delete=False, encoding='utf-8') as t:
-        t.write(course_src + '\n' + data + '\n;JSON.stringify({questions: QUESTIONS.length, topics: TOPICS.length});\n')
+        t.write(course_src + '\n' + data + '\n;JSON.stringify({questions: QUESTIONS.length, topics: TOPICS.length, '
+                'types: [...new Set(QUESTIONS.map(q => q.type).filter(Boolean))].sort()});\n')
         tmp = t.name
     js = ("const vm=require('vm'),fs=require('fs');const sb={console};vm.createContext(sb);"
           "process.stdout.write(String(vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),sb,{filename:'data'})))")
@@ -326,6 +467,78 @@ BANK = bank_size(DATA)
 n_q = BANK['questions']
 print(f'  {n_q} questions in {BANK["topics"]} topics, from {len(QUESTION_FILES)} question file'
       f'{"" if len(QUESTION_FILES) == 1 else "s"}: {", ".join(QUESTION_FILES)}')
+# A question type the core does not draw (it draws mc, select-all, numeric and
+# match) needs the switched-on module that renders and grades it.
+CORE_TYPES = {'numeric', 'match'}
+module_types = {t: m['name'] for m in MODULES for t in (m['meta'].get('types') or [])}
+orphans = [t for t in BANK.get('types', []) if t not in CORE_TYPES and t not in module_types]
+if orphans:
+    sys.exit(f'ERROR: questions have type {orphans}, which neither the core nor a switched-on module draws; '
+             'switch on the module that provides it in course.js `features`, or fix the `type`')
+
+
+def module_step(m):
+    """A module's build step (module.json `step`): its file run in node after
+    course.js and the data files, with the module's options as OPT. It sets STEP
+    to what the page should carry for the module (JSON), or throws an Error,
+    which stops the build with the module's own message: a step checks the
+    course's data for the module (a problem set naming a question that does not
+    exist) before anything is written."""
+    step = m['meta'].get('step')
+    if not step:
+        return None
+    code = (course_src + '\n' + DATA + '\n;var OPT = ' + json.dumps(m['opt']) + ';\nvar STEP = null;\n'
+            + open(os.path.join(m['dir'], step), encoding='utf-8').read() + '\n;JSON.stringify(STEP);\n')
+    with tempfile.NamedTemporaryFile('w', suffix='.js', delete=False, encoding='utf-8') as t:
+        t.write(code)
+        tmp = t.name
+    js = ("const vm=require('vm'),fs=require('fs');const sb={console};vm.createContext(sb);"
+          "try{process.stdout.write(String(vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),sb,{filename:'step'})))}"
+          "catch(e){process.stderr.write(String(e&&e.message||e));process.exit(3)}")
+    try:
+        r = subprocess.run(['node', '-e', js, tmp], capture_output=True, text=True)
+    finally:
+        os.unlink(tmp)
+    if r.returncode != 0:
+        sys.exit(f'ERROR: feature {m["name"]}: its build step stopped the build: ' + (r.stderr or r.stdout).strip()[-1500:])
+    out = json.loads(r.stdout or 'null')
+    print(f'  feature {m["name"]} {m["meta"]["version"]}: build step done')
+    return out
+
+
+def feature_block():
+    """The JavaScript that goes between the data and views.js: the core's
+    calculation options that are on, then, when any module is on, the hooks
+    (features.js) and each module, wrapped so that its names stay its own and an
+    error while it loads skips it (FX.load in features.js). Empty when nothing
+    is on, so such a page is byte for byte what this core built before."""
+    out = ''
+    for f in CALC_FILES:
+        out += open(f, encoding='utf-8').read() + '\n'
+    if not MODULES:
+        return out
+    out += open('features.js', encoding='utf-8').read() + '\n'
+    for m in MODULES:
+        data = module_step(m)
+        body = ''.join(open(os.path.join(m['dir'], f), encoding='utf-8').read() + '\n'
+                       for f in (m['meta'].get('js') or []))
+        out += (f"/* ---- feature module {m['name']} {m['meta']['version']} (src/{m['dir']}/) ---- */\n"
+                f"FX.load({json.dumps(m['name'])}, {json.dumps(m['meta']['version'])}, {json.dumps(m['opt'])}, "
+                f"{json.dumps(data)}, function(X, OPT, DATA){{\n'use strict';\n{body}}});\n")
+        print(f'  feature {m["name"]} {m["meta"]["version"]} in the page'
+              + (f' (options {json.dumps(m["opt"])})' if m['opt'] else ''))
+    return out
+
+
+FEATURE_JS = feature_block()
+for f in CALC_FILES:
+    print(f'  core option on: {f}')
+if MODULE_CSS:
+    if shell.count('</style>') != 1:
+        sys.exit("ERROR: shell.html must hold exactly one </style> for the feature modules' styles")
+    css = ''.join(f'/* feature module styles: src/{f} */\n' + open(f, encoding='utf-8').read() + '\n'
+                  for f in MODULE_CSS)
+    shell = shell.replace('</style>', css + '</style>', 1)
 now = datetime.datetime.now(datetime.timezone.utc)
 stamp = now.astimezone(zoneinfo.ZoneInfo('America/Chicago')).strftime('%Y-%m-%d %H:%M CT')
 # `built` is the same moment in UTC, written so that a later build sorts after
@@ -356,7 +569,7 @@ views = open('views.js', encoding='utf-8').read()
 marker = '</script>\n</body>'
 if marker not in shell:
     sys.exit('ERROR: closing script marker not found')
-shell = shell.replace(marker, '\n' + views + '\n</script>\n</body>')
+shell = shell.replace(marker, '\n' + FEATURE_JS + views + '\n</script>\n</body>')
 
 # check the assembled script as one unit, so an assembly-level fault is caught too
 scripts = re.findall(r'<script>([\s\S]*?)</script>', shell)

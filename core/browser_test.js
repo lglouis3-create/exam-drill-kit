@@ -510,7 +510,8 @@ function sourceCounts(){
   // the exam paper survives a reload and can be submitted in part
   const ex = await page.evaluate(() => {
     beginExam();
-    const q0 = EX.qs[0]; EX.picks[0] = isMulti(q0) ? correctSet(q0) : q0.options.findIndex(o => o.correct);
+    const q0 = EX.qs[0]; EX.picks[0] = isMulti(q0) ? correctSet(q0) : q0.type === 'numeric' ? String(q0.answer)   // a calculation or matching item (exams[].typed)
+      : q0.type === 'match' ? q0.pairs.map((p, i) => i) : q0.options.findIndex(o => o.correct);
     saveExam();
     const saved = store.get(NS + ':exam:' + PROFILE);
     EX = null;

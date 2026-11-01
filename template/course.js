@@ -24,6 +24,9 @@
                       an array meaning "one of". Pools' marks add up to `questions`.
                       `date` is the string shown in the header; add `when` (ISO)
                       and the page counts the days down to it.
+                      Optional `typed: true`: this exam's papers draw the
+                      numeric and matching items too (typed and picked on the
+                      paper); without it they stay off papers.
                       Optional `blueprint`: use it only when the professor has
                       announced counts per topic. See the commented example.
    activeExam         which exam the simulator and the weighted pass follow
@@ -85,6 +88,18 @@
                                       ['phrase', ...]] for each question crop
                                       that prints its own answer; the phrases
                                       are whited out on the question image
+   features           optional: the feature modules this course switches on,
+                      {<name>: {version:'v1', ...options}}, each copied from
+                      the kit's features/<name>/current/ to src/features/<name>/
+                      (the kit's features/README.md). The version pins it; only
+                      Mode 7 changes it. Leave it out and the page has no
+                      module code at all.
+   numeric            optional, for a course with typed calculations:
+                      {margin: 0.02} reads a typed number with its unit after
+                      it (2.6 hr, 0.17 1/hr), never joins two numbers, and
+                      grades an item within max(tol, margin x |key|). Leave it
+                      out and typed numbers are read and graded as before
+                      (core/README.md, Typed numbers).
    kit                {core:'<kit commit>'}: the exam-drill-kit commit this
                       src/ engine was copied from (core/), written when the
                       course is set up; only Mode 7 (a drill update) changes it
