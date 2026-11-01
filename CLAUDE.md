@@ -11,9 +11,15 @@ after Phase 1 and overrides earlier sections where they differ.
 - **Phase 2 (build): in progress** on branch `claude/elegant-ptolemy-pqxb8y`. Done:
   `KIT_DESIGN.md` §12; skill archives moved to `history/`; the recovered template in
   `history/exam-drill-template-2026-10-02/`; `FEATURES.md`, `COURSES.md`, this file,
-  `CHANGELOG.md`, `features/README.md`. Still to do: `core/` (from the template with the
-  picks in `review/proposed-core.md` and the scheduler decisions), `template/`,
-  `skill/SKILL.md`, then one pull request to `main` for Louis to merge.
+  `CHANGELOG.md`, `features/README.md`, a first draft of `skill/SKILL.md`. Still to do:
+  - `core/` and `template/` from the recovered template with the picks in
+    `review/proposed-core.md` (in progress);
+  - the approved scheduler changes (`review/scheduler-proposal.md` §4) in `core/`;
+  - three tools `skill/SKILL.md` names that do not exist yet: the material-profile
+    script, the check that a course's `CLAUDE.md` was updated after its newest lecture,
+    and the `/preview/` build;
+  - the recommendation method from the research Louis approved, into `skill/SKILL.md`;
+  - one pull request to `main` for Louis to merge.
 - **Phase 3 (test) and Phase 4 (install): not started.**
 
 ## Rules for kit sessions
