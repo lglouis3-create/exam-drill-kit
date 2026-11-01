@@ -3,6 +3,15 @@
 Dated kit changes, newest first.
 
 ## 2026-11-01
+- New feature module `equation-drill` v2 (`features/equation-drill/`), from
+  Basic-Pharmacokinetics `ac2eb73`: an Equations tab over the course's `EQUATIONS`, grouped
+  by module, each equation marked on the sheet, not on it, or to memorise, and opening what
+  each symbol is, when it holds, how to reach it and its source; a writing drill types the
+  right-hand side (any spelling of the same algebra counts) or builds it from pieces, some
+  wrong, learned at 3 right in a row. It needs `formulas-in-text`. Its code is PK's,
+  assembled by `features/equation-drill/port_from_pk.py`. Not ported: the set-up drill, "How
+  she asks it", the variables quiz, the sheet map. Its test (PK `equation_test.py` and
+  `test.js` 5d ported): 30 checks pass; with the module's code left out, 1 of 1 fails.
 - New feature module `chained-problem-sets` v2 (`features/chained-problem-sets/`), from
   Basic-Pharmacokinetics `ac2eb73`: the course's `CHAINS` (problems asked in parts) get a
   "Problems asked in parts" card on Topics; a set runs in the professor's order with "part i
