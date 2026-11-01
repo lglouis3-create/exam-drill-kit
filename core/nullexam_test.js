@@ -58,7 +58,7 @@ const BAD_WORD = /\b(null|NaN|undefined)\b/;
 // the course's own page
 {
   const X = L.engine('{EXAM}');
-  const unset = X.EXAM.questions == null || X.EXAM.pools.some(p => p.marks == null);
+  const unset = X.EXAM.questions == null || X.EXAM.minutes == null || X.EXAM.pools.some(p => p.marks == null);
   const carries = /\bconst EXAM_UNSET = /.test(L.PAGE.read());
   check(carries === unset, `the course's own page ${unset ? 'carries' : 'leaves out'} nullexam.js (its active exam ${unset ? 'leaves a number unset' : 'sets every number'})`,
         `the page ${carries ? 'carries' : 'does not carry'} it`);
@@ -73,8 +73,11 @@ const CASES = [
    line: `{ ${ACTIVE} E.questions = null; E.pools.forEach(p => { if(p.marks == null) p.marks = 2; }); }`},
   {label: 'marks not set', count: true, marks: false,
    line: `{ ${ACTIVE} E.pools.forEach(p => { p.marks = null; }); if(E.questions == null) E.questions = 4; }`},
+  // a paper whose pools' marks add up to its count: when the course leaves a count or a pool's
+  // marks unset, one pool of every question supplies the count, so the draw has one shape
   {label: 'time limit not set', count: true, marks: true, minutes: false,
-   line: `{ ${ACTIVE} E.minutes = null; if(E.questions == null) E.questions = 4; E.pools.forEach(p => { if(p.marks == null) p.marks = 2; }); }`},
+   line: `{ ${ACTIVE} E.minutes = null; if(E.questions == null) E.questions = 4;
+     if(E.pools.some(p => p.marks == null)) E.pools = [{key:'all', name:'All questions', marks:E.questions, filter:{}}]; }`},
 ];
 const UNTIMED = /No time limit is set in the course manifest, so this paper is untimed/;
 const TAKEN = /^(\d\d):(\d\d) taken$/;
@@ -173,9 +176,13 @@ const badWords = page => page.evaluate(src => {
                 `${exam.n} drawn${exam.beginError ? '; ' + exam.beginError : ''}`);
           if(exam.running){
             // the paper saved for a reload: a timed exam keeps the engine's fields exactly
-            const saved = await page.evaluate(() => JSON.parse(localStorage.getItem(NS + ':exam:' + PROFILE) || 'null'));
-            if(c.minutes !== false) check(saved && Object.keys(saved).sort().join(',') === 'ends,i,ids,orders,picks' && typeof saved.ends === 'number',
-              'a timed paper is saved with the engine\'s fields only (ids, picks, orders, i, ends)', saved && Object.keys(saved).join(','));
+            const saved = await page.evaluate(() => ({paper: JSON.parse(localStorage.getItem(NS + ':exam:' + PROFILE) || 'null'), minutes: EXAM.minutes}));
+            if(c.minutes !== false){
+              if(saved.minutes === null || saved.minutes === undefined)
+                L.skip('a timed paper is saved with the engine\'s fields only', 'this course sets no time limit, so its papers are untimed (the time-limit case checks them)');
+              else check(saved.paper && Object.keys(saved.paper).sort().join(',') === 'ends,i,ids,orders,picks' && typeof saved.paper.ends === 'number',
+                'a timed paper is saved with the engine\'s fields only (ids, picks, orders, i, ends)', saved.paper && Object.keys(saved.paper).join(','));
+            }
             await page.click('#exEnd');
             await page.waitForTimeout(300);
             await look('the exam result page');
