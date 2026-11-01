@@ -1789,6 +1789,7 @@ function showExplain(group, key){
   if(!out) return null;
   const t = key && document.querySelector(`template[data-x="${group}:${key}"]`);
   out.innerHTML = t ? t.innerHTML : '';
+  boxTables(out);
   if(sel) sel.value = key || '';
   return out;
 }
@@ -2009,6 +2010,7 @@ function renderDoc(el, html, prefix){
         `<a href="#${h.id}">${esc(h.label)}</a>`).join('')}</nav></details>`
     : '';
   el.innerHTML = body.replace('</p>', '</p>' + nav);
+  boxTables(el);
   // anchor links inside a scrolling panel need handling rather than a page jump,
   // and the target has to clear the sticky header and nav
   el.querySelectorAll('.refnav a').forEach(a => a.onclick = e => {
@@ -2016,6 +2018,22 @@ function renderDoc(el, html, prefix){
     const t = el.querySelector(a.getAttribute('href'));
     const d = el.querySelector('.refnav-wrap'); if (d) d.open = false;
     scrollToEl(t);
+  });
+}
+/* A table wider than the screen (a phone, most often) scrolls sideways inside
+   a box of its own (.tscroll in shell.html), so the page itself never scrolls
+   sideways. The table, its rows and their order are as written; only the box
+   is added around it. The table's top and bottom margins move to the box: a
+   scrolling box keeps its children's margins inside, so left on the table they
+   would no longer collapse with the heading after it and the tab would grow. */
+function boxTables(root){
+  root.querySelectorAll('table').forEach(t => {
+    if(t.parentElement && t.parentElement.classList.contains('tscroll')) return;
+    const box = document.createElement('div'), cs = getComputedStyle(t);
+    box.className = 'tscroll';
+    box.style.marginTop = cs.marginTop; box.style.marginBottom = cs.marginBottom;
+    t.before(box); box.appendChild(t);
+    t.style.marginTop = '0'; t.style.marginBottom = '0';
   });
 }
 function renderRef(){ renderDoc($('#v-ref'), refFigures(REFERENCE_HTML), 'ref'); }
