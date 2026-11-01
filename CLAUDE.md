@@ -60,10 +60,16 @@ after Phase 1 and overrides earlier sections where they differ.
   least mistakes", after Claude recommended option B of the Intro to Pharmacology
   assessment): Intro to Pharmacology is not moved; its site stays as it is and its
   features are ported into the kit from its code (port queue items 18-21, not before
-  2026-11-02 11:00 CT). BDK is not moved before its last quiz on 11/30, as its
-  assessment recommended; whether it moves at all is decided after that. With
-  Pharmacokinetics also held, no course besides Medicinal-chemistry moves for now, and
-  the features of all three reach future courses through the port queue.
+  2026-11-02 11:00 CT). BDK, Louis's decision later the same day when approving this
+  record: "BDK can be moved already since thats a good month away". The BDK move starts
+  now: about 33 kit pull requests by its assessment (K1, the feature switches, already
+  merged in #6) plus the course work on a BDK branch shown at `/BDK/preview/`. The live
+  BDK site does not change until Louis approves the preview. Its remaining quizzes are
+  Week 14 (Tue-Thu 11/17-11/19, pages 5 and 9) and the Cumulative (Mon 11/30, all
+  pages) (BDK `assets/app.js` `QUIZZES`, `c2f87ae`); no switch happens on those days,
+  and the assessment judged the whole move unlikely to finish before 11/17. With
+  Pharmacokinetics held and Intro to Pharmacology staying as it is, BDK is the only
+  course move in progress.
 - **Phase 3 (test) and Phase 4 (install): not started.**
 
 ## Rules for kit sessions
