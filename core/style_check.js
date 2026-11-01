@@ -85,4 +85,6 @@ if(vague.length)
   console.log(`  citations naming neither a slide number nor a slide title: ${
     vague.slice(0,6).map(q=>q.id).join(', ')}${vague.length>6?' …':''}`);
 console.log(`  rebuilt questions with a diagram: ${rebuilt.filter(q=>q.svg).length}`);
+// the summary line run_checks.sh reads (codes in check_lib.js)
+console.log(hits ? `FAIL: style_check.js: ${hits} phrasing or change-log issue(s)` : `PASS: style_check.js: ${Q.length} stems and ${rebuilt.length} explanations clean`);
 process.exit(hits?1:0);

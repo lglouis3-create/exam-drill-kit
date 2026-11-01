@@ -18,7 +18,16 @@ tables under COURSE-SPECIFIC cover any other spelling a citation uses.
 """
 import glob, json, os, re, subprocess, sys
 
-import pdfplumber
+# Exit codes as every check uses them (check_lib.js): 0 pass, 1 fail, 2 NOT RUN.
+# A check that cannot run says why and exits 2, so it is never read as a pass.
+def not_run(why):
+    print(f"NOT RUN: cite_check.py: {why}")
+    sys.exit(2)
+
+try:
+    import pdfplumber
+except ImportError:
+    not_run("pdfplumber is not installed, so no deck can be read")
 
 DECK_DIRS = ["decks", "."]
 
@@ -95,10 +104,16 @@ def load_questions():
         id:q.id, cite:q.cite||'', teach:tt(q.teach), note:q.note||'',
         whys:(q.options||[]).map(o=>o.why||'').concat((q.steps||[]).map(s=>s.why||''),(q.pairs||[]).map(p=>p.why||''))}))));
     """
+    js = "require(process.argv[1]).need('cite_check.py');" + js
     out = subprocess.run(["node", "-e", js, os.path.join(HERE, "built_page.js")],
                          capture_output=True, text=True)
+    if out.returncode == 2:
+        print(out.stdout.strip())
+        sys.exit(2)
     if out.returncode != 0:
-        sys.exit("ERROR: could not read the built page\n" + out.stderr.strip())
+        print("ERROR: could not read the built page\n" + out.stderr.strip())
+        print("FAIL: cite_check.py: the built page could not be read")
+        sys.exit(1)
     return json.loads(out.stdout)
 
 
@@ -164,10 +179,9 @@ def main():
 
     print("\n=== Citation check ===")
     if not counts:
-        print("  NOT RUN: no lecture PDFs found under decks/ or the working directory.")
-        print("  The decks are the course's own files and are not shipped in the source")
-        print("  zip, so this check only means something where they are present.")
-        return 0
+        print("  The decks are the course's own files and are not in the repository,")
+        print("  so this check only means something where they are present.")
+        not_run("no lecture PDFs found under decks/ or src/")
     print(f"  {checked} slide references checked against {len(counts)} decks on hand")
     if unchecked:
         print("\n  decks named but not on hand (references not checked):")
@@ -180,9 +194,13 @@ def main():
     elif checked:
         print("\n  every checked slide number exists in its deck")
     else:
-        print("\n  NOT RUN: decks were found but no citation matched one of them")
-        return 0
-    return 1 if bad else 0
+        not_run("decks were found but no citation matched one of them")
+    if bad:
+        print(f"FAIL: cite_check.py: {len(bad)} citation(s) point past the end of their deck")
+        return 1
+    print(f"PASS: cite_check.py: {checked} slide references checked against {len(counts)} decks"
+          + (f"; {sum(unchecked.values())} in decks not on hand were not checked" if unchecked else ""))
+    return 0
 
 
 if __name__ == "__main__":

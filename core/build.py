@@ -31,6 +31,12 @@ DATA_FILES = ['atlas.js', 'diagrams.js',
 # from DATA_FILES rather than listed again, so adding a question file cannot
 # leave it syntax-checked in one place and unchecked in the other.
 SOURCES = ['course.js'] + DATA_FILES + ['glossary.js', 'links.js', 'reference.js', 'tell.js', 'guide.js', 'views.js']
+# Every source file that ends up on the student's device. device_lint.js reads
+# this list (python3 build.py --list-sources) rather than keeping its own copy.
+SHIPPED = SOURCES + ['shell.html']
+if '--list-sources' in sys.argv:
+    print(json.dumps(SHIPPED))
+    sys.exit(0)
 
 
 def changelog():

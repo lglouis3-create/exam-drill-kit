@@ -273,8 +273,10 @@ console.log('=== 7. Different wording when a missed concept returns ===');
     if (n.concept === pair[0].concept) { got = n; break; }
     record(n,'correct');
   }
-  if (!got) { console.log('  FAIL  missed concept never returned'); process.exitCode = 1; }
-  else if (got.id === pair[0].id) { console.log('  FAIL  returned the identical question, not a new wording'); process.exitCode = 1; }
+  // counted in `fails`: process.exitCode alone was overridden by the
+  // process.exit(fails ? 1 : 0) at the end, so these two failures exited 0
+  if (!got) { console.log('  FAIL  missed concept never returned'); fails++; }
+  else if (got.id === pair[0].id) { console.log('  FAIL  returned the identical question, not a new wording'); fails++; }
   else console.log(`  ok    returned as a different question (${pair[0].id} -> ${got.id})`);
 })();
 
@@ -296,7 +298,7 @@ console.log('=== 8. Small pools end instead of looping ===');
   }
   const uniq=new Set(served).size;
   if(served.length > pool.length){
-    console.log(`  FAIL  served ${served.length} from a pool of ${pool.length} — repeats occurred`); process.exitCode=1;
+    console.log(`  FAIL  served ${served.length} from a pool of ${pool.length} — repeats occurred`); fails++;
   } else {
     console.log(`  ok    pool of ${pool.length} served ${served.length} (${uniq} distinct) then stopped`);
   }
@@ -305,7 +307,7 @@ console.log('=== 8. Small pools end instead of looping ===');
   let more=0, l2=null;
   for(let i=0;i<10;i++){ const q=pickNext(pool,l2); if(!q) break; record(q,'correct'); l2=q.id; more++; }
   console.log(more>0 ? `  ok    "Ask everything" still serves (${more} more)` : '  FAIL  "Ask everything" stopped too');
-  if(!more) process.exitCode=1;
+  if(!more) fails++;
   X.getDB().settings.mode='cram';
 })();
 
@@ -367,4 +369,6 @@ console.log('\n=== 9. Figures, read links, change log, blueprint ===');
 })();
 
 console.log(`\n${fails ? 'FAILURES: '+fails : 'All checks passed'}${warns ? '  (warnings: '+warns+')' : ''}\n`);
+// the summary line run_checks.sh reads (codes in check_lib.js)
+console.log(fails ? `FAIL: test.js: ${fails} failure(s)` : `PASS: test.js: ${QUESTIONS.length} questions checked${warns ? `, ${warns} warning(s)` : ''}`);
 process.exit(fails ? 1 : 0);

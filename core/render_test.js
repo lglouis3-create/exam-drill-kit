@@ -57,4 +57,5 @@ console.log('         exam question count: '+X.EXref().qs.length);
 const withImg = X.QUESTIONS.filter(q=>q.img).length;
 console.log(`         ${withImg} questions carry an image`);
 console.log(ok?'\nRender smoke test passed\n':'\nRENDER PROBLEMS FOUND\n');
+console.log(ok?'PASS: render_test.js: every view rendered clean':'FAIL: render_test.js: a view rendered undefined, NaN, [object Object] or unbalanced markup');
 process.exit(ok?0:1);

@@ -18,7 +18,10 @@ that course's repository. Both folders come from the recovered exam-drill templa
 | `output_test.js` | core | the build writes to the repository root and the checks read from there |
 | `test.js`, `style_check.js`, `render_test.js`, `explain_check.js`, `stepper_test.js` | core | checks that run on any course's built page |
 | `cite_check.py` | core | citation check; its course-specific tables at the top start empty |
-| `browser_test.py` | core | browser smoke test |
+| `browser_test.js` | core | browser smoke test (Node Playwright port of the template's `browser_test.py`, which stays in `history/`) |
+| `device_lint.js` | core | fails on syntax older Safari rejects (regex lookbehind) in anything that ships |
+| `run_checks.sh` | core | builds, then runs every check on its own, one line per check |
+| `checks_test.js` | core | the checks' own exit codes, the device lint and `run_checks.sh` |
 | `harvest.py`, `harvest_mask.py`, `ingest.py` | core | tools for adding a lecture; `harvest_mask.py` keeps a course-specific table at the top, empty in the kit |
 | `STEPPERS.md` | core | the rules step-through figures are written to |
 | `course.js` | template | the course manifest: names, `ns`, lectures, exams, skills, pace |
@@ -65,3 +68,26 @@ serves:
 Each file is written through a `.tmp` file and renamed, so a failed build leaves the
 last good file in place. Nothing is written outside the repository. Every check reads
 the page through `built_page.js`; `DRILL_PAGE=<file>` points them all at another page.
+
+## Checks
+
+    cd src && ./run_checks.sh            # build, then every check
+    ./run_checks.sh test.js browser_test.js
+
+`run_checks.sh` runs the build and then each check separately, so one failure cannot
+hide another, and prints one line per check with the check's own summary:
+
+| Line | Exit code of the check | Meaning |
+|---|---|---|
+| `PASS` | 0 | ran and found nothing wrong |
+| `FAIL` | 1 | ran and found a fault (a check that crashes or times out is a FAIL too) |
+| `NOT RUN` | 2 | could not run here, with the reason (no built page, no decks, no Playwright); never counted as a pass |
+| `REPORT` | 0, last line `REPORT:` | a report with no failing condition (`explain_check.js`) |
+
+It exits 1 when the build or any check fails and 0 otherwise; the full output of every
+check is kept in the log folder it names. A check that found nothing to look at reports
+NOT RUN, not PASS. The browser checks use Node Playwright with Chromium (in a cloud
+session: `NODE_PATH=$(npm root -g)`, browsers in `/opt/pw-browsers`; nothing installs
+browsers). WebKit is not installed in the cloud container, so no check here runs Safari;
+`device_lint.js` catches the one Safari fault on record (regex lookbehind, `review/findings.md` §6.5)
+by reading the sources and the built page.

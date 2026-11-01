@@ -29,7 +29,7 @@ L.check(!outside.length, `no file in the source tree names ${SANDBOX} (${files.l
 const READERS = ['test.js', 'style_check.js', 'render_test.js', 'explain_check.js', 'stepper_test.js', 'cite_check.py']
   .concat(files.filter(f => /^browser_test\./.test(f)));
 const own = READERS.filter(f => fs.existsSync(path.join(SRC, f)) &&
-  !/built_page/.test(fs.readFileSync(path.join(SRC, f), 'utf8')));
+  !/require\('\.\/(built_page|check_lib)'\)|built_page\.js/.test(fs.readFileSync(path.join(SRC, f), 'utf8')));
 L.check(!own.length, `every check that reads the built page gets its location from built_page.js (${READERS.length} checks)`, own.join(', '));
 const PARSE = 'output:' + '\\s*';     // the course.js parse the template's checks each did on their own
 const parsers = files.filter(f => f !== 'build.py' && fs.readFileSync(path.join(SRC, f), 'utf8').includes(PARSE));

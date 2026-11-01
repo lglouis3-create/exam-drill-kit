@@ -12,13 +12,12 @@
  * its steps, then a burst of rapid clicks, then a jump to the last step.
  */
 const fs = require('fs'), path = require('path');
-let chromium;
-try { ({chromium} = require('playwright')); }
-catch (e) {
-  console.log('\nstepper_test.js: NOT RUN (playwright for node is not installed)\n');
-  process.exit(0);
-}
-const OUT = require('./built_page').PAGE;
+const L = require('./check_lib');
+const OUT = L.PAGE.PAGE;
+// A check that cannot run exits 2 with NOT RUN (codes in check_lib.js); it used
+// to exit 0, which a chained command could not tell from a pass.
+L.PAGE.need('stepper_test.js');
+const {chromium} = L.playwright('stepper_test.js');
 
 /* Passed to the page as a function, not a string: a string is evaluated as an
    expression, and an arrow-function expression serializes back as undefined. */
@@ -44,8 +43,9 @@ const SETTLE = () => {
 };
 
 (async () => {
-  if (!fs.existsSync(OUT)) { console.log(`\nERROR: ${OUT} does not exist — run build.py first\n`); process.exit(1); }
-  const b = await chromium.launch();
+  let b;
+  try { b = await chromium.launch(); }
+  catch (e) { L.notRun('stepper_test.js', 'Chromium did not start: ' + String(e.message).split('\n')[0]); }
   const p = await b.newPage({viewport: {width: 900, height: 1000}});
   const errs = [];
   p.on('pageerror', e => errs.push(e.message));
@@ -56,8 +56,8 @@ const SETTLE = () => {
   const keys = await p.evaluate(() =>
     (typeof DIA === 'undefined' ? [] : Object.keys(DIA).filter(k => /data-anim/.test(DIA[k]))));
   if (!keys.length) {
-    console.log('\nstepper_test.js: NOT RUN (no step-through figures in DIA)\n');
-    await b.close(); process.exit(0);
+    await b.close();
+    L.notRun('stepper_test.js', 'no step-through figures in DIA');
   }
 
   const put = k => p.evaluate(k => {
@@ -142,5 +142,7 @@ const SETTLE = () => {
   }
   console.log();
   await b.close();
+  console.log(ok ? `PASS: stepper_test.js: ${keys.length} step-through(s) settle at every step`
+                 : `FAIL: stepper_test.js: settle problems ${problems}, wrongly faded ${faded}, page errors ${errs.length}`);
   process.exit(ok ? 0 : 1);
 })();

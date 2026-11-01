@@ -187,3 +187,6 @@ for (const r of shown.slice(0, LIMIT)) {
   for (const [label] of r.issues) console.log(`      - ${label}`);
 }
 console.log();
+// A report, not a gate: it has no failing condition, so it says REPORT and
+// exits 0 whatever it finds (codes in check_lib.js).
+console.log(`REPORT: explain_check.js: ${rows.length} of ${Q.length} questions carry at least one explanation issue`);
