@@ -15,9 +15,9 @@ after Phase 1 and overrides earlier sections where they differ.
   - `core/` and `template/` from the recovered template with the picks in
     `review/proposed-core.md` (in progress);
   - the approved scheduler changes (`review/scheduler-proposal.md` §4) in `core/`;
-  - three tools `skill/SKILL.md` names that do not exist yet: the material-profile
-    script (`core/profile.py`), the check that a course's `CLAUDE.md` was updated after its newest lecture,
-    and the `/preview/` build;
+  - two tools `skill/SKILL.md` names that do not exist yet: the check that a course's
+    `CLAUDE.md` was updated after its newest lecture, and the `/preview/` build (the
+    third, `core/profile.py`, waits for the approval below);
   - after Louis approves `review/recommendation-proposal.md` and sets its §6 values:
     `RULES.md` from its §4, rule names on the "Use when" lines of `FEATURES.md`, the
     experiment-file format, and `core/profile.py` (the material-profile script);
