@@ -2065,4 +2065,150 @@ const dropTab = v => { const b = document.querySelector(`#nav button[data-v="${v
 if(COURSE.atlas === false || typeof ATLAS === 'undefined' || !ATLAS.boards || !ATLAS.boards.length) dropTab('atlas');
 if(!DIA_LIST().length) dropTab('diagrams');
 askProfile(false);
-show(restoreExam() ? 'exam' : 'topics');
+
+/* ---------- the bar along the bottom ----------
+   One bar (Medicinal-chemistry's #swbar) carries both a plain note and an offer
+   to reload. A note never replaces an offer that is still showing, because the
+   offer is the one the student has to act on. */
+function bar(text, action, onAction, hideAfter){
+  let el = document.getElementById('swbar');
+  if(el && el.querySelector('[data-reload]') && !action) return;
+  if(el) el.remove();
+  el = document.createElement('div');
+  el.id = 'swbar'; el.setAttribute('role', 'status');
+  const msg = document.createElement('span'); msg.textContent = text; el.appendChild(msg);
+  if(action){
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = action; b.onclick = onAction;
+    b.setAttribute('data-reload', ''); el.appendChild(b);
+  }
+  const x = document.createElement('button');
+  x.type = 'button'; x.className = 'swx'; x.setAttribute('aria-label', 'Dismiss'); x.textContent = '×';
+  const hide = () => { el.remove(); document.body.classList.remove('swbar-on'); };
+  x.onclick = hide; el.appendChild(x);
+  document.body.appendChild(el);
+  document.body.classList.add('swbar-on');
+  if(hideAfter) setTimeout(hide, hideAfter);
+}
+/* Reload keeps the place (below) and asks first while a paper is running: the
+   paper is saved, but its clock keeps running through the reload. */
+function offerReload(text){
+  bar(text, 'Reload', () => {
+    if(EX && EX.running && !confirm('A paper is running. It is saved and its clock keeps running. Reload now?')) return;
+    placeSave();
+    location.reload();
+  });
+}
+
+/* ---------- a newer version is published ----------
+   A page left open keeps the copy it loaded. Every 15 minutes, and when the tab
+   comes back, it reads version.json beside it (written by build.py) and, when a
+   newer build is published, offers a reload (Basic-Pharmacokinetics, src/views.js
+   lines 5766-5771). Progress is kept in the browser, so reloading loses nothing.
+   Opened from disk there is no version.json to read, so nothing is checked. */
+function checkForUpdate(){
+  if(!/^https?:$/.test(location.protocol) || !BUILD.built) return;
+  if(document.querySelector('#swbar [data-reload]')) return;
+  fetch('version.json?t=' + Date.now(), {cache: 'no-store'}).then(r => r.ok ? r.json() : null).then(j => {
+    if(!j || !j.built || j.built <= BUILD.built || document.querySelector('#swbar [data-reload]')) return;
+    offerReload('A newer version of the drill is published. Your progress is kept.');
+  }).catch(() => {});
+}
+setInterval(checkForUpdate, 15 * 60000);
+document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible') checkForUpdate(); });
+setTimeout(checkForUpdate, 5000);
+
+/* ---------- keeping the place across a reload ----------
+   A reload (Reload for a newer version, the browser's own, or a phone that drops
+   a background tab) comes back to the same tab, the same open sections, the same
+   question and the same line at the top of the screen (Basic-Pharmacokinetics,
+   src/views.js lines 6389-6447). It is kept in sessionStorage, so it belongs to
+   this browser tab and goes when the tab is closed. Answers are not part of it:
+   an answered question comes back answered, and nothing is recorded twice. */
+const PLACE_KEY = NS + ':place', PLACE_MAX = 12 * 3600000;
+const SS = {get(k){ try { return sessionStorage.getItem(k); } catch(e){ return null; } },
+            set(k, v){ try { sessionStorage.setItem(k, v); } catch(e){} }};
+const PLACE_SEL = '[id], h2, h3, h4, summary, p, li, tr, figure, .opt, .subrow';
+const placeText = el => (el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 80);
+let PLACE_READY = false, PLACE_T = 0, PLACE_MOVED = false;
+// the first element whose top edge is on screen, named by its id or by its text and which copy of that text it is
+function placeAnchor(pane){
+  for(const el of pane.querySelectorAll(PLACE_SEL)){
+    const r = el.getBoundingClientRect(); if(!r.height || r.top < 0) continue;
+    if(el.id) return {id: el.id, off: r.top};
+    const txt = placeText(el); if(!txt) continue;
+    return {tag: el.tagName, txt, n: [...pane.querySelectorAll(el.tagName)].filter(x => placeText(x) === txt).indexOf(el), off: r.top};
+  }
+  return null;
+}
+// every fold in a pane with a key that survives a redraw: its summary text and which copy of that text it is
+function detKeys(pane){
+  const seen = {};
+  return [...pane.querySelectorAll('details')].map(d => { const sm = d.querySelector(':scope > summary'), t = sm ? placeText(sm) : '';
+    seen[t] = (seen[t] || 0) + 1; return [d, t + '#' + seen[t]]; });
+}
+// the quiz state as plain data: questions by id, everything else as it is
+function quizSnap(){
+  const o = {};
+  for(const [k, v] of Object.entries(Q)){
+    if(v == null || /^(string|number|boolean)$/.test(typeof v)) o[k] = v;
+    else if(Array.isArray(v) && v.length && v.every(x => x && typeof x === 'object' && x.id && byId(x.id) === x)) o[k] = {__ids: v.map(x => x.id)};
+    else if(Array.isArray(v) && v.every(x => x == null || typeof x !== 'object')) o[k] = v;
+    else if(typeof v === 'object' && v.id && byId(v.id) === v) o[k] = {__q: v.id};
+  }
+  return o;
+}
+function quizFrom(o){
+  const q = {};
+  for(const [k, v] of Object.entries(o || {})){
+    if(v && v.__ids) q[k] = v.__ids.map(byId).filter(Boolean);
+    else if(v && v.__q) q[k] = byId(v.__q);
+    else q[k] = v;
+  }
+  return q.pool && q.pool.length && q.current ? q : null;
+}
+function placeSave(){
+  if(!PLACE_READY || !VIEW) return;
+  const pane = document.getElementById('v-' + VIEW); if(!pane) return;
+  const pl = {v: VIEW, at: Date.now(), y: window.scrollY, a: placeAnchor(pane), open: detKeys(pane).filter(([d]) => d.open).map(([, k]) => k)};
+  if(VIEW === 'quiz' && Q && Q.current) pl.quiz = quizSnap();
+  SS.set(PLACE_KEY, JSON.stringify(pl));
+}
+const placeSoon = () => { clearTimeout(PLACE_T); PLACE_T = setTimeout(placeSave, 400); };
+function placeLoad(){
+  try {
+    const pl = JSON.parse(SS.get(PLACE_KEY) || 'null');
+    return pl && document.querySelector(`#nav button[data-v="${pl.v}"]`) && Date.now() - pl.at < PLACE_MAX ? pl : null;
+  } catch(e){ return null; }
+}
+// put the saved line back at the same height on screen; again once images have loaded, unless the reader has moved
+function placeScroll(pl){
+  const pane = document.getElementById('v-' + pl.v), a = pl.a; let el = null;
+  if(a && a.id) el = document.getElementById(a.id);
+  else if(a) el = [...pane.querySelectorAll(a.tag)].filter(x => placeText(x) === a.txt)[a.n] || null;
+  window.scrollTo(0, el && pane.contains(el) ? Math.max(0, el.getBoundingClientRect().top + window.scrollY - a.off) : pl.y || 0);
+}
+function placeRestore(pl){
+  try {
+    if(pl.v === 'quiz'){ Q = quizFrom(pl.quiz); if(!Q) pl.v = 'topics'; }
+    show(pl.v);
+    const pane = document.getElementById('v-' + pl.v), open = new Set(pl.open || []);
+    detKeys(pane).forEach(([d, k]) => { if(d.open !== open.has(k)) d.open = open.has(k); });
+    placeScroll(pl);
+    [350, 1200].forEach(ms => setTimeout(() => { if(!PLACE_MOVED && VIEW === pl.v) placeScroll(pl); }, ms));
+    return true;
+  } catch(e){ Q = null; return false; }
+}
+try { history.scrollRestoration = 'manual'; } catch(e){}
+window.addEventListener('scroll', placeSoon, {passive: true});
+document.addEventListener('toggle', placeSoon, true);
+document.addEventListener('click', placeSoon);
+['wheel', 'touchstart', 'keydown', 'mousedown'].forEach(t => window.addEventListener(t, () => { PLACE_MOVED = true; }, {passive: true, capture: true}));
+document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'hidden') placeSave(); });
+window.addEventListener('pagehide', placeSave);
+
+/* A running paper comes back first (restoreExam); otherwise the place saved
+   before the reload, otherwise Topics. */
+{ const ex = restoreExam(), pl = placeLoad();
+  if(ex) show('exam');
+  else if(!(pl && placeRestore(pl))) show('topics');
+  PLACE_READY = true; }

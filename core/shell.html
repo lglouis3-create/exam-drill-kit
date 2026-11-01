@@ -202,6 +202,17 @@ table.gap tr:last-child td{border-bottom:0}
 .examhead .clock.low{color:#FF9A8F}
 .examhead .prog{font-size:13px;color:#9FB0C4;margin-left:auto}
 
+/* ---------- the bar along the bottom: a newer version, saved for offline use ---------- */
+#swbar{position:fixed;left:50%;transform:translateX(-50%);
+  bottom:calc(12px + env(safe-area-inset-bottom));z-index:60;
+  display:flex;align-items:center;gap:10px;width:max-content;max-width:calc(100% - 24px);
+  background:var(--ink);color:#fff;border-radius:var(--r);padding:8px 8px 8px 14px;
+  font-size:14px;line-height:1.35;box-shadow:0 6px 24px rgba(22,32,46,.28)}
+#swbar button{background:var(--accent);color:#fff;border:0;border-radius:6px;
+  padding:6px 12px;font-size:14px;font-weight:600;flex:none;cursor:pointer}
+#swbar .swx{background:none;color:#9FB0C4;font-size:20px;line-height:1;padding:2px 6px;font-weight:400}
+body.swbar-on{padding-bottom:76px}
+
 /* ---------- the notice shown once when the browser refuses to save ---------- */
 #savewarn{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:50;
   max-width:720px;margin:0 auto;background:var(--warn-bg);color:var(--text);border:1px solid var(--warn);
@@ -486,10 +497,12 @@ body:has(#backbtn) #xback{bottom:64px}
    DATA  (injected at build time)
    ========================================================================== */
 /*__COURSE__*/
-/* stamp: when this file was built. changelog: CHANGELOG.md parsed into
-   [{date, items:[…]}], newest first, which the Topics page shows as "What's
-   new" since this browser last marked an entry seen, and Settings shows whole. */
-const BUILD = /*__BUILD__*/{stamp:'', questions:0, images:0, changelog:[]};
+/* stamp: when this file was built, as shown. built: the same moment in UTC,
+   compared with version.json to tell whether a newer build is published.
+   changelog: CHANGELOG.md parsed into [{date, items:[…]}], newest first, which
+   the Topics page shows as "What's new" since this browser last marked an
+   entry seen, and Settings shows whole. */
+const BUILD = /*__BUILD__*/{stamp:'', built:'', questions:0, images:0, changelog:[]};
 const IMAGES = /*__IMAGES__*/{};
 const QUESTIONS = /*__QUESTIONS__*/[];
 const TOPICS = /*__TOPICS__*/[];

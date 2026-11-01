@@ -104,13 +104,17 @@ if old not in shell:
     sys.exit('ERROR: data placeholder block not found in shell.html')
 shell = shell.replace(old, DATA)
 n_q = sum(len(re.findall(r"(?m)^\s*\{id:'", open(f, encoding='utf-8').read())) for f in DATA_FILES if f.startswith('q'))
-stamp = datetime.datetime.now(zoneinfo.ZoneInfo('America/Chicago')).strftime('%Y-%m-%d %H:%M CT')
-build_old = "const BUILD = /*__BUILD__*/{stamp:'', questions:0, images:0, changelog:[]};"
+now = datetime.datetime.now(datetime.timezone.utc)
+stamp = now.astimezone(zoneinfo.ZoneInfo('America/Chicago')).strftime('%Y-%m-%d %H:%M CT')
+# `built` is the same moment in UTC, written so that a later build sorts after
+# an earlier one as plain text; the page compares it with version.json.
+built = now.strftime('%Y-%m-%dT%H:%M:%SZ')
+build_old = "const BUILD = /*__BUILD__*/{stamp:'', built:'', questions:0, images:0, changelog:[]};"
 if build_old not in shell:
     sys.exit('ERROR: build stamp placeholder not found in shell.html')
 log = changelog()
-shell = shell.replace(build_old, "const BUILD = {stamp:%s, questions:%d, images:%d, changelog:%s};"
-                      % (json.dumps(stamp), n_q, len(images), json.dumps(log)))
+shell = shell.replace(build_old, "const BUILD = {stamp:%s, built:%s, questions:%d, images:%d, changelog:%s};"
+                      % (json.dumps(stamp), json.dumps(built), n_q, len(images), json.dumps(log)))
 if log:
     print(f'  change log: {len(log)} entries, newest "{log[0]["date"]}"')
 
@@ -167,3 +171,10 @@ if legacy and legacy != OUTPUT_NAME:
         '<script>location.replace("./index.html" + location.hash);</script>'
         '</body></html>\n'))
     print(f'wrote {legacy}  (redirect to {OUTPUT_NAME})')
+
+# Beside the page, the build time alone (Basic-Pharmacokinetics src/build.py):
+# an open page reads it every 15 minutes and when its tab comes back, and offers
+# a reload when a newer build is published. Written by the build, not by hand,
+# so it cannot fall out of step with the page.
+write_root('version.json', json.dumps({'built': built}) + '\n')
+print(f'wrote version.json  (built {built})')

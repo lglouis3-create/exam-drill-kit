@@ -24,6 +24,7 @@ that course's repository. Both folders come from the recovered exam-drill templa
 | `checks_test.js` | core | the checks' own exit codes, the device lint and `run_checks.sh` |
 | `storage_test.js` | core | progress when the browser refuses to save |
 | `draw_test.js` | core | no exam paper carries two wordings of one fact, across pools too |
+| `update_test.js` | core | a newer version is offered; a reload comes back to the same place |
 | `harvest.py`, `harvest_mask.py`, `ingest.py` | core | tools for adding a lecture; `harvest_mask.py` keeps a course-specific table at the top, empty in the kit |
 | `STEPPERS.md` | core | the rules step-through figures are written to |
 | `course.js` | template | the course manifest: names, `ns`, lectures, exams, skills, pace |
@@ -66,6 +67,7 @@ serves:
 | `index.html` | the app; the site root opens it |
 | `.nojekyll` | stops Pages running Jekyll, which drops files whose names start with `_` |
 | the `output` name in `course.js` | a redirect to `index.html`, so old links keep working |
+| `version.json` | `{"built": "<UTC time of the build>"}`, the same value as `BUILD.built` in the page |
 
 Each file is written through a `.tmp` file and renamed, so a failed build leaves the
 last good file in place. Nothing is written outside the repository. Every check reads
@@ -80,6 +82,16 @@ refuses a write (quota full, private window, blocked site data), that key is ser
 from memory for the rest of the visit, and the first refusal shows one notice that
 points to Settings → Export progress. A later write that succeeds clears the key's
 failure. Switching profile writes any save still waiting on its timer first.
+
+## A newer version, and the place after a reload
+
+An open page reads `version.json` every 15 minutes and when its tab comes back; when a
+newer build is published it shows a bar with Reload (Basic-Pharmacokinetics). Reload, the
+browser's own reload, and a phone dropping a background tab all come back to the same tab,
+the same open sections, the same question (answered or not, with nothing recorded twice)
+and the same line at the top of the screen. The place is kept in `sessionStorage` under
+`<ns>:place`, so it belongs to one browser tab. A running exam paper comes back first, as
+before.
 
 ## Exam draw
 
