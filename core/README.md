@@ -23,6 +23,7 @@ that course's repository. Both folders come from the recovered exam-drill templa
 | `run_checks.sh` | core | builds, then runs every check on its own, one line per check |
 | `checks_test.js` | core | the checks' own exit codes, the device lint and `run_checks.sh` |
 | `storage_test.js` | core | progress when the browser refuses to save |
+| `draw_test.js` | core | no exam paper carries two wordings of one fact, across pools too |
 | `harvest.py`, `harvest_mask.py`, `ingest.py` | core | tools for adding a lecture; `harvest_mask.py` keeps a course-specific table at the top, empty in the kit |
 | `STEPPERS.md` | core | the rules step-through figures are written to |
 | `course.js` | template | the course manifest: names, `ns`, lectures, exams, skills, pace |
@@ -79,6 +80,15 @@ refuses a write (quota full, private window, blocked site data), that key is ser
 from memory for the rest of the visit, and the first refusal shows one notice that
 points to Settings → Export progress. A later write that succeeds clears the key's
 failure. Switching profile writes any save still waiting on its timer first.
+
+## Exam draw
+
+Questions marked `dupOf` are wordings of one fact. A family is an original, everything
+marked `dupOf` it, and chains of those; it is named by the id at the end of the chain
+(Basic-Pharmacokinetics), so two siblings of one original block each other even when the
+original is not drawn or not in the bank (Intro-Pharmacology). One blocked set runs through
+every pool of a paper (Medicinal-chemistry `ed38dbd`), because a family can span pools;
+the draw by announced counts (`exams[].blueprint`) uses the same rule.
 
 ## Checks
 

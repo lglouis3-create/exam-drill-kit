@@ -1293,11 +1293,27 @@ function renderExam(){
   $('#startExam').onclick = beginExam;
 }
 /* A question marked dupOf:'x' tests the same fact as question x, so a paper
-   never carries both: taking either one blocks the other. */
+   never carries both. The wordings of one fact form a family: x, everything
+   marked dupOf x, and anything marked dupOf one of those (a chain), so two
+   wordings that both point at x are siblings and block each other even when x
+   is not on the paper (Intro-Pharmacology, exam1-drill/src/app.js line 1503).
+   A family is named by its root, the end of its dupOf chain (Basic-
+   Pharmacokinetics, src/views.js lines 3174-3177); the root is the id at the
+   end even when no question in the bank carries it, so siblings of an original
+   that was removed still block each other. */
+function familyOf(q){
+  let id = q.id, r = q;
+  const seen = new Set();
+  while(r && r.dupOf && !seen.has(r.id)){ seen.add(r.id); id = r.dupOf; r = byId(r.dupOf); }
+  return id;
+}
+/* `blocked` holds the families already on the paper. One set is passed through
+   every pool of a paper (drawPaper), because a family can span two pools and a
+   set per pool let both members onto one paper (Medicinal-chemistry ed38dbd). */
 function drawN(pool, n, blocked){
   const picked = [], used = blocked || new Set(), byConcept = {};
-  const take = q => { picked.push(q); used.add(q.id); if(q.dupOf) used.add(q.dupOf); };
-  const free = q => !used.has(q.id) && !(q.dupOf && used.has(q.dupOf));
+  const take = q => { picked.push(q); used.add(q.id); used.add(familyOf(q)); };
+  const free = q => !used.has(q.id) && !used.has(familyOf(q));
   shuffle(pool.slice()).forEach(q => { (byConcept[q.concept] ||= []).push(q); });
   const concepts = shuffle(Object.keys(byConcept));
   for(const c of concepts){                       // one per concept first, for spread
@@ -1320,8 +1336,8 @@ const EXAM_SATA = EXAM.sata || 0;
 /* Draw n from a pool with a target number of select-all items in it. Select-all
    questions are drawn first so they are never crowded out, then single-answer
    questions fill the rest, one concept each before any concept repeats. */
-function drawMixed(pool, n, nSata){
-  const used = new Set();
+function drawMixed(pool, n, nSata, used){
+  used = used || new Set();
   const sata = drawN(pool.filter(isMulti), Math.min(nSata, n), used);
   const rest = drawN(pool.filter(q => !isMulti(q)), n - sata.length, used);
   return [...sata, ...rest];
@@ -1349,16 +1365,16 @@ function drawBlueprint(bp){
   const elig = QUESTIONS.filter(q => !q.lowYield && !q.type);
   const by = {};
   elig.forEach(q => (by[bpCat(q)] ||= []).push(q));
+  // `used` holds the families on the paper (familyOf), the same rule as drawN
   const out = [], used = new Set(), cat = new Map();
-  const free = q => !used.has(q.id) && !(q.dupOf && used.has(q.dupOf)) &&
-                    ![...used].some(u => byId(u) && byId(u).dupOf === q.id);
+  const free = q => !used.has(familyOf(q));
   const take = (key, n) => {
     const list = shuffle((by[key] || []).slice()), seen = new Set();
     const firsts = list.filter(q => !seen.has(q.concept) && seen.add(q.concept));
     for(const q of firsts.concat(list)){
       if(n <= 0) break;
       if(!free(q)) continue;
-      out.push(q); used.add(q.id); cat.set(q.id, key); n--;
+      out.push(q); used.add(familyOf(q)); cat.set(q.id, key); n--;
     }
   };
   let left = EXAM.questions;
@@ -1377,7 +1393,7 @@ function drawBlueprint(bp){
     for(const q of shuffle(out.filter(x => !!x.multi === from))){
       const k = cat.get(q.id);
       const alt = shuffle((by[k] || []).slice()).find(x => !!x.multi === wantMulti && free(x));
-      if(alt){ out[out.indexOf(q)] = alt; used.delete(q.id); used.add(alt.id); cat.set(alt.id, k); return true; }
+      if(alt){ out[out.indexOf(q)] = alt; used.delete(familyOf(q)); used.add(familyOf(alt)); cat.set(alt.id, k); return true; }
     }
     return false;
   };
@@ -1392,11 +1408,12 @@ function drawPaper(){
   const total = EXAM.pools.reduce((n, p) => n + p.marks, 0) || 1;
   const main = mainPool();
   let sataLeft = EXAM_SATA;
+  const used = new Set();                         // one blocked set for the whole paper
   const parts = EXAM.pools.filter(p => p !== main).map(p => {
     const s = Math.round(EXAM_SATA * p.marks / total); sataLeft -= s;
-    return drawMixed(examQ.filter(p.test), p.marks, s);
+    return drawMixed(examQ.filter(p.test), p.marks, s, used);
   });
-  parts.push(drawMixed(examQ.filter(main.test), main.marks, Math.max(0, sataLeft)));
+  parts.push(drawMixed(examQ.filter(main.test), main.marks, Math.max(0, sataLeft), used));
   return shuffle(parts.flat());
 }
 const EXAM_KEY = () => NS + ':exam:' + PROFILE;
