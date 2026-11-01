@@ -388,6 +388,11 @@ there, as the brief requires for design changes Louis approves.
 10. PK's cross-pool `dupOf` defect: PK's final was 2026-10-27, so fixing it matters
     only if the drill is reused.
 11. Search `Heb-pharmacy-guide` for the template or the Exam 1 study tools?
+12. Decided 2026-11-01: the scheduler proposal (`scheduler-proposal.md` 4.1, 4.2,
+    4.3) is approved for the kit, with FSRS-7 fitted to the student's own reviews as
+    the FSRS option; BDK's own FSRS upgrade is a separate decision.
+13. Decided 2026-11-01: add a Home Screen tool to BDK (Louis: "a neat tool to
+    utilize").
 
 ## 10. Improvement proposals
 

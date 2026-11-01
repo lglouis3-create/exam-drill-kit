@@ -155,13 +155,30 @@ questions held back from practice and on exam questions mapped to concepts. The
 classroom study likewise compared review strategies with review time matched
 within one course.<sup>1</sup>
 
-## 6. Decisions for Louis
+## 6. Decisions
 
-1. Approve 4.1 (exam-date spacing, confident-error check, calculation preset, answer
-   log) for the core default?
-2. Approve moving the FSRS option to FSRS-7 (4.2) in the kit? BDK itself moves only
-   if you approve that separately.
-3. Build the combination (4.3) as an off-by-default option with the comparison in §5?
+Approved by Louis on 2026-11-01: 4.1, 4.2 and 4.3, all for the kit, with the
+instruction to "make sure that we use the best FSRS option there is". Whether BDK
+itself moves from FSRS-4.5 is still a separate decision.
+
+**What "the best FSRS option" means on the benchmark.** The version alone is not
+enough. Without same-day reviews, FSRS-7 with its default parameters had log loss
+0.3620, about the same as FSRS-4.5 fitted to the user (0.3625). FSRS-7 fitted to the
+user's own reviews had 0.3401, and fitted with recency weighting ("older reviews
+affect the loss function less and newer reviews affect it more") 0.3370, or 0.3363
+with 100 training epochs.<sup>4</sup> The benchmark's recommendation for Anki is FSRS-7
+"with both recency weighting and scheduling penalties enabled".<sup>4</sup> So the kit's
+FSRS option is FSRS-7, starting on default parameters and switching to parameters
+fitted to the student's own answers, with recency weighting, once enough reviews
+exist.
+
+**How fitting could run in a static site (to be confirmed in Phase 2).** ts-fsrs is
+the scheduler; its optimizer for training parameters from review logs is a separate
+package, `@open-spaced-repetition/binding`.<sup>5</sup> fsrs-browser "runs fsrs-rs in the
+browser with support for training FSRS parameters" (BSD-3-Clause license).<sup>18</sup>
+Not yet confirmed: whether either supports FSRS-7, whether `binding` runs in a
+browser, and the ts-fsrs license. If neither runs in the page, a session can fit the
+parameters from an exported progress file and write them into `course.js`.
 
 ## References
 
@@ -182,3 +199,4 @@ within one course.<sup>1</sup>
 15. Kornell N, Bjork RA. Optimising self-regulated study: the benefits—and costs—of dropping flashcards. *Memory*. 2008;16(2):125-136. doi:10.1080/09658210701763899
 16. Brunmair M, Richter T. Similarity matters: a meta-analysis of interleaved learning and its moderators. *Psychol Bull*. 2019;145(11):1029-1052. doi:10.1037/bul0000209
 17. Rohrer D, Dedrick RF, Hartwig MK, Cheung CN. A randomized controlled trial of interleaved mathematics practice. *J Educ Psychol*. 2020;112(1):40-52. doi:10.1037/edu0000367
+18. Open Spaced Repetition. fsrs-browser. GitHub. Accessed November 1, 2026. https://github.com/open-spaced-repetition/fsrs-browser
