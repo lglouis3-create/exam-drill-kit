@@ -25,7 +25,8 @@ is `course.js` plus its own content files, which start from the kit's
    this course tests, the pace. Add `when` to the exam for a countdown.
 3. Replace the samples in `q1_topics.js` with the course's TOPICS and its first
    questions. Add a question file per lecture (`q2_<lecture>.js` …) and list it
-   in `DATA_FILES` in `build.py`.
+   in `files` in `course.js`, in build order (a question file in `src/` that is
+   not listed stops the build).
 4. Put the professor's own questions into `STYLE.md` as they appear.
 5. Put the course's own icons, if it has them, under `icons/` as
    `icon-192.png`, `icon-512.png`, `icon-maskable-512.png` and

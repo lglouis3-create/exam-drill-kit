@@ -13,16 +13,22 @@
  *
  *     node browser_test.js
  */
-const fs = require('fs');
+const fs = require('fs'), child = require('child_process');
 const L = require('./check_lib');
 const NAME = 'browser_test.js';
 L.PAGE.need(NAME);
 const URL_ = 'file://' + L.PAGE.PAGE;
 const {check, skip} = L;
 
-// Every question file, found rather than listed, so a new one is picked up here
-// the moment it is built into the page instead of quietly going uncounted.
-const QSRC = fs.readdirSync('.').filter(f => /^q[0-9].*\.js$/.test(f)).sort();
+// Every question file, from course.js `files` as build.py reads it (the build
+// itself stops when a q<N>_*.js file in src/ is missing from that list), so a
+// new one is counted here the moment it is built into the page.
+function questionFiles(){
+  const r = child.spawnSync('python3', ['build.py', '--list-files'], {cwd: L.PAGE.SRC, encoding: 'utf8'});
+  try { const q = JSON.parse(r.stdout).questions; if(Array.isArray(q) && q.length) return q; } catch(e){}
+  console.log('FAIL: browser_test.js: build.py --list-files named no question file: ' + ((r.stderr || r.stdout || '').trim().split('\n').pop() || 'no output'));
+  process.exit(1);
+}
 // A question object opens at column 0 and carries a prof field; the TOPICS
 // entries in the first question file are indented and have no prof, so they are not counted.
 const QRE = /^\{id:'[^']+',(?: *(?:lowYield|dupOf|skill|type):[^,]+,)* *prof:'/gm;
@@ -30,7 +36,7 @@ const QRE = /^\{id:'[^']+',(?: *(?:lowYield|dupOf|skill|type):[^,]+,)* *prof:'/g
 /* How many questions and images the sources hold, so the page can be compared
    against them instead of against a number written here. */
 function sourceCounts(){
-  const n = QSRC.reduce((s, f) => s + (fs.readFileSync(f, 'utf8').match(QRE) || []).length, 0);
+  const n = questionFiles().reduce((s, f) => s + (fs.readFileSync(f, 'utf8').match(QRE) || []).length, 0);
   if(!n){ console.log('FAIL: browser_test.js: counted no questions in the sources — the count pattern is wrong'); process.exit(1); }
   return [n, Object.keys(JSON.parse(fs.readFileSync('images.json', 'utf8'))).length];
 }

@@ -46,6 +46,14 @@
                       concept with question rotation; it ships with
                       compare:true, which assigns each concept at random to
                       it or to 'concept' and logs which.
+   files              the data files, in the order the build puts them into the
+                      page: atlas.js and diagrams.js, then every question file
+                      (q<N>_<topic>.js), the first of which declares TOPICS and
+                      QUESTIONS. Add each new question file here. The list
+                      belongs to the course, so a core update (which replaces
+                      build.py) keeps it; without the field the build uses
+                      ['atlas.js', 'diagrams.js', 'q1_topics.js']. A question
+                      file in src/ that is not listed stops the build.
    ========================================================================== */
 const COURSE = {
   id: 'course-id',                       // e.g. 'phar4351'
@@ -96,4 +104,7 @@ const COURSE = {
   paceDefault: 'weekly',
 
   scheduler: {model:'concept'},
+
+  files: ['atlas.js', 'diagrams.js',
+          'q1_topics.js'],                 // add each new question file here, in order
 };

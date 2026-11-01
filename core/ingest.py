@@ -156,7 +156,7 @@ def main():
 
     print(f'{a.lecture}: {len(slides)} slides, {len(pics)} picture slides, outputs in {out}/')
     print('next: read picture_slides.txt and the renders; add polls from corpus_additions.md to STYLE.md;')
-    print('      write the questions into q_%s_skeleton.js (rename to q<N>_<topic>.js, add to build.py DATA_FILES)' % a.lecture)
+    print('      write the questions into q_%s_skeleton.js (rename to q<N>_<topic>.js, add it to course.js files)' % a.lecture)
 
 
 if __name__ == '__main__':
