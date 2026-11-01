@@ -20,6 +20,7 @@ Mid-course design changes:
   2026-10-30  app served at the Pages root, `.nojekyll`, install manifest, images re-encoded as WebP (`4a32dad`); why: the Pages root showed the README, and the page was 8.82 MB with 86.4% inline JPEG (MC notes §2); preview approved: no preview step existed.
   2026-10-30  service worker, network-first with a 3.5 s fallback (`ed38dbd`); why: Louis asked for offline use; preview approved: no preview step existed.
   (These two changes came after the exam on Mon 9/21 named at `src/views.js:370`.)
+  2026-11-01  moved onto the kit core (Mode 7, kit `main` ff7bd51, `course.js` `kit:{core:'ff7bd51'}`), with the 09/21 round (479 questions: the 387 live ids kept, 92 new), course name "Intro to Medicinal Chemistry (P2 Fall 2026)" (Louis), citations corrected after a slide check against the decks in Louis's Drive, `oldCachePrefix: 'phar4342-drill-'`; why: Louis's order of moves (Medicinal-chemistry first); preview approved: yes, at `/preview/` from 2026-11-01, and Louis approved the switch the same day (live commit `d7331be`).
 Proposals declined: none recorded.
 Exam outcomes: none recorded in the repo or the notes.
 Louis's notes:

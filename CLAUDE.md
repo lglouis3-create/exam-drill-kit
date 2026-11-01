@@ -36,11 +36,9 @@ after Phase 1 and overrides earlier sections where they differ.
   Each of these goes to `main` in its own pull request, with a plain-terms summary for
   Louis's yes or no.
 - **Moving the courses onto the core** (Louis's order, 2026-11-01: Medicinal-chemistry,
-  Pharmacokinetics, BDK, Intro to Pharmacology). Medicinal-chemistry: branch
-  `kit/move-to-core` in its repo; preview published at `/preview/` on 2026-11-01
-  (Louis approved); his name for the course is "Intro to Medicinal Chemistry (P2 Fall
-  2026)"; going live waits for the core fixes found by the move (kit PR #3), the slide
-  check he asked for, and his approval of the preview.
+  Pharmacokinetics, BDK, Intro to Pharmacology). Medicinal-chemistry: live on the core
+  since 2026-11-01 (commit `d7331be` in its repo, kit pin `ff7bd51`), after kit pull
+  requests #2, #3 and #4 and Louis's approval of its preview. Next: Pharmacokinetics.
 - **Phase 3 (test) and Phase 4 (install): not started.**
 
 ## Rules for kit sessions
