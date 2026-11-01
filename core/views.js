@@ -349,7 +349,7 @@ const newsId = c => c ? c.date + '|' + c.items.join('').length : '';
 function newsCard(){
   const log = (BUILD.changelog || []);
   if(!log.length) return '';
-  const seen = LS.get(NEWS_KEY());
+  const seen = store.get(NEWS_KEY());
   const i = seen ? log.findIndex(c => newsId(c) === seen) : 1;
   const fresh = log.slice(0, i < 0 ? 1 : i);
   if(!fresh.length) return '';
@@ -457,7 +457,7 @@ function renderTopics(){
 
   const wn = $('#whatsnew'); if(wn) wn.onclick = e => { e.preventDefault(); show('settings'); };
   const nok = $('#newsok'); if(nok) nok.onclick = () => {
-    LS.set(NEWS_KEY(), newsId(BUILD.changelog[0]));
+    store.set(NEWS_KEY(), newsId(BUILD.changelog[0]));
     const c = $('#news'); if(c) c.remove();
   };
   const nall = $('#newsall'); if(nall) nall.onclick = () => show('settings');
@@ -1402,14 +1402,14 @@ function drawPaper(){
 const EXAM_KEY = () => NS + ':exam:' + PROFILE;
 function saveExam(){
   if(!EX || !EX.running) return;
-  LS.set(EXAM_KEY(), JSON.stringify({ids:EX.qs.map(q=>q.id), picks:EX.picks, orders:EX.orders, i:EX.i, ends:EX.ends}));
+  store.set(EXAM_KEY(), JSON.stringify({ids:EX.qs.map(q=>q.id), picks:EX.picks, orders:EX.orders, i:EX.i, ends:EX.ends}));
 }
-function clearExam(){ LS.set(EXAM_KEY(), ''); }
+function clearExam(){ store.del(EXAM_KEY()); }
 /* A paper saved by an earlier visit is brought back if its clock has not run
    out; otherwise it is submitted as it stands. */
 function restoreExam(){
   let j = null;
-  try { j = JSON.parse(LS.get(EXAM_KEY()) || 'null'); } catch(e) { j = null; }
+  try { j = JSON.parse(store.get(EXAM_KEY()) || 'null'); } catch(e) { j = null; }
   if(!j || !j.ids) return false;
   const qs = j.ids.map(byId); if(qs.some(q => !q)) { clearExam(); return false; }
   EX = {qs, i:Math.min(j.i||0, qs.length-1), picks:j.picks, orders:j.orders, running:true, done:false, ends:j.ends};
@@ -1917,8 +1917,8 @@ function renderSettings(){
   <h3>Move your progress between devices</h3>
   <div class="filters">
     <div class="frow">
-      <button class="btn" id="btnExport">Download my progress</button>
-      <button class="btn ghost" id="btnImport">Load a progress file</button>
+      <button class="btn" id="btnExport">Export progress</button>
+      <button class="btn ghost" id="btnImport">Import progress</button>
       <input type="file" id="fileIn" accept="application/json" class="hide">
     </div>
     <p style="font-size:13.5px;color:var(--text-dim);margin:4px 0 0">

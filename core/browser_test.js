@@ -506,14 +506,14 @@ function sourceCounts(){
     beginExam();
     const q0 = EX.qs[0]; EX.picks[0] = isMulti(q0) ? correctSet(q0) : q0.options.findIndex(o => o.correct);
     saveExam();
-    const saved = LS.get(NS + ':exam:' + PROFILE);
+    const saved = store.get(NS + ':exam:' + PROFILE);
     EX = null;
     const back = restoreExam();
     const same = back && EX && EX.qs.length === EXAM.questions && (Array.isArray(EX.picks[0]) ? EX.picks[0].length > 0 : EX.picks[0] !== null);
     const before = DB.answers.length;
     finishExam(true);
     const logged = DB.answers.length - before;
-    return {saved: !!saved, same, logged, cleared: !LS.get(NS + ':exam:' + PROFILE)};
+    return {saved: !!saved, same, logged, cleared: !store.get(NS + ':exam:' + PROFILE)};
   });
   check(ex.saved && ex.same, 'an exam paper in progress is saved and restored');
   check(ex.logged === 1 && ex.cleared, `submitting a partial paper logs only the answered items (${ex.logged} logged)`);
@@ -522,13 +522,13 @@ function sourceCounts(){
   const news = await page.evaluate(() => {
     const log = BUILD.changelog || [];
     if(!log.length) return {none: true};
-    LS.set(NS + ':newsSeen', '');
+    store.set(NS + ':newsSeen', '');
     show('topics');
     const card = document.getElementById('news');
     const out = {items: card ? card.querySelectorAll('li').length : 0, card: !!card};
     if(card){ document.getElementById('newsok').click();
       out.dismissed = !document.getElementById('news');
-      out.remembered = LS.get(NS + ':newsSeen') === log[0].date + '|' + log[0].items.join('').length; }
+      out.remembered = store.get(NS + ':newsSeen') === log[0].date + '|' + log[0].items.join('').length; }
     show('settings');
     out.inSettings = !!document.getElementById('changelog');
     show('topics');

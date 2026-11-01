@@ -22,6 +22,7 @@ that course's repository. Both folders come from the recovered exam-drill templa
 | `device_lint.js` | core | fails on syntax older Safari rejects (regex lookbehind) in anything that ships |
 | `run_checks.sh` | core | builds, then runs every check on its own, one line per check |
 | `checks_test.js` | core | the checks' own exit codes, the device lint and `run_checks.sh` |
+| `storage_test.js` | core | progress when the browser refuses to save |
 | `harvest.py`, `harvest_mask.py`, `ingest.py` | core | tools for adding a lecture; `harvest_mask.py` keeps a course-specific table at the top, empty in the kit |
 | `STEPPERS.md` | core | the rules step-through figures are written to |
 | `course.js` | template | the course manifest: names, `ns`, lectures, exams, skills, pace |
@@ -68,6 +69,16 @@ serves:
 Each file is written through a `.tmp` file and renamed, so a failed build leaves the
 last good file in place. Nothing is written outside the repository. Every check reads
 the page through `built_page.js`; `DRILL_PAGE=<file>` points them all at another page.
+
+## Storage
+
+Everything the page keeps goes through `store` in `shell.html` (Intro-Pharmacology's,
+`exam1-drill/src/app.js`): keys are `<ns>:<what>`, progress is `<ns>:data:<profile>`,
+and `ns` comes from `course.js` and never changes during a course. When the browser
+refuses a write (quota full, private window, blocked site data), that key is served
+from memory for the rest of the visit, and the first refusal shows one notice that
+points to Settings → Export progress. A later write that succeeds clears the key's
+failure. Switching profile writes any save still waiting on its timer first.
 
 ## Checks
 
