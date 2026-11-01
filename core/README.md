@@ -189,6 +189,12 @@ after a confident error is one of another skill when the concept has one. One-pa
 sweeps keep their shuffled order. Without the preset nothing changes: a seeded session
 serves exactly what the `5014f27` core served (`scheduler_test.js`).
 
+*No "I know this, skip it" control* (§4.1.4; its reference 15: letting learners drop
+cards they thought they knew had small but consistent negative effects). The core has
+none; `scheduler_test.js` reads every control on 24 screens (Topics, a question before
+and after right and wrong answers and each confidence button, Weak spots, the exam page
+and a paper, Settings) and fails if one offers to skip a question or mark it known.
+
 As coded, the concept scheduler ranks never-seen material (tier 3) above due reviews
 (tier 2); the rule list in `shell.html` said "wrong > due > never-seen". The list now says
 so; the order itself is unchanged.
@@ -229,9 +235,9 @@ the built page.
 
 ## Not in core yet
 
-- The rest of the approved scheduler changes (`review/scheduler-proposal.md` §4.1.4-§4.3);
-  exam-date spacing (§4.1.1), the confident-error check (§4.1.2) and the calculation
-  preset (§4.1.3) are in.
+- The rest of the approved scheduler changes (`review/scheduler-proposal.md` §4.1.5-§4.3);
+  exam-date spacing (§4.1.1), the confident-error check (§4.1.2), the calculation
+  preset (§4.1.3) and the check that no skip control exists (§4.1.4) are in.
 - Intro-Pharmacology's exam-result page coming back after a reload, and its generator
   step in the build (`gen_*.py`), both named in `review/proposed-core.md` §5-§6.
 - The check that a course's `CLAUDE.md` was updated after its newest lecture (§7 there),

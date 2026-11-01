@@ -358,6 +358,45 @@ COURSE.exams.push({id:'zsA', name:'Test exam', date:'12 Nov', when:'2026-11-12T0
     }
   }
 
+  console.log('\n=== 1d. No "I know this, skip it" control (on this course\'s own page) ===');
+  {
+    // the proposal (its reference 15): letting learners drop cards they
+    // thought they knew had small but consistent negative effects
+    const SKIP = /\bskip|\bi know\b|already know|know (this|it)\b|\bknown\b|too easy|\bretire|\bsuspend|\bbury\b|don.?t (show|ask)|never (show|ask)|(hide|remove|drop) (this|the) (question|card|concept)/i;
+    check(SKIP.test('I know this, skip it') && SKIP.test('Mark as known') && !SKIP.test('Next question') && !SKIP.test('Not sure, ask again soon'),
+      'the detector finds a skip control in a test label and passes the existing labels');
+    const {ctx, page: p, errors} = await L.openFile(browser);
+    const controls = () => p.evaluate(() => [...document.querySelectorAll('button, a, [role="button"], .chip, input[type="button"], input[type="submit"]')]
+      .filter(e => e.offsetParent !== null || e.getClientRects().length)
+      .map(e => [e.id, e.textContent, e.getAttribute('aria-label'), e.title, e.value].filter(Boolean).join(' | ').replace(/\s+/g, ' ').trim()));
+    const found = new Set(), screens = [];
+    const look = async name => { const c = await controls(); screens.push(name); c.filter(t => SKIP.test(t)).forEach(t => found.add(`${name}: ${t}`)); };
+    await look('Topics');
+    await p.evaluate(() => startQuiz(null, null));
+    for(let i = 0; i < 6; i++){
+      const has = await p.evaluate(() => !!(Q && Q.current)); if(!has) break;
+      await look('a question before answering');
+      const right = i % 2 === 0;
+      await p.evaluate(right => { const q = Q.current;
+        if(q.type === 'numeric'){ document.getElementById('numIn').value = String(right ? q.answer : q.answer + 1000); document.getElementById('btnCheck').click(); }
+        else if(q.type === 'match'){ const sels = [...document.querySelectorAll('#v-quiz select[data-row]')];
+          sels.forEach((s, j) => { s.value = String(right ? j : (j + 1) % sels.length); s.dispatchEvent(new Event('change')); }); document.getElementById('btnCheck').click(); }
+        else if(isMulti(q)){ for(const j of (right ? correctSet(q) : [q.options.findIndex(o => !o.correct)])) document.querySelector(`#v-quiz button[data-o="${j}"]`).click(); document.getElementById('btnCheck').click(); }
+        else document.querySelector(`#v-quiz button[data-o="${q.options.findIndex(o => right ? o.correct : !o.correct)}"]`).click(); }, right);
+      await look(right ? 'after a right answer' : 'after a miss');
+      await p.evaluate(right => { const b = document.getElementById(right ? 'btnShaky' : 'btnSure'); if(b) b.click(); }, right);
+      await look(right ? 'after "Not sure"' : 'after "I was sure of that"');
+      await p.evaluate(() => { const b = document.getElementById('btnNext'); if(b) b.click(); });
+    }
+    await look('the end of a quiz');
+    for(const v of ['gaps', 'exam', 'settings']){ await p.evaluate(v => show(v), v); await look(v === 'gaps' ? 'Weak spots' : v === 'exam' ? 'the exam page' : 'Settings'); }
+    await p.evaluate(() => { show('exam'); const b = document.getElementById('startExam'); if(b) b.click(); });
+    await look('an exam paper');
+    check(screens.length >= 10 && !found.size, `no control offers to skip a question or mark it known, on ${screens.length} screens`, [...found].slice(0, 3).join('; '));
+    check(!errors.length, 'no page errors', errors.slice(0, 2).join('; '));
+    await ctx.close();
+  }
+
   await browser.close();
   L.finish(NAME);
 })().catch(e => { console.log(e.stack); console.log(`FAIL: ${NAME}: the test stopped: ${String(e.message).split('\n')[0]}`); process.exit(1); });
