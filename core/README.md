@@ -32,6 +32,8 @@ that course's repository. Both folders come from the recovered exam-drill templa
 | `preview_test.js` | core | `build.py --preview`: the live site unchanged, the preview's own namespace |
 | `state_check.js` | core | the course's root `CLAUDE.md` was updated with or after the newest lecture (§7.8) |
 | `state_check_test.js` | core | `state_check.js` on repositories with known histories |
+| `scheduler_test.js` | core | the scheduler (`review/scheduler-proposal.md` §4-§5), with a fixed clock, on scratch builds with a test topic |
+| `vendor/` | core | ts-fsrs 6.0.0's own UMD bundle and the licence texts of the code in it; `build.py` inlines them only for a course whose scheduler model needs FSRS |
 | `harvest.py`, `harvest_mask.py`, `ingest.py` | core | tools for adding a lecture; `harvest_mask.py` keeps a course-specific table at the top, empty in the kit |
 | `STEPPERS.md` | core | the rules step-through figures are written to |
 | `course.js` | template | the course manifest: names, `ns`, lectures, exams, skills, pace |
@@ -60,6 +62,7 @@ course's `src/README.md` comes from `template/`.
     mkdir -p COURSE_REPO/src
     cp -r template/. COURSE_REPO/src/
     find core -maxdepth 1 -type f ! -name README.md -exec cp {} COURSE_REPO/src/ \;
+    cp -r core/vendor COURSE_REPO/src/
 
 No file name appears in both folders except `README.md`, so the copy order does not
 matter for any other file.
@@ -87,8 +90,11 @@ copied once from the live keys the first time it opens in a browser, so answerin
 preview never changes the live drill's progress, and a preview with a new progress
 format cannot convert the live data. Delete `preview/` when the update goes live.
 
-Each file is written through a `.tmp` file and renamed, so a failed build leaves the
-last good file in place. Nothing is written outside the repository. Every check reads
+For a course whose `scheduler.model` is `fsrs` or `concept-fsrs`, `index.html` also
+carries `vendor/ts-fsrs-6.0.0.umd.js`, with the licence texts above it; for `concept` it
+carries no library. Any other model name stops the build. Each file is written through a
+`.tmp` file and renamed, so a failed build leaves the last good file in place. Nothing
+is written outside the repository. Every check reads
 the page through `built_page.js`; `DRILL_PAGE=<file>` points them all at another page.
 
 ## Storage
@@ -100,6 +106,23 @@ refuses a write (quota full, private window, blocked site data), that key is ser
 from memory for the rest of the visit, and the first refusal shows one notice that
 points to Settings → Export progress. A later write that succeeds clears the key's
 failure. Switching profile writes any save still waiting on its timer first.
+
+**Saved progress from an earlier core** (`upgradeDB` in `shell.html`). The scheduler work
+of 2026-11-01 only added to the progress: question ids, `ns`, and every field a save
+already has keep their names and meaning. The progress now carries `v: 2`; a save without
+it gets the new top-level fields (`fsrsQ`, `fsrsC`, `arms`, `fsUndo`) empty, and each
+concept gets `last` (question id → the answer count when it was last shown), rebuilt from
+the answers kept. Import progress runs the same conversion. Under an FSRS model, questions
+(or, under `concept-fsrs`, concepts) that have answers but no card get one by replaying
+those answers, oldest first, through the library, with the grades above; only when the
+answers kept are the whole history (the first is answer 1), because a card built from part
+of a history would be a state the student never had (design choice, after ts-fsrs's
+CHANGELOG 6.0.0: "rebuild memory from complete review history"). Otherwise those questions
+start as new under FSRS and `DB.fsHistory` is `incomplete`. `scheduler_test.js` checks
+this on a progress object and history saved by the `5014f27` core (recorded with
+`--print-progress`): every saved field reads back unchanged, `last` is rebuilt, the
+scheduler ranks every test question as `5014f27` did, the seven-field history reads back
+unchanged, and under `fsrs` and the comparison the rebuilt cards equal the library's own.
 
 ## Offline
 
@@ -130,18 +153,29 @@ before.
 Both are ported from BDK (`assets/app.js`). Every answer adds an entry to an answer
 history kept under `<ns>:log:<profile>`, apart from the progress:
 
-    [time in seconds, question code, 1 right / 0 wrong, mode, concept, confidence, item type]
+    [time in seconds, question code, 1 right / 0 wrong, mode, concept, confidence, item type,
+     scheduler, arm, predicted recall]
 
 The question code is an FNV-1a hash of the question id (8 hex digits); mode is `quiz`,
 `sweep` or `exam`; confidence is `knew` (a right answer left as it is: the screen says
-Next counts as "Knew it"), `unsure` ("Not sure"), `guessed` ("I guessed"), or empty
-where none was asked (a miss, an exam paper); item type is `mc`, `multi`, `numeric` or
-`match`. Export progress writes the progress and the history into one file; Import
-progress replaces the progress, as before, and merges the history without duplicating
-an answer; Erase my history clears both. When the browser refuses to save the history,
-the oldest half is dropped and no notice is shown, so the history never stops progress
-from saving. The scheduler does not read the history yet; it is there for the approved
-scheduler work (`review/scheduler-proposal.md` §4-§5), which is a later step.
+Next counts as "Knew it"), `unsure` ("Not sure"), `guessed` ("I guessed"), `sure` ("I
+was sure of that" on a miss), or empty where none was given (a miss left as it was, an
+exam paper); item type is `mc`, `multi`, `numeric` or `match`. The last three are the
+answer log for comparing schedulers (`review/scheduler-proposal.md` §4.1.5 and §5):
+scheduler is the model that schedules the question's concept and, in mode `quiz`, picked
+the question (`concept`, `fsrs` or `concept-fsrs`); arm is the comparison arm the concept
+is assigned to, or empty when the course runs no comparison; predicted recall is the
+probability of a right answer the model in use gave at that moment, before the answer
+updated it, rounded to 4 decimal places (a design choice, to keep the history small), and
+`null` for the concept scheduler, which predicts none. The first seven fields are as they
+were, so entries written before the last three were added still read the same, and BDK's
+four (`[seconds, card code, 1/0, mode]`) are the first four here. Export progress writes
+the progress and the history into one file; Import progress replaces the progress, as
+before, and merges the history without duplicating an answer (an entry here in the older
+seven-field format gains the last three from an imported copy of the same answer); Erase
+my history clears both. When the browser refuses to save the history, the oldest half is
+dropped and no notice is shown, so the history never stops progress from saving. No
+scheduler reads the history; the progress (`DB`) holds what they schedule from.
 
 The Home Screen card appears on Topics (until "Not now") and in Settings. In Safari on
 iPhone and iPad it gives the steps export, Add to Home Screen, import, because Safari
@@ -149,6 +183,162 @@ deletes a site's data after 7 days without use unless the site is on the Home Sc
 (webkit.org/tracking-prevention) and a Home Screen copy keeps its own storage (WebKit bug
 181849). A Home Screen copy with no progress says how to bring it over; a browser with an
 install prompt gets an Install button; any other browser sees no card.
+
+## The scheduler
+
+`course.js` `scheduler.model` picks it; the approved changes are
+`review/scheduler-proposal.md` §4.1-§4.3 and §5 (Louis, 2026-11-01).
+
+**`concept` (the default, and what an absent `scheduler` means).** Concepts, not single
+questions, are scheduled. A miss puts the concept back in box 0; it returns after at
+least 4 other questions (`GAP`), as a different question when it has one. A right answer
+moves it up a box; the box sets the next review on two clocks, questions answered (cram
+pace) and days (weekly and semester paces).
+
+*Exam-date spacing* (§4.1.1). The proposal's figures (its reference 11, Cepeda et al.
+2008): the best gap between reviews is about 20% to 40% of the time left at a 1-week test
+delay and about 5% to 10% at a 1-year delay, and "if a gap must err, it errs longer".
+**Design choice, not a source value:** the fraction is the top of each range, 0.40 when
+the exam is 7 days or less away and 0.10 when it is 365 days or more away, interpolated
+linearly in log(days left) between (`EXAM_GAP` in `shell.html`). For a concept in the
+scope of an exam whose `when` is still ahead (any of its questions passes one of that
+exam's pool filters), the next day-clock review is the earlier of the box interval and
+max(1 day, fraction × days left); days left are counted in fractions of a day; with several
+such exams the nearest one counts; an exam without a `when` is ignored. Nothing is reset
+when the exam has passed: the box schedule continues. The question (cram) clock is not
+changed.
+
+*Confident-error check* (§4.1.2). Confidence used to be asked only after a right answer,
+so a confident error could not be seen. The miss screen now has one optional button, "I
+was sure of that", styled like "Not sure" and "I guessed" (a new screen element). Tapped,
+it logs the confidence `sure` on that miss; the next question is a different question on
+the same concept when the concept has one (from the pool on screen, else the bank; one
+never shown first, else the one shown least recently; in a one-pass sweep it moves up the
+queue), otherwise the GAP rule holds; and the concept carries a check (`check:{day}` in
+its state) that only a right answer on a later calendar day than the error clears ("I
+guessed" on that answer puts it back). While the check waits, the concept is due on every
+later day whatever its box, and it ranks with the missed concepts (tier 4), still after
+`GAP` other questions; that rank is a design choice.
+
+*Calculation preset* (§4.1.3), `scheduler.preset:'calc'`. Two questions in a row never
+share a `skill` when a question of another skill is eligible, and due questions from
+earlier lectures stay in the mix: a quiz on part of the bank also draws the questions of
+lectures listed before the latest lecture the pool covers, while their concept is due or
+missed (never-seen or not-yet-due earlier material is not drawn in). Design choices that
+make "stay in the mix" happen: with the preset a due review ranks with never-seen
+material (tier 3) instead of below it, and that tier is drawn from evenly (keeping a
+concept's unseen wordings when it has any) instead of from the top five; the question
+after a confident error is one of another skill when the concept has one. One-pass
+sweeps keep their shuffled order. Without the preset nothing changes: a seeded session
+serves exactly what the `5014f27` core served (`scheduler_test.js`).
+
+**`fsrs`** (§4.2): FSRS-7, one memory model per question, through the ts-fsrs library.
+
+- *The library.* ts-fsrs 6.0.0 from npm (`npm view ts-fsrs` and `npm pack ts-fsrs@6.0.0`
+  through the proxy, 2026-11-01; tarball shasum `900b2ff1b375cbebab098001b3c54dcaf9be4f5b`),
+  its `dist/index.umd.js` copied unchanged to `vendor/ts-fsrs-6.0.0.umd.js` (198,410 bytes,
+  sha256 `6ef23308221a59a524c18153e665480159bc4e26e9d437a70d9e1e912cc54554`). Licence:
+  MIT (the package's own `LICENSE`, "Copyright (c) 2026 Open Spaced Repetition"). The
+  bundle also contains `@open-spaced-repetition/srs-kit` 1.0.0 (BSD-3-Clause, its own
+  `LICENSE` read from its npm tarball), helpers from `@oxc-project/runtime` 0.154.0 (MIT)
+  and the rolldown runtime (MIT; `LICENSE` read from rolldown 1.2.16, the version that
+  built the bundle is not recorded in it). All four licence texts are in `vendor/` and go
+  into the page above the library. Inlined, library and licences are 203,801 bytes; the
+  sample course's page is 436,181 bytes with them and 232,384 without (it was 204,031 at
+  `5014f27`; the rest of the growth is the scheduler code and its comments). A course on the concept
+  scheduler carries none of it.
+- *FSRS-7 by default.* The package README: "`DefaultScheduler()` uses FSRS-7 when
+  `version` is omitted"; its CHANGELOG for 6.0.0: "It defaults to FSRS-7". The bundle's
+  own code agrees (`options.version ?? "FSRS-7"`), and the page's scheduler reports
+  model `fsrs-7`. The page calls `DefaultScheduler()` with no options, so the library's
+  default parameters and target retention apply; `scheduler_test.js` checks that the
+  page's settings equal those of `DefaultScheduler()` run in node on the vendored file.
+- *Same-day answers update the model* (§4.2.2). In the bundle, `review()` always runs
+  the model's `step` on the card (the learning-step middleware changes only the next
+  interval and the card's state), and with FSRS-7 the elapsed time is the fractional
+  days since the last review (`fractionalDays: isFSRS7`). Every answer is a review,
+  exam papers and sweeps included; `scheduler_test.js` shows a second right answer an
+  hour later changing the memory state.
+- *Grades* (the mapping of §4.3, used for both FSRS models): right, with or without
+  "Not sure", is Good; a miss, or "I guessed", is Again ("I guessed" redoes that review
+  as Again from the card before it, kept in `DB.fsUndo`). "I was sure of that" records
+  the confidence only; the later-day check is the concept scheduler's.
+- *Picking*: a due card first, lowest predicted recall first (the library's
+  `forgettingCurve`); then a question never answered (one of up to five at random); with
+  "Ask everything", the rest by lowest recall. A missed question returns when its card
+  falls due (the library's relearning step). Cards are kept in `DB.fsrsQ` by question
+  id, the library's own fields with its two dates as milliseconds. The box of each
+  concept is still kept, for Weak spots and mastery. Settings says the course runs
+  FSRS-7. Design choices: the order due, then new; the five-way random pick among new
+  questions; a device clock set back behind a card's last review counts as the time of
+  that review (the library rejects a negative elapsed time).
+- *Checked against the library itself*: after each of 7 answers through the screen
+  (right, right an hour later, wrong, next day, "I guessed", "Not sure", "I was sure of
+  that"), the stored card equals the library's own review of the same sequence, run on
+  its own in a blank Chromium page, and each logged predicted recall equals the
+  library's. (Run in node instead, one field, `scheduledDays`, differs in the last digit:
+  node's V8 and Chromium's round some results differently.)
+- *Starting*: `DefaultScheduler()` returns a promise, which settles in the microtasks
+  right after the page's script, before any tap; an answer made before that (only a
+  check that runs the engine without waiting, such as `test.js`) waits for it, and its
+  question counts as answered. If the library fails to start, the course runs the
+  concept scheduler.
+- *Older browsers*: the bundle calls `Object.hasOwn`, for which the page supplies a
+  stand-in where it is missing, and it contains a BigInt literal (`0n`), so a browser
+  without BigInt syntax cannot parse a page that carries it. WebKit is not installed
+  here, so no FSRS page has been run in Safari (NOT RUN).
+- *Fitting parameters to Louis's answers* (§4.2.3, §6) is not built; the page runs the
+  defaults. Findings from the packages' own files (2026-11-01):
+  `@open-spaced-repetition/binding` 0.6.0 (MIT) trains FSRS-7 by default ("'FSRS-7'
+  (default) or 'FSRS-6'"), needs Node.js 24 or later (this container has Node 22), and
+  in a browser runs as WASI in a Worker; its CHANGELOG says the threadless
+  `binding-wasm32-wasip1` build "requires no COOP/COEP headers or shared memory, so
+  static sites hosted on GitHub Pages can run training locally in a browser Worker"
+  (that package is 1,565,023 bytes unpacked). Its training options (`modelVersion`,
+  `cardIds`, `enableShortTerm`, `enableSchedPenalties`, `trainingConfig`) name no
+  recency weighting. `fsrs-browser` 6.6.0 (BSD-3-Clause) "runs fsrs-rs in the browser
+  with support for training FSRS parameters"; its README does not mention FSRS-7, and its
+  `computeParameters` takes whole-day `delta_ts` with no model-version option, so FSRS-7
+  support is not confirmed. Neither has been run here.
+
+**`concept-fsrs`** (§4.3, off by default): a memory model per concept with the concept
+scheduler's question rotation. Each concept keeps one FSRS-7 card (`DB.fsrsC`), stepped by
+whichever of its questions is answered; the due concept with the lowest predicted recall
+goes next, and within it the question seen least recently (one never shown first), so a
+concept answered with "Not sure" comes back as a different question when it has one.
+Grades: right left as "Knew it" = Good (pass); "Not sure" right = Good, and the
+explanation stays on screen as after every answer; "I guessed" = Again (fail); wrong =
+Again. Never-seen concepts come after due ones, as under `fsrs`.
+
+*The comparison* (§5), `scheduler.compare`, on unless set to `false` (the combination
+ships with it). Each concept is assigned at random to the combination or the default
+concept scheduler: the top bit of the FNV-1a hash of `"<concept id>|<ns>"`, so the same
+on every visit and device (design choices: the top bit, because FNV-1a's lowest bit is only
+the parity of the characters; the concept id first, because the top bit hardly depends on
+the last characters hashed, so with `ns` last the ids `c1` to `c5` still split between the
+arms); the first answer stores the assignment in `DB.arms`, and a
+stored one is what counts from then on. In `scheduler_test.js` 1010 of 2000 test ids go
+to the combination, and neighbouring ids (`concept-0`, `concept-1`, ...) change arm 981 times
+in 1999. A concept on the concept arm gets everything of §4.1 (exam-date spacing, the
+confident-error check, the calculation preset); one on the combination is scheduled by its
+card. Every history entry carries the arm (fields 8 and 9). Both arms get the same review
+budget, counted in questions as in the classroom study §5 cites (matched for number of
+review trials, `review/research-notes/scheduler-2026-11-01.md` Finding 1.6): within one
+session (the drill's own "This session", answers with no gap longer than `SESSION_GAP`),
+the arm with fewer quiz answers picks the next question, a tie is drawn at random, and an
+arm with nothing to ask leaves the turn to the other, so the arm decides scheduling only,
+not how many questions a session shows. In `scheduler_test.js` a 30-question session in
+which both arms can ask splits 15 and 15.
+
+*No "I know this, skip it" control* (§4.1.4; its reference 15: letting learners drop
+cards they thought they knew had small but consistent negative effects). The core has
+none; `scheduler_test.js` reads every control on 24 screens (Topics, a question before
+and after right and wrong answers and each confidence button, Weak spots, the exam page
+and a paper, Settings) and fails if one offers to skip a question or mark it known.
+
+As coded, the concept scheduler ranks never-seen material (tier 3) above due reviews
+(tier 2); the rule list in `shell.html` said "wrong > due > never-seen". The list now says
+so; the order itself is unchanged.
 
 ## Exam draw
 
@@ -186,8 +376,8 @@ the built page.
 
 ## Not in core yet
 
-- The approved scheduler changes (`review/scheduler-proposal.md` §4); the scheduler is the
-  template's, unchanged. The answer history records what they need.
+- Fitting FSRS parameters to the student's answers (`review/scheduler-proposal.md`
+  §4.2.3); the rest of §4.1-§4.3 and §5 is in, on default parameters. See "The scheduler".
 - Intro-Pharmacology's exam-result page coming back after a reload, and its generator
   step in the build (`gen_*.py`), both named in `review/proposed-core.md` §5-§6.
 - `coverage_check.py`, `step_check.js` and `sources_check.js` from the drills.

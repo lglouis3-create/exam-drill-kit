@@ -609,16 +609,25 @@ function startSweep(scope){
 }
 
 function nextQuestion(){
-  let q;
+  let q = null;
+  // after "I was sure of that": a different question on the same concept comes
+  // next (scheduler rule 8); retryConcept is set only when there is one
+  const retry = Q.retryConcept ? retryQuestion(Q.retryConcept, Q.retryNot, Q.pool) : null;
+  Q.retryConcept = Q.retryNot = null;
   if(Q.sweep){
+    if(retry){
+      // in a fixed pass the retry moves up from later in the queue, or is added
+      const at = Q.sweep.indexOf(retry.id, Q.i);
+      if(at >= 0) Q.sweep.splice(at, 1);
+      Q.sweep.splice(Q.i, 0, retry.id);
+    }
     // walk the fixed queue rather than asking the scheduler what is due
-    q = null;
     while(Q.i < Q.sweep.length && !q) q = byId(Q.sweep[Q.i++]);
   }else{
-    q = pickNext(Q.pool, Q.lastId);
+    q = retry || pickNext(Q.pool, Q.lastId);
   }
   Q.current = q; Q.picked = null; Q.revealed = false; Q.startedAt = Date.now();
-  Q.rights = null; Q.lastRight = false; Q.missLogged = null; Q.guessedLogged = false;
+  Q.rights = null; Q.lastRight = false; Q.missLogged = null; Q.guessedLogged = false; Q.sureLogged = null;
   if(q) Q.order = shuffle((q.options || []).map((o,i)=>i));
   renderQuiz();
 }
@@ -729,6 +738,7 @@ function renderQuiz(){
     }else{
       h += `<button class="btn" id="btnNext">Next question</button>`;
       if(Q.lastRight && !Q.guessedLogged) h += confidenceButtons();
+      if(!Q.lastRight) h += sureButton();
       h += `<button class="btn ghost" onclick="show('topics')">Change topic</button>`;
     }
     h += `</div></div>`;
@@ -799,6 +809,7 @@ function renderQuiz(){
     const wasRight = multi ? gradeMulti(q, picks) : q.options[Q.picked].correct;
     h += `<button class="btn" id="btnNext">Next question</button>`;
     if(wasRight && !Q.guessedLogged) h += confidenceButtons();
+    if(!wasRight) h += sureButton();
     h += `<button class="btn ghost" onclick="show('topics')">Change topic</button>`;
   }
   h += `</div></div>`;
@@ -818,7 +829,31 @@ function confidenceButtons(){
     <button class="btn amber" id="btnGuess">I guessed that one</button>
     <span class="meta" id="knewNote">Next counts as “Knew it”.</span>`;
 }
+/* After a miss: "I was sure of that" (scheduler rule 8). Tapped, it logs the
+   confidence as "sure", a different question on the same concept comes next
+   when the concept has one, and the concept is due on later days until it is
+   answered right on a later day. The line under it says which of these
+   happens, so the record matches what the student saw. */
+const SURE_NOTE = {
+  retry: 'A different question on this concept comes next, and the concept is asked again on a later day.',
+  later: 'This concept is asked again on a later day.',
+  fsrs: ''};      // under an FSRS model the tap only records the confidence
+const sureNote = k => SURE_NOTE[k] ? `<span class="meta" id="sureNote">${esc(SURE_NOTE[k])}</span>` : '';
+function sureButton(){
+  if(Q.sureLogged) return `<button class="btn amber" id="btnSure" disabled>Marked as sure</button>${sureNote(Q.sureLogged)}`;
+  return `<button class="btn amber" id="btnSure">I was sure of that</button>`;
+}
 function wireConfidence(){
+  const bu = $('#btnSure'); if(bu && !bu.disabled) bu.onclick = () => {
+    const q = Q.current;
+    if(!markSure(q)) return;
+    const concept = armOf(q.concept) === 'concept';
+    const other = concept ? retryQuestion(q.concept, q.id, Q.pool) : null;
+    if(other){ Q.retryConcept = q.concept; Q.retryNot = q.id; }
+    Q.sureLogged = other ? 'retry' : concept ? 'later' : 'fsrs';
+    bu.textContent = 'Marked as sure'; bu.disabled = true;
+    bu.insertAdjacentHTML('afterend', sureNote(Q.sureLogged));
+  };
   const note = () => { const n = $('#knewNote'); if(n) n.remove(); };
   const bg = $('#btnGuess'); if(bg) bg.onclick = () => {
     markGuessed(Q.current);
@@ -1990,6 +2025,24 @@ function renderGuide(){ renderDoc($('#v-guide'), refFigures(GUIDE_HTML), 'guide'
 /* ==========================================================================
    SETTINGS
    ========================================================================== */
+/* Which scheduler this course runs, in Settings, when it is not the concept
+   scheduler the pace buttons above describe. */
+function schedulerNote(){
+  if(SCHED.model === 'fsrs') return `<p style="font-size:13.5px;color:var(--text-dim);margin:8px 0 0">
+      This course schedules each question with FSRS-7 (the ts-fsrs library, version 6.0.0, with its default settings):
+      when a question comes back is worked out from your answers to it, so the paces above do not change it.
+      "Ask everything" still serves every question, lowest predicted recall first.
+      "I was sure of that" records the confidence.</p>`;
+  const combo = `FSRS-7 (the ts-fsrs library, version 6.0.0, with its default settings) keeps one memory model
+      per concept, updated by whichever of its questions you answer, and shows the concept's question you saw least recently`;
+  if(SCHED.model === 'concept-fsrs' && SCHED.compare) return `<p style="font-size:13.5px;color:var(--text-dim);margin:8px 0 0">
+      This course compares two schedulers. Each concept is assigned at random to one of them: the paces above, or
+      ${combo}. The questions of each session are shared evenly between the two, and the answer history records
+      which one scheduled each answer.</p>`;
+  if(SCHED.model === 'concept-fsrs') return `<p style="font-size:13.5px;color:var(--text-dim);margin:8px 0 0">
+      In this course ${combo}; the paces above do not change when a concept comes back.</p>`;
+  return '';
+}
 function renderSettings(){
   const p = pace(), all = DB.settings.mode === 'all';
   $('#v-settings').innerHTML = `<h2>Settings</h2>
@@ -2005,7 +2058,9 @@ function renderSettings(){
       ${Object.values(PACES).map(P => `<b>${esc(P.label)}</b>: ${esc(P.blurb)}. `).join('')}
       <b>Ask everything</b> ignores the schedule and keeps serving questions, still worst-first.
       After a correct answer, "Not sure" brings that concept back at the shortest interval and "I guessed" treats it as not yet known.
+      After a wrong answer, "I was sure of that" brings a different question on the same concept next and asks the concept again on a later day.
     </p>
+    ${schedulerNote()}
   </div>
 
   <h3>Export</h3>
@@ -2029,7 +2084,7 @@ function renderSettings(){
     </div>
     <p style="font-size:13.5px;color:var(--text-dim);margin:4px 0 0">
       Storage does not sync between your phone and your laptop. Export on one, import on the other.
-      Each answer is also kept in an answer history (time, question, right or wrong, the confidence button)
+      Each answer is also kept in an answer history (time, question, right or wrong, the confidence button, the scheduler that chose it)
       so the review schedule can later be fitted to your own answers; Export progress includes it.
     </p>
   </div>
@@ -2074,7 +2129,7 @@ function renderSettings(){
       try{
         const j = JSON.parse(r.result);
         if(!j.db || !j.db.concepts) throw new Error('not a progress file');
-        DB = Object.assign(BLANK(), j.db); save();
+        DB = upgradeDB(j.db); save(); fsFromHistory();
         // the history is merged, not replaced: an answer already here is kept once
         if(Array.isArray(j.log)) mergeLog(j.log);
         alert('Progress loaded.'); renderSettings();
