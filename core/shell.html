@@ -218,6 +218,11 @@ table.gap tr:last-child td{border-bottom:0}
 #swbar .swx{background:none;color:#9FB0C4;font-size:20px;line-height:1;padding:2px 6px;font-weight:400}
 body.swbar-on{padding-bottom:76px}
 
+/* ---------- the Home Screen card ---------- */
+.hs-card{border-left:4px solid var(--accent)}
+.hs-steps{margin:4px 0 10px;padding-left:1.3em;font-size:13.5px;color:var(--text-dim)}
+.hs-steps li{margin:4px 0}
+
 /* ---------- the notice shown once when the browser refuses to save ---------- */
 #savewarn{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:50;
   max-width:720px;margin:0 auto;background:var(--warn-bg);color:var(--text);border:1px solid var(--warn);
@@ -600,6 +605,79 @@ function load(){
     const raw = store.get(keyFor(PROFILE));
     DB = raw ? Object.assign(BLANK(), JSON.parse(raw)) : BLANK();
   }catch(e){ DB = BLANK(); }
+  loadLog();
+}
+
+/* ==========================================================================
+   ANSWER HISTORY
+   ==========================================================================
+   One entry per answer, kept so the approved scheduler work (the kit's
+   review/scheduler-proposal.md §4-§5) can compare schedulers and fit a memory
+   model to this student's own answers. Ported from BDK (assets/app.js:
+   LOG_KEY, cardCode, logAnswer, mergeLog, saveLog). An entry is
+
+     [time in seconds, question code, 1 right / 0 wrong, mode, concept,
+      confidence, item type]
+
+   question code  FNV-1a hash of the question id, 8 hex digits; ids are
+                  recovered by hashing the current bank
+   mode           'quiz' (the scheduler picked it), 'sweep' (a fixed pass),
+                  'exam' (a paper)
+   concept        the question's concept id, which the scheduler works on
+   confidence     'knew' (a right answer left as it was: Next counts as
+                  "Knew it"), 'unsure' ("Not sure"), 'guessed' ("I guessed"),
+                  or '' when none was asked (a miss, an exam paper)
+   item type      'mc', 'multi' (select all), 'numeric', 'match'
+
+   The history has its own key per profile, apart from the progress, so it
+   never stops progress from saving: when the browser refuses the write, the
+   oldest half is dropped and no notice is shown for it. DB.answers stays as it
+   was; the scheduler and Weak spots read that, not this. */
+const LOG_MAX = 20000;
+const logKey = () => NS + ':log:' + PROFILE;
+const cardCode = id => {
+  let h = 0x811c9dc5;
+  for(let i = 0; i < id.length; i++){ h ^= id.charCodeAt(i); h = Math.imul(h, 0x01000193); }
+  return (h >>> 0).toString(16).padStart(8, '0');
+};
+let LOG = [];
+function loadLog(){
+  try { const v = JSON.parse(localStorage.getItem(logKey()) || '[]'); LOG = Array.isArray(v) ? v : []; }
+  catch(e){ LOG = []; }
+}
+function saveLog(){
+  for(;;){
+    try { localStorage.setItem(logKey(), JSON.stringify(LOG)); return; }
+    catch(e){ if(LOG.length < 100) return; LOG.splice(0, Math.ceil(LOG.length / 2)); }
+  }
+}
+const itemType = q => q.type || (q.multi ? 'multi' : 'mc');
+function logAnswer(q, result, mode){
+  const conf = result === 'guessed' ? 'guessed' : (result === 'correct' && mode !== 'exam' ? 'knew' : '');
+  LOG.push([Math.round(Date.now() / 1000), cardCode(q.id), result === 'wrong' ? 0 : 1, mode, q.concept, conf, itemType(q)]);
+  if(LOG.length > LOG_MAX) LOG.splice(0, LOG.length - LOG_MAX);
+  saveLog();
+}
+/* "Not sure" and "I guessed" come after the answer is logged; they change the
+   confidence on that answer's entry. */
+function logConf(q, conf){
+  const code = cardCode(q.id);
+  for(let i = LOG.length - 1; i >= 0; i--) if(LOG[i][1] === code){ LOG[i][5] = conf; break; }
+  saveLog();
+}
+/* An imported entry is the same answer as one already here when its second,
+   question, result and mode match. BDK matched on second and question alone,
+   which merges two answers to one question given in the same second in
+   different modes or with different results (history_test.js answers that
+   fast). The confidence is not part of the match: it can change after an
+   export, and the answer is still the same one. */
+function mergeLog(entries){
+  const key = e => e.slice(0, 4).join('|');
+  const seen = new Set(LOG.map(key));
+  for(const e of entries) if(Array.isArray(e) && e.length >= 3 && !seen.has(key(e))){ LOG.push(e); seen.add(key(e)); }
+  LOG.sort((x, y) => x[0] - y[0]);
+  if(LOG.length > LOG_MAX) LOG.splice(0, LOG.length - LOG_MAX);
+  saveLog();
 }
 let saveTimer=null;
 function save(){
@@ -682,7 +760,9 @@ function schedule(s){
 function isDue(s){
   return cram() ? (DB.qn >= s.dueQ) : (Date.now() >= s.dueAt);
 }
-function record(q, result, picked, ms){   // result: 'correct' | 'wrong' | 'guessed'
+// result: 'correct' | 'wrong' | 'guessed'; mode: 'exam' from a paper, otherwise
+// read off the quiz on screen (a fixed pass is a sweep)
+function record(q, result, picked, ms, mode){
   const s = st(q.concept);
   DB.qn++;
   s.seen++;
@@ -707,6 +787,7 @@ function record(q, result, picked, ms){   // result: 'correct' | 'wrong' | 'gues
   DB.answers.push(entry);
   if(DB.answers.length > 4000) DB.answers.splice(0, DB.answers.length-4000);
   save();
+  logAnswer(q, result, mode || (typeof Q !== 'undefined' && Q && Q.sweep ? 'sweep' : 'quiz'));
 }
 
 /* Confidence on a correct answer. "Not sure" undoes the box advance the
@@ -719,6 +800,7 @@ function markShaky(q){
     last.conf = 'shaky';
     s.box = Math.max(0, s.box - 1); s.streak = 0;
     schedule(s); save();
+    logConf(q, 'unsure');
     return true;
   }
   return false;
@@ -734,6 +816,7 @@ function markGuessed(q){
     s.guessed++; s.correct = Math.max(0, s.correct - 1); s.streak = 0;
     s.box = 0;
     schedule(s); save();
+    logConf(q, 'guessed');
     return true;
   }
   return false;

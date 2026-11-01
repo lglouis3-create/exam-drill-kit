@@ -361,6 +361,88 @@ function newsCard(){
     <div class="row"><button class="btn" id="newsok">Got it</button>
       <button class="btn ghost" id="newsall">All changes</button></div></div>`;
 }
+/* ---------- the Home Screen card ----------
+   Safari on iPhone and iPad deletes a site's saved data after 7 days without
+   use unless the site is on the Home Screen (webkit.org/tracking-prevention).
+   A Home Screen copy keeps its own storage, separate from Safari's (WebKit bug
+   181849: "Home Screen apps are created as isolated entities"), so the card
+   takes the student through Export, Add to Home Screen, Import. A browser that
+   offers an install prompt gets an Install button. Ported from BDK
+   (assets/app.js: homeCard, homeCardInner, wireHome, refreshHomeCards). The
+   card shows on Topics until "Not now" and always in Settings, where Export
+   and Import are. */
+const WEBKIT_ITP = 'https://webkit.org/tracking-prevention/';
+const HOME_KEY = () => NS + ':homeTipDismissed';
+// navigator and matchMedia are read only when asked, so the engine still loads
+// where they are absent (the node checks)
+const isStandalone = () => { try { return matchMedia('(display-mode: standalone)').matches || navigator.standalone === true; } catch(e){ return false; } };
+const isIOS = () => { try { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); } catch(e){ return false; } };
+let installPrompt = null;
+function homeCardInner(onTopics){
+  const later = onTopics ? ' <button class="btn ghost" data-hs-dismiss>Not now</button>' : '';
+  const name = esc(COURSE.short || COURSE.title);
+  if(isStandalone()){
+    if(!isIOS() || DB.answers.length) return '';
+    return `<b>Progress from Safari</b>
+      <p class="meta" style="margin:6px 0 8px">This Home Screen copy of ${name} keeps its own progress, separate from Safari's. To bring your progress here, open the drill in Safari, tap <b>Export progress</b> in Settings, then come back here and use <b>Import progress</b> in Settings.</p>
+      ${onTopics ? `<div class="row">${later.trim()}</div>` : ''}`;
+  }
+  if(isIOS()){
+    return `<b>Keep your progress: add ${name} to your Home Screen</b>
+      <p class="meta" style="margin:6px 0 4px">Safari on iPhone and iPad deletes a website's saved data after 7 days without use, unless the site is on the Home Screen (<a href="${WEBKIT_ITP}" target="_blank" rel="noopener">WebKit</a>). The Home Screen copy keeps its own progress, separate from Safari's, so bring yours across:</p>
+      <ol class="hs-steps"><li>Tap <b>Export progress</b> below. It saves a file.</li><li>In Safari, tap <b>Share</b>, then <b>Add to Home Screen</b>.</li><li>Open the drill from the new icon, go to <b>Settings</b>, tap <b>Import progress</b> and choose the file.</li></ol>
+      <div class="row"><button class="btn" data-hs-export>Export progress</button>${later}</div>`;
+  }
+  if(installPrompt){
+    return `<b>Install ${name}</b>
+      <p class="meta" style="margin:6px 0 8px">Installing adds the drill to this device as an app with its own icon. After the first visit it also opens without a connection.</p>
+      <div class="row"><button class="btn" data-install>Install ${name}</button>${later}</div>`;
+  }
+  return '';
+}
+function homeCard(onTopics){
+  if(onTopics && store.get(HOME_KEY()) === '1') return '';
+  const inner = homeCardInner(onTopics);
+  return inner ? `<div class="panel hs-card" data-hs="${onTopics ? 'topics' : 'settings'}">${inner}</div>` : '';
+}
+function wireHome(root){
+  root.querySelectorAll('[data-hs]').forEach(card => {
+    const ex = card.querySelector('[data-hs-export]');
+    if(ex) ex.onclick = exportProgress;
+    const inst = card.querySelector('[data-install]');
+    if(inst) inst.onclick = async () => {
+      const p = installPrompt;
+      if(!p) return;
+      installPrompt = null;
+      try { await p.prompt(); await p.userChoice; } catch(e){ /* the browser declined to show it */ }
+      refreshHomeCards();
+    };
+    const later = card.querySelector('[data-hs-dismiss]');
+    if(later) later.onclick = () => { store.set(HOME_KEY(), '1'); card.remove(); };
+  });
+}
+function refreshHomeCards(){
+  document.querySelectorAll('[data-hs]').forEach(card => {
+    const inner = homeCardInner(card.dataset.hs === 'topics');
+    if(!inner){ card.remove(); return; }
+    card.innerHTML = inner;
+  });
+  wireHome(document);
+}
+/* The progress file: this profile's progress and its answer history, for a
+   second device, a Home Screen copy, or a retro that reads the history. */
+function exportProgress(){
+  const blob = new Blob([JSON.stringify({app:'exam-drill', course:COURSE.id, ns:NS, exported:new Date().toISOString(),
+                                         profile:PROFILE, db:DB, log:LOG}, null, 1)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${COURSE.id}-progress-${PROFILE.replace(/\W+/g,'_')}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
 /* Calendar days to the exam, from an optional ISO `when` on the active exam
    (`date` is the human string shown in the header). Counted as whole days
    rather than hours rounded up, so the morning of the exam says "today". */
@@ -389,7 +471,7 @@ function renderTopics(){
   ${EXAM.blurb ? esc(EXAM.blurb) + '. ' : ''}Question bank: ${QUESTIONS.length} across ${conceptsIn(QUESTIONS).length} concepts.
   ${examCountdown() ? '<b>' + esc(examCountdown()) + '</b>' : ''}</p>
   <p class="stamp">Built ${esc(BUILD.stamp || '')}${(BUILD.changelog||[]).length ? ' · <a href="#" id="whatsnew">all changes</a>' : ''}</p>
-  ${newsCard()}`;
+  ${newsCard()}${homeCard(true)}`;
 
   h += filterBar();
 
@@ -454,6 +536,7 @@ function renderTopics(){
   </div></div>`;
 
   $('#v-topics').innerHTML = h;
+  wireHome($('#v-topics'));
 
   const wn = $('#whatsnew'); if(wn) wn.onclick = e => { e.preventDefault(); show('settings'); };
   const nok = $('#newsok'); if(nok) nok.onclick = () => {
@@ -727,17 +810,22 @@ function renderQuiz(){
   wireConfidence();
 }
 /* After a correct answer: how sure were you. "Not sure" brings the concept
-   back at the short interval; "guessed" treats it as not yet known. */
+   back at the short interval; "guessed" treats it as not yet known. Neither
+   pressed, the answer stands as known, and the answer history records it as
+   "Knew it"; the line says so, so the record matches what the student saw. */
 function confidenceButtons(){
   return `<button class="btn amber" id="btnShaky">Not sure, ask again soon</button>
-    <button class="btn amber" id="btnGuess">I guessed that one</button>`;
+    <button class="btn amber" id="btnGuess">I guessed that one</button>
+    <span class="meta" id="knewNote">Next counts as “Knew it”.</span>`;
 }
 function wireConfidence(){
+  const note = () => { const n = $('#knewNote'); if(n) n.remove(); };
   const bg = $('#btnGuess'); if(bg) bg.onclick = () => {
     markGuessed(Q.current);
     Q.guessedLogged = true;
     bg.textContent = 'Marked as a guess'; bg.disabled = true;
     const bs = $('#btnShaky'); if(bs) bs.remove();
+    note();
     refreshSess();            // the answer stops counting as solid, so the dots change
   };
   const bs = $('#btnShaky'); if(bs) bs.onclick = () => {
@@ -745,6 +833,7 @@ function wireConfidence(){
     Q.guessedLogged = true;
     bs.textContent = 'Coming back soon'; bs.disabled = true;
     const g = $('#btnGuess'); if(g) g.remove();
+    note();
     refreshSess();
   };
 }
@@ -1509,7 +1598,7 @@ function finishExam(partial){
     const p = EX.picks[i];
     if(partial && examBlank(q, p)) return;
     const picked = isMulti(q) ? (p || []).slice().sort((a,b)=>a-b) : p;
-    record(q, examRight(q, p) ? 'correct' : 'wrong', picked);
+    record(q, examRight(q, p) ? 'correct' : 'wrong', picked, undefined, 'exam');
   });
   clearExam();
   renderExamResult();
@@ -1940,8 +2029,11 @@ function renderSettings(){
     </div>
     <p style="font-size:13.5px;color:var(--text-dim);margin:4px 0 0">
       Storage does not sync between your phone and your laptop. Export on one, import on the other.
+      Each answer is also kept in an answer history (time, question, right or wrong, the confidence button)
+      so the review schedule can later be fitted to your own answers; Export progress includes it.
     </p>
   </div>
+  ${homeCard(false)}
 
   <h3>Start over</h3>
   <div class="filters">
@@ -1972,13 +2064,8 @@ function renderSettings(){
   $('#expMd').onclick = () => download(`${COURSE.id}-questions.md`, bankMarkdown(), 'text/markdown');
   $('#expJson').onclick = () => download(`${COURSE.id}-questions.json`, JSON.stringify(bankJson(), null, 1), 'application/json');
   $('#expGuides').onclick = () => download(`${COURSE.id}-guides.html`, readingHtml(), 'text/html');
-  $('#btnExport').onclick = ()=>{
-    const blob = new Blob([JSON.stringify({profile:PROFILE, db:DB}, null, 1)], {type:'application/json'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `${COURSE.id}-progress-${PROFILE.replace(/\W+/g,'_')}.json`;
-    a.click(); URL.revokeObjectURL(a.href);
-  };
+  $('#btnExport').onclick = exportProgress;
+  wireHome($('#v-settings'));
   $('#btnImport').onclick = ()=> $('#fileIn').click();
   $('#fileIn').onchange = e=>{
     const f = e.target.files[0]; if(!f) return;
@@ -1988,6 +2075,8 @@ function renderSettings(){
         const j = JSON.parse(r.result);
         if(!j.db || !j.db.concepts) throw new Error('not a progress file');
         DB = Object.assign(BLANK(), j.db); save();
+        // the history is merged, not replaced: an answer already here is kept once
+        if(Array.isArray(j.log)) mergeLog(j.log);
         alert('Progress loaded.'); renderSettings();
       }catch(err){ alert('That file could not be read as a progress export.'); }
     };
@@ -1995,7 +2084,7 @@ function renderSettings(){
   };
   $('#btnReset').onclick = ()=>{
     if(confirm(`Erase all quiz history for "${PROFILE}"? This cannot be undone.`)){
-      DB = BLANK(); save(); alert('History erased.'); renderSettings();
+      DB = BLANK(); save(); LOG = []; saveLog(); alert('History erased.'); renderSettings();
     }
   };
 }
@@ -2065,6 +2154,10 @@ const dropTab = v => { const b = document.querySelector(`#nav button[data-v="${v
 if(COURSE.atlas === false || typeof ATLAS === 'undefined' || !ATLAS.boards || !ATLAS.boards.length) dropTab('atlas');
 if(!DIA_LIST().length) dropTab('diagrams');
 askProfile(false);
+// Chrome offers installing the drill after the first render; the Home Screen
+// card turns into an Install button where one is on screen, and on the next view.
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installPrompt = e; refreshHomeCards(); });
+window.addEventListener('appinstalled', () => { installPrompt = null; refreshHomeCards(); });
 
 /* ---------- the bar along the bottom ----------
    One bar (Medicinal-chemistry's #swbar) carries both a plain note and an offer

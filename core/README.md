@@ -27,6 +27,8 @@ that course's repository. Both folders come from the recovered exam-drill templa
 | `update_test.js` | core | a newer version is offered; a reload comes back to the same place |
 | `sw.js` | core | the service worker; `build.py` fills in the course's cache prefix and file list and writes it to the root |
 | `offline_test.js` | core | the offline copy: other sites' caches kept, server down, server slow |
+| `home_test.js` | core | the Home Screen card for each kind of browser |
+| `history_test.js` | core | the answer history: its fields, Export, Import, Erase, a refused write |
 | `harvest.py`, `harvest_mask.py`, `ingest.py` | core | tools for adding a lecture; `harvest_mask.py` keeps a course-specific table at the top, empty in the kit |
 | `STEPPERS.md` | core | the rules step-through figures are written to |
 | `course.js` | template | the course manifest: names, `ns`, lectures, exams, skills, pace |
@@ -110,6 +112,31 @@ the same open sections, the same question (answered or not, with nothing recorde
 and the same line at the top of the screen. The place is kept in `sessionStorage` under
 `<ns>:place`, so it belongs to one browser tab. A running exam paper comes back first, as
 before.
+
+## Answer history and the Home Screen card
+
+Both are ported from BDK (`assets/app.js`). Every answer adds an entry to an answer
+history kept under `<ns>:log:<profile>`, apart from the progress:
+
+    [time in seconds, question code, 1 right / 0 wrong, mode, concept, confidence, item type]
+
+The question code is an FNV-1a hash of the question id (8 hex digits); mode is `quiz`,
+`sweep` or `exam`; confidence is `knew` (a right answer left as it is: the screen says
+Next counts as "Knew it"), `unsure` ("Not sure"), `guessed` ("I guessed"), or empty
+where none was asked (a miss, an exam paper); item type is `mc`, `multi`, `numeric` or
+`match`. Export progress writes the progress and the history into one file; Import
+progress replaces the progress, as before, and merges the history without duplicating
+an answer; Erase my history clears both. When the browser refuses to save the history,
+the oldest half is dropped and no notice is shown, so the history never stops progress
+from saving. The scheduler does not read the history yet; it is there for the approved
+scheduler work (`review/scheduler-proposal.md` §4-§5), which is a later step.
+
+The Home Screen card appears on Topics (until "Not now") and in Settings. In Safari on
+iPhone and iPad it gives the steps export, Add to Home Screen, import, because Safari
+deletes a site's data after 7 days without use unless the site is on the Home Screen
+(webkit.org/tracking-prevention) and a Home Screen copy keeps its own storage (WebKit bug
+181849). A Home Screen copy with no progress says how to bring it over; a browser with an
+install prompt gets an Install button; any other browser sees no card.
 
 ## Exam draw
 
