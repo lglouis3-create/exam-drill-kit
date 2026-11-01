@@ -49,7 +49,7 @@ else
 fi
 
 for c in "${CHECKS[@]}"; do
-  log="$LOGS/$c.log"
+  log="$LOGS/${c//\//__}.log"   # a module's test is features/<name>/test.js
   if [ ! -f "$c" ]; then
     line FAIL "$c" "no such check in $(pwd)"; fail=$((fail + 1)); continue
   fi

@@ -24,7 +24,7 @@
  */
 const fs = require('fs'), path = require('path');
 const L = require(path.join(__dirname, '..', '..', 'check_lib'));
-const NAME = 'formulas-in-text test.js';
+const NAME = 'features/formulas-in-text/test.js';
 const {check} = L;
 delete process.env.DRILL_PAGE;
 

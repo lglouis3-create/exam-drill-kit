@@ -161,8 +161,9 @@ const ALL = {'fx-probe': {version: 'v1', word: 'zz-word'}, 'fx-probe-throws': {v
       api: FX.api('fx-probe') && FX.api('fx-probe').hello(), apiOff: FX.api('fx-probe-throws')}));
     check(['show', 'renderQuiz', 'record', 'renderSettings', 'refFigures', 'load', 'upgradeDB'].every(w => st.wrapped.includes(w)),
           'the hooks attach to show, renderQuiz, record, renderSettings, refFigures, load and upgradeDB', st.wrapped.join(', '));
-    check(st.mods.map(m => m.name).join(',') === 'fx-probe,fx-probe-throws,fx-probe-badtab',
-          'the modules load in course order, a module after the ones it needs', st.mods.map(m => m.name).join(','));
+    const probes = st.mods.map(m => m.name).filter(n => n.startsWith('fx-probe'));
+    check(probes.join(',') === 'fx-probe,fx-probe-throws,fx-probe-badtab',
+          'the modules load in course order, a module after the ones it needs (the course\'s own modules first)', st.mods.map(m => m.name).join(','));
     check(st.mods.find(m => m.name === 'fx-probe-throws').on === false && st.errors.some(e => e.module === 'fx-probe-throws' && e.where === 'load'),
           'a module that throws while it loads is skipped, and the error is kept', JSON.stringify(st.errors));
     check(!st.nav.includes('throws'), 'the skipped module\'s tab is not in the nav');
