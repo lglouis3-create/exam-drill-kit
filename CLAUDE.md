@@ -25,6 +25,10 @@ after Phase 1 and overrides earlier sections where they differ.
     and this container has Node 22; `fsrs-browser` does not confirm FSRS-7);
   - a WebKit (Safari) run of the browser checks: NOT RUN so far; the FSRS page contains
     BigInt syntax;
+  - course-specific tables kept at the top of `cite_check.py`, `explain_check.js` and
+    `harvest_mask.py`: copying the core over a course replaces them with the kit's empty
+    ones (found in Medicinal-chemistry's move; Medicinal-chemistry has entries in all
+    three); they need to move into a course file before the course takes a core update;
   - from `core/README.md` "Not in core yet": Intro-Pharmacology's exam-result page after
     a reload and its generator step; `coverage_check.py`, `step_check.js`,
     `sources_check.js`;
@@ -35,6 +39,12 @@ after Phase 1 and overrides earlier sections where they differ.
     required before a `small-fix` or bookkeeping pull request merges itself.
   Each of these goes to `main` in its own pull request, with a plain-terms summary for
   Louis's yes or no.
+- **Moving the courses onto the core** (Louis's order, 2026-11-01: Medicinal-chemistry,
+  Pharmacokinetics, BDK, Intro to Pharmacology). Medicinal-chemistry: branch
+  `kit/move-to-core` in its repo; preview published at `/preview/` on 2026-11-01
+  (Louis approved); his name for the course is "Intro to Medicinal Chemistry (P2 Fall
+  2026)"; going live waits for the core fixes found by the move (kit PR #3), the slide
+  check he asked for, and his approval of the preview.
 - **Phase 3 (test) and Phase 4 (install): not started.**
 
 ## Rules for kit sessions
