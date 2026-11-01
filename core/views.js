@@ -2201,7 +2201,9 @@ function offerReload(text){
   const sw = navigator.serviceWorker;
   const hosted = location.protocol === 'https:' ||
                  location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-  if(!sw || !hosted) return;
+  // A preview never registers a worker: one at /preview/ would keep a second
+  // offline copy of an unreleased version under the live drill's cache names.
+  if(!sw || !hosted || BUILD.preview) return;
   const firstTime = !sw.controller;
   // The worker sends this when it served the saved copy because the network
   // was slow, and the network copy then turned out to be newer.

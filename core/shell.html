@@ -511,8 +511,9 @@ body:has(#backbtn) #xback{bottom:64px}
    compared with version.json to tell whether a newer build is published.
    changelog: CHANGELOG.md parsed into [{date, items:[…]}], newest first, which
    the Topics page shows as "What's new" since this browser last marked an
-   entry seen, and Settings shows whole. */
-const BUILD = /*__BUILD__*/{stamp:'', built:'', questions:0, images:0, changelog:[]};
+   entry seen, and Settings shows whole. preview: true in a page built with
+   `build.py --preview`, which is served at /preview/ beside the live drill. */
+const BUILD = /*__BUILD__*/{stamp:'', built:'', questions:0, images:0, changelog:[], preview:false};
 const IMAGES = /*__IMAGES__*/{};
 const QUESTIONS = /*__QUESTIONS__*/[];
 const TOPICS = /*__TOPICS__*/[];
@@ -537,7 +538,10 @@ const examLabel = q => { const l = lecOf(q); if(!l) return '';
 /* ==========================================================================
    STORAGE — namespaced per profile so several people can share one browser
    ========================================================================== */
-const NS = COURSE.ns;
+/* A preview (build.py --preview, served at /preview/ on the same origin as the
+   live drill) keeps everything under its own namespace, so opening a preview and
+   answering questions in it never changes the live drill's saved progress. */
+const NS = COURSE.ns + (BUILD.preview ? '-preview' : '');
 
 /* localStorage is not always reachable. Opening this file from disk can give
    the page an opaque origin, and a private window or blocked site data does the
@@ -569,6 +573,21 @@ const store = {
   },
   del(k){ delete MEM[k]; FAILED.delete(k); try { localStorage.removeItem(k); } catch(e){ /* nothing to remove */ } },
 };
+/* The first time a preview opens in a browser, it copies the live drill's saved
+   keys into its own namespace, so the preview shows the student's real progress.
+   It only reads the live keys; it never writes or removes one. */
+if(BUILD.preview){
+  try {
+    const live = COURSE.ns + ':', mine = NS + ':', keys = [];
+    let copied = false;
+    for(let i = 0; i < localStorage.length; i++){
+      const k = localStorage.key(i);
+      if(k.startsWith(mine)) copied = true;
+      else if(k.startsWith(live)) keys.push(k);
+    }
+    if(!copied) keys.forEach(k => store.set(mine + k.slice(live.length), localStorage.getItem(k)));
+  } catch(e){ /* storage unreadable: the preview starts empty */ }
+}
 /* Progress that cannot be saved would be lost on reload without a word: say so
    once, and point to the export. */
 let SAVE_WARNED = false;

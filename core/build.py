@@ -47,6 +47,15 @@ if '--list-sources' in sys.argv:
     print(json.dumps(SHIPPED))
     sys.exit(0)
 
+# `python3 build.py --preview` builds the same page into preview/ under the
+# repository root, which Pages serves at <site>/preview/, so a design change or a
+# kit update can be tried before it replaces the live page (decision 6). The
+# preview keeps its progress under its own namespace (shell.html, NS), writes no
+# service worker, manifest or icons, and leaves every file of the live site as it
+# was.
+PREVIEW = '--preview' in sys.argv
+OUT = os.path.join(ROOT, 'preview') if PREVIEW else ROOT
+
 
 def changelog():
     """CHANGELOG.md -> [{'date': '2026-10-02 (title)', 'items': [...]}], newest first.
@@ -144,12 +153,23 @@ stamp = now.astimezone(zoneinfo.ZoneInfo('America/Chicago')).strftime('%Y-%m-%d 
 # `built` is the same moment in UTC, written so that a later build sorts after
 # an earlier one as plain text; the page compares it with version.json.
 built = now.strftime('%Y-%m-%dT%H:%M:%SZ')
-build_old = "const BUILD = /*__BUILD__*/{stamp:'', built:'', questions:0, images:0, changelog:[]};"
+build_old = "const BUILD = /*__BUILD__*/{stamp:'', built:'', questions:0, images:0, changelog:[], preview:false};"
 if build_old not in shell:
     sys.exit('ERROR: build stamp placeholder not found in shell.html')
 log = changelog()
-shell = shell.replace(build_old, "const BUILD = {stamp:%s, built:%s, questions:%d, images:%d, changelog:%s};"
-                      % (json.dumps(stamp), json.dumps(built), n_q, len(images), json.dumps(log)))
+shell = shell.replace(build_old, "const BUILD = {stamp:%s, built:%s, questions:%d, images:%d, changelog:%s, preview:%s};"
+                      % (json.dumps(stamp), json.dumps(built), n_q, len(images), json.dumps(log),
+                         'true' if PREVIEW else 'false'))
+if PREVIEW:
+    # no manifest link (a preview is not installed), and a line saying what it is
+    manifest_link = '<link rel="manifest" href="./manifest.json">\n'
+    if manifest_link not in shell or shell.count('<body>') < 1:
+        sys.exit('ERROR: manifest link or <body> not found in shell.html')
+    shell = shell.replace(manifest_link, '', 1)
+    shell = shell.replace('<body>', '<body>\n<div id="previewnote" role="note" style="background:#FFF4D6;'
+                          'border-bottom:1px solid #C9A227;padding:6px 12px;font:14px/1.4 system-ui,sans-serif">'
+                          'Preview of the next version of this drill. Answers here are saved to a copy of '
+                          'your progress; the live drill is unchanged.</div>', 1)
 if log:
     print(f'  change log: {len(log)} entries, newest "{log[0]["date"]}"')
 
@@ -177,7 +197,8 @@ def write_root(name, data):
     """Write a file into the repository root through a temporary file, so a
     failed build never leaves a half-written or truncated file in place of the
     last good one."""
-    path = os.path.join(ROOT, name)
+    os.makedirs(OUT, exist_ok=True)
+    path = os.path.join(OUT, name)
     tmp = path + '.tmp'
     with open(tmp, 'wb') as fh:
         fh.write(data if isinstance(data, bytes) else data.encode('utf-8'))
@@ -186,7 +207,12 @@ def write_root(name, data):
 
 
 write_root(OUTPUT_NAME, shell)
-print(f'wrote {OUTPUT_NAME}  ({len(shell)/1024/1024:.2f} MB)')
+print(f'wrote {"preview/" if PREVIEW else ""}{OUTPUT_NAME}  ({len(shell)/1024/1024:.2f} MB)')
+
+if PREVIEW:
+    write_root('version.json', json.dumps({'built': built}) + '\n')
+    print(f'wrote preview/version.json  (built {built}); the live site is unchanged')
+    sys.exit(0)
 
 # Pages runs Jekyll over the repository unless this file exists, and Jekyll
 # leaves out files and folders whose names start with an underscore.

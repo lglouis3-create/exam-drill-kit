@@ -29,6 +29,9 @@ that course's repository. Both folders come from the recovered exam-drill templa
 | `offline_test.js` | core | the offline copy: other sites' caches kept, server down, server slow |
 | `home_test.js` | core | the Home Screen card for each kind of browser |
 | `history_test.js` | core | the answer history: its fields, Export, Import, Erase, a refused write |
+| `preview_test.js` | core | `build.py --preview`: the live site unchanged, the preview's own namespace |
+| `state_check.js` | core | the course's root `CLAUDE.md` was updated with or after the newest lecture (§7.8) |
+| `state_check_test.js` | core | `state_check.js` on repositories with known histories |
 | `harvest.py`, `harvest_mask.py`, `ingest.py` | core | tools for adding a lecture; `harvest_mask.py` keeps a course-specific table at the top, empty in the kit |
 | `STEPPERS.md` | core | the rules step-through figures are written to |
 | `course.js` | template | the course manifest: names, `ns`, lectures, exams, skills, pace |
@@ -75,6 +78,14 @@ serves:
 | `sw.js` | the service worker, from `src/sw.js` with the course's cache prefix and file list filled in |
 | `manifest.json` | the web manifest: `title` and `short` from `course.js`, start page `index.html` |
 | `icon-192.png`, `icon-512.png`, `icon-maskable-512.png`, `apple-touch-icon.png` | copied from `src/icons/` when the course supplies them; otherwise a plain square in the accent colour, and the build says so |
+
+`python3 src/build.py --preview` writes only `preview/index.html` and
+`preview/version.json`, which Pages serves at `<site>/preview/`; every file of the live
+site stays as it was. The preview page says it is a preview, links no manifest and
+registers no service worker. It keeps everything under the namespace `<ns>-preview`,
+copied once from the live keys the first time it opens in a browser, so answering in a
+preview never changes the live drill's progress, and a preview with a new progress
+format cannot convert the live data. Delete `preview/` when the update goes live.
 
 Each file is written through a `.tmp` file and renamed, so a failed build leaves the
 last good file in place. Nothing is written outside the repository. Every check reads
@@ -179,6 +190,5 @@ the built page.
   template's, unchanged. The answer history records what they need.
 - Intro-Pharmacology's exam-result page coming back after a reload, and its generator
   step in the build (`gen_*.py`), both named in `review/proposed-core.md` §5-§6.
-- The check that a course's `CLAUDE.md` was updated after its newest lecture (§7 there),
-  `coverage_check.py`, `step_check.js` and `sources_check.js` from the drills.
+- `coverage_check.py`, `step_check.js` and `sources_check.js` from the drills.
 - A WebKit run of the browser checks.
