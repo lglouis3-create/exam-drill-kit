@@ -16,9 +16,11 @@ after Phase 1 and overrides earlier sections where they differ.
     `review/proposed-core.md` (in progress);
   - the approved scheduler changes (`review/scheduler-proposal.md` §4) in `core/`;
   - three tools `skill/SKILL.md` names that do not exist yet: the material-profile
-    script, the check that a course's `CLAUDE.md` was updated after its newest lecture,
+    script (`core/profile.py`), the check that a course's `CLAUDE.md` was updated after its newest lecture,
     and the `/preview/` build;
-  - the recommendation method from the research Louis approved, into `skill/SKILL.md`;
+  - after Louis approves `review/recommendation-proposal.md` and sets its §6 values:
+    `RULES.md` from its §4, rule names on the "Use when" lines of `FEATURES.md`, the
+    experiment-file format, and `core/profile.py` (the material-profile script);
   - one pull request to `main` for Louis to merge.
 - **Phase 3 (test) and Phase 4 (install): not started.**
 
@@ -52,8 +54,9 @@ after Phase 1 and overrides earlier sections where they differ.
 
 1. Whether kit updates should reach existing courses automatically (changes decision 1
    and §7.5). Asked 2026-11-01.
-2. The recommendation-method research (approved 2026-11-01) is running; its proposal
-   goes into `review/` and then into `skill/SKILL.md` Mode 1 and Mode 2.
+2. `review/recommendation-proposal.md` (written 2026-11-01) waits for Louis's approval
+   and the nine answers in its §6. `skill/SKILL.md` already describes the method and
+   says that its in-course comparison starts nowhere until then.
 
 ## Known issues in course drills found by the kit work
 

@@ -89,22 +89,46 @@ Schema and rules are in `core/README.md`; the essentials:
 
 ## Recommending features (Mode 1 step 3, Mode 2 design check)
 
-1. **Measure the material** with the kit's profile script from the course files: the
-   syllabus (exam dates, formats, weights), the decks, the transcripts (exam cues,
-   emphasis, the formats the professor names), and the professor's polls, practice and
-   example questions. The same files always give the same profile.
-2. **Match** the profile against each catalog entry's "Use when" rule. Each
-   recommendation states the signal that triggered it, the evidence behind it, the
-   course it came from, and how confident the evidence is. Before proposing a new
-   feature, search `FEATURES.md` and propose an upgrade to a close match instead of a
-   near copy (§7.2).
+The method is `review/recommendation-proposal.md` in the kit (2026-11-01). Until Louis
+approves it and sets the values in its §6, steps 1 to 3 run as written, and steps 4
+and 5 start in no course; say so in the recommendation.
+
+1. **Measure the material** with `core/profile.py` from the course files: the syllabus
+   (exam dates, formats, weights), the decks, the transcripts (exam cues, emphasis,
+   exclusions, the formats the professor names), the professor's polls, practice and
+   example questions, and the readings. It counts the signals in the proposal's §3 for
+   each topic and writes `reviews/profile.json` with a hash of the input files and the
+   script version, so the same files always give the same profile.
+2. **Match** the profile against the rule table (the proposal's §4; `RULES.md` once
+   approved). Each `FEATURES.md` entry's "Use when" line names its rule. A rule applies
+   when its signal is present in a topic. Each recommendation states:
+   - the rule and its version, and the signal counts and topics that made it apply;
+   - the literature evidence level (High, Moderate, Low, Very low) and the sources;
+   - Louis's personal label for the rule, with clusters per arm and the posterior
+     interval, or "no data yet";
+   - Louis's rating of the feature, if any, marked as a rating; a rating never sets
+     the label.
+   The professor's exam cues (signal T1) add practice to cued topics only after that
+   professor's cue validity (V1) has been measured on a scored exam; uncued topics are
+   never dropped. Before proposing a new feature, search `FEATURES.md` and propose an
+   upgrade to a close match instead of a near copy (§7.2).
 3. **Louis approves** before anything is built (decision 7). A declined proposal is
    recorded in `COURSES.md` with his reason and is not proposed again without new
    evidence.
-4. **Update from results** in each retro (Mode 6): Louis's own answer logs, exam
-   outcomes and notes update the rules and each feature's "best for" and "weaker at",
-   with a dated evidence note. Only Louis's own data is used (§12.4). A feature used a
-   lot is not thereby shown to help; prefer comparisons inside a course.
+4. **Test an approved feature** against the current default inside the course. Before
+   any studying, group the eligible concepts into clusters, stratify by topic and
+   difficulty, assign whole clusters at random to the feature or the default, and write
+   the assignment, outcome, analysis, the two priors and the smallest difference the
+   clusters can detect to `reviews/experiments/<feature>.json`. Only exam items mapped
+   to concepts before the exam count. Never use bandit or other adaptive assignment to
+   decide between features.
+5. **Update from results** in each retro (Mode 6) and exam outcome (Mode 8): run the
+   randomization test and the Bayesian estimate under both recorded priors, set the
+   personal label (Supports, No meaningful difference, Against, Inconclusive) by the
+   proposal's §5.5 with Louis's *w* and *R*, and update V1 and V2 for the professor.
+   Proposed rule changes go to the course's `reviews/OPEN_QUESTIONS.md` and to the kit
+   by pull request. Only Louis's own data is used (§12.4). How often a feature is used
+   never counts as evidence that it helps.
 
 ## Kit pull requests
 

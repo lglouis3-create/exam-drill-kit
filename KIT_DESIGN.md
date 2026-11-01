@@ -317,8 +317,12 @@ section is current.
    files, including the professor's transcripts and example questions; each catalog
    entry's "Use when" is a rule over that profile; each recommendation states its
    reason, evidence and confidence; Louis's own answer logs, exam outcomes and notes
-   update the rules in each retro. The method's details come from the research
-   Louis approved on 2026-11-01 and are recorded when it is written.
+   update the rules in each retro. The method is proposed in
+   `review/recommendation-proposal.md` (2026-11-01): signals counted per topic, a
+   versioned rule table with a GRADE-like evidence level per rule, a within-course
+   random comparison of concept clusters for each approved feature, and decision
+   rules whose values Louis sets (its §6). Ratings are logged but never count as
+   evidence of learning. It takes effect when Louis approves it and sets those values.
 8. **Medicinal-chemistry's 09/21 round** is preserved as branch
    `restore/2026-09-21-round` in that repo and joins its live drill when the course
    moves onto the core (Mode 7).
