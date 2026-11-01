@@ -30,7 +30,7 @@ sandbox.globalThis = sandbox;
 vm.createContext(sandbox);
 // DIA, DIAGRAMS and READ_LINKS are optional: a course without drawn figures or
 // read links may leave them out (views.js reads them the same way).
-code += "\nglobalThis.__X={QUESTIONS,TOPICS,IMAGES,COURSE,EXAM,DIA:typeof DIA!=='undefined'?DIA:{},DIAGRAMS:typeof DIAGRAMS!=='undefined'?DIAGRAMS:[],READ_LINKS:typeof READ_LINKS!=='undefined'?READ_LINKS:{},BUILD,record,pickNext,st,score,drawN,drawMixed,drawPaper,drawBlueprint,bpCat,EXAM_SATA,askProfile,markGuessed,markShaky,isMulti,gradeMulti,correctSet,gradeNumeric,lecOf,skillOf,linksFor,sessionLog,solidEntry,getDB:()=>DB};\n";
+code += "\nglobalThis.__X={QUESTIONS,TOPICS,IMAGES,COURSE,EXAM,DIA:typeof DIA!=='undefined'?DIA:{},DIAGRAMS:typeof DIAGRAMS!=='undefined'?DIAGRAMS:[],READ_LINKS:typeof READ_LINKS!=='undefined'?READ_LINKS:{},BUILD,record,pickNext,st,score,drawN,drawMixed,drawPaper,drawBlueprint,bpCat,EXAM_SATA,askProfile,markGuessed,markShaky,isMulti,gradeMulti,correctSet,gradeNumeric,NUMERIC:typeof NUMERIC!=='undefined'?NUMERIC:null,lecOf,skillOf,linksFor,sessionLog,solidEntry,getDB:()=>DB};\n";
 try { vm.runInContext(code, sandbox); }
 catch (e) { console.error('FAIL: script threw at load — ' + e.message + '\n' + e.stack); process.exit(1); }
 
@@ -215,7 +215,8 @@ console.log(`  drew ${paper.length}`);
 if (paper.length !== EXAMQ) bad(`exam paper is ${paper.length} questions, expected ${EXAMQ}`);
 if (new Set(paper.map(q=>q.id)).size !== paper.length) bad('duplicate questions on one exam paper');
 else console.log('  ok    no duplicate questions on a single paper');
-if (paper.some(q => q.type)) bad('a typed (numeric or matching) item reached the paper');
+// with exams[].typed (exam_typed.js) numeric and matching items may be on the paper; nothing else typed is
+if (paper.some(q => q.type && !(X.EXAM.typed && (q.type === 'numeric' || q.type === 'match')))) bad(X.EXAM.typed ? 'an item of a type the exam paper cannot draw reached the paper' : 'a typed (numeric or matching) item reached the paper');
 // dupOf: every target exists, and 20 papers never carry a question with its dupOf partner or a lowYield item
 const allIds = new Set(QUESTIONS.map(q=>q.id));
 QUESTIONS.filter(q=>q.dupOf && !allIds.has(q.dupOf)).forEach(q=>bad(`${q.id} dupOf points at missing ${q.dupOf}`));
@@ -244,9 +245,9 @@ else console.log('  ok    the paper carries the intended number of select-all it
 { const ids = new Set(COURSE.skills.map(s=>s.id)); const un = QUESTIONS.filter(q => !q.skill || !ids.has(q.skill));
   if (un.length) bad(`${un.length} questions without a taxonomy skill: ${un.slice(0,6).map(q=>q.id).join(', ')}`);
   else console.log(`  ok    every question carries a skill from the course taxonomy (${COURSE.skills.map(s=>s.id).join(', ')})`); }
-// numeric grading
+// numeric grading (far: three times the margin it is graded to; with course.js `numeric` that is numeric.js's)
 { const nq = QUESTIONS.find(q => q.type === 'numeric');
-  if (nq){ const okA = X.gradeNumeric(nq, String(nq.answer)), okB = X.gradeNumeric(nq, String(nq.answer + (nq.tol||1)*3)), okC = X.gradeNumeric(nq, 'abc');
+  if (nq){ const okA = X.gradeNumeric(nq, String(nq.answer)), okB = X.gradeNumeric(nq, String(nq.answer + (X.NUMERIC ? X.NUMERIC.tol(nq) : (nq.tol||1))*3)), okC = X.gradeNumeric(nq, 'abc');
     if (!okA || okB || okC) bad('numeric grading: exact answer, far answer or junk misgraded');
     else console.log('  ok    numeric grading accepts the answer within tolerance and rejects the rest'); } }
 

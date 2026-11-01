@@ -1,0 +1,5 @@
+/* stacked fractions, as the slides print them (Basic-Pharmacokinetics shell.html lines 192-196) */
+.frac{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;
+  margin:0 .18em;line-height:1.25}
+.frac>.fn{border-bottom:1.5px solid currentColor;padding:0 .25em .08em}
+.frac>.fd{padding:.1em .25em 0}

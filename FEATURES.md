@@ -28,7 +28,9 @@ How the fields were filled:
   Files were searched for citation patterns and method names on 2026-10-31 and
   commit messages on 2026-11-01. Where a method is named in code without a source,
   the entry says so.
-- **Enable** lines are proposed names; nothing reads `features` yet.
+- **Enable** lines: `course.js` `features` switches on a module that has been ported
+  into `features/<name>/` (the build reads it since 2026-11-01; `features/README.md`).
+  For a feature not yet ported, the line is the name it will have.
 - Courses: MC = Medicinal-chemistry (PHAR 4342), PK = Basic-Pharmacokinetics-
   (PHAR 4221), PH = Intro-Pharmacology- (PHAR 4344), BDK = BDK (PHAR 4232).
 
@@ -406,6 +408,18 @@ Test: none specific.
 
 ## Calculation courses
 
+## formulas-in-text
+Does: sets formulas typed in plain text the way the slides print them, as each question is drawn: `{{frac:a|b}}` stacks, a caret raises, the course's symbols take their subscripts (C0, VD, ka), t1/2 reads t½, a spaced x is a times sign and a spaced hyphen a minus; fractions in the reading tabs stack too. Stored text is not changed, and text without these marks is drawn as before.
+Use when: the course's formulas are typed into the bank (PK: 5,965 `{{frac:` marks in the 36 files its build ships, 4,267 of them in its 829 questions, counted 2026-11-01 at `ac2eb73`).
+Do not use when: no formulas in the bank.
+Enable: course.js → features['formulas-in-text'] = { version: 'v1', symbols: [['VD', 'V<sub>D</sub>'], ...], rates: ['k0', ...] }
+Versions:
+  v1  2026-11-01  from PK (`49e2916` 2026-09-25 `prettyMath`, `679e52f` 2026-09-23 `FRAC_RE`; ported from `ac2eb73` `src/views.js` 1-93 and 3496-3505)   best for: kinetics formulas typed in plain text   weaker at: not evaluated   current/
+Evidence: none recorded.
+Used by: none yet (PK keeps its own copy until it moves onto the core).
+Known issues: a `{{frac:...}}` that a glossary gloss is inserted into is left as typed (the gloss splits the mark); none of PK's `ac2eb73` bank was checked for this. Why a module and not core: the symbol table is course data, only calculation courses have formulas, and a course without the module keeps its page unchanged.
+Test: `features/formulas-in-text/current/test.js` (its stems, options and worked steps drawn exactly as PK's own formatter draws them, on 8 PK questions and 1 calculation; PK `src/test.js` 826-874 ported).
+
 ## plan-the-problem
 Does: before a calculation, asks what is wanted and its unit, which givens apply, and a sanity check.
 Use when: the exam supplies the equation sheet, so choosing the line is the skill (PK: "You've got to think about which one do I want to apply in this application", `src/reference.js` line 32).
@@ -422,39 +436,39 @@ Test: `src/test.js` (PK).
 Does: type an equation line, build it from pieces ("Build it"), find it on the whole sheet, and "How she asks it"; a sheet map of which lines the printed sheet includes and omits, printed in the sheet's own layout.
 Use when: a formula sheet is given at the exam (PK).
 Do not use when: no formula sheet.
-Enable: course.js → features.equation-drill = { version: 'v2' }
+Enable: course.js → features['equation-drill'] = { version: 'v2', groups: {1: 'Module 1: ...'} }, with formulas-in-text on (it `needs` it) and the equations in a data file listed in `files` (`const EQUATIONS = [...]`, the shape in PK `src/equations.js`)
 Versions:
-  v1  2026-10-05  from PK (`50a803b`)   best for: equation sheets   weaker at: reordered factors marked wrong; bracket-only lures (PK notes §2)   archive/v1/
-  v2  2026-10-07  from PK (`164ac5a`; sheet print layout `33789e3` 2026-10-27)   best for: equation sheets   weaker at: not evaluated   current/
+  v1  2026-10-05  from PK (`50a803b`)   best for: equation sheets   weaker at: reordered factors marked wrong; bracket-only lures (PK notes §2)   not ported (kept in PK at `50a803b`)
+  v2  2026-10-07  from PK (`164ac5a`; sheet print layout `33789e3` 2026-10-27)   best for: equation sheets   weaker at: not evaluated   current/ (the Equations tab and its drill, ported 2026-11-01 from PK `ac2eb73` by `features/equation-drill/port_from_pk.py`; each equation also opens its symbols, the condition it holds under, its derivation and its source)
 Evidence: Louis asked that reordered factors count as right while order still matters in some equations (PK notes §1, from session memory).
-Used by: PK (v2)
-Known issues: the set-up reasoning's `whySentences` uses regex lookbehind (`src/views.js:4937`, added in `0f266e5`).
-Test: `src/equation_test.py`, `src/review_test.py` (two Letter pages) (PK).
+Used by: PK (v2, its own copy); the kit module: none yet.
+Known issues: in PK, the set-up reasoning's `whySentences` uses regex lookbehind (`src/views.js:4937`, added in `0f266e5`); it is part of the set-up drill, which the kit module does not include, so the module has none (`device_lint.js`). Not ported: the set-up drill ("Set-up only") and "How she asks it" (both need plan-the-problem's set-up data), the variables quiz (variables-quiz, Tier 2), the sheet map and its print layouts (`sheet.js`), the exam chip. The normaliser keeps PK's kinetics spellings (half-life, clearance, the ideal-body-weight height term).
+Test: `features/equation-drill/current/test.js` (PK `src/equation_test.py` and `src/test.js` section 5d ported: 30 checks on the template course with 14 PK equations added); `src/review_test.py` (PK) was not ported, since the sheet map is not.
 
 ## wrong-number-diagnosis
 Does: reads an entered wrong number back to the error that produces it (wrong combination of givens, unit factor, reciprocal, missing 0.693, mid-working value, copied given, near miss) before naming the kind of miss.
 Use when: numeric items with worked steps (PK).
 Do not use when: no numeric items.
-Enable: course.js → features.wrong-number-diagnosis = { version: 'v1' }
+Enable: course.js → features['wrong-number-diagnosis'] = { version: 'v1' } (with `numeric` set, a number typed with its unit is read too)
 Versions:
-  v1  2026-10-07  from PK (`ae9dcb1`, `src/shell.html:1316-1366`)   best for: calculation courses   weaker at: not evaluated   current/
+  v1  2026-10-07  from PK (`ae9dcb1`, `src/shell.html:1316-1366`)   best for: calculation courses   weaker at: not evaluated   current/ (ported 2026-11-01 from PK `ac2eb73` `src/shell.html` 1270-1338 by `features/wrong-number-diagnosis/port_from_pk.py`)
 Evidence: none recorded; the course reason is from session memory (PK notes §1).
-Used by: PK (v1)
-Known issues: none recorded. Feeds the core analytics log (`missKind`).
-Test: `src/test.js` (PK).
+Used by: PK (v1, its own copy); the kit module: none yet.
+Known issues: none recorded. In the kit the student's pick is the engine's `miss` (what Weak spots counts) and the number's reading is kept beside it as `missSuggest`; PK keeps the pick as `missKind`, which the module converts to `miss` when a progress is loaded or imported. The reading is shown in the quiz and on an exam paper's result page; PK's own placements in its other views are not ported.
+Test: `features/wrong-number-diagnosis/current/test.js` (PK `src/test.js` lines 368-387 ported: 15 checks).
 
 ## chained-problem-sets
 Does: a problem set asked in parts, each part stating the earlier results it uses, kept together and in order on a paper.
 Use when: the professor asks one vignette in parts (PK: "at the rate you determined above", `src/BANK_SPEC.md` line 166).
 Do not use when: questions are independent.
-Enable: course.js → features.chained-problem-sets = { version: 'v2' }
+Enable: course.js → features['chained-problem-sets'] = { version: 'v2' }, with the sets in a data file listed in `files` (`const CHAINS = [{id, name, setup, parts: [...]}]`)
 Versions:
-  v1  2026-10-07  from PK (`3d9fb75`)   best for: vignette exams   weaker at: 45 parts used an earlier result without stating it   archive/v1/
-  v2  2026-10-17  from PK (`095fdae`, with a test that reads the working)   best for: vignette exams   weaker at: not evaluated   current/
+  v1  2026-10-07  from PK (`3d9fb75`)   best for: vignette exams   weaker at: 45 parts used an earlier result without stating it   not ported (kept in PK at `3d9fb75`)
+  v2  2026-10-17  from PK (`095fdae`, with a test that reads the working)   best for: vignette exams   weaker at: not evaluated   current/ (ported 2026-11-01 from PK `ac2eb73`)
 Evidence: PK `notes/PORT_EVALUATION_2026-10-17.md` §5, R5.
-Used by: PK (v2)
-Known issues: none open.
-Test: `src/problemset_test.py` (PK).
+Used by: PK (v2, its own copy); the kit module: none yet.
+Known issues: the history of PK (searched for the names, 2026-11-01) has `startChain` and `CHAINS` first in `91f1d5f` (2026-09-22); the v1 line names `3d9fb75`, the first commit of `paperOrder`. Not ported with the module: PK's per-module listing of sets on Topics, its review switch ("Stepwise calculations") and its worksheet pages; the kit module lists every set in one "Problems asked in parts" card.
+Test: `features/chained-problem-sets/current/test.js` (PK `src/problemset_test.py`, `src/test.js` section 5c and lines 760-807 ported); the build step stops the build on a set that names a missing question or a question in two sets.
 
 ## calc-stopwatch
 Does: a stopwatch on each calculation and time per kind of item on Weak spots.

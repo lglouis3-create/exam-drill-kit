@@ -37,6 +37,10 @@ that course's repository. Both folders come from the recovered exam-drill templa
 | `state_check_test.js` | core | `state_check.js` on repositories with known histories |
 | `oldcache_test.js` | core | `course.js` `oldCachePrefix`: an old worker's caches deleted, every other cache kept |
 | `scheduler_test.js` | core | the scheduler (`review/scheduler-proposal.md` §4-§5), with a fixed clock, on scratch builds with a test topic |
+| `features.js` | core | the hooks a feature module uses (tab, question type, step after an answer, pass after a view is drawn, reading-tab HTML, a new exam paper, Settings section, start-up step, progress converter); in the page only when `course.js` `features` switches a module on |
+| `exam_typed.js`, `exam_typed_test.js` | core | `course.js` `exams[].typed`: numeric and matching items drawn onto that exam's papers, typed and picked there, graded and reviewed; in the page and run only when an exam sets it |
+| `numeric.js`, `numeric_test.js` | core | `course.js` `numeric`: a typed number read with its unit, never two numbers joined, graded to a course margin; in the page and run only when the course sets it |
+| `features_test.js` | core | feature modules: the build's refusals, every hook, a module that fails, and no change to a page with no module on; runs when a module is on |
 | `vendor/` | core | ts-fsrs 6.0.0's own UMD bundle and the licence texts of the code in it; `build.py` inlines them only for a course whose scheduler model needs FSRS |
 | `harvest.py`, `harvest_mask.py`, `ingest.py` | core | tools for adding a lecture; `harvest_mask.py` takes the crops to mask from `course.js` `tools` |
 | `STEPPERS.md` | core | the rules step-through figures are written to |
@@ -70,6 +74,33 @@ course's `src/README.md` comes from `template/`.
 
 No file name appears in both folders except `README.md`, so the copy order does not
 matter for any other file.
+
+A course that switches a feature module on also copies the module's `current/` folder
+to `src/features/<name>/` (`features/README.md`).
+
+## Feature modules
+
+`course.js` `features: {<name>: {version, ...options}}` switches modules on. The build
+reads each from `src/features/<name>/` (a copy of the kit's `features/<name>/current/`),
+checks the pinned version, the options and the modules it needs, runs its build step,
+and puts `features.js` and the module into the page between the data and `views.js`;
+the layout, `module.json`, the build step and every hook are in `features/README.md`.
+With no module on (no `features` field, or `{}`) neither `features.js` nor any module
+code is in the page, which is then byte for byte the page this core built before
+feature modules existed, except the build stamp: on the template course, built from the
+same sources by the kit at `d187207` and by this core, the two `index.html` files
+(241,642 bytes each) differ only in `BUILD.stamp` and `BUILD.built`; the same holds with
+`numeric` and `typed` left unset, and the page of a template course set up before
+2026-11-01 differs from today's only in the 15 comment lines that document `features`,
+`numeric` and `typed` at the top of `template/course.js` (2026-11-01).
+
+`features.js` adds the hooks by wrapping eight engine functions (`show`, `renderQuiz`,
+`renderSettings`, `refFigures`, `drawPaper`, `record`, `load`, `upgradeDB`) and watching `main` for redrawn views
+(a `MutationObserver`), so neither `views.js` nor `shell.html` has a line for modules.
+A module that throws while it loads is skipped; a hook that throws switches its module
+off for the visit; the page carries on either way. `features_test.js` checks all of
+this with three probe modules it writes into a scratch copy, and runs whenever the
+course has a module on, with each module's own test (`build.py --list-checks`).
 
 ## The course's files
 
@@ -519,6 +550,36 @@ As coded, the concept scheduler ranks never-seen material (tier 3) above due rev
 (tier 2); the rule list in `shell.html` said "wrong > due > never-seen". The list now says
 so; the order itself is unchanged.
 
+## Typed numbers
+
+Without `course.js` `numeric` the engine reads a typed number by dropping every
+character that is not part of a number (`parseNum` in `views.js`) and grades it within
+the item's `tol`, or 1% of the key when it has none, as before. That reading joins two
+numbers into one (`8 5` reads 85, `0.25 1/hr` reads 0.251) and refuses a unit with an
+`e` in it (`64.96 inches` reads as no number). A course that sets `numeric` gets
+`numeric.js` in its page, which reads and grades as Basic-Pharmacokinetics does
+(`src/shell.html` lines 1236-1269 at `ac2eb73`): a number with its unit after it reads
+as the number (`2.6 hr`, `188.2 (mg/L)hr`, `55%`, `0.17 hr-1`, `0.17 1/hr`); anything
+else, a second number included, reads as no number; and with `numeric.margin` (a
+fraction of the key) an item is right within max(`tol`, margin × |key|). PK's value is
+`{margin: 0.02}`, from her Canvas quizzes' 2% and 3% margins. The verdict line names
+the margin an answer was graded to. `numeric_test.js` checks it.
+
+On PK's 534 numeric items (its `QUESTIONS` at `ac2eb73`), each typed eight ways and
+graded by PK's own `gradeNumeric`, by this core without the option, and with
+`numeric: {margin: 0.02}` (2026-11-01):
+
+| Typed | Right in PK | Right in the core without `numeric` | Right with `numeric` | Without = PK | With = PK |
+|---|---|---|---|---|---|
+| the key | 534 | 534 | 534 | 534 | 534 |
+| the key and its own unit | 534 | 519 | 534 | 519 | 534 |
+| the key + 1.5% | 534 | 145 | 534 | 145 | 534 |
+| the key + 2.5% | 63 | 63 | 63 | 534 | 534 |
+| the key and ` 1/hr` | 534 | 400 | 534 | 400 | 534 |
+| the key and ` hr-1` | 534 | 0 | 534 | 0 | 534 |
+| the key and ` 5` (two numbers) | 0 | 382 | 0 | 152 | 534 |
+| blank | 0 | 0 | 0 | 534 | 534 |
+
 ## Exam draw
 
 Questions marked `dupOf` are wordings of one fact. A family is an original, everything
@@ -528,13 +589,33 @@ original is not drawn or not in the bank (Intro-Pharmacology). One blocked set r
 every pool of a paper (Medicinal-chemistry `ed38dbd`), because a family can span pools;
 the draw by announced counts (`exams[].blueprint`) uses the same rule.
 
+**Calculations on a paper.** The draw keeps numeric and matching items off every paper
+(`!q.type` in `drawPaper` and `drawBlueprint`), so a course whose exam asks
+calculations could not practise them under the clock (Basic-Pharmacokinetics' Exam 3
+was 20 multiple choice and 20 fill in the blank: its `course.js` at `ac2eb73`). An exam
+with `typed: true` puts `exam_typed.js` into the page; that exam's papers then draw
+numeric and matching items by the same rules as every other item (pools, one per
+concept first, one wording per `dupOf` family, the select-all count): the engine's own
+draw runs, with those items' `type` set aside while it runs and put back after it, so a
+later fix to the draw applies to them too. On the paper a calculation is typed and a
+matching item is picked row by row; both are kept through a reload, graded as in the
+quiz (with `numeric`, to the course's margin), recorded on submit with what was typed
+and picked, and shown on the result page with the answer, the margin and the working or
+the pairs. Without `typed` the papers are as before. `exam_typed_test.js` checks it.
+
 ## Checks
 
     cd src && ./run_checks.sh            # build, then every check
     ./run_checks.sh test.js browser_test.js
 
 `run_checks.sh` runs the build and then each check separately, so one failure cannot
-hide another, and prints one line per check with the check's own summary:
+hide another, and prints one line per check with the check's own summary. Besides the
+checks every course runs, it runs the checks of what the course switches on, as
+`build.py --list-checks` names them: `features_test.js` and each module's own test when
+a feature module is on, `numeric_test.js` with `course.js` `numeric`, and
+`exam_typed_test.js` with an exam's `typed: true`. A course that switches none of them
+on runs the same checks as before. The kit's own checks of a core change run on the
+template course and on a scratch course with every module and option on.
 
 | Line | Exit code of the check | Meaning |
 |---|---|---|

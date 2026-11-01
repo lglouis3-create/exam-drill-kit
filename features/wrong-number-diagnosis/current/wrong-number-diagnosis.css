@@ -1,0 +1,7 @@
+/* what the wrong number says, beside the engine's miss chips */
+.fxmiss{margin:10px 0 4px;padding:8px 12px;border-left:3px solid var(--warn);background:var(--warn-bg);border-radius:0 6px 6px 0}
+.fxmisslist{margin:2px 0 0;padding-left:18px;font-size:14.5px;line-height:1.5}
+.fxmisslist li{margin:3px 0}
+.fxmisskind{font-weight:600}
+.misspick .chip.fxsuggest{border-color:var(--warn);box-shadow:0 0 0 2px var(--warn)}
+#fxmissnote{margin-left:4px}
