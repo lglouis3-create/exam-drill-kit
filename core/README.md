@@ -95,7 +95,8 @@ failure. Switching profile writes any save still waiting on its timer first.
 `sw.js` is Medicinal-chemistry's service worker (`ed38dbd`) made course-agnostic. The page
 is fetched network-first; the saved copy is used when the network is down or slower than
 3500 ms (`NET_TIMEOUT`), and when the network copy then turns out to differ the page offers
-a reload, never forcing one. The worker is registered only on https or localhost. Caches
+a reload, never forcing one. The worker is registered only on https, `localhost` or
+`127.0.0.1`. Caches
 are named `<ns>-v<n>`, and cleanup deletes only names of exactly that form, because every
 drill on `lglouis3-create.github.io` shares one origin and one Cache Storage: another
 course's offline copy is never touched, including one whose `ns` starts with this course's.
@@ -166,6 +167,18 @@ It exits 1 when the build or any check fails and 0 otherwise; the full output of
 check is kept in the log folder it names. A check that found nothing to look at reports
 NOT RUN, not PASS. The browser checks use Node Playwright with Chromium (in a cloud
 session: `NODE_PATH=$(npm root -g)`, browsers in `/opt/pw-browsers`; nothing installs
-browsers). WebKit is not installed in the cloud container, so no check here runs Safari;
-`device_lint.js` catches the one Safari fault on record (regex lookbehind, `review/findings.md` §6.5)
-by reading the sources and the built page.
+browsers). WebKit is not installed in the cloud container, so no check here runs Safari
+(mobile Safari is NOT RUN); `home_test.js` uses Playwright's iPhone 13 profile, which is
+Chromium with an iPhone screen and user agent. `device_lint.js` catches the Safari fault
+the brief names (regex lookbehind, `review/findings.md` §6.5) by reading the sources and
+the built page.
+
+## Not in core yet
+
+- The approved scheduler changes (`review/scheduler-proposal.md` §4); the scheduler is the
+  template's, unchanged. The answer history records what they need.
+- Intro-Pharmacology's exam-result page coming back after a reload, and its generator
+  step in the build (`gen_*.py`), both named in `review/proposed-core.md` §5-§6.
+- The check that a course's `CLAUDE.md` was updated after its newest lecture (§7 there),
+  `coverage_check.py`, `step_check.js` and `sources_check.js` from the drills.
+- A WebKit run of the browser checks.

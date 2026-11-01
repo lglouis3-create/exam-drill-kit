@@ -1,10 +1,11 @@
 # Working in this repo
 
-This is an exam-drill source tree built with the `exam-drill-builder` skill.
-Read `README.md` for the layout and `course.js` for the course; read the
-course's Claude Project doc `claude/drill-app-state.md` for the running state
-(what has been ingested, verified slide facts, conflicts, delivery status) and
-update it at the end of every session.
+This is an exam-drill source tree built with the `exam-drill-builder` skill
+from the exam-drill-kit (engine from the kit's `core/`, content started from its
+`template/`). Read `README.md` for the layout and `course.js` for the course;
+the running state (what has been ingested, verified slide facts, conflicts,
+delivery status) is in the repository root's `CLAUDE.md`, `reviews/LOG.md` and
+`reviews/OPEN_QUESTIONS.md`; update them at the end of every session.
 
 Standing rules for every question, table and guide written here:
 
@@ -31,6 +32,6 @@ Standing rules for every question, table and guide written here:
 - The site is shared with classmates: personal mnemonics stay out of the
   shared build unless asked for.
 
-Checks: `python3 build.py && node test.js && node style_check.js && node
-render_test.js && node stepper_test.js && python3 cite_check.py && python3
-browser_test.py`. `node explain_check.js` is a report, not a gate.
+Checks: `./run_checks.sh` builds and runs every check, one line each: PASS,
+FAIL, NOT RUN (with the reason; never a pass) or REPORT (`explain_check.js`, a
+report, not a gate). It exits non-zero on any FAIL.

@@ -1,4 +1,4 @@
-# Exam drill template
+# Exam drill source
 
 A single-file HTML study app built from plain source files: questions with
 explanations, slide figures and drawn figures, a spaced-repetition scheduler
@@ -6,17 +6,20 @@ with confidence buttons, an exam simulator that follows the exam's blueprint and
 survives a reload, weak-spot analytics with a session score and a review plan,
 drawn step-through figures for processes, and reading tabs (objective guides,
 tell-apart tables, reference tables) with an explanation card per table row.
-Everything the student needs is in one file that works offline and on a phone;
-progress stays in the browser and can be exported.
+Everything the student needs is in one page that opens offline once visited and
+works on a phone; progress stays in the browser and can be exported.
 
-The engine is course-agnostic. A course is `course.js` plus its own content
-files. Reference implementations with full banks: the PHAR 4342 drill
+The engine is course-agnostic and comes from the kit's `core/` (exam-drill-kit;
+`core/README.md` there says which file is engine and which is content). A course
+is `course.js` plus its own content files, which start from the kit's
+`template/`. Reference implementations with full banks: the PHAR 4342 drill
 (github.com/lglouis3-create/Medicinal-chemistry) and the PHAR 4344 Exam 1 drill
 (github.com/lglouis3-create/Intro-Pharmacology-).
 
 ## Start a course
 
-1. Copy this folder into the new course's repo as `src/`.
+1. Copy the kit's `template/` and `core/` into the new course's repo as `src/`
+   (the commands are in the kit's `core/README.md`).
 2. Fill in `course.js`: names, storage namespace, professors, lectures (one per
    deck, with exam and module), the first exam's blueprint, the skill taxonomy
    this course tests, the pace. Add `when` to the exam for a countdown.
@@ -24,23 +27,29 @@ files. Reference implementations with full banks: the PHAR 4342 drill
    questions. Add a question file per lecture (`q2_<lecture>.js` …) and list it
    in `DATA_FILES` in `build.py`.
 4. Put the professor's own questions into `STYLE.md` as they appear.
-5. Build and check:
+5. Put the course's own icons, if it has them, under `icons/` as
+   `icon-192.png`, `icon-512.png`, `icon-maskable-512.png` and
+   `apple-touch-icon.png`; until then the build writes plain placeholders and
+   says so.
+6. Build and check:
 
-       python3 build.py
-       node test.js && node style_check.js && node render_test.js
-       node explain_check.js            # a report, not a gate: ranks weak explanations
-       node stepper_test.js             # step-through figures, if the course has any
-       python3 cite_check.py            # needs the decks (PDF) under decks/
-       python3 browser_test.py          # needs Chromium + Playwright
+       ./run_checks.sh                  # build, then every check, one line each
+       ./run_checks.sh test.js          # build, then only the checks named
 
-6. Commit; publish the built HTML (root of the repo) with GitHub Pages.
+   Each line is PASS, FAIL, NOT RUN (with the reason) or REPORT
+   (`explain_check.js`, which ranks weak explanations and has no failing
+   condition). `cite_check.py` needs the decks (PDF) under `decks/`; the browser
+   checks need Node Playwright with Chromium.
+7. Commit the sources and what the build wrote at the repository root; publish
+   the root with GitHub Pages.
 
 The build writes the app to the repository root as `index.html` (what GitHub
-Pages serves at the site root), with `.nojekyll`, and writes the `output` name
-from `course.js` as a redirect to it. Every check reads the page through
-`built_page.js`. A check that cannot run on the bank on
-hand says so — `skip` lines in the browser and stepper tests, `NOT RUN` in the
-citation check — and is never counted as passed.
+Pages serves at the site root), with `.nojekyll`, `version.json`, `sw.js`,
+`manifest.json` and the icons, and writes the `output` name from `course.js` as
+a redirect to it. Every check reads the page through `built_page.js`. A check
+that cannot run here says NOT RUN with the reason and exits 2, and is never
+counted as passed; a case that does not apply to the bank on hand is listed as
+a skip.
 
 ## Add a lecture
 
@@ -150,10 +159,14 @@ uses it, consistently.
 
 ## Files
 
-Engine (leave alone unless changing behaviour for every course): `shell.html`,
-`views.js`, `build.py`, `test.js`, `style_check.js`, `render_test.js`,
-`stepper_test.js`, `browser_test.py`, `harvest.py`, `harvest_mask.py`,
-`ingest.py`.
+Engine, from the kit's `core/` (leave alone unless changing behaviour for every
+course; a change for every course goes to the kit): `shell.html`, `views.js`,
+`build.py`, `sw.js`, `built_page.js`, `check_lib.js`, `run_checks.sh`, the
+checks (`test.js`, `style_check.js`, `render_test.js`, `stepper_test.js`,
+`device_lint.js`, `output_test.js`, `checks_test.js`, `draw_test.js`,
+`browser_test.js`, `storage_test.js`, `update_test.js`, `offline_test.js`,
+`home_test.js`, `history_test.js`), `harvest.py`, `harvest_mask.py`,
+`ingest.py`, `STEPPERS.md`.
 
 Engine with a course-specific table at the top: `cite_check.py` (deck spellings
 a citation uses that cannot be derived from `course.js` and the files on disk),
