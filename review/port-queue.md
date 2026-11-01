@@ -41,15 +41,19 @@ Sources: BDK = lglouis3-create/BDK `assets/app.js` at c2f87ae; Intro to Pharmaco
 lglouis3-create/Intro-Pharmacology- `exam1-drill/src/app.js` at d0d3d2d (line ranges from the
 read-only assessments of 2026-11-01; the port re-reads them).
 
+Items 11-17 have status `BDK move`: Louis decided on 2026-11-01 that BDK moves onto the
+core now, and `review/bdk-move-plan.md` ports these features as part of that move, so the
+nightly porter takes only items whose status is `pending`.
+
 | Order | Item | Source | Not before | Status |
 |---|---|---|---|---|
-| 11 | learn-mode (successive relearning in rounds) | BDK `startLearn` ~1755 | — | pending |
-| 12 | compare-tab (drugs side by side, differences marked) | BDK ~2244 | — | pending |
-| 13 | cram-mode (time-boxed pass before a quiz, Last look) | BDK ~2018 | — | pending |
-| 14 | drug-list-tab (table per page, search across pages) | BDK ~2496 | — | pending |
-| 15 | match-game (timed pairs) | BDK ~2160 | — | pending |
-| 16 | flashcards (flip, Know it / Still learning) | BDK ~1647 | — | pending |
-| 17 | progress-dashboard (today's plan, readiness by page, trouble cards) | BDK `viewProgress` ~2320, `todaysPlan` ~1345 | — | pending |
+| 11 | learn-mode (successive relearning in rounds) | BDK `startLearn` ~1755 | — | BDK move |
+| 12 | compare-tab (drugs side by side, differences marked) | BDK ~2244 | — | BDK move |
+| 13 | cram-mode (time-boxed pass before a quiz, Last look) | BDK ~2018 | — | BDK move |
+| 14 | drug-list-tab (table per page, search across pages) | BDK ~2496 | — | BDK move |
+| 15 | match-game (timed pairs) | BDK ~2160 | — | BDK move |
+| 16 | flashcards (flip, Know it / Still learning) | BDK ~1647 | — | BDK move |
+| 17 | progress-dashboard (today's plan, readiness by page, trouble cards) | BDK `viewProgress` ~2320, `todaysPlan` ~1345 | — | BDK move |
 | 18 | glossary-tap (tap a term for its definition; upgrade of the Terms work in item 3) | BDK; Intro to Pharmacology `app.js` 1769-1922 | 2026-11-02 11:00 CT | pending |
 | 19 | pair-up and table-recall drills (drug ↔ receptor, poisoning table) | Intro to Pharmacology `app.js` 1923-2060 | 2026-11-02 11:00 CT | pending |
 | 20 | short-answer page and graphs drill | Intro to Pharmacology `app.js` 2308-2351, 3518-3580 | 2026-11-02 11:00 CT | pending |
