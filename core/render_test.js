@@ -1,7 +1,8 @@
 const fs=require('fs'), vm=require('vm');
 const PAGE=require('./built_page'); PAGE.need('render_test.js');
 let code=PAGE.engine();
-code+="\nglobalThis.__X={QUESTIONS,TOPICS,DIA,DIAGRAMS,startQuiz,renderTopics,renderQuiz,renderGaps,renderRef,renderTell,renderGuide,renderDiagrams,renderSettings,answer,Qref:()=>Q,askProfile,record,beginExam,renderExamQ,EXref:()=>EX,sessionLog,linksFor,drawPaper};\n";
+// DIA and DIAGRAMS are optional (a course without drawn figures may leave them out)
+code+="\nglobalThis.__X={QUESTIONS,TOPICS,DIA:typeof DIA!=='undefined'?DIA:{},DIAGRAMS:typeof DIAGRAMS!=='undefined'?DIAGRAMS:[],startQuiz,renderTopics,renderQuiz,renderGaps,renderRef,renderTell,renderGuide,renderDiagrams,renderSettings,answer,Qref:()=>Q,askProfile,record,beginExam,renderExamQ,EXref:()=>EX,sessionLog,linksFor,drawPaper};\n";
 const store={}, sinks={};
 function mk(id){ return sinks[id] ||= {innerHTML:'',textContent:'',dataset:{},style:{},classList:{toggle(){},add(){},remove(){},contains(){return false}},setAttribute(){},querySelectorAll(){return []},onclick:null,click(){}}; }
 const sb={console,localStorage:{getItem:k=>k in store?store[k]:null,setItem:(k,v)=>{store[k]=String(v)},removeItem:k=>{delete store[k]}},

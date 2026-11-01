@@ -1830,7 +1830,7 @@ function xBack(target){
    shown inside a question appears here too, which is where a reader goes to
    work through a process without being asked anything. */
 const DIA_LIST = () => (typeof DIAGRAMS !== 'undefined' ? DIAGRAMS : [])
-  .map(([name, keys]) => [name, keys.filter(k => DIA && DIA[k])])
+  .map(([name, keys]) => [name, keys.filter(k => typeof DIA !== 'undefined' && DIA[k])])
   .filter(([, keys]) => keys.length);
 function renderDiagrams(){
   const el = $('#v-diagrams');
@@ -1890,7 +1890,7 @@ function refFigures(html){
              `<figcaption>${c}</figcaption></figure>`;
     })
     // a figure drawn in diagrams.js, step-through controls and all
-    .replace(/<!--DIA:([\w-]+)-->/g, (_, key) => (DIA && DIA[key]) ? DIA[key] : '');
+    .replace(/<!--DIA:([\w-]+)-->/g, (_, key) => (typeof DIA !== 'undefined' && DIA[key]) ? DIA[key] : '');
 }
 
 /* ==========================================================================

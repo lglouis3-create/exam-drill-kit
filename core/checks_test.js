@@ -12,6 +12,8 @@
  *   a report               explain_check.js says REPORT and exits 0
  *   a planted lookbehind   device_lint.js fails, in a source and in the page
  *   run_checks.sh          one line per check, non-zero exit on a FAIL
+ *   no DIAGRAMS list       test.js and render_test.js still run and pass (the
+ *                          Diagrams tab's list is optional, as in views.js)
  *
  *     node checks_test.js              this source tree
  *     node checks_test.js --src DIR    another one (for example the archived template)
@@ -99,6 +101,25 @@ check(/^3 PASS, 0 FAIL, 1 NOT RUN, 1 REPORT/m.test(out), 'run_checks.sh ends wit
 const listed = (fs.readFileSync(path.join(src, 'run_checks.sh'), 'utf8').match(/^CHECKS=\(([\s\S]*?)\)/m) || [, ''])[1].split(/\s+/).filter(Boolean);
 const absent = listed.filter(f => !has(f));
 check(listed.length >= 10 && !absent.length, `every check run_checks.sh lists is in the source tree (${listed.length})`, absent.join(', '));
+
+// 6. a course without a DIAGRAMS list: the node checks do not depend on one
+{
+  let lf = null;
+  try { lf = JSON.parse(child.spawnSync('python3', ['build.py', '--list-files'], {cwd: src, encoding: 'utf8'}).stdout); } catch(e){}
+  const DECL = /^const DIAGRAMS(\s*=)/m;
+  const holder = lf && (lf.files || []).find(f => has(f) && DECL.test(fs.readFileSync(path.join(src, f), 'utf8')));
+  if(!holder) L.skip('test.js and render_test.js without a DIAGRAMS list', lf ? 'no data file declares DIAGRAMS' : 'build.py --list-files gave no list');
+  else {
+    const hp = path.join(src, holder), text = fs.readFileSync(hp, 'utf8');
+    fs.writeFileSync(hp, text.replace(DECL, 'const DIAGRAMS_LEFT_OUT$1'));
+    const nb = child.spawnSync('python3', ['build.py'], {cwd: src, encoding: 'utf8'});
+    for(const f of ['test.js', 'render_test.js']){
+      const t = nb.status === 0 ? run(f) : {code: null, last: 'the build failed: ' + (nb.stderr || nb.stdout).trim().split('\n').pop()};
+      check(t.code === 0 && new RegExp('^PASS: ' + f.replace('.', '\\.') + ': ').test(t.last), `${f} passes on a course whose ${holder} declares no DIAGRAMS list`, `exit ${t.code}: ${t.last.slice(0, 120)}`);
+    }
+    fs.writeFileSync(hp, text);
+  }
+}
 
 fs.rmSync(repo, {recursive: true, force: true});
 L.finish(NAME);
