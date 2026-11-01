@@ -35,9 +35,10 @@ QUESTION_FILE = re.compile(r'q[0-9][A-Za-z0-9._-]*\.js')
 # The sources every course has, after the data files; they cannot be listed in
 # `files` as well, or they would be put into the page twice.
 FIXED_SOURCES = ['glossary.js', 'links.js', 'reference.js', 'tell.js', 'guide.js', 'views.js']
-# Engine files the build puts in only when the course switches them on (below:
-# feature_modules, calc_options); they cannot be listed in `files` either.
-ENGINE_EXTRAS = ['features.js', 'numeric.js', 'exam_typed.js']
+# Engine files the build puts in only when the course switches them on or needs
+# them (below: feature_modules, calc_options, unset_counts); they cannot be
+# listed in `files` either.
+ENGINE_EXTRAS = ['features.js', 'numeric.js', 'exam_typed.js', 'nullexam.js']
 
 # The home-screen and install icons. A course supplies its own as PNG files
 # under src/icons/ with these names; any it does not supply is written as a
@@ -95,7 +96,9 @@ def course_fields():
           "oldCachePrefix:C.oldCachePrefix||'',files:C.files===undefined?null:C.files,"
           "manifest:C.manifest===undefined?null:C.manifest,tools:C.tools===undefined?null:C.tools,"
           "features:C.features===undefined?null:C.features,numeric:C.numeric===undefined?null:C.numeric,"
-          "typedExams:(C.exams||[]).filter(e=>e&&e.typed!==undefined).map(e=>({id:e.id,typed:e.typed}))}))")
+          "typedExams:(C.exams||[]).filter(e=>e&&e.typed!==undefined).map(e=>({id:e.id,typed:e.typed})),"
+          "unset:(E=>E?{questions:E.questions==null,marks:(E.pools||[]).some(p=>p&&p.marks==null)}:null)"
+          "((C.exams||[]).find(e=>e&&e.id===C.activeExam)||(C.exams||[])[0])}))")
     r = subprocess.run(['node', '-e', js], capture_output=True, text=True)
     if r.returncode != 0:
         sys.exit('ERROR: course.js could not be evaluated\n' + (r.stderr or r.stdout).strip())
@@ -310,14 +313,26 @@ def calc_options(c):
     return out
 
 
+def unset_counts(c):
+    """The active exam with `questions: null` (the number of questions is not
+    announced) or a pool with `marks: null` (a missing field counts the same):
+    core/nullexam.js, which keeps the Exam view from starting a paper with no
+    count and leaves the marks figures out (skill/SKILL.md, the course
+    manifest). Returns the core files it puts in the page: none when every
+    number is set, so such a page is byte for byte what the core built before."""
+    u = c.get('unset') or {}
+    return ['nullexam.js'] if u.get('questions') or u.get('marks') else []
+
+
 COURSE_FIELDS = course_fields()
 DATA_FILES = data_files(COURSE_FIELDS)
 MANIFEST_EXTRA = manifest_extra(COURSE_FIELDS)
 tool_tables(COURSE_FIELDS)
 MODULES = feature_modules(COURSE_FIELDS)
 CALC_FILES = calc_options(COURSE_FIELDS)
+UNSET_FILES = unset_counts(COURSE_FIELDS)
 # what goes into the page between the data and views.js, in this order
-EXTRA_CORE = CALC_FILES + (['features.js'] if MODULES else [])
+EXTRA_CORE = CALC_FILES + UNSET_FILES + (['features.js'] if MODULES else [])
 MODULE_JS = [os.path.join(m['dir'], f) for m in MODULES for f in (m['meta'].get('js') or [])]
 MODULE_CSS = [os.path.join(m['dir'], f) for m in MODULES for f in (m['meta'].get('css') or [])]
 QUESTION_FILES = [f for f in DATA_FILES if QUESTION_FILE.fullmatch(f)]
@@ -508,12 +523,13 @@ def module_step(m):
 
 def feature_block():
     """The JavaScript that goes between the data and views.js: the core's
-    calculation options that are on, then, when any module is on, the hooks
+    calculation options that are on, nullexam.js when the active exam's count
+    or a pool's marks are not set, then, when any module is on, the hooks
     (features.js) and each module, wrapped so that its names stay its own and an
     error while it loads skips it (FX.load in features.js). Empty when nothing
     is on, so such a page is byte for byte what this core built before."""
     out = ''
-    for f in CALC_FILES:
+    for f in CALC_FILES + UNSET_FILES:
         out += open(f, encoding='utf-8').read() + '\n'
     if not MODULES:
         return out
@@ -533,6 +549,8 @@ def feature_block():
 FEATURE_JS = feature_block()
 for f in CALC_FILES:
     print(f'  core option on: {f}')
+for f in UNSET_FILES:
+    print(f'  exam count or pool marks not set: {f} in the page (no paper without a count; no marks figures)')
 if MODULE_CSS:
     if shell.count('</style>') != 1:
         sys.exit("ERROR: shell.html must hold exactly one </style> for the feature modules' styles")

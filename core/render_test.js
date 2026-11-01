@@ -56,8 +56,9 @@ X.renderSettings();      ok &= check('settings', sinks['#v-settings'].innerHTML)
 const said = (sinks['#v-settings'].innerHTML.match(/· (\d+) questions ·/) || [])[1];
 const countOk = Number(said) === X.QUESTIONS.length;
 console.log(`  ${countOk ? 'ok  ' : 'FAIL'}  settings says ${said === undefined ? 'no' : said} questions; the page holds ${X.QUESTIONS.length}`);
-X.beginExam();           ok &= check('exam paper', sinks['#v-exam'].innerHTML);
-console.log('         exam question count: '+X.EXref().qs.length);
+X.beginExam();           ok &= check(X.EXref() ? 'exam paper' : 'exam, no paper', sinks['#v-exam'].innerHTML);
+// with exams[].questions: null no paper is drawn (nullexam.js)
+console.log('         exam question count: '+(X.EXref() ? X.EXref().qs.length : 'none (the number of questions is not set)'));
 // verify an image actually embeds
 const withImg = X.QUESTIONS.filter(q=>q.img).length;
 console.log(`         ${withImg} questions carry an image`);

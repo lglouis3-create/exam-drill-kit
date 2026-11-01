@@ -72,8 +72,11 @@ COURSE = {id, title, short, ns, output, professors:[…],
   carries across exams and updates (§7.4).
 - `kit.core` and each `features.<name>.version` pin the course; nothing changes them
   except Mode 7 (§7.5).
-- `questions: null` means the count is not announced; the exam draw then uses pool
-  eligibility, and the clock does not scale.
+- `questions: null` means the count is not announced: the Exam tab then draws no
+  practice paper and says the number of questions is not set, and Topics and Weak
+  spots leave the count out. `marks: null` on a pool makes the exam unweighted: a
+  paper (with a count) is drawn from all the pools together, and no marks figure or
+  exam-weighted pass is shown (`core/nullexam.js`; `core/README.md` "Exam draw").
 - `files` lists the data files in build order; every new question file goes there. A
   core update replaces `build.py`, never `course.js`, so the list is kept
   (`core/README.md` "The course's files").

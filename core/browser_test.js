@@ -421,6 +421,9 @@ function sourceCounts(){
     out.extraMarkedWrong = !!v3 && v3.classList.contains('bad');
     // the exam paper draws its share of select-all items and renders them with toggles
     show('exam');
+    // with exams[].questions: null the Exam tab starts no paper (nullexam.js)
+    out.noPaper = !document.getElementById('startExam');
+    if(out.noPaper) return out;
     document.getElementById('startExam').click();
     out.examSata = EX.qs.filter(isMulti).length;
     // the blueprint's own select-all count governs when the course has one
@@ -447,9 +450,12 @@ function sourceCounts(){
     check(sata.youSelected, 'the review marks which options were selected');
     check(sata.fullMarkedRight && sata.guessOffered, 'the complete correct set is marked right and can be flagged as a guess');
     check(sata.extraMarkedWrong, 'the correct set plus a wrong option is marked wrong');
-    check(sata.examSata === sata.examTarget, `the exam paper carries ${sata.examTarget} select-all items`, `drew ${sata.examSata}`);
-    if(sata.examTarget) check(sata.examToggles && sata.examChip && sata.examPickIsArray, 'exam select-all items render toggles, a chip, and store an array of picks');
-    else skip('exam select-all rendering', 'the blueprint puts no select-all item on the paper');
+    if(sata.noPaper) skip('select-all items on the exam paper', 'the number of questions on the exam is not set, so no paper is drawn');
+    else {
+      check(sata.examSata === sata.examTarget, `the exam paper carries ${sata.examTarget} select-all items`, `drew ${sata.examSata}`);
+      if(sata.examTarget) check(sata.examToggles && sata.examChip && sata.examPickIsArray, 'exam select-all items render toggles, a chip, and store an array of picks');
+      else skip('exam select-all rendering', 'the blueprint puts no select-all item on the paper');
+    }
   }
 
   // Weak spots after mixed results: the next-step cards and the confusion table render
@@ -509,6 +515,7 @@ function sourceCounts(){
 
   // the exam paper survives a reload and can be submitted in part
   const ex = await page.evaluate(() => {
+    if(EXAM.questions === null || EXAM.questions === undefined) return {noPaper: true};   // nullexam.js: no paper without a count
     beginExam();
     const q0 = EX.qs[0]; EX.picks[0] = isMulti(q0) ? correctSet(q0) : q0.type === 'numeric' ? String(q0.answer)   // a calculation or matching item (exams[].typed)
       : q0.type === 'match' ? q0.pairs.map((p, i) => i) : q0.options.findIndex(o => o.correct);
@@ -522,8 +529,11 @@ function sourceCounts(){
     const logged = DB.answers.length - before;
     return {saved: !!saved, same, logged, cleared: !store.get(NS + ':exam:' + PROFILE)};
   });
-  check(ex.saved && ex.same, 'an exam paper in progress is saved and restored');
-  check(ex.logged === 1 && ex.cleared, `submitting a partial paper logs only the answered items (${ex.logged} logged)`);
+  if(ex.noPaper) skip('an exam paper saved, restored and submitted in part', 'the number of questions on the exam is not set, so no paper is drawn');
+  else {
+    check(ex.saved && ex.same, 'an exam paper in progress is saved and restored');
+    check(ex.logged === 1 && ex.cleared, `submitting a partial paper logs only the answered items (${ex.logged} logged)`);
+  }
 
   // ---- What's new card and the change log ----------------------------
   const news = await page.evaluate(() => {

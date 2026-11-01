@@ -90,15 +90,20 @@ const next = p => p.evaluate(() => { const b = document.getElementById('btnNext'
   log = await readLog(p);
   check(log[log.length - 1][3] === 'sweep', 'an answer in a one-pass sweep records mode sweep', log[log.length - 1][3]);
   const before = log.length;
-  await p.evaluate(() => { show('exam'); document.getElementById('startExam').click();
-    const b = document.querySelector('#v-exam button.opt'); if(b) b.click();
-    else { const q = EX.qs[EX.i], n = document.getElementById('exNum');   // a calculation or matching item first (exams[].typed)
-      if(n){ n.value = String(q.answer); n.dispatchEvent(new Event('input')); } else if(q.pairs){ EX.picks[EX.i] = q.pairs.map((p, i) => i); saveExam(); } } });
-  await p.click('#exEnd');
-  await p.waitForTimeout(300);
-  log = await readLog(p);
-  const exam = log.slice(before);
-  check(exam.length >= 1 && exam.every(e => e[3] === 'exam' && e[5] === ''), 'a submitted paper records mode exam and no confidence', JSON.stringify(exam));
+  // with exams[].questions: null the Exam tab starts no paper (nullexam.js)
+  if(await p.evaluate(() => { show('exam'); return !document.getElementById('startExam'); }))
+    L.skip('a submitted paper records mode exam and no confidence', 'the number of questions on the exam is not set, so no paper is drawn');
+  else {
+    await p.evaluate(() => { show('exam'); document.getElementById('startExam').click();
+      const b = document.querySelector('#v-exam button.opt'); if(b) b.click();
+      else { const q = EX.qs[EX.i], n = document.getElementById('exNum');   // a calculation or matching item first (exams[].typed)
+        if(n){ n.value = String(q.answer); n.dispatchEvent(new Event('input')); } else if(q.pairs){ EX.picks[EX.i] = q.pairs.map((p, i) => i); saveExam(); } } });
+    await p.click('#exEnd');
+    await p.waitForTimeout(300);
+    log = await readLog(p);
+    const exam = log.slice(before);
+    check(exam.length >= 1 && exam.every(e => e[3] === 'exam' && e[5] === ''), 'a submitted paper records mode exam and no confidence', JSON.stringify(exam));
+  }
 
   console.log('\n=== Export, Import, Erase ===');
   await p.click('#nav button[data-v="settings"]');

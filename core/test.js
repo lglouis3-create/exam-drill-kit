@@ -95,6 +95,7 @@ for (const q of QUESTIONS) {
 console.log('\n=== 2. Exam blueprint coverage ===');
 for (const p of X.EXAM.pools) {
   const n = QUESTIONS.filter(p.test).length;
+  if (p.marks === null || p.marks === undefined) { console.log(`  ${p.name}: ${n} questions (its marks are not set)`); continue; }
   console.log(`  ${p.name}: ${n} questions (paper takes ${p.marks})`);
   if (n < p.marks) bad(`pool "${p.name}" cannot fill its ${p.marks} marks`);
 }
@@ -197,30 +198,40 @@ console.log('\n=== 5. Exam simulation draw ===');
 /* Two shapes a paper can have. By default each pool supplies its marks and the
    select-all items are spread across the pools in proportion. When the course
    has announced counts per topic, `exams[].blueprint` governs instead, and the
-   select-all target is the blueprint's own. */
+   select-all target is the blueprint's own. With `questions: null` no paper is
+   drawn; with a pool's `marks: null` the paper's questions come from all the
+   pools together (nullexam.js). */
 const EXAMQ = X.EXAM.questions, POOLS = X.EXAM.pools;
+const COUNT_SET = EXAMQ !== null && EXAMQ !== undefined, MARKS_SET = POOLS.every(p => p.marks !== null && p.marks !== undefined);
 const BP = (X.EXAM.blueprint && (X.EXAM.blueprint.parts || []).length) ? X.EXAM.blueprint : null;
 const SATA_TARGET = BP ? (BP.sata || 0) : X.EXAM_SATA;
-if (BP) console.log(`  blueprint (announced counts): ${BP.parts.map(p => `${p.name} ${p.rest ? '(the rest)' : p.min ? '≥' + p.min : Array.isArray(p.n) ? p.n.join('–') : p.n}`).join(', ')} · ${SATA_TARGET} select-all`);
-else {
-  console.log(`  blueprint: ${X.EXAM.name} — ${POOLS.map(p=>`${p.name} ${p.marks}`).join(', ')} (${POOLS.reduce((n,p)=>n+p.marks,0)} of ${EXAMQ})`);
-  if (POOLS.reduce((n,p)=>n+p.marks,0) !== EXAMQ) bad('pool marks do not add up to the paper length');
-  for (const p of POOLS){
-    const n = QUESTIONS.filter(q => !q.lowYield && !q.type && p.test(q)).length;
-    if (n < p.marks) bad(`pool "${p.name}" holds ${n} eligible questions, fewer than its ${p.marks} marks`);
-  }
-}
-const paper = X.drawPaper();
-console.log(`  drew ${paper.length}`);
-if (paper.length !== EXAMQ) bad(`exam paper is ${paper.length} questions, expected ${EXAMQ}`);
-if (new Set(paper.map(q=>q.id)).size !== paper.length) bad('duplicate questions on one exam paper');
-else console.log('  ok    no duplicate questions on a single paper');
-// with exams[].typed (exam_typed.js) numeric and matching items may be on the paper; nothing else typed is
-if (paper.some(q => q.type && !(X.EXAM.typed && (q.type === 'numeric' || q.type === 'match')))) bad(X.EXAM.typed ? 'an item of a type the exam paper cannot draw reached the paper' : 'a typed (numeric or matching) item reached the paper');
-// dupOf: every target exists, and 20 papers never carry a question with its dupOf partner or a lowYield item
+// dupOf: every target exists
 const allIds = new Set(QUESTIONS.map(q=>q.id));
 QUESTIONS.filter(q=>q.dupOf && !allIds.has(q.dupOf)).forEach(q=>bad(`${q.id} dupOf points at missing ${q.dupOf}`));
-{ let clash=0, low=0, shape=0;
+if (!COUNT_SET) {
+  console.log(`  skip  the paper's shape: the number of questions on ${X.EXAM.name} is not set in course.js`);
+  if (X.drawPaper().length) bad('a paper was drawn although the number of questions is not set');
+  else console.log('  ok    no paper is drawn while the number of questions is not set');
+} else {
+  if (BP) console.log(`  blueprint (announced counts): ${BP.parts.map(p => `${p.name} ${p.rest ? '(the rest)' : p.min ? '≥' + p.min : Array.isArray(p.n) ? p.n.join('–') : p.n}`).join(', ')} · ${SATA_TARGET} select-all`);
+  else if (!MARKS_SET) console.log(`  blueprint: ${X.EXAM.name} — ${EXAMQ} questions from all the pools together (the pools' marks are not set)`);
+  else {
+    console.log(`  blueprint: ${X.EXAM.name} — ${POOLS.map(p=>`${p.name} ${p.marks}`).join(', ')} (${POOLS.reduce((n,p)=>n+p.marks,0)} of ${EXAMQ})`);
+    if (POOLS.reduce((n,p)=>n+p.marks,0) !== EXAMQ) bad('pool marks do not add up to the paper length');
+    for (const p of POOLS){
+      const n = QUESTIONS.filter(q => !q.lowYield && !q.type && p.test(q)).length;
+      if (n < p.marks) bad(`pool "${p.name}" holds ${n} eligible questions, fewer than its ${p.marks} marks`);
+    }
+  }
+  const paper = X.drawPaper();
+  console.log(`  drew ${paper.length}`);
+  if (paper.length !== EXAMQ) bad(`exam paper is ${paper.length} questions, expected ${EXAMQ}`);
+  if (new Set(paper.map(q=>q.id)).size !== paper.length) bad('duplicate questions on one exam paper');
+  else console.log('  ok    no duplicate questions on a single paper');
+  // with exams[].typed (exam_typed.js) numeric and matching items may be on the paper; nothing else typed is
+  if (paper.some(q => q.type && !(X.EXAM.typed && (q.type === 'numeric' || q.type === 'match')))) bad(X.EXAM.typed ? 'an item of a type the exam paper cannot draw reached the paper' : 'a typed (numeric or matching) item reached the paper');
+  // 20 papers never carry a question with its dupOf partner or a lowYield item
+  let clash=0, low=0, shape=0;
   for(let k=0;k<20;k++){
     const pp = X.drawPaper();
     const on=new Set(pp.map(q=>q.id));
@@ -232,11 +243,11 @@ QUESTIONS.filter(q=>q.dupOf && !allIds.has(q.dupOf)).forEach(q=>bad(`${q.id} dup
   if(low) bad(`${low} lowYield items reached a paper`);
   if(shape) bad(`${shape} of 20 draws broke the paper shape`);
   else console.log('  ok    20 repeated draws all kept the paper shape');
+  const nSata = paper.filter(X.isMulti).length;
+  console.log(`  select-all on the paper: ${nSata} of ${EXAMQ} (target ${SATA_TARGET})`);
+  if (nSata !== SATA_TARGET) bad(`paper carries ${nSata} select-all items, expected ${SATA_TARGET}`);
+  else console.log('  ok    the paper carries the intended number of select-all items');
 }
-const nSata = paper.filter(X.isMulti).length;
-console.log(`  select-all on the paper: ${nSata} of ${EXAMQ} (target ${SATA_TARGET})`);
-if (nSata !== SATA_TARGET) bad(`paper carries ${nSata} select-all items, expected ${SATA_TARGET}`);
-else console.log('  ok    the paper carries the intended number of select-all items');
 // labels: every question resolves to a lecture in the manifest
 { const unl = QUESTIONS.filter(q => !X.lecOf(q));
   if (unl.length) bad(`${unl.length} questions cite no deck in the manifest: ${unl.slice(0,6).map(q=>q.id).join(', ')}`);
@@ -361,6 +372,8 @@ console.log('\n=== 9. Figures, read links, change log, blueprint ===');
   const bp = X.EXAM.blueprint;
   if(!bp || !bp.parts || !bp.parts.length){
     console.log('  skip  blueprint draw (this course draws by pool marks, not announced counts)');
+  }else if(X.EXAM.questions === null || X.EXAM.questions === undefined){
+    console.log('  skip  blueprint draw (the number of questions is not set, so no paper is drawn)');
   }else{
     const paper = X.drawBlueprint(bp);
     ok(paper.length <= X.EXAM.questions, `the blueprint paper is no longer than the exam (${paper.length} of ${X.EXAM.questions})`);
