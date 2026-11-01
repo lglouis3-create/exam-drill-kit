@@ -54,6 +54,14 @@
                       build.py) keeps it; without the field the build uses
                       ['atlas.js', 'diagrams.js', 'q1_topics.js']. A question
                       file in src/ that is not listed stops the build.
+   manifest           optional: {description, orientation} for the web
+                      manifest the build writes (description: one sentence;
+                      orientation: 'portrait-primary', 'any', ... as the web
+                      manifest allows). Leave it out and the manifest has
+                      neither.
+   kit                {core:'<kit commit>'}: the exam-drill-kit commit this
+                      src/ engine was copied from (core/), written when the
+                      course is set up; only Mode 7 (a drill update) changes it
    ========================================================================== */
 const COURSE = {
   id: 'course-id',                       // e.g. 'phar4351'
@@ -107,4 +115,6 @@ const COURSE = {
 
   files: ['atlas.js', 'diagrams.js',
           'q1_topics.js'],                 // add each new question file here, in order
+
+  kit: {core: ''},                         // the kit commit src/ was copied from (set at setup)
 };

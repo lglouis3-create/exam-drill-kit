@@ -7,6 +7,10 @@
  * checks a file that a clone does not have, so no check means anything on a
  * clone.
  *
+ * course.js `manifest` (optional) gives the web manifest a description and an
+ * orientation; without it the manifest has neither, and any other field or an
+ * orientation the web manifest does not name stops the build before it writes.
+ *
  * The build runs in a scratch copy of this source tree, never in place.
  *
  *     node output_test.js              this source tree
@@ -70,4 +74,29 @@ const elsewhere = child.spawnSync('node', ['-p', "require('./built_page').PAGE"]
   {cwd: src, encoding: 'utf8', env: Object.assign({}, process.env, {DRILL_PAGE: path.join(repo, 'other.html')})});
 L.check(elsewhere.stdout.trim() === path.join(repo, 'other.html'), 'DRILL_PAGE points every check at another page');
 fs.rmSync(repo, {recursive: true, force: true});
+
+// 5. course.js `manifest`: description and orientation reach manifest.json
+const withManifest = (label, line) => {
+  const r = L.scratchRepo(SRC, 'output-' + label), s = path.join(r, 'src');
+  fs.appendFileSync(path.join(s, 'course.js'), '\n;' + line + '\n');
+  const b = child.spawnSync('python3', ['build.py'], {cwd: s, encoding: 'utf8'});
+  let m = null;
+  try { m = JSON.parse(fs.readFileSync(path.join(r, 'manifest.json'), 'utf8')); } catch(e){}
+  const wrote = fs.readdirSync(r).filter(f => f !== 'src');
+  fs.rmSync(r, {recursive: true, force: true});
+  return {code: b.status, out: ((b.stdout || '') + (b.stderr || '')).trim(), m, wrote};
+};
+let mb = withManifest('nomanifest', 'delete COURSE.manifest;');
+L.check(mb.code === 0 && mb.m && !('description' in mb.m) && !('orientation' in mb.m),
+  'without course.js `manifest`, manifest.json has no description and no orientation', mb.m ? JSON.stringify(mb.m).slice(0, 160) : mb.out.split('\n').pop());
+const WANT = {description: 'Practice questions for the test course.', orientation: 'portrait-primary'};
+mb = withManifest('manifest', `COURSE.manifest = ${JSON.stringify(WANT)};`);
+L.check(mb.code === 0 && mb.m && mb.m.description === WANT.description && mb.m.orientation === WANT.orientation && mb.m.name === sb.C.title,
+  'course.js `manifest` gives manifest.json its description and orientation', mb.m ? JSON.stringify(mb.m).slice(0, 200) : mb.out.split('\n').pop());
+for(const [what, value] of [['an orientation the web manifest does not name', {orientation: 'sideways'}],
+                            ['a field other than description and orientation', {display: 'browser'}]]){
+  mb = withManifest('badmanifest', `COURSE.manifest = ${JSON.stringify(value)};`);
+  L.check(mb.code !== 0 && /`manifest/.test(mb.out) && !mb.wrote.length, `course.js \`manifest\` with ${what} stops the build before it writes`,
+    `exit ${mb.code}; wrote ${mb.wrote.join(', ') || 'nothing'}: ${mb.out.split('\n').pop()}`);
+}
 L.finish(NAME);

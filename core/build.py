@@ -89,7 +89,8 @@ def course_fields():
     js = ("const fs=require('fs');"
           "const C=new Function(fs.readFileSync('course.js','utf8')+';return COURSE;')();"
           "process.stdout.write(JSON.stringify({title:C.title,short:C.short,ns:C.ns,output:C.output,"
-          "oldCachePrefix:C.oldCachePrefix||'',files:C.files===undefined?null:C.files}))")
+          "oldCachePrefix:C.oldCachePrefix||'',files:C.files===undefined?null:C.files,"
+          "manifest:C.manifest===undefined?null:C.manifest}))")
     r = subprocess.run(['node', '-e', js], capture_output=True, text=True)
     if r.returncode != 0:
         sys.exit('ERROR: course.js could not be evaluated\n' + (r.stderr or r.stdout).strip())
@@ -133,8 +134,28 @@ def data_files(c):
     return files
 
 
+def manifest_extra(c):
+    """course.js `manifest`: the two optional web-manifest members a course had
+    in its own manifest before the core (Medicinal-chemistry's: description and
+    orientation). orientation takes the values the Web Application Manifest
+    names for it. Checked before anything is written."""
+    extra = c.get('manifest')
+    if extra is None:
+        return {}
+    if not isinstance(extra, dict) or set(extra) - {'description', 'orientation'}:
+        sys.exit('ERROR: course.js `manifest` takes only `description` and `orientation`')
+    if 'description' in extra and not (isinstance(extra['description'], str) and extra['description'].strip()):
+        sys.exit('ERROR: course.js `manifest.description` must be a non-empty string')
+    if 'orientation' in extra and extra['orientation'] not in ORIENTATIONS:
+        sys.exit(f"ERROR: course.js `manifest.orientation` is {extra['orientation']!r}; it must be one of {ORIENTATIONS}")
+    return extra
+
+
+ORIENTATIONS = ['any', 'natural', 'landscape', 'portrait', 'portrait-primary', 'portrait-secondary',
+                'landscape-primary', 'landscape-secondary']
 COURSE_FIELDS = course_fields()
 DATA_FILES = data_files(COURSE_FIELDS)
+MANIFEST_EXTRA = manifest_extra(COURSE_FIELDS)
 QUESTION_FILES = [f for f in DATA_FILES if QUESTION_FILE.fullmatch(f)]
 # Everything that has to parse before a build is allowed to proceed. Derived
 # from DATA_FILES rather than listed again, so adding a question file cannot
@@ -372,15 +393,19 @@ for name, size in ICONS:
 if placeholders:
     print(f'  note: placeholder icons (a plain square) for {", ".join(placeholders)}; '
           'put the course\'s own PNGs under src/icons/ to replace them')
-write_root('manifest.json', json.dumps({
-    'name': COURSE_FIELDS.get('title') or 'Exam drill',
-    'short_name': COURSE_FIELDS.get('short') or COURSE_FIELDS.get('title') or 'Drill',
-    'start_url': './index.html', 'scope': './', 'display': 'standalone',
-    'background_color': '#F2F4F7', 'theme_color': '#2F5FA8',
-    'icons': [{'src': './icon-192.png', 'sizes': '192x192', 'type': 'image/png'},
-              {'src': './icon-512.png', 'sizes': '512x512', 'type': 'image/png'},
-              {'src': './icon-maskable-512.png', 'sizes': '512x512', 'type': 'image/png', 'purpose': 'maskable'}],
-}, ensure_ascii=False, indent=1) + '\n')
+extra = MANIFEST_EXTRA
+man = {'name': COURSE_FIELDS.get('title') or 'Exam drill',
+       'short_name': COURSE_FIELDS.get('short') or COURSE_FIELDS.get('title') or 'Drill'}
+if 'description' in extra:
+    man['description'] = extra['description']
+man.update({'start_url': './index.html', 'scope': './', 'display': 'standalone'})
+if 'orientation' in extra:
+    man['orientation'] = extra['orientation']
+man.update({'background_color': '#F2F4F7', 'theme_color': '#2F5FA8',
+            'icons': [{'src': './icon-192.png', 'sizes': '192x192', 'type': 'image/png'},
+                      {'src': './icon-512.png', 'sizes': '512x512', 'type': 'image/png'},
+                      {'src': './icon-maskable-512.png', 'sizes': '512x512', 'type': 'image/png', 'purpose': 'maskable'}]})
+write_root('manifest.json', json.dumps(man, ensure_ascii=False, indent=1) + '\n')
 print('wrote manifest.json and the icons')
 
 # The worker's cache names start with the course's storage namespace, so its
