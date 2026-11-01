@@ -279,3 +279,54 @@ Report each result; NOT RUN stays NOT RUN.
 **Phase 4: Install.** Tell Louis how to replace the installed skill with
 `skill/SKILL.md`, and list the obsolete copies (`share/skill/` in
 pharmacology) to delete or replace.
+
+## 12. Design changes approved after Phase 1 (2026-10-31 to 2026-11-01)
+
+Each item was approved by Louis in the Phase 1 session; the evidence and options
+behind it are in `review/`. Where an item changes an earlier section, this
+section is current.
+
+1. **Every course session attaches the kit first** (Louis, 2026-10-31). Before
+   doing anything, a course session attaches `exam-drill-kit` alongside the course
+   repo, with push access, reads `FEATURES.md`, `COURSES.md` and `core/` from it,
+   and opens kit pull requests for new features, upgrades and catalog updates. If
+   push access to the kit is refused, the session stops and tells Louis. Course
+   content stays in the course repo (§7.3).
+2. **The core is assembled from the best version of each part**, not taken whole
+   from one drill, starting from the recovered template (`history/exam-drill-template-2026-10-02/`)
+   with the picks in `review/proposed-core.md`. Existing drills move onto it one at
+   a time with Mode 7, previewed first, with question ids and `ns` unchanged.
+3. **Scheduler** (`review/scheduler-proposal.md`). The concept scheduler is the
+   default for every course, with exam-date spacing, a later-day check after a
+   confident error, a calculation preset that never puts two problems of one type
+   in a row, and an answer log. The FSRS option is FSRS-7, on default parameters
+   until enough reviews exist and then fitted to the student's own answers with
+   recency weighting. A combination (a memory model per concept, with question
+   rotation) is an option, off by default, shipped with a within-course random
+   comparison against the default.
+4. **Only Louis's own data** informs recommendations and evidence. The sites do not
+   collect classmates' data (Louis, 2026-11-01).
+5. **Citations** in kit documents follow AMA style, 11th edition, with a DOI or link
+   on every reference (Louis left the choice to Claude, 2026-11-01).
+6. **State record.** Phase 1 confirmed §7.8: course state lives in the course
+   repo's `CLAUDE.md`, `reviews/LOG.md` and `reviews/OPEN_QUESTIONS.md`, with a
+   dated header and pharmacology's restore-after-restart section added
+   (`review/proposed-core.md` §11).
+7. **Recommendations.** Mode 1's feature selection and Mode 2's design check follow
+   a written method: the material profile is measured by a script from the course
+   files, including the professor's transcripts and example questions; each catalog
+   entry's "Use when" is a rule over that profile; each recommendation states its
+   reason, evidence and confidence; Louis's own answer logs, exam outcomes and notes
+   update the rules in each retro. The method's details come from the research
+   Louis approved on 2026-11-01 and are recorded when it is written.
+8. **Medicinal-chemistry's 09/21 round** is preserved as branch
+   `restore/2026-09-21-round` in that repo and joins its live drill when the course
+   moves onto the core (Mode 7).
+
+Facts from Phase 1 that correct §2 and §10: BDK has no `course.js`; v2 was written
+before PK's first engine commit, not after it; `exam-drill-template/` was never on
+GitHub and was recovered from Louis's own files (`review/findings.md` §1-§3, §11).
+
+Open: whether kit updates reach existing courses automatically, which would change
+decision 1 (Louis merges kit pull requests) and principle §7.5 (no silent upgrades).
+Asked 2026-11-01.
