@@ -138,7 +138,9 @@ Three defects found in this phase, by reading or scanning the code:
   cache whose name is not `bdk-v15`. All of Louis's Pages sites share the
   `lglouis3-create.github.io` origin, so BDK's activation would delete MC's
   `phar4342-drill-v1` cache. MC's `sw.js:14-18` was written to avoid exactly this.
-  Not run in a browser.
+  **Fixed 2026-11-01 with Louis's approval** in BDK `c78e78d` (deployed: Pages run
+  19, success). The new `tests/offline.js` confirmed the defect in Chromium on the
+  previous code (only `bdk-v15` remained after activation) and passes on the fix.
 - **PK's exam draw can put both wordings of a fact on one paper.** `beginExam`
   (`src/views.js:3270-3282`) calls `drawMixed` once per pool, and each call
   starts a new blocked set (`src/views.js:3199`), so a `dupOf` pair whose members

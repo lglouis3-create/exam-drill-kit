@@ -16,9 +16,13 @@ How the fields were filled:
 - **Best for** states what the course material needed, from the reason the
   course's notes record. **Weaker at** says "not evaluated" wherever no retro,
   study data or exam outcome exists, which is every entry today.
-- **Evidence:** no repo records a learning-science citation (searched for
-  citation patterns and method names on 2026-10-31). Where a method is named in
-  code without a source, the entry says so.
+- **Evidence:** the only learning-science citations recorded in any repo are two,
+  in BDK commit `577d5b6`'s message and BDK `reviews/LOG.md` (2026-10-28 entry):
+  Haladyna, Downing & Rodriguez 2002, and Couch, Hubbard & Brassil 2018, named by
+  author and year only, with no full reference, and not read in this phase.
+  Files were searched for citation patterns and method names on 2026-10-31 and
+  commit messages on 2026-11-01. Where a method is named in code without a source,
+  the entry says so.
 - **Enable** lines are proposed names; nothing reads `features` yet.
 - Courses: MC = Medicinal-chemistry (PHAR 4342), PK = Basic-Pharmacokinetics-
   (PHAR 4221), PH = Intro-Pharmacology- (PHAR 4344), BDK = BDK (PHAR 4232).
@@ -205,7 +209,7 @@ Enable: course.js → features.learn-mode = { version: 'v2' }
 Versions:
   v1  2026-10-22  from BDK (`58c441d`)   best for: card decks   weaker at: list answers offered as one bundled option   archive/v1/
   v2  2026-10-28  from BDK (`577d5b6`)   best for: card decks with list answers   weaker at: not evaluated   current/
-Evidence: method named "successive relearning" in `assets/app.js:1619`; no citation recorded. Louis's concern that bundled answers "hurts the learner in making a proper connection for each drug" led to v2 (BDK notes §4).
+Evidence: method named "successive relearning" in `assets/app.js:1619`, with no citation. For v2, commit `577d5b6` and `reviews/LOG.md` cite Haladyna, Downing & Rodriguez 2002 (advise against complex, Type K options) and Couch, Hubbard & Brassil 2018 (single-answer multiple choice hides incomplete understanding), by author and year only. Louis's concern that bundled answers "hurts the learner in making a proper connection for each drug" led to v2 (BDK notes §4).
 Used by: BDK (v2)
 Known issues: none open.
 Test: `tests/regression.js`, `tests/ui.js` (BDK).

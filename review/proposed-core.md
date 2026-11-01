@@ -166,9 +166,9 @@ improve it and whether a combination can serve a course that needs one.
 - **PK, Pharmacology**: no service worker.
 
 **Proposal.** Use medchem's `sw.js`, with `PREFIX` derived from `COURSE.ns`
-and the precache list written by the build. Phase 2 should report BDK's
-cleanup rule to Louis as a defect in a live site; no change to BDK is made
-in this phase.
+and the precache list written by the build. BDK's cleanup rule was fixed in
+BDK `c78e78d` on 2026-11-01 (prefix-scoped cleanup, a 3.5 s network fallback,
+and `tests/offline.js`, which the core can reuse as its `sw_test`).
 
 ## 5. Update notice and place restore
 
