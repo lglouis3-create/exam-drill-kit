@@ -9,11 +9,13 @@ runs — a boot error, a view that throws on click, an image that does not decod
 
     python3 browser_test.py [path-to-html]
 """
-import glob, json, pathlib, re, sys
+import glob, json, os, pathlib, re, subprocess, sys
 from playwright.sync_api import sync_playwright
 
-_m = re.search(r"output:\s*'([^']+)'", open('course.js', encoding='utf-8').read())
-HTML = sys.argv[1] if len(sys.argv) > 1 else '/mnt/user-data/outputs/' + (_m.group(1) if _m else 'exam_drill.html')
+# the built page, located by built_page.js, the helper every check uses
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+HTML = sys.argv[1] if len(sys.argv) > 1 else subprocess.run(
+    ['node', '-p', "require('./built_page').PAGE"], capture_output=True, text=True, check=True).stdout.strip()
 
 # Every question file, found rather than listed, so a new one is picked up here
 # the moment it is built into the page instead of quietly going uncounted.

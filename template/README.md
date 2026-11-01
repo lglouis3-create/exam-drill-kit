@@ -35,8 +35,10 @@ files. Reference implementations with full banks: the PHAR 4342 drill
 
 6. Commit; publish the built HTML (root of the repo) with GitHub Pages.
 
-The output lands in `/mnt/user-data/outputs/<output from course.js>`; every
-check reads that path from `course.js`. A check that cannot run on the bank on
+The build writes the app to the repository root as `index.html` (what GitHub
+Pages serves at the site root), with `.nojekyll`, and writes the `output` name
+from `course.js` as a redirect to it. Every check reads the page through
+`built_page.js`. A check that cannot run on the bank on
 hand says so — `skip` lines in the browser and stepper tests, `NOT RUN` in the
 citation check — and is never counted as passed.
 

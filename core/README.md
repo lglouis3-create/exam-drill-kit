@@ -12,7 +12,10 @@ that course's repository. Both folders come from the recovered exam-drill templa
 |---|---|---|
 | `shell.html` | core | page skeleton, styles, storage, scheduler; reads `COURSE` and nothing else about the course |
 | `views.js` | core | every view and the boot code |
-| `build.py` | core | assembles the page from the shell, the course files and the views |
+| `build.py` | core | assembles the page from the shell, the course files and the views, and writes it to the repository root |
+| `built_page.js` | core | the one place every check takes the built page's location from |
+| `check_lib.js` | core | what the newer checks share: summary line and exit code, Playwright loading, a test server |
+| `output_test.js` | core | the build writes to the repository root and the checks read from there |
 | `test.js`, `style_check.js`, `render_test.js`, `explain_check.js`, `stepper_test.js` | core | checks that run on any course's built page |
 | `cite_check.py` | core | citation check; its course-specific tables at the top start empty |
 | `browser_test.py` | core | browser smoke test |
@@ -47,3 +50,18 @@ course's `src/README.md` comes from `template/`.
 
 No file name appears in both folders except `README.md`, so the copy order does not
 matter for any other file.
+
+## What the build writes
+
+`python3 src/build.py` writes into the repository root, which is what GitHub Pages
+serves:
+
+| File | What it is |
+|---|---|
+| `index.html` | the app; the site root opens it |
+| `.nojekyll` | stops Pages running Jekyll, which drops files whose names start with `_` |
+| the `output` name in `course.js` | a redirect to `index.html`, so old links keep working |
+
+Each file is written through a `.tmp` file and renamed, so a failed build leaves the
+last good file in place. Nothing is written outside the repository. Every check reads
+the page through `built_page.js`; `DRILL_PAGE=<file>` points them all at another page.

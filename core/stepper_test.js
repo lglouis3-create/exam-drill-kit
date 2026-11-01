@@ -18,8 +18,7 @@ catch (e) {
   console.log('\nstepper_test.js: NOT RUN (playwright for node is not installed)\n');
   process.exit(0);
 }
-const OUT = '/mnt/user-data/outputs/' +
-  ((fs.readFileSync('course.js', 'utf8').match(/output:\s*'([^']+)'/) || [])[1] || 'exam_drill.html');
+const OUT = require('./built_page').PAGE;
 
 /* Passed to the page as a function, not a string: a string is evaluated as an
    expression, and an arrow-function expression serializes back as undefined. */

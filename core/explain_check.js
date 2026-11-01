@@ -19,10 +19,9 @@
  * so the ranking follows the blueprint rather than the raw count.
  */
 const fs = require('fs'), vm = require('vm');
-const OUT = '/mnt/user-data/outputs/' + ((fs.readFileSync('course.js','utf8').match(/output:\s*'([^']+)'/)||[])[1] || 'exam_drill.html');
-let c = [...fs.readFileSync(OUT, 'utf8')
-          .matchAll(/<script>([\s\S]*?)<\/script>/g)][0][1];
-const b = c.lastIndexOf('   BOOT'); c = c.slice(0, c.lastIndexOf('/* ===', b));
+const PAGE = require('./built_page');
+PAGE.need('explain_check.js');
+let c = PAGE.engine();
 c += '\nglobalThis.__Q=QUESTIONS;globalThis.GLOSS=typeof GLOSS!=="undefined"?GLOSS:[];globalThis.__EXAM=EXAM;globalThis.__poolOf=poolOf;';
 const sb = {console, localStorage:{getItem:()=>null,setItem(){},removeItem(){}},
   document:{querySelector:()=>({}),querySelectorAll:()=>[],getElementById:()=>({}),createElement:()=>({}),body:{},addEventListener(){}},

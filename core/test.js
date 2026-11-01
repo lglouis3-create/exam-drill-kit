@@ -2,16 +2,12 @@
 const fs = require('fs');
 const vm = require('vm');
 
-const OUT = '/mnt/user-data/outputs/' + ((require('fs').readFileSync('course.js','utf8').match(/output:\s*'([^']+)'/)||[])[1] || 'exam_drill.html');
-const html = fs.readFileSync(OUT, 'utf8');
-const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]);
-if (scripts.length !== 1) { console.error('FAIL: expected 1 script block, got ' + scripts.length); process.exit(1); }
-let code = scripts[0];
-
-// strip only the final boot block, which needs a real DOM
-const bootAt = code.lastIndexOf('   BOOT');
-if (bootAt === -1) { console.error('FAIL: BOOT marker not found'); process.exit(1); }
-code = code.slice(0, code.lastIndexOf('/* ===', bootAt));
+const PAGE = require('./built_page');
+PAGE.need('test.js');
+// the engine without its final boot block, which needs a real DOM
+let code;
+try { code = PAGE.engine(); }
+catch (e) { console.error('FAIL: ' + e.message); process.exit(1); }
 
 // minimal DOM + storage stubs
 const store = {};

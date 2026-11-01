@@ -1,8 +1,7 @@
 /* Flags phrasing the drill's style rules reject: study meta-commentary, metaphor, and appeals to the deck. */
 const fs=require('fs'), vm=require('vm');
-const OUT = '/mnt/user-data/outputs/' + ((require('fs').readFileSync('course.js','utf8').match(/output:\s*'([^']+)'/)||[])[1] || 'exam_drill.html');
-let c=[...fs.readFileSync(OUT,'utf8').matchAll(/<script>([\s\S]*?)<\/script>/g)][0][1];
-const b=c.lastIndexOf('   BOOT'); c=c.slice(0,c.lastIndexOf('/* ===',b)); c+='\nglobalThis.__Q=QUESTIONS;';
+const PAGE=require('./built_page'); PAGE.need('style_check.js');
+let c=PAGE.engine(); c+='\nglobalThis.__Q=QUESTIONS;';
 const sb={console,localStorage:{getItem:()=>null,setItem(){},removeItem(){}},document:{querySelector:()=>({}),querySelectorAll:()=>[],getElementById:()=>({}),createElement:()=>({}),body:{},addEventListener(){}},window:{},prompt:()=>'x',setTimeout:()=>0,clearTimeout(){},Date,Math,JSON,Object,Array,String,Number,Boolean,RegExp,Error,isNaN,parseInt,parseFloat};
 sb.globalThis=sb;vm.createContext(sb);vm.runInContext(c,sb);
 const Q=sb.__Q;

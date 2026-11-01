@@ -1,8 +1,6 @@
 const fs=require('fs'), vm=require('vm');
-const OUT = '/mnt/user-data/outputs/' + ((require('fs').readFileSync('course.js','utf8').match(/output:\s*'([^']+)'/)||[])[1] || 'exam_drill.html');
-const html=fs.readFileSync(OUT,'utf8');
-let code=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)][0][1];
-const b=code.lastIndexOf('   BOOT'); code=code.slice(0,code.lastIndexOf('/* ===',b));
+const PAGE=require('./built_page'); PAGE.need('render_test.js');
+let code=PAGE.engine();
 code+="\nglobalThis.__X={QUESTIONS,TOPICS,DIA,DIAGRAMS,startQuiz,renderTopics,renderQuiz,renderGaps,renderRef,renderTell,renderGuide,renderDiagrams,renderSettings,answer,Qref:()=>Q,askProfile,record,beginExam,renderExamQ,EXref:()=>EX,sessionLog,linksFor,drawPaper};\n";
 const store={}, sinks={};
 function mk(id){ return sinks[id] ||= {innerHTML:'',textContent:'',dataset:{},style:{},classList:{toggle(){},add(){},remove(){},contains(){return false}},setAttribute(){},querySelectorAll(){return []},onclick:null,click(){}}; }

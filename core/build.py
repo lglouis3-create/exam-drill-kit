@@ -6,7 +6,20 @@ assembled script is checked again before the output file is replaced. A source
 with a stray comma or bracket therefore stops the build with the offending file
 and line named, instead of producing an HTML file that loads to a blank screen.
 """
-import json, re, io, os, subprocess, sys, tempfile
+import html as htmlmod, json, re, io, os, subprocess, sys, tempfile
+
+# This file lives in the course repository's src/; the repository root above it
+# is what GitHub Pages serves. Every path below is relative to src/, so the
+# build runs the same from any working directory.
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(HERE)
+os.chdir(HERE)
+
+# What the build writes into the repository root. index.html is the app itself,
+# so the site root opens the drill rather than the README. The file name in
+# course.js `output` is kept as a redirect to it, so a link or bookmark made to
+# that name still opens the drill.
+OUTPUT_NAME = 'index.html'
 
 # The data files, in the order they are concatenated into the page. TOPICS is
 # declared at the top of the first question file, so it has to precede the
@@ -115,13 +128,36 @@ finally:
     os.unlink(tmp_js)
 print('  assembled script parses cleanly')
 
-# write to a temporary file first, so a failed build never leaves a half-written
-# or truncated HTML in place of the last good one
+def write_root(name, text):
+    """Write a file into the repository root through a temporary file, so a
+    failed build never leaves a half-written or truncated file in place of the
+    last good one."""
+    path = os.path.join(ROOT, name)
+    tmp = path + '.tmp'
+    with open(tmp, 'w', encoding='utf-8') as fh:
+        fh.write(text)
+    os.replace(tmp, path)
+    return path
+
+
+write_root(OUTPUT_NAME, shell)
+print(f'wrote {OUTPUT_NAME}  ({len(shell)/1024/1024:.2f} MB)')
+
+# Pages runs Jekyll over the repository unless this file exists, and Jekyll
+# leaves out files and folders whose names start with an underscore.
+write_root('.nojekyll', '')
+
 m = re.search(r"output:\s*'([^']+)'", course_src)
-out = os.path.join('/mnt/user-data/outputs', m.group(1) if m else 'exam_drill.html')
-os.makedirs('/mnt/user-data/outputs', exist_ok=True)
-tmp_out = out + '.tmp'
-with open(tmp_out, 'w', encoding='utf-8') as fh:
-    fh.write(shell)
-os.replace(tmp_out, out)
-print(f'wrote {out}  ({len(shell)/1024/1024:.2f} MB)')
+legacy = m.group(1) if m else ''
+t = re.search(r"title:\s*'([^']+)'", course_src)
+title = htmlmod.escape(t.group(1) if t else 'Exam drill')
+if legacy and legacy != OUTPUT_NAME:
+    write_root(legacy, (
+        '<!doctype html><html lang="en"><head><meta charset="utf-8">'
+        f'<title>{title}</title>'
+        '<link rel="canonical" href="./index.html">'
+        '<meta http-equiv="refresh" content="0; url=./index.html">'
+        '</head><body><p>This drill is at <a href="./index.html">index.html</a>.</p>'
+        '<script>location.replace("./index.html" + location.hash);</script>'
+        '</body></html>\n'))
+    print(f'wrote {legacy}  (redirect to {OUTPUT_NAME})')

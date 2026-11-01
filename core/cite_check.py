@@ -38,9 +38,9 @@ BARE_MAP = {}
 
 # --------------------------------------------------------------------------
 
-OUT = "/mnt/user-data/outputs/" + (
-    re.search(r"output:\s*'([^']+)'", open("course.js", encoding="utf-8").read()).group(1)
-    if os.path.exists("course.js") else "exam_drill.html")
+# The built page is located by built_page.js, the helper every check uses.
+HERE = os.path.dirname(os.path.abspath(__file__))
+os.chdir(HERE)
 
 PDF_IN_TEXT = re.compile(r"([A-Za-z0-9_.\-]+\.pdf)", re.I)
 BARE_DECK = re.compile(r"\b(" + "|".join(re.escape(k) for k in BARE_MAP) + r")\b") if BARE_MAP else None
@@ -80,10 +80,9 @@ def page_counts():
 def load_questions():
     """Read the bank out of the built page, the same way the node checks do."""
     js = r"""
-      const fs=require('fs'),vm=require('vm');
-      let c=[...fs.readFileSync(process.argv[1],'utf8')
-        .matchAll(/<script>([\s\S]*?)<\/script>/g)][0][1];
-      const b=c.lastIndexOf('   BOOT'); c=c.slice(0,c.lastIndexOf('/* ===',b));
+      const vm=require('vm');
+      const PAGE=require(process.argv[1]);
+      let c=PAGE.engine();
       c+='\nglobalThis.__Q=QUESTIONS;';
       const sb={console,localStorage:{getItem:()=>null,setItem(){},removeItem(){}},
         document:{querySelector:()=>({}),querySelectorAll:()=>[],getElementById:()=>({}),
@@ -96,7 +95,8 @@ def load_questions():
         id:q.id, cite:q.cite||'', teach:tt(q.teach), note:q.note||'',
         whys:(q.options||[]).map(o=>o.why||'').concat((q.steps||[]).map(s=>s.why||''),(q.pairs||[]).map(p=>p.why||''))}))));
     """
-    out = subprocess.run(["node", "-e", js, OUT], capture_output=True, text=True)
+    out = subprocess.run(["node", "-e", js, os.path.join(HERE, "built_page.js")],
+                         capture_output=True, text=True)
     if out.returncode != 0:
         sys.exit("ERROR: could not read the built page\n" + out.stderr.strip())
     return json.loads(out.stdout)
