@@ -66,9 +66,9 @@ function variant(label, courseExtra){
   if(b.status !== 0) return {error: ((b.stderr || '') + (b.stdout || '')).trim().split('\n').pop()};
   return {repo, page: path.join(repo, 'index.html'), out: b.stdout};
 }
-/* The page from disk at a fixed time, with the name prompt answered. */
+/* The built page (over HTTP, check_lib.js pageUrl) at a fixed time, with the name prompt answered. */
 async function open(browser, page_, at, init){
-  const ctx = await browser.newContext({viewport: {width: 390, height: 844}});
+  const ctx = await browser.newContext(L.OPEN_CTX);
   await ctx.addInitScript(() => { window.prompt = () => 'TestUser'; });
   if(init) await ctx.addInitScript(init);
   const page = await ctx.newPage();
@@ -76,7 +76,7 @@ async function open(browser, page_, at, init){
   page.on('pageerror', e => errors.push(e.message));
   page.on('dialog', d => d.accept());
   await page.clock.setFixedTime(new Date(at));
-  await page.goto('file://' + page_);
+  await page.goto(await L.pageUrl(page_));
   await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
   return {ctx, page, errors};
 }
@@ -717,7 +717,7 @@ COURSE.exams.push({id:'zsA', name:'Test exam', date:'12 Nov', when:'2026-11-12T0
       // the saved progress and history under this course's keys, before the page's script runs
       const openSaved = async (v, db) => {
         const ns = nsOf(v.repo);
-        const ctx = await browser.newContext({viewport: {width: 390, height: 844}});
+        const ctx = await browser.newContext(L.OPEN_CTX);
         await ctx.addInitScript(() => { window.prompt = () => 'TestUser'; });
         await ctx.addInitScript(([ns, db, log]) => { if(sessionStorage.getItem('seeded')) return; sessionStorage.setItem('seeded', '1');
           localStorage.setItem(ns + ':profile', 'TestUser'); localStorage.setItem(ns + ':data:TestUser', JSON.stringify(db));
@@ -725,7 +725,7 @@ COURSE.exams.push({id:'zsA', name:'Test exam', date:'12 Nov', when:'2026-11-12T0
         const page = await ctx.newPage(); const errors = [];
         page.on('pageerror', e => errors.push(e.message)); page.on('dialog', d => d.accept());
         await page.clock.setFixedTime(new Date(F.end));
-        await page.goto('file://' + v.page);
+        await page.goto(await L.pageUrl(v.page));
         await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
         await page.waitForTimeout(200);
         return {ctx, page, errors, ns};
