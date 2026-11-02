@@ -148,7 +148,7 @@ function step(terms, opt, extra){
 (async () => {
   console.log('\n=== the course\'s own terms ===');
   L.PAGE.need(NAME);
-  const E = L.engine('({TERMS: typeof TERMS === "undefined" ? null : TERMS, QUESTIONS, FX})');
+  const E = L.engine('({TERMS: typeof TERMS === "undefined" ? null : TERMS, QUESTIONS, FX: typeof FX === "undefined" ? null : FX})');
   const api = E.FX && E.FX.api('glossary-tap');
   check(!!api, 'the module loads in the course\'s page and offers its finder', E.FX && E.FX.errors);
   if(api){
