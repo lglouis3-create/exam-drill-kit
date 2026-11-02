@@ -1,0 +1,6 @@
+mut2-mkcourse: exit=0
+mut2-oncourse: exit=0
+mut2-oncourse-second: exit=1
+mut2-commit: exit=0
+mut2-build: exit=0
+mut2-moduletest: exit=0

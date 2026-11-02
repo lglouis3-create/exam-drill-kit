@@ -1,0 +1,5 @@
+
+=== the course's own short answers and figures ===
+  FAIL  the page carries short-answer-graphs, working  — []
+FAIL: features/short-answer-graphs/test.js: 1 of 1 checks failed: the page carries short-answer-graphs, working
+exit=1

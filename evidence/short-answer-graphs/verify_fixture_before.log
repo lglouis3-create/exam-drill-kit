@@ -1,0 +1,34 @@
+SAME  question FG-049  (prof: fixture the course's professor, source the course's professor)
+SAME  question FG-050  (prof: fixture the course's professor, source the course's professor)
+SAME  question FG-051  (prof: fixture the course's professor, source the course's professor)
+SAME  question FG-052  (prof: fixture the course's professor, source the course's professor)
+SAME  question L06-025  (prof: fixture the course's professor, source the course's professor)
+SAME  question PE2-030  (prof: fixture the course's professor, source the course's professor)
+SAME  question PE2-031  (prof: fixture the course's professor, source the course's professor)
+SAME  question PE2-032  (prof: fixture the course's professor, source the course's professor)
+SAME  question PE2-033  (prof: fixture the course's professor, source the course's professor)
+SAME  question PE2-034  (prof: fixture the course's professor, source the course's professor)
+SAME  topic FG  (prof: fixture the course's professor, source the course's professor)
+SAME  topic L06  (prof: fixture the course's professor, source the course's professor)
+SAME  topic PE2  (prof: fixture the course's professor, source the course's professor)
+SAME  figure rev-pindolol
+SAME  figure pe2-gi-tracing
+SAME  prompt SA4-01
+SAME  prompt SA4-02
+SAME  prompt SA3-02
+SAME  prompt SA3-06
+SAME  prompt SA3-14
+SAME  image rev-pindolol (11842 characters)
+SAME  image pe2-gi-tracing (34718 characters)
+SAME  app.js MISS (12 tags)
+SAME  app.js MISS2 (4 tags)
+LECTURE L06: named by a prompt or question lecture field cites (Pharmacodynamics reviews.pdf, Pharmacodynamics reviews.pdf); no professor named outside prof
+LECTURE FG: named by a prompt or question lecture field cites (Pharmacodynamics reviews.pdf); no professor named outside prof
+LECTURE L07: named by  cites (Autonomic Nervous System.pdf); no professor named outside prof
+LECTURE L08: named by  cites (PCOL-NMJ_PCOL_2026s_pptx.pdf); no professor named outside prof
+LECTURE L09: named by  cites (PCOL-Cholinergic-26s.pdf); no professor named outside prof
+LECTURE PE2: named by a prompt or question lecture field cites (PollEV’s Exam 2.pdf, PollEV’s Exam 2.pdf); no professor named outside prof
+LECTURE L14: named by a prompt or question lecture field; its label names a professor, so it is left out
+LECTURE TBL3: named by a prompt or question lecture field; its label names a professor, so it is left out
+LECTURE L21: named by a prompt or question lecture field; its label names a professor, so it is left out
+PASS: every part of the fixture equals the source at 929cd62, except prof as listed

@@ -1,0 +1,7 @@
+took out GRAPHS, GRAPH_MISS, GRAPH_EXAMS
+fin-saonly-mkcourse: exit=0
+fin-saonly-oncourse: exit=0
+fin-saonly-commit: exit=0
+fin-saonly-build: exit=0
+fin-saonly-moduletest: exit=0
+PASS: features/short-answer-graphs/test.js: 67 checks passed (1 skipped: the course's figures)

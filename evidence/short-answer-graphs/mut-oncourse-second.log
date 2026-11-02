@@ -1,0 +1,2 @@
+short-answer-graphs ci/oncourse.js: course.js already switches short-answer-graphs on (this script runs once per course)
+exit=1

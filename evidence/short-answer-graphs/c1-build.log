@@ -1,0 +1,15 @@
+checking sources...
+  14 sources and sw.js parse cleanly
+  scheduler: concept (no library)
+  17 questions in 5 topics, from 2 question files: q1_topics.js, q90_sgc_fixture.js
+  feature short-answer-graphs v1: build step done
+  feature short-answer-graphs v1 in the page (options {"saLabel": "Short answer", "graphsLabel": "Graphs", "before": "diagrams", "saAbout": ""})
+  change log: 1 entries, newest "2026-10-02 (set up from the template)"
+  assembled script parses cleanly
+wrote index.html  (0.35 MB)
+wrote COURSE0000_Drill.html  (redirect to index.html)
+wrote version.json  (built 2026-11-02T22:51:01Z)
+  note: placeholder icons (a plain square) for icon-192.png, icon-512.png, icon-maskable-512.png, apple-touch-icon.png; put the course's own PNGs under src/icons/ to replace them
+wrote manifest.json and the icons
+wrote sw.js  (caches named course-id-drill-v<n>; 7 files saved at install)
+exit=0

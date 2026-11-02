@@ -1,0 +1,120 @@
+== modules switched on, in this order: short-answer-graphs
+-- short-answer-graphs: node features/short-answer-graphs/ci/oncourse.js
+wrote: /tmp/port-short-answer-graphs/tmp/kit-ci-2yhRqF/course/src/q90_sgc_fixture.js (topics FG, L06, PE2; 10 questions from the fixture in test.js)
+wrote: /tmp/port-short-answer-graphs/tmp/kit-ci-2yhRqF/course/src/sgc_data.js (5 prompts, 2 figures, GRAPH_MISS 12 tags, GRAPH_EXAMS Exam 2 with 4 tags)
+wrote: /tmp/port-short-answer-graphs/tmp/kit-ci-2yhRqF/course/src/images.json (2 images added: sgc-rev-pindolol, sgc-pe2-gi-tracing)
+wrote: appended to /tmp/port-short-answer-graphs/tmp/kit-ci-2yhRqF/course/src/course.js: the two files in COURSE.files, 5 lecture(s) in COURSE.lectures (L06, L07, L08, L09, PE2), 2 skill(s) in COURSE.skills (figure, drug), and short-answer-graphs v1 on
+== module:short-answer-graphs, chromium, kit 6f030f3
+PASS     build.py          wrote index.html  (0.35 MB)
+FAIL     test.js           1 failure(s)
+PASS     style_check.js    17 stems and 17 explanations clean
+PASS     render_test.js    every view rendered clean
+REPORT   explain_check.js  15 of 17 questions carry at least one explanation issue
+PASS     stepper_test.js   1 step-through(s) settle at every step
+NOT RUN  cite_check.py     no lecture PDFs found under decks/ or src/
+PASS     device_lint.js    3 checks passed
+FAIL     output_test.js    1 of 16 checks failed: test.js reads that page and passes
+PASS     files_test.js     13 checks passed
+PASS     tables_test.js    20 checks passed
+FAIL     checks_test.js    5 of 32 checks failed: test.js passes with exit 0 and a PASS line; run_checks.sh exits 0 when nothing fails (a NOT RUN is listed, not failed); a passing check is one PASS line with its summary …
+PASS     draw_test.js      8 checks passed (1 skipped: no two wordings of one fact on a paper drawn from this bank)
+PASS     browser_test.js   99 checks passed (4 skipped: concept-block figures render after answering; drawn structures; exam select-all rendering …)
+PASS     storage_test.js   24 checks passed
+PASS     startup_test.js   77 checks passed
+PASS     update_test.js    38 checks passed
+PASS     offline_test.js   29 checks passed
+PASS     home_test.js      36 checks passed
+PASS     history_test.js   28 checks passed
+PASS     scheduler_test.js 110 checks passed
+PASS     preview_test.js   14 checks passed
+PASS     state_check.js    2 checks passed
+PASS     state_check_test.js 8 checks passed
+PASS     oldcache_test.js  12 checks passed
+PASS     nullexam_test.js  76 checks passed (1 skipped: the Weighting chips)
+PASS     features_test.js  40 checks passed
+PASS     features/short-answer-graphs/test.js 41 checks passed (1 skipped: no Graphs tab without figures)
+23 PASS, 3 FAIL, 1 NOT RUN, 1 REPORT; logs in /tmp/port-short-answer-graphs/tmp/drill-checks-BpjUYE
+
+---- test.js (failing lines, then the end of its log) ----
+feature module short-answer-graphs (tab): TypeError: nav.querySelector is not a function
+  FAIL  missed concept never returned
+  ok    every question carries a skill from the course taxonomy (recall, tell, apply, read, calc, figure, drug)
+  ok    numeric grading accepts the answer within tolerance and rejects the rest
+
+=== 6. Storage isolation ===
+  ok    progress written under namespaced key: course-id-drill:data:me
+  ok    the page opened without asking for a name
+=== 7. Different wording when a missed concept returns ===
+  FAIL  missed concept never returned
+=== 8. Small pools end instead of looping ===
+  ok    pool of 2 served 2 (2 distinct) then stopped
+  ok    "Ask everything" still serves (10 more)
+
+=== 9. Figures, read links, change log, blueprint ===
+  ok    every DIAGRAMS key is in DIA
+  ok    1 step-through figure(s), each with a dot per step
+  ok    2 read link(s), every one naming guide, tell or ref
+  7 of 17 questions resolve to a reading section (the rest group by topic in the review plan)
+  ok    a session is the run with no half-hour gap (2 of 4 answers)
+  ok    a correct answer marked "not sure" does not count as solid
+  skip  blueprint draw (this course draws by pool marks, not announced counts)
+  ok    1 change log entry embedded, each with bullets
+
+FAILURES: 1  (warnings: 5)
+
+FAIL: test.js: 1 failure(s)
+
+---- output_test.js (failing lines, then the end of its log) ----
+  FAIL  test.js reads that page and passes  — FAIL: test.js: 1 failure(s)
+
+=== Where the build writes and the checks read ===
+  ok    no file in the source tree names /mnt/user-data (59 files read)
+  ok    every check that reads the built page gets its location from built_page.js (7 checks)
+  ok    no check works out the page name from course.js itself
+  ok    the build runs in a fresh copy
+  ok    the app is written to the repository root as index.html
+  ok    .nojekyll is written beside it
+  ok    the course.js output name (COURSE0000_Drill.html) is a redirect to index.html
+  ok    no temporary file is left behind
+  ok    nothing built is written into src/
+  ok    built_page.js names the repository root index.html
+  FAIL  test.js reads that page and passes  — FAIL: test.js: 1 failure(s)
+  ok    DRILL_PAGE points every check at another page
+  ok    without course.js `manifest`, manifest.json has no description and no orientation
+  ok    course.js `manifest` gives manifest.json its description and orientation
+  ok    course.js `manifest` with an orientation the web manifest does not name stops the build before it writes
+  ok    course.js `manifest` with a field other than description and orientation stops the build before it writes
+FAIL: output_test.js: 1 of 16 checks failed: test.js reads that page and passes
+
+---- checks_test.js (failing lines, then the end of its log) ----
+  FAIL  test.js passes with exit 0 and a PASS line  — exit 1: FAIL: test.js: 1 failure(s)
+  FAIL  run_checks.sh exits 0 when nothing fails (a NOT RUN is listed, not failed)  — exit 1
+  FAIL  a passing check is one PASS line with its summary
+  FAIL  run_checks.sh ends with the counts
+  FAIL  test.js passes on a course whose diagrams.js declares no DIAGRAMS list  — exit 1: FAIL: test.js: 1 failure(s)
+  ok    explain_check.js with no built page exits 2 and says NOT RUN
+  ok    stepper_test.js with no built page exits 2 and says NOT RUN
+  ok    browser_test.js with no built page exits 2 and says NOT RUN
+  ok    cite_check.py with no built page exits 2 and says NOT RUN
+  ok    the build runs in the copy
+  ok    explain_check.js is a report: exit 0, last line REPORT
+  ok    cite_check.py with no decks exits 2 and says NOT RUN
+  FAIL  test.js passes with exit 0 and a PASS line  — exit 1: FAIL: test.js: 1 failure(s)
+  ok    browser_test.js without Playwright exits 2 and says NOT RUN
+  ok    stepper_test.js without Playwright exits 2 and says NOT RUN
+  ok    device_lint.js passes on the clean copy
+  ok    device_lint.js fails on a lookbehind in a shipped source and names the line
+  ok    run_checks.sh prints FAIL for it and exits 1
+  ok    device_lint.js fails on a lookbehind that reaches only the built page
+  FAIL  run_checks.sh exits 0 when nothing fails (a NOT RUN is listed, not failed)  — exit 1
+  ok    run_checks.sh builds first and reports the build
+  FAIL  a passing check is one PASS line with its summary
+  ok    a report is one REPORT line
+  ok    a check that could not run is one NOT RUN line with the reason
+  ok    the device lint is one PASS line on the clean copy
+  FAIL  run_checks.sh ends with the counts
+  ok    every check run_checks.sh lists is in the source tree (25)
+  FAIL  test.js passes on a course whose diagrams.js declares no DIAGRAMS list  — exit 1: FAIL: test.js: 1 failure(s)
+  ok    render_test.js passes on a course whose diagrams.js declares no DIAGRAMS list
+FAIL: checks_test.js: 5 of 32 checks failed: test.js passes with exit 0 and a PASS line; run_checks.sh exits 0 when nothing fails (a NOT RUN is listed, not failed); a passing check is one PASS line with its summary …
+exit=1

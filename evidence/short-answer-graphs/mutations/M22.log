@@ -1,0 +1,102 @@
+M22: the figure keeps the core's alt text
+file short-answer-graphs.js; the replacement matches 1 time(s)
+$ python3 build.py  (in /tmp/port-short-answer-graphs/mut2/src)
+checking sources...
+  14 sources and sw.js parse cleanly
+  scheduler: concept (no library)
+  28 questions in 5 topics, from 2 question files: q1_topics.js, q90_sgc_fixture.js
+  feature short-answer-graphs v1: build step done
+  feature short-answer-graphs v1 in the page (options {"saLabel": "Short answer", "graphsLabel": "Graphs", "before": "diagrams", "saAbout": ""})
+  change log: 1 entries, newest "2026-10-02 (set up from the template)"
+  assembled script parses cleanly
+wrote index.html  (0.41 MB)
+wrote COURSE0000_Drill.html  (redirect to index.html)
+wrote version.json  (built 2026-11-02T23:47:47Z)
+  note: placeholder icons (a plain square) for icon-192.png, icon-512.png, icon-maskable-512.png, apple-touch-icon.png; put the course's own PNGs under src/icons/ to replace them
+wrote manifest.json and the icons
+wrote sw.js  (caches named course-id-drill-v<n>; 7 files saved at install)
+exit=0
+$ node features/short-answer-graphs/test.js  (in /tmp/port-short-answer-graphs/mut2/src)
+
+=== the course's own short answers and figures ===
+  ok    the page carries short-answer-graphs, working
+  ok    every figure has questions (4 figures, 21 questions)
+  ok    every miss tag on a figure question names a reading question
+  ok    a tracing's feedback uses tracing wording, not curve wording (sgc-PE2-030)
+  ok    every short-answer prompt has key points (5 prompts)
+
+=== the build step stops on bad data ===
+  ok    an image that is not in images.json stops the build and says so
+  ok    an image in two figures stops the build and says so
+  ok    a miss tag in no table stops the build and says so
+  ok    a figure with no question stops the build and says so
+  ok    a prompt with no key points stops the build and says so
+  ok    a prompt id used twice stops the build and says so
+  ok    a course with neither list stops the build and says so
+
+=== on a scratch copy with Intro-Pharmacology's rows (Chromium) ===
+  ok    the Short answer and Graphs tabs sit before Diagrams
+  ok    one card per figure, each with its image (8 cards, 8 figures)
+  ok    a fold per exam, the active exam open; the Exam 2 fold names its group Tissue tracings and has its intro line
+  ok    the card counts the figure's questions, all unseen (5)
+  ok    Drill this figure opens a pass of its 5 questions, with its figure
+  FAIL  the figure carries the question's own description as its alt text  — Reaction scheme for this question
+  ok    a wrong pick names the reading question skipped, under the verdict
+  ok    the figure's reading is open, every line of it
+  ok    a right answer shows the reading folded and names nothing skipped
+  ok    the end of the pass counts the right answers (4 of 5)
+  ok    it lists the reading question skipped, with how often
+  ok    All figures goes back; the card shows the wrong answer, the reading skipped and Redo wrong
+  ok    Redo wrong asks only the question answered wrong
+  ok    the end of the Redo wrong pass counts that pass only (1 of 1)
+  ok    the card counts each question by its latest answer, and still lists the reading skipped before
+  ok    a second pass counts its own answers only (5 of 5)
+  ok    a tracing names its skipped question in tracing wording, not curve wording (tag direction)
+  ok    the counts on the card are kept through a reload
+  ok    the page shows the first of 10 prompts, the model answer hidden
+  ok    the course's line on its short answers, and the prompt's form, are shown
+  ok    the draft is kept in the progress as it is typed
+  ok    Check my answer shows the model answer and each key point to tick, and counts the prompt checked
+  ok    the quote and the source are shown with it
+  ok    ticking key points counts them and keeps them
+  ok    a reload comes back to the page with the draft and the ticks
+  ok    Next shows the next prompt with its model answer hidden
+  ok    a key prompt says so, an objective prompt carries no form, and Next stops at the last
+  ok    Previous goes back one prompt
+  ok    Shuffle starts again at prompt 1, every prompt kept
+  ok    Clear empties the draft and the ticks
+  ok    no page errors
+  ok    the module raised no error
+
+=== the skipped-reading tally and the answer counts, from the answers kept (Chromium) ===
+  ok    the tally counts each wrong pick's miss tag, most often first, and leaves out right answers
+  ok    a question counts by its latest answer (wrong, wrong, then right: right)
+  ok    an answer marked "I guessed" counts as not right on the card
+
+=== persistence: a large saved state (Chromium) ===
+  ok    210 saved short answers (drafts of up to 2,000 characters, with their ticks) and 300 answers come back after a reload
+  ok    the 8 figure cards show the same counts and skipped readings after the reload
+  ok    the Short answer page shows the saved draft and every prompt checked
+  ok    Export progress carries every saved short answer (210) and every answer (300)
+  ok    a new profile starts with no saved short answers
+  ok    Import progress into the new profile brings back the same short answers
+  ok    and the figure cards show the same counts as in the profile exported
+  ok    a third profile has no saved short answers
+  ok    switching back, the first profile has its own short answers
+  ok    the other profile keeps only its own draft
+  ok    back on the first profile
+  ok    a reload 400 ms after typing keeps the change
+  report  a reload under 150 ms after typing: the draft reads "Kept: reloaded 400 ms after." (the last change was lost; the text saved before it is kept), 210 saved short answers
+  ok    a reload under 150 ms after typing loses at most that change, and every saved short answer is still there
+  ok    storage denied: the student is told the progress was not saved
+  ok    storage denied: the stored progress is left as it was, and the draft stays on screen
+  ok    storage denied: once storage works, the next change is saved with every earlier short answer and loads after a reload
+  ok    storage full: the student is told the progress was not saved
+  ok    storage full: the stored progress is left as it was, and the draft stays on screen
+  ok    storage full: once storage works, the next change is saved with every earlier short answer and loads after a reload
+  ok    on load, a saved entry that is not an object is dropped, fields of the wrong kind are removed, and every other saved short answer loads
+  ok    ticks keep only key point numbers the prompt has
+  ok    a saved short answer in a bad shape does not stop the page: Check my answer shows the key points
+  skip  no Graphs tab without figures  — the course declares GRAPHS itself
+FAIL: features/short-answer-graphs/test.js: 1 of 69 checks failed: the figure carries the question's own description as its alt text
+exit=1

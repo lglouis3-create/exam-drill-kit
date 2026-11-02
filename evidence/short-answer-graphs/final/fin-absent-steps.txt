@@ -1,0 +1,6 @@
+fin-absent-mkcourse: exit=0
+fin-absent-oncourse: exit=0
+fin-absent-commit: exit=0
+fin-absent-build: exit=0
+fin-absent-moduletest: exit=1
+FAIL: features/short-answer-graphs/test.js: 1 of 1 checks failed: the page carries short-answer-graphs, working

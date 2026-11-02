@@ -1,0 +1,6 @@
+fin-mkcourse: exit=0
+fin-oncourse: exit=0
+fin-oncourse-second: exit=1
+fin-commit: exit=0
+fin-build: exit=0
+fin-moduletest: exit=0

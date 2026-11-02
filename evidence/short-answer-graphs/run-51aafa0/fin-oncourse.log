@@ -1,0 +1,5 @@
+wrote: /tmp/port-short-answer-graphs/fin/src/q90_sgc_fixture.js (topics FG, L06, PE2; 21 questions from the fixture in test.js)
+wrote: /tmp/port-short-answer-graphs/fin/src/sgc_data.js (5 prompts, 4 figures, GRAPH_MISS 12 tags, GRAPH_EXAMS Exam 2 with 4 tags)
+wrote: /tmp/port-short-answer-graphs/fin/src/images.json (4 images added: sgc-rev-rt-figure, sgc-rev-allo-ant, sgc-rev-pindolol, sgc-pe2-gi-tracing)
+wrote: appended to /tmp/port-short-answer-graphs/fin/src/course.js: the two files in COURSE.files, 5 lecture(s) in COURSE.lectures (L06, L07, L08, L09, PE2), 2 skill(s) in COURSE.skills (figure, drug), and short-answer-graphs v1 on
+exit=0

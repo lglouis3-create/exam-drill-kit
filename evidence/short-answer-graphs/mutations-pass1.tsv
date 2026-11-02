@@ -1,0 +1,26 @@
+M01	a typed draft is not saved	1	the draft is kept in the progress as it is typed
+M02	saSave changes the progress but never writes it	1	a reload comes back to the page with the draft and the ticks
+M03	the ticks are not kept	1	ticking key points counts them and keeps them; a reload comes back to the page with the draft and the ticks
+M04	Check my answer does not count the prompt checked	1	Check my answer shows the model answer and each key point to tick, and counts the prompt checked
+M05	Clear leaves the ticks and checked	1	Clear empties the draft and the ticks
+M06	Shuffle keeps the prompt number	1	Shuffle starts again at prompt 1, every prompt kept
+M07	a key prompt does not say so	1	a key prompt says so, an objective prompt carries no form, and Next stops at the last
+M08	Next is never disabled at the last prompt	1	a key prompt says so, an objective prompt carries no form, and Next stops at the last
+M09	no cleaning of saved short answers on load	1	on load, a saved entry that is not an object is dropped, fields of the wrong kind are removed, and every other saved short answer loads; ticks keep only key point numbers the prompt has; a saved short answer in a bad shape does not stop the page: Check my answer shows the key points
+M10	the exam's own miss wording (tracings) is ignored	1	a tracing names its skipped question in tracing wording, not curve wording (tag read)
+M11	the tracing noun is ignored	1	a tracing names its skipped question in tracing wording, not curve wording (tag direction)
+M12	the tally counts right answers too	0	PASS: features/short-answer-graphs/test.js: 69 checks passed (1 skipped: no Graphs tab without figures)
+M13	the tally is sorted least often first	1	the tally counts each wrong pick's miss tag, most often first, and leaves out right answers
+M14	the figure's reading is open after a right answer too	1	a right answer shows the reading folded and names nothing skipped
+M15	a wrong pick does not name the reading question skipped	1	a tracing's feedback uses tracing wording, not curve wording (sgc-PE2-030); a wrong pick names the reading question skipped, under the verdict; a tracing names its skipped question in tracing wording, not curve wording (tag read)
+M16	Redo wrong asks every question of the figure	1	Redo wrong asks only the question answered wrong; the end of the Redo wrong pass counts that pass only (1 of 1)
+M17	the end of a pass counts every answer ever given on the figure	1	the end of the Redo wrong pass counts that pass only (1 of 1); a second pass counts its own answers only (5 of 5)
+M18	a question counts by its first answer, not its latest	1	the card counts each question by its latest answer, and still lists the reading skipped before; the counts on the card are kept through a reload; a question counts by its latest answer (wrong, wrong, then right: right)
+M19	an answer marked guessed counts as right	1	an answer marked "I guessed" counts as not right on the card
+M20	every exam fold is open	1	a fold per exam, the active exam open; the Exam 2 fold names its group Tissue tracings and has its intro line
+M21	the exam's group name (Tissue tracings) is not used	1	a fold per exam, the active exam open; the Exam 2 fold names its group Tissue tracings and has its intro line
+M22	the figure keeps the core's alt text	1	the figure carries the question's own description as its alt text
+M23	build step: an image in two figures is not refused	1	an image in two figures stops the build and says so
+M24	build step: a miss tag in no table is not refused	1	a miss tag in no table stops the build and says so
+M25	build step: a prompt id used twice is not refused	1	a prompt id used twice stops the build and says so
+M26	build step: a prompt with no key points is not refused	1	a prompt with no key points stops the build and says so
