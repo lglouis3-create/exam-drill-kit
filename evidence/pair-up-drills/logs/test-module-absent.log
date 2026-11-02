@@ -1,0 +1,18 @@
+
+=== the course's own sets and tables ===
+FAIL: features/pair-up-drills/test.js: crashed: evalmachine.<anonymous>:3716
+globalThis.__X=({PAIR_SETS: typeof PAIR_SETS === "undefined" ? null : PAIR_SETS, RECALL_TABLES: typeof RECALL_TABLES === "undefined" ? null : RECALL_TABLES, COURSE, FX});
+                                                                                                                                                                     ^
+
+ReferenceError: FX is not defined
+    at evalmachine.<anonymous>:3716:166
+    at Script.runInContext (node:vm:149:12)
+    at Object.runInContext (node:vm:301:6)
+    at Object.engine (/tmp/port-pair-up-drills/absent/src/check_lib.js:196:6)
+    at /tmp/port-pair-up-drills/absent/src/features/pair-up-drills/test.js:122:15
+    at Object.<anonymous> (/tmp/port-pair-up-drills/absent/src/features/pair-up-drills/test.js:436:3)
+    at Module._compile (node:internal/modules/cjs/loader:1781:14)
+    at Object..js (node:internal/modules/cjs/loader:1913:10)
+    at Module.load (node:internal/modules/cjs/loader:1505:32)
+    at Function._load (node:internal/modules/cjs/loader:1309:12)
+exit=1

@@ -1,0 +1,2 @@
+pair-up-drills ci/oncourse.js: course.js already switches pair-up-drills on (this script runs once per course)
+exit=1

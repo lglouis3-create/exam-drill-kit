@@ -1,0 +1,47 @@
+
+=== version.json ===
+  ok    the build writes version.json beside the page
+  ok    version.json carries the same build time as the page
+
+=== a newer version is published ===
+  ok    when the tab comes back, a newer version.json brings a Reload offer
+  ok    the offer says a newer version is published and progress is kept
+  ok    Settings is scrolled before Reload
+  ok    Reload comes back to the same tab
+  ok    Reload: the same line comes back at the same height
+  ok    no page errors
+  ok    the page's clock moved only by the test's own steps (898000 ms; 898000 wanted, 2 s before the 15-minute check)
+  ok    with the tab left open, nothing is offered before 15 minutes
+  ok    at 15 minutes the open page reads version.json again and offers Reload
+  ok    no page errors
+
+=== reloads at 390 px ===
+  ok    Topics is scrolled with a topic open before the reload
+  ok    Topics: the tab and the same open topics come back
+  ok    Topics: the same line comes back at the same height
+  ok    Settings is scrolled before the reload
+  ok    Settings: the tab comes back
+  ok    Settings: the same line comes back at the same height
+  ok    Reference has a section open before the reload
+  ok    Reference: the open section stays open
+  ok    Reference: the same line comes back at the same height
+  ok    Drill: the same question comes back, unanswered
+  ok    Drill: an answered question comes back with its explanation
+  ok    a reload records no answer twice
+  ok    no page or console errors at 390 px
+
+=== reloads at 1200 px ===
+  ok    Topics is scrolled with a topic open before the reload
+  ok    Topics: the tab and the same open topics come back
+  ok    Topics: the same line comes back at the same height
+  ok    Settings is scrolled before the reload
+  ok    Settings: the tab comes back
+  ok    Settings: the same line comes back at the same height
+  ok    Reference has a section open before the reload
+  ok    Reference: the open section stays open
+  ok    Reference: the same line comes back at the same height
+  ok    Drill: the same question comes back, unanswered
+  ok    Drill: an answered question comes back with its explanation
+  ok    a reload records no answer twice
+  ok    no page or console errors at 1200 px
+PASS: update_test.js: 38 checks passed

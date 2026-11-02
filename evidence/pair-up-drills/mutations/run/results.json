@@ -1,0 +1,285 @@
+[
+ {
+  "id": "M0",
+  "file": "pair-up-drills.js",
+  "mutation": "the module as it was at a0ff3d4 (before this hardening)",
+  "exit": 1,
+  "failed": [
+   "a tap on Skip or on an answer within 350 ms of Next is not taken  — {\"i\":3,\"redo\":2,\"result\":true}",
+   "Skip after that goes on and puts the row in the redo list  — {\"i\":0,\"redo\":0}",
+   "a saved best score or miss list in another shape is read as none: both tables open with every row  — {\"tabs\":[true,false],\"bs\":{\"n\":-1,\"meta\":\"\"},\"bs2\":-1,\"errors\":[]}",
+   "the redo-round check below needs the poisoning table to open  — -1"
+  ],
+  "caught": true,
+  "secs": 36
+ },
+ {
+  "id": "M1",
+  "file": "pair-up-drills.js",
+  "mutation": "one chip per box: a second chip no longer sends the first back",
+  "exit": 1,
+  "failed": [
+   "a second chip put in a taken box sends the first back to the tray  — [\"relaxes: urine retained\",\"relaxes: urine retained\"]",
+   "Check marks every chip: 5 right, 2 wrong  — {\"score\":\"4 of 7 right\",\"rows\":[\"bad\",\"bad\",\"bad\",\"ok\",\"ok\",\"ok\",\"ok\"],\"first\":\"✗ β3 in the bladder was not placed; it belongs under relaxes: urine retainedβ3 is Gs on bladder smooth muscle: cAMP relaxes it, so the bladder holds more urine (mirabegron).\",\"okChips\":4,\"badChips\":3,\"best\":\"4/7\"}",
+   "the wrong chips come first, each with where it was put, where it belongs and why  — ✗ β3 in the bladder was not placed; it belongs under relaxes: urine retainedβ3 is Gs on bladder smooth muscle: cAMP relaxes it, so the bladder holds more urine",
+   "the best score is kept in the progress (DB.pairup)  — 4/7",
+   "Retry the wrong ones returns only the wrong chips to the tray  — {\"tray\":[\"β3 in the bladder\",\"β2 on vessel or airway smooth muscle\",\"M2 in the heart\"],\"placed\":4}",
+   "the scores and the miss are kept through a reload  — {\"p\":\"4/7\",\"r\":\"38/39\",\"m\":1}"
+  ],
+  "caught": true,
+  "secs": 39
+ },
+ {
+  "id": "M2",
+  "file": "pair-up-drills.js",
+  "mutation": "Check counts any placed chip as right",
+  "exit": 1,
+  "failed": [
+   "Check marks every chip: 5 right, 2 wrong  — {\"score\":\"7 of 7 right\",\"rows\":[\"ok\",\"ok\",\"ok\",\"ok\",\"ok\",\"ok\",\"ok\"],\"first\":\"✓ α2 on the sympathetic nerve ending → less NE releasedα2 is Gi on the nerve ending itself, the presynaptic brake: less NE comes out. Clonidine uses it; mirtazapine blocks it.\",\"okChips\":7,\"badChips\":0,\"best\":\"7/7\"}",
+   "the wrong chips come first, each with where it was put, where it belongs and why  — ✓ α2 on the sympathetic nerve ending → less NE releasedα2 is Gi on the nerve ending itself, the presynaptic brake: less NE comes out. Clonidine uses it; mirtaza",
+   "the best score is kept in the progress (DB.pairup)  — 7/7",
+   "Retry the wrong ones returns only the wrong chips to the tray  — {\"tray\":[],\"placed\":7}",
+   "the scores and the miss are kept through a reload  — {\"p\":\"7/7\",\"r\":\"38/39\",\"m\":1}"
+  ],
+  "caught": true,
+  "secs": 39
+ },
+ {
+  "id": "M3",
+  "file": "pair-up-drills.js",
+  "mutation": "Retry the wrong ones returns every chip",
+  "exit": 1,
+  "failed": [
+   "Retry the wrong ones returns only the wrong chips to the tray  — {\"tray\":[\"α1 in the eye\",\"M3 in the eye\",\"α1 on vessel smooth muscle\",\"M2 in the heart\",\"β1 on the JG cells\",\"Nm on skeletal muscle\",\"M3 in the bladder\"],\"placed\":0}"
+  ],
+  "caught": true,
+  "secs": 39
+ },
+ {
+  "id": "M4",
+  "file": "pair-up-drills.js",
+  "mutation": "wholeUpTo ignored: a small set is cut to pairRound",
+  "exit": 1,
+  "failed": [
+   "the 9-pair set (each letter of DUMBBELSS) is served whole",
+   "a reload 400 ms after Check keeps the new best score",
+   "storage denied: the stored progress is left as it was, and the new score stays on screen  — {\"mem\":\"7/7\",\"shown\":\"7 of 7 right\",\"same\":true}",
+   "storage denied: once storage works, the next change is saved with the score kept on screen and every earlier value, and loads after a reload  — {\"a\":\"7/7\",\"d\":\"7/7\",\"best\":11}",
+   "storage full: the stored progress is left as it was, and the new score stays on screen  — {\"mem\":\"7/7\",\"shown\":\"7 of 7 right\",\"same\":true}",
+   "storage full: once storage works, the next change is saved with the score kept on screen and every earlier value, and loads after a reload  — {\"a\":\"7/7\",\"d\":\"7/7\",\"best\":11}",
+   "the options are used: the tab is \"Match up\"; a 14-pair and a 9-pair set give 5 a round, the 8-pair set is whole, the 12-chip set with shared boxes gives 10  — {\"ip-rec\":5,\"ip-dumb\":5,\"ip-anti\":5,\"ip-gprot\":10,\"label\":\"Match up\"}"
+  ],
+  "caught": true,
+  "secs": 38
+ },
+ {
+  "id": "M5",
+  "file": "pair-up-drills.js",
+  "mutation": "binRound ignored: a set with shared boxes is served whole",
+  "exit": 1,
+  "failed": [
+   "the options are used: the tab is \"Match up\"; a 14-pair and a 9-pair set give 5 a round, the 8-pair set is whole, the 12-chip set with shared boxes gives 10  — {\"ip-rec\":5,\"ip-dumb\":5,\"ip-anti\":8,\"ip-gprot\":12,\"label\":\"Match up\"}"
+  ],
+  "caught": true,
+  "secs": 39
+ },
+ {
+  "id": "M6",
+  "file": "pair-up-drills.js",
+  "mutation": "the row's alts (the flipped twin) are not offered",
+  "exit": 1,
+  "failed": [
+   "every item of the course's tables is offered its answers, its own among them, no second right one (125 items in 2 tables)  — ip-rx/rec/ip-e2nmj:varen, ip-rx/rec/ip-e2nmj:sch, ip-rx/rec/ip-e2nmj:curare, ip-rx/rec/ip-e2chol:ach, ip-rx/rec/ip-e2chol:scop, ip-rx/rec/ip-e2chol:benz",
+   "Name the receptor: each of the 39 drugs gets five different lines, the table's own and its flipped twin among them, no \"None\"  — ip-e2nmj:varen, ip-e2nmj:sch, ip-e2nmj:curare, ip-e2chol:ach, ip-e2chol:scop",
+   "every item of its two tables is offered its answers, its own among them (125 items)  — ip-rx/rec/ip-e2nmj:varen, ip-rx/rec/ip-e2nmj:sch, ip-rx/rec/ip-e2nmj:curare, ip-rx/rec/ip-e2chol:ach, ip-rx/rec/ip-e2chol:atropine, ip-rx/rec/ip-e2chol:scop"
+  ],
+  "caught": true,
+  "secs": 39
+ },
+ {
+  "id": "M7",
+  "file": "pair-up-drills.js",
+  "mutation": "rows with another right answer (same `distinct`) are not left out",
+  "exit": 1,
+  "failed": [
+   "every item of the course's tables is offered its answers, its own among them, no second right one (125 items in 2 tables)  — ip-rx/drug/ip-e2nmj:neo, ip-rx/drug/ip-e2nmj:physo, ip-rx/drug/ip-e2nmj:organo, ip-rx/drug/ip-e2chol:inhaled, ip-rx/drug/ip-e2ind:cocaine, ip-rx/drug/ip-e2ind:amph",
+   "Name the drug: four drugs each, none of the others with the same receptor and action  — ip-e2nmj:neo, ip-e2nmj:physo, ip-e2chol:inhaled, ip-e2ind:cocaine, ip-e2ind:amph",
+   "every item of its two tables is offered its answers, its own among them (125 items)  — ip-rx/drug/ip-e2nmj:neo, ip-rx/drug/ip-e2nmj:physo, ip-rx/drug/ip-e2chol:oab, ip-rx/drug/ip-e2ind:cocaine, ip-rx/drug/ip-e2ind:amph, ip-rx/drug/ip-e2ind:phenelzine",
+   "after its own line and its flipped twin, each drug is offered the lines or drugs of its own section first (78 items in the modes with `near`)  — ip-rx/drug/ip-e2nmj:neo, ip-rx/drug/ip-e2nmj:organo, ip-rx/drug/ip-e2chol:atropine, ip-rx/drug/ip-e2chol:tropic, ip-rx/drug/ip-e2chol:oab"
+  ],
+  "caught": true,
+  "secs": 39
+ },
+ {
+  "id": "M8",
+  "file": "pair-up-drills.js",
+  "mutation": "`near` ignored: answers are not taken from the same section first",
+  "exit": 1,
+  "failed": [
+   "after its own line and its flipped twin, each drug is offered the lines or drugs of its own section first (78 items in the modes with `near`)  — ip-rx/rec/ip-e2nmj:varen, ip-rx/rec/ip-e2nmj:sch, ip-rx/rec/ip-e2nmj:curare, ip-rx/rec/ip-e2nmj:neo, ip-rx/rec/ip-e2nmj:physo, ip-rx/rec/ip-e2nmj:organo"
+  ],
+  "caught": true,
+  "secs": 39
+ },
+ {
+  "id": "M9",
+  "file": "pair-up-drills.js",
+  "mutation": "the saved misses do not lead the next round",
+  "exit": 1,
+  "failed": [
+   "the drug missed last time leads the next round  — ip-e2beta:dobut",
+   "the 38 saved misses lead the round of 39, and the saved best score is shown  — {\"n\":39,\"m\":38,\"first\":false,\"meta\":\"1 of 39 · 0 right · best 19/39\"}"
+  ],
+  "caught": true,
+  "secs": 39
+ },
+ {
+  "id": "M10",
+  "file": "pair-up-drills.js",
+  "mutation": "a redo round can change the best score",
+  "exit": 1,
+  "failed": [
+   "the 6 special questions with one miss: the best becomes 5/6 and the miss is kept; the redo round answered right leaves 5/6 and clears the miss  — {\"n6\":6,\"sr1\":{\"best\":\"5/6\",\"miss\":1,\"round\":2,\"n\":1},\"sr2\":{\"best\":\"1/1\",\"miss\":0,\"round\":1,\"n\":6}}"
+  ],
+  "caught": true,
+  "secs": 39
+ },
+ {
+  "id": "M11",
+  "file": "pair-up-drills.js",
+  "mutation": "the misses are not kept at the end of a round",
+  "exit": 1,
+  "failed": [
+   "the round ends with \"Redo the 1 missed\"; the redo round holds the one miss; the best score and the miss are kept  — {\"endLabel\":\"Redo the 1 missed\",\"redo\":{\"round\":1,\"n\":39,\"best\":\"38/39\",\"miss\":[],\"id\":\"ip-e2beta:terol\"}}",
+   "the scores and the miss are kept through a reload  — {\"p\":\"5/7\",\"r\":\"38/39\",\"m\":0}",
+   "the drug missed last time leads the next round  — ip-e2beta:carv",
+   "the 6 special questions with one miss: the best becomes 5/6 and the miss is kept; the redo round answered right leaves 5/6 and clears the miss  — {\"n6\":6,\"sr1\":{\"best\":\"5/6\",\"miss\":0,\"round\":1,\"n\":6},\"sr2\":{\"best\":\"5/6\",\"miss\":0,\"round\":1,\"n\":6}}"
+  ],
+  "caught": true,
+  "secs": 39
+ },
+ {
+  "id": "M12",
+  "file": "pair-up-drills.js",
+  "mutation": "Check keeps the new best score but does not save it",
+  "exit": 1,
+  "failed": [
+   "the third profile still has only its own score",
+   "a reload 400 ms after Check keeps the new best score",
+   "storage denied: the student is told the progress was not saved",
+   "storage denied: once storage works, the next change is saved with the score kept on screen and every earlier value, and loads after a reload  — {\"a\":\"0/8\",\"d\":\"0/9\",\"best\":11}",
+   "storage full: the student is told the progress was not saved",
+   "storage full: once storage works, the next change is saved with the score kept on screen and every earlier value, and loads after a reload  — {\"a\":\"0/8\",\"d\":\"0/9\",\"best\":11}"
+  ],
+  "caught": true,
+  "secs": 39
+ },
+ {
+  "id": "M13",
+  "file": "pair-up-drills.js",
+  "mutation": "no 350 ms guard on an answer tap",
+  "exit": 1,
+  "failed": [
+   "a tap on Skip or on an answer within 350 ms of Next is not taken  — {\"i\":2,\"redo\":1,\"result\":true}",
+   "Skip after that goes on and puts the row in the redo list  — {\"i\":0,\"redo\":0}"
+  ],
+  "caught": true,
+  "secs": 39
+ },
+ {
+  "id": "M14",
+  "file": "pair-up-drills.js",
+  "mutation": "no 350 ms guard on Skip",
+  "exit": 1,
+  "failed": [
+   "a tap on Skip or on an answer within 350 ms of Next is not taken  — {\"i\":3,\"redo\":1,\"result\":false}",
+   "Skip after that goes on and puts the row in the redo list  — {\"i\":4,\"redo\":2}"
+  ],
+  "caught": true,
+  "secs": 39
+ },
+ {
+  "id": "M15",
+  "file": "pair-up-drills.js",
+  "mutation": "a saved miss list in another shape is used as it is",
+  "exit": 1,
+  "failed": [
+   "a saved best score or miss list in another shape is read as none: both tables open with every row  — {\"tabs\":[true,false],\"bs\":{\"n\":-1,\"meta\":\"\"},\"bs2\":-1,\"errors\":[]}",
+   "the redo-round check below needs the poisoning table to open  — -1"
+  ],
+  "caught": true,
+  "secs": 36
+ },
+ {
+  "id": "M16",
+  "file": "pair-up-drills.js",
+  "mutation": "Enter does not go on to the next row",
+  "exit": 1,
+  "failed": [
+   "Enter goes on to the next row"
+  ],
+  "caught": true,
+  "secs": 54
+ },
+ {
+  "id": "M17",
+  "file": "pair-up-drills.js",
+  "mutation": "Hide again does not cover the shown cells",
+  "exit": 1,
+  "failed": [
+   "Hide again covers them again"
+  ],
+  "caught": true,
+  "secs": 39
+ },
+ {
+  "id": "M18",
+  "file": "pair-up-drills.js",
+  "mutation": "a chip dropped on a box is not placed",
+  "exit": 1,
+  "failed": [
+   "a chip dragged onto a box is placed there",
+   "a second chip put in a taken box sends the first back to the tray  — [\"rate and force up\",null]",
+   "Check marks every chip: 5 right, 2 wrong  — {\"score\":\"4 of 7 right\",\"rows\":[\"bad\",\"bad\",\"bad\",\"ok\",\"ok\",\"ok\",\"ok\"],\"first\":\"✗ β1 in the heart was not placed; it belongs under rate and force upβ1 is Gs: cAMP goes up, and in the heart the rate and the contractility rise (sympathetic).\",\"okChips\":4,\"badChips\":3,\"best\":\"4/7\"}",
+   "the wrong chips come first, each with where it was put, where it belongs and why  — ✗ β1 in the heart was not placed; it belongs under rate and force upβ1 is Gs: cAMP goes up, and in the heart the rate and the contractility rise (sympathetic).",
+   "the best score is kept in the progress (DB.pairup)  — 4/7",
+   "Retry the wrong ones returns only the wrong chips to the tray  — {\"tray\":[\"β1 in the heart\",\"M3 on the endothelium\",\"β2 on vessel or airway smooth muscle\"],\"placed\":4}",
+   "the scores and the miss are kept through a reload  — {\"p\":\"4/7\",\"r\":\"38/39\",\"m\":1}"
+  ],
+  "caught": true,
+  "secs": 39
+ },
+ {
+  "id": "M19",
+  "file": "pair-up-drills.js",
+  "mutation": "the wrong chips are not listed first",
+  "exit": 1,
+  "failed": [
+   "the wrong chips come first, each with where it was put, where it belongs and why  — ✓ β2 on vessel or airway smooth muscle → dilationβ2 is Gs: cAMP relaxes smooth muscle. In the airway it is reached by adrenal epinephrine, not by a nerve."
+  ],
+  "caught": true,
+  "secs": 39
+ },
+ {
+  "id": "M20",
+  "file": "step.js",
+  "mutation": "the build step lets an HTML tag in a cell through",
+  "exit": 1,
+  "failed": [
+   "an HTML tag in a cell stops the build and says so  — wrote manifest.json and the icons wrote sw.js  (caches named course-id-drill-v<n>; 7 files saved at install)"
+  ],
+  "caught": true,
+  "secs": 39
+ },
+ {
+  "id": "M21",
+  "file": "step.js",
+  "mutation": "the build step lets a box twice in a one-chip-per-box set through",
+  "exit": 1,
+  "failed": [
+   "a box twice in a one-chip-per-box set stops the build and says so  — wrote manifest.json and the icons wrote sw.js  (caches named course-id-drill-v<n>; 7 files saved at install)"
+  ],
+  "caught": true,
+  "secs": 39
+ }
+]

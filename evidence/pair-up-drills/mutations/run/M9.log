@@ -1,0 +1,84 @@
+
+=== the course's own sets and tables ===
+  ok    the page carries pair-up-drills, working
+  ok    every item of the course's tables is offered its answers, its own among them, no second right one (125 items in 2 tables)
+
+=== on Intro to Pharmacology's own data ===
+  ok    the poisoning table's items in the four modes are Intro to Pharmacology's own (12, 17, 12, 6 items)
+  ok    Name the receptor: each of the 39 drugs gets five different lines, the table's own and its flipped twin among them, no "None"
+  ok    Name the drug: four drugs each, none of the others with the same receptor and action
+  ok    the Pair up drug set has the 32 rows Intro to Pharmacology's pairDrugs builds
+  ok    every item of its two tables is offered its answers, its own among them (125 items)
+  ok    after its own line and its flipped twin, each drug is offered the lines or drugs of its own section first (78 items in the modes with `near`)
+
+=== the build step stops on bad data ===
+  ok    no PAIR_SETS and no RECALL_TABLES stops the build and says so
+  ok    a box twice in a one-chip-per-box set stops the build and says so
+  ok    a mode naming a column no row has stops the build and says so
+  ok    list cells of different lengths in one row stops the build and says so
+  ok    an HTML tag in a cell stops the build and says so
+
+=== on a scratch copy with Intro to Pharmacology's sets and tables (Chromium) ===
+  ok    the nav has Pair up and one tab per table, before Settings
+  -- Pair up --
+  ok    a 14-pair set is served 7 chips and their 7 boxes; the 5 sets are offered
+  ok    a chip tapped and then a box tapped is placed in that box
+  ok    a chip dragged onto a box is placed there
+  ok    a chip tapped in a box returns to the tray
+  ok    a second chip put in a taken box sends the first back to the tray
+  ok    Check marks every chip: 5 right, 2 wrong
+  ok    the wrong chips come first, each with where it was put, where it belongs and why
+  ok    the best score is kept in the progress (DB.pairup)
+  ok    Retry the wrong ones returns only the wrong chips to the tray
+  ok    the 9-pair set (each letter of DUMBBELSS) is served whole
+  ok    with several chips per box, two chips share the box "Gq"
+  -- the drug-receptor table --
+  ok    Name the receptor: every drug of the table in the round, five answers with the table's line among them
+  ok    a right tap is marked, the row shown, the answers closed
+  ok    a wrong tap is marked with the right one, "You said", and 1 to redo
+  ok    the round ends with "Redo the 1 missed"; the redo round holds the one miss; the best score and the miss are kept
+  ok    Name the drug: four drugs, the right one among them
+  ok    the scores and the miss are kept through a reload
+  ok    after the reload the round has every drug and shows the best score
+  FAIL  the drug missed last time leads the next round  — ip-e2beta:dobut
+  -- the poisoning table --
+  ok    Name the antidote: its 12 rows, five answers; four modes and Cover and reveal offered
+  ok    Enter goes on to the next row
+  ok    a tap on Skip or on an answer within 350 ms of Next is not taken
+  ok    Skip after that goes on and puts the row in the redo list
+  ok    Cover and reveal: every covered cell is a Show button (42)
+  ok    Show reveals that cell
+  ok    Show all reveals every cell
+  ok    Hide again covers them again
+  ok    Cover symptoms covers the 12 symptom cells only
+  ok    no page error
+  ok    no module error
+  -- persistence: a large saved state --
+  ok    11 best scores and 119 missed items come back after a reload
+  FAIL  the 38 saved misses lead the round of 39, and the saved best score is shown  — {"n":39,"m":38,"first":false,"meta":"1 of 39 · 0 right · best 19/39"}
+  ok    Export progress carries every best score (11) and every miss list (6)
+  ok    a new profile starts with no Pair up or table progress
+  ok    Import progress into the new profile brings back the same best scores and misses
+  ok    the imported progress is saved: it comes back after a reload
+  ok    a third profile has no Pair up or table progress
+  ok    a whole round in the third profile keeps only its own score there
+  ok    switching back, the profile has its own best scores and misses, unchanged
+  ok    the third profile still has only its own score
+  ok    back on the profile with the large saved state
+  ok    a reload 400 ms after Check keeps the new best score
+  report  a reload in the same moment as Check: the best score reads 0/8 (the new score was lost; the score saved before is kept)
+  ok    a reload at once after Check loses at most that score, and every other saved value is still there
+  ok    storage denied: the student is told the progress was not saved
+  ok    storage denied: the stored progress is left as it was, and the new score stays on screen
+  ok    storage denied: once storage works, the next change is saved with the score kept on screen and every earlier value, and loads after a reload
+  ok    storage full: the student is told the progress was not saved
+  ok    storage full: the stored progress is left as it was, and the new score stays on screen
+  ok    storage full: once storage works, the next change is saved with the score kept on screen and every earlier value, and loads after a reload
+  ok    a saved best score or miss list in another shape is read as none: both tables open with every row
+  ok    the 6 special questions with one miss: the best becomes 5/6 and the miss is kept; the redo round answered right leaves 5/6 and clears the miss
+  ok    no page error in the persistence runs
+  -- the module options, set by the course --
+  ok    a copy with pairLabel, wholeUpTo, pairRound and binRound set builds
+  ok    the options are used: the tab is "Match up"; a 14-pair and a 9-pair set give 5 a round, the 8-pair set is whole, the 12-chip set with shared boxes gives 10
+  ok    no page error with the options set
+FAIL: features/pair-up-drills/test.js: 2 of 69 checks failed: the drug missed last time leads the next round; the 38 saved misses lead the round of 39, and the saved best score is shown

@@ -1,0 +1,5 @@
+
+=== the course's own sets and tables ===
+  FAIL  the page carries pair-up-drills, working  — "no feature modules in the page"
+FAIL: features/pair-up-drills/test.js: 1 of 1 checks failed: the page carries pair-up-drills, working
+exit=1
