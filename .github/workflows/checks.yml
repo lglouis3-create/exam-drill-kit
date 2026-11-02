@@ -72,7 +72,7 @@ jobs:
           npx --yes playwright@1.63.0 install --with-deps webkit
           python -m pip install pdfplumber==0.11.10
       - name: Build the course and run every check in WebKit
-        run: bash core/ci_course.sh template webkit
+        run: bash core/ci_course.sh module:not-a-module webkit   # TEMPORARY: a WebKit job that fails, to show it fails the run
 
   plan:
     name: Modules to check
