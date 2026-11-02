@@ -3,6 +3,7 @@
 Dated kit changes, newest first.
 
 ## 2026-11-02
+- Kit checks on GitHub: every pull request runs the checks in Chromium and, as information, in WebKit.
 - `core/render_test.js`: answers calculation and matching items with their own controls; no more random failures.
 - New feature module `worksheets-ink` v1 (`features/worksheets-ink/`), from
   Basic-Pharmacokinetics `ac2eb73` (`src/views.js` 5122-5434 and 6040-6322): a Worksheets
