@@ -1,0 +1,5 @@
+module module-pages
+commit c9492c844e8aed4ef8c57e2dfcff2850af59f25b
+core daac6e234e10dae4a60c67f14cc575e9a0256f6c template cbac5bd425d480944293f8e1fb5d5d703e8baba1
+extra modules: chained-problem-sets
+2026-11-02T19:12:35Z
