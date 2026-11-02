@@ -3,6 +3,7 @@
 Dated kit changes, newest first.
 
 ## 2026-11-02
+- Kit checks on GitHub: every pull request runs the checks in Chromium and, as information, in WebKit.
 - New feature module `quiz-prep-cards` v1 (`features/quiz-prep-cards/`), from Basic-Pharmacokinetics `ac2eb73` (`src/views.js` 466-512): a card at the top of Topics for each quiz in course.js `quizzes` until the quiz is over or is hidden, with its day, the days left, what it covers, what the professor said to prepare, and drills over its questions; Settings puts a hidden card back. It does not change the exam handling and has no timed practice quiz. No course switches it on yet.
 - `core/render_test.js`: answers calculation and matching items with their own controls; no more random failures.
 
