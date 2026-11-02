@@ -1,0 +1,19 @@
+/* Short answer and Graphs (Intro-Pharmacology exam1-drill/src/shell.html lines 162, 170-171, 370-371 at 929cd62) */
+#v-sa .card,#v-graphs .card,#v-quiz .gdone{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:14px 15px;margin:0 0 12px}
+#v-sa .row,#v-graphs .row,#v-quiz .gdone .row{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin:8px 0}
+#v-sa .sahead{justify-content:space-between}
+#v-sa .salabel{display:block;margin:8px 0 4px}
+.satext{width:100%;box-sizing:border-box;font:inherit;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:inherit;resize:vertical}
+.sapts{border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin:8px 0}
+#v-sa .sapts label.row{gap:8px;align-items:flex-start;margin:4px 0;flex-wrap:nowrap}
+#v-sa .sanote{margin:10px 0 0}
+.ggrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:12px}
+#v-graphs .gcard{display:grid;grid-template-columns:120px 1fr;gap:10px;align-items:start;margin:0}
+.gthumb img{width:120px;max-height:110px;object-fit:contain;border:1px solid var(--line);border-radius:4px;background:var(--paper)}
+#v-graphs .gexam{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);margin:0 0 10px;padding:0 12px}
+#v-graphs .gexam>summary{cursor:pointer;font-weight:700;padding:12px 0}
+.gskip{border-left:3px solid var(--bad);padding:6px 10px;margin:10px 0;font-size:14px}
+.gread{margin:8px 0;font-size:14px}
+.gread summary{cursor:pointer;font-weight:600}
+.gread ul{margin:6px 0 0 18px}
+@media (max-width:560px){#v-graphs .gcard{grid-template-columns:1fr}}
