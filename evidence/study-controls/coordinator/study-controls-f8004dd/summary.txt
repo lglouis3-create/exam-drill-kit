@@ -1,0 +1,1 @@
+PASS: features/study-controls/test.js: 59 checks passed (1 skipped: the flags bar and the strict paper on a paper drawn for an earlier exam)
