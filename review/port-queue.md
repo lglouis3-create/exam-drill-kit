@@ -16,7 +16,7 @@ item's status to `done`.
 | Order | Item | Pharmacokinetics source | FEATURES.md | Status |
 |---|---|---|---|---|
 | 1 | plan-the-problem (set-up drill) | `views.js` 4754-5120 | listed | done |
-| 2 | worksheets-ink (write-on worksheets and ink) | `views.js` 5122-5434, 6040-6322 | listed | pending |
+| 2 | worksheets-ink (write-on worksheets and ink) | `views.js` 5122-5434, 6040-6322 | listed | partial (left: the PDF files and their links, the source line under an answer, each part's vignette line when a sheet of several sets is practised, the missed-on-this-sheet marks) |
 | 3 | terms-variables (Terms tab and variables quiz) | `views.js` 1029-1260, 1072-1147 | listed (glossary entry omits PK) | pending |
 | 4 | concept-statuses | `views.js` 2506-2725 | FEATURES.md line 36 wrongly says the core has them | pending |
 | 5 | theme (light and dark) | `views.js` 6323-6383 | none | pending |
