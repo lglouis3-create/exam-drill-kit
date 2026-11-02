@@ -45,6 +45,7 @@ Dated kit changes, newest first.
   exam. No course switches it on yet. Test: `features/paper-picker/current/test.js`
   (45 checks).
 - New feature module `quiz-prep-cards` v1 (`features/quiz-prep-cards/`), from Basic-Pharmacokinetics `ac2eb73` (`src/views.js` 466-512): a card at the top of Topics for each quiz in course.js `quizzes` until the quiz is over or is hidden, with its day, the days left, what it covers, what the professor said to prepare, and drills over its questions; Settings puts a hidden card back. It does not change the exam handling and has no timed practice quiz. No course switches it on yet.
+- New feature module `module-pages` v1 (`features/module-pages/`), from Basic-Pharmacokinetics `ac2eb73` (`src/views.js` 722-854): a card per module above the topic list on Topics, each opening the module's Concepts (by the professor's objectives), Calculations (by kind of problem, each with a worked example) and, with worksheets-ink on, Worksheets; with chained-problem-sets on, In parts; with concept-statuses on, a status line per objective. Course data `OBJECTIVES` and `CALC_TYPES` (both optional), checked by its build step. Test: 35 checks on the template course with PK's Module 2 added. `core/` and `template/` unchanged.
 - `core/render_test.js`: answers calculation and matching items with their own controls; no more random failures.
 - New feature module `plan-the-problem` v1 (`features/plan-the-problem/`), from
   Basic-Pharmacokinetics `ac2eb73` (`src/views.js` 4754-5120, the set-up drill): on the
