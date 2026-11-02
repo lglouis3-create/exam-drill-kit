@@ -1,0 +1,5 @@
+module pair-up-drills
+commit 5098a48c40df52225e2cce3e24922c42b1ef8a23
+core a2dbf03d6ccea270f77ac440f3fd8b7a86d855cf template cbac5bd425d480944293f8e1fb5d5d703e8baba1
+extra modules: 
+2026-11-02T23:33:16Z
