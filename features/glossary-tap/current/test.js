@@ -194,7 +194,7 @@ function step(terms, opt, extra){
   try {
     const {ctx, page, errors} = await L.openPage(browser, s.page);
     // other modules may put their own tabs before Settings too: only module tabs (FX.tabs()) may stand between
-    const navx = await page.evaluate(() => ({v: [...document.querySelectorAll('#nav button')].map(b => b.dataset.v), mods: FX.tabs()}));
+    const navx = await page.evaluate(() => ({v: [...document.querySelectorAll('#nav button')].map(b => b.dataset.v), mods: typeof FX === 'undefined' ? [] : FX.tabs()}));
     const gi = navx.v.indexOf('glossary'), si = navx.v.indexOf('settings');
     check(gi >= 0 && gi < si && navx.v.slice(gi + 1, si).every(v => navx.mods.includes(v)), 'the Glossary tab is in the nav, before Settings (only other modules\' tabs between them)', navx);
     const nav = navx.v;
