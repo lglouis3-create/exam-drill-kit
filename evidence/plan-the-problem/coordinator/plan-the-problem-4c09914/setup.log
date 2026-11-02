@@ -1,0 +1,10 @@
+$ node features/formulas-in-text/ci/oncourse.js
+wrote: appended to /tmp/port-coord/vc-plan-the-problem/src/course.js: formulas-in-text v1 on with 56 symbols, 4 rates, halfLife, times, minus and powers (the options of its test.js)
+wrote: no data files (the module reads no course data file)
+$ node features/equation-drill/ci/oncourse.js
+wrote: /tmp/port-coord/vc-plan-the-problem/src/eqc_equations.js (14 equations from the fixture in test.js)
+wrote: appended to /tmp/port-coord/vc-plan-the-problem/src/course.js: the file in COURSE.files and equation-drill v2 on
+$ node features/plan-the-problem/ci/oncourse.js
+wrote: /tmp/port-coord/vc-plan-the-problem/src/plc_plan_data.js (9 equations, added to the course's EQUATIONS, 55 ASKS, PLAN with 12 models)
+wrote: /tmp/port-coord/vc-plan-the-problem/src/q90_plc_fixture.js (6 topics, 10 questions from the fixture in test.js)
+wrote: appended to /tmp/port-coord/vc-plan-the-problem/src/course.js: both files in COURSE.files, 8 lecture(s) (L91 Introduction.pdf, L92 2IVBolusAdministration.pdf, L93 3IntravenousInfusions.pdf, L94 4---Clearance-and-Elimination.pdf, L95 5---Pharmacokinetics-of-Oral-Absorption.pdf, L96 6---Repetitive-IV-Bolus-and-Intermittent-IV-Infusions.pdf, L97 IV-Bolus-Practice-3---Solutions.pdf, L98 Multiple-IV-Bolus-Practice-1---Solutions.pdf), 6 skill(s), and plan-the-problem v1 on
