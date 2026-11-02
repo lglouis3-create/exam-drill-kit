@@ -691,7 +691,13 @@ NOT RUN, not PASS. The browser checks use Node Playwright with Chromium (in a cl
 session: `NODE_PATH=$(npm root -g)`, browsers in `/opt/pw-browsers`; nothing installs
 browsers). WebKit is not installed in the cloud container, so no check here runs Safari
 (mobile Safari is NOT RUN); `home_test.js` uses Playwright's iPhone 13 profile, which is
-Chromium with an iPhone screen and user agent. `device_lint.js` catches the Safari fault
+Chromium with an iPhone screen and user agent. The checks open a built page over HTTP
+from 127.0.0.1 (`check_lib.js` `pageUrl`, `openFile`, `openPage`), as a student opens the
+hosted copy, not from disk: from disk WebKit gives the page the origin "null" and refuses
+its manifest on the console. Service workers are blocked in those browser contexts, as a
+page opened from disk has none; the worker's own checks serve the site with `serve()`, and
+`offline_test.js` still opens the page from disk once (`openFromDisk`) to check that it
+works so. `device_lint.js` catches the Safari fault
 the brief names (regex lookbehind, `review/findings.md` §6.5) by reading the sources and
 the built page.
 
@@ -702,4 +708,5 @@ the built page.
 - Intro-Pharmacology's exam-result page coming back after a reload, and its generator
   step in the build (`gen_*.py`), both named in `review/proposed-core.md` §5-§6.
 - `coverage_check.py`, `step_check.js` and `sources_check.js` from the drills.
-- A WebKit run of the browser checks.
+- A WebKit run of the browser checks that blocks a merge: the GitHub workflow's WebKit job
+  is informational (see "On GitHub" above), and no Safari app, iPhone or iPad runs anywhere.

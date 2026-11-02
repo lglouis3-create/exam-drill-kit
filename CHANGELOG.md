@@ -4,6 +4,7 @@ Dated kit changes, newest first.
 
 ## 2026-11-02
 - Kit checks on GitHub: every pull request runs the checks in Chromium and, as information, in WebKit.
+- Checks open built pages over HTTP from 127.0.0.1, not from disk, so WebKit no longer refuses the manifest.
 - `core/render_test.js`: answers calculation and matching items with their own controls; no more random failures.
 
 ## 2026-11-01
