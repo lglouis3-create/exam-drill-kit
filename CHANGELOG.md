@@ -11,8 +11,9 @@ Dated kit changes, newest first.
   (an exam of another length, clock or `typed` setting is left off the chips, with the
   reason shown); "Your papers so far" lists each paper submitted on a page with the module
   on (`DB.paperPicker`). Topics, Weak spots and the weighted pass still follow the current
-  exam. No course switches it on yet. Test: `features/paper-picker/current/test.js`
-  (45 checks).
+  exam. No course switches it on yet. Test: `features/paper-picker/current/test.js`, on
+  Basic-Pharmacokinetics' own exams and questions (`test_fixture.js`, the professor set to
+  the course's own); `ci/oncourse.js` writes the same data into the kit's CI course.
 - `core/render_test.js`: answers calculation and matching items with their own controls; no more random failures.
 
 ## 2026-11-01

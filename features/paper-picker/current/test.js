@@ -8,62 +8,56 @@
  * 1108-1128, src/views.js lines 3108-3168).
  *
  * On the course's own data: every exam's split of a paper adds up to the paper
- * and follows its marks; a paper drawn for each exam has the paper's length,
- * no question twice, every question from that exam's pools, each pool's share,
- * no two wordings of one fact; a paper longer than the pools can fill is not drawn.
+ * and follows its marks, the largest remainders taking the rounding; the module puts in each pool exactly the questions the
+ * core's pool filter puts there (no lowYield item, no typed item unless the exam
+ * takes them); a paper drawn for each exam has the paper's length, no question
+ * twice, every question from that exam's pools, each pool's share, its
+ * select-all count, no two wordings of one fact, shuffled; a pool with one
+ * single-answer question too few gives its share with one select-all question
+ * more, from its own questions; an exam whose pools cannot fill a paper gets none; a paper longer than the pools can fill is not drawn.
  * The build step: an exam with another question count, another time limit, a
  * `blueprint`, a pool without marks, or another `typed` setting is left off the
- * chips and named on the Exam view with that reason; a course with one exam shows no
- * chips; an exam without an id and two exams with one id stop the build.
- * On a scratch copy with Basic-Pharmacokinetics' three exams (names, dates,
- * times, pools and marks verbatim; every paper set to 6 questions with 1
- * select-all item, and Exam 3's pool marks scaled from 15/15/5/5 to 2/2/1/1, so
- * that 18 of its questions can fill them), its lectures and 18 of its
- * single-answer questions (ids, topics and lectures prefixed pp-; the professor
- * and the skill set to the course's own), in Chromium: the chips on the Exam
- * view with the current exam chosen; choosing Exam 1 shows its pools and the
- * note that the other views follow the current exam; its paper is drawn from
- * Modules 1-3 in its 3/2/1 split; the result names the exam and the paper is
- * listed; the choice and the list survive a reload; a second paper is listed
- * first, with its blank items; a choice made before its exam gives way to the
- * current exam, one made after it is kept; the chips do nothing while a paper
- * runs; a bank too small for the chosen exam says so and the paper is drawn for
- * the current exam; Settings changes the choice; opening the Exam view and
- * Settings before any choice adds nothing to the saved progress.
+ * chips and named on the Exam view with that reason; a course with one exam shows
+ * no chips; an exam without an id and two exams with one id stop the build.
+ * In Chromium, on a scratch copy with Basic-Pharmacokinetics' own data
+ * (test_fixture.js: its three exams, activeExam, lectures, and the questions,
+ * topics, skills and images that file names, from ac2eb73, with the course's own
+ * professor as the one change; on a course that already holds that data, such as
+ * the CI course, the course's own copy of it): the chips on the Exam view with
+ * the current exam (Exam 3) chosen; choosing Exam 2 shows its four pools, their
+ * 7/7/20/6 split and what the bank holds, its blurb, and the note that the other
+ * views follow the current exam; its 40-question paper is drawn from Modules 4-7
+ * in that split, with its select-all count and the current exam's clock; the
+ * choice cannot change while the paper runs; a reload during the paper keeps it a
+ * paper for Exam 2; the result names the exam, and drawing the result page again
+ * records the paper once; the paper is listed with its score; the choice and the list survive a reload; a second paper, for Exam 3, is
+ * listed first with its 39 blank items; a choice made before its exam gives way
+ * to the current exam, one made after it is kept; Exam 1, whose Module 2 pool the
+ * bank cannot fill, says so and its paper is drawn for the current exam; Settings
+ * changes the choice; an exam left off cannot be chosen; opening the Exam view and Settings before any choice adds
+ * nothing to the saved progress.
+ * Persistence, in a fresh profile: 101 papers submitted keep the 100 newest and
+ * show the 12 newest, through a reload; a reload made at once after a choice is
+ * reported (the core saves 150 ms after the last change), one made 300 ms after
+ * keeps it; Export, then Import into a fresh profile brings the choice and the
+ * 100 papers back; each profile keeps its own; storage denied and storage full
+ * (QuotaExceededError): the student is told, nothing saved is overwritten, and
+ * what was saved loads once storage works again.
  *
  *     node features/paper-picker/test.js
  */
 const fs = require('fs'), path = require('path');
 const L = require(path.join(__dirname, '..', '..', 'check_lib'));
+const FIX = require(path.join(__dirname, 'test_fixture.js'));
 const NAME = 'features/paper-picker/test.js';
 const {check} = L;
 delete process.env.DRILL_PAGE;
-
-/* Basic-Pharmacokinetics src/course.js (lectures, exams, activeExam) and 18 of its
-   single-answer questions with their topics (src/q*_*.js), at ac2eb73, with the
-   professor field left out. */
-const PK = {"qs":[{"id":"m1-int-01","tier":"new","exam":1,"module":1,"lecture":"L01","topic":"intro","sub":"disc","concept":"biopharmaceutics-defn","skill":"recall","source":"both","stem":"Which term covers the interrelationship of the physicochemical properties of a drug, the dosage form in which it is given, and the route of administration on the rate and extent of systemic drug absorption?","options":[{"t":"Biopharmaceutics","correct":true,"why":"This is her definition of biopharmaceutics: drug properties, dosage form and route, acting on the rate and extent of systemic absorption. Biopharmaceutics stops where the drug enters the circulation, which is where pharmacokinetics starts."},{"t":"Toxicology","correct":false,"why":"Clinical toxicology studies the adverse effects of drugs in the body: what a drug does once present, not how much gets in. Choosing it usually comes from reading \"extent\" as extent of injury rather than extent of absorption."},{"t":"Pharmacodynamics","correct":false,"why":"Choosing this confuses absorption with response. Pharmacodynamics relates drug concentration at the site of action to pharmacological response, so its two variables are concentration and effect. The definition names dosage form and route, which are formulation variables, and never a response."},{"t":"Pharmacology","correct":false,"why":"Pharmacology is the broader study of drug action, and picking it means answering at the level of the whole field rather than the specific discipline named. The definition is narrow and formulation-centred, so a general term cannot be the best match."}],"teach":[{"h":"The idea","list":["Each related discipline is defined by the two quantities it links.","Biopharmaceutics links the drug, the dosage form and the route to the rate and extent of absorption; drug-product design factors such as particle size and excipients fall within it.","Pharmacokinetics links concentration to time; pharmacodynamics links concentration to response.","Clinical toxicology deals with the adverse effects of drugs.","Rate of absorption shows in how early and how high the curve peaks (tmax and Cmax); extent is how much arrives, measured by the area under the curve (AUC)."]},{"h":"Where to read more","t":"Introduction.pdf, slide \"Related Discipline: Biopharmaceutics\"."}],"teachImg":"slide_Introduction_p6","cite":"Introduction.pdf slide 6, and the poll slide following slide 10","quote":"The interrelationship of the physicochemical drug properties, dosage form and route of administration on the rate and extent of systemic drug absorption"},{"id":"m1-int-05","tier":"new","exam":1,"module":1,"lecture":"L01","topic":"intro","sub":"matrix","concept":"blood-components","skill":"tell","source":"slide","stem":"Which blood component is obtained after whole blood is allowed to clot and the clot is removed?","options":[{"t":"Serum","correct":true,"why":"Serum is defined by the clotting step: the blood clots, the clot is removed, and what remains has neither the cells nor fibrinogen nor the other clotting factors. A concentration measured in this fraction is written with a subscript s."},{"t":"Plasma","correct":false,"why":"Picking plasma reads the clotting step as a centrifugation step. Plasma is the liquid left after centrifuging whole blood that an anticoagulant kept from clotting, so it still holds fibrinogen, the other clotting factors and albumin. Serum is what remains once clotting is allowed to run and the clot is removed."},{"t":"Whole blood","correct":false,"why":"Whole blood is the sample as drawn by venous puncture with an anticoagulant such as heparin or EDTA, and it contains all the cellular and protein elements. Nothing has been removed from it. Choosing it means stopping at the sample rather than at the fraction the description asks for."}],"teach":[{"h":"The idea","list":["The three blood fractions differ by what has been taken out.","Whole blood keeps everything. It is collected with an anticoagulant, such as heparin or EDTA, a substance that stops the blood clotting.","Plasma: the cells are spun out while the anticoagulant prevents clotting, so the clotting proteins, fibrinogen among them, remain.","Serum: the blood is allowed to clot and the clot is removed, so the cells and the clotting proteins are gone.","Cp is a plasma concentration, Cs a serum concentration, and a plain C leaves the fraction unspecified."]},{"h":"Where to read more","t":"Introduction.pdf, slide \"Blood Components\"."}],"teachImg":"slide_Introduction_p11","cite":"Introduction.pdf slide 10","quote":"Obtained from whole blood after the blood is allowed to clot and the clot is removed"},{"id":"m1-int-06","tier":"new","exam":1,"module":1,"lecture":"L01","topic":"intro","sub":"matrix","concept":"measurement-matrix","skill":"recall","source":"both","stem":"Which is most commonly used for drug measurement in pharmacokinetic analysis?","options":[{"t":"Serum or plasma","correct":true,"why":"Serum and plasma are preferred because removing the cellular fraction minimises the interaction of drug with other things in the sample. All four options are used somewhere, but these two are the routine choice, which is why the standard symbols in the course are Cp and Cs."},{"t":"Whole blood","correct":false,"why":"Whole blood contains all the cellular and protein elements, and drug can bind to or interact with those components, which complicates the measurement. It is a usable matrix but not the routine one. Choosing it means taking the least processed sample as the default rather than the one that gives the cleanest assay."},{"t":"Urine","correct":false,"why":"Urine is used, and it becomes important later for renal clearance, but it reports drug that has already left the body rather than the concentration circulating now. A concentration-versus-time curve in this course is a plasma or serum curve. Selecting urine confuses an excretion measurement with a systemic one."},{"t":"Saliva","correct":false,"why":"Saliva appears in the same list of possible sampling sites and is the least used of the four. It is a genuine sampling site elsewhere rather than an absurd one, which is what makes it tempting here. Nothing in this course computes a parameter from a saliva concentration."}],"teach":[{"h":"The idea","list":["A concentration has meaning only once the fluid it was measured in is named.","Serum and plasma are the routine fluids, because removing the cells reduces interactions between the drug and other blood components.","The choice carries through the notation for the rest of the course: Cp for plasma and Cs for serum."]},{"h":"Where to read more","t":"Introduction.pdf, slide \"Blood Components\"."}],"teachImg":"slide_Introduction_p17","cite":"Introduction.pdf, poll slide following slide 15","quote":"We mostly use serum and plasma because remember we try to minimize the interactions of drug with anything else that might be in that um sample"},{"id":"m1-int-08","tier":"new","exam":1,"module":1,"lecture":"L01","topic":"intro","sub":"models","concept":"model-purposes","skill":"recall","source":"slide","stem":"Which of the following is a purpose of pharmacokinetic models?","options":[{"t":"Predict drug levels","correct":true,"why":"Predicting the concentration at a time that was never sampled is the first use given for a model, and it is what every equation in this course does. Without a model there is only a set of measured points and no way to state what lies between or beyond them."},{"t":"Establish the chemical structure of a metabolite","correct":false,"why":"A pharmacokinetic model works with amounts, concentrations and rates, and carries no information about molecular structure. Identifying a metabolite chemically is an analytical chemistry task. Choosing this extends the model beyond the quantities it contains."},{"t":"Replace the need to measure plasma concentrations","correct":false,"why":"A model is fitted to measured concentrations and its parameters come from them, so measurement is what makes the model possible rather than what the model removes. Clinical pharmacokinetics applies these methods to specific drugs in specific patients, which requires samples. This option inverts the relationship between data and model."},{"t":"Study the adverse effects of drugs in the body","why":"This answer confuses a purpose of pharmacokinetic models with the definition of clinical toxicology, the discipline that studies adverse effects of drugs in the body. A model relates concentration to time; it can correlate concentrations with toxic activity, but the study of the adverse effects themselves belongs to toxicology, not to the model."}],"teach":[{"h":"The idea","t":"A pharmacokinetic model is a set of assumptions that turns a few measured concentrations into a continuous description."},{"h":"What a model is used for","list":["Predicting drug levels at times that were not sampled, and choosing dosing regimens.","Estimating accumulation of drug or metabolites, and comparing the rate or extent of availability between formulations.","Correlating concentrations with pharmacologic or toxicologic activity.","Describing how physiology or disease alters the kinetics, and explaining drug interactions."]},{"h":"Where to read more","t":"Introduction.pdf, slide \"Pharmacokinetic Models\", which lists all seven uses."}],"teachImg":"slide_Introduction_p13","cite":"Introduction.pdf slide 11"},{"id":"m2-vd-4","tier":"new","exam":1,"module":2,"lecture":"L02","topic":"bolus1","sub":"vd","concept":"vd-percent-bw","skill":"recall","source":"both","stem":"A 70 kg patient is given a drug whose apparent volume of distribution is 20% of body weight. What is the volume of distribution?","options":[{"t":"14 L","correct":true,"why":"Expressing VD as a percent of body weight uses the convention that a 1 L volume equals the weight of 1 kg, so 20% of 70 kg is 14 kg of body weight and therefore 14 L. The answer is in litres, not kilograms, because the volume of distribution is a volume."},{"t":"14 kg","correct":false,"why":"This answer stops at the kilograms and never converts them into litres. The arithmetic is right: 20% of 70 kg is 14 kg of body weight. A volume of distribution is a volume, so the convention that 1 kg of body weight corresponds to 1 L is applied and 14 kg becomes 14 L."},{"t":"20 L","correct":false,"why":"This takes the percentage figure itself as the answer and never multiplies it by the patient weight. A percent of body weight is not a volume until a weight is supplied, which is why the stem gives one."},{"t":"3.5 L","correct":false,"why":"This divides the weight by 20 instead of taking 20% of it, which is the same as using 5% of body weight. The error comes from treating the 20 as a divisor because volume of distribution often appears in a denominator elsewhere."}],"steps":[{"k":"unit","t":"20% of body weight = 0.20 L per kg, because 1 kg of body weight is taken as 1 L","why":"A volume quoted as a percent of body weight rests on the convention that one kilogram of body weight corresponds to one litre, so 20% of the weight in kilograms is read directly as litres: 0.20 L for every kilogram the patient weighs."},{"k":"algebra","t":"VD = (0.20)(70 kg) = 14 kg of body weight = 14 L","why":"Multiplying the fraction by the weight gives 14 kg of body weight; by the one-to-one convention that is 14 L. The result is a volume, so it is written in litres, not kilograms, which is what the question asks for."}],"givens":[["weight","70 kg","multiplied by 0.20: (0.20)(70) = 14"],["VD","20% of body weight","0.20 L per kg, by the convention 1 kg = 1 L"]],"check":{"t":"The answer has to be a volume in litres and smaller than the 70 kg weight, since 20% is a fifth: a fifth of 70 is 14. A result of 20 L would mean the percent was taken as the answer without the weight."},"teach":[{"h":"The idea","list":["VD (apparent volume of distribution) can be quoted as an absolute volume, per kilogram of body weight, or as a percent of body weight.","The percent form uses the assumption that 1 L corresponds to 1 kg, so the conversion is a single multiplication.","Body weight in pharmacokinetics is always in kilograms; a weight in pounds is divided by 2.2 first."]},{"h":"Where to read more","t":"2IVBolusAdministration.pdf, second slide titled \"Volume of Distribution\"."}],"teachImg":"slide_2IVBolusAdministra_p6","cite":"2IVBolusAdministration.pdf, slide \"Volume of Distribution\" (second slide of that title)","quote":"In expressing the apparent VD in terms of percent body weight, a 1-L volume is assumed to be equal to the weight of 1 kg."},{"id":"m2-mc-5","tier":"new","exam":1,"module":2,"lecture":"L03","topic":"bolus2","sub":"params","concept":"two-cpt-diffeq","skill":"read","source":"slide","stem":"In the two-compartment open model, which process appears in the central-compartment equation dCp/dt = k21·Ct − k12·Cp − k·Cp but not in the tissue-compartment equation dCt/dt = k12·Cp − k21·Ct?","options":[{"t":"Elimination of drug from the body","correct":true,"why":"The first two terms mirror the tissue equation with the signs reversed: drug returning from tissue is a gain to the central compartment, and drug leaving for tissue a loss. The third term, −k·Cp, has no match because it is drug leaving the body, which happens only from the central compartment."},{"t":"Transfer of drug from the tissue compartment to the central compartment","why":"Picking this reads the gain term k21·Ct as something only the central compartment sees. Transfer from tissue to central appears in both equations: as +k21·Ct in the central equation, a gain, and as −k21·Ct in the tissue equation, a loss. What leaves one compartment arrives in the other, so the term is shared."},{"t":"Input of the bolus dose","why":"Picking this reads the dose as a term that must appear in the equations. A bolus is instantaneous, so it enters as the initial condition, Cp at time zero, rather than as a term in the differential equation. Continuing input terms belong to infusion and oral models, where drug keeps arriving; neither equation has one."},{"t":"Binding of drug to plasma proteins","why":"This answer confuses a process acting on the drug with a term in the model. Protein binding is not represented explicitly; its effect is absorbed into the volumes and the transfer constants k12 and k21. Neither equation distinguishes bound from unbound drug, so binding cannot be the term that only one of them carries."}],"teach":[{"h":"The idea","list":["A compartment differential equation is a balance: drug entering the compartment is positive and drug leaving is negative.","The two transfer terms (k12 and k21) appear in both equations with opposite signs, because what leaves one compartment arrives in the other.","The elimination term, −k·Cp, appears only where the exit is: the central compartment."]},{"h":"Where to read more","t":"2IVBolusAdministration.pdf, slide \"Two-Compartment Open Model (IV Bolus Injection)\"."}],"teachImg":"slide_2IVBolusAdministra_p17","cite":"2IVBolusAdministration.pdf, slide \"Two-Compartment Open Model (IV Bolus Injection)\"","quote":"dCp/dt = k21·Ct − k12·Cp − k·Cp"},{"id":"inf-c1","tier":"new","exam":1,"module":3,"lecture":"L04","topic":"infusion","sub":"basics","concept":"why-infuse","skill":"recall","source":"both","stem":"What does administering a drug by continuous intravenous infusion allow that a single intravenous bolus does not?","options":[{"t":"Precise control of the plasma concentration","correct":true,"why":"A bolus gives the whole dose at once, so the concentration starts at its highest and then falls. An infusion adds drug continuously, so the level is held where the infusion rate puts it for as long as it runs; the rate, not the size of a single dose, is chosen to maintain a level."},{"t":"Elimination of the drug by a zero-order process","correct":false,"why":"The zero-order description belongs to what goes in, not to what comes out. Elimination stays first order throughout an infusion, which is exactly why the concentration climbs to a plateau instead of rising without limit. Choosing this attaches the word constant to the wrong side of the model."},{"t":"A shorter elimination half-life","correct":false,"why":"Half-life is set by the rate constant, which belongs to the drug and the patient, and changing the route of administration does not touch it. Only the way the drug is put into the body has changed. A student who picks this is treating half-life as something the dosing schedule can adjust."},{"t":"A larger apparent volume of distribution","correct":false,"why":"Volume of distribution is a proportionality constant between the amount of drug in the body and the measured plasma concentration, and it is a property of how the drug distributes. Infusing rather than injecting does not change where the drug goes. This answer swaps a fixed pharmacokinetic parameter for a dosing decision."}],"teach":[{"h":"The idea","list":["An infusion differs from a bolus in one respect: drug enters the body continuously rather than all at once.","R, the infusion rate, is a constant amount per unit time, most often mg/hr, so input is zero order.","Elimination is unchanged by the route, so output stays first order: {{frac:dDB|dt}} = R − kDB, where DB is the amount in the body and k the elimination rate constant.","The concentration therefore settles at a level fixed by the infusion rate and the clearance, and that level can be chosen in advance."]},{"h":"Where to read more","t":"3IntravenousInfusions.pdf, slide \"Intravenous Infusion\"."}],"teachImg":"slide_3IntravenousInfusi_p3","cite":"3IntravenousInfusions.pdf, slide \"Intravenous Infusion\"","quote":"Allows for precise control of plasma drug concentration"},{"id":"inf-c2","tier":"new","exam":1,"module":3,"lecture":"L04","topic":"infusion","sub":"basics","concept":"zero-in-first-out","skill":"tell","source":"both","stem":"During a continuous intravenous infusion, how are the input and the output of drug described?","options":[{"t":"Zero-order input, first-order output","correct":true,"why":"The pump delivers a fixed amount per unit time whatever is already in the body, which defines a zero-order process. Elimination is unchanged by the route: a constant fraction of what is present leaves per unit time (first order), and the two together give the rising curve that flattens."},{"t":"Zero-order input, zero-order output","correct":false,"why":"If output were also a fixed amount per unit time, the concentration would either rise or fall forever in a straight line and no plateau could exist. The plateau appears precisely because the amount leaving grows as the concentration grows. Selecting this means carrying the constant-rate description across from the pump to the body."},{"t":"First-order input, first-order output","correct":false,"why":"A first-order input would mean the delivery rate depended on how much drug was already present, which no infusion pump does. The rate set on the pump is the same at the first minute and the last. This answer applies the elimination description to the infusion as well."},{"t":"First-order input, zero-order output","correct":false,"why":"This reverses both halves at once, and it would describe a system whose delivery falls as the body fills while removal stays fixed. Nothing in the infusion model works that way. It usually comes from knowing that two different orders are involved without knowing which belongs where."}],"teach":[{"h":"The idea","list":["A constant rate of input is zero order by definition, because the amount entering per unit time does not depend on how much drug is present.","Elimination belongs to the drug and the patient, not to the route, so it remains first order: kDB leaves each hour, rising as the amount in the body (DB) rises.","Input is flat while output grows with the concentration, so the two converge and the curve rises to a plateau."]},{"h":"Where to read more","t":"3IntravenousInfusions.pdf, slide \"Intravenous Infusion\"."}],"teachImg":"slide_3IntravenousInfusi_p3","cite":"3IntravenousInfusions.pdf, slide \"Intravenous Infusion\"","quote":"Our input is zero order, constant in, first order out. When we stop the in, then it’s just out."},{"id":"m4-rou-1","tier":"new","exam":2,"module":4,"lecture":"L05","topic":"clearance","sub":"routes","concept":"elimination-defn","skill":"recall","source":"both","stem":"Which of the following best describes drug elimination?","options":[{"t":"Irreversible removal of drug by all routes","correct":true,"why":"Two words carry the definition. Irreversible separates elimination from distribution, which moves drug to and from tissue without removing any. All routes means excretion and biotransformation both count, so one overall rate constant k can describe a drug leaving by several routes at once."},{"t":"Chemical conversion of the drug into a metabolite","correct":false,"why":"That is biotransformation, which is one of the two processes elimination covers rather than the whole of it. Choosing it drops excretion of intact drug out of the definition entirely, so a drug cleared unchanged by the kidney would not count as eliminated. The narrower term cannot stand in for the wider one."},{"t":"Movement of drug to and from the tissues","correct":false,"why":"Movement to and from tissue is distribution, and the giveaway is that it runs in both directions. Elimination only runs one way, out. A drug that leaves the plasma for fat and comes back later has not been eliminated, even though the plasma concentration fell while it was away."},{"t":"Removal of drug from the plasma compartment","correct":false,"why":"Drug can leave the plasma without leaving the body: distribution into tissue lowers the plasma concentration while every milligram is still present. Elimination is defined against the whole body, so only irreversible loss by excretion or biotransformation counts."}],"teach":[{"h":"The idea","list":["Elimination is the irreversible loss of drug from the body, by any route.","It has two mechanisms: excretion, where the drug leaves chemically unchanged, and biotransformation (metabolism), where the drug is first converted into something else; the overall elimination rate constant k includes both.","Disposition is distribution and elimination together: elimination is the irreversible part, distribution the reversible part.","The deciding features: whether the removal is irreversible (distribution is not), and whether the molecule is changed (biotransformation) or leaves intact (excretion).","Her slide \"Drug Elimination\" carries the definition and both mechanisms."]}],"teachImg":"slide_4ClearanceandElimi_p3","cite":"4---Clearance-and-Elimination.pdf slide 3","quote":"Irreversible removal of drug from the body by all routes of elimination"},{"id":"m5-c01","tier":"new","exam":2,"module":5,"lecture":"L06","topic":"oral","sub":"extravasc","concept":"first-order-input","skill":"tell","source":"both","stem":"A drug is swallowed as a tablet. How is the input of drug into the body described?","options":[{"t":"First order","correct":true,"why":"Drug arrives only as fast as what is left in the gastrointestinal tract can disintegrate, dissolve and cross the gut wall, so the rate in is proportional to the amount still to be absorbed. That is first order, and the rate falls as the gut empties."},{"t":"Zero order","correct":false,"why":"A zero-order input delivers a fixed amount per unit time, as an infusion pump or a true modified-release product does. An ordinary tablet has nothing holding the rate fixed, so the rate falls as the gut empties; choosing this carries the infusion description across to the oral route."},{"t":"Instantaneous","correct":false,"why":"Picking this carries the intravenous bolus across to the oral route: a bolus puts the whole dose in at once, so the concentration is highest at time zero. An oral dose must first disintegrate, dissolve, cross the gut wall and survive the liver, so an oral curve starts at zero and rises."},{"t":"Second order","correct":false,"why":"Second-order kinetics would need the rate to depend on the square of an amount or on two concentrations at once, and nothing in this model does. Reaching for a higher order usually means counting the two rate constants in the model and attaching that count to the order."}],"teach":[{"h":"The idea","list":["The three routes covered so far differ only in how drug enters the body.","Intravenous (IV) bolus: the entire dose goes in at once, so input is instantaneous.","IV infusion: a fixed amount goes in per unit time, so input is zero order.","Oral dose: drug goes in at a rate proportional to what is still in the gastrointestinal tract, so input is first order, with its own rate constant, ka.","Elimination is first order in all three, so the oral case is the only one with first order on both sides.","Her slides \"IV Bolus vs. Oral Administration\" and \"First-Order Absorption Model\" set the three inputs side by side."]}],"teachImg":"slide_5Pharmacokineticso_p7","cite":"5---Pharmacokinetics-of-Oral-Absorption.pdf, slide \"First-Order Absorption Model\"; 09.21 lecture","quote":"today we will move into our 1st order. So, up to this point, we have not had 1st order input, OK? It's all been either instantaneous or zero order"},{"id":"m6-c01","tier":"new","exam":2,"module":6,"lecture":"L07","topic":"multi","sub":"accum","concept":"time-to-plateau","skill":"recall","source":"both","stem":"A drug eliminated by first-order kinetics is given as the same IV bolus dose at a fixed interval. How long does it take to reach the plateau?","options":[{"t":"3 to 5 half-lives","correct":true,"why":"Elimination is first order, so how close the level is to its plateau is set by how many half-lives have passed. After 3 to 5 half-lives the peaks and troughs have stopped climbing and each dose reaches the same maximum and minimum."},{"t":"3 to 5 doses","why":"Choosing this counts doses where the rule counts half-lives. With a half-life of 4 hours, 3 to 5 half-lives is 12 to 20 hours: 2 to 3 doses (at 0, 8 and 16 hours) with a dose every 8 hours, but 7 to 11 doses with a dose every 2 hours."},{"t":"One dosing interval","why":"Choosing this treats the first trough as the plateau. One interval brings the level down to the first trough, not to the plateau. The second dose then starts from that trough, and the peaks keep climbing for several more intervals. That climb is accumulation."},{"t":"A time that doubles when the dose doubles","why":"This answer ties the time to plateau to the dose. A first-order rate is proportional to the amount present, so a larger dose is eliminated faster in proportion, and the time to plateau does not change. Doubling the dose doubles the plateau level instead."}],"teach":[{"t":"The plateau is reached when the peaks and troughs stop rising: 3 to 5 half-lives with first-order elimination, whatever the dose."},{"h":"Where 3 to 5 half-lives comes from","list":["The climb stops when the drug eliminated over one interval equals one dose.","Each half-life closes half of the remaining gap to the plateau: 50 per cent of the way there after one half-life, 75 after two, 87.5 after three and about 97 after five.","Her slide \"Drug accumulation with repeated administration\" puts it as 3 to 5 half-lives, not 3 to 5 doses."]},{"h":"Her Example 1 regimen drawn out","fig":"md_bolus","list":["10 mg/kg every 8 hours, with a half-life of 4 hours and VD (apparent volume of distribution) 0.25 L/kg. Each dose adds C0 = 40 mg/L.","The peaks climb from 40 to 53.3 mg/L and the troughs from 10 to 13.3 mg/L. The climb is over within 3 to 5 half-lives, 12 to 20 hours."]}],"teachImg":"slide_6RepetitiveIVBolus_p3","cite":"6---Repetitive-IV-Bolus-and-Intermittent-IV-Infusions.pdf, slide \"Drug accumulation with repeated administration\"; 09.23 lecture","quote":"and not 3 to 5 doses, 3 to 5 half-lives, OK?"},{"id":"m6-c02","tier":"new","exam":2,"module":6,"lecture":"L07","topic":"multi","sub":"accum","concept":"plateau-dose-independent","skill":"apply","source":"both","stem":"If the dose of a drug given by repeated IV bolus injection is doubled with no change to the dosing interval, what is the expected change to the time needed to reach steady state?","options":[{"t":"It does not change","correct":true,"why":"The time to steady state is set by the elimination half-life alone. Doubling the dose doubles the amount present and so doubles the first-order elimination rate, and the level approaches its new, doubled plateau in the same 3 to 5 half-lives."},{"t":"It doubles","why":"This reads a larger dose as more drug to accumulate and therefore more time. With first-order elimination the rate of loss rises in proportion to the amount, so the extra drug is removed in proportion and the time is unchanged. The plateau level doubles instead."},{"t":"It halves","why":"Choosing this treats a larger dose as if it sped up elimination. Halving the time would need a faster rate constant. The dose changes the amount in the body and the elimination rate, but not k or the half-life, and the half-life is the only thing that sets the time to plateau."},{"t":"It cannot be predicted without the new peak","why":"Choosing this mixes up the height of the plateau with the time to reach it. The time to steady state needs only the half-life, which the dose does not change. The new peak would be twice the old one, but it is not needed to answer how long it takes to get there."}],"teach":[{"t":"The dose sets how high the plateau is; the half-life sets how long it takes to get there. Changing the dose moves the plateau up or down and leaves the time the same."},{"h":"Time to plateau","list":["Time to plateau is 3 to 5 half-lives, not 3 to 5 doses (her slide \"Drug accumulation with repeated administration\")."]}],"teachImg":"slide_6RepetitiveIVBolus_p3","cite":"6---Repetitive-IV-Bolus-and-Intermittent-IV-Infusions.pdf, slide \"Drug accumulation with repeated administration\"; 09.23 lecture","quote":"Cause the 2nd bullet, independent of dose, right? Because 3 to 5 half-lives. We're looking at first-order processes. The rate depends on how much is there."},{"id":"m6-c03","tier":"new","exam":2,"module":6,"lecture":"L07","topic":"multi","sub":"accum","concept":"washout","skill":"recall","source":"both","stem":"A patient at steady state on repeated IV bolus doses receives the last dose. About how long until most of the drug has been eliminated?","options":[{"t":"3 to 5 half-lives","correct":true,"why":"Once dosing stops, only first-order elimination is left, and each half-life removes half of what remains. After 3 half-lives 12.5 per cent remains and after 5 half-lives about 3 per cent, which is most of the drug gone."},{"t":"One dosing interval","why":"Choosing this treats the steady-state trough as if it were zero. One interval takes the level from the steady-state peak down to the steady-state trough, and the trough is not near zero, because it is the drug that had accumulated. It takes several more half-lives for that to be eliminated."},{"t":"One half-life","why":"Choosing this confuses half with most. One half-life removes half of the drug, and half is still in the body at that point; it takes 3 to 5 half-lives to get down to between 12.5 and 3 per cent."},{"t":"As long as the dosing lasted","why":"This answer ties the washout to the length of the regimen. First-order elimination depends only on the half-life, so a patient dosed for a week and one dosed for a month both lose most of the drug in 3 to 5 half-lives once they are at steady state."}],"teach":[{"t":"Reaching steady state and eliminating the drug afterwards are both first-order elimination, so both take 3 to 5 half-lives (her slide \"Drug accumulation with repeated administration\")."},{"h":"Her Example 1 regimen drawn out","fig":"md_bolus","list":["10 mg/kg every 8 hours, with a half-life of 4 hours and VD (apparent volume of distribution) 0.25 L/kg. Each dose adds C0 = 40 mg/L.","The peaks climb from 40 to 53.3 mg/L. After the sixth dose the level falls by first-order elimination alone."]}],"teachImg":"slide_6RepetitiveIVBolus_p3","cite":"6---Repetitive-IV-Bolus-and-Intermittent-IV-Infusions.pdf, slide \"Drug accumulation with repeated administration\"; 09.23 lecture","quote":"if we stop putting drug in the body, 3 to 5 half-lives to get most of that drug out of the body"},{"id":"m6-c04","tier":"new","exam":2,"module":6,"lecture":"L07","topic":"multi","sub":"accum","concept":"steady-state-defn","skill":"recall","source":"both","stem":"Which of the following is true regarding the plateau during repeated IV bolus dosing at a fixed dose and interval?","options":[{"t":"Every dose reaches the same peak and trough","correct":true,"why":"At the plateau the maximum after each dose is the same, Cmax∞, and the minimum before each dose is the same, Cmin∞. The concentration still rises and falls within every interval; what stops changing is the pattern from one interval to the next."},{"t":"The concentration stops changing with time","why":"Choosing this carries the infusion plateau into bolus dosing. A constant-rate infusion has a flat plateau. With bolus doses the whole dose goes in at once, so the level jumps at each dose and falls between doses even at steady state."},{"t":"The peak equals the first-dose peak","why":"Choosing this treats the first dose as if it were already at steady state. The steady-state peak is higher than the first-dose peak, because at steady state each dose is added to drug left over from the earlier ones. The first dose goes into a body with no drug in it."},{"t":"The trough falls to zero before each dose","why":"Choosing this confuses a regimen with no accumulation with one at steady state. If the level reached zero before each dose, nothing would be left over and there would be no accumulation. The steady-state trough is above zero; that leftover drug is what raises the steady-state peak above the first-dose peak."}],"teach":[{"t":"Peaks are the maximum concentrations and troughs the minimum concentrations. At the plateau, also called steady state, both repeat exactly from dose to dose."},{"h":"What steady state is","list":["The climb stops when the drug eliminated over one interval equals one dose. From then on every dose reaches the same peak, Cmax∞, and falls to the same trough, Cmin∞.","The ∞ sign on a symbol means steady state."]},{"h":"Her Example 1 regimen drawn out","fig":"md_bolus","list":["10 mg/kg every 8 hours, with a half-life of 4 hours and VD (apparent volume of distribution) 0.25 L/kg. Each dose adds C0 = 40 mg/L.","The peaks climb from 40 to 53.3 mg/L and the troughs from 10 to 13.3 mg/L. The climb is over within 3 to 5 half-lives, 12 to 20 hours."]}],"teachImg":"slide_6RepetitiveIVBolus_p3","cite":"6---Repetitive-IV-Bolus-and-Intermittent-IV-Infusions.pdf, slide \"Drug accumulation with repeated administration\"; 09.23 lecture","quote":"every dose at steady state, we should reach the same max and the same min"},{"id":"m7-c01","tier":"new","exam":2,"module":7,"lecture":"L10","topic":"bioavail","sub":"defs","concept":"product-performance","skill":"recall","source":"both","stem":"Which term describes the release of the drug substance from the drug product leading to bioavailability of the drug substance?","options":[{"t":"Drug product performance","correct":true,"why":"Product performance is the first step: the drug has to leave the dosage form before anything else can happen. A tablet that does not release its drug gives no absorption and no plasma concentration–time curve, so the body cannot use the drug."},{"t":"Bioavailability","why":"This reads product performance as bioavailability. The fraction absorbed is what bioavailability data estimate; product performance is the release from the dosage form that has to happen before absorption can start. Choosing this merges the two definitions."},{"t":"Bioequivalence","why":"Picking this reads a one-product property as a two-product comparison. Bioequivalence is the absence of a significant difference in rate and extent between a test and a reference product of the same drug. Product performance describes a single product: whether and how its drug substance is released from the dosage form."},{"t":"Absolute bioavailability","why":"Picking this takes the release step for the measurement that follows it. Absolute bioavailability is the fraction F of an extravascular dose reaching the circulation, measured as its AUC (area under the curve) against the AUC of an IV dose. Product performance is the release from the dosage form that precedes absorption."}],"teach":[{"h":"The idea","list":["Capsules, tablets and sustained- or modified-release forms differ in how they release drug, which is what product performance describes."]},{"h":"The four definitions","list":["Drug product performance: the release of the drug substance from the drug product, leading to bioavailability of the drug substance.","Bioavailability: the rate and extent to which the active ingredient is absorbed from a drug product and becomes available at the site of action.","Absolute bioavailability, Fabs: an extravascular dose compared with the same drug given IV (intravenously).","Relative bioavailability, Frel: one formulation compared with a second formulation of the same drug.","Bioequivalence: no significant difference in rate and extent between two products given at the same molar dose under similar conditions."]}],"cite":"7a---Bioavailability-and-Bioequivalence.pdf, slide \"Drug Product Performance\"; transcript 09-30","quote":"Product performance is basically making sure that the drug releases from the dosage form. If the drug does not release from dosage form, then the drug will not be available for the body to use."},{"id":"pd-c01","tier":"new","exam":3,"module":9,"lecture":"L11","topic":"pkpd","sub":"pd","concept":"pd-definition","skill":"recall","source":"slide","stem":"Which term describes the relationship between drug concentration at the site of action (receptor) and the observed pharmacologic response?","options":[{"t":"Pharmacodynamics","correct":true,"why":"Pharmacodynamics starts where pharmacokinetics stops: it takes the concentration at the receptor and links it to the response that concentration produces, which is what the drug does to the body once it arrives."},{"t":"Pharmacokinetics","why":"Choosing this takes the half of the relationship that comes first. Pharmacokinetics describes how the dose becomes a concentration over time; the response that concentration produces at the receptor is pharmacodynamics."},{"t":"Bioavailability","why":"Choosing this takes the arrival of the drug for its effect. Bioavailability is the rate and extent to which the active ingredient is absorbed and becomes available at the site of action; it ends where the receptor response begins."},{"t":"Duration of activity","why":"Choosing this takes one measure of the response for the whole relationship. Duration of activity, teff, is the time the plasma level stays at or above the minimum effective concentration; pharmacodynamics is the concentration–response link itself."}],"teach":[{"h":"Pharmacodynamics and exposure–response","list":["Pharmacodynamics (PD): the relationship between drug concentration at the site of action, the receptor, and the observed pharmacologic response.","Pharmacokinetics (PK) turns the dose into a concentration over time; PD turns that concentration into a response.","The PK–PD relationship is also called the exposure–response, concentration–response or concentration–effect relationship.","Exposure–response information is used to determine safety and efficacy in drug approval, to understand benefit–risk, and to derive dosing information."]}],"cite":"7b---Pharmacokinetics-and-Pharmacodynamics.pdf, slide 3 \"Pharmacodynamics\""},{"id":"pd-c02","tier":"new","exam":3,"module":9,"lecture":"L11","multi":true,"topic":"pkpd","sub":"pd","concept":"exposure-response-names","skill":"recall","source":"slide","stem":"The relationship between pharmacokinetics (PK) and pharmacodynamics (PD) is also referred to as which of the following? (Select all that apply)","options":[{"t":"exposure–response relationship","correct":true,"why":"Exposure is the pharmacokinetic side and response the pharmacologic observation. Joining them is the PK–PD relationship under its most common name."},{"t":"concentration–response relationship","correct":true,"why":"This names the same link with the plasma concentration as the measure of exposure: as the concentration at the receptor rises, the response rises toward its maximum."},{"t":"concentration–effect relationship","correct":true,"why":"Effect is the change in response that the concentration produces, so this third name again joins a PK quantity, the concentration, to a PD one, the effect."},{"t":"concentration–time relationship","why":"Choosing this takes the pharmacokinetic curve alone for the PK–PD link. Concentration against time, C = C0e^(−kt) after an IV bolus, has no response in it; PK–PD joins that concentration to an effect."},{"t":"rate–extent relationship","why":"Choosing this carries over the two parts of bioavailability, rate (read from tmax) and extent (read from AUC). Both describe how drug reaches the circulation, not the response it then produces."}],"teach":[{"h":"Pharmacodynamics and exposure–response","list":["Pharmacodynamics (PD): the relationship between drug concentration at the site of action, the receptor, and the observed pharmacologic response.","Pharmacokinetics (PK) turns the dose into a concentration over time; PD turns that concentration into a response.","The PK–PD relationship is also called the exposure–response, concentration–response or concentration–effect relationship.","Exposure–response information is used to determine safety and efficacy in drug approval, to understand benefit–risk, and to derive dosing information."]}],"cite":"7b---Pharmacokinetics-and-Pharmacodynamics.pdf, slide 3 \"Pharmacodynamics\""},{"id":"nl-c01","tier":"new","exam":3,"module":8,"lecture":"L12","topic":"nonlin","sub":"kmcp","concept":"nl-order-by-conc","skill":"recall","source":"transcript","stem":"Drugs that display Michaelis-Menten saturation kinetics will often exhibit zero-order kinetics at low concentrations and first-order kinetics at high concentrations.","options":[{"t":"True","why":"Choosing this reverses the two ends. Well below KM the rate is {{frac:Vmax|KM}} × Cp, proportional to concentration, which is first order; well above KM the rate equals Vmax whatever the concentration, which is zero order."},{"t":"False","correct":true,"why":"The statement has the orders the other way round. At low concentrations, Cp much less than KM, elimination looks first order; at high concentrations, Cp much greater than KM, the enzyme runs at Vmax and elimination looks zero order."}],"teach":[{"h":"KM against Cp","list":["−{{frac:dCp|dt}} = {{frac:Vmax × Cp|KM + Cp}} (Michaelis-Menten kinetics).","Cp much greater than KM: KM is negligible, the rate equals Vmax and does not depend on concentration, which is zero order.","Cp much less than KM: the rate is {{frac:Vmax|KM}} × Cp = k′Cp, proportional to concentration, which is first order."]}],"cite":"8 - Nonlinear PK.pdf, slide 8 \"Saturable-Enzymatic Elimination Processes\"; PollEv true/false, transcript 10-14 (keyed false)"}],"topics":[{"id":"intro","name":"What pharmacokinetics is","open":true,"cite":"Introduction.pdf slides 2–15","subs":[{"id":"disc","name":"Pharmacokinetics and the related disciplines","cite":"Introduction.pdf slides 3–8"},{"id":"terms","name":"ADME and the fundamental terms","cite":"Introduction.pdf slides 4–5"},{"id":"matrix","name":"Whole blood, serum and plasma","cite":"Introduction.pdf slide 10"},{"id":"models","name":"Pharmacokinetic models","cite":"Introduction.pdf slides 11–14"},{"id":"curve","name":"The concentration versus time curve","cite":"Introduction.pdf slide 9"}]},{"id":"bolus1","name":"One-compartment IV bolus","cite":"2IVBolusAdministration.pdf, slide \"Lecture Objectives\"","subs":[{"id":"model","name":"The one-compartment model after an IV bolus injection","cite":"2IVBolusAdministration.pdf, slide \"Lecture Objectives\", bullet 1"},{"id":"vd","name":"Volume of distribution","cite":"2IVBolusAdministration.pdf, slides \"Volume of Distribution\""},{"id":"cl","name":"Clearance","cite":"2IVBolusAdministration.pdf, slide \"Clearance\""},{"id":"calc","name":"Parameters from concentration versus time data","cite":"2IVBolusAdministration.pdf, slide \"Lecture Objectives\", bullet 3"}]},{"id":"bolus2","name":"Multicompartment IV bolus","cite":"RecapExam1.pdf, slide \"Lecture Objectives – Module 2 – Multi-Compartment IV Bolus\"","subs":[{"id":"why","name":"Why some drugs need more than one compartment","cite":"RecapExam1.pdf, slide \"Lecture Objectives – Module 2 – Multi-Compartment IV Bolus\", bullets 1–2"},{"id":"params","name":"A, B, alpha, beta and the rate constants","cite":"2IVBolusAdministration.pdf, slides \"Concentration of Drug in the Central Compartment\" and \"Rate Constants\""},{"id":"calc","name":"Predicting concentration and the apparent volumes","cite":"2IVBolusAdministration.pdf, slides \"Practice\" and \"Apparent Volumes of Distribution\""}]},{"id":"infusion","name":"Intravenous infusion","cite":"3IntravenousInfusions.pdf, slide \"Objectives\"","subs":[{"id":"basics","name":"What an infusion does, and why the input is zero order","cite":"3IntravenousInfusions.pdf, slide \"Intravenous Infusion\""},{"id":"css","name":"Steady state and continuous dosing","cite":"3IntravenousInfusions.pdf, slide \"Drug Concentration at Steady-State\""},{"id":"pre","name":"Concentration before steady state is reached","cite":"3IntravenousInfusions.pdf, slides \"Drug Concentration Prior to Reaching Steady-State\""},{"id":"rate","name":"Infusion rate for a target steady-state concentration","cite":"3IntravenousInfusions.pdf, slide \"Objectives\", bullet 6"},{"id":"time","name":"Time to reach a stated fraction of steady state","cite":"3IntravenousInfusions.pdf, slide \"Example 4\""},{"id":"stop","name":"Concentration after the infusion is stopped","cite":"3IntravenousInfusions.pdf, slide \"Drug Concentration after an IV Infusion has Ended\""},{"id":"load","name":"Loading dose, alone and with a continuous infusion","cite":"3IntravenousInfusions.pdf, slides \"IV Bolus Loading Dose and Continuous IV Infusion\""}]},{"id":"clearance","name":"Elimination, clearance and renal clearance","cite":"4---Clearance-and-Elimination.pdf slide 2","subs":[{"id":"routes","name":"The main routes of elimination, renal and hepatic","cite":"4---Clearance-and-Elimination.pdf slide 2, bullet 1"},{"id":"renalmech","name":"Glomerular filtration, tubular secretion and reabsorption","cite":"4---Clearance-and-Elimination.pdf slide 2, bullet 2"},{"id":"crclcalc","name":"Creatinine clearance and its significance","cite":"4---Clearance-and-Elimination.pdf slide 2, bullet 3"},{"id":"ionization","name":"Degree of ionization and renal excretion","cite":"4---Clearance-and-Elimination.pdf slide 2, bullet 4"},{"id":"clcalc","name":"Total, renal and hepatic clearance","cite":"4---Clearance-and-Elimination.pdf slide 2, bullet 5"}]},{"id":"oral","name":"Oral absorption, single dose","cite":"5---Pharmacokinetics-of-Oral-Absorption.pdf slide 2","subs":[{"id":"extravasc","name":"Kinetics after extravascular administration","cite":"5---Pharmacokinetics-of-Oral-Absorption.pdf slide 2, bullet 1"},{"id":"conc","name":"Plasma concentration after a single oral dose","cite":"5---Pharmacokinetics-of-Oral-Absorption.pdf slide 2, bullet 2"},{"id":"peak","name":"Peak concentration and time to peak","cite":"5---Pharmacokinetics-of-Oral-Absorption.pdf slide 2, bullet 3"},{"id":"changes","name":"Effects of changing ka, k and dose","cite":"5---Pharmacokinetics-of-Oral-Absorption.pdf slide 2, bullet 4"}]},{"id":"multi","name":"Multiple dosing: repeated IV bolus (deck 6)","cite":"6---Repetitive-IV-Bolus-and-Intermittent-IV-Infusions.pdf, slide \"Objectives\"","subs":[{"id":"accum","name":"Drug accumulation and steady state","cite":"6---Repetitive-IV-Bolus-and-Intermittent-IV-Infusions.pdf, slide \"Drug accumulation with repeated administration\""},{"id":"superpos","name":"The principle of superposition","cite":"6---Repetitive-IV-Bolus-and-Intermittent-IV-Infusions.pdf, slide \"Superposition\""},{"id":"ssbolus","name":"Maximum, minimum and average at steady state","cite":"6---Repetitive-IV-Bolus-and-Intermittent-IV-Infusions.pdf, slides \"Amount of Drug in the Body Following Repeated IV Bolus Injections\" to \"Example 1\""},{"id":"ndose","name":"Concentration after n doses and after the last dose","cite":"6---Repetitive-IV-Bolus-and-Intermittent-IV-Infusions.pdf, slides \"Plasma Drug Concentration at Any Time After n Doses\" to \"Example 3\""}]},{"id":"bioavail","name":"Bioavailability and bioequivalence","cite":"7a---Bioavailability-and-Bioequivalence.pdf, slide \"Objectives\"","subs":[{"id":"defs","name":"Drug product performance, bioavailability, absolute and relative, bioequivalence","cite":"7a---Bioavailability-and-Bioequivalence.pdf, slides \"Drug Product Performance\" to \"Bioequivalence\""},{"id":"factors","name":"Factors influencing bioavailability","cite":"7a---Bioavailability-and-Bioequivalence.pdf, slides \"Factors Influencing Bioavailability\" and \"Summary\""},{"id":"fabs","name":"Absolute bioavailability and the equivalent oral dose","cite":"7a---Bioavailability-and-Bioequivalence.pdf, slides \"Absolute Bioavailability\" and \"Practice Problem\""},{"id":"frel","name":"Relative bioavailability","cite":"7a---Bioavailability-and-Bioequivalence.pdf, slides \"Relative Bioavailability\" and \"Practice Problem\""},{"id":"figure","name":"Reading the bioequivalence example","cite":"7a---Bioavailability-and-Bioequivalence.pdf, slide \"Bioequivalence Example\""}]},{"id":"pkpd","name":"PK-PD relationship","cite":"7b---Pharmacokinetics-and-Pharmacodynamics.pdf, slide 2 \"Objectives\"","subs":[{"id":"pd","name":"Pharmacodynamics and the exposure–response relationship","cite":"7b---Pharmacokinetics-and-Pharmacodynamics.pdf, slide 3 \"Pharmacodynamics\""},{"id":"doseresp","name":"Response rising with dose and concentration up to a maximum","cite":"7b---Pharmacokinetics-and-Pharmacodynamics.pdf, slides 4 \"Relationship of Dose to Pharmacologic Effect\", 5 \"Typical Log Dose-versus-Pharmacologic Response Curves\" and 11 \"Summary\""},{"id":"teff","name":"Dose and the duration of activity, teff","cite":"7b---Pharmacokinetics-and-Pharmacodynamics.pdf, slides 6 to 9 and 12"},{"id":"dosefor","name":"The dose for a target duration of activity","cite":"7b---Pharmacokinetics-and-Pharmacodynamics.pdf, slide 8 and the In-Class Activity on slide 13"},{"id":"thalf","name":"Elimination half-life and the duration of activity","cite":"7b---Pharmacokinetics-and-Pharmacodynamics.pdf, slides 9 \"Effect of Dose and Elimination Half-life on Duration of Activity\" and 10 \"Effect of Elimination Half-life on Duration of Activity\""}]},{"id":"nonlin","name":"Nonlinear pharmacokinetics","cite":"8 - Nonlinear PK.pdf, slide 2 \"Objectives\"","subs":[{"id":"linear","name":"Linear and nonlinear pharmacokinetics; saturation kinetics","cite":"8 - Nonlinear PK.pdf, slides 3 \"Linear vs. Nonlinear Pharmacokinetics\" to 6 \"Saturation Kinetics\", and 19 \"Summary\""},{"id":"kmcp","name":"KM and Cp: the order of saturable elimination, half-life and clearance","cite":"8 - Nonlinear PK.pdf, slides 7 \"Parameters\", 8 \"Saturable-Enzymatic Elimination Processes\", 9, 17 and 18"},{"id":"kmvmax","name":"Vmax and KM from two dose rates in a patient","cite":"8 - Nonlinear PK.pdf, slides 13 \"Determination of KM and Vmax by Direct Method\", 14 \"Example\" and 15"},{"id":"dose","name":"Dose rate and steady state for a nonlinear drug such as phenytoin","cite":"8 - Nonlinear PK.pdf, slides 11 \"In Vivo Determination of KM and Vmax\" and 12 \"Example\""}]}],"lectures":[{"id":"L01","deck":"Introduction.pdf","label":"Module 1: Introduction, kinetic orders and AUC (17 & 19 Aug)","exam":1,"module":1},{"id":"L02","deck":"2IVBolusAdministration.pdf","label":"Module 2: One-compartment IV bolus (24 Aug)","exam":1,"module":2},{"id":"L03","deck":"2IVBolusAdministration.pdf","label":"Module 2: Multicompartment IV bolus (26 Aug)","exam":1,"module":2},{"id":"L04","deck":"3IntravenousInfusions.pdf","label":"Module 3: Intravenous infusion (2 Sep)","exam":1,"module":3},{"id":"L05","deck":"4---Clearance-and-Elimination.pdf","label":"Module 4: Drug elimination, clearance and renal clearance (14 Sep)","exam":2,"module":4},{"id":"L06","deck":"5---Pharmacokinetics-of-Oral-Absorption.pdf","label":"Module 5: Pharmacokinetics of oral absorption (16 & 21 Sep)","exam":2,"module":5},{"id":"L07","deck":"6---Repetitive-IV-Bolus-and-Intermittent-IV-Infusions.pdf","label":"Module 6: Repetitive IV bolus injections (23 Sep)","exam":2,"module":6},{"id":"L10","deck":"7a---Bioavailability-and-Bioequivalence.pdf","label":"Module 7a: Bioavailability and bioequivalence (30 Sep)","exam":2,"module":7},{"id":"L11","deck":"7b---Pharmacokinetics-and-Pharmacodynamics.pdf","label":"Module 7b: PK-PD relationship (12 Oct)","exam":3,"module":9},{"id":"L12","deck":"8 - Nonlinear PK.pdf","label":"Module 8: Nonlinear pharmacokinetics (14 Oct)","exam":3,"module":8}],"exams":[{"id":1,"name":"Exam 1","date":"2026-09-11","when":"2026-09-11T10:00","questions":40,"minutes":120,"sata":4,"pools":[{"key":"m1","name":"Module 1 — Intro, kinetic orders, AUC","marks":16,"filter":{"module":1}},{"key":"m2","name":"Module 2 — IV bolus, one and multi-compartment","marks":16,"filter":{"module":2}},{"key":"m3","name":"Module 3 — IV infusion","marks":8,"filter":{"module":3}}]},{"id":2,"name":"Exam 2","date":"2026-10-08","when":"2026-10-08T07:50","questions":40,"minutes":120,"sata":4,"pools":[{"key":"m4","name":"Module 4 — Elimination, clearance, renal clearance","marks":7,"filter":{"module":4}},{"key":"m5","name":"Module 5 — Oral absorption, single dose","marks":7,"filter":{"module":5}},{"key":"m6","name":"Module 6 — Multiple dosing: IV bolus, intermittent infusion, oral","marks":20,"filter":{"module":6}},{"key":"m7","name":"Module 7a — Bioavailability and bioequivalence","marks":6,"filter":{"module":7}}]},{"id":3,"name":"Exam 3 (final)","date":"2026-10-27","when":"2026-10-27T08:00","questions":40,"minutes":120,"sata":4,"pools":[{"key":"f-e1","name":"Exam 1 material (Modules 1–3)","marks":15,"filter":{"exam":1}},{"key":"f-e2","name":"Exam 2 material (Modules 4–7a)","marks":15,"filter":{"exam":2}},{"key":"f-pkpd","name":"Module 7b — PK-PD relationship","marks":5,"filter":{"module":9}},{"key":"f-nl","name":"Module 8 — Nonlinear pharmacokinetics","marks":5,"filter":{"module":8}}]}],"activeExam":3};
-const pre = s => 'pp-' + s;
-function fixtureFiles(own){
-  const skills = new Set(own.skills);
-  const qs = PK.qs.map(q => Object.assign({}, q, {id: pre(q.id), topic: pre(q.topic), lecture: pre(q.lecture), prof: own.prof,
-    skill: skills.has(q.skill) ? q.skill : own.skills[0]}));
-  const topics = PK.topics.map(t => Object.assign({}, t, {id: pre(t.id), prof: own.prof}));
-  const lectures = PK.lectures.map(l => Object.assign({}, l, {id: pre(l.id), prof: own.prof}));
-  const scaled = {1: null, 2: null, 3: [2, 2, 1, 1]};
-  const exams = PK.exams.map(e => Object.assign({}, e, {questions: 6, sata: 1,
-    pools: e.pools.map((p, i) => Object.assign({}, p, scaled[e.id] ? {marks: scaled[e.id][i]} : {}))}));
-  return {
-    files: {'q90_paper_fixture.js': '/* 18 of Basic-Pharmacokinetics\' questions (ac2eb73), added by the paper-picker test */\n' +
-      `TOPICS.push(...${JSON.stringify(topics)});\nQUESTIONS.push(...${JSON.stringify(qs)});\n`},
-    courseLine: `COURSE.lectures = COURSE.lectures.concat(${JSON.stringify(lectures)}); COURSE.exams = ${JSON.stringify(exams)}; COURSE.activeExam = ${JSON.stringify(PK.activeExam)};`};
-}
 const sameIds = (a, b) => a.length === b.length && a.every((x, i) => x === b[i]);
 
 (async () => {
   console.log('\n=== the course\'s own exams ===');
   L.PAGE.need(NAME);
-  const X = L.engine('({COURSE, QUESTIONS, EXAM, FX: typeof FX === "undefined" ? null : FX, lecOf, familyOf, poolFilter})');
+  const X = L.engine('({COURSE, QUESTIONS, EXAM, FX: typeof FX === "undefined" ? null : FX, lecOf, familyOf, poolFilter, isMulti})');
   const S = X.FX && X.FX.api('paper-picker');
   if(!check(!!S, 'the page carries paper-picker, working', JSON.stringify((X.FX && X.FX.errors) || 'no feature modules in the page'))) L.finish(NAME);
   const n = X.EXAM.questions;
@@ -71,23 +65,72 @@ const sameIds = (a, b) => a.length === b.length && a.every((x, i) => x === b[i])
     const sh = S.shares(e, n), total = e.pools.reduce((s, p) => s + p.marks, 0);
     check(sh.reduce((a, b) => a + b, 0) === n && sh.every((k, i) => Math.abs(k - n * e.pools[i].marks / total) < 1),
           `${e.name}: a paper of ${n} split by marks ${e.pools.map(p => p.marks).join('/')} gives ${sh.join('/')}`, sh);
+    // a paper size the marks do not divide: the largest remainders take the rounding, and the split still adds up
+    for(const k of [7, n + 1]){
+      const sk = S.shares(e, k), raw = e.pools.map(p => k * p.marks / total);
+      const byFrac = raw.map((r, i) => i).sort((a, b) => (raw[b] - Math.floor(raw[b])) - (raw[a] - Math.floor(raw[a])));
+      const want = raw.map(Math.floor), extra = k - want.reduce((a, b) => a + b, 0);
+      byFrac.slice(0, extra).forEach(i => { want[i]++; });
+      check(sameIds(sk, want), `${e.name}: a paper of ${k} is split ${want.join('/')} (the largest remainders take the rounding)`, sk);
+    }
+    const tests = e.pools.map(p => X.poolFilter(p.filter));
+    const inPool = q => tests.findIndex(t => t(q));
+    // the questions each pool holds for a paper, as the core's pool filter reads them (the first pool a question matches)
+    if(!X.EXAM.typed){
+      const held = X.QUESTIONS.filter(q => !q.lowYield && !q.type && inPool(q) >= 0).length;
+      check(S.room(e, 1e6) === held, `${e.name}: the module's pools hold the ${held} questions the core's pool filter puts in them (no lowYield, no typed item)`, S.room(e, 1e6));
+    }
     const room = S.room(e, n);
     const d = S.drawFor(e, n);
     if(room < n){ check(d === null, `${e.name}: its pools fill ${room} of ${n}, so no paper is drawn for it`, d && d.length); continue; }
     if(!check(Array.isArray(d), `${e.name}: a paper is drawn for it`)) continue;
-    const tests = e.pools.map(p => X.poolFilter(p.filter));
-    const inPool = q => tests.findIndex(t => t(q));
     const per = e.pools.map((p, i) => d.filter(q => inPool(q) === i).length);
     const fams = new Set(d.map(q => X.familyOf(q)));
-    check(d.length === n && new Set(d.map(q => q.id)).size === n && d.every(q => inPool(q) >= 0 && !q.lowYield),
+    check(d.length === n && new Set(d.map(q => q.id)).size === n && d.every(q => inPool(q) >= 0 && !q.lowYield && (!q.type || X.EXAM.typed)),
           `${e.name}: ${n} questions, none twice, each from one of its pools`, d.map(q => q.id));
     check(sameIds(per, sh), `${e.name}: each pool supplies its share (${per.join('/')})`, {per, sh});
     check(fams.size === n, `${e.name}: no two wordings of one fact on the paper`, fams.size);
+    // the select-all count: split by marks, the pool with the most marks taking the rounding, each pool giving what it holds
+    const ok = q => !q.lowYield && !q.type;
+    const order = e.pools.map((p, i) => i).sort((a, b) => e.pools[a].marks - e.pools[b].marks);
+    let left = e.sata || 0, want = 0, single = true;
+    const sOf = [];
+    order.forEach((i, k) => {
+      const s = k === order.length - 1 ? Math.max(0, left) : Math.round((e.sata || 0) * e.pools[i].marks / total); left -= s;
+      sOf[i] = s;
+      const qs = X.QUESTIONS.filter(q => ok(q) && inPool(q) === i);
+      const m = Math.min(s, new Set(qs.filter(X.isMulti).map(X.familyOf)).size);
+      want += m;
+      if(new Set(qs.filter(q => !X.isMulti(q)).map(X.familyOf)).size < sh[i] - m) single = false;
+    });
+    if(single) check(d.filter(X.isMulti).length === want, `${e.name}: the paper carries ${want} select-all item(s) (its sata ${e.sata || 0}, split by marks, as many as each pool holds)`, d.filter(X.isMulti).length);
+    else L.skip(`${e.name}: the select-all count`, 'a pool holds too few single-answer questions, so the module tops it up with select-all ones');
+    // the paper is shuffled: over five papers, at least one does not hold its pools one after another
+    let mixed = false;
+    for(let t = 0; t < 5 && !mixed; t++){ const p = S.drawFor(e, n) || [], at = p.map(inPool); mixed = at.some((x, j) => j && at[j - 1] !== x && at.slice(0, j - 1).includes(x)); }
+    if(e.pools.length > 1) check(mixed, `${e.name}: the paper is shuffled, not drawn pool by pool`);
+    // a pool short of single-answer questions is topped up from its own select-all questions, not from another pool:
+    // a pool holding more select-all families than its select-all share has single-answer questions set aside (lowYield,
+    // in this run only) until one select-all question more is needed, and still gives its share
+    // (single-answer questions of a family that also has a select-all question are set aside too, so the two counts are apart)
+    const multiFams = i => new Set(X.QUESTIONS.filter(q => ok(q) && inPool(q) === i && X.isMulti(q)).map(X.familyOf));
+    const soloFams = i => new Set(X.QUESTIONS.filter(q => ok(q) && inPool(q) === i && !X.isMulti(q) && !multiFams(i).has(X.familyOf(q))).map(X.familyOf));
+    const ti = e.pools.findIndex((p, i) => multiFams(i).size > sOf[i] && sh[i] > sOf[i] + 1 && soloFams(i).size >= sh[i] - sOf[i] - 1);
+    if(ti < 0){ L.skip(`${e.name}: a pool short of single-answer questions`, 'no pool holds more select-all questions than its share'); continue; }
+    const mf = multiFams(ti), singles = X.QUESTIONS.filter(q => ok(q) && inPool(q) === ti && !X.isMulti(q));
+    const keepFams = new Set(), off = [];
+    for(const q of singles){ const f = X.familyOf(q);
+      if(!mf.has(f) && (keepFams.has(f) || keepFams.size < sh[ti] - sOf[ti] - 1)) keepFams.add(f); else { q.lowYield = true; off.push(q); } }
+    const dt = S.drawFor(e, n);
+    off.forEach(q => { delete q.lowYield; });
+    const perT = dt ? e.pools.map((p, i) => dt.filter(q => inPool(q) === i).length) : null;
+    check(!!dt && sameIds(perT, sh) && dt.filter(q => inPool(q) === ti && X.isMulti(q)).length === sOf[ti] + 1,
+          `${e.name}: a pool with one single-answer question too few gives its share with one select-all question more, from its own questions`, {perT, sh});
   }
   check(S.drawFor(X.EXAM, X.QUESTIONS.length + 1) === null, 'a paper longer than the pools can fill is not drawn');
 
   console.log('\n=== the build step: which exams get a chip ===');
-  const own = {prof: X.COURSE.professors[0], skills: X.COURSE.skills.map(s => s.id)};
+  const own = {prof: X.COURSE.professors[0]};
   const two = "COURSE.exams = [COURSE.exams.find(e => e.id === COURSE.activeExam) || COURSE.exams[0]]; COURSE.exams.push(Object.assign(JSON.parse(JSON.stringify(COURSE.exams[0])), {id: 'pp-other', name: 'Other paper'}));";
   // the step output in the module's FX.load call of a built page
   const stepOf = html => { const m = html.match(/FX\.load\("paper-picker", "v1", (\{.*?\}), (\{.*?\}), function/); return m ? JSON.parse(m[2]) : null; };
@@ -124,15 +167,35 @@ const sameIds = (a, b) => a.length === b.length && a.every((x, i) => x === b[i])
     r.rm();
   }
 
-  console.log('\n=== on a scratch copy with Basic-Pharmacokinetics\' three exams (Chromium) ===');
-  const fx = fixtureFiles(own);
-  const s = L.scratchBuild('pp', fx);
+  console.log('\n=== on a scratch copy with Basic-Pharmacokinetics\' own data (Chromium) ===');
+  // the course's own copy of the fixture (the CI course), or the fixture added to a scratch copy
+  const ids = new Set(X.QUESTIONS.map(q => q.id));
+  const have = FIX.PK.qs.filter(q => ids.has(q.id)).length;
+  let opts;
+  if(have === FIX.PK.qs.length && X.COURSE.exams.map(e => e.id).join() === FIX.PK.exams.map(e => e.id).join()) opts = {};
+  else if(!have){
+    const d = FIX.courseData(own.prof);
+    opts = {files: d.files, courseLine: d.courseLine, edit: src => {
+      const f = path.join(src, 'images.json');
+      fs.writeFileSync(f, FIX.withImages(fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '{}'));
+    }};
+  } else { check(false, `the course holds ${have} of the ${FIX.PK.qs.length} questions of test_fixture.js, so neither its own copy nor a new one can be used`); L.finish(NAME); }
+  console.log(`  (${opts.files ? 'the fixture added to a scratch copy' : 'the course\'s own copy of the fixture'}: ${FIX.PK.qs.length} questions, ${FIX.PK.exams.length} exams)`);
+  const s = L.scratchBuild('pp', opts);
   if(s.code !== 0) L.notRun(NAME, 'the scratch copy with the test questions does not build: ' + s.out.split('\n').slice(-3).join(' '));
+  const [E1, E2, E3] = [1, 2, 3].map(id => FIX.PK.exams.find(e => e.id === id));
+  const N = E3.questions;
   const {browser} = await L.launch(NAME);
   try {
     const {ctx, page, errors} = await L.openPage(browser, s.page, {viewport: {width: 1100, height: 1300}});
     const ev = (f, a) => page.evaluate(f, a);
     const settle = () => page.waitForTimeout(150);
+    const ready = () => page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+    // what a pool of an exam holds and supplies, read with the core's own pool filter (not the module's)
+    const bank = id => ev(id => { const e = COURSE.exams.find(x => x.id === id), tests = e.pools.map(p => poolFilter(p.filter));
+      const per = e.pools.map((p, i) => QUESTIONS.filter(q => !q.lowYield && !q.type && tests.findIndex(t => t(q)) === i).length);
+      const total = e.pools.reduce((a, p) => a + p.marks, 0);
+      return {per, room: per.reduce((a, k, i) => a + Math.min(k, Math.round(EXAM.questions * e.pools[i].marks / total)), 0)}; }, id);
     await page.click('#nav button[data-v="settings"]');
     await page.waitForSelector('#v-settings [data-feature="paper-picker"]', {timeout: 5000}).catch(() => {});
     await page.click('#nav button[data-v="exam"]');
@@ -143,108 +206,234 @@ const sameIds = (a, b) => a.length === b.length && a.every((x, i) => x === b[i])
     const p0 = await ev(() => ({chips: [...document.querySelectorAll('#v-exam .chip[data-ppexam]')].map(b => b.textContent),
       on: [...document.querySelectorAll('#v-exam .chip[data-ppexam][aria-pressed="true"]')].map(b => b.dataset.ppexam),
       hist: !!document.querySelector('#v-exam [data-pp="history"]')}));
-    check(p0.chips.join('|') === 'Exam 1|Exam 2|Exam 3 (final)' && p0.on.join() === '3' && !p0.hist,
-          'the Exam view offers one chip per exam, the current exam (Exam 3) chosen, and no list before a paper', p0);
-    await page.click('#v-exam .chip[data-ppexam="1"]');
+    check(p0.chips.join('|') === [E1, E2, E3].map(e => e.name).join('|') && p0.on.join() === '3' && !p0.hist,
+          `the Exam view offers one chip per exam, the current exam (${E3.name}) chosen, and no list before a paper`, p0);
+    await page.click('#v-exam .chip[data-ppexam="2"]');
     await page.waitForSelector('#v-exam [data-pp="other"]', {timeout: 5000}).catch(() => {});
-    const p1 = await ev(() => ({kept: DB.paperPicker && DB.paperPicker.exam, on: [...document.querySelectorAll('#v-exam .chip[aria-pressed="true"]')].map(b => b.dataset.ppexam),
+    const b2 = await bank(2);
+    const p1 = await ev(() => ({kept: DB.paperPicker && DB.paperPicker.exam, on: [...document.querySelectorAll('#v-exam .chip[data-ppexam][aria-pressed="true"]')].map(b => b.dataset.ppexam),
       text: document.getElementById('v-exam').textContent, rows: document.querySelectorAll('#v-exam [data-pp="other"] tbody tr').length,
       cells: [...document.querySelectorAll('#v-exam [data-pp="other"] tbody tr')].map(r => r.children[1].textContent).join('/'),
+      inBank: [...document.querySelectorAll('#v-exam [data-pp="other"] tbody tr')].map(r => r.children[2].textContent).join('/'),
       start: !!document.getElementById('startExam')}));
-    check(p1.kept === 1 && p1.on.join() === '1', 'choosing Exam 1 keeps the choice in the progress and marks its chip', p1.kept);
-    check(/6 questions drawn at the blueprint of Exam 1/.test(p1.text) && p1.rows === 3 && p1.cells === '3/2/1' && p1.start,
-          'the page says the paper is drawn at Exam 1\'s blueprint, with its three pools and their 3/2/1 split', {rows: p1.rows, cells: p1.cells});
-    check(/follow Exam 3 \(final\), the course's current exam/.test(p1.text), 'and says Topics, Weak spots and the weighted pass follow the current exam');
+    check(p1.kept === 2 && p1.on.join() === '2', `choosing ${E2.name} keeps the choice in the progress and marks its chip`, {kept: p1.kept, on: p1.on});
+    check(new RegExp(`${N} questions drawn at the blueprint of ${E2.name}`).test(p1.text) && p1.rows === E2.pools.length &&
+          p1.cells === E2.pools.map(p => p.marks).join('/') && p1.inBank === b2.per.join('/') && p1.start,
+          `the page says the paper is drawn at ${E2.name}'s blueprint, with its ${E2.pools.length} pools, their ${E2.pools.map(p => p.marks).join('/')} split and what the bank holds (${b2.per.join('/')})`,
+          {rows: p1.rows, cells: p1.cells, inBank: p1.inBank, bank: b2.per});
+    check(p1.text.includes(E2.blurb.slice(0, 60)), `and shows ${E2.name}'s own blurb`);
+    check(p1.text.includes(`follow ${E3.name}, the course's current exam`), 'and says Topics, Weak spots and the weighted pass follow the current exam');
     await page.click('#startExam');
-    const r1 = await ev(() => ({n: EX.qs.length, mods: EX.qs.map(q => (lecOf(q) || {}).module), running: EX.running}));
+    const r1 = await ev(() => ({n: EX.qs.length, ids: EX.qs.map(q => q.id), mods: EX.qs.map(q => (lecOf(q) || {}).module), running: EX.running,
+      sata: EX.qs.filter(isMulti).length, mins: Math.round((EX.ends - Date.now()) / 60000)}));
     const cnt = m => r1.mods.filter(x => x === m).length;
-    check(r1.running && r1.n === 6 && r1.mods.every(m => [1, 2, 3].includes(m)) && cnt(1) === 3 && cnt(2) === 2 && cnt(3) === 1,
-          'its paper is 6 questions from Modules 1-3, 3, 2 and 1 of them', r1.mods);
+    const mods = E2.pools.map(p => p.filter.module);
+    check(r1.running && r1.n === N && r1.mods.every(m => mods.includes(m)) && mods.every((m, i) => cnt(m) === E2.pools[i].marks),
+          `its paper is ${N} questions from Modules ${mods.join(', ')}: ${E2.pools.map(p => p.marks).join(', ')} of them`, r1.mods.join(','));
+    check(r1.mins === E3.minutes, `the paper keeps the current exam's clock (${E3.minutes} minutes)`, r1.mins);
     const before = await ev(() => DB.paperPicker.exam);
-    const blocked = await ev(() => FX.api('paper-picker').choose(2));
-    check(blocked === false && before === 1 && await ev(() => DB.paperPicker.exam) === 1, 'the choice cannot change while a paper runs');
-    // answer every question with its first option shown, then submit
-    for(let i = 0; i < 6; i++){
-      await page.click('#v-exam .opt');
-      await page.click('#exNext');
-    }
+    const blocked = await ev(() => FX.api('paper-picker').choose(1));
+    check(blocked === false && before === 2 && await ev(() => DB.paperPicker.exam) === 2, 'the choice cannot change while a paper runs');
+    // answer three questions, reload during the paper, then answer the rest and submit
+    for(let i = 0; i < 3; i++){ await page.click('#v-exam .opt'); await page.click('#exNext'); }
+    await page.waitForTimeout(300);
+    await page.reload(); await ready();
+    await page.click('#nav button[data-v="exam"]'); await settle();
+    const back = await ev(() => ({running: !!EX && EX.running, ids: EX ? EX.qs.map(q => q.id) : [], i: EX ? EX.i : -1,
+      drawn: DB.paperPicker && DB.paperPicker.drawn && DB.paperPicker.drawn.exam}));
+    check(back.running && sameIds(back.ids, r1.ids) && back.i === 3 && back.drawn === 2,
+          `after a reload during the paper it is the same paper, at question 4, still recorded as drawn for ${E2.name}`, {running: back.running, i: back.i, drawn: back.drawn});
+    for(let i = back.i; i < N; i++){ await page.click('#v-exam .opt'); await page.click('#exNext'); }
     await page.waitForSelector('#v-exam [data-pp="result"]', {timeout: 5000}).catch(() => {});
     const r2 = await ev(() => ({done: EX && EX.done, right: EX.qs.filter((q, i) => examRight(q, EX.picks[i])).length,
       line: (document.querySelector('#v-exam [data-pp="result"]') || {}).textContent || '', papers: JSON.parse(JSON.stringify(DB.paperPicker.papers || []))}));
-    check(r2.done && /This paper was drawn for Exam 1\./.test(r2.line), 'the result page names the exam the paper was drawn for', r2.line);
-    check(r2.papers.length === 1 && r2.papers[0].exam === 1 && r2.papers[0].total === 6 && r2.papers[0].right === r2.right && r2.papers[0].blank === 0,
-          `the paper is kept in the progress: Exam 1, ${r2.right} of 6, none blank`, r2.papers);
+    check(r2.done && r2.line.includes(`This paper was drawn for ${E2.name}.`), 'the result page names the exam the paper was drawn for', r2.line);
+    check(r2.papers.length === 1 && r2.papers[0].exam === 2 && r2.papers[0].total === N && r2.papers[0].right === r2.right && r2.papers[0].blank === 0 && r2.papers[0].partial === false,
+          `the paper is kept in the progress: ${E2.name}, ${r2.right} of ${N}, none blank`, r2.papers);
+    // the result page drawn again (another tab, then back to the Exam view) records nothing more
+    await page.click('#nav button[data-v="settings"]'); await settle();
+    await page.click('#nav button[data-v="exam"]'); await page.waitForTimeout(300);
+    const again = await ev(() => ({n: (DB.paperPicker.papers || []).length, result: !!document.querySelector('#v-exam [data-pp="result"]')}));
+    check(again.n === 1 && again.result, 'the result page drawn again after a visit to another tab keeps one record of the paper', again);
     await page.click('#v-exam #exAgain');
     await page.waitForSelector('#v-exam [data-pp="history"]', {timeout: 5000}).catch(() => {});
-    const h1 = await ev(() => [...document.querySelectorAll('#v-exam [data-pp="history"] tbody tr')].map(r => [...r.children].slice(0, 4).map(c => c.textContent)));
-    check(h1.length === 1 && h1[0][0] === 'Exam 1' && h1[0][2] === `${r2.right} / 6` && h1[0][3] === '0', '"Your papers so far" lists it: Exam 1, the score, 0 blank', h1);
-    await settle();
-    await page.reload();
-    await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+    const h1 = await ev(() => [...document.querySelectorAll('#v-exam [data-pp="history"] tbody tr')].map(r => [...r.children].map(c => c.textContent.trim())));
+    const pc = Math.round(100 * r2.right / N);
+    check(h1.length === 1 && h1[0][0] === E2.name && h1[0][2] === `${r2.right} / ${N}` && h1[0][3] === '0' && h1[0][4] === `${pc}%`,
+          `"Your papers so far" lists it: ${E2.name}, the score, 0 blank, ${pc}%`, h1);
+    await page.waitForTimeout(300);
+    await page.reload(); await ready();
     await page.click('#nav button[data-v="exam"]');
     await page.waitForSelector('#v-exam [data-pp="history"]', {timeout: 5000}).catch(() => {});
-    const k = await ev(() => ({on: [...document.querySelectorAll('#v-exam .chip[aria-pressed="true"]')].map(b => b.dataset.ppexam),
+    const k = await ev(() => ({on: [...document.querySelectorAll('#v-exam .chip[data-ppexam][aria-pressed="true"]')].map(b => b.dataset.ppexam),
       rows: document.querySelectorAll('#v-exam [data-pp="history"] tbody tr').length}));
-    check(k.on.join() === '1' && k.rows === 1, 'after a reload the choice and the list are kept', k);
+    check(k.on.join() === '2' && k.rows === 1, 'after a reload the choice and the list are kept', k);
     // a second paper, for the current exam, submitted with blank items
     await page.click('#v-exam .chip[data-ppexam="3"]');
     await page.waitForSelector('#startExam', {timeout: 5000});
-    check(await ev(() => !document.querySelector('#v-exam [data-pp="other"]') && /6 questions drawn at the blueprint of Exam 3/.test(document.getElementById('v-exam').textContent)),
+    check(await ev(t => !document.querySelector('#v-exam [data-pp="other"]') && document.getElementById('v-exam').textContent.includes(t), `${N} questions drawn at the blueprint of ${E3.name}`),
           'with the current exam chosen, the engine\'s own opening page is shown');
     await page.click('#startExam');
     const r3 = await ev(() => EX.qs.map(q => q.id));
     const drew = await ev(() => DB.paperPicker.drawn && DB.paperPicker.drawn.exam);
-    check(drew === 3, 'a paper for the current exam is the engine\'s own draw, recorded for Exam 3', drew);
+    check(drew === 3 && r3.length === N, `a paper for the current exam is the engine's own draw of ${N}, recorded for ${E3.name}`, {drew, n: r3.length});
     await page.click('#v-exam .opt');
     await page.click('#exEnd');
     await page.waitForSelector('#exAgain', {timeout: 5000}).catch(() => {});
     await settle();
     const r4 = await ev(() => ({papers: JSON.parse(JSON.stringify(DB.paperPicker.papers)), result: !!document.querySelector('#v-exam [data-pp="result"]')}));
     const last = r4.papers[r4.papers.length - 1] || {};
-    check(r4.papers.length === 2 && last.exam === 3 && last.blank === 5 && last.partial === true && !r4.result,
-          'a paper submitted with 5 blank is kept for Exam 3 with its blank count, and its result page names no other exam', last);
+    check(r4.papers.length === 2 && last.exam === 3 && last.blank === N - 1 && last.partial === true && !r4.result,
+          `a paper submitted with ${N - 1} blank is kept for ${E3.name} with its blank count, and its result page names no other exam`, last);
     await page.click('#exAgain');
     await page.waitForSelector('#v-exam [data-pp="history"]', {timeout: 5000}).catch(() => {});
     const h2 = await ev(() => [...document.querySelectorAll('#v-exam [data-pp="history"] tbody tr')].map(r => [r.children[0].textContent, r.children[3].textContent]));
-    check(h2.length === 2 && h2[0][0] === 'Exam 3 (final)' && h2[0][1] === '5' && h2[1][0] === 'Exam 1', 'the list shows the newest paper first', h2);
-    check(r3.length === 6, 'the second paper had 6 questions', r3.length);
+    check(h2.length === 2 && h2[0][0] === E3.name && h2[0][1] === String(N - 1) && h2[1][0] === E2.name, 'the list shows the newest paper first', h2);
     // the rule for an old choice (Basic-Pharmacokinetics pickExam)
     const rule = await ev(() => { const A = FX.api('paper-picker'), s = A.state(), was = Object.assign({}, s);
       const e1 = COURSE.exams.find(e => e.id === 1);
       s.exam = 1; s.at = A.examEnds(e1) - 86400000; const beforeIt = A.chosen().id;
       s.at = A.examEnds(e1) + 60000; const afterIt = A.chosen().id;
       const future = {id: 'x', when: '2999-01-01T08:00', minutes: 60};
-      Object.assign(s, was);
-      return {beforeIt, afterIt, never: A.examEnds({id: 'y', date: 'TBA'}) === Infinity, fut: A.examEnds(future) === Date.parse('2999-01-01T08:00') + 3600000}; });
-    check(rule.beforeIt === 3 && rule.afterIt === 1, 'Exam 1 chosen before it was sat gives way to Exam 3 now it is over; chosen after it (to review it), it is kept', rule);
-    check(rule.never && rule.fut, 'an exam ends at its `when` plus its minutes; one with no date in ISO form never ends', rule);
-    // a bank too small for the chosen exam
+      Object.keys(s).forEach(k => { delete s[k]; }); Object.assign(s, was);
+      return {beforeIt, afterIt, never: A.examEnds({id: 'y', date: 'TBA'}) === Infinity, fut: A.examEnds(future) === Date.parse('2999-01-01T08:00') + 3600000,
+        e1: A.examEnds(e1) === Date.parse(e1.when) + e1.minutes * 60000}; });
+    check(rule.beforeIt === 3 && rule.afterIt === 1, `${E1.name} chosen before it was sat gives way to ${E3.name} now it is over; chosen after it (to review it), it is kept`, rule);
+    check(rule.never && rule.fut && rule.e1, 'an exam ends at its `when` plus its minutes; one with no date in ISO form never ends', rule);
+    // Exam 1: the bank cannot fill its pools
+    const b1 = await bank(1);
     await page.click('#v-exam .chip[data-ppexam="1"]');
-    await ev(() => { QUESTIONS.filter(q => (lecOf(q) || {}).module === 2).forEach(q => { q.lowYield = true; }); renderExam(); });
     await page.waitForSelector('#v-exam [data-pp="short"]', {timeout: 5000}).catch(() => {});
     const sh = await ev(() => (document.querySelector('#v-exam [data-pp="short"]') || {}).textContent || '');
-    check(/its pools can supply 4 of the 6/.test(sh) && /drawn for Exam 3 \(final\)/.test(sh), 'with too few questions for Exam 1 the page says so, and that the paper is drawn for the current exam', sh);
+    check(b1.room < N && sh.includes(`its pools can supply ${b1.room} of the ${N}`) && sh.includes(`drawn for ${E3.name}`),
+          `${E1.name}'s pools hold too few questions (${b1.per.join('/')}): the page says they supply ${b1.room} of the ${N}, and that the paper is drawn for the current exam`, sh);
     await page.click('#startExam');
     const r5 = await ev(() => ({drawn: DB.paperPicker.drawn.exam, n: EX.qs.length}));
-    check(r5.drawn === 3 && r5.n === 6, 'the paper started then is the current exam\'s', r5);
-    await ev(() => { finishExam(true); QUESTIONS.forEach(q => { if(q.id.startsWith('pp-')) delete q.lowYield; }); EX = null; renderExam(); });
+    check(r5.drawn === 3 && r5.n === N, 'the paper started then is the current exam\'s', r5);
+    await ev(() => { finishExam(true); EX = null; renderExam(); });
     // Settings
     await page.click('#nav button[data-v="settings"]');
     await page.waitForSelector('#v-settings [data-feature="paper-picker"] .chip', {timeout: 5000}).catch(() => {});
     await page.click('#v-settings [data-feature="paper-picker"] .chip[data-ppexam="2"]');
-    const st = await ev(() => ({kept: DB.paperPicker.exam, on: [...document.querySelectorAll('#v-settings [data-feature="paper-picker"] .chip[aria-pressed="true"]')].map(b => b.dataset.ppexam)}));
+    const st = await ev(() => ({kept: DB.paperPicker.exam, on: [...document.querySelectorAll('#v-settings [data-feature="paper-picker"] .chip[data-ppexam][aria-pressed="true"]')].map(b => b.dataset.ppexam)}));
     check(st.kept === 2 && st.on.join() === '2', 'Settings offers the same chips and changes the choice', st);
     check(!errors.length, 'no page error', errors.slice(0, 3).join(' | '));
     await ctx.close();
+
+    /* ---- persistence: 101 papers, reloads, Export and Import, profiles, storage denied and full ---- */
+    // sessionStorage '__ppfail' = 'deny' or 'full' makes every localStorage write throw, as blocked or full storage does
+    const CTL = () => { const real = Storage.prototype.setItem;
+      Storage.prototype.setItem = function(k, v){ const m = this === window.localStorage ? sessionStorage.getItem('__ppfail') : null;
+        if(m === 'full') throw new DOMException('The quota has been exceeded.', 'QuotaExceededError');
+        if(m === 'deny') throw new DOMException('The operation is insecure.', 'SecurityError');
+        return real.call(this, k, v); }; };
+    const m = await L.openPage(browser, s.page, {viewport: {width: 1000, height: 900}, acceptDownloads: true}, CTL);
+    const P = m.page, pe = (f, a) => P.evaluate(f, a), wait = t => P.waitForTimeout(t);
+    const pready = () => P.waitForFunction(() => typeof VIEW === 'string' && document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+    const tab = async v => { await P.click(`#nav button[data-v="${v}"]`); await wait(60); };
+    const mine = () => pe(() => JSON.parse(JSON.stringify(DB.paperPicker || null)));
+    const raw = p => pe(p => (JSON.parse(localStorage.getItem(keyFor(p)) || '{}').paperPicker || null), p);
+    const warned = () => pe(() => !!document.getElementById('savewarn') && document.getElementById('savewarn').getClientRects().length > 0);
+    const submit = (ids, exams) => pe(({ids, exams}) => { const A = FX.api('paper-picker'), at = [];
+      for(let i = 0; i < ids; i++){
+        A.choose(exams[i % exams.length]); renderExam();
+        document.getElementById('startExam').click();
+        finishExam(true); A.logPaper();   // what the module's X.rendered hook does when the result page is drawn (a MutationObserver, after this script)
+        at.push(DB.paperPicker.papers[DB.paperPicker.papers.length - 1].at);
+        EX = null;
+      }
+      renderExam(); return at; }, {ids, exams});
+    await tab('exam');
+    // 101 papers, for Exam 2 and Exam 3 in turn: the 100 newest are kept, the 12 newest shown
+    await submit(101, [2, 3]);
+    await tab('exam');
+    const g0 = await mine();
+    const g0h = await pe(() => ({rows: document.querySelectorAll('#v-exam [data-pp="history"] tbody tr').length,
+      sub: (document.querySelector('#v-exam [data-pp="history"] p.sub') || {}).textContent || ''}));
+    await wait(400);
+    await P.reload(); await pready(); await tab('exam');
+    const g1 = await mine();
+    const g1h = await pe(() => document.querySelectorAll('#v-exam [data-pp="history"] tbody tr').length);
+    check(g0.papers.length === 100 && g0.papers[0].exam === 3 && g0.papers[99].exam === 2 && g0.papers.every(x => x.total === N && x.blank === N && x.partial) &&
+          g0h.rows === 12 && /the 12 newest of 100/.test(g0h.sub) && JSON.stringify(g1) === JSON.stringify(g0) && g1h === 12,
+          '101 papers submitted: the 100 newest are kept (the first one dropped), the 12 newest are listed, and all 100 come back after a reload',
+          {kept: g0.papers.length, first: g0.papers[0] && g0.papers[0].exam, rows: g0h.rows, sub: g0h.sub, same: JSON.stringify(g1) === JSON.stringify(g0)});
+    // a reload soon after a change: the core writes the progress 150 ms after the last change
+    await pe(() => FX.api('paper-picker').choose(1));
+    await P.reload(); await pready();
+    const fast = (await mine()).exam;
+    console.log(`  note  a reload at once (under 150 ms) after a choice: the choice was ${fast === 1 ? 'kept' : 'lost'} (the core saves 150 ms after the last change; agent-run report, not a check)`);
+    await pe(() => FX.api('paper-picker').choose(3));
+    await wait(300);
+    await P.reload(); await pready();
+    check((await mine()).exam === 3, 'a choice is kept through a reload made 300 ms after it');
+    // Export, then Import into a fresh profile
+    const me = await pe(() => PROFILE), mineAll = await mine();
+    await tab('settings');
+    const [dl] = await Promise.all([P.waitForEvent('download', {timeout: 10000}), P.click('#btnExport')]);
+    const file = await dl.path();
+    const ex = JSON.parse(fs.readFileSync(file, 'utf8'));
+    await pe(() => { window.__name = 'SecondProfile'; });
+    await P.click('#btnWho'); await wait(100);
+    const fresh = await pe(() => ({p: PROFILE, pp: DB.paperPicker || null}));
+    await tab('settings');
+    await P.setInputFiles('#fileIn', file); await wait(500);
+    const imp = await pe(() => ({p: PROFILE, pp: JSON.parse(JSON.stringify(DB.paperPicker || null))}));
+    check(JSON.stringify(ex.db.paperPicker) === JSON.stringify(mineAll) && fresh.p === 'SecondProfile' && fresh.pp === null &&
+          imp.p === 'SecondProfile' && JSON.stringify(imp.pp) === JSON.stringify(mineAll),
+          `Export carries the choice and the ${mineAll.papers.length} papers; Import into a fresh profile brings them back`,
+          {exported: ex.db.paperPicker && ex.db.paperPicker.papers.length, fresh, imported: imp.pp && imp.pp.papers.length});
+    // each profile keeps its own
+    await pe(() => FX.api('paper-picker').choose(1)); await wait(400);
+    await pe(n => { window.__name = n; }, me);
+    await P.click('#btnWho'); await wait(100);
+    const backMe = await pe(() => ({p: PROFILE, pp: JSON.parse(JSON.stringify(DB.paperPicker || null))}));
+    const other = await raw('SecondProfile');
+    check(backMe.p === me && JSON.stringify(backMe.pp) === JSON.stringify(mineAll) && other && other.exam === 1 && other.papers.length === 100,
+          'a profile switch: each profile keeps its own choice and papers', {me: backMe.pp && backMe.pp.exam, other: other && other.exam});
+    // storage denied: the failure shows; what was saved is not overwritten; once storage works the change is saved
+    await tab('exam');
+    const saved0 = await raw(me);
+    await pe(() => sessionStorage.setItem('__ppfail', 'deny'));
+    const [deniedAt] = await submit(1, [2]);
+    await wait(400);
+    const d1 = {warn: await warned(), mem: await mine(), saved: await raw(me)};
+    check(d1.warn && JSON.stringify(d1.saved) === JSON.stringify(saved0) && d1.mem.exam === 2 && d1.mem.papers[99].at === deniedAt,
+          'storage denied: the student is told, the saved choice and papers are not overwritten, the new paper and choice hold for the visit',
+          {warn: d1.warn, savedSame: JSON.stringify(d1.saved) === JSON.stringify(saved0), mem: d1.mem.exam});
+    await pe(() => sessionStorage.removeItem('__ppfail'));
+    await pe(() => FX.api('paper-picker').choose(2)); await wait(400);
+    await P.reload(); await pready();
+    const d3 = await mine();
+    check(d3.exam === 2 && d3.papers.length === 100 && d3.papers[99].at === deniedAt,
+          'once storage works again the next save writes the paper made while it was denied, and a reload loads it', {exam: d3.exam, last: d3.papers[99].at === deniedAt});
+    // storage full: the same, and a reload before storage works again loads the progress saved before
+    await tab('exam');
+    const full0 = await raw(me);
+    await pe(() => sessionStorage.setItem('__ppfail', 'full'));
+    await submit(1, [3]);
+    await wait(400);
+    const f1 = {warn: await warned(), mem: await mine(), saved: await raw(me)};
+    await pe(() => sessionStorage.removeItem('__ppfail'));
+    await P.reload(); await pready();
+    const f2 = await mine();
+    check(f1.warn && f1.mem.exam === 3 && JSON.stringify(f1.saved) === JSON.stringify(full0) && JSON.stringify(f2) === JSON.stringify(full0),
+          'storage full (QuotaExceededError): the student is told, nothing saved is overwritten, and the saved choice and papers load after storage works again',
+          {warn: f1.warn, savedSame: JSON.stringify(f1.saved) === JSON.stringify(full0), loaded: JSON.stringify(f2) === JSON.stringify(full0)});
+    check(!m.errors.length, 'no page error in the persistence checks', m.errors.slice(0, 3).join(' | '));
+    await m.ctx.close();
+
     if(!keepLeft) check(false, 'the copy with an exam left off builds');
     else {
       const b = await L.openPage(browser, keepLeft.page, {viewport: {width: 1100, height: 1300}});
       await b.page.click('#nav button[data-v="exam"]');
       await b.page.waitForSelector('#v-exam [data-pp="left"]', {timeout: 5000}).catch(() => {});
       const lt = await b.page.evaluate(() => ({left: (document.querySelector('#v-exam [data-pp="left"]') || {}).textContent || '',
-        chips: document.querySelectorAll('#v-exam .chip[data-ppexam]').length, start: !!document.getElementById('startExam')}));
+        chips: document.querySelectorAll('#v-exam .chip[data-ppexam]').length, start: !!document.getElementById('startExam'),
+        chose: FX.api('paper-picker').choose('pp-other'), now: FX.api('paper-picker').chosen().id, cur: EXAM.id}));
       check(/Not offered as a practice paper here/.test(lt.left) && /Other paper \(\d+ questions, and the current exam has \d+ questions\)/.test(lt.left) && !lt.chips && lt.start,
             'the Exam view names the exam left off and why, offers no chips, and keeps its start button', lt);
+      check(lt.chose === false && lt.now === lt.cur, 'the exam left off cannot be chosen: the paper stays the current exam\'s', lt);
       check(!b.errors.length, 'no page error with an exam left off', b.errors.slice(0, 3).join(' | '));
       await b.ctx.close();
     }
