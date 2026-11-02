@@ -23,7 +23,7 @@ that course's repository. Both folders come from the recovered exam-drill templa
 | `browser_test.js` | core | browser smoke test (Node Playwright port of the template's `browser_test.py`, which stays in `history/`), including no sideways scroll on a 375 px phone and wide reading-tab tables scrolling in their own box |
 | `device_lint.js` | core | fails on syntax older Safari rejects (regex lookbehind) in anything that ships |
 | `run_checks.sh` | core | builds, then runs every check on its own, one line per check |
-| `ci_course.sh` | core | builds a scratch course from the kit (template, template with no count or marks, or Medicinal-chemistry) and runs `run_checks.sh` on it in Chromium or WebKit; the GitHub workflow's step |
+| `ci_course.sh` | core | builds a scratch course from the kit (template, template with no count or marks, Medicinal-chemistry, or the template with feature modules switched on) and runs `run_checks.sh` on it in Chromium or WebKit; the GitHub workflow's step |
 | `checks_test.js` | core | the checks' own exit codes, the device lint, `run_checks.sh`, and `test.js` and `render_test.js` on a course with no `DIAGRAMS` list |
 | `storage_test.js` | core | progress when the browser refuses to save |
 | `startup_test.js` | core | saved progress when a start-up step or the load itself fails: nothing is written over it, and the rest of start-up runs |
@@ -666,6 +666,11 @@ push to `main`. `ci_course.sh <course> [browser]` builds a scratch course from t
 and runs `run_checks.sh` on it, in Chromium for `template`, `template-unset` (the
 exam's question count and the pools' marks unset) and `medicinal-chemistry` (its live
 repository with this core copied in), and in WebKit, Safari's engine, for `template`.
+`ci_course.sh module:<name>` and `modules:<a>,<b>` build the template with feature
+modules switched on by their own `features/<name>/ci/oncourse.js` (the modules they
+`needs` first; `features/README.md`, "Checked on a course of its own"); the workflow runs
+one such course for each module a pull request changes, each module that needs it, and
+the combinations in `features/ci-combinations.txt` (`.github/ci_plan.js`).
 `DRILL_BROWSER=webkit` makes `check_lib.js` start WebKit instead of Chromium. A run fails
 on any NOT RUN that is not a documented exclusion with its documented reason, so a
 missing Playwright, a browser that did not start or a missing pdfplumber fails it rather
@@ -676,7 +681,8 @@ figures" on Medicinal-chemistry. The WebKit job
 is informational until its first results are reviewed. WebKit is not the Safari app on
 an iPhone or iPad, so a device check stays a separate step. The repository is private
 and GitHub enforces required checks only on a paid plan or a public repository, so
-kit sessions read the results and merge only when the Chromium jobs pass.
+kit sessions read the results and merge only when the Chromium jobs, the module jobs among
+them, pass.
 
 | Line | Exit code of the check | Meaning |
 |---|---|---|
