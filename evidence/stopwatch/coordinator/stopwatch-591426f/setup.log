@@ -1,0 +1,4 @@
+$ node features/stopwatch/ci/oncourse.js
+wrote: appended to /tmp/port-coord/vc-stopwatch/src/course.js:
+;/* stopwatch ci */ COURSE.features = Object.assign({}, COURSE.features, {"stopwatch": {"version":"v1","paceSeconds":120}});
+wrote: no data files (the module reads no course data)
