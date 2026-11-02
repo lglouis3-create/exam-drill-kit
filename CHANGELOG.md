@@ -3,6 +3,7 @@
 Dated kit changes, newest first.
 
 ## 2026-11-02
+- `core/home_test.js`: answers a select-all question it picks, with its right boxes, so it no longer fails at random.
 - New feature module `glossary-tap` v1 (`features/glossary-tap/`), from Intro-Pharmacology
   `929cd62` (`exam1-drill/src/app.js` 1771-1922, port queue item 18): a Glossary tab over the
   course's `TERMS` with search, a letter bar, by-group or A-Z order and group chips; and,
