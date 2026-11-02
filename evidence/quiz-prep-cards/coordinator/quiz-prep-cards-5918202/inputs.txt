@@ -1,0 +1,5 @@
+module quiz-prep-cards
+commit 59182023a56127655ad821e75961b31043e8a8fb
+core a2dbf03d6ccea270f77ac440f3fd8b7a86d855cf template cbac5bd425d480944293f8e1fb5d5d703e8baba1
+extra modules: 
+2026-11-02T23:28:06Z
