@@ -21,10 +21,13 @@ Dated kit changes, newest first.
   regex lookbehind. The questions stay out of the bank and off exam papers, and Weak spots
   does not list them. On PK's whole bank the module makes the same 282 term and 301 variable
   questions, with the same keyed answers, as PK's own code. Its test (PK `src/test.js`
-  943-972 and `src/var_test.py` ported): 41 checks pass; with the module's code left out,
-  1 of 1 fails; with PK's lookbehind split in its place, `device_lint.js` fails 2 of 3.
+  943-972 and `src/var_test.py` ported, with checks of the wrong options, the flashcard
+  marks and the saved answers): 57 checks pass on the module's own course, written by
+  `features/terms-variables/ci/oncourse.js` from PK's own data; with the module's code left
+  out, 1 of 1 fails; with PK's lookbehind split in its place, `device_lint.js` fails 2 of 3.
+  `features/ci-combinations.txt`: terms-variables with equation-drill.
   FEATURES.md: PK added to the `glossary` entry; new entry `terms-variables`. Port queue
-  item 3 is done.
+  item 3 is partial: Weak spots and a reload during a drill need a core change.
 
 ## 2026-11-01
 - `core/`: an exam with `questions: null` or a pool with `marks: null` no longer breaks the page (`nullexam.js`).
