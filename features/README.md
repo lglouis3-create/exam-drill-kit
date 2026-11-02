@@ -123,6 +123,7 @@ is off says so on its card and offers the next question.
 | `plan-the-problem` | v1 | Basic-Pharmacokinetics `ac2eb73` | a set-up drill on the Equations tab: pick the line that solves a stem, no arithmetic, and plan the whole problem; needs `equation-drill` |
 | `glossary-tap` | v1 | Intro-Pharmacology `929cd62` (the tap part written for the kit) | a Glossary tab over the course's `TERMS` (search, letter bar, groups); after an answer, a term in the explanation or a reading section can be tapped for its definition |
 | `pair-up-drills` | v1 | Intro-Pharmacology- `929cd62` | a Pair up tab (chips into boxes, checked with why) and one tab per course table (each row asked column from column; Cover and reveal), from the course's `PAIR_SETS` and `RECALL_TABLES` |
+| `short-answer-graphs` | v1 | Intro-Pharmacology `929cd62` | a Short answer page (write, show the model answer, tick the key points) and a Graphs page (drill one figure's questions; a wrong pick names the reading question skipped) |
 
 `port_from_pk.py` beside a module's `current/` (equation-drill, wrong-number-diagnosis) is the
 script that wrote the module's code from Basic-Pharmacokinetics' files (`port_from_ip.js` beside
