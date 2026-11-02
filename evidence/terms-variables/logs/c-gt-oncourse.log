@@ -1,0 +1,10 @@
+wrote: /tmp/port-terms-variables/c-gt/src/terms_gtap.js (10 terms)
+wrote: /tmp/port-terms-variables/c-gt/src/q1_topics.js (2 topics, 66 questions; replaces the template sample)
+wrote: /tmp/port-terms-variables/c-gt/src/guide.js (Intro to Pharmacology guide.js sections 1 and 4, opening lines; replaces the template sample)
+wrote: /tmp/port-terms-variables/c-gt/src/course.js: lectures L04, L10 in its list; appended 7 skills, terms_gtap.js in files, glossary-tap v1 on
+glossary-tap oncourse.js exit 0
+wrote: /tmp/port-terms-variables/c-gt/src/tvc_course_data.js (7 terms, 55 ASKS entries, added to the course's own)
+wrote: /tmp/port-terms-variables/c-gt/src/q90_tvc_course.js (3 of 5 topics, 8 of 10 questions)
+left out: terms pharmacodynamics (the course's TERMS has a term of that name); questions m2-n-d3a, m2-n-vp1 (their cite names no deck of COURSE.lectures); 8 setup lines (equations the course does not have); 8 teachImg (crops the course's images.json does not have)
+wrote: appended to /tmp/port-terms-variables/c-gt/src/course.js: the 2 files in COURSE.files, 5 lectures, 5 skills, and terms-variables v1 on
+terms-variables oncourse.js exit 0

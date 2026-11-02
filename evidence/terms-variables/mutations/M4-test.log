@@ -1,0 +1,67 @@
+
+=== the course's own terms and symbols ===
+  ok    the page carries terms-variables, working
+  ok    the course: every question has one keyed option among four or more distinct options, each with a reason (24 term, 106 variable)
+  ok    the course: ids unique, none a bank question, none in the bank
+  ok    the course: no situation or definition stem prints the term it asks for
+  ok    the course: the keyed symbol of each of the 6 stem-sentence questions is the one its calculation asks for
+  ok    the course: no question sentence names its own answer
+  FAIL  the course: twins are never each other's wrong option  — var-Cp-symbol
+  ok    the course: the wrong options of the 24 term questions whose term has look-alikes are those look-alikes first
+  FAIL  the course: the wrong options of the 106 variable questions come from the same family of symbols first  — var-Cp-symbol
+  ok    none of these questions is on an exam paper (5 papers drawn)
+  ok    the question sentence without lookbehind is Basic-Pharmacokinetics' on 9 control texts and 9 numeric stems
+
+=== the build step stops on bad terms and symbols ===
+  ok    a confuse that is not a list stops the build and says so
+  ok    a term id used twice stops the build and says so
+  ok    a term with no definition stops the build and says so
+  ok    fewer than 4 terms stops the build and says so
+  ok    an ASKS entry that is not [symbol, meaning] stops the build and says so
+  ok    a families key that ASKS does not have stops the build and says so
+  ok    a numeric question asking for a key ASKS does not have stops the build and says so
+  ok    a bank id that starts var- stops the build and says so
+
+=== on a scratch copy with Basic-Pharmacokinetics' terms, calculations and symbols (Chromium) ===
+  ok    the term questions are the 24 Basic-Pharmacokinetics' own code makes from these 8 terms
+  ok    the variable questions are the 108 Basic-Pharmacokinetics' own code makes from these calculations and ASKS
+  ok    each keyed answer is the one Basic-Pharmacokinetics' code keys
+  ok    the scratch copy: every question has one keyed option among four or more distinct options, each with a reason (48 term, 108 variable)
+  ok    the scratch copy: ids unique, none a bank question, none in the bank
+  ok    the scratch copy: no situation or definition stem prints the term it asks for
+  ok    the scratch copy: the keyed symbol of each of the 8 stem-sentence questions is the one its calculation asks for
+  ok    the scratch copy: no question sentence names its own answer
+  FAIL  the scratch copy: twins are never each other's wrong option  — var-Cp-means
+  ok    the scratch copy: the wrong options of the 48 term questions whose term has look-alikes are those look-alikes first
+  FAIL  the scratch copy: the wrong options of the 108 variable questions come from the same family of symbols first  — var-Cp-means
+  ok    a Terms tab, and no Glossary tab of its own
+  ok    Flashcards: card 1 shows a situation (or definition) that does not print the term, with the term hidden
+  ok    Show the term shows it, with Knew it, Not sure and Did not know
+  ok    Knew it is recorded as a right answer to the term's meaning question, and card 2 follows
+  ok    Did not know on card 2 is recorded as a wrong answer to that term's meaning question, and card 3 follows
+  ok    Quiz me lists all terms and each of the 4 groups
+  ok    the variables quiz is listed under Quiz me: all variables and each of the 7 families
+  ok    Start drills every term question and only those (48)
+  ok    a right answer is marked right and recorded under the term's concept
+  ok    Start drills the whole variables quiz and only it (108)
+  ok    a right answer is marked right and recorded under the symbol's concept
+  ok    one family (rate constants) drills only its symbols (17 questions)
+  skip  the Equations tab offers the variables quiz  — equation-drill is not on in this course
+  ok    no sideways scroll on the Terms tab at 390 px (0)
+  ok    no page error
+
+=== the answers to these questions are kept (a long run of them) ===
+  ok    60 answers to these questions are recorded and stored, under 43 concepts, with 60 history entries
+  ok    after a reload more than 150 ms later, all of them and their scheduling state come back
+  ok    every tab (10) renders with these answers in the history, no page error
+  report  a reload right after an answer (under 150 ms): 0 of 1 new answer kept in DB, 1 of 1 in the answer history (core save() waits 150 ms; the history is written at once)
+  ok    Export, then Import into a fresh browser profile: the 60 answers, their scheduling state and history come back
+  ok    no page error on import
+  ok    a profile switch: each profile keeps its own answers to these questions
+  ok    storage full: the notice says progress was not saved, and the drill goes on with all 30 answers
+  ok    storage full: the progress already saved (20 answers) is not overwritten or lost
+  ok    after storage works again, all 31 answers are saved and load after a reload
+  ok    no page error with storage full
+  ok    storage denied: the drill runs, records the 10 answers for the visit, and the notice is shown
+  ok    no page error with storage denied
+FAIL: features/terms-variables/test.js: 4 of 56 checks failed: the course: twins are never each other's wrong option; the course: the wrong options of the 106 variable questions come from the same family of symbols first; the scratch copy: twins are never each other's wrong option …

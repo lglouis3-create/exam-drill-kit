@@ -1,0 +1,15 @@
+M1	termMask blanks nothing: the term is printed in its own situation and definition	the course: no situation or definition stem prints the term it asks for; the scratch copy: no situation or definition stem prints the term it asks for	1	on
+M2	term wrong options: the look-alikes (confuse) are not taken first	the course: the wrong options of the 24 term questions whose term has look-alikes are those look-alikes first; the scratch copy: the wrong options of the 48 term questions whose term has look-alikes are those look-alikes first	1	on
+M3	variable wrong options: the same family is not taken first	the course: the wrong options of the 106 variable questions come from the same family of symbols first; the scratch copy: the wrong options of the 108 variable questions come from the same family of symbols first	1	on
+M4	twins may be each other's wrong option	the course: twins are never each other's wrong option; the course: the wrong options of the 106 variable questions come from the same family of symbols first; the scratch copy: twins are never each other's wrong option; the scratch copy: the wrong options of the 108 variable questions come from the same family of symbols first	1	on
+M5	a question sentence that names its own answer is asked	the variable questions are the 108 Basic-Pharmacokinetics' own code makes from these calculations and ASKS	1	on
+M6	the question sentence is the first question of the stem, not the last	the question sentence without lookbehind is Basic-Pharmacokinetics' on 9 control texts and 9 numeric stems	1	on
+M7	a flashcard mark is recorded as right whatever button is pressed	Did not know on card 2 is recorded as a wrong answer to that term's meaning question, and card 3 follows	1	on
+M8	a variable question is put into the bank	the course: ids unique, none a bank question, none in the bank; the scratch copy: ids unique, none a bank question, none in the bank	1	on
+M9	the same sentence for the same symbol is asked twice (no de-duplication)	the variable questions are the 108 Basic-Pharmacokinetics' own code makes from these calculations and ASKS	1	on
+M10	the Equations tab does not offer the variables quiz	the Equations tab offers the variables quiz	1	eq
+M11	Show the term does not show the term	Flashcards: card 1 shows a situation (or definition) that does not print the term, with the term hidden; Show the term shows it, with Knew it, Not sure and Did not know	1	on
+M12	a term group's Start drills every term, not that group	NOT CAUGHT	0	on
+M13	a symbol family's Start drills every symbol, not that family	one family (rate constants) drills only its symbols (108 questions)	1	on
+M14	the meaning question of a term has no correct option	the course: every question has one keyed option among four or more distinct options, each with a reason (24 term, 106 variable)	1	on
+M15	the variable questions are recorded under the wrong concept	a right answer is marked right and recorded under the symbol's concept	1	on

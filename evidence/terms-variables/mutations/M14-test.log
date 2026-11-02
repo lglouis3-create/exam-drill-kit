@@ -1,0 +1,34 @@
+
+=== the course's own terms and symbols ===
+  ok    the page carries terms-variables, working
+  FAIL  the course: every question has one keyed option among four or more distinct options, each with a reason (24 term, 106 variable)  — term-tvc-pharmacokinetics-gist, term-tvc-pharmacodynamics-gist, term-tvc-biopharmaceutics-gist, term-tvc-clinical-pharmacokinetics-gist, term-tvc-absorption-gist
+  ok    the course: ids unique, none a bank question, none in the bank
+  ok    the course: no situation or definition stem prints the term it asks for
+  ok    the course: the keyed symbol of each of the 6 stem-sentence questions is the one its calculation asks for
+  ok    the course: no question sentence names its own answer
+  ok    the course: twins are never each other's wrong option
+  ok    the course: the wrong options of the 24 term questions whose term has look-alikes are those look-alikes first
+  ok    the course: the wrong options of the 106 variable questions come from the same family of symbols first
+  ok    none of these questions is on an exam paper (5 papers drawn)
+  ok    the question sentence without lookbehind is Basic-Pharmacokinetics' on 9 control texts and 9 numeric stems
+
+=== the build step stops on bad terms and symbols ===
+  ok    a confuse that is not a list stops the build and says so
+  ok    a term id used twice stops the build and says so
+  ok    a term with no definition stops the build and says so
+  ok    fewer than 4 terms stops the build and says so
+  ok    an ASKS entry that is not [symbol, meaning] stops the build and says so
+  ok    a families key that ASKS does not have stops the build and says so
+  ok    a numeric question asking for a key ASKS does not have stops the build and says so
+  ok    a bank id that starts var- stops the build and says so
+
+=== on a scratch copy with Basic-Pharmacokinetics' terms, calculations and symbols (Chromium) ===
+FAIL: features/terms-variables/test.js: crashed: page.evaluate: TypeError: Cannot read properties of undefined (reading 't')
+    at k (eval at evaluate (:311:30), <anonymous>:1:91)
+    at eval (eval at evaluate (:311:30), <anonymous>:2:143)
+    at Array.map (<anonymous>)
+    at eval (eval at evaluate (:311:30), <anonymous>:2:127)
+    at UtilityScript.evaluate (<anonymous>:313:16)
+    at UtilityScript.<anonymous> (<anonymous>:1:44)
+    at ev (/tmp/port-terms-variables/mut/M14/src/features/terms-variables/test.js:194:31)
+    at /tmp/port-terms-variables/mut/M14/src/features/terms-variables/test.js:196:24

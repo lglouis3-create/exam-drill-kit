@@ -1,0 +1,26 @@
+on-moduletest-1	0	/tmp/port-terms-variables/c-on/src	node features/terms-variables/test.js
+on-run_checks	1	/tmp/port-terms-variables/c-on/src	./run_checks.sh
+on-run_checks-2	0	/tmp/port-terms-variables/c-on/src	./run_checks.sh
+ci-module-terms-variables	0	/home/user/exam-drill-kit/.claude/worktrees/agent-a034bc474dd221e7e	bash core/ci_course.sh module:terms-variables chromium
+ci-modules-tv-eq	0	/home/user/exam-drill-kit/.claude/worktrees/agent-a034bc474dd221e7e	bash core/ci_course.sh modules:terms-variables,equation-drill chromium
+dev-moduletest	1	/tmp/port-terms-variables/c-on/src	node features/terms-variables/test.js
+dev-moduletest	0	/tmp/port-terms-variables/c-on/src	node features/terms-variables/test.js
+dev-eq-moduletest	0	/tmp/port-terms-variables/c-eq/src	node features/terms-variables/test.js
+wholebank-compare	0	/tmp/port-terms-variables/scripts	node wholebank.js /home/user/exam-drill-kit/.claude/worktrees/agent-a034bc474dd221e7e/features/terms-variables/current/terms-variables.js
+absent-moduletest	0	/tmp/port-terms-variables	bash scripts/absent.sh
+lookbehind-device_lint	0	/tmp/port-terms-variables	bash scripts/lookbehind.sh
+gt-moduletest	0	/tmp/port-terms-variables/c-gt/src	node features/terms-variables/test.js
+gt-glossarytaptest	0	/tmp/port-terms-variables/c-gt/src	node features/glossary-tap/test.js
+pre-moduletest	0	/tmp/port-terms-variables/c-on/src	node features/terms-variables/test.js
+pre-eq-moduletest	0	/tmp/port-terms-variables/c-eq/src	node features/terms-variables/test.js
+final-moduletest-1	0	/tmp/port-terms-variables/f-on/src	node features/terms-variables/test.js
+final-moduletest-2	0	/tmp/port-terms-variables/f-on/src	node features/terms-variables/test.js
+final-moduletest-3	0	/tmp/port-terms-variables/f-on/src	node features/terms-variables/test.js
+final-on-run_checks	0	/tmp/port-terms-variables/f-on/src	./run_checks.sh
+final-ci-module-terms-variables	0	/home/user/exam-drill-kit/.claude/worktrees/agent-a034bc474dd221e7e	bash core/ci_course.sh module:terms-variables chromium
+final-ci-modules-tv-eq	0	/home/user/exam-drill-kit/.claude/worktrees/agent-a034bc474dd221e7e	bash core/ci_course.sh modules:terms-variables,equation-drill chromium
+final-gt-moduletest	0	/tmp/port-terms-variables/f-gt/src	node features/terms-variables/test.js
+final-gt-glossarytaptest	0	/tmp/port-terms-variables/f-gt/src	node features/glossary-tap/test.js
+final-absent-moduletest	0	/tmp/port-terms-variables	bash scripts/absent.sh
+final-ci-template	0	/home/user/exam-drill-kit/.claude/worktrees/agent-a034bc474dd221e7e	bash core/ci_course.sh template chromium
+final-mc-run_checks	0	/tmp/port-terms-variables	bash scripts/mc.sh

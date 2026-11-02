@@ -1,0 +1,35 @@
+
+=== Answers make entries ===
+  ok    three answers make three history entries
+  ok    each entry is [seconds, question code, right, mode, ...] and the mode is quiz
+  ok    each question code is the hash of the question answered
+  ok    each entry carries the concept id
+  ok    each entry carries the item type
+  ok    a right answer left as it is records "knew"
+  ok    each entry has ten fields: the seven before, then scheduler, arm, predicted recall
+  ok    under the concept scheduler each entry ends "concept", "" (no comparison), null (no predicted recall)
+  ok    beside the confidence buttons the screen says Next counts as "Knew it"
+  ok    "Not sure" records "unsure" on that answer
+  ok    "I guessed" records "guessed" on that answer
+  ok    a miss records right 0 and no confidence
+  ok    an answer in a one-pass sweep records mode sweep
+  ok    the Exam tab offers a Start button (the number of questions is set)
+  ok    the Start button draws a paper with questions (50 drawn)
+  ok    a submitted paper records mode exam and no confidence
+
+=== Export, Import, Erase ===
+  ok    Settings says answers are kept in a history
+  ok    Export includes the whole history
+  ok    Import brings the history across
+  ok    importing the same file twice adds nothing
+  ok    an entry in the older seven-field format is imported as it is
+  ok    a seven-field entry here gains the scheduler fields from the imported copy of the same answer
+  ok    no page errors on import
+  ok    Erase my history clears the answer history too
+  ok    no page errors
+
+=== The browser refuses to save the history ===
+  ok    with the history refused, progress still saves
+  ok    with the history refused, no save notice
+  ok    with the history refused, no page errors
+PASS: history_test.js: 28 checks passed

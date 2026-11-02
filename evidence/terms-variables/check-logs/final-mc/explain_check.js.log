@@ -1,0 +1,96 @@
+
+=== Explanation quality ===
+  363 of 479 questions carry at least one issue
+
+   332  no diagnosis of the error
+   101  thin option why
+     1  vague reference
+     1  no gloss available
+
+  by pool:
+   175  Sikazwe|new (supplies 38 of the 50)
+   115  Sikazwe|old (supplies 4 of the 50)
+    73  Yendapally|old (supplies 8 of the 50)
+
+  worst 30, ranked by severity x exam weight:
+
+  sa-tox-4    tox       Sikazwe|new     rank 228.0
+      - thin option why: A (107), B (102), C (106), D (78), E (64)
+      - no diagnosis of the error: G, H
+  sa-cyp-5    cyp       Sikazwe|new     rank 190.0
+      - thin option why: B (104), C (93), D (69), E (84)
+      - no diagnosis of the error: F, G
+  sa-el-1     elim      Sikazwe|new     rank 171.0
+      - thin option why: B (106), C (80), D (108), E (90)
+      - no diagnosis of the error: G
+  sa-p2-2     fgdm      Sikazwe|new     rank 152.0
+      - thin option why: A (102), B (83), C (102)
+      - no diagnosis of the error: E, F
+  sa-fg-2     fgdm      Sikazwe|new     rank 152.0
+      - thin option why: C (107), D (83), E (105)
+      - no diagnosis of the error: F, G
+  sa-fa-5     factors   Sikazwe|new     rank 152.0
+      - thin option why: B (66), D (86), E (79)
+      - no diagnosis of the error: F, G
+  sa-tox-8    tox       Sikazwe|new     rank 152.0
+      - thin option why: B (103), D (90), G (81)
+      - no diagnosis of the error: E, F
+  sa-fa-3     factors   Sikazwe|new     rank 133.0
+      - thin option why: B (75), D (62), E (82)
+      - no diagnosis of the error: F
+  sa-tox-3    tox       Sikazwe|new     rank 114.0
+      - thin option why: C (105), F (81)
+      - no diagnosis of the error: G, H
+  sa-cyp-7    cyp       Sikazwe|new     rank 114.0
+      - thin option why: B (96), E (35)
+      - no diagnosis of the error: F, G
+  sa-tox-1    tox       Sikazwe|new     rank 95.0
+      - thin option why: B (93), C (103)
+      - no diagnosis of the error: G
+  sa-el-3     elim      Sikazwe|new     rank 95.0
+      - thin option why: C (76), E (90)
+      - no diagnosis of the error: D
+  sa-tox-2    tox       Sikazwe|new     rank 76.0
+      - thin option why: C (92)
+      - no diagnosis of the error: F, G
+  sa-cyp-4    cyp       Sikazwe|new     rank 76.0
+      - thin option why: G (85)
+      - no diagnosis of the error: E, F
+  sa-tox-5    tox       Sikazwe|new     rank 76.0
+      - thin option why: B (63)
+      - no diagnosis of the error: E, F
+  sa-tox-7    tox       Sikazwe|new     rank 76.0
+      - thin option why: C (109)
+      - no diagnosis of the error: E, F
+  sa-fa-1     factors   Sikazwe|new     rank 76.0
+      - thin option why: A (101)
+      - no diagnosis of the error: G, H
+  sa-fa-2     factors   Sikazwe|new     rank 76.0
+      - thin option why: A (83), E (85)
+  sa-cyp-6    cyp       Sikazwe|new     rank 76.0
+      - no diagnosis of the error: E
+      - vague reference: option F: "does the opposite", unnamed
+  cyp-w1      cyp       Sikazwe|new     rank 57.0
+      - no diagnosis of the error: B, C, D
+  cyp-w2      cyp       Sikazwe|new     rank 57.0
+      - no diagnosis of the error: B, C, D
+  cyp-c1      cyp       Sikazwe|new     rank 57.0
+      - no diagnosis of the error: B, C, D
+  cyp-c2      cyp       Sikazwe|new     rank 57.0
+      - no diagnosis of the error: B, C, D
+  cyp-c3      cyp       Sikazwe|new     rank 57.0
+      - no diagnosis of the error: B, C, D
+  cyp-y1      cyp       Sikazwe|new     rank 57.0
+      - no diagnosis of the error: B, C, D
+  cyp-e1      cyp       Sikazwe|new     rank 57.0
+      - no diagnosis of the error: B, C, D
+  cyp-e3      cyp       Sikazwe|new     rank 57.0
+      - no diagnosis of the error: B, C, D
+  cyp-f1      cyp       Sikazwe|new     rank 57.0
+      - no diagnosis of the error: B, C, D
+  cyp-f3      cyp       Sikazwe|new     rank 57.0
+      - no diagnosis of the error: B, C, D
+  cyp-f4      cyp       Sikazwe|new     rank 57.0
+      - no diagnosis of the error: B, C, D
+
+REPORT: explain_check.js: 363 of 479 questions carry at least one explanation issue

@@ -1,0 +1,9 @@
+build.py exit 0
+
+=== Device lint: regex lookbehind ===
+  ok    every shipped source is on disk (17)
+  FAIL  no lookbehind in the 17 shipped sources  — features/terms-variables/terms-variables.js:108: …l.replace(/\s+/g, ' ').split(/(?<=[.?!])\s+(?=[A-Z(])/)).map…
+  FAIL  no lookbehind in the built page or the service worker  — index.html:2399: …l.replace(/\s+/g, ' ').split(/(?<=[.?!])\s+(?=[A-Z(])/)).map…
+FAIL: device_lint.js: 2 of 3 checks failed: no lookbehind in the 17 shipped sources; no lookbehind in the built page or the service worker
+device_lint exit 1
+exit 0

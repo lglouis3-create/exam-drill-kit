@@ -1,0 +1,92 @@
+
+=== 1. Question bank integrity ===
+  15 questions, 5 topics, 0 images
+  ok    the build's question count equals QUESTIONS.length (15)
+
+=== 2. Exam blueprint coverage ===
+  Lectures 1–4: 14 questions (paper takes 4)
+
+=== 3. Concept spread per topic ===
+  topic1       3 q /   3 concepts  (Professor)
+  topic2       4 q /   4 concepts  (Professor)
+  tvc-orders   6 q /   5 concepts  (Professor)
+  warn  subtopic "tvc-orders/zero" (Zero-order reactions) has no questions
+  warn  subtopic "tvc-orders/plots" (Linear and semi-logarithmic plots) has no questions
+  tvc-infusion   1 q /   1 concepts  (Professor)
+  warn  subtopic "tvc-infusion/basics" (What an infusion does, and why the input is zero order) has no questions
+  warn  subtopic "tvc-infusion/css" (Steady state and continuous dosing) has no questions
+  warn  subtopic "tvc-infusion/pre" (Concentration before steady state is reached) has no questions
+  warn  subtopic "tvc-infusion/time" (Time to reach a stated fraction of steady state) has no questions
+  warn  subtopic "tvc-infusion/stop" (Concentration after the infusion is stopped) has no questions
+  warn  subtopic "tvc-infusion/load" (Loading dose, alone and with a continuous infusion) has no questions
+  tvc-clearance   1 q /   1 concepts  (Professor)
+  warn  subtopic "tvc-clearance/routes" (The main routes of elimination, renal and hepatic) has no questions
+  warn  subtopic "tvc-clearance/renalmech" (Glomerular filtration, tubular secretion and reabsorption) has no questions
+  warn  subtopic "tvc-clearance/crclcalc" (Creatinine clearance and its significance) has no questions
+  warn  subtopic "tvc-clearance/ionization" (Degree of ionization and renal excretion) has no questions
+
+=== 4. Spaced repetition rules ===
+feature module terms-variables (tab): TypeError: nav.querySelector is not a function
+    at evalmachine.<anonymous>:1606:17
+    at run (evalmachine.<anonymous>:1567:18)
+    at dom (evalmachine.<anonymous>:1599:7)
+    at startUp (evalmachine.<anonymous>:1620:11)
+    at evalmachine.<anonymous>:1681:5
+    at Object.askProfile (evalmachine.<anonymous>:905:3)
+    at Object.<anonymous> (/tmp/kit-ci-NqtEq5/course/src/test.js:118:3)
+    at Module._compile (node:internal/modules/cjs/loader:1781:14)
+    at Object..js (node:internal/modules/cjs/loader:1913:10)
+    at Module.load (node:internal/modules/cjs/loader:1505:32)
+feature module equation-drill (tab): TypeError: nav.querySelector is not a function
+    at evalmachine.<anonymous>:1606:17
+    at run (evalmachine.<anonymous>:1567:18)
+    at dom (evalmachine.<anonymous>:1599:7)
+    at startUp (evalmachine.<anonymous>:1620:11)
+    at evalmachine.<anonymous>:1681:5
+    at Object.askProfile (evalmachine.<anonymous>:905:3)
+    at Object.<anonymous> (/tmp/kit-ci-NqtEq5/course/src/test.js:118:3)
+    at Module._compile (node:internal/modules/cjs/loader:1781:14)
+    at Object..js (node:internal/modules/cjs/loader:1913:10)
+    at Module.load (node:internal/modules/cjs/loader:1505:32)
+  ok    missed concept is held back rather than repeated at once
+  (resurfacing test needs a topic with 6+ concepts; skipped on this bank)
+  ok    box advanced 0 -> 3 with repeated correct answers
+  ok    a later miss resets the concept to active review
+  ok    a guess resets the concept to unresolved and outranks never-seen material
+  ok    "I guessed that one" rewrites the log, resets the box, keeps picked and ms
+  ok    1 concepts have more than one wording available
+
+=== 5. Exam simulation draw ===
+  blueprint: Exam 1 — Lectures 1–4 4 (4 of 4)
+  drew 4
+  ok    no duplicate questions on a single paper
+  ok    dupOf partners never share a paper (1 marked; 0 lowYield kept off the paper)
+  ok    20 repeated draws all kept the paper shape
+  select-all on the paper: 0 of 4 (target 0)
+  ok    the paper carries the intended number of select-all items
+  ok    every question resolves to a lecture, exam and module
+  ok    every question carries a skill from the course taxonomy (recall, tell, apply, read, calc, krate, conctime, multicpt, infusion, clearance)
+  ok    numeric grading accepts the answer within tolerance and rejects the rest
+
+=== 6. Storage isolation ===
+  ok    progress written under namespaced key: course-id-drill:data:me
+  ok    the page opened without asking for a name
+=== 7. Different wording when a missed concept returns ===
+  ok    returned as a different question (tvc-m1-ord-n06 -> tvc-m1-ord-n08)
+=== 8. Small pools end instead of looping ===
+  ok    pool of 2 served 2 (2 distinct) then stopped
+  ok    "Ask everything" still serves (10 more)
+
+=== 9. Figures, read links, change log, blueprint ===
+  ok    every DIAGRAMS key is in DIA
+  ok    1 step-through figure(s), each with a dot per step
+  ok    2 read link(s), every one naming guide, tell or ref
+  7 of 15 questions resolve to a reading section (the rest group by topic in the review plan)
+  ok    a session is the run with no half-hour gap (2 of 4 answers)
+  ok    a correct answer marked "not sure" does not count as solid
+  skip  blueprint draw (this course draws by pool marks, not announced counts)
+  ok    1 change log entry embedded, each with bullets
+
+All checks passed  (warnings: 12)
+
+PASS: test.js: 15 questions checked, 12 warning(s)

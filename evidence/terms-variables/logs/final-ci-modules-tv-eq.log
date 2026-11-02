@@ -1,0 +1,45 @@
+== modules switched on, in this order: terms-variables formulas-in-text equation-drill
+-- terms-variables: node features/terms-variables/ci/oncourse.js
+wrote: /tmp/kit-ci-NqtEq5/course/src/tvc_course_data.js (8 terms, 55 ASKS entries)
+wrote: /tmp/kit-ci-NqtEq5/course/src/q90_tvc_course.js (3 of 5 topics, 8 of 10 questions)
+left out: terms none (the course's TERMS has a term of that name); questions m2-n-d3a, m2-n-vp1 (their cite names no deck of COURSE.lectures); 8 setup lines (equations the course does not have); 8 teachImg (crops the course's images.json does not have)
+wrote: appended to /tmp/kit-ci-NqtEq5/course/src/course.js: the 2 files in COURSE.files, 5 lectures, 5 skills, and terms-variables v1 on
+-- formulas-in-text: node features/formulas-in-text/ci/oncourse.js
+wrote: appended to /tmp/kit-ci-NqtEq5/course/src/course.js: formulas-in-text v1 on with 56 symbols, 4 rates, halfLife, times, minus and powers (the options of its test.js)
+wrote: no data files (the module reads no course data file)
+-- equation-drill: node features/equation-drill/ci/oncourse.js
+wrote: /tmp/kit-ci-NqtEq5/course/src/eqc_equations.js (14 equations from the fixture in test.js)
+wrote: appended to /tmp/kit-ci-NqtEq5/course/src/course.js: the file in COURSE.files and equation-drill v2 on
+== modules:terms-variables,equation-drill, chromium, kit 8641b3f
+PASS     build.py          wrote index.html  (0.38 MB)
+PASS     test.js           15 questions checked, 12 warning(s)
+PASS     style_check.js    15 stems and 15 explanations clean
+PASS     render_test.js    every view rendered clean
+REPORT   explain_check.js  5 of 15 questions carry at least one explanation issue
+PASS     stepper_test.js   1 step-through(s) settle at every step
+NOT RUN  cite_check.py     no lecture PDFs found under decks/ or src/
+PASS     device_lint.js    3 checks passed
+PASS     output_test.js    16 checks passed
+PASS     files_test.js     13 checks passed
+PASS     tables_test.js    20 checks passed
+PASS     checks_test.js    32 checks passed
+PASS     draw_test.js      9 checks passed
+PASS     browser_test.js   98 checks passed (5 skipped: concept-block figures render after answering; drawn structures; stems that promise a figure show one …)
+PASS     storage_test.js   24 checks passed
+PASS     startup_test.js   77 checks passed
+PASS     update_test.js    38 checks passed
+PASS     offline_test.js   29 checks passed
+PASS     home_test.js      36 checks passed
+PASS     history_test.js   28 checks passed
+PASS     scheduler_test.js 110 checks passed
+PASS     preview_test.js   14 checks passed
+PASS     state_check.js    2 checks passed
+PASS     state_check_test.js 8 checks passed
+PASS     oldcache_test.js  12 checks passed
+PASS     nullexam_test.js  76 checks passed (1 skipped: the Weighting chips)
+PASS     features_test.js  40 checks passed
+PASS     features/terms-variables/test.js 59 checks passed (1 skipped: the Terms tab links to the Glossary tab)
+PASS     features/formulas-in-text/test.js 12 checks passed
+PASS     features/equation-drill/test.js 30 checks passed
+28 PASS, 0 FAIL, 1 NOT RUN, 1 REPORT; logs in /tmp/drill-checks-AMspZi
+exit 0

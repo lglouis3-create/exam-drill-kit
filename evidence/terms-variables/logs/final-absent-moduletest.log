@@ -1,0 +1,7 @@
+build.py exit 0
+
+=== the course's own terms and symbols ===
+  FAIL  the page carries terms-variables, working  — []
+FAIL: features/terms-variables/test.js: 1 of 1 checks failed: the page carries terms-variables, working
+test exit 1
+exit 0
