@@ -120,6 +120,7 @@ is off says so on its card and offers the next question.
 | `chained-problem-sets` | v2 | Basic-Pharmacokinetics `ac2eb73` | problems asked in parts, worked in the professor's order; parts kept together on a paper |
 | `equation-drill` | v2 | Basic-Pharmacokinetics `ac2eb73` | an Equations tab: every equation with its symbols and conditions, typed or built from pieces; needs `formulas-in-text` |
 | `wrong-number-diagnosis` | v1 | Basic-Pharmacokinetics `ac2eb73` | what a wrong typed number says about the slip behind it, beside the miss chips; converts PK's saved `missKind` |
+| `study-controls` | v1 | Intro-Pharmacology- `929cd62` | flags with Drill flagged, one question at a time or all on one page, keyboard shortcuts, a strict paper with no going back; each part an option; `FX.api('study-controls')` gives the flags to other modules |
 
 `port_from_pk.py` beside a module's `current/` (equation-drill, wrong-number-diagnosis) is the
 script that wrote the module's code from Basic-Pharmacokinetics' files; each of its

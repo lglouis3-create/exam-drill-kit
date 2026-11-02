@@ -1,0 +1,16 @@
+{
+ "name": "study-controls",
+ "version": "v1",
+ "does": "Four study controls, each switched on or off by its option: flags (a Flag button on every quiz card, on the exam question and on the exam result; the flagged set kept in the progress as `DB.flags`, a Topics row with the count, Drill flagged and Clear flags, and the flagged numbers of a paper shown as links on its question bar); a one-page layout (the chips One at a time / All on one page on Topics, the quiz and the exam: every multiple-choice and select-all question of the quiz, or every question of the exam paper, on one page, kept as `DB.layout`); keyboard shortcuts (A-J or 1-9 pick an option, Enter checks or continues, after a right answer 1 Knew it, 2 Not sure, 3 I guessed; on the exam paper also the arrow keys); and a strict exam paper (a box on the exam start page: one question at a time with no going back, and moving on from a blank question asks first). Reads no course data; other modules read the flags with FX.api('study-controls').",
+ "source": "Intro-Pharmacology- exam1-drill/src/app.js at 929cd62: isFlagged, toggleFlag, flagBtn, flaggedPool, layoutToggle (lines 145-151), the delegated flag and layout handler (576-595), the Topics flag row (722-723, 777-778), renderAll and its card handlers (994-1080), renderExamAll (1663-1689), the noBack paper in vExam and renderExam (1616, 1633, 1690-1714), exLeaveOk (1716), the keyboard handler (3936-3961)",
+ "js": ["study-controls.js"],
+ "css": ["study-controls.css"],
+ "options": {
+  "flags": {"default": true, "about": "the Flag button, the flagged set and Drill flagged"},
+  "layout": {"default": true, "about": "the One at a time / All on one page chips and the one-page quiz and exam"},
+  "keys": {"default": true, "about": "the keyboard shortcuts in the quiz and on the exam paper"},
+  "strict": {"default": false, "about": "the strict-paper box on the exam start page; switch it on only when the real exam allows no going back"},
+  "strictNote": {"default": "", "about": "a sentence from the course's own files said beside the strict-paper box, for example where the professor described the exam format; plain text"}
+ },
+ "test": "test.js"
+}
