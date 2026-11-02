@@ -1,0 +1,30 @@
+
+=== the course's own objectives and kinds of problem ===
+  ok    the page carries module-pages, working
+  skip  every calculation belongs to a kind of problem  — the course declares no CALC_TYPES for a module with calculations
+  skip  every concept question belongs to an objective  — the course declares no OBJECTIVES for a module with concept questions
+
+=== the build step stops on bad module data ===
+  ok    an objective naming a subtopic not in TOPICS stops the build and says so
+  ok    an objective of a module the course does not have stops the build and says so
+  ok    two objectives of one module with one number stops the build and says so
+  ok    a kind of problem matching a topic not in TOPICS stops the build and says so
+  ok    two kinds of problem with one id stops the build and says so
+  ok    a worked example not in the bank stops the build and says so
+  ok    a worked example that is not a calculation stops the build and says so
+  ok    a worked example of another kind stops the build and says so
+  ok    a modules option of the wrong shape stops the build and says so
+
+=== on a scratch copy with Basic-Pharmacokinetics' Module 2 (Chromium) ===
+  ok    Topics shows a card per module, above the topic list, and keeps the topic list
+  FAIL  the Module 2 card offers Concepts (10 questions, 5 objectives) and Calculations (12 problems, 4 types), and no Worksheets without worksheets-ink  — ["concepts: 10 questions · 5 objectives","calcs: 35 problems · 4 types"]
+  ok    Concepts lists the 5 objectives and All objectives, under the module's heading; no status line without concept-statuses
+  ok    an objective's drill draws only concepts of its subtopics (4)
+  ok    an objective whose subtopics also hold calculations draws only their concept questions (2 of the 2 concept and 6 calculation questions there)
+  ok    coming back to Topics from the quiz shows the module's page again
+  ok    Calculations lists the 4 kinds of problem, each with a worked example worked line by line (no raw {{frac}} markup)
+  ok    Single problems draws only its own kind (2 of mpt-m2-k)
+  FAIL  All calculations in this module draws its 12 calculations
+  FAIL  with chained-problem-sets on, the two-compartment kind offers In parts for the professor's set  — {"types":4,"worked":true,"frac":false,"chain":3}
+DBG {"view":"topics","btns":[["wsc-hw2-p2","{\"x\":879.046875,\"y\":1075.25,\"width\":55.953125,\"height\":33.5,\"top\":1075.25,\"right\":935,\"bottom\":1108.75,\"left\":879.046875}","visible","block","<details class=\"worked\"><summary>In parts: 3 of the professor's problems</summary>\n        <div class=\"subs\"><div class="],["wsc-hwo2-p2","{\"x\":879.046875,\"y\":1154.75,\"width\":55.953125,\"height\":33.5,\"top\":1154.75,\"right\":935,\"bottom\":1188.25,\"left\":879.046875}","visible","block","<details class=\"worked\"><summary>In parts: 3 of the professor's problems</summary>\n        <div class=\"subs\"><div class="],["mpt-hw2-p2","{\"x\":879.046875,\"y\":1234.25,\"width\":55.953125,\"height\":33.5,\"top\":1234.25,\"right\":935,\"bottom\":1267.75,\"left\":879.046875}","visible","block","<details class=\"worked\"><summary>In parts: 3 of the professor's problems</summary>\n        <div class=\"subs\"><div class="]],"cls":"onmodpage","mp":true}
+exit 0

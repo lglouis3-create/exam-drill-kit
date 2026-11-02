@@ -1,0 +1,22 @@
+
+=== the course's own terms ===
+  ok    the module loads in the course's page and offers its finder
+  ok    all 10 terms are found by their own name, as themselves
+  info  1 of 10 terms are named in the bank's explanations
+
+=== the build step ===
+  ok    10 of the course's terms in 4 groups pass
+  ok    no TERMS stops the step with its reason
+  ok    an empty TERMS stops the step with its reason
+  ok    an id used twice stops the step with its reason
+  ok    a term with no definition stops the step with its reason
+  ok    a figure not in DIA stops the step with its reason
+  ok    a lecture not in COURSE.lectures stops the step with its reason
+  ok    two terms found by the same name stops the step with its reason
+  ok    a notTapped id that is not a term stops the step with its reason
+  ok    a duplicate name stops the build, with no page written
+
+=== worked in the browser (scratch copy) ===
+  ok    the Glossary tab is in the nav, before Settings (only other modules' tabs between them)
+FAIL: features/glossary-tap/test.js: crashed: TypeError: nav.includes is not a function
+    at /tmp/port-integration/c-all4/src/features/glossary-tap/test.js:187:13

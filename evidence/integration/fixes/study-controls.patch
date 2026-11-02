@@ -1,0 +1,32 @@
+diff -ruN a/features/study-controls/current/test.js b/features/study-controls/current/test.js
+--- a/features/study-controls/current/test.js	2026-11-02 20:16:38.522288964 +0000
++++ b/features/study-controls/current/test.js	2026-11-02 20:16:38.565937291 +0000
+@@ -303,7 +303,8 @@
+     const p1 = await ev(() => ({cards: document.querySelectorAll('#v-exam .scxq').length, n: EX.qs.length, clock: document.getElementById('exClock').textContent}));
+     await page.waitForTimeout(2200);   // the clock shows whole seconds, so two ticks
+     const c2 = await ev(() => document.getElementById('exClock').textContent);
+-    check(p1.cards === p1.n && /^\d\d:\d\d$/.test(p1.clock) && c2 !== p1.clock, `All on one page shows every question of the paper (${p1.n}) with its clock running`, {p1, c2});
++    check(p1.cards === p1.n && /^\d+:\d\d$/.test(p1.clock) && c2 !== p1.clock,   // a paper of 100 minutes or more shows 119:59
++    `All on one page shows every question of the paper (${p1.n}) with its clock running`, {p1, c2});
+     await ev(() => document.querySelector('#v-exam [data-scxk="1"]').click()); await settle();
+     const p2 = await ev(() => ({pick: EX.picks[1], saved: JSON.parse(store.get(EXAM_KEY())).picks[1]}));
+     await page.reload(); await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+@@ -396,7 +397,8 @@
+       const g2 = await ev(() => [...document.querySelectorAll('#v-exam .scxflags [data-scjump]')].map(b => b.textContent));
+       await page.click('#v-exam .scxflags [data-scjump="0"]'); await settle();
+       const g3 = await ev(() => EX.i);
+-      check(g1.drawn === other && g2.join() === '1' && g3 === 0,
++      // an exam id may be a number (Basic-Pharmacokinetics: 1, 2, 3); the chip's data-ppexam is text
++      check(String(g1.drawn) === other && g2.join() === '1' && g3 === 0,
+         `on a paper drawn for an earlier exam (${other}) a flagged question is listed on the bar and its link moves to it`, {g1, g2, g3});
+       await ev(id => FX.api('study-controls').set(id, false), fl);
+       await ev(() => finishExam(true)); await settle();
+@@ -409,7 +411,7 @@
+       await page.reload(); await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+       await goTab('exam');
+       const g6 = await ev(() => ({i: EX.i, prev: !!document.getElementById('exPrev'), strict: FX.api('study-controls').strictPaper()}));
+-      check(g4.box && g4.drawn === other && g5.i === 1 && !g5.prev && g5.strict && !g5.flag && g6.i === 1 && !g6.prev && g6.strict,
++      check(g4.box && String(g4.drawn) === other && g5.i === 1 && !g5.prev && g5.strict && !g5.flag && g6.i === 1 && !g6.prev && g6.strict,
+         `a strict paper drawn for an earlier exam (${other}): the box stays ticked when a paper is chosen, no Back, no flags, the left arrow does nothing, strict through a reload`, {g4, g5, g6});
+       await ev(() => finishExam(true)); await settle();
+     }

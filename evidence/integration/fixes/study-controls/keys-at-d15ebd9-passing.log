@@ -1,0 +1,24 @@
+modules on: {"sc":true,"keys":true,"ink":true,"notes":true,"sag":true,"tv":true,"qp":true,"gt":true,"views":["topics","quiz","gaps","notes","exam","sa","diagrams","guide","tell","ref","sheets","terms","glossary","settings"]}
+  ok    control: on a plain quiz card the key 1 does pick option A
+  ok    Scratch paper opens over a quiz calculation
+  ok    quiz Scratch paper, pen down: no shortcut checks or moves the quiz behind
+  ok    quiz Scratch paper open (pen up): no shortcut acts on the quiz behind the writing page
+  ok    Scratch paper opens over a paper's calculation
+  ok    paper Scratch paper, pen down: no shortcut moves the paper or answers behind
+  ok    paper Scratch paper open (pen up): no shortcut moves the paper behind the writing page
+  ok    Worksheets tab, Write on it, pen down: no shortcut acts on the quiz left open
+  ok    the Note box opens on a quiz card
+  ok    typing in a note on a quiz card fires no shortcut
+  ok    the Short answer page shows its text box
+  ok    typing a short answer fires no shortcut
+  ok    the Glossary search box is there
+  ok    typing in the glossary search fires no shortcut
+  ok    on the Terms tab (terms) no key acts on the quiz left open
+  ok    on Topics with the quiz-prep card no key acts on the quiz left open
+  ok    Clear flags: keys pressed while its confirm is open fire no shortcut ("Remove every flag?")
+  ok    Delete note: keys pressed while its confirm is open fire no shortcut ("Delete this note?")
+  ok    Clear page (quiz Scratch paper): keys pressed while its confirm is open fire no shortcut ("Clear all the writing on this page?")
+  ok    Import file picker open (simulated: Playwright intercepts the chooser; focus on BODY): no shortcut fires
+  ok    no page error
+PASS: integration keys_test.js: 21 checks passed
+exit 0

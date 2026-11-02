@@ -1,0 +1,24 @@
+diff -ruN a/features/terms-variables/current/test.js b/features/terms-variables/current/test.js
+--- a/features/terms-variables/current/test.js	2026-11-02 20:16:38.516794102 +0000
++++ b/features/terms-variables/current/test.js	2026-11-02 20:16:38.567066059 +0000
+@@ -80,7 +80,9 @@
+    step refuses (a tap could not tell them apart) */
+ const courseLine = (opts) => "COURSE.files = (COURSE.files || ['atlas.js', 'diagrams.js', 'q1_topics.js']).filter(f => f !== 'tvx_test_data.js').concat(['tvx_test_data.js']);" +
+   L.featureOn(DIR, Object.assign({families: PK.families, names: PK.names, twins: PK.twins}, opts || {})) +
+-  "if(COURSE.features) delete COURSE.features['glossary-tap'];";
++  "if(COURSE.features) delete COURSE.features['glossary-tap'];" +
++  // plan-the-problem likewise: the fixture's questions keep their `setup` lines, naming equations the course need not have
++  "if(COURSE.features) delete COURSE.features['plan-the-problem'];";
+ 
+ /* the shape checks of PK test.js section 9 and var_test.py, on a set of questions */
+ function shapeChecks(label, T, V, ctx){
+@@ -156,7 +158,8 @@
+       return {term: A.termQs.map(q => q.id), vars: A.varQs.map(q => q.id), keyed: Object.fromEntries(A.termQs.concat(A.varQs).map(q => [q.id, k(q)]))}; });
+     const ren = id => id.replace(/^term-/, 'term-tvt-').replace(/-ask-/, '-ask-tvt-');
+     const wantT = PK.pk.term.map(ren), wantV = PK.pk.vars.map(ren);
+-    const gotT = made.term.filter(id => /^term-tvt-/.test(id)), gotV = made.vars.filter(id => own.ASKS ? /-ask-tvt-/.test(id) : true);
++    // questions of the course's own (other prefixes) with `asks` give their own stem questions: only the test's (tvt-) are compared
++    const gotT = made.term.filter(id => /^term-tvt-/.test(id)), gotV = made.vars.filter(id => own.ASKS ? /-ask-tvt-/.test(id) : (!/-ask-/.test(id) || /-ask-tvt-/.test(id)));
+     const wantV2 = own.ASKS ? wantV.filter(id => /-ask-tvt-/.test(id)) : wantV;
+     check(JSON.stringify(gotT) === JSON.stringify(wantT), `the term questions are the ${wantT.length} Basic-Pharmacokinetics' own code makes from these 8 terms`, {got: gotT.length, want: wantT.length});
+     check(JSON.stringify(gotV) === JSON.stringify(wantV2), `the variable questions are the ${wantV2.length} Basic-Pharmacokinetics' own code makes from these calculations and ASKS`, {got: gotV.length, want: wantV2.length});

@@ -1,0 +1,92 @@
+
+=== 1. Question bank integrity ===
+  40 questions, 5 topics, 0 images
+  ok    the build's question count equals QUESTIONS.length (40)
+  FAIL  wsc-hw2-1e: numeric item needs worked steps
+  FAIL  wsc-hw2-1f: numeric item needs worked steps
+  FAIL  wsc-hwo2-1e: numeric item needs worked steps
+  FAIL  wsc-hwo2-1f: numeric item needs worked steps
+  FAIL  wsc-hw2-2a: numeric item needs worked steps
+  FAIL  wsc-hw2-2b: numeric item needs worked steps
+  FAIL  wsc-hw2-2d: numeric item needs worked steps
+  FAIL  wsc-hwo2-2a: numeric item needs worked steps
+  FAIL  wsc-hwo2-2b: numeric item needs worked steps
+  FAIL  wsc-hwo2-2d: numeric item needs worked steps
+
+=== 2. Exam blueprint coverage ===
+  Lectures 1–4: 7 questions (paper takes 4)
+
+=== 3. Concept spread per topic ===
+  topic1       3 q /   3 concepts  (Professor)
+  topic2       4 q /   4 concepts  (Professor)
+  orders      10 q /   9 concepts  (Professor)
+  warn  subtopic "orders/plots" (Linear and semi-logarithmic plots) has no questions
+  bolus1      15 q /   8 concepts  (Professor)
+  warn  subtopic "bolus1/model" (The one-compartment model after an IV bolus injection) has no questions
+  warn  subtopic "bolus1/vd" (Volume of distribution) has no questions
+  warn  subtopic "bolus1/cl" (Clearance) has no questions
+  bolus2       8 q /   4 concepts  (Professor)
+  warn  subtopic "bolus2/why" (Why some drugs need more than one compartment) has no questions
+  warn  subtopic "bolus2/params" (A, B, alpha, beta and the rate constants) has no questions
+
+=== 4. Spaced repetition rules ===
+feature module worksheets-ink (tab): TypeError: nav.querySelector is not a function
+    at evalmachine.<anonymous>:1589:17
+    at run (evalmachine.<anonymous>:1550:18)
+    at dom (evalmachine.<anonymous>:1582:7)
+    at startUp (evalmachine.<anonymous>:1603:11)
+    at evalmachine.<anonymous>:1664:5
+    at Object.askProfile (evalmachine.<anonymous>:888:3)
+    at Object.<anonymous> (/tmp/port-integration/c-ws/src/test.js:118:3)
+    at Module._compile (node:internal/modules/cjs/loader:1781:14)
+    at Object..js (node:internal/modules/cjs/loader:1913:10)
+    at Module.load (node:internal/modules/cjs/loader:1505:32)
+  ok    missed concept is held back rather than repeated at once
+  (resurfacing test needs a topic with 6+ concepts; skipped on this bank)
+  ok    box advanced 0 -> 3 with repeated correct answers
+  ok    a later miss resets the concept to active review
+  ok    a guess resets the concept to unresolved and outranks never-seen material
+  ok    "I guessed that one" rewrites the log, resets the box, keeps picked and ms
+  ok    11 concepts have more than one wording available
+
+=== 5. Exam simulation draw ===
+  FAIL  wsc-cq1-1 dupOf points at missing wsc-m1-ord-c04
+  FAIL  wsc-cq1-2 dupOf points at missing wsc-m1-ord-c01
+  FAIL  wsc-ws1-2-1 dupOf points at missing wsc-m1-ord-n16
+  FAIL  wsc-ws1-2-3 dupOf points at missing wsc-m1-ord-n11
+  FAIL  wsc-ws1-3-1a dupOf points at missing wsc-m1-ord-c07
+  FAIL  wsc-ws1-3-1c dupOf points at missing wsc-m1-ord-n08
+  blueprint: Exam 1 — Lectures 1–4 4 (4 of 4)
+  drew 4
+  ok    no duplicate questions on a single paper
+  ok    dupOf partners never share a paper (16 marked; 0 lowYield kept off the paper)
+  ok    20 repeated draws all kept the paper shape
+  select-all on the paper: 0 of 4 (target 0)
+  ok    the paper carries the intended number of select-all items
+  FAIL  33 questions cite no deck in the manifest: wsc-cq1-1, wsc-cq1-2, wsc-cq1-3a, wsc-cq1-3b, wsc-cq1-3c, wsc-ws1-2-1
+  ok    every question carries a skill from the course taxonomy (recall, tell, apply, read, calc)
+  ok    numeric grading accepts the answer within tolerance and rejects the rest
+
+=== 6. Storage isolation ===
+  ok    progress written under namespaced key: course-id-drill:data:me
+  ok    the page opened without asking for a name
+=== 7. Different wording when a missed concept returns ===
+  FAIL  returned the identical question, not a new wording
+=== 8. Small pools end instead of looping ===
+  ok    pool of 2 served 2 (2 distinct) then stopped
+  ok    "Ask everything" still serves (10 more)
+
+=== 9. Figures, read links, change log, blueprint ===
+  ok    every DIAGRAMS key is in DIA
+  ok    1 step-through figure(s), each with a dot per step
+  ok    2 read link(s), every one naming guide, tell or ref
+  7 of 40 questions resolve to a reading section (the rest group by topic in the review plan)
+  ok    a session is the run with no half-hour gap (2 of 4 answers)
+  ok    a correct answer marked "not sure" does not count as solid
+  skip  blueprint draw (this course draws by pool marks, not announced counts)
+  ok    1 change log entry embedded, each with bullets
+
+FAILURES: 18  (warnings: 6)
+
+FAIL: test.js: 18 failure(s)
+exit 1

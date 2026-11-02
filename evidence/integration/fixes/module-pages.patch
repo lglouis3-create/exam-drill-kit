@@ -1,0 +1,28 @@
+diff -ruN a/features/module-pages/current/test.js b/features/module-pages/current/test.js
+--- a/features/module-pages/current/test.js	2026-11-02 20:16:38.510338722 +0000
++++ b/features/module-pages/current/test.js	2026-11-02 20:16:38.562877655 +0000
+@@ -181,7 +181,10 @@
+     await ev(() => show('topics'));
+     if(chained.length){
+       check(kp.chain === 1, 'with chained-problem-sets on, the two-compartment kind offers In parts for the professor\'s set', kp);
+-      await page.click('#v-topics [data-mpchain]'); await page.waitForTimeout(80);
++      // the course's own problem sets may have Start buttons too (with several sets for one kind): click this set's, shown
++      // with several sets for the kind they are listed under a closed "In parts" list: open it first
++      await ev(() => { const b = document.querySelector('#v-topics [data-mpchain="mpt-hw2-p2"]'), d = b && b.closest('details'); if(d) d.open = true; });
++      await page.click('#v-topics [data-mpchain="mpt-hw2-p2"] >> visible=true'); await page.waitForTimeout(80);
+       check(await ev(() => !!(Q.chain && Q.chain.id === 'mpt-hw2-p2' && Q.current && Q.current.id === 'mpt-hw2-2a')), 'In parts starts the set at its first part');
+       await ev(() => show('topics'));
+       check(await ev(() => { const c = document.getElementById('chainSets'); return !!document.querySelector('#v-topics > .mpage') && (!c || getComputedStyle(c).display === 'none'); }),
+@@ -249,8 +252,10 @@
+           check(b === '1 document from the professor\'s handouts', 'with worksheets-ink on, the Module 2 card offers Worksheets (1 document)', b);
+           await o.page.click(`#mpCards .modbtn[data-mpmod="${pk3}"][data-mpsec="worksheets"]`); await o.page.waitForTimeout(80);
+           const w = await e3(() => ({h3: [...document.querySelectorAll('#v-topics .mpage h3')].map(h => h.textContent), ink: !!document.querySelector('#v-topics [data-ink="mpt-hw-2"][data-var="main"]'),
+-            go: !!document.querySelector('#v-topics [data-mpsheet="mpt-hw-2"]'), text: (document.querySelector('#v-topics .mpage .subrow small') || {}).textContent}));
+-          check(w.h3.join() === 'Homework' && w.ink && w.go && w.text === '4 problems in the drill', 'the Worksheets page lists Homework 2 with its 4 problems, Write on it and Practice in the drill', w);
++            go: !!document.querySelector('#v-topics [data-mpsheet="mpt-hw-2"]'),
++            text: (((document.querySelector('#v-topics [data-mpsheet="mpt-hw-2"]') || {closest: () => null}).closest('.subrow') || {querySelector: () => null}).querySelector('small') || {}).textContent}));
++          // the course's own documents of Module 2, when it has any, are listed beside the test's Homework 2
++          check(w.h3.includes('Homework') && w.ink && w.go && w.text === '4 problems in the drill', 'the Worksheets page lists Homework 2 with its 4 problems, Write on it and Practice in the drill', w);
+           await o.page.click('#v-topics [data-ink="mpt-hw-2"]'); await o.page.waitForTimeout(150);
+           check(await e3(() => !!document.querySelector('#ink') && !document.querySelector('#ink').hidden), 'Write on it opens the worksheet to write on');
+           await e3(() => FX.api('worksheets-ink').inkClose()); await o.page.waitForTimeout(80);

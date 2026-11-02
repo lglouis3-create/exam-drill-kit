@@ -1,0 +1,20 @@
+
+=== reading a wrong number (node) ===
+  ok    the page carries wrong-number-diagnosis, working
+  ok    11 wrong numbers read for the slip behind them (givens swapped, unit factor, reciprocal, a given carried, stopped early, near miss)
+  ok    the reading quotes the two givens and both operations
+  ok    no keyed answer of the bank's 31 numeric items is read as a slip
+
+=== in the quiz (Chromium, scratch copy) ===
+  ok    a wrong answer shows what the number says, with its kind
+  ok    beside the miss chips, the chip it points to marked
+  ok    the number's reading is kept with the answer as missSuggest; the pick is still the student's
+  ok    the pick is kept as miss, beside missSuggest
+  ok    a pick that differs is followed by what the number pointed to
+  ok    Weak spots counts the pick
+  ok    a saved missKind becomes miss when the progress is loaded
+  ok    and Weak spots counts it (Unit conversion: 1)
+  ok    and when a progress is imported
+  skip  a paper's result page  — the active exam does not draw calculations (exams[].typed is off)
+  ok    no page error
+PASS: features/wrong-number-diagnosis/test.js: 14 checks passed (1 skipped: a paper's result page)

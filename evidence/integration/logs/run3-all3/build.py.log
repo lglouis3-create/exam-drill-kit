@@ -1,0 +1,11 @@
+checking sources...
+  35 sources and sw.js parse cleanly
+  scheduler: concept (no library)
+  40 questions in 5 topics, from 2 question files: q1_topics.js, q90_wsc_fixture.js
+  feature formulas-in-text v1 in the page (options {"symbols": [], "rates": [], "halfLife": true, "times": true, "minus": true, "powers": true})
+  feature chained-problem-sets v2: build step done
+  feature chained-problem-sets v2 in the page
+  feature equation-drill v2: build step done
+  feature equation-drill v2 in the page (options {"label": "Equations", "before": "settings", "groups": {}})
+  feature wrong-number-diagnosis v1 in the page
+ERROR: feature plan-the-problem: its build step stopped the build: wsc-cq1-3a: setup names the equation "first-ln", which is not in EQUATIONS; wsc-cq1-3b: setup names the equation "cp-db-vd", which is not in EQUATIONS; wsc-cq1-3b: setup.pre names "first-ln", which is not in EQUATIONS; wsc-cq1-3c: setup names the equation "first-exp", which is not in EQUATIONS; wsc-cq1-3c: setup.pre names "thalf-first", which is not in EQUATIONS; wsc-ws1-2-1: setup names the equation "first-exp", which is not in EQUATIONS (and 52 more)

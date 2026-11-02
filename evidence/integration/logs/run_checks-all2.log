@@ -1,0 +1,47 @@
+PASS     build.py          wrote index.html  (0.63 MB)
+PASS     test.js           7 questions checked
+PASS     style_check.js    7 stems and 7 explanations clean
+PASS     render_test.js    every view rendered clean
+REPORT   explain_check.js  5 of 7 questions carry at least one explanation issue
+PASS     stepper_test.js   1 step-through(s) settle at every step
+NOT RUN  cite_check.py     no lecture PDFs found under decks/ or src/
+PASS     device_lint.js    3 checks passed
+PASS     output_test.js    16 checks passed
+PASS     files_test.js     13 checks passed
+PASS     tables_test.js    20 checks passed
+PASS     checks_test.js    32 checks passed
+PASS     draw_test.js      8 checks passed (1 skipped: no two wordings of one fact on a paper drawn from this bank)
+PASS     browser_test.js   94 checks passed (5 skipped: concept-block figures render after answering; drawn structures; stems that promise a figure show one …)
+PASS     storage_test.js   24 checks passed
+PASS     startup_test.js   77 checks passed
+PASS     update_test.js    38 checks passed
+PASS     offline_test.js   29 checks passed
+PASS     home_test.js      33 checks passed
+PASS     history_test.js   28 checks passed
+PASS     scheduler_test.js 110 checks passed
+PASS     preview_test.js   14 checks passed
+PASS     state_check.js    2 checks passed
+PASS     state_check_test.js 8 checks passed
+PASS     oldcache_test.js  12 checks passed
+PASS     nullexam_test.js  76 checks passed (1 skipped: the Weighting chips)
+PASS     features_test.js  40 checks passed
+PASS     features/formulas-in-text/test.js 11 checks passed (1 skipped: the bank's own fractions)
+PASS     features/chained-problem-sets/test.js 13 checks passed (2 skipped: the course's own problem sets; parts on drawn papers)
+PASS     features/equation-drill/test.js 30 checks passed
+PASS     features/wrong-number-diagnosis/test.js 14 checks passed (1 skipped: a paper's result page)
+PASS     features/plan-the-problem/test.js 34 checks passed
+FAIL     features/glossary-tap/test.js 1 of 43 checks failed: the Glossary tab is in the nav, before Settings
+PASS     features/pair-up-drills/test.js 40 checks passed (1 skipped: every item of the course's tables is offered its answers)
+PASS     features/short-answer-graphs/test.js 39 checks passed (1 skipped: the course's figures)
+PASS     features/study-controls/test.js 38 checks passed
+NOT RUN  features/worksheets-ink/test.js the scratch copy with the test documents does not build: ERROR: feature plan-the-problem: its build step stopped the build: wsi-cq1-3a: setup names the equation "first-ln", which is not in EQUATIONS; 
+NOT RUN  features/terms-variables/test.js the scratch copy with the test data does not build: ERROR: feature plan-the-problem: its build step stopped the build: tvt-m1-ord-n01: setup names the equation "first-ln", which is not in EQUATIONS; t
+NOT RUN  features/concept-statuses/test.js the scratch copy with the test questions does not build: ERROR: feature plan-the-problem: its build step stopped the build: cst-m1-auc-n02: setup names the equation "auc-trap", which is not in EQUATIO
+PASS     features/theme/test.js 23 checks passed
+FAIL     features/paper-picker/test.js 2 of 40 checks failed: choosing Exam 1 keeps the choice in the progress and marks its chip; after a reload the choice and the list are kept
+PASS     features/quiz-prep-cards/test.js 26 checks passed
+FAIL     features/module-pages/test.js 1 of 39 checks failed: the Worksheets page lists Homework 2 with its 4 problems, Write on it and Practice in the drill
+PASS     features/stopwatch/test.js 23 checks passed
+PASS     features/notes/test.js 96 checks passed
+37 PASS, 3 FAIL, 4 NOT RUN, 1 REPORT; logs in /tmp/drill-checks-sPKlIL
+exit 1

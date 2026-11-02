@@ -1,0 +1,28 @@
+ws-ch worksheets-ink: FAIL: features/worksheets-ink/test.js: 1 of 161 checks failed: Homework 2's re-numbered copies, named without "(changed numbers)", are still left off the worksheet and kept as the extra-practice sheet
+ws-ch worksheets-ink: exit 1
+ws-ch chained-problem-sets: PASS: features/chained-problem-sets/test.js: 16 checks passed (1 skipped: parts on drawn papers)
+ws-ch chained-problem-sets: exit 0
+ws worksheets-ink: FAIL: features/worksheets-ink/test.js: 1 of 157 checks failed: Homework 2's re-numbered copies, named without "(changed numbers)", are still left off the worksheet and kept as the extra-practice sheet
+ws worksheets-ink: exit 1
+gt-fit glossary-tap: PASS: features/glossary-tap/test.js: 93 checks passed
+gt-fit glossary-tap: exit 0
+gt-fit formulas-in-text: PASS: features/formulas-in-text/test.js: 11 checks passed (1 skipped: the bank's own fractions)
+gt-fit formulas-in-text: exit 0
+gt glossary-tap: PASS: features/glossary-tap/test.js: 56 checks passed (1 skipped: glossary-tap with formulas-in-text)
+gt glossary-tap: exit 0
+sc-pp study-controls: PASS: features/study-controls/test.js: 59 checks passed (1 skipped: the flags bar and the strict paper on a paper drawn for an earlier exam)
+sc-pp study-controls: exit 0
+sc-pp paper-picker: FAIL: features/paper-picker/test.js: 2 of 40 checks failed: choosing Exam 1 keeps the choice in the progress and marks its chip; after a reload the choice and the list are kept
+sc-pp paper-picker: exit 1
+sc study-controls: PASS: features/study-controls/test.js: 59 checks passed (1 skipped: the flags bar and the strict paper on a paper drawn for an earlier exam)
+sc study-controls: exit 0
+pp paper-picker: PASS: features/paper-picker/test.js: 40 checks passed
+pp paper-picker: exit 0
+nt-sc notes: PASS: features/notes/test.js: 96 checks passed
+nt-sc notes: exit 0
+nt-sc study-controls: PASS: features/study-controls/test.js: 59 checks passed (1 skipped: the flags bar and the strict paper on a paper drawn for an earlier exam)
+nt-sc study-controls: exit 0
+nt notes: PASS: features/notes/test.js: 86 checks passed
+nt notes: exit 0
+theme theme: PASS: features/theme/test.js: 23 checks passed
+theme theme: exit 0

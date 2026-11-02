@@ -1,0 +1,28 @@
+all5 glossary-tap before: FAIL: features/glossary-tap/test.js: 4 of 93 checks failed: the Glossary tab is in the nav, before Settings; formulas-in-text alone: the page runs formulas-in-text; formulas-in-text first: the page runs formulas-in-text, then glossary-tap …
+all5 glossary-tap after:  FAIL: features/glossary-tap/test.js: 3 of 93 checks failed: formulas-in-text alone: the page runs formulas-in-text; formulas-in-text first: the page runs formulas-in-text, then glossary-tap; glossary-tap first: the page runs glossary-tap, then formulas-in-text
+all5 module-pages before: FAIL: features/module-pages/test.js: page.click: Timeout 30000ms exceeded.
+all5 module-pages after:  FAIL: features/module-pages/test.js: 6 of 39 checks failed: the Module 2 card offers Concepts (10 questions, 5 objectives) and Calculations (12 problems, 4 types), and no Worksheets without worksheets-ink; All calculations in this module draws its 12 calculations; with chai
+all5 terms-variables before: NOT RUN: features/terms-variables/test.js: the scratch copy with the test data does not build: ERROR: feature plan-the-problem: its build step stopped the build: tvt-m1-ord-n01: setup names the equation "first-ln", which is not in EQUATIONS; tvt-m1-ord-n02: setup names t
+all5 terms-variables after:  PASS: features/terms-variables/test.js: 38 checks passed
+all5 worksheets-ink before: NOT RUN: features/worksheets-ink/test.js: the scratch copy with the test documents does not build: ERROR: feature plan-the-problem: its build step stopped the build: wsi-cq1-3a: setup names the equation "first-ln", which is not in EQUATIONS; wsi-cq1-3b: setup names the eq
+all5 worksheets-ink after:  PASS: features/worksheets-ink/test.js: 161 checks passed (1 skipped: Apple Pencil, iPad and Safari)
+all5 concept-statuses before: NOT RUN: features/concept-statuses/test.js: the scratch copy with the test questions does not build: ERROR: feature plan-the-problem: its build step stopped the build: cst-m1-auc-n02: setup names the equation "auc-trap", which is not in EQUATIONS
+all5 concept-statuses after:  PASS: features/concept-statuses/test.js: 58 checks passed
+all5 paper-picker before: FAIL: features/paper-picker/test.js: 2 of 40 checks failed: choosing Exam 1 keeps the choice in the progress and marks its chip; after a reload the choice and the list are kept
+all5 paper-picker after:  PASS: features/paper-picker/test.js: 40 checks passed
+all5 study-controls before: PASS: features/study-controls/test.js: 59 checks passed (1 skipped: the flags bar and the strict paper on a paper drawn for an earlier exam)
+all5 study-controls after:  PASS: features/study-controls/test.js: 59 checks passed (1 skipped: the flags bar and the strict paper on a paper drawn for an earlier exam)
+ws worksheets-ink before: FAIL: features/worksheets-ink/test.js: 1 of 157 checks failed: Homework 2's re-numbered copies, named without "(changed numbers)", are still left off the worksheet and kept as the extra-practice sheet
+ws worksheets-ink after:  PASS: features/worksheets-ink/test.js: 157 checks passed (2 skipped: Practice in the drill with chained-problem-sets on; Apple Pencil, iPad and Safari)
+ws-ch worksheets-ink before: FAIL: features/worksheets-ink/test.js: 1 of 161 checks failed: Homework 2's re-numbered copies, named without "(changed numbers)", are still left off the worksheet and kept as the extra-practice sheet
+ws-ch worksheets-ink after:  PASS: features/worksheets-ink/test.js: 161 checks passed (1 skipped: Apple Pencil, iPad and Safari)
+sc-pp3 study-controls before: FAIL: features/study-controls/test.js: 3 of 61 checks failed: All on one page shows every question of the paper (6) with its clock running; on a paper drawn for an earlier exam (1) a flagged question is listed on the bar and its link moves to it; a strict paper drawn fo
+sc-pp3 study-controls after:  PASS: features/study-controls/test.js: 60 checks passed (1 skipped: a paper with a calculation stays one at a time)
+sc-pp3 paper-picker before: FAIL: features/paper-picker/test.js: 2 of 50 checks failed: choosing Exam 1 keeps the choice in the progress and marks its chip; after a reload the choice and the list are kept
+sc-pp3 paper-picker after:  PASS: features/paper-picker/test.js: 50 checks passed
+sc-pp paper-picker before: FAIL: features/paper-picker/test.js: 2 of 40 checks failed: choosing Exam 1 keeps the choice in the progress and marks its chip; after a reload the choice and the list are kept
+sc-pp paper-picker after:  PASS: features/paper-picker/test.js: 40 checks passed
+all5 glossary-tap before: FAIL: features/glossary-tap/test.js: 4 of 93 checks failed: the Glossary tab is in the nav, before Settings; formulas-in-text alone: the page runs formulas-in-text; formulas-in-text first: the page runs formulas-in-text, then glossary-tap …
+all5 glossary-tap after:  PASS: features/glossary-tap/test.js: 93 checks passed
+gt-fit glossary-tap before: PASS: features/glossary-tap/test.js: 93 checks passed
+gt-fit glossary-tap after:  PASS: features/glossary-tap/test.js: 93 checks passed

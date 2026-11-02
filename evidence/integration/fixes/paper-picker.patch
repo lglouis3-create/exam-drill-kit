@@ -1,0 +1,21 @@
+diff -ruN a/features/paper-picker/current/test.js b/features/paper-picker/current/test.js
+--- a/features/paper-picker/current/test.js	2026-11-02 20:16:38.507173880 +0000
++++ b/features/paper-picker/current/test.js	2026-11-02 20:16:38.562250817 +0000
+@@ -147,7 +147,7 @@
+           'the Exam view offers one chip per exam, the current exam (Exam 3) chosen, and no list before a paper', p0);
+     await page.click('#v-exam .chip[data-ppexam="1"]');
+     await page.waitForSelector('#v-exam [data-pp="other"]', {timeout: 5000}).catch(() => {});
+-    const p1 = await ev(() => ({kept: DB.paperPicker && DB.paperPicker.exam, on: [...document.querySelectorAll('#v-exam .chip[aria-pressed="true"]')].map(b => b.dataset.ppexam),
++    const p1 = await ev(() => ({kept: DB.paperPicker && DB.paperPicker.exam, on: [...document.querySelectorAll('#v-exam .chip[data-ppexam][aria-pressed="true"]')].map(b => b.dataset.ppexam),
+       text: document.getElementById('v-exam').textContent, rows: document.querySelectorAll('#v-exam [data-pp="other"] tbody tr').length,
+       cells: [...document.querySelectorAll('#v-exam [data-pp="other"] tbody tr')].map(r => r.children[1].textContent).join('/'),
+       start: !!document.getElementById('startExam')}));
+@@ -183,7 +183,7 @@
+     await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+     await page.click('#nav button[data-v="exam"]');
+     await page.waitForSelector('#v-exam [data-pp="history"]', {timeout: 5000}).catch(() => {});
+-    const k = await ev(() => ({on: [...document.querySelectorAll('#v-exam .chip[aria-pressed="true"]')].map(b => b.dataset.ppexam),
++    const k = await ev(() => ({on: [...document.querySelectorAll('#v-exam .chip[data-ppexam][aria-pressed="true"]')].map(b => b.dataset.ppexam),
+       rows: document.querySelectorAll('#v-exam [data-pp="history"] tbody tr').length}));
+     check(k.on.join() === '1' && k.rows === 1, 'after a reload the choice and the list are kept', k);
+     // a second paper, for the current exam, submitted with blank items

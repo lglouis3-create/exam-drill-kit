@@ -1,0 +1,33 @@
+
+=== the course's own quizzes ===
+  ok    the page carries quiz-prep-cards, working
+  ok    every quiz covers at least one question, and only questions of the topics or modules it names (1 quizzes)
+  ok    one card per quiz still ahead and not hidden (1 of 1)
+  ok    the days-left line at 5 fixed times
+  ok    a quiz is ahead until its start plus its minutes, and a quiz without a time is never shown
+
+=== the build step stops on bad quiz data ===
+  ok    no quizzes stops the build and says so
+  ok    a topic that TOPICS does not have stops the build and says so
+  ok    a module no question carries stops the build and says so
+  ok    a when that is not YYYY-MM-DDTHH:MM stops the build and says so
+  ok    two quizzes with one id stops the build and says so
+  ok    a field the module does not read stops the build and says so
+  ok    a tag other than sub, sup, b, i, em in a said line stops the build and says so
+  ok    a tag in covers stops the build and says so
+
+=== on a scratch copy with Basic-Pharmacokinetics' Quiz 5 and Quiz 4 (Chromium) ===
+  ok    a card for each of the two quizzes ahead, in the course's order, and none for the one already sat
+  ok    the card names the quiz, its day and time, the days left and what it covers
+  ok    the card carries the professor's words and the source
+  ok    every said line is listed (8), with <sub> kept
+  ok    formulas-in-text is on: the two {{frac:a|b}} of said line 5 are stacked
+  ok    the cards sit above the Topics filters
+  ok    Everything on this quiz starts the drill on the quiz's 5 questions, of modules 9 and 8 only
+  ok    the concepts drill (4) has no typed number and the calculations drill (1) only typed numbers
+  ok    the straight pass queues each of the quiz's questions once
+  ok    Hide removes the card and the choice survives a reload
+  ok    Settings offers to put the hidden card back, by name
+  ok    the card is back on Topics and Settings says no card is hidden
+  ok    no page error and no module error
+PASS: features/quiz-prep-cards/test.js: 26 checks passed

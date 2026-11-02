@@ -1,0 +1,17 @@
+
+=== the course's own {{frac:...}} marks ===
+  ok    every {{frac:...}} in the bank is well formed and every {{ closes (85 marks in 40 questions)
+
+=== drawn as Basic-Pharmacokinetics draws it (scratch copy) ===
+  ok    all 8 stems drawn as Basic-Pharmacokinetics' own formatter draws them
+  ok    all 32 options drawn the same way
+  ok    no {{frac: left on screen after an answer, the explanations included
+  ok    the 3 worked steps of m1-ord-n03 drawn the same way
+  ok    the control: 6 typed formulas set as the slides print them
+  ok    the control: 3 runs of ordinary text left as they are
+  ok    a question with none of the marks (s1-1) is drawn exactly as without the module
+  ok    a matching dropdown shows a ratio as (a)/(b)
+  ok    a fraction in a reading tab's HTML stacks, its own <sub> kept
+  ok    the fraction styles are in the page
+  ok    no page error
+PASS: features/formulas-in-text/test.js: 12 checks passed

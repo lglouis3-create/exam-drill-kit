@@ -1,0 +1,8 @@
+
+=== the course's own data ===
+  ok    the page carries concept-statuses, working
+  ok    every concept has a readable name (7; e.g. "Sample definition")
+  ok    an answer to a question no longer in the bank reaches no concept
+
+=== on a scratch copy with 4 of Basic-Pharmacokinetics' questions (Chromium) ===
+NOT RUN: features/concept-statuses/test.js: the scratch copy with the test questions does not build: ERROR: feature plan-the-problem: its build step stopped the build: cst-m1-auc-n02: setup names the equation "auc-trap", which is not in EQUATIONS

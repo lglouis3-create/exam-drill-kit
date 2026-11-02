@@ -1,0 +1,53 @@
+
+=== the course's own terms ===
+  ok    the module loads in the course's page and offers its finder
+  ok    all 8 terms are found by their own name, as themselves
+  info  1 of 8 terms are named in the bank's explanations
+
+=== the build step ===
+  ok    8 of the course's terms in 2 groups pass
+  ok    no TERMS stops the step with its reason
+  ok    an empty TERMS stops the step with its reason
+  ok    an id used twice stops the step with its reason
+  ok    a term with no definition stops the step with its reason
+  ok    a figure not in DIA stops the step with its reason
+  ok    a lecture not in COURSE.lectures stops the step with its reason
+  ok    two terms found by the same name stops the step with its reason
+  ok    a notTapped id that is not a term stops the step with its reason
+  ok    a duplicate name stops the build, with no page written
+
+=== worked in the browser (scratch copy) ===
+  FAIL  the Glossary tab is in the nav, before Settings  — ["topics","quiz","gaps","notes","exam","sa","diagrams","guide","tell","ref","eq","glossary","pairup","sheets","terms","settings"]
+  ok    the glossary shows the 8 terms (IP browser_test.js line 55)
+  ok    under their groups, in the course's order
+  ok    each card has the term's definition, one-line meaning, situation and source
+  ok    a term with a figure shows it (IP browser_test.js line 56)
+  ok    the count line
+  ok    a search lists the 1 names that match first, then the terms that mention the word
+  ok    7 matches, counted, with Clear shown
+  ok    a search with no match says so
+  ok    Clear empties the box and shows every term again
+  ok    the letters with no term are disabled
+  ok    a letter switches to A-Z order, by first letter, and jumps to it
+  ok    a group chip shows that group only (5 terms)
+  ok    the floating button appears once the search bar is off screen
+  ok    and goes once it is used
+  ok    before the answer is shown, no term is marked
+  ok    after the answer, 5 terms are marked, each once
+  ok    affinity, efficacy, pharmacodynamics and receptor among them
+  ok    none in the stem, an option's own text or the verdict
+  ok    the core gave no bracketed gloss here (the explanation defines affinity itself)
+  ok    a tap opens the term's definition, meaning and source under the line
+  ok    a second tap closes it
+  ok    "Open in the Glossary" opens the tab at the term, with the way back to the question
+  ok    a term the core has glossed in brackets is not a button in that question; the others are
+  ok    in a guide section each term is marked once
+  ok    a new section marks affinity again, but not efficacy, which its word list defines
+  ok    no heading holds a button
+  ok    a tap in a guide opens the definition inside that line
+  ok    no page error
+
+=== the options ===
+  ok    with notTapped, that term is no longer found
+  ok    with tap off, nothing is marked and the Glossary tab stays
+FAIL: features/glossary-tap/test.js: 1 of 43 checks failed: the Glossary tab is in the nav, before Settings

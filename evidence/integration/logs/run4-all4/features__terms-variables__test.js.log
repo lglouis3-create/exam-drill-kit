@@ -1,0 +1,45 @@
+
+=== the course's own terms and symbols ===
+  ok    the page carries terms-variables, working
+  ok    the course: every question has one keyed option among four or more distinct options, each with a reason (30 term, 0 variable)
+  ok    the course: ids unique, none a bank question, none in the bank
+  ok    the course: no situation or definition stem prints the term it asks for
+  ok    none of these questions is on an exam paper (5 papers drawn)
+  ok    the question sentence without lookbehind is Basic-Pharmacokinetics' on 9 control texts and 31 numeric stems
+
+=== the build step stops on bad terms and symbols ===
+  ok    a confuse that is not a list stops the build and says so
+  ok    a term id used twice stops the build and says so
+  ok    a term with no definition stops the build and says so
+  ok    fewer than 4 terms stops the build and says so
+  ok    an ASKS entry that is not [symbol, meaning] stops the build and says so
+  ok    a families key that ASKS does not have stops the build and says so
+  ok    a numeric question asking for a key ASKS does not have stops the build and says so
+  ok    a bank id that starts var- stops the build and says so
+
+=== on a scratch copy with Basic-Pharmacokinetics' terms, calculations and symbols (Chromium) ===
+  ok    the term questions are the 24 Basic-Pharmacokinetics' own code makes from these 8 terms
+  FAIL  the variable questions are the 108 Basic-Pharmacokinetics' own code makes from these calculations and ASKS  — {"got":120,"want":108}
+  ok    each keyed answer is the one Basic-Pharmacokinetics' code keys
+  ok    the scratch copy: every question has one keyed option among four or more distinct options, each with a reason (54 term, 120 variable)
+  ok    the scratch copy: ids unique, none a bank question, none in the bank
+  ok    the scratch copy: no situation or definition stem prints the term it asks for
+  ok    the scratch copy: the keyed symbol of each of the 20 stem-sentence questions is the one its calculation asks for
+  ok    the scratch copy: no question sentence names its own answer
+  ok    the scratch copy: twins are never each other's wrong option
+  ok    a Terms tab, and no Glossary tab of its own
+  ok    Flashcards: card 1 shows a situation (or definition) that does not print the term, with the term hidden
+  ok    Show the term shows it, with Knew it, Not sure and Did not know
+  ok    Knew it is recorded as a right answer to the term's meaning question, and card 2 follows
+  ok    Quiz me lists all terms and each of the 8 groups
+  ok    the variables quiz is listed under Quiz me: all variables and each of the 7 families
+  ok    Start drills every term question and only those (54)
+  ok    a right answer is marked right and recorded under the term's concept
+  ok    Start drills the whole variables quiz and only it (120)
+  ok    a right answer is marked right and recorded under the symbol's concept
+  ok    one family (rate constants) drills only its symbols (18 questions)
+  ok    the Equations tab offers the variables quiz
+  ok    its Start drills the variables quiz
+  ok    no sideways scroll on the Terms tab at 390 px (0)
+  ok    no page error
+FAIL: features/terms-variables/test.js: 1 of 38 checks failed: the variable questions are the 108 Basic-Pharmacokinetics' own code makes from these calculations and ASKS

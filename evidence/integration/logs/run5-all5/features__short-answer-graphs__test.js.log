@@ -1,0 +1,47 @@
+
+=== the course's own short answers and figures ===
+  ok    the page carries short-answer-graphs, working
+  skip  the course's figures  — the course declares no GRAPHS
+  ok    every short-answer prompt has key points (2 prompts)
+
+=== the build step stops on bad data ===
+  ok    an image that is not in images.json stops the build and says so
+  ok    an image in two figures stops the build and says so
+  ok    a miss tag in no table stops the build and says so
+  ok    a figure with no question stops the build and says so
+  ok    a prompt with no key points stops the build and says so
+  ok    a prompt id used twice stops the build and says so
+  ok    a course with neither list stops the build and says so
+
+=== on a scratch copy with Intro-Pharmacology's rows (Chromium) ===
+  ok    the Short answer and Graphs tabs sit before Diagrams
+  ok    one card per figure, each with its image (2 cards, 2 figures)
+  ok    a fold per exam, the active exam open; the Exam 2 fold names its group Tissue tracings and has its intro line
+  ok    the card counts the figure's questions, all unseen (5)
+  ok    Drill this figure opens a pass of its 5 questions, with its figure
+  ok    the figure carries the question's own description as its alt text
+  ok    a wrong pick names the reading question skipped, under the verdict
+  ok    the figure's reading is open, every line of it
+  ok    a right answer shows the reading folded and names nothing skipped
+  ok    the end of the pass counts the right answers (4 of 5)
+  ok    it lists the reading question skipped, with how often
+  ok    All figures goes back; the card shows the wrong answer, the reading skipped and Redo wrong
+  ok    Redo wrong asks only the question answered wrong
+  ok    a tracing names its skipped question in tracing wording, not curve wording (tag class)
+  ok    the counts on the card are kept through a reload
+  ok    the page shows the first of 7 prompts, the model answer hidden
+  ok    the course's line on its short answers, and the prompt's form, are shown
+  ok    the draft is kept in the progress as it is typed
+  ok    Check my answer shows the model answer and each key point to tick, and counts the prompt checked
+  ok    the quote and the source are shown with it
+  ok    ticking key points counts them and keeps them
+  ok    a reload comes back to the page with the draft and the ticks
+  ok    Next shows the next prompt with its model answer hidden
+  ok    a key prompt says so, an objective prompt carries no form, and Next stops at the last
+  ok    Previous goes back one prompt
+  ok    Shuffle starts again at prompt 1, every prompt kept
+  ok    Clear empties the draft and the ticks
+  ok    no page errors
+  ok    the module raised no error
+  ok    with short answers only, there is no Graphs tab
+PASS: features/short-answer-graphs/test.js: 39 checks passed (1 skipped: the course's figures)

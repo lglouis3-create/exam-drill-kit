@@ -1,0 +1,47 @@
+FAIL     build.py          ERROR: feature plan-the-problem: its build step stopped the build: wsc-cq1-3a: setup names the equation "first-ln", which is not in EQUATIONS; wsc-cq1-3b: setup names the equation "cp-db-vd", which is
+NOT RUN  test.js           the build failed, so there is no current page to check
+NOT RUN  style_check.js    the build failed, so there is no current page to check
+NOT RUN  render_test.js    the build failed, so there is no current page to check
+NOT RUN  explain_check.js  the build failed, so there is no current page to check
+NOT RUN  stepper_test.js   the build failed, so there is no current page to check
+NOT RUN  cite_check.py     the build failed, so there is no current page to check
+NOT RUN  device_lint.js    the build failed, so there is no current page to check
+NOT RUN  output_test.js    the build failed, so there is no current page to check
+NOT RUN  files_test.js     the build failed, so there is no current page to check
+NOT RUN  tables_test.js    the build failed, so there is no current page to check
+NOT RUN  checks_test.js    the build failed, so there is no current page to check
+NOT RUN  draw_test.js      the build failed, so there is no current page to check
+NOT RUN  browser_test.js   the build failed, so there is no current page to check
+NOT RUN  storage_test.js   the build failed, so there is no current page to check
+NOT RUN  startup_test.js   the build failed, so there is no current page to check
+NOT RUN  update_test.js    the build failed, so there is no current page to check
+NOT RUN  offline_test.js   the build failed, so there is no current page to check
+NOT RUN  home_test.js      the build failed, so there is no current page to check
+NOT RUN  history_test.js   the build failed, so there is no current page to check
+NOT RUN  scheduler_test.js the build failed, so there is no current page to check
+NOT RUN  preview_test.js   the build failed, so there is no current page to check
+NOT RUN  state_check.js    the build failed, so there is no current page to check
+NOT RUN  state_check_test.js the build failed, so there is no current page to check
+NOT RUN  oldcache_test.js  the build failed, so there is no current page to check
+NOT RUN  nullexam_test.js  the build failed, so there is no current page to check
+NOT RUN  features_test.js  the build failed, so there is no current page to check
+NOT RUN  features/formulas-in-text/test.js the build failed, so there is no current page to check
+NOT RUN  features/chained-problem-sets/test.js the build failed, so there is no current page to check
+NOT RUN  features/equation-drill/test.js the build failed, so there is no current page to check
+NOT RUN  features/wrong-number-diagnosis/test.js the build failed, so there is no current page to check
+NOT RUN  features/plan-the-problem/test.js the build failed, so there is no current page to check
+NOT RUN  features/glossary-tap/test.js the build failed, so there is no current page to check
+NOT RUN  features/pair-up-drills/test.js the build failed, so there is no current page to check
+NOT RUN  features/short-answer-graphs/test.js the build failed, so there is no current page to check
+NOT RUN  features/study-controls/test.js the build failed, so there is no current page to check
+NOT RUN  features/worksheets-ink/test.js the build failed, so there is no current page to check
+NOT RUN  features/terms-variables/test.js the build failed, so there is no current page to check
+NOT RUN  features/concept-statuses/test.js the build failed, so there is no current page to check
+NOT RUN  features/theme/test.js the build failed, so there is no current page to check
+NOT RUN  features/paper-picker/test.js the build failed, so there is no current page to check
+NOT RUN  features/quiz-prep-cards/test.js the build failed, so there is no current page to check
+NOT RUN  features/module-pages/test.js the build failed, so there is no current page to check
+NOT RUN  features/stopwatch/test.js the build failed, so there is no current page to check
+NOT RUN  features/notes/test.js the build failed, so there is no current page to check
+1 FAIL, 44 NOT RUN; logs in /tmp/drill-checks-oqfrxx
+exit 1

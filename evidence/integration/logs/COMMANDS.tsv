@@ -1,0 +1,74 @@
+19:27:31	/tmp/port-integration/c-all/src	node /tmp/port-integration/keys_test.js /tmp/port-integration/c-all/src	1	/tmp/port-integration/logs/keys-all.log
+19:28:42	/tmp/port-integration/c-all/src	node /tmp/port-integration/keys_test.js /tmp/port-integration/c-all/src	1	/tmp/port-integration/logs/keys-all.log
+19:29:03	/tmp/port-integration/c-all/src	node /tmp/port-integration/keys_test.js /tmp/port-integration/c-all/src	1	/tmp/port-integration/logs/keys-all.log
+19:29:38	/tmp/port-integration/c-keys/src	node /tmp/port-integration/keys_test.js /tmp/port-integration/c-keys/src	1	/tmp/port-integration/logs/keys-before-fix.log
+19:30:02	/tmp/port-integration/c-keys/src	node /tmp/port-integration/keys_test.js /tmp/port-integration/c-keys/src	1	/tmp/port-integration/logs/keys-before-fix.log
+19:25:30	/tmp/port-integration/c-all/src	./run_checks.sh (run 1, one combined data file)	1	/tmp/port-integration/logs/run_checks-all.log + logs/run1-all/
+19:35:01	/tmp/port-integration/c-all/src	node /tmp/port-integration/contrast_test.js /tmp/port-integration/c-all/src /tmp/port-integration/shots/contrast-all	1	/tmp/port-integration/logs/contrast-all.log
+19:35:27	/tmp/port-integration/c-all/src	node /tmp/port-integration/contrast_test.js /tmp/port-integration/c-all/src /tmp/port-integration/shots/contrast-all	0	/tmp/port-integration/logs/contrast-all.log
+19:36:32	/tmp/port-integration/c-all/src	node /tmp/port-integration/contrast_test.js /tmp/port-integration/c-all/src /tmp/port-integration/shots/contrast-all	0	/tmp/port-integration/logs/contrast-all.log
+19:38:57	/tmp/port-integration/c-ws-ch/src	node /tmp/port-integration/ws_chain_test.js /tmp/port-integration/c-ws-ch/src	1	/tmp/port-integration/logs/wschain-ws-ch.log
+19:39:46	/tmp/port-integration/c-ws-ch/src	node /tmp/port-integration/ws_chain_test.js /tmp/port-integration/c-ws-ch/src	0	/tmp/port-integration/logs/wschain-ws-ch.log
+19:34:04	/tmp/port-integration/c-all2/src	./run_checks.sh	1	/tmp/port-integration/logs/run_checks-all2.log
+19:40:19	/tmp/port-integration/c-ws/src	node /tmp/port-integration/ws_chain_test.js /tmp/port-integration/c-ws/src	0	/tmp/port-integration/logs/wschain-ws.log
+19:43:20	/tmp/port-integration/c-all3/src	./run_checks.sh	1	/tmp/port-integration/logs/run_checks-all3-unfixed.log
+19:43:45	/tmp/port-integration/c-keys/src	node /tmp/port-integration/keys_test.js /tmp/port-integration/c-keys/src	0	/tmp/port-integration/logs/keys-run2.log
+19:43:54	/tmp/port-integration/c-ws-ch/src	node /tmp/port-integration/ws_chain_test.js /tmp/port-integration/c-ws-ch/src	0	/tmp/port-integration/logs/wschain-run2-ws-ch.log
+19:44:27	/tmp/port-integration/c-ws/src	node /tmp/port-integration/ws_chain_test.js /tmp/port-integration/c-ws/src	0	/tmp/port-integration/logs/wschain-run2-ws.log
+19:45:20	/tmp/port-integration/c-ws-ch/src	node features/worksheets-ink/test.js	1	/tmp/port-integration/logs/ws-ch__worksheets-ink.log
+19:46:17	/tmp/port-integration/c-ws-ch/src	node features/chained-problem-sets/test.js	0	/tmp/port-integration/logs/ws-ch__chained-problem-sets.log
+19:46:20	/tmp/port-integration/c-ws/src	node features/worksheets-ink/test.js	1	/tmp/port-integration/logs/ws__worksheets-ink.log
+19:47:15	/tmp/port-integration/c-gt-fit/src	node features/glossary-tap/test.js	0	/tmp/port-integration/logs/gt-fit__glossary-tap.log
+19:47:31	/tmp/port-integration/c-gt-fit/src	node features/formulas-in-text/test.js	0	/tmp/port-integration/logs/gt-fit__formulas-in-text.log
+19:47:33	/tmp/port-integration/c-gt/src	node features/glossary-tap/test.js	0	/tmp/port-integration/logs/gt__glossary-tap.log
+19:47:44	/tmp/port-integration/c-sc-pp/src	node features/study-controls/test.js	0	/tmp/port-integration/logs/sc-pp__study-controls.log
+19:48:04	/tmp/port-integration/c-sc-pp/src	node features/paper-picker/test.js	1	/tmp/port-integration/logs/sc-pp__paper-picker.log
+19:48:14	/tmp/port-integration/c-sc/src	node features/study-controls/test.js	0	/tmp/port-integration/logs/sc__study-controls.log
+19:48:35	/tmp/port-integration/c-pp/src	node features/paper-picker/test.js	0	/tmp/port-integration/logs/pp__paper-picker.log
+19:48:44	/tmp/port-integration/c-nt-sc/src	node features/notes/test.js	0	/tmp/port-integration/logs/nt-sc__notes.log
+19:48:59	/tmp/port-integration/c-nt-sc/src	node features/study-controls/test.js	0	/tmp/port-integration/logs/nt-sc__study-controls.log
+19:49:18	/tmp/port-integration/c-nt/src	node features/notes/test.js	0	/tmp/port-integration/logs/nt__notes.log
+19:49:30	/tmp/port-integration/c-theme/src	node features/theme/test.js	0	/tmp/port-integration/logs/theme__theme.log
+19:50:34	/tmp/port-integration/c-sc-pp3/src	node features/study-controls/test.js	1	/tmp/port-integration/logs/sc-pp3__study-controls.log
+19:43:21	/tmp/port-integration/c-all4/src	./run_checks.sh	1	/tmp/port-integration/logs/run_checks-all4-fixed.log
+19:51:34	/tmp/port-integration/c-sc-pp3/src	node features/study-controls/test.js	1	/tmp/port-integration/logs/fix-sc-pp3-study-controls-before.log
+19:51:58	/tmp/port-integration/c-sc-pp3/src	node features/study-controls/test.fixed.js	0	/tmp/port-integration/logs/fix-sc-pp3-study-controls-after.log
+19:52:21	/tmp/port-integration/c-sc-pp3/src	node features/paper-picker/test.js	1	/tmp/port-integration/logs/fix-sc-pp3-paper-picker-before.log
+19:52:31	/tmp/port-integration/c-sc-pp3/src	node features/paper-picker/test.fixed.js	0	/tmp/port-integration/logs/fix-sc-pp3-paper-picker-after.log
+19:52:41	/tmp/port-integration/c-sc-pp/src	node features/paper-picker/test.js	1	/tmp/port-integration/logs/fix-sc-pp-paper-picker-before.log
+19:52:50	/tmp/port-integration/c-sc-pp/src	node features/paper-picker/test.fixed.js	0	/tmp/port-integration/logs/fix-sc-pp-paper-picker-after.log
+19:54:14	/tmp/port-integration/c-ws/src	node test.js	1	/tmp/port-integration/logs/ws__core-test.js.log
+19:54:14	/tmp/port-integration/c-gt/src	node test.js	0	/tmp/port-integration/logs/gt__core-test.js.log
+19:54:25	/tmp/port-integration/c-all5/src	node /tmp/port-integration/contrast_test.js /tmp/port-integration/c-all5/src /tmp/port-integration/shots/contrast-all5	0	/tmp/port-integration/logs/contrast-all5.log
+19:55:13	/tmp/port-integration/c-all5/src	node /tmp/port-integration/keys_test.js /tmp/port-integration/c-all5/src	0	/tmp/port-integration/logs/keys-all5.log
+19:54:20	/tmp/port-integration/c-all5/src	./run_checks.sh	1	/tmp/port-integration/logs/run_checks-all5-fixed.log
+20:04:02	/tmp/port-integration/c-all5/src	node features/module-pages/test.dbg.js	0	/tmp/port-integration/logs/dbg-mp.log
+20:04:26	/tmp/port-integration/c-all5/src	node features/module-pages/test.dbg.js	0	/tmp/port-integration/logs/dbg-mp.log
+20:05:05	/tmp/port-integration/c-all5/src	node features/glossary-tap/test.orig.js	1	/tmp/port-integration/logs/fix-all5-glossary-tap-before.log
+20:05:29	/tmp/port-integration/c-all5/src	node features/glossary-tap/test.fixed.js	1	/tmp/port-integration/logs/fix-all5-glossary-tap-after.log
+20:05:53	/tmp/port-integration/c-all5/src	node features/module-pages/test.orig.js	1	/tmp/port-integration/logs/fix-all5-module-pages-before.log
+20:06:40	/tmp/port-integration/c-all5/src	node features/module-pages/test.fixed.js	1	/tmp/port-integration/logs/fix-all5-module-pages-after.log
+20:07:04	/tmp/port-integration/c-all5/src	node features/terms-variables/test.orig.js	2	/tmp/port-integration/logs/fix-all5-terms-variables-before.log
+20:07:15	/tmp/port-integration/c-all5/src	node features/terms-variables/test.fixed.js	0	/tmp/port-integration/logs/fix-all5-terms-variables-after.log
+20:07:31	/tmp/port-integration/c-all5/src	node features/worksheets-ink/test.orig.js	2	/tmp/port-integration/logs/fix-all5-worksheets-ink-before.log
+20:07:40	/tmp/port-integration/c-all5/src	node features/worksheets-ink/test.fixed.js	0	/tmp/port-integration/logs/fix-all5-worksheets-ink-after.log
+20:08:49	/tmp/port-integration/c-all5/src	node features/concept-statuses/test.orig.js	2	/tmp/port-integration/logs/fix-all5-concept-statuses-before.log
+20:08:50	/tmp/port-integration/c-all5/src	node features/concept-statuses/test.fixed.js	0	/tmp/port-integration/logs/fix-all5-concept-statuses-after.log
+20:08:58	/tmp/port-integration/c-all5/src	node features/paper-picker/test.orig.js	1	/tmp/port-integration/logs/fix-all5-paper-picker-before.log
+20:09:20	/tmp/port-integration/c-all5/src	node features/paper-picker/test.fixed.js	0	/tmp/port-integration/logs/fix-all5-paper-picker-after.log
+20:09:41	/tmp/port-integration/c-all5/src	node features/study-controls/test.orig.js	0	/tmp/port-integration/logs/fix-all5-study-controls-before.log
+20:10:05	/tmp/port-integration/c-all5/src	node features/study-controls/test.fixed.js	0	/tmp/port-integration/logs/fix-all5-study-controls-after.log
+20:10:30	/tmp/port-integration/c-ws/src	node features/worksheets-ink/test.orig.js	1	/tmp/port-integration/logs/fix-ws-worksheets-ink-before.log
+20:11:30	/tmp/port-integration/c-ws/src	node features/worksheets-ink/test.fixed.js	0	/tmp/port-integration/logs/fix-ws-worksheets-ink-after.log
+20:12:29	/tmp/port-integration/c-ws-ch/src	node features/worksheets-ink/test.orig.js	1	/tmp/port-integration/logs/fix-ws-ch-worksheets-ink-before.log
+20:13:30	/tmp/port-integration/c-ws-ch/src	node features/worksheets-ink/test.fixed.js	0	/tmp/port-integration/logs/fix-ws-ch-worksheets-ink-after.log
+20:14:32	/tmp/port-integration/c-sc-pp3/src	node features/study-controls/test.orig.js	1	/tmp/port-integration/logs/fix-sc-pp3-study-controls-before.log
+20:14:56	/tmp/port-integration/c-sc-pp3/src	node features/study-controls/test.fixed.js	0	/tmp/port-integration/logs/fix-sc-pp3-study-controls-after.log
+20:15:20	/tmp/port-integration/c-sc-pp3/src	node features/paper-picker/test.orig.js	1	/tmp/port-integration/logs/fix-sc-pp3-paper-picker-before.log
+20:15:32	/tmp/port-integration/c-sc-pp3/src	node features/paper-picker/test.fixed.js	0	/tmp/port-integration/logs/fix-sc-pp3-paper-picker-after.log
+20:15:42	/tmp/port-integration/c-sc-pp/src	node features/paper-picker/test.orig.js	1	/tmp/port-integration/logs/fix-sc-pp-paper-picker-before.log
+20:15:53	/tmp/port-integration/c-sc-pp/src	node features/paper-picker/test.fixed.js	0	/tmp/port-integration/logs/fix-sc-pp-paper-picker-after.log
+20:16:38	/tmp/port-integration/c-all5/src	node features/glossary-tap/test.orig.js	1	/tmp/port-integration/logs/fix-all5-glossary-tap-before.log
+20:17:04	/tmp/port-integration/c-all5/src	node features/glossary-tap/test.fixed.js	0	/tmp/port-integration/logs/fix-all5-glossary-tap-after.log
+20:17:29	/tmp/port-integration/c-gt-fit/src	node features/glossary-tap/test.orig.js	0	/tmp/port-integration/logs/fix-gt-fit-glossary-tap-before.log
+20:17:47	/tmp/port-integration/c-gt-fit/src	node features/glossary-tap/test.fixed.js	0	/tmp/port-integration/logs/fix-gt-fit-glossary-tap-after.log

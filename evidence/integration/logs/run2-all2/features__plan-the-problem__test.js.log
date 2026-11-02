@@ -1,0 +1,42 @@
+
+=== the course's own set-up data ===
+  ok    the page carries plan-the-problem, working
+  ok    every set-up stem is offered four distinct lines, the right one among them (1 stems)
+  ok    every set-up reason splits into whole sentences (no fraction or decimal cut)
+  ok    the sentence split without lookbehind gives Basic-Pharmacokinetics' sentences on 9 control texts and 1 reasons
+
+=== the build step stops on bad set-up data ===
+  ok    a set-up line that is not in EQUATIONS stops the build and says so
+  ok    a given that is not [symbol, value, role] stops the build and says so
+  ok    an asks key that ASKS does not have stops the build and says so
+  ok    a PLAN.same id that is not in EQUATIONS stops the build and says so
+  ok    a bank with no set-up stem stops the build and says so
+
+=== on a scratch copy with Basic-Pharmacokinetics' calculation questions (Chromium) ===
+  ok    the Equations tab offers the set-up drill with a scope per module
+  ok    it offers the plan per module, and the course's six steps for any calculation
+  ok    starting it shows one Module 3 stem with four lines to choose from (2 stems)
+  ok    a wrong pick is marked, the right line is shown with why, one sentence a line
+  ok    the missed line is tallied per equation in the progress
+  ok    Show the problem worked out opens the keyed answer and the steps in place
+  ok    a right pick of a line the sheet does not print comes with the way to reach it
+  ok    and says the professor said it is not on the sheet
+  ok    after the last stem: the count, the lines missed most often, Again
+  ok    opening the tab again while the drill runs shows the drill
+  ok    Stop returns to the Equations picker, with the card
+  -- plan the problem --
+  ok    the plan opens on "What is asked?" with six symbols and nothing else yet
+  ok    the right symbol is marked, its meaning shown, and six units offered
+  ok    the unit is judged and the 12 models of the course's list are offered, the line held back
+  ok    a wrong model is marked, the stem's model named, then the four lines
+  ok    after the line: whether the sheet prints it, before the givens
+  ok    the sheet answer is judged; the 3 givens are offered as ticks with their roles hidden
+  ok    ticks toggle and show as pressed
+  ok    the plan is written out: asked, model, line, givens, estimate; each given's role shown
+  ok    the givens are right, and a plan with a wrong model is not counted as right in every step
+  ok    a plan right in every step is counted
+  ok    the tally of lines picked is kept in the progress through a reload (4 picks)
+  ok    no page error
+  ok    without ASKS and PLAN: no plan row, and the set-up drill runs on its own
+  ok    no page error without ASKS and PLAN
+PASS: features/plan-the-problem/test.js: 34 checks passed

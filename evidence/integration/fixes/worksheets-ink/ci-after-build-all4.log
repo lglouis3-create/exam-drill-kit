@@ -1,0 +1,41 @@
+checking sources...
+  35 sources and sw.js parse cleanly
+  scheduler: concept (no library)
+  40 questions in 5 topics, from 2 question files: q1_topics.js, q90_wsc_fixture.js
+  feature formulas-in-text v1 in the page (options {"symbols": [], "rates": [], "halfLife": true, "times": true, "minus": true, "powers": true})
+  feature chained-problem-sets v2: build step done
+  feature chained-problem-sets v2 in the page
+  feature equation-drill v2: build step done
+  feature equation-drill v2 in the page (options {"label": "Equations", "before": "settings", "groups": {}})
+  feature wrong-number-diagnosis v1 in the page
+  feature plan-the-problem v1: build step done
+  feature plan-the-problem v1 in the page (options {"groups": {}})
+  feature glossary-tap v1: build step done
+  feature glossary-tap v1 in the page (options {"label": "Glossary", "before": "settings", "tap": true, "notTapped": []})
+  feature pair-up-drills v1: build step done
+  feature pair-up-drills v1 in the page (options {"pairLabel": "Pair up", "before": "settings", "wholeUpTo": 9, "pairRound": 7, "binRound": 12})
+  feature short-answer-graphs v1: build step done
+  feature short-answer-graphs v1 in the page (options {"saLabel": "Short answer", "graphsLabel": "Graphs", "before": "diagrams", "saAbout": ""})
+  feature study-controls v1 in the page (options {"flags": true, "layout": true, "keys": true, "strict": true, "strictNote": ""})
+  feature worksheets-ink v1: build step done
+  feature worksheets-ink v1 in the page (options {"tab": "sheets", "label": "Worksheets", "before": "settings", "modules": [[1, "1", "Module 1 - Introduction & Math Review"], [2, "2", "Module 2 - IV Bolus Administration"]], "originalIds": "^wsc-(hwo|hw7o-|nl-hwo-)", "changedIds": "^wsc-(hw\\d|hw7-|nl-hw-)", "drillWorked": "no worked answer|without a worked answer|does not record|stated no final value|did not state|ends before she states|not one she asks|computed here|chosen here|recording stops|does not work|applied to that example|her spoken values", "spokenOnly": "recording|aloud|spoken", "writtenWorking": "written working|her key|her sheet|worked on the|worked answers"})
+  feature terms-variables v1: build step done
+  feature terms-variables v1 in the page (options {"label": "Terms", "before": "settings", "groups": {}, "families": {}, "names": {}, "twins": {}, "cite": "The course's list of the symbols in its equations (ASKS)", "skill": ""})
+  feature concept-statuses v1 in the page (options {"words": {}})
+  feature theme v1 in the page
+  feature paper-picker v1: build step done
+  feature paper-picker v1 in the page
+  feature quiz-prep-cards v1: build step done
+  feature quiz-prep-cards v1 in the page
+  feature module-pages v1: build step done
+  feature module-pages v1 in the page (options {"modules": [], "title": "Study by module"})
+  feature stopwatch v1 in the page (options {"paceSeconds": 120})
+  feature notes v1 in the page (options {"request": "", "file": ""})
+  change log: 1 entries, newest "2026-10-02 (set up from the template)"
+  assembled script parses cleanly
+wrote index.html  (0.72 MB)
+wrote COURSE0000_Drill.html  (redirect to index.html)
+wrote version.json  (built 2026-11-02T19:43:15Z)
+  note: placeholder icons (a plain square) for icon-192.png, icon-512.png, icon-maskable-512.png, apple-touch-icon.png; put the course's own PNGs under src/icons/ to replace them
+wrote manifest.json and the icons
+wrote sw.js  (caches named course-id-drill-v<n>; 7 files saved at install)

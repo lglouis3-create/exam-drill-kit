@@ -1,0 +1,35 @@
+
+=== the course's own equations ===
+  ok    the page carries equation-drill and formulas-in-text, working
+  ok    15 equations: complete, their pieces build their keyed form, lures are not pieces, displays agree, keyed forms read as algebra and are accepted
+  ok    the checker keeps 12 pairs apart
+  ok    the checker joins 14 spellings of 4 equations
+
+=== on a scratch copy with Basic-Pharmacokinetics' equations (Chromium) ===
+  ok    read as algebra: 38 other spellings accepted, 32 different equations refused
+  ok    28 accept/refuse cases behave
+  ok    the Equations tab lists every equation with a tick box (29 of 29)
+  ok    it opens on the ones marked to memorise
+  ok    under each equation: what each symbol is, when it holds, how to reach it from a printed line
+  ok    its fractions stack
+  ok    the typing drill shows an input
+  ok    a correct typed answer is marked right and the streak advances
+  ok    the symbols are explained after answering
+  ok    one equation, one pass, then the closing card
+  ok    a wrong typed answer is marked wrong, shows the answer and how it was read, and resets the streak
+  ok    R over Cl is built in two stacked slots from 4 pieces
+  ok    Check is disabled while a slot is empty
+  ok    placing every piece enables Check
+  ok    the built equation is marked right, each slot on its own
+  ok    after Next 1, the tray is clean: nothing greyed, placed or selected
+  ok    after Next 2, the tray is clean: nothing greyed, placed or selected
+  ok    after Next 3, the tray is clean: nothing greyed, placed or selected
+  ok    a tapped empty box shows as selected
+  ok    the next piece goes into the selected box
+  ok    k × fe is accepted for fe × k, with no box marked wrong
+  ok    a division built upside down is marked not correct
+  ok    tapping a filled slot clears it
+  ok    "All" selects every equation and "said to memorise" narrows it
+  ok    the chosen set is kept through a reload
+  ok    no page error
+PASS: features/equation-drill/test.js: 30 checks passed

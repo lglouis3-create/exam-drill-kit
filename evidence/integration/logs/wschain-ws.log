@@ -1,0 +1,10 @@
+chained-problem-sets on: false
+documents: [["wxc-quiz-1",[[null,1,null],[null,1,null],[null,1,null],[null,1,null],[null,1,null]]],["wxc-hw-2",[["wxc-hwo2-p1",6,6],["wxc-hwo2-p2",4,4]]],["wxc-dp-m1-2",[["wxc-ws1-p2",3,3]]],["wxc-dp-m1-3",[["wxc-ws1-p3",5,5]]]]
+  ok    Practice in the drill on wxc-dp-m1-2 asks its 3 parts in the set's order
+  ok    with chained-problem-sets off, it is a plain pass (no Q.chain)
+  ok    Write on it opens the writing page of wxc-hw-2
+  ok    the writing page holds every part of each problem set, in the set's order (10 parts)
+  ok    the stroke written on the page is kept after Done and after a reload
+  ok    no page error
+PASS: integration ws_chain_test.js: 6 checks passed
+exit 0

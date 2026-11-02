@@ -1,0 +1,504 @@
+{
+ "theme": {
+  "attr": null,
+  "bg": "rgb(16, 22, 29)"
+ },
+ "seen": [
+  {
+   "view": "tab topics",
+   "low": 0,
+   "shot": "dark-device-01-tab_topics.png"
+  },
+  {
+   "view": "topics after Got it",
+   "low": 0,
+   "shot": "dark-device-02-topics_after_Got_it.png"
+  },
+  {
+   "view": "topics after Start",
+   "low": 0,
+   "shot": "dark-device-03-topics_after_Start.png"
+  },
+  {
+   "view": "topics after All",
+   "low": 0,
+   "shot": "dark-device-04-topics_after_All.png"
+  },
+  {
+   "view": "topics after Professor",
+   "low": 0,
+   "shot": "dark-device-05-topics_after_Professor.png"
+  },
+  {
+   "view": "topics after Any",
+   "low": 0,
+   "shot": "dark-device-06-topics_after_Any.png"
+  },
+  {
+   "view": "topics after read a structure",
+   "low": 0,
+   "shot": "dark-device-07-topics_after_read_a_structure.png"
+  },
+  {
+   "view": "topics after predict the outcome",
+   "low": 0,
+   "shot": "dark-device-08-topics_after_predict_the_outcome.png"
+  },
+  {
+   "view": "topics after define a term",
+   "low": 0,
+   "shot": "dark-device-09-topics_after_define_a_term.png"
+  },
+  {
+   "view": "tab quiz",
+   "low": 0,
+   "shot": "dark-device-10-tab_quiz.png"
+  },
+  {
+   "view": "quiz after One at a time",
+   "low": 0,
+   "shot": "dark-device-11-quiz_after_One_at_a_time.png"
+  },
+  {
+   "view": "quiz after All on one page",
+   "low": 0,
+   "shot": "dark-device-12-quiz_after_All_on_one_page.png"
+  },
+  {
+   "view": "quiz after ⚑ Flag",
+   "low": 0,
+   "shot": "dark-device-13-quiz_after_Flag.png"
+  },
+  {
+   "view": "quiz after ✎ Note",
+   "low": 0,
+   "shot": "dark-device-14-quiz_after_Note.png"
+  },
+  {
+   "view": "quiz after AThe separating feature",
+   "low": 0,
+   "shot": "dark-device-15-quiz_after_AThe_separating_feature.png"
+  },
+  {
+   "view": "tab gaps",
+   "low": 0,
+   "shot": "dark-device-16-tab_gaps.png"
+  },
+  {
+   "view": "gaps after Open Notes",
+   "low": 0,
+   "shot": "dark-device-17-gaps_after_Open_Notes.png"
+  },
+  {
+   "view": "gaps after Start these",
+   "low": 0,
+   "shot": "dark-device-18-gaps_after_Start_these.png"
+  },
+  {
+   "view": "tab notes",
+   "low": 0,
+   "shot": "dark-device-19-tab_notes.png"
+  },
+  {
+   "view": "tab exam",
+   "low": 0,
+   "shot": "dark-device-20-tab_exam.png"
+  },
+  {
+   "view": "exam after One at a time",
+   "low": 0,
+   "shot": "dark-device-21-exam_after_One_at_a_time.png"
+  },
+  {
+   "view": "exam after All on one page",
+   "low": 0,
+   "shot": "dark-device-22-exam_after_All_on_one_page.png"
+  },
+  {
+   "view": "exam after Start the 10-minute paper",
+   "low": 0,
+   "shot": "dark-device-23-exam_after_Start_the_10_minute_paper.png"
+  },
+  {
+   "view": "tab sa",
+   "low": 0,
+   "shot": "dark-device-24-tab_sa.png"
+  },
+  {
+   "view": "sa after Check my answer",
+   "low": 0,
+   "shot": "dark-device-25-sa_after_Check_my_answer.png"
+  },
+  {
+   "view": "sa after Next",
+   "low": 0,
+   "shot": "dark-device-26-sa_after_Next.png"
+  },
+  {
+   "view": "sa after Shuffle",
+   "low": 0,
+   "shot": "dark-device-27-sa_after_Shuffle.png"
+  },
+  {
+   "view": "tab diagrams",
+   "low": 0,
+   "shot": "dark-device-28-tab_diagrams.png"
+  },
+  {
+   "view": "diagrams after ◀ Back",
+   "low": 0,
+   "shot": "dark-device-29-diagrams_after_Back.png"
+  },
+  {
+   "view": "diagrams after Next ▶",
+   "low": 0,
+   "shot": "dark-device-30-diagrams_after_Next_.png"
+  },
+  {
+   "view": "diagrams after ↻ Replay step",
+   "low": 0,
+   "shot": "dark-device-31-diagrams_after_Replay_step.png"
+  },
+  {
+   "view": "diagrams after ▶ Play all",
+   "low": 0,
+   "shot": "dark-device-32-diagrams_after_Play_all.png"
+  },
+  {
+   "view": "tab guide",
+   "low": 0,
+   "shot": "dark-device-33-tab_guide.png"
+  },
+  {
+   "view": "tab tell",
+   "low": 0,
+   "shot": "dark-device-34-tab_tell.png"
+  },
+  {
+   "view": "tab ref",
+   "low": 0,
+   "shot": "dark-device-35-tab_ref.png"
+  },
+  {
+   "view": "ref after drug",
+   "low": 0,
+   "shot": "dark-device-36-ref_after_drug.png"
+  },
+  {
+   "view": "ref after ◀ Back",
+   "low": 0,
+   "shot": "dark-device-37-ref_after_Back.png"
+  },
+  {
+   "view": "ref after Next ▶",
+   "low": 0,
+   "shot": "dark-device-38-ref_after_Next_.png"
+  },
+  {
+   "view": "ref after ↻ Replay step",
+   "low": 0,
+   "shot": "dark-device-39-ref_after_Replay_step.png"
+  },
+  {
+   "view": "ref after ▶ Play all",
+   "low": 0,
+   "shot": "dark-device-40-ref_after_Play_all.png"
+  },
+  {
+   "view": "ref after Why?",
+   "low": 0,
+   "shot": "dark-device-41-ref_after_Why_.png"
+  },
+  {
+   "view": "tab eq",
+   "low": 0,
+   "shot": "dark-device-42-tab_eq.png"
+  },
+  {
+   "view": "eq after Start",
+   "low": 0,
+   "shot": "dark-device-43-eq_after_Start.png"
+  },
+  {
+   "view": "tab glossary",
+   "low": 0,
+   "shot": "dark-device-44-tab_glossary.png"
+  },
+  {
+   "view": "glossary after All",
+   "low": 0,
+   "shot": "dark-device-45-glossary_after_All.png"
+  },
+  {
+   "view": "glossary after Drug basics",
+   "low": 0,
+   "shot": "dark-device-46-glossary_after_Drug_basics.png"
+  },
+  {
+   "view": "glossary after Drug–receptor binding",
+   "low": 0,
+   "shot": "dark-device-47-glossary_after_Drug_receptor_binding.png"
+  },
+  {
+   "view": "glossary after Adrenergic drugs",
+   "low": 0,
+   "shot": "dark-device-48-glossary_after_Adrenergic_drugs.png"
+  },
+  {
+   "view": "glossary after Receptors and signaling",
+   "low": 0,
+   "shot": "dark-device-49-glossary_after_Receptors_and_signaling.png"
+  },
+  {
+   "view": "tab pairup",
+   "low": 0,
+   "shot": "dark-device-50-tab_pairup.png"
+  },
+  {
+   "view": "pairup after Receptor → what an agonist does there",
+   "low": 0,
+   "shot": "dark-device-51-pairup_after_Receptor_what_an_agonist_does_there.png"
+  },
+  {
+   "view": "pairup after α1 on vessel smooth muscle",
+   "low": 0,
+   "shot": "dark-device-52-pairup_after_1_on_vessel_smooth_muscle.png"
+  },
+  {
+   "view": "pairup after β3 in the bladder",
+   "low": 0,
+   "shot": "dark-device-53-pairup_after_3_in_the_bladder.png"
+  },
+  {
+   "view": "pairup after M3 in the gut",
+   "low": 0,
+   "shot": "dark-device-54-pairup_after_M3_in_the_gut.png"
+  },
+  {
+   "view": "pairup after α1 in the eye",
+   "low": 0,
+   "shot": "dark-device-55-pairup_after_1_in_the_eye.png"
+  },
+  {
+   "view": "pairup after Check",
+   "low": 0,
+   "shot": "dark-device-56-pairup_after_Check.png"
+  },
+  {
+   "view": "pairup after New round",
+   "low": 0,
+   "shot": "dark-device-57-pairup_after_New_round.png"
+  },
+  {
+   "view": "tab sheets",
+   "low": 0,
+   "shot": "dark-device-58-tab_sheets.png"
+  },
+  {
+   "view": "sheets after ✍️ Write on it",
+   "low": 0,
+   "shot": "dark-device-59-sheets_after_Write_on_it.png"
+  },
+  {
+   "view": "sheets after Practice in the drill",
+   "low": 0,
+   "shot": "dark-device-60-sheets_after_Practice_in_the_drill.png"
+  },
+  {
+   "view": "tab terms",
+   "low": 0,
+   "shot": "dark-device-61-tab_terms.png"
+  },
+  {
+   "view": "terms after Glossary",
+   "low": 0,
+   "shot": "dark-device-62-terms_after_Glossary.png"
+  },
+  {
+   "view": "terms after Flashcards",
+   "low": 0,
+   "shot": "dark-device-63-terms_after_Flashcards.png"
+  },
+  {
+   "view": "terms after Quiz me",
+   "low": 0,
+   "shot": "dark-device-64-terms_after_Quiz_me.png"
+  },
+  {
+   "view": "terms after All groups",
+   "low": 0,
+   "shot": "dark-device-65-terms_after_All_groups.png"
+  },
+  {
+   "view": "terms after Drug basics",
+   "low": 0,
+   "shot": "dark-device-66-terms_after_Drug_basics.png"
+  },
+  {
+   "view": "terms after Drug–receptor binding",
+   "low": 0,
+   "shot": "dark-device-67-terms_after_Drug_receptor_binding.png"
+  },
+  {
+   "view": "terms after Adrenergic drugs",
+   "low": 0,
+   "shot": "dark-device-68-terms_after_Adrenergic_drugs.png"
+  },
+  {
+   "view": "terms after Receptors and signaling",
+   "low": 0,
+   "shot": "dark-device-69-terms_after_Receptors_and_signaling.png"
+  },
+  {
+   "view": "tab settings",
+   "low": 0,
+   "shot": "dark-device-70-tab_settings.png"
+  },
+  {
+   "view": "settings after Exam cram",
+   "low": 0,
+   "shot": "dark-device-71-settings_after_Exam_cram.png"
+  },
+  {
+   "view": "settings after Weekly exams",
+   "low": 0,
+   "shot": "dark-device-72-settings_after_Weekly_exams.png"
+  },
+  {
+   "view": "settings after Semester",
+   "low": 0,
+   "shot": "dark-device-73-settings_after_Semester.png"
+  },
+  {
+   "view": "settings after Ask everything",
+   "low": 0,
+   "shot": "dark-device-74-settings_after_Ask_everything.png"
+  },
+  {
+   "view": "settings after Questions as text (Markdown)",
+   "low": 0,
+   "shot": "dark-device-75-settings_after_Questions_as_text_Markdown_.png"
+  },
+  {
+   "view": "settings after Questions as data (JSON)",
+   "low": 0,
+   "shot": "dark-device-76-settings_after_Questions_as_data_JSON_.png"
+  },
+  {
+   "view": "settings after Guides + Tell apart + Reference (HTML)",
+   "low": 0,
+   "shot": "dark-device-77-settings_after_Guides_Tell_apart_Reference_HTML_.png"
+  },
+  {
+   "view": "quiz card unanswered (flag, note, keys line)",
+   "low": 0,
+   "shot": "dark-device-78-quiz_card_unanswered_flag_note_keys_line_.png"
+  },
+  {
+   "view": "quiz card flagged, note box open",
+   "low": 0,
+   "shot": "dark-device-79-quiz_card_flagged_note_box_open.png"
+  },
+  {
+   "view": "quiz card answered wrong",
+   "low": 0,
+   "shot": "dark-device-80-quiz_card_answered_wrong.png"
+  },
+  {
+   "view": "calculation, stopwatch running",
+   "low": 0,
+   "shot": "dark-device-81-calculation_stopwatch_running.png"
+  },
+  {
+   "view": "Scratch paper open over the calculation",
+   "low": 0,
+   "shot": "dark-device-82-Scratch_paper_open_over_the_calculation.png"
+  },
+  {
+   "view": "calculation answered wrong (diagnosis, miss chips, time taken)",
+   "low": 0,
+   "shot": "dark-device-83-calculation_answered_wrong_diagnosis_miss_chips_ti.png"
+  },
+  {
+   "view": "quiz, all on one page (study-controls)",
+   "low": 0,
+   "shot": "dark-device-84-quiz_all_on_one_page_study_controls_.png"
+  },
+  {
+   "view": "one-page quiz, a note open",
+   "low": 0,
+   "shot": "dark-device-85-one_page_quiz_a_note_open.png"
+  },
+  {
+   "view": "exam start (paper-picker chips, strict box)",
+   "low": 0,
+   "shot": "dark-device-86-exam_start_paper_picker_chips_strict_box_.png"
+  },
+  {
+   "view": "exam paper running, one at a time",
+   "low": 0,
+   "shot": "dark-device-87-exam_paper_running_one_at_a_time.png"
+  },
+  {
+   "view": "exam paper, a pick and a flag",
+   "low": 0,
+   "shot": "dark-device-88-exam_paper_a_pick_and_a_flag.png"
+  },
+  {
+   "view": "exam result page",
+   "low": 0,
+   "shot": "dark-device-89-exam_result_page.png"
+  },
+  {
+   "view": "module page 0 concepts",
+   "low": 0,
+   "shot": "dark-device-90-module_page_0_concepts.png"
+  },
+  {
+   "view": "module page 0 calcs",
+   "low": 0,
+   "shot": "dark-device-91-module_page_0_calcs.png"
+  },
+  {
+   "view": "module page 1 calcs",
+   "low": 0,
+   "shot": "dark-device-92-module_page_1_calcs.png"
+  },
+  {
+   "view": "module page 1 worksheets",
+   "low": 0,
+   "shot": "dark-device-93-module_page_1_worksheets.png"
+  },
+  {
+   "view": "Weak spots after answers (concept-statuses)",
+   "low": 0,
+   "shot": "dark-device-94-Weak_spots_after_answers_concept_statuses_.png"
+  }
+ ],
+ "low": [],
+ "skipped": [
+  "topics > All changes",
+  "quiz > BA feature of a third term",
+  "quiz > CA feature neither has",
+  "quiz > DA feature they share",
+  "eq > Module 1",
+  "eq > All",
+  "eq > The 5 said to memorise",
+  "eq > The 0 not printed but reached from the s",
+  "eq > All 5 the sheet does not print",
+  "eq > All 15",
+  "eq > None",
+  "eq > Only the ones not yet learned",
+  "eq > Module 2",
+  "glossary > A",
+  "glossary > C",
+  "glossary > D",
+  "glossary > E",
+  "glossary > K",
+  "pairup > M3 in the bladder",
+  "pairup > β1 in the heart",
+  "pairup > Nn in a ganglion",
+  "terms > Show the term",
+  "glossary tap in the quiz (no term named in this card)"
+ ]
+}

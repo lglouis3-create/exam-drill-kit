@@ -1,0 +1,15 @@
+diff -ruN a/features/concept-statuses/current/test.js b/features/concept-statuses/current/test.js
+--- a/features/concept-statuses/current/test.js	2026-11-02 20:16:38.519492826 +0000
++++ b/features/concept-statuses/current/test.js	2026-11-02 20:16:38.567353562 +0000
+@@ -103,7 +103,10 @@
+   const own = {topics: X.TOPICS.map(t => t.id), prof: X.COURSE.professors[0], skill: X.COURSE.skills[0].id};
+ 
+   console.log('\n=== on a scratch copy with 4 of Basic-Pharmacokinetics\' questions (Chromium) ===');
+-  const s = L.scratchBuild('cstat', {files: fixtureFiles(own), courseLine: L.featureOn(__dirname, {words: WORDS})});
++  // plan-the-problem, when the course has it on, is switched off in this copy: the fixture's questions keep their
++  // `setup` lines, which name equations the course's EQUATIONS need not have (its build step refuses them)
++  const s = L.scratchBuild('cstat', {files: fixtureFiles(own), courseLine: L.featureOn(__dirname, {words: WORDS}) +
++    "if(COURSE.features) delete COURSE.features['plan-the-problem'];"});
+   if(s.code !== 0) L.notRun(NAME, 'the scratch copy with the test questions does not build: ' + s.out.split('\n').pop());
+   const {browser} = await L.launch(NAME);
+   try {

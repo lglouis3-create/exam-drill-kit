@@ -1,0 +1,58 @@
+diff -ruN a/features/worksheets-ink/ci/oncourse.js b/features/worksheets-ink/ci/oncourse.js
+--- a/features/worksheets-ink/ci/oncourse.js	2026-11-02 20:16:38.528638954 +0000
++++ b/features/worksheets-ink/ci/oncourse.js	2026-11-02 20:16:38.586038835 +0000
+@@ -50,7 +50,8 @@
+   const files = vm.runInContext(courseText + '\n;COURSE.files', ctx) || [];
+   const code = files.map(f => fs.readFileSync(path.join(src, f), 'utf8')).join('\n;\n');
+   own = vm.runInContext(courseText + '\n;\n' + code + '\n;({COURSE, TOPICS: typeof TOPICS === "undefined" ? [] : TOPICS, QUESTIONS: typeof QUESTIONS === "undefined" ? [] : QUESTIONS,' +
+-    ' SOURCES: typeof SOURCES !== "undefined", CHAINS: typeof CHAINS !== "undefined"})', vm.createContext({}));
++    ' SOURCES: typeof SOURCES !== "undefined", CHAINS: typeof CHAINS !== "undefined",' +
++    ' EQ: typeof EQUATIONS !== "undefined" && Array.isArray(EQUATIONS) ? EQUATIONS.map(e => e && e.id) : []})', vm.createContext({}));
+ } catch(e){ fail('the course could not be read: ' + e.message); }
+ if(typeof own.QUESTIONS.push !== 'function') fail('the course declares no QUESTIONS list');
+ const prof = (own.COURSE.professors || [])[0], skill = (own.QUESTIONS.find(q => q.type === 'numeric') || {}).skill || ((own.COURSE.skills || [])[0] || {}).id;
+@@ -58,7 +59,12 @@
+ const ownTopics = own.TOPICS.map(t => t.id);
+ 
+ // the test's fixtureFiles, with the prefix wsc-
+-const qs = PK.qs.map(q => Object.assign({}, q, {id: pre(q.id), prof, skill}, q.dupOf ? {dupOf: pre(q.dupOf)} : {}));
++// a question's `setup` is plan-the-problem's: it is left out when it names an equation the course does not have
++// (plan-the-problem's build step refuses it, and worksheets-ink does not read it)
++const EQ = new Set(own.EQ || []), setupOk = st => !!st && (st.eq === 'none' || EQ.has(st.eq)) && (st.pre || []).every(id => EQ.has(id));
++let dropped = 0;
++const qs = PK.qs.map(q => { const o = Object.assign({}, q, {id: pre(q.id), prof, skill}, q.dupOf ? {dupOf: pre(q.dupOf)} : {});
++  if(o.setup !== undefined && !setupOk(o.setup)){ delete o.setup; dropped++; } return o; });
+ const chains = PK.chains.map(c => Object.assign({}, c, {id: pre(c.id), parts: c.parts.map(pre)}));
+ const sources = PK.sources.map(s => Object.assign({}, s, {id: pre(s.id), chains: (s.chains || []).map(pre), items: s.items.map(it => ({q: pre(it.q), label: it.label}))}));
+ const topics = PK.topics.filter(t => !ownTopics.includes(t.id)).map(t => Object.assign({}, t, {prof}));
+@@ -75,4 +81,4 @@
+   `COURSE.features = Object.assign({}, COURSE.features, {"worksheets-ink": ${JSON.stringify(cfg)}});\n`;
+ try { fs.appendFileSync(course, line); } catch(e){ fail('cannot write ' + course + ': ' + e.message); }
+ console.log('wrote: appended to ' + course + ':' + line.trimEnd());
+-console.log(`data: ${sources.length} documents, ${qs.length} questions, ${chains.length} problem sets, ${topics.length} topics`);
++console.log(`data: ${sources.length} documents, ${qs.length} questions, ${chains.length} problem sets, ${topics.length} topics; ${dropped} setup lines left out (equations the course does not have)`);
+diff -ruN a/features/worksheets-ink/current/test.js b/features/worksheets-ink/current/test.js
+--- a/features/worksheets-ink/current/test.js	2026-11-02 20:16:38.513976458 +0000
++++ b/features/worksheets-ink/current/test.js	2026-11-02 20:16:38.565447046 +0000
+@@ -82,7 +82,10 @@
+             decl('CHAINS', chains, own.CHAINS) + '\n' + decl('SOURCES', sources, own.SOURCES) + '\n'};
+ }
+ const courseLine = opt => "COURSE.files = (COURSE.files || ['atlas.js', 'diagrams.js', 'q1_topics.js']).filter(f => f !== 'ws_test_data.js').concat(['ws_test_data.js']);" +
+-  'COURSE.exams.forEach(e => { e.typed = true; });' + L.featureOn(__dirname, Object.assign({}, PK_OPT, opt || {}));
++  'COURSE.exams.forEach(e => { e.typed = true; });' + L.featureOn(__dirname, Object.assign({}, PK_OPT, opt || {})) +
++  // plan-the-problem, when the course has it on, is switched off in these copies: the fixture's questions keep
++  // their `setup` lines, which name equations the course's EQUATIONS need not have (its build step refuses them)
++  "if(COURSE.features) delete COURSE.features['plan-the-problem'];";
+ const countOf = (h, re) => (h.match(re) || []).length;
+ 
+ (async () => {
+@@ -167,7 +170,8 @@
+         const ids = s => A.sheetPlan(s).main.map(g => g.ids.join(' ')).join(', ');
+         // the drill's re-numbered copies without "(changed numbers)" in their names: still left off the worksheet
+         // (they hold the same problems as the professor's sets) and kept as the extra-practice sheet, by their ids
+-        const named = CHAINS.filter(c => /\(changed numbers\)/.test(c.name)), names = named.map(c => c.name);
++        // the test's own sets only (prefix P): a course with its own copies of these documents has its own sets
++        const named = CHAINS.filter(c => String(c.id).startsWith(P) && /\(changed numbers\)/.test(c.name)), names = named.map(c => c.name);
+         named.forEach(c => { c.name = c.name.replace(/\s*\(changed numbers\)/, ''); });
+         const bare = A.sheetPlan(hw); named.forEach((c, i) => { c.name = names[i]; });
+         const plain = p => JSON.stringify([p.main.map(g => g.ids), p.changed.map(g => g.ids)]);
