@@ -61,20 +61,74 @@ async function launch(name, opts){
   try { return {pw, browser: await type.launch(opts || {})}; }
   catch(e) { notRun(name, `${BROWSER_NAME} did not start: ` + String(e.message).split('\n')[0]); }
 }
-/* A page opened from disk, with the first-run name prompt answered and every
-   page error collected. */
-async function openFile(browser, ctxOpts, init){
-  const ctx = await browser.newContext(Object.assign({viewport: {width: 390, height: 844}}, ctxOpts || {}));
+/* Built pages are opened over HTTP from 127.0.0.1, as a student opens the hosted
+   copy, and not from disk. From disk WebKit gives the page the origin "null" and
+   refuses its manifest ("Origin null is not allowed by Access-Control-Allow-Origin"
+   on the console), which made three checks fail in the kit's WebKit job of
+   2026-11-02 on an error no student sees. One server per check serves a page at its
+   own path on disk (http://127.0.0.1:<port>/<path>), so every page a check opens
+   shares one origin, as pages opened from disk did; it serves only the folders of
+   the pages it was asked for, and reads each file at each request (no caching), so a
+   page rebuilt in place is served new. A secure origin like the hosted one: the
+   storage and the other secure-context features work as on the hosted site.
+   OPEN_CTX blocks service workers in these contexts, as a page from disk has none;
+   offline_test.js, update_test.js, preview_test.js and oldcache_test.js test the
+   worker with serve(). `openFromDisk` keeps the file:// opening for the check that
+   a page opened from disk still works. */
+const OPEN_CTX = {viewport: {width: 390, height: 844}, serviceWorkers: 'block'};
+const PAGE_TYPES = {'.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
+  '.json': 'application/json', '.css': 'text/css', '.md': 'text/markdown; charset=utf-8', '.txt': 'text/plain; charset=utf-8',
+  '.png': 'image/png', '.svg': 'image/svg+xml', '.webp': 'image/webp', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg',
+  '.gif': 'image/gif', '.ico': 'image/x-icon', '.webmanifest': 'application/manifest+json', '.pdf': 'application/pdf',
+  '.zip': 'application/zip', '.woff2': 'font/woff2'};
+const pageRoots = new Set();
+let pageServer = null;
+function pageHost(){
+  if(pageServer) return pageServer;
+  pageServer = new Promise((resolve, reject) => {
+    const server = http.createServer((req, res) => {
+      let file;
+      try { file = path.normalize(decodeURIComponent(new URL(req.url, 'http://x').pathname)); }
+      catch(e){ res.writeHead(400); res.end(); return; }
+      const inside = [...pageRoots].some(r => file.startsWith(r + path.sep));
+      let body = null;
+      try { if(inside && fs.statSync(file).isFile()) body = fs.readFileSync(file); } catch(e){}
+      if(!body){ res.writeHead(inside ? 404 : 403); res.end(); return; }
+      res.writeHead(200, {'Content-Type': PAGE_TYPES[path.extname(file).toLowerCase()] || 'application/octet-stream',
+                          'Cache-Control': 'no-store', 'Content-Length': body.length});
+      res.end(body);
+    });
+    // the server never keeps a check's process alive
+    server.on('connection', s => s.unref());
+    server.on('error', reject);
+    server.listen(0, '127.0.0.1', () => { server.unref(); resolve(`http://127.0.0.1:${server.address().port}`); });
+  });
+  return pageServer;
+}
+/* The http:// address of a built page on disk; its folder (with everything under
+   it) is served from then on. */
+async function pageUrl(file){
+  const abs = path.resolve(file);
+  pageRoots.add(path.dirname(abs));
+  return (await pageHost()) + abs.split(path.sep).map(encodeURIComponent).join('/');
+}
+async function openAt(browser, url, ctxOpts, init){
+  const ctx = await browser.newContext(Object.assign({}, OPEN_CTX, ctxOpts || {}));
   await ctx.addInitScript(() => { window.prompt = () => (window.__name || 'TestUser'); });
   if(init) await ctx.addInitScript(init);
   const page = await ctx.newPage();
   const errors = [];
   page.on('pageerror', e => errors.push(e.message));
   page.on('dialog', d => d.accept());
-  await page.goto('file://' + PAGE.PAGE);
+  await page.goto(url);
   await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
   return {ctx, page, errors};
 }
+/* The course's built page, with the first-run name prompt answered and every page
+   error collected. */
+async function openFile(browser, ctxOpts, init){ return openAt(browser, await pageUrl(PAGE.PAGE), ctxOpts, init); }
+/* The same page opened from disk (file://), for the check that it still works so. */
+async function openFromDisk(browser, ctxOpts, init){ return openAt(browser, 'file://' + PAGE.PAGE, ctxOpts, init); }
 
 /* The site folder served over HTTP the way GitHub Pages serves it: under a
    repository path, with ETags and max-age=600. mode 'slow' answers after
@@ -183,18 +237,7 @@ function featureOn(dir, opts){
          `Object.assign({}, (COURSE.features || {})[${JSON.stringify(meta.name)}], ${JSON.stringify(Object.assign({version: meta.version}, opts || {}))})});`;
 }
 /* openFile for any built page, not only the course's own */
-async function openPage(browser, file, ctxOpts, init){
-  const ctx = await browser.newContext(Object.assign({viewport: {width: 390, height: 844}}, ctxOpts || {}));
-  await ctx.addInitScript(() => { window.prompt = () => (window.__name || 'TestUser'); });
-  if(init) await ctx.addInitScript(init);
-  const page = await ctx.newPage();
-  const errors = [];
-  page.on('pageerror', e => errors.push(e.message));
-  page.on('dialog', d => d.accept());
-  await page.goto('file://' + file);
-  await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
-  return {ctx, page, errors};
-}
+async function openPage(browser, file, ctxOpts, init){ return openAt(browser, await pageUrl(file), ctxOpts, init); }
 /* Start the quiz on one question (or a fixed list of ids), as a sweep. */
 const quizOn = (page, ids) => page.evaluate(ids => {
   const pool = ids.map(byId).filter(Boolean);
@@ -204,5 +247,5 @@ const quizOn = (page, ids) => page.evaluate(ids => {
 }, [].concat(ids));
 
 module.exports = {browserType, BROWSER, BROWSER_NAME, PAGE, check, skip, notRun, finish, playwright, launch, openFile, serve, engine, scratchRepo,
-                  scratchBuild, featureOn, openPage, quizOn,
+                  scratchBuild, featureOn, openPage, quizOn, pageUrl, openFromDisk, OPEN_CTX,
                   counts: () => ({fails, passes, skipped: skipped.length})};

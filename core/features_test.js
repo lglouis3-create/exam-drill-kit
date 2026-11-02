@@ -147,13 +147,13 @@ const ALL = {'fx-probe': {version: 'v1', word: 'zz-word'}, 'fx-probe-throws': {v
 
   const {browser} = await L.launch(NAME);
   try {
-    const ctx = await browser.newContext({viewport: {width: 390, height: 844}});
+    const ctx = await browser.newContext(L.OPEN_CTX);
     await ctx.addInitScript(() => { window.prompt = () => 'TestUser'; });
     const page = await ctx.newPage();
     const errors = [];
     page.on('pageerror', e => errors.push(e.message));
     page.on('dialog', d => d.accept());
-    await page.goto('file://' + s.page);
+    await page.goto(await L.pageUrl(s.page));
     await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
     await page.waitForTimeout(300);
 
