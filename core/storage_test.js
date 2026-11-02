@@ -118,7 +118,7 @@ const answerOne = page => page.evaluate(() => {
   // most recently, else a profile named "me". The Switch button still asks.
   console.log('\n=== Opening without asking for a name ===');
   const opened = async (seed) => {
-    const ctx = await browser.newContext({viewport: {width: 390, height: 844}});
+    const ctx = await browser.newContext(L.OPEN_CTX);
     await ctx.addInitScript(([s]) => {
       window.__prompts = 0;
       window.prompt = () => { window.__prompts++; return window.__name || 'Asked'; };
@@ -130,7 +130,7 @@ const answerOne = page => page.evaluate(() => {
     const page = await ctx.newPage();
     const errors = [];
     page.on('pageerror', e => errors.push(e.message));
-    await page.goto('file://' + L.PAGE.PAGE);
+    await page.goto(await L.pageUrl(L.PAGE.PAGE));
     await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
     const r = await page.evaluate(() => ({prompts: window.__prompts, who: PROFILE, n: DB.answers.length, stored: localStorage.getItem(NS + ':profile')}));
     return {ctx, page, errors, r};

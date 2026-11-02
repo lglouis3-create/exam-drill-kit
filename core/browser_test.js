@@ -17,7 +17,8 @@ const fs = require('fs'), child = require('child_process');
 const L = require('./check_lib');
 const NAME = 'browser_test.js';
 L.PAGE.need(NAME);
-const URL_ = 'file://' + L.PAGE.PAGE;
+// opened over HTTP, as the hosted copy is (check_lib.js, pageUrl)
+let URL_ = null;
 const {check, skip} = L;
 
 // Every question file, from course.js `files` as build.py reads it (the build
@@ -43,7 +44,8 @@ function sourceCounts(){
 
 (async () => {
   const {browser} = await L.launch(NAME);
-  const page = await browser.newPage({viewport: {width: 1280, height: 900}});
+  URL_ = await L.pageUrl(L.PAGE.PAGE);
+  const page = await browser.newPage({viewport: {width: 1280, height: 900}, serviceWorkers: 'block'});
   const errors = [], consoleErrors = [];
   page.on('pageerror', e => errors.push(String(e)));
   page.on('console', m => { if(m.type() === 'error') consoleErrors.push(m.text()); });
@@ -57,6 +59,19 @@ function sourceCounts(){
 
   check(!errors.length, 'page loads with no uncaught JavaScript error', errors.slice(0, 2).join('; '));
   check(!consoleErrors.length, 'no console errors on load', consoleErrors.slice(0, 2).join('; '));
+  // the opening itself (check_lib.js pageUrl): over HTTP from 127.0.0.1, the manifest
+  // served, no service worker, and nothing served outside the page's folder
+  {
+    const o = await page.evaluate(async () => ({proto: location.protocol, host: location.hostname,
+      manifest: await fetch('manifest.json', {cache: 'no-store'}).then(r => r.status, () => 0),
+      workers: navigator.serviceWorker ? await navigator.serviceWorker.getRegistrations().then(r => r.length, () => 0) : 0}));
+    check(o.proto === 'http:' && o.host === '127.0.0.1', 'the page is opened over HTTP from 127.0.0.1', `${o.proto}//${o.host}`);
+    check(o.manifest === 200, 'its manifest is served beside it', `status ${o.manifest}`);
+    check(o.workers === 0, 'no service worker is registered in the check\'s browser', `${o.workers} registered`);
+    const outside = new URL(URL_).origin + require('path').resolve(L.PAGE.PAGE, '..', '..', 'outside.txt');
+    const st = await new Promise(r => require('http').get(outside, res => { res.resume(); r(res.statusCode); }).on('error', () => r(0)));
+    check(st === 403, 'a file outside the page\'s folder is refused', `status ${st} for ${outside}`);
+  }
   const body = await page.innerText('body');
   check(body.length > 200, 'page renders visible text', `only ${body.length} chars`);
 
@@ -227,7 +242,7 @@ function sourceCounts(){
   // opaque origin and make localStorage throw on the first read. That used
   // to happen while the script was still evaluating, which left a blank
   // page. Loading with storage denied proves the drill still runs.
-  const denied = await browser.newPage({viewport: {width: 1280, height: 900}});
+  const denied = await browser.newPage({viewport: {width: 1280, height: 900}, serviceWorkers: 'block'});
   const deniedErrors = [];
   denied.on('pageerror', e => deniedErrors.push(String(e)));
   denied.on('dialog', d => d.dismiss());
@@ -770,7 +785,7 @@ function sourceCounts(){
   const tabs = await page.evaluate(() => [...document.querySelectorAll('#nav button')].map(b => b.dataset.v));
   for(const [w, label] of [[375, 'phone'], [1100, 'desktop']]){
     for(const scheme of ['light', 'dark']){
-      const p2 = await browser.newPage({viewport: {width: w, height: 820}, colorScheme: scheme});
+      const p2 = await browser.newPage({viewport: {width: w, height: 820}, colorScheme: scheme, serviceWorkers: 'block'});
       const errs2 = [];
       p2.on('pageerror', e => errs2.push(String(e)));
       p2.on('dialog', d => d.dismiss());

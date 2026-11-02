@@ -4,6 +4,8 @@ Dated kit changes, newest first.
 
 ## 2026-11-02
 - Kit checks on GitHub: every pull request runs the checks in Chromium and, as information, in WebKit.
+- Checks open built pages over HTTP from 127.0.0.1, not from disk, so WebKit no longer refuses the manifest.
+- Kit checks on GitHub: each changed feature module, and each module that needs it, is checked on a course of its own.
 - New feature module `stopwatch` v1 (`features/stopwatch/`), from Basic-Pharmacokinetics
   `ac2eb73` (`src/views.js` 1463-1482 and the places that use it): a running clock on each
   calculation in the quiz and on a paper that draws calculations; after the answer it shows
