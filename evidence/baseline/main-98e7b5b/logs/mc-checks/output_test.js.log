@@ -1,6 +1,6 @@
 
 === Where the build writes and the checks read ===
-  ok    no file in the source tree names /mnt/user-data (88 files read)
+  ok    no file in the source tree names /mnt/user-data (89 files read)
   ok    every check that reads the built page gets its location from built_page.js (7 checks)
   ok    no check works out the page name from course.js itself
   ok    the build runs in a fresh copy

@@ -34,3 +34,17 @@ WebKit, Safari, iPhone, iPad, Apple Pencil.
 
 ## Note on this branch's history
 The branch's first commit (`990bd60`) holds a copy of `main`'s files by mistake: `git rm` failed on the new orphan branch, and the commit ran anyway. The second commit replaces that copy with this evidence. Nothing in the first commit is new; it is the content of `main` at `ac5c644`.
+
+## Second baseline: kit `main` `98e7b5b` (coordinator-verified)
+
+Folder `main-98e7b5b/`, run 2026-11-02 from 20:14:19 UTC with the same `baseline.sh` (output folder `baseline2`, and a `git worktree prune` before the worktree is made). Inputs (`main-98e7b5b/inputs.txt`): kit `98e7b5b9d42d1bc81b84ab6a06eadf554035ecba`, core tree `c9fde5b23f43746ff8d392314f86e8ff313c1cda`, template tree `cbac5bd425d480944293f8e1fb5d5d703e8baba1`, Medicinal-chemistry `f1f5ee57840f014cf5ccebd9631b4f413226ea70` (full clone).
+
+| Step | Exit code | Result |
+|---|---|---|
+| Template course, no module: `python3 build.py` | 0 | built |
+| Template course, no module: `./run_checks.sh` | 0 | 24 PASS, 0 FAIL, 1 NOT RUN (`cite_check.py`), 1 REPORT (`explain_check.js`) |
+| Medicinal-chemistry, full clone, with the kit core: `./run_checks.sh` | 0 | 23 PASS, 0 FAIL, 2 NOT RUN (`stepper_test.js`: no step-through figures; `cite_check.py`: no PDFs), 1 REPORT |
+
+`home_test.js` passed (33 checks) in this run. It is intermittent (core finding 9), so one pass does not show it fixed. An earlier attempt at this run failed before any check ran because the worktree for `main` was missing; its output was discarded and is not cited.
+
+Port branches whose core and template trees are `c9fde5b` and `cbac5bd` may cite this run.

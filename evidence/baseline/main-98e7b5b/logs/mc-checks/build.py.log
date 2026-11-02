@@ -6,6 +6,6 @@ checking sources...
   assembled script parses cleanly
 wrote index.html  (6.87 MB)
 wrote PHAR4342_Final_Drill.html  (redirect to index.html)
-wrote version.json  (built 2026-11-02T19:33:07Z)
+wrote version.json  (built 2026-11-02T20:17:00Z)
 wrote manifest.json and the icons
 wrote sw.js  (caches named phar4342final-v<n>; 7 files saved at install; deletes caches named phar4342-drill-*)

@@ -2,14 +2,14 @@
 
 === count and marks not set ===
   ok    the scratch copy builds
-  ok    every tab in the nav was opened (topics, quiz, gaps, exam, atlas, guide, tell, ref, settings)
+  ok    every tab in the nav was opened (topics, quiz, gaps, exam, diagrams, guide, tell, ref, settings)
   ok    Topics leaves the question count out of the exam line
   ok    Topics offers no exam-weighted pass
   ok    the Weighting chips show no marks figure
   ok    the Exam tab offers no Start button
   ok    the Exam tab says the number of questions is not set in the course manifest, so no practice paper is drawn
   ok    beginExam starts no paper and throws nothing
-  ok    Weak spots shows a card per pool (3)
+  ok    Weak spots shows a card per pool (2)
   ok    each pool card gives its concepts and no marks figure
   ok    Weak spots shows no marks figure and no weighting by marks
   ok    the topic table is headed "Accuracy by topic"
@@ -19,12 +19,12 @@
 
 === count not set ===
   ok    the scratch copy builds
-  ok    every tab in the nav was opened (topics, quiz, gaps, exam, atlas, guide, tell, ref, settings)
+  ok    every tab in the nav was opened (topics, quiz, gaps, exam, diagrams, guide, tell, ref, settings)
   ok    Topics leaves the question count out of the exam line
   ok    the Exam tab offers no Start button
   ok    the Exam tab says the number of questions is not set in the course manifest, so no practice paper is drawn
   ok    beginExam starts no paper and throws nothing
-  ok    Weak spots shows a card per pool (3)
+  ok    Weak spots shows a card per pool (1)
   ok    each pool card gives its marks and concepts, with no count of the paper
   ok    no tab shows "null", "NaN" or "undefined"
   ok    no page errors
@@ -32,13 +32,13 @@
 
 === marks not set ===
   ok    the scratch copy builds
-  ok    every tab in the nav was opened (topics, quiz, gaps, exam, atlas, guide, tell, ref, settings)
+  ok    every tab in the nav was opened (topics, quiz, gaps, exam, diagrams, guide, tell, ref, settings)
   ok    Topics offers no exam-weighted pass
-  ok    the Weighting chips show no marks figure
+  skip  the Weighting chips  — no pool of this exam filters by tier
   ok    the Start button starts a paper
-  ok    the paper holds 50 questions (the exam's 50; 468 in its pools)
+  ok    the paper holds 4 questions (the exam's 4; 5 in its pools)
   ok    a timed paper is saved with the engine's fields only (ids, picks, orders, i, ends)
-  ok    Weak spots shows a card per pool (3)
+  ok    Weak spots shows a card per pool (1)
   ok    each pool card gives its concepts and no marks figure
   ok    Weak spots shows no marks figure and no weighting by marks
   ok    the topic table is headed "Accuracy by topic"
@@ -48,9 +48,9 @@
 
 === time limit not set ===
   ok    the scratch copy builds
-  ok    every tab in the nav was opened (topics, quiz, gaps, exam, atlas, guide, tell, ref, settings)
+  ok    every tab in the nav was opened (topics, quiz, gaps, exam, diagrams, guide, tell, ref, settings)
   ok    the Start button starts a paper
-  ok    the paper holds 50 questions (the exam's 50; 468 in its pools)
+  ok    the paper holds 4 questions (the exam's 4; 5 in its pools)
   ok    Topics leaves the minutes out of the exam line
   ok    the opening page says no time limit is set, so the paper is untimed, and the button starts an untimed paper
   ok    an untimed paper is still running after 3 seconds (the engine ended it at its first one-second tick)
@@ -64,14 +64,14 @@
   ok    with every exam number set the page leaves nullexam.js out
   ok    the reloaded page has the 10-minute limit and no nullexam.js
   ok    after the course gains a time limit the paper in progress comes back with its answer, its place and its start time
-  ok    it stays untimed and is not submitted by itself after 2.5 seconds; the time taken goes on (00:04 taken, then 00:08 taken)
+  ok    it stays untimed and is not submitted by itself after 2.5 seconds; the time taken goes on (00:04 taken, then 00:07 taken)
   ok    submitting ends the paper and the result says how long it took
   ok    only the answered item is logged, as an exam answer (1 logged)
   ok    the saved paper is removed once it is submitted
   ok    a reload after submitting starts no paper and offers a new one (the result is not kept after a reload, as with a timed paper)
   ok    a paper started after the time limit is set counts down from 10 minutes (09:59)
   ok    it is saved with the engine's fields only
-  ok    Weak spots shows a card per pool (3)
+  ok    Weak spots shows a card per pool (1)
   ok    each pool card gives the engine's marks line (every exam number is set)
   ok    no tab shows "null", "NaN" or "undefined"
   ok    no page errors
@@ -79,10 +79,10 @@
 
 === some pools with marks, some without ===
   ok    the scratch copy builds
-  ok    the topic table lists Functional groups & metabolism (20%) before CYP450 (90%), by accuracy
+  ok    the topic table lists Second topic (20%) before First topic (90%), by accuracy
   ok    every row of the topic table is in order of accuracy, lowest first
   ok    the pool cards come in the manifest's order with their concepts and no marks figure
-  ok    each of 20 papers holds questions from the two pools only (93 to 96 questions)
-  ok    every paper carries more than the first pool's 1 mark of its items (53 to 55): the pools are drawn together, unweighted
+  ok    each of 20 papers holds questions from the two pools only (4 to 4 questions)
+  ok    every paper carries more than the first pool's 1 mark of its items (3 to 3): the pools are drawn together, unweighted
   ok    no page errors
-PASS: nullexam_test.js: 77 checks passed
+PASS: nullexam_test.js: 76 checks passed (1 skipped: the Weighting chips)

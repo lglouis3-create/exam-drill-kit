@@ -44,12 +44,12 @@
   ok    without the preset, a seeded session (seed 1) serves the same 40 turns as the 5014f27 core
   ok    without the preset, a seeded session (seed 2) serves the same 40 turns as the 5014f27 core
   ok    without the preset, a seeded session (seed 3) serves the same 40 turns as the 5014f27 core
-  ok    with the preset (cram pace), no two questions in a row share a skill when another skill was eligible (0 of 146 turns)
+  ok    with the preset (cram pace), no two questions in a row share a skill when another skill was eligible (0 of 148 turns)
   ok    without the preset the same sessions do put two questions of one skill in a row (48 of 146 turns), so the rule is the preset's
   ok    with the preset (Ask everything), no two questions in a row share a skill when another skill was eligible (0 of 760 turns)
   ok    without the preset the same sessions do put two questions of one skill in a row (315 of 760 turns), so the rule is the preset's
   ok    with the preset, a due concept from an earlier lecture is served in a quiz on a later lecture (40 of 40 sessions)
-  ok    it is mixed in while the later lecture still has new material (34 of 40 sessions), not held back until that runs out
+  ok    it is mixed in while the later lecture still has new material (31 of 40 sessions), not held back until that runs out
   ok    nothing from an earlier lecture that is not due (never seen, or not yet due) is drawn in
   ok    without the preset the quiz stays on its own pool (0 of 40 sessions served the earlier concept)
   ok    with the preset, the question after a confident error on a recall item is the concept's calculation item (z1b, 20 of 20)

@@ -1,3 +1,0 @@
-kit ac5c64491d9f9bf565ce3b4701c31db52633647c core daac6e234e10dae4a60c67f14cc575e9a0256f6c template cbac5bd425d480944293f8e1fb5d5d703e8baba1
-medicinal-chemistry f1f5ee57840f014cf5ccebd9631b4f413226ea70 (full clone, 32 commits)
-2026-11-02T19:33:06Z
