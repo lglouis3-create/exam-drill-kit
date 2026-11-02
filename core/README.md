@@ -23,6 +23,7 @@ that course's repository. Both folders come from the recovered exam-drill templa
 | `browser_test.js` | core | browser smoke test (Node Playwright port of the template's `browser_test.py`, which stays in `history/`), including no sideways scroll on a 375 px phone and wide reading-tab tables scrolling in their own box |
 | `device_lint.js` | core | fails on syntax older Safari rejects (regex lookbehind) in anything that ships |
 | `run_checks.sh` | core | builds, then runs every check on its own, one line per check |
+| `ci_course.sh` | core | builds a scratch course from the kit (template, template with no count or marks, or Medicinal-chemistry) and runs `run_checks.sh` on it in Chromium or WebKit; the GitHub workflow's step |
 | `checks_test.js` | core | the checks' own exit codes, the device lint, `run_checks.sh`, and `test.js` and `render_test.js` on a course with no `DIAGRAMS` list |
 | `storage_test.js` | core | progress when the browser refuses to save |
 | `startup_test.js` | core | saved progress when a start-up step or the load itself fails: nothing is written over it, and the rest of start-up runs |
@@ -659,6 +660,18 @@ a feature module is on, `numeric_test.js` with `course.js` `numeric`, and
 `exam_typed_test.js` with an exam's `typed: true`. A course that switches none of them
 on runs the same checks as before. The kit's own checks of a core change run on the
 template course and on a scratch course with every module and option on.
+
+**On GitHub.** `.github/workflows/checks.yml` runs on every kit pull request and every
+push to `main`. `ci_course.sh <course> [browser]` builds a scratch course from the kit
+and runs `run_checks.sh` on it, in Chromium for `template`, `template-unset` (the
+exam's question count and the pools' marks unset) and `medicinal-chemistry` (its live
+repository with this core copied in), and in WebKit, Safari's engine, for `template`.
+`DRILL_BROWSER=webkit` makes `check_lib.js` start WebKit instead of Chromium; a run
+whose browser did not start fails rather than passing on NOT RUN lines. The WebKit job
+is informational until its first results are reviewed. WebKit is not the Safari app on
+an iPhone or iPad, so a device check stays a separate step. The repository is private
+and GitHub enforces required checks only on a paid plan or a public repository, so
+kit sessions read the results and merge only when the Chromium jobs pass.
 
 | Line | Exit code of the check | Meaning |
 |---|---|---|
