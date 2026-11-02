@@ -1,0 +1,5 @@
+work_*/
+__pycache__/
+ingest/
+decks/
+*.tmp

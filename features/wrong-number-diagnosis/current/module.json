@@ -1,0 +1,10 @@
+{
+ "name": "wrong-number-diagnosis",
+ "version": "v1",
+ "does": "After a wrong typed number, in the quiz and on an exam paper's result page, says what the number is (a value from the working, a given carried across, two givens combined the wrong way, the key upside down, off by 0.693 or a unit factor, the sign reversed, close but outside the margin) and which kind of miss that is, and marks that kind among the engine's own miss chips; the student's pick is kept as the answer's `miss` (what Weak spots counts), the number's reading as `missSuggest`. A progress saved by Basic-Pharmacokinetics' drill (`missKind`) is converted on load.",
+ "source": "Basic-Pharmacokinetics src/shell.html lines 1270-1338 (missDiagnosis) and 1595-1607 (setMissKind's missKind and missSuggest), src/views.js lines 1699-1701 (the line after logging), at ac2eb73",
+ "js": ["wrong-number-diagnosis.js"],
+ "css": ["wrong-number-diagnosis.css"],
+ "options": {},
+ "test": "test.js"
+}
