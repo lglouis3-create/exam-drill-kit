@@ -135,7 +135,7 @@ check(/<link rel="manifest" href="\.\/manifest\.json">/.test(L.PAGE.read()), 'th
 
   console.log('\n=== Opened from disk ===');
   {
-    const {ctx: c2, page: p2, errors: e2} = await L.openFile(browser);
+    const {ctx: c2, page: p2, errors: e2} = await L.openFromDisk(browser);
     // a page from disk cannot hold a registration; Chromium rejects the question itself
     const regs = await p2.evaluate(() => navigator.serviceWorker
       ? navigator.serviceWorker.getRegistrations().then(r => r.length, () => 0) : 0);
