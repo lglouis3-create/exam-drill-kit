@@ -3,6 +3,15 @@
 Dated kit changes, newest first.
 
 ## 2026-11-02
+- New feature module `stopwatch` v1 (`features/stopwatch/`), from Basic-Pharmacokinetics
+  `ac2eb73` (`src/views.js` 1463-1482 and the places that use it): a running clock on each
+  calculation in the quiz and on a paper that draws calculations; after the answer it shows
+  the time taken, which is the `ms` the engine records; with `paceSeconds` (PK: 120) a time
+  past the pace is red and says "over 2:00". On a paper the time on each question is added
+  up while it is shown and kept with its answer as `ms`. The core already recorded the time
+  of quiz answers and lists "Right, but slow"; PK's time per kind of calculation on Weak
+  spots is not ported. Test `features/stopwatch/current/test.js` (22 checks; 12 fail with
+  the module's code removed). No course switches it on; `core/` and `template/` unchanged.
 - `core/render_test.js`: answers calculation and matching items with their own controls; no more random failures.
 
 ## 2026-11-01

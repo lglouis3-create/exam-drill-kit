@@ -23,7 +23,7 @@ item's status to `done`.
 | 6 | paper-picker (choose a practice paper, paper history) | `shell.html` 1099-1217; `views.js` 3083-3170 | none | pending |
 | 7 | quiz-prep-cards | `views.js` 466-546 | none | pending |
 | 8 | module-pages (Concepts, Calculations by type, Worksheets) | `views.js` 722-854 | none | pending |
-| 9 | stopwatch | `views.js` 1467-1482 | listed | pending |
+| 9 | stopwatch | `views.js` 1467-1482 | listed | done |
 | 10 | notes (Notes tab and flags) | `views.js` 5564-5654 | listed | pending |
 
 ## Tier 2b: BDK and Intro to Pharmacology (added 2026-11-01)
