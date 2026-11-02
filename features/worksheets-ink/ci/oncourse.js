@@ -15,9 +15,10 @@
  *   q90_wsc_fixture.js   the topics (pushed onto TOPICS) and the questions, one per line
  *                        in the template's form ({id:'…', prof:'…', …}), pushed onto QUESTIONS
  *   wsc_data.js          SOURCES and CHAINS (pushed when the course already has them),
- *                        and the lectures and skills, pushed onto COURSE.lectures and
- *                        COURSE.skills (a skill the course already has is not added again)
- * and one line appended to course.js: both files in COURSE.files, and the module on at
+ *                        and the skills, pushed onto COURSE.skills (a skill the course
+ *                        already has is not added again)
+ * and one line appended to course.js: both files in COURSE.files, the lectures added to
+ * COURSE.lectures as literals ({id:'wsc-L09', deck:'…', …}), and the module on at
  * the version in its module.json with the test's Basic-Pharmacokinetics options
  * (PK_OPT, prefix wsc-), kept beside any module already on.
  * Writes only inside <courseSrcDir>; stops with a non-zero exit on any failure,
@@ -84,11 +85,16 @@ const out = {
     `TOPICS.push(...${JSON.stringify(topics)});\nQUESTIONS.push(\n${qsRaw.map(qLine).join('\n')}\n);\n`,
   'wsc_data.js': '/* Basic-Pharmacokinetics\' documents, problem sets, lectures and skills (ac2eb73), from the worksheets-ink test fixture, ids prefixed wsc- (ci/oncourse.js) */\n' +
     decl('CHAINS', chains, own.CHAINS) + '\n' + decl('SOURCES', sources, own.SOURCES) + '\n' +
-    `COURSE.lectures.push(...${JSON.stringify(lectures)});\nCOURSE.skills.push(...${JSON.stringify(skills)});\n`};
+    `COURSE.skills.push(...${JSON.stringify(skills)});\n`};
+// the lectures in the course's own form, {id:'…', deck:'…', …}: state_check.js finds a lecture by its id:'…' entry in course.js
+const lit = v => typeof v === 'number' ? String(v) : `'${String(v).replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
+const lectureLit = l => '{' + Object.entries(l).map(([k, v]) => `${k}:${lit(v)}`).join(', ') + '}';
+if(lectures.some(l => Object.values(l).some(v => typeof v !== 'number' && typeof v !== 'string'))) fail('a lecture holds a value that cannot be written as a literal');
 try { for(const [f, t] of Object.entries(out)){ fs.writeFileSync(path.join(src, f), t); console.log(`wrote: ${path.join(src, f)} (${t.length} characters)`); } }
 catch(e){ fail('cannot write the data files: ' + e.message); }
 const cfg = Object.assign({version: meta.version}, PK_OPT);
 const line = `\n;/* worksheets-ink ci */ COURSE.files = (COURSE.files || []).concat(['q90_wsc_fixture.js', 'wsc_data.js']); ` +
+  `COURSE.lectures = (COURSE.lectures || []).concat([${lectures.map(lectureLit).join(', ')}]); ` +
   `COURSE.features = Object.assign({}, COURSE.features, {"worksheets-ink": ${JSON.stringify(cfg)}});\n`;
 try { fs.appendFileSync(course, line); } catch(e){ fail('cannot write ' + course + ': ' + e.message); }
 console.log('wrote: appended to ' + course + ':' + line.trimEnd());
