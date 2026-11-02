@@ -4,6 +4,18 @@ Dated kit changes, newest first.
 
 ## 2026-11-02
 - Kit checks on GitHub: every pull request runs the checks in Chromium and, as information, in WebKit.
+- New feature module `glossary-tap` v1 (`features/glossary-tap/`), from Intro-Pharmacology
+  `929cd62` (`exam1-drill/src/app.js` 1771-1922, port queue item 18): a Glossary tab over the
+  course's `TERMS` with search, a letter bar, by-group or A-Z order and group chips; and,
+  written for the kit, after an answer is shown a term named in the explanation, or in a
+  section of the Guides, Tell apart and Reference tabs, can be tapped for its definition. A
+  term the core's `GLOSS` has glossed in brackets in a question is left to the core. BDK's
+  glossary is not part of it (it moves with BDK). With `formulas-in-text` on, its pass over a
+  question card runs before the buttons are added, in either course.js order; a term inside a
+  quotation is not marked unless the quotation is its name alone. Its test: 56 checks on a
+  template scratch course with the module on, 93 when `formulas-in-text` is in the course too;
+  CI script `features/glossary-tap/ci/oncourse.js`. Core and template unchanged; no course
+  switches it on.
 - `core/render_test.js`: answers calculation and matching items with their own controls; no more random failures.
 - New feature module `plan-the-problem` v1 (`features/plan-the-problem/`), from
   Basic-Pharmacokinetics `ac2eb73` (`src/views.js` 4754-5120, the set-up drill): on the
