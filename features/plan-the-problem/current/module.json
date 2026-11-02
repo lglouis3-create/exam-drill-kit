@@ -6,7 +6,7 @@
  "js": ["plan-the-problem.js"],
  "css": ["plan-the-problem.css"],
  "step": "step.js",
- "needs": ["equation-drill"],
+ "needs": ["formulas-in-text", "equation-drill"],
  "options": {
   "groups": {"default": {}, "about": "{module number: name} for the scope chips and the card heads; without it, Module <n>"}
  },

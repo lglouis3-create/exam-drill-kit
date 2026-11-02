@@ -45,17 +45,25 @@ if(!F || !A) throw new Error('plan-the-problem needs the equation-drill and form
 const {mathHTML, rich} = F;
 const EQ_BY_ID = A.EQ_BY_ID;
 const P = typeof PLAN === 'undefined' || !PLAN ? {} : PLAN;
-const ASK = typeof ASKS === 'undefined' || !ASKS ? null : ASKS;
+const ASK = typeof ASKS === 'undefined' || !ASKS || !Object.keys(ASKS).length ? null : ASKS;   // an ASKS with no keys is no ASKS
 const HAS_PLAN = Array.isArray(P.models) && P.models.length > 0;
 const groupName = m => (OPT.groups && OPT.groups[m]) || ('Module ' + m);
 const eqShow = e => `<span class="eqshow">${e.lhs} = ${mathHTML(e.disp || e.tokens.join(' '))}</span>`;
 const SHEET_SAYS = {yes: 'printed on the sheet', no: 'not printed; the professor said so', absent: 'not printed'};
+/* Basic-Pharmacokinetics adds "she said to know it" to every line marked `must`,
+   whatever the sheet says (src/views.js line 4967). */
+const sheetSays = e => (SHEET_SAYS[e.sheet] || SHEET_SAYS.absent) + (!e.must ? '' : e.sheet === 'no' ? ', and said to know it' : '; the professor said to know it');
 
 let SU = null;   /* {queue:[q], i, right, asked, plans, scope, mode, page:{qid: state}} */
-function suStats(){ return (typeof DB !== 'undefined' && DB && DB.setup) || {}; }
+/* DB.setup = {equation id: {seen, right, wrong}}. A saved progress whose field has
+   another shape (an import of another file) starts the tally afresh rather than
+   losing each new pick on the next save. */
+const plainObj = x => !!x && typeof x === 'object' && !Array.isArray(x);
+const tallyOk = r => plainObj(r) && ['seen', 'right', 'wrong'].every(k => typeof r[k] === 'number');
+function suStats(){ const s = typeof DB !== 'undefined' && DB && DB.setup; return plainObj(s) ? s : {}; }
 function suLog(eqId, ok){
-  if(!DB.setup) DB.setup = {};
-  const r = DB.setup[eqId] || (DB.setup[eqId] = {seen: 0, right: 0, wrong: 0});
+  if(!plainObj(DB.setup)) DB.setup = {};
+  const r = tallyOk(DB.setup[eqId]) ? DB.setup[eqId] : (DB.setup[eqId] = {seen: 0, right: 0, wrong: 0});
   r.seen++; ok ? r.right++ : r.wrong++; save();
 }
 const suPoolAll = () => QUESTIONS
@@ -226,7 +234,7 @@ function suQuestionHTML(q, st){
     const pre = (q.setup.pre || []).filter(id => EQ_BY_ID[id]);
     h += `<div class="why"><p class="verdict ${st.ok ? 'ok' : 'bad'}">${st.ok ? '✓ That is the line' : '✗ Not that line'}</p>
       ${st.ok ? '' : `<p class="sub">You picked <b>${esc(chosen.name)}</b>, ${eqShow(chosen)}.${chosen.holds ? ` It holds when: ${mathHTML(suFirstSentence(chosen.holds))}` : ''}</p>`}
-      <div class="suright"><b>${esc(e.name)}</b> <span class="sm">(${esc(SHEET_SAYS[e.sheet] || SHEET_SAYS.absent)}${e.must && e.sheet !== 'no' ? '; the professor said to know it' : ''})</span><div class="sueqbig">${eqShow(e)}</div></div>`;
+      <div class="suright"><b>${esc(e.name)}</b> <span class="sm">(${esc(sheetSays(e))})</span><div class="sueqbig">${eqShow(e)}</div></div>`;
     if(plan && (q.givens || []).length){
       h += planSheetHTML(q, st, step++); if(st.sheet == null) return h + `</div></div>`;
       h += planGivensHTML(q, st, step++);
@@ -234,7 +242,7 @@ function suQuestionHTML(q, st){
       const need = planNeeded(q), main = planModels(q).main;
       h += `<div class="suplan"><h4>The plan</h4><ol>
         ${planHasAsk(q) ? `<li>Asked: ${rich(ASK[q.asks][0])}, ${esc(ASK[q.asks][1])}; the answer is in ${esc(q.units)}.</li>` : ''}
-        <li>${esc(PLAN_NAME[main])}: the block of the sheet to read from.</li>
+        <li>${esc(PLAN_NAME[main])}: the ${PLAN_NAME[main].toLowerCase().startsWith('any') ? 'block' : 'block of the sheet'} to read from.</li>
         <li>${eqShow(e)}, the line whose left side is what is asked${pre.length ? `, after ${pre.map(id => eqShow(EQ_BY_ID[id])).join(' and ')}` : ''}; ${e.sheet === 'yes' ? 'printed on the sheet' : 'not printed'}.</li>
         <li>Givens that enter: ${need.map(i => rich(q.givens[i][0])).join(', ') || 'none beyond the line'}.${q.givens.length > need.length ? ` Set aside: ${q.givens.map((g, i) => need.includes(i) ? null : rich(g[0])).filter(Boolean).join(', ')}.` : ''}</li>
         ${q.check && q.check.t ? `<li>Before computing: ${rich(q.check.t)}</li>` : ''}</ol></div>`;
@@ -250,7 +258,7 @@ function suQuestionHTML(q, st){
 }
 function suMixupsHTML(){
   const s = suStats();
-  const rows = Object.entries(s).filter(([id, r]) => EQ_BY_ID[id] && r.wrong).sort((a, b) => b[1].wrong - a[1].wrong).slice(0, 6);
+  const rows = Object.entries(s).filter(([id, r]) => EQ_BY_ID[id] && tallyOk(r) && r.wrong).sort((a, b) => b[1].wrong - a[1].wrong).slice(0, 6);
   if(!rows.length) return '';
   return `<h4>The lines you missed most often</h4><ul class="tlist">${rows.map(([id, r]) => `<li>${eqShow(EQ_BY_ID[id])} <span class="sm">${esc(EQ_BY_ID[id].name)}: ${r.wrong} wrong of ${r.seen}</span></li>`).join('')}</ul>`;
 }
@@ -339,5 +347,5 @@ X.rendered((pane, view) => {
   at ? at.after(card) : pane.appendChild(card);
   card.addEventListener('click', ev => { const b = ev.target.closest('[data-su]'); if(b){ ev.stopPropagation(); suStart(b.dataset.su); } });
 });
-X.api({suPoolAll, suScopePool, suOptions, suStart, suStop, suStats, whySentences, planModels, planNeeded, planHasAsk,
+X.api({suPoolAll, suScopePool, suOptions, suStart, suStop, suStats, whySentences, planModels, planNeeded, planHasAsk, planAskOpts, planUnitOpts, normUnit,
        state: () => SU, render: suRender, HAS_PLAN});

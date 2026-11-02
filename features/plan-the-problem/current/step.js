@@ -12,7 +12,8 @@
 if(typeof EQUATIONS === 'undefined' || !Array.isArray(EQUATIONS))
   throw new Error('plan-the-problem reads EQUATIONS (equation-drill): put the equations in a data file listed in course.js `files`');
 const E = new Set(EQUATIONS.map(e => e.id)), errs = [];
-const asks = typeof ASKS === 'undefined' ? null : ASKS;
+/* an ASKS with no keys is a course without ASKS, as the module reads it (no "What is asked?" step) */
+const asks = typeof ASKS === 'undefined' || (ASKS && typeof ASKS === 'object' && !Object.keys(ASKS).length) ? null : ASKS;
 const plan = typeof PLAN === 'undefined' ? null : PLAN;
 const str = x => typeof x === 'string' && x.trim() !== '';
 let stems = 0;
