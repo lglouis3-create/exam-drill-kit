@@ -1,0 +1,69 @@
+/* theme: the dark colours, used when the student picks Dark, or picks Match device
+   (the default) on a phone or computer set to dark. Basic-Pharmacokinetics
+   src/shell.html lines 979-1028 at ac2eb73: its palette, and its dark rules for
+   the classes the kit core has; the kit adds dark values for the core's own
+   fixed light colours that Basic-Pharmacokinetics' shell did not have (atlas
+   colours, figure boxes, the .tag.p3/.tag.p4 tags, white text on light buttons).
+   The two blocks below hold the same rules (test.js checks this): the first for
+   Match device on a dark device, the second for Dark picked by the student.
+   Light picked by the student sets data-theme="light", which the first block's
+   selector leaves out. */
+@media (prefers-color-scheme: dark){
+:root:not([data-theme="light"]){--ink:#0B1118; --ink-2:#141D27; --paper:#18212B; --surface:#10161D;
+  --line:#33404F; --line-soft:#26303C;
+  --text:#E4EAF1; --text-dim:#9FAEBE;
+  --ok:#5DC58C; --ok-bg:#15301F; --bad:#F2837A; --bad-bg:#3A1B19;
+  --warn:#E7AE55; --warn-bg:#33270F; --accent:#86AEEC; --accent-bg:#1A2840;
+  --sik:#86AEEC; --yen:#C99BE6; --sel:#3B5C90;
+  --at-o:#F2837A; --at-n:#86AEEC; --at-s:#E7AE55; --at-p:#C99BE6; --at-x:#5DC58C;
+  --wash:rgba(242,131,122,.18);
+  color-scheme:dark}
+:root:not([data-theme="light"]) .teach,:root:not([data-theme="light"]) .tdiag,:root:not([data-theme="light"]) .cmpcell,:root:not([data-theme="light"]) .teach .fgshow{border-color:#2C3F5C}
+:root:not([data-theme="light"]) .teach .prose+h5.tsec{border-top-color:rgba(255,255,255,.08)}
+:root:not([data-theme="light"]) .tdiag,:root:not([data-theme="light"]) .tdimg,:root:not([data-theme="light"]) .qimg,:root:not([data-theme="light"]) .fgshow,:root:not([data-theme="light"]) .cmpcell,:root:not([data-theme="light"]) .wfig{background:var(--paper)}
+:root:not([data-theme="light"]) .tag.sik{border-color:#2C4466;background:#16243A}
+:root:not([data-theme="light"]) .tag.yen,:root:not([data-theme="light"]) .tag.sata{border-color:#4A3560;background:#251B30;color:#C99BE6}
+:root:not([data-theme="light"]) .tag.p3{border-color:#2C5A3C;background:var(--ok-bg);color:var(--ok)}
+:root:not([data-theme="light"]) .tag.p4{border-color:#5A2E45;background:#3B1A2B;color:#F09AC4}
+:root:not([data-theme="light"]) .note{border-color:#5A4520;color:#F0CB8E}
+:root:not([data-theme="light"]) .note b{color:#F0CB8E}
+:root:not([data-theme="light"]) .btn.amber,:root:not([data-theme="light"]) .cite .srcflag{border-color:#5A4520}
+:root:not([data-theme="light"]) .sweepcard .subrow:hover{background:rgba(255,255,255,.04)}
+:root:not([data-theme="light"]) .chip[aria-pressed="true"]{background:var(--sel);border-color:var(--sel);color:#fff}
+:root:not([data-theme="light"]) .examhead{background:#141D27}
+:root:not([data-theme="light"]) img[src^="data:image/svg+xml"]{filter:invert(.88) hue-rotate(180deg)}
+:root:not([data-theme="light"]) .reffig img{border-color:var(--line)}
+:root:not([data-theme="light"]) select,:root:not([data-theme="light"]) input,:root:not([data-theme="light"]) textarea{color-scheme:dark}
+:root:not([data-theme="light"]) .btn:not(.ghost):not(.amber),:root:not([data-theme="light"]) .subrow button,:root:not([data-theme="light"]) .gbar,:root:not([data-theme="light"]) .gbar *,:root:not([data-theme="light"]) #swbar button,:root:not([data-theme="light"]) .opt.pick-ok .k,:root:not([data-theme="light"]) .opt.pick-bad .k,:root:not([data-theme="light"]) .opt.reveal-ok .k,:root:not([data-theme="light"]) .wrow .mark{color:#0B1118}
+}
+:root[data-theme="dark"]{--ink:#0B1118; --ink-2:#141D27; --paper:#18212B; --surface:#10161D;
+  --line:#33404F; --line-soft:#26303C;
+  --text:#E4EAF1; --text-dim:#9FAEBE;
+  --ok:#5DC58C; --ok-bg:#15301F; --bad:#F2837A; --bad-bg:#3A1B19;
+  --warn:#E7AE55; --warn-bg:#33270F; --accent:#86AEEC; --accent-bg:#1A2840;
+  --sik:#86AEEC; --yen:#C99BE6; --sel:#3B5C90;
+  --at-o:#F2837A; --at-n:#86AEEC; --at-s:#E7AE55; --at-p:#C99BE6; --at-x:#5DC58C;
+  --wash:rgba(242,131,122,.18);
+  color-scheme:dark}
+:root[data-theme="dark"] .teach,:root[data-theme="dark"] .tdiag,:root[data-theme="dark"] .cmpcell,:root[data-theme="dark"] .teach .fgshow{border-color:#2C3F5C}
+:root[data-theme="dark"] .teach .prose+h5.tsec{border-top-color:rgba(255,255,255,.08)}
+:root[data-theme="dark"] .tdiag,:root[data-theme="dark"] .tdimg,:root[data-theme="dark"] .qimg,:root[data-theme="dark"] .fgshow,:root[data-theme="dark"] .cmpcell,:root[data-theme="dark"] .wfig{background:var(--paper)}
+:root[data-theme="dark"] .tag.sik{border-color:#2C4466;background:#16243A}
+:root[data-theme="dark"] .tag.yen,:root[data-theme="dark"] .tag.sata{border-color:#4A3560;background:#251B30;color:#C99BE6}
+:root[data-theme="dark"] .tag.p3{border-color:#2C5A3C;background:var(--ok-bg);color:var(--ok)}
+:root[data-theme="dark"] .tag.p4{border-color:#5A2E45;background:#3B1A2B;color:#F09AC4}
+:root[data-theme="dark"] .note{border-color:#5A4520;color:#F0CB8E}
+:root[data-theme="dark"] .note b{color:#F0CB8E}
+:root[data-theme="dark"] .btn.amber,:root[data-theme="dark"] .cite .srcflag{border-color:#5A4520}
+:root[data-theme="dark"] .sweepcard .subrow:hover{background:rgba(255,255,255,.04)}
+:root[data-theme="dark"] .chip[aria-pressed="true"]{background:var(--sel);border-color:var(--sel);color:#fff}
+:root[data-theme="dark"] .examhead{background:#141D27}
+:root[data-theme="dark"] img[src^="data:image/svg+xml"]{filter:invert(.88) hue-rotate(180deg)}
+:root[data-theme="dark"] .reffig img{border-color:var(--line)}
+:root[data-theme="dark"] select,:root[data-theme="dark"] input,:root[data-theme="dark"] textarea{color-scheme:dark}
+:root[data-theme="dark"] .btn:not(.ghost):not(.amber),:root[data-theme="dark"] .subrow button,:root[data-theme="dark"] .gbar,:root[data-theme="dark"] .gbar *,:root[data-theme="dark"] #swbar button,:root[data-theme="dark"] .opt.pick-ok .k,:root[data-theme="dark"] .opt.pick-bad .k,:root[data-theme="dark"] .opt.reveal-ok .k,:root[data-theme="dark"] .wrow .mark{color:#0B1118}
+
+/* the choice in the header, as Basic-Pharmacokinetics src/shell.html line 1030 */
+header .themesel{background:#2A3A4D;color:#DCE6F2;border:1px solid #3B4F66;border-radius:6px;padding:3px 6px;font:inherit;font-size:12px}
+.fxtheme label{display:flex;gap:8px;align-items:center;margin:6px 0;font-size:15px}
+.fxtheme p{font-size:13.5px;color:var(--text-dim);margin:8px 0 0}
