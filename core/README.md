@@ -33,6 +33,7 @@ that course's repository. Both folders come from the recovered exam-drill templa
 | `offline_test.js` | core | the offline copy: other sites' caches kept, server down, server slow |
 | `home_test.js` | core | the Home Screen card for each kind of browser: a closed section in Settings, nothing on Topics |
 | `history_test.js` | core | the answer history: its fields, Export, Import, Erase, a refused write |
+| `import_test.js` | core | Import progress: files of another course or app and damaged files refused; older files converted; a newer file replaces after a confirmed plan, with a backup to put back; an older file changes nothing; a diverged file goes into a new profile; repeats change nothing; refused reads and writes leave everything stored as it was |
 | `preview_test.js` | core | `build.py --preview`: the live site unchanged, the preview's own namespace |
 | `state_check.js` | core | the course's root `CLAUDE.md` was updated with or after the newest lecture (§7.8) |
 | `state_check_test.js` | core | `state_check.js` on repositories with known histories |
@@ -370,12 +371,55 @@ updated it, rounded to 4 decimal places (a design choice, to keep the history sm
 `null` for the concept scheduler, which predicts none. The first seven fields are as they
 were, so entries written before the last three were added still read the same, and BDK's
 four (`[seconds, card code, 1/0, mode]`) are the first four here. Export progress writes
-the progress and the history into one file; Import progress replaces the progress, as
-before, and merges the history without duplicating an answer (an entry here in the older
-seven-field format gains the last three from an imported copy of the same answer); Erase
-my history clears both. When the browser refuses to save the history, the oldest half is
+the progress and the history into one file, labelled with the course (`course`, `ns`).
+Import progress merges the history without duplicating an answer (an entry here in the
+older seven-field format gains the last three from an imported copy of the same answer)
+and handles the progress as "Import progress" below says. Erase my history clears both. When the browser refuses to save the history, the oldest half is
 dropped and no notice is shown, so the history never stops progress from saving. No
 scheduler reads the history; the progress (`DB`) holds what they schedule from.
+
+**Import progress** (Louis's rules of 2026-11-02; `views.js` `readProgressFile`,
+`importPlan`, `runImport`; `import_test.js`). The file is read and checked whole before
+anything is saved:
+- **Refused:** a file that is not JSON or not a progress export; a file labelled with
+  another course (`course` or `ns`); a file with no label (the export before the kit core,
+  `{profile, db}`) unless every question it answers is in this drill's bank; a BDK quiz
+  export (`app: 'bdk-quiz'`, until a converter for it is built); another app's file; an
+  answer or a history entry that is not whole; the same answer twice. The page says which
+  of these it is.
+- **Converted:** an older progress, as on load (`upgradeDB`).
+
+Two answers are the same answer when their question id and their time to the millisecond
+agree. Against the profile on screen, Import then does one of four things:
+- **nothing:** every answer and history entry of the file is here already, also when the
+  file was imported before into a profile of its own;
+- **history:** it adds history entries only, and the progress is unchanged;
+- **replace:** the file has answers this device lacks and lacks none of this device's
+  (or this profile has none);
+- **separate:** each has answers the other lacks. This is also the case when the file
+  keeps only its latest 4,000 answers and so cannot show it includes this device's older
+  ones. The file's progress goes into a new profile, named after the file's profile and
+  the date, and this profile is unchanged.
+
+Before it saves, the page shows the course, the file's profile and export date, the
+answers and history entries in the file and on this device (with their dates), and what
+Import would do. It saves only on Import; Cancel leaves everything as it was.
+
+A replace keeps the progress it replaces under `<ns>:backup:<profile>`. "Put back the
+progress from before the import" in Settings swaps the two. With the progress come its
+pace and "Ask everything", because the file's review dates were set with them. The
+equation drill's choice (`IMPORT_DEVICE`) stays this device's, and no key outside the
+progress, the history and the backup is touched.
+
+Nothing is replaced while the progress, or (for a file that adds to it) the history,
+could not be read in this visit. Every Import write is `store.trySet`: when the browser
+refuses it, nothing changes, not even the copy kept for the visit. A refused write of
+the backup or the progress means nothing is imported. A refused history write leaves the
+history stored and in memory as it was (it does not shrink), and importing the file
+again adds the entries. A new profile whose history cannot be saved is not made. A
+browser that stops between the writes leaves either the old progress, or the new
+progress with the history not yet merged. Combining two records into one is a separate
+proposal (`review/combined-progress-proposal.md`).
 
 The Home Screen card appears only in Settings, as a section that starts closed (a
 `<details>` whose `<summary>` is the card's one-line heading), and never on Topics

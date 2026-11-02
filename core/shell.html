@@ -586,6 +586,13 @@ const store = {
     catch(e){ FAILED.add(k); saveWarn(); return false; }
   },
   del(k){ delete MEM[k]; FAILED.delete(k); try { localStorage.removeItem(k); } catch(e){ /* nothing to remove */ } },
+  // Import's writes: true when the browser kept it; false when it refused, and then
+  // nothing changes, not even the copy kept for this visit, so a refused import
+  // leaves the progress on screen and in storage exactly as it was
+  trySet(k, v){
+    try { localStorage.setItem(k, v); MEM[k] = v; FAILED.delete(k); return true; }
+    catch(e){ return false; }
+  },
 };
 /* The first time a preview opens in a browser, it copies the live drill's saved
    keys into its own namespace, so the preview shows the student's real progress.
@@ -655,6 +662,7 @@ const BLANK = () => ({
   created:Date.now()
 });
 let DB = BLANK();
+const ANSWERS_MAX = 4000;   // the answers a progress keeps (record); the answer history keeps LOG_MAX
 /* Whether the saved progress of the profile on screen was read in this visit.
    Every write of the progress, the answer history and the exam paper asks
    canSave() first, and nothing is written while it is false: before load()
@@ -858,6 +866,11 @@ function askProfile(force){
       'Nothing is sent anywhere — it stays on this device.', PROFILE||'') || '').trim();
     if(!n) n = PROFILE || 'me';
   }
+  useProfile(n);
+}
+/* Open profile n: the profile chosen with Switch, or the one Import put a file in. */
+function useProfile(n){
+  if(saveTimer && PROFILE){ clearTimeout(saveTimer); saveTimer = null; if(canSave()) store.set(keyFor(PROFILE), JSON.stringify(DB)); }
   PROFILE = n;
   store.set(NS+':profile', PROFILE);
   load();
@@ -1196,7 +1209,7 @@ function record(q, result, picked, ms, mode){
   // the FSRS models step their card on every answer (the box above is still
   // kept: Weak spots and mastery read it)
   if(arm !== 'concept') fsAnswer(q, arm, result === 'correct', now);
-  if(DB.answers.length > 4000) DB.answers.splice(0, DB.answers.length-4000);
+  if(DB.answers.length > ANSWERS_MAX) DB.answers.splice(0, DB.answers.length - ANSWERS_MAX);
   save();
   logAnswer(q, result, mode || (typeof Q !== 'undefined' && Q && Q.sweep ? 'sweep' : 'quiz'), how);
 }

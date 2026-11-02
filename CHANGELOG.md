@@ -3,6 +3,8 @@
 Dated kit changes, newest first.
 
 ## 2026-11-02
+- Import progress shows what a file holds and would change, and saves only when confirmed.
+- Import refuses another course's file or a damaged file, keeps a backup it can put back, and never mixes two records.
 - `core/home_test.js`: answers a select-all question it picks, with its right boxes, so it no longer fails at random.
 - Kit checks on GitHub: every pull request runs the checks in Chromium and, as information, in WebKit.
 - Checks open built pages over HTTP from 127.0.0.1, not from disk, so WebKit no longer refuses the manifest.

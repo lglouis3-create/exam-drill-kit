@@ -759,6 +759,7 @@ COURSE.exams.push({id:'zsA', name:'Test exam', date:'12 Nov', when:'2026-11-12T0
       fs.writeFileSync(file, JSON.stringify({app: 'exam-drill', ns, db: F.db, log: F.log}));
       await p.evaluate(() => { DB = BLANK(); show('settings'); });
       await p.setInputFiles('#fileIn', file);
+      await p.waitForSelector('#importGo', {timeout: 5000}).then(b => b.click(), () => {});
       await p.waitForTimeout(600);
       db = await p.evaluate(() => JSON.parse(JSON.stringify(DB)));
       check(db.v === 2 && JSON.stringify(strip(db)) === JSON.stringify(F.db) && JSON.stringify(db.concepts.c1.last) === JSON.stringify(lastWant.c1),
