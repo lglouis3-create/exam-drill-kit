@@ -4,6 +4,8 @@ Dated kit changes, newest first.
 
 ## 2026-11-02
 - Kit checks on GitHub: every pull request runs the checks in Chromium and, as information, in WebKit.
+- Checks open built pages over HTTP from 127.0.0.1, not from disk, so WebKit no longer refuses the manifest.
+- Kit checks on GitHub: each changed feature module, and each module that needs it, is checked on a course of its own.
 - `core/render_test.js`: answers calculation and matching items with their own controls; no more random failures.
 - New feature module `theme` v1 (`features/theme/`), from Basic-Pharmacokinetics `ac2eb73`
   (`src/views.js` 6323-6333 and `src/shell.html` 979-1042): dark colours for the whole page
