@@ -1,0 +1,1 @@
+PASS: features/short-answer-graphs/test.js: 69 checks passed (1 skipped: no Graphs tab without figures)

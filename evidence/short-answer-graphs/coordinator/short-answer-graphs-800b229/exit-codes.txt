@@ -1,0 +1,8 @@
+oncourse short-answer-graphs exit=0
+build exit=0
+module test run 1 exit=0
+module test run 2 exit=0
+module test run 3 exit=0
+rc oncourse short-answer-graphs exit=0
+rc build exit=0
+rc run_checks exit=0

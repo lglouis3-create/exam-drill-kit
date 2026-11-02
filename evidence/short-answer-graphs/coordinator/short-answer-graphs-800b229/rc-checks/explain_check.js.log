@@ -1,0 +1,74 @@
+
+=== Explanation quality ===
+  26 of 28 questions carry at least one issue
+
+    26  thin option why
+     5  no diagnosis of the error
+     1  vague reference
+
+  by pool:
+    21  all (supplies 4 of the 4)
+     5  none (supplies ? of the 4)
+
+  worst 26, ranked by severity x exam weight:
+
+  s2-1        topic2    all             rank 20.0
+      - thin option why: A (48), B (42), C (39), D (49), E (55)
+  sgc-FG-027  FG        all             rank 20.0
+      - thin option why: A (54), B (71), C (48), D (72), E (85)
+  s1-1        topic1    all             rank 16.0
+      - thin option why: A (69), B (67), C (77), D (65)
+  s1-2        topic1    all             rank 16.0
+      - thin option why: A (52), B (40), C (28), D (29)
+  s1-3        topic1    all             rank 16.0
+      - thin option why: A (91), B (45), C (31), D (46)
+  s2-2        topic2    all             rank 16.0
+      - thin option why: A (25), B (42), C (51), D (50)
+  sgc-FG-026  FG        all             rank 16.0
+      - thin option why: A (90), B (97), D (61), E (71)
+  sgc-FG-028  FG        all             rank 16.0
+      - thin option why: A (87), B (78), C (92), D (73)
+  sgc-FG-048  FG        all             rank 16.0
+      - thin option why: A (100), B (98), C (49), D (69)
+  sgc-FG-049  FG        all             rank 16.0
+      - thin option why: A (74), B (84), C (89), D (78)
+  sgc-FG-050  FG        all             rank 16.0
+      - thin option why: A (97), C (107), D (89), E (99)
+  sgc-L06-025 L06       all             rank 16.0
+      - thin option why: A (93), C (74), D (89), E (79)
+  sgc-L06-017 L06       all             rank 14.0
+      - thin option why: A (102), D (77), E (79)
+      - no diagnosis of the error: B
+  sgc-L06-024 L06       all             rank 14.0
+      - thin option why: A (97), B (52), D (58)
+      - no diagnosis of the error: E
+  sgc-FG-025  FG        all             rank 12.0
+      - thin option why: A (91), B (44), D (97)
+  sgc-FG-045  FG        all             rank 12.0
+      - thin option why: A (109), C (97), D (87)
+  sgc-FG-046  FG        all             rank 12.0
+      - thin option why: B (88), C (90), D (89)
+  sgc-FG-047  FG        all             rank 12.0
+      - thin option why: B (74), C (90), D (86)
+  sgc-FG-051  FG        all             rank 12.0
+      - thin option why: A (97), C (74), D (89)
+  sgc-FG-029  FG        all             rank 10.0
+      - thin option why: C (90), D (83)
+      - no diagnosis of the error: B
+  sgc-FG-052  FG        all             rank 8.0
+      - thin option why: C (96), D (69)
+  sgc-PE2-031 PE2       none            rank 5.5
+      - thin option why: B (73), C (75), D (109), E (74)
+      - vague reference: concept block: "does the opposite", unnamed
+  sgc-PE2-034 PE2       none            rank 4.0
+      - thin option why: B (69), C (70), D (73), E (95)
+  sgc-PE2-032 PE2       none            rank 3.5
+      - thin option why: B (84), C (83), E (105)
+      - no diagnosis of the error: D
+  sgc-PE2-033 PE2       none            rank 3.0
+      - thin option why: B (65), C (73), D (50)
+  sgc-PE2-030 PE2       none            rank 2.5
+      - thin option why: A (102), C (104)
+      - no diagnosis of the error: B
+
+REPORT: explain_check.js: 26 of 28 questions carry at least one explanation issue
