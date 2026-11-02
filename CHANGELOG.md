@@ -4,6 +4,8 @@ Dated kit changes, newest first.
 
 ## 2026-11-02
 - Kit checks on GitHub: every pull request runs the checks in Chromium and, as information, in WebKit.
+- Checks open built pages over HTTP from 127.0.0.1, not from disk, so WebKit no longer refuses the manifest.
+- Kit checks on GitHub: each changed feature module, and each module that needs it, is checked on a course of its own.
 - New feature module `paper-picker` v1 (`features/paper-picker/`), from Basic-Pharmacokinetics
   `ac2eb73` (`pickExam`, `chooseExam`, `examPicker`, `examHistory`): on the Exam view and in
   Settings, a chip per exam a paper can be drawn for; a paper for an earlier exam is drawn
