@@ -533,15 +533,17 @@ Test: `features/module-pages/current/test.js` (PK `src/review_test.py` 32-38 and
 
 ## calc-stopwatch
 Does: a stopwatch on each calculation and time per kind of item on Weak spots.
+## stopwatch
+Does: a running clock on each calculation, in the quiz and on an exam paper that draws calculations; after the answer it shows the time taken (the time the engine records with the answer), and with a pace set, a time past the professor's pace is red and says "over 2:00" in words. On a paper, the time on each question is added up while it is on screen and kept with each of the paper's answers. (Listed as `calc-stopwatch` before the port; `COURSES.md` still names PK's copy that way.)
 Use when: the professor sets a time per calculation (PK: "A few calculations, each meant to take 2 minutes or less", `src/course.js` line 264).
 Do not use when: no timed calculations.
-Enable: course.js → features.calc-stopwatch = { version: 'v1', targetSeconds: 120 }
+Enable: course.js → features.stopwatch = { version: 'v1', paceSeconds: 120 } (`paceSeconds: 0`, the default, shows the clock without a pace; the clock on a paper needs the exam's `typed: true`)
 Versions:
-  v1  2026-10-07  from PK (`5326a60`)   best for: timed calculation exams   weaker at: not evaluated   current/
+  v1  2026-10-07  from PK (`5326a60`)   best for: timed calculation exams   weaker at: not evaluated   current/ (ported 2026-11-02 from PK `ac2eb73` `src/views.js` 1463-1482 and the places that use it)
 Evidence: the professor's statement quoted above.
-Used by: PK (v1)
-Known issues: none recorded.
-Test: none specific.
+Used by: PK (v1, its own copy); the kit module: none yet.
+Known issues: the core already records the time of each quiz answer (`ms`) and lists "Right, but slow" on Weak spots; the module adds the clock, the pace and the time of paper answers, and reads no course data. Not ported: PK's time per kind of calculation on Weak spots (`src/views.js` 2160-2200, grouped by PK's `CALC_TYPES`, which the kit does not have yet) and the one-page layout's "Start timer" button (the core has no one-page layout). The time on a paper question is kept in the page only: after a reload in the middle of a paper it is counted again from the reload.
+Test: `features/stopwatch/current/test.js` (PK `src/review_test.py` lines 517-541 ported: 23 checks); `features/stopwatch/ci/oncourse.js` switches it on in a scratch course for the kit's CI.
 
 ## variables-quiz
 Does: which symbol a worded question asks for, and what each symbol means.
