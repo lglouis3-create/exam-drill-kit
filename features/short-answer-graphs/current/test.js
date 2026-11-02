@@ -111,9 +111,11 @@ const build = (label, own, opts) => L.scratchBuild(label, {files: fixtureFiles(o
     const tr = A.GR.find(g => (X.GE || {})[g.exam || 1] && X.GE[g.exam || 1].noun === 'tracing');
     const tq = tr && A.graphQs(tr).find(q => q.options && q.options.some(o => !o.correct && o.miss));
     if(tq){
-      const h = A.graphFeedback(tq, {ok: false, picked: tq.options.findIndex(o => !o.correct && o.miss)});
+      const pick = tq.options.findIndex(o => !o.correct && o.miss), h = A.graphFeedback(tq, {ok: false, picked: pick});
       const skip = (h.match(/<div class="gskip">[\s\S]*?<\/div>/) || [''])[0];
-      check(skip && !/curve/i.test(skip) && /tracing/.test(h), `a tracing's feedback uses tracing wording, not curve wording (${tq.id})`, h.slice(0, 200));
+      const own = ((X.GE[tr.exam || 1] || {}).miss || {})[tq.options[pick].miss];   // the exam's own wording of that tag, when it has one
+      check(skip && !/curve/i.test(skip) && /tracing/.test(h) && (!own || (skip.includes(own[0]) && skip.includes(own[1]))),
+            `a tracing's feedback uses tracing wording, not curve wording (${tq.id})`, h.slice(0, 200));
     } else L.skip('tracing wording', 'the course has no figure with tracing wording and a miss tag');
   } else L.skip('the course\'s figures', 'the course declares no GRAPHS');
   if(A.SA_LIST.length){
@@ -236,8 +238,8 @@ const build = (label, own, opts) => L.scratchBuild(label, {files: fixtureFiles(o
     await page.click(`#v-quiz .opt[data-o="${tw}"]`);
     const t2 = await ev(() => ({skip: (document.querySelector('#v-quiz .gskip') || {}).textContent || '', sum: (document.querySelector('#v-quiz details.gread summary') || {}).textContent}));
     const tag2 = await ev(i => Q.current.options[i].miss, tw);
-    const want2 = (IP.miss2[tag2] || IP.miss[tag2])[0];
-    check(t2.skip.includes(want2) && !/curve/i.test(t2.skip) && t2.sum === "Read this tracing the professor's way",
+    const want2 = IP.miss2[tag2] || IP.miss[tag2];   // [label, question]: MISS2's own wording when it has the tag
+    check(t2.skip.includes(want2[0]) && t2.skip.includes(want2[1]) && !/curve/i.test(t2.skip) && t2.sum === "Read this tracing the professor's way",
           `a tracing names its skipped question in tracing wording, not curve wording (tag ${tag2})`, t2);
 
     // the counts survive a reload (after the core's save, 150 ms after the last answer)
