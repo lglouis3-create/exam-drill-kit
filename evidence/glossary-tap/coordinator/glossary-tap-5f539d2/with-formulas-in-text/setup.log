@@ -1,0 +1,6 @@
+formulas-in-text has no ci/oncourse.js; switched on by a course.js line only
+$ node features/glossary-tap/ci/oncourse.js
+wrote: /tmp/port-coord/vc-glossary-tap/src/terms_gtap.js (10 terms)
+wrote: /tmp/port-coord/vc-glossary-tap/src/q1_topics.js (2 topics, 66 questions; replaces the template sample)
+wrote: /tmp/port-coord/vc-glossary-tap/src/guide.js (Intro to Pharmacology guide.js sections 1 and 4, opening lines; replaces the template sample)
+wrote: /tmp/port-coord/vc-glossary-tap/src/course.js: lectures L04, L10 in its list; appended 7 skills, terms_gtap.js in files, glossary-tap v1 on
