@@ -1,0 +1,5 @@
+
+;COURSE.files = COURSE.files.concat(['sc_probe.js']);
+COURSE.exams.forEach(e => { e.typed = true; });
+COURSE.exams.unshift(Object.assign(JSON.parse(JSON.stringify(COURSE.exams[0])), {id: 'exam0', name: 'Exam 0', when: '2026-10-01T09:00'}));
+COURSE.features = {'study-controls': {version: 'v1', strict: true}, 'worksheets-ink': {version: 'v1'}, 'paper-picker': {version: 'v1'}};

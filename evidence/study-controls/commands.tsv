@@ -1,0 +1,38 @@
+2026-11-02T18:58:51Z	on-build	exit 0	cd /tmp/port-study-controls/on/src && python3 build.py
+2026-11-02T18:59:02Z	start-test	exit 0	cd /tmp/port-study-controls/on/src && node features/study-controls/test.js
+2026-11-02T18:59:42Z	probe-build	exit 0	cd /tmp/port-study-controls/probe/src && python3 build.py
+2026-11-02T19:00:44Z	probe-before	exit 0	cd /tmp/port-study-controls/probe/src && node /tmp/port-study-controls/bin/probe.js /tmp/port-study-controls/probe/index.html
+2026-11-02T19:01:33Z	probe-build2	exit 0	cd /tmp/port-study-controls/probe/src && python3 build.py
+2026-11-02T19:01:38Z	probe-after	exit 0	cd /tmp/port-study-controls/probe/src && node /tmp/port-study-controls/bin/probe.js /tmp/port-study-controls/probe/index.html
+2026-11-02T19:06:20Z	on-build2	exit 0	cd /tmp/port-study-controls/on/src && python3 build.py
+2026-11-02T19:06:26Z	dev-test1	exit 1	cd /tmp/port-study-controls/on/src && node features/study-controls/test.js
+2026-11-02T19:07:04Z	dev-test2	exit 1	cd /tmp/port-study-controls/on/src && node features/study-controls/test.js
+2026-11-02T19:07:42Z	dev-test3	exit 0	cd /tmp/port-study-controls/on/src && node features/study-controls/test.js
+2026-11-02T19:07:50Z	probe-build3	exit 0	cd /tmp/port-study-controls/probe/src && python3 build.py
+2026-11-02T19:08:11Z	partners-on-test1	exit 0	cd /tmp/port-study-controls/probe/src && node features/study-controls/test.js
+2026-11-02T19:08:41Z	partners-on-test2	exit 0	cd /tmp/port-study-controls/probe/src && node features/study-controls/test.js
+2026-11-02T19:08:59Z	probe-after-1	exit 0	cd /tmp/port-study-controls/probe/src && node /tmp/port-study-controls/bin/probe.js /tmp/port-study-controls/probe/index.html
+2026-11-02T19:09:04Z	probe-after-2	exit 0	cd /tmp/port-study-controls/probe/src && node /tmp/port-study-controls/bin/probe.js /tmp/port-study-controls/probe/index.html
+2026-11-02T19:09:10Z	probe-after-3	exit 0	cd /tmp/port-study-controls/probe/src && node /tmp/port-study-controls/bin/probe.js /tmp/port-study-controls/probe/index.html
+2026-11-02T19:11:48Z	dbg-build	exit 0	cd /tmp/port-study-controls/dbg/src && python3 build.py
+2026-11-02T19:12:26Z	dbg-m1	exit 1	cd /tmp/port-study-controls/dbg/src && node features/study-controls/test.js
+2026-11-02T19:12:58Z	dbg2	exit 0	cd /tmp/port-study-controls/dbg/src && node /tmp/port-study-controls/bin/dbg2.js /tmp/port-study-controls/dbg/index.html s1-1
+2026-11-02T19:13:52Z	dbg-m1b	exit 1	cd /tmp/port-study-controls/dbg/src && node features/study-controls/test.js
+2026-11-02T19:14:34Z	on-build3	exit 0	cd /tmp/port-study-controls/on/src && python3 build.py
+2026-11-02T19:14:54Z	dev-test4	exit 0	cd /tmp/port-study-controls/on/src && node features/study-controls/test.js
+2026-11-02T19:17:11Z	ci-oncourse	exit 0	cd /tmp/port-study-controls/ci-course/src && node /home/user/exam-drill-kit/.claude/worktrees/agent-a1541b60afbedd42c/features/study-controls/ci/oncourse.js /home/user/exam-drill-kit/.claude/worktrees/agent-a1541b60afbedd42c /tmp/port-study-controls/ci-course/src
+2026-11-02T19:17:11Z	ci-oncourse-again	exit 1	cd /tmp/port-study-controls/ci-course/src && node /home/user/exam-drill-kit/.claude/worktrees/agent-a1541b60afbedd42c/features/study-controls/ci/oncourse.js /home/user/exam-drill-kit/.claude/worktrees/agent-a1541b60afbedd42c /tmp/port-study-controls/ci-course/src
+2026-11-02T19:22:36Z	mutations-run2	exit 0	python3 -I evidence/mutations.py /tmp/port-study-controls/mut
+2026-11-02T19:23:53Z	mutations-run3	exit 0	python3 -I evidence/mutations.py /tmp/port-study-controls/mut M17 M10 (after the new check)
+2026-11-02T19:24:02Z	on-build4	exit 0	cd /tmp/port-study-controls/on/src && python3 build.py
+2026-11-02T19:24:22Z	pre-commit-test	exit 0	cd /tmp/port-study-controls/on/src && node features/study-controls/test.js
+2026-11-02T19:25:13Z	final-ci-oncourse	exit 0	cd /tmp/port-study-controls/final/src && node /home/user/exam-drill-kit/.claude/worktrees/agent-a1541b60afbedd42c/features/study-controls/ci/oncourse.js /home/user/exam-drill-kit/.claude/worktrees/agent-a1541b60afbedd42c /tmp/port-study-controls/final/src
+2026-11-02T19:25:18Z	final-build	exit 0	cd /tmp/port-study-controls/final/src && python3 build.py
+2026-11-02T19:25:40Z	final-test-1	exit 0	cd /tmp/port-study-controls/final/src && node features/study-controls/test.js
+2026-11-02T19:26:01Z	final-test-2	exit 0	cd /tmp/port-study-controls/final/src && node features/study-controls/test.js
+2026-11-02T19:26:21Z	final-test-3	exit 0	cd /tmp/port-study-controls/final/src && node features/study-controls/test.js
+2026-11-02T19:29:32Z	final-run-checks	exit 0	cd /tmp/port-study-controls/final/src && ./run_checks.sh
+2026-11-02T19:29:49Z	partners-on-build-final	exit 0	cd /tmp/port-study-controls/probe/src && python3 build.py
+2026-11-02T19:30:12Z	partners-on-test-final	exit 0	cd /tmp/port-study-controls/probe/src && node features/study-controls/test.js
+2026-11-02T19:30:13Z	absent-build	exit 0	cd /tmp/port-study-controls/absent/src && python3 build.py
+2026-11-02T19:30:13Z	absent-test	exit 1	cd /tmp/port-study-controls/absent/src && node features/study-controls/test.js

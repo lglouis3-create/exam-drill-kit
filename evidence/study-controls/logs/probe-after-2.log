@@ -1,0 +1,16 @@
+{"probe":"modal <dialog> open, key a","result":{"revealed":false,"active":"DIALOG"}}
+{"probe":"contenteditable focused, key a","result":{"revealed":false,"text":"a"}}
+{"probe":"textarea focused, keys a Enter","result":{"revealed":false}}
+{"probe":"quiz: Scratch paper open, Enter","result":{"revealed":false,"ink":true,"active":"ink"}}
+{"probe":"exam paper drawn","result":{"n":4,"types":["numeric","match","mc","mc"]}}
+{"probe":"exam: Scratch paper open, ArrowRight","result":{"i":0,"was":0,"ink":true}}
+{"probe":"exam: drawing on scratch canvas (pointer down), ArrowRight Enter","result":{"i":0,"was":0}}
+{"probe":"strict: moved to 2","result":{"i":1,"strict":true}}
+{"probe":"strict: ArrowLeft","result":1}
+{"probe":"strict: after browser Back, url","result":"about:blank"}
+{"probe":"strict: after Back then Forward","result":{"url":"file:///tmp/port-study-controls/probe/index.html","i":1,"run":true,"view":"exam"}}
+{"probe":"strict: after reload","result":{"i":1,"prev":false,"strict":true}}
+{"probe":"strict: confirm opened by ArrowRight, ArrowLeft pressed while open, then Cancel","result":{"seen":"Move on without answering? You cannot come back to this question.","i":1}}
+{"probe":"paper-picker chips","result":["exam0","exam1"]}
+{"probe":"strict box ticked, then paper chip Exam 0 chosen: box still ticked?","result":{"checked":true,"chosen":"exam0"}}
+{"probe":"errors","result":{"page":[],"fx":[]}}

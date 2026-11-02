@@ -1,0 +1,47 @@
+
+=== the course's own page (node) ===
+  ok    the page carries study-controls, working
+  ok    flags are set, toggled and cleared in the progress (DB.flags); an id the bank does not have is refused
+  ok    a saved progress with flags or a layout of another shape loses that field on load; a good one is kept, and one without them is left as saved
+
+=== on a scratch copy with Intro to Pharmacology's questions (Chromium) ===
+  ok    Topics shows the row, and the progress gains no field before a flag or a layout is chosen
+  ok    Flag on the quiz card flags the question and the button says Flagged
+  ok    after a mouse click on Flag, a letter key answers and Enter moves on; Enter does not unflag
+  ok    Topics shows the flagged count with Drill flagged and Clear flags
+  ok    Drill flagged drills exactly the flagged questions
+  ok    the flags are kept through a reload
+  ok    a letter key picks an option while a tab button has focus
+  ok    after a right answer 2 records Not sure and moves on
+  ok    after a right answer 3 records I guessed and moves on
+  ok    on a select-all item 1 ticks an option and Enter checks
+  ok    a key typed in a field is not a shortcut
+  ok    typing in a textarea is not a shortcut (a, Enter)
+  ok    typing in a contenteditable is not a shortcut (a, 1, Enter)
+  ok    a key pressed while a modal <dialog> is open does not answer the question under it
+  ok    a key pressed while a panel marked as a dialog is open (as Scratch paper) does not answer the question under it
+  ok    no key acts while the pointer is held down drawing on a canvas; after it lifts the letter key answers again
+  ok    keys pressed while the Import file picker is open do not answer the quiz left open behind it
+  ok    All on one page shows every question of the set (6 cards)
+  ok    each answer on the page is graded and recorded once (2 answers, count "2 of 6 answered")
+  ok    the confidence buttons are on the card answered last only
+  ok    a select-all card on the page ticks, then Check grades and records it
+  ok    I was sure of that on the page records the miss as sure
+  ok    the layout is kept through a reload
+  ok    back to one at a time, the questions answered on the page are not asked again
+  ok    the exam start page has the layout chips and the strict-paper box with the course's note
+  ok    on the paper a letter picks, the right arrow moves on and the left arrow back
+  ok    on the paper, keys pressed while a panel marked as a dialog is open neither move the paper nor change the pick
+  ok    a flagged question is listed by number on the paper's bar and its link moves to it
+  ok    All on one page shows every question of the paper (4) with its clock running
+  ok    a pick on the one-page paper is saved and the paper comes back on one page after a reload
+  ok    at the bottom of the one-page paper the bar with the clock is in view
+  ok    Submit on the one-page paper gives the result page, with a Flag on every question
+  ok    a flag on the exam result keeps the result page
+  ok    the ticked strict box stays ticked when the start page is drawn again (as a paper-picker chip does)
+  FAIL  a strict paper is one question at a time with no Back, no flags and no layout chips (with All on one page chosen)  — {"layout":"all","all":true,"prev":false,"note":false,"flag":true,"chips":true,"strict":false}
+FAIL: features/study-controls/test.js: crashed: page.click: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for locator('#exNext')[22m
+
+    at /tmp/port-study-controls/mut/src/features/study-controls/test.js:334:16

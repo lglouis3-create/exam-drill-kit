@@ -1,0 +1,3 @@
+wrote: appended to /tmp/port-study-controls/final/src/course.js:
+;/* study-controls ci */ COURSE.features = Object.assign({}, COURSE.features, {"study-controls": {"version":"v1","strict":true}});
+wrote: no data files (the module reads no course data)

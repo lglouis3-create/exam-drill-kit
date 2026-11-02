@@ -1,0 +1,4 @@
+
+=== the course's own page (node) ===
+  FAIL  the page carries study-controls, working  — "no feature modules in the page"
+FAIL: features/study-controls/test.js: 1 of 1 checks failed: the page carries study-controls, working

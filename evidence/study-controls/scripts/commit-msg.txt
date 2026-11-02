@@ -1,0 +1,28 @@
+study-controls: review fixes, behaviour checks, CI course script (queue item 21)
+
+Fixes found by the review checks (QUALITY B and C):
+- No shortcut acts while a dialog is open over the page (a <dialog>, or a
+  panel marked role="dialog", such as worksheets-ink's Scratch paper) or while
+  a pointer is held down on a canvas. Before, Enter checked the quiz answer
+  under the Scratch paper and the arrow keys moved the exam paper under it.
+- The strict-paper box is kept as it is ticked, so a redraw of the exam start
+  page (paper-picker's chips) no longer unticks it.
+- A paper with calculation or matching items (exams[].typed) stays one at a
+  time with All on one page chosen and says why; the one-page paper showed
+  those items without an answer box.
+- Source line citations corrected (renderExam 1688-1716, exLeaveOk 1718,
+  the key handler 3936-3963).
+
+test.js: 59 checks (61 with paper-picker on): keys in a textarea, a
+contenteditable, a modal dialog, a dialog panel over the quiz and the paper,
+a pointer down on a canvas, the Import file picker; the strict paper against
+the browser's Back and Forward and keys pressed while its confirm is open; a
+paper drawn for an earlier exam with paper-picker on; 300 flags through
+reloads, Export, Import into a fresh profile, a profile switch, storage denied
+and storage full.
+
+features/study-controls/ci/oncourse.js: switches the module on in a CI course.
+review/port-queue.md: item 21 partial.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01LVkWFDVVDwgsL5WF7yWqcV

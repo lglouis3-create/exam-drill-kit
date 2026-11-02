@@ -1,0 +1,3 @@
+["M10 ArrowLeft allowed on a strict paper", 0, "NOT CAUGHT"]
+["M17 the paper's flag bar is not refreshed", 1, "a flag on the paper is listed on the question bar at once, before moving on"]
+done 2
