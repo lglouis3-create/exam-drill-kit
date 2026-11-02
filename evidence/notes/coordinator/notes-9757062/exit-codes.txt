@@ -1,0 +1,5 @@
+oncourse notes exit=0
+build exit=0
+module test run 1 exit=0
+module test run 2 exit=0
+module test run 3 exit=0

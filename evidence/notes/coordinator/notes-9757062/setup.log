@@ -1,0 +1,4 @@
+$ node features/notes/ci/oncourse.js
+notes ci/oncourse.js: appended to /tmp/port-coord/vc-notes/src/course.js:
+;/* switched on by features/notes/ci/oncourse.js */ COURSE.features = Object.assign({}, COURSE.features, {"notes": {version: "v1"}});
+notes ci/oncourse.js: no data files written (the module reads no course data)
