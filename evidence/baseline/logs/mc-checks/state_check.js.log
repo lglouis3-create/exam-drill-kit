@@ -1,0 +1,3 @@
+
+=== CLAUDE.md is updated after the newest lecture ===
+NOT RUN: state_check.js: the clone is too shallow to tell when lecture PREP was added (its oldest commit here is the clone's first)
