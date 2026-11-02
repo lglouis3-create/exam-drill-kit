@@ -11,10 +11,10 @@ Dated kit changes, newest first.
   term the core's `GLOSS` has glossed in brackets in a question is left to the core. BDK's
   glossary is not part of it (it moves with BDK). With `formulas-in-text` on, its pass over a
   question card runs before the buttons are added, in either course.js order; a term inside a
-  quotation is not marked unless the quotation is its name alone. Its test: 56 checks on a
-  template scratch course with the module on, 93 when `formulas-in-text` is in the course too;
-  CI script `features/glossary-tap/ci/oncourse.js`. Core and template unchanged; no course
-  switches it on.
+  quotation is not marked unless the quotation is its name alone. Its test: 56 checks, 93 when
+  `formulas-in-text` is in the course too. Its own course, from Intro to Pharmacology's
+  lectures L04 and L10 (66 questions), is written by `features/glossary-tap/ci/oncourse.js`.
+  Core and template unchanged; no course switches it on.
 - Kit checks on GitHub: every pull request runs the checks in Chromium and, as information, in WebKit.
 - `core/render_test.js`: answers calculation and matching items with their own controls; no more random failures.
 
