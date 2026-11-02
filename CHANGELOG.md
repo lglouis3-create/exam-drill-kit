@@ -4,6 +4,13 @@ Dated kit changes, newest first.
 
 ## 2026-11-02
 - `core/render_test.js`: answers calculation and matching items with their own controls; no more random failures.
+- New feature module `theme` v1 (`features/theme/`), from Basic-Pharmacokinetics `ac2eb73`
+  (`src/views.js` 6323-6333 and `src/shell.html` 979-1042): dark colours for the whole page
+  (the core has light colours only) and the student's choice of Match device, Light or Dark
+  in the header and in Settings. The choice is kept in the browser under `<ns>:theme` for
+  every profile, not in the progress, so Export does not carry it. Its test has 23 checks;
+  run on a copy with the module's code emptied it fails. Template scratch course with the
+  module on: 26 PASS, 0 FAIL, 1 NOT RUN, 1 REPORT. No course switches it on yet.
 
 ## 2026-11-01
 - `core/`: an exam with `questions: null` or a pool with `marks: null` no longer breaks the page (`nullexam.js`).

@@ -133,6 +133,18 @@ Used by: BDK (v1)
 Known issues: none recorded. Shares its purpose with module-colours; a later upgrade could merge them.
 Test: none specific.
 
+## theme
+Does: dark colours for the whole page, and the student's own choice of Match device (the default: the phone's or computer's light or dark setting), Light or Dark, in the header and in Settings. The kit core has no dark colours: its `shell.html` sets light colours only, and `browser_test.js` renders every tab with the browser set to dark (no sideways scroll, no "undefined", no page error) on a page that stays light. The choice is a device setting: it is kept in this browser's storage under `<ns>:theme`, the same for every profile, beside `<ns>:profile`, and not in the progress, because the progress is per profile and moves to another device with Export progress while a colour choice belongs to the screen it was made on. Export does not carry it, Import and a profile switch do not change it, and a browser that refuses storage keeps it for the visit.
+Use when: the student studies on a phone or computer kept dark, or wants dark colours whatever the device is set to (PK has the choice in its header since before `ac2eb73`).
+Do not use when: none recorded; the module reads no course data.
+Enable: course.js → features.theme = { version: 'v1' }
+Versions:
+  v1  2026-11-02  from PK (`ac2eb73` `src/views.js` 6323-6333, the choice; `src/shell.html` 979-1042, the dark colours and the header control; first commit not looked up: the read-only clone has one commit)   best for: any course   weaker at: not evaluated   current/
+Evidence: none recorded.
+Used by: PK (its own copy, where the choice is named System); the kit module: none yet.
+Known issues: PK's dark rules for classes the core does not have (`.misskind`, `.shortfall`, `.rtab`, `.mtab`, `.stsvg`, `.stepfig`, `#zoom`, `.mrow`, its module colours `.m0`-`.m7`) are not ported. The kit adds dark values PK's shell did not need: the atlas colours (`--at-*`, `--wash`), the figure boxes (`.fgshow`, `.cmpcell`, `.wfig`), the `.tag.p3`/`.tag.p4` tags and dark text on the light buttons; each value is one of PK's dark palette. The queue's source range `views.js` 6323-6383 runs into the module-colour code (Tier 3), which is not part of this module. Without the module a page stays light on a dark device, as before.
+Test: `features/theme/current/test.js` (23 checks: the two dark blocks hold the same 18 rules; each of the core's 24 `:root` colours has a dark value; the module loads in the engine run in node; in Chromium, Match device, Light and Dark on light and dark devices, through a reload, in Settings, across a profile switch, absent from the saved progress and the Export file, with storage refused, and every tab and an answered quiz card at 4.5 : 1 or better in the dark colours, as PK `src/modcolor_test.py` lines 61-68 checks its dark badges). PK has no test of the choice itself.
+
 ## exam-countdown
 Does: shows the next exam or quiz by calendar days ("today", "in progress", "over"); BDK's version picks the lab day for lab-week quizzes.
 Use when: exams or quizzes are frequent (BDK weekly quizzes; PK three exams).
