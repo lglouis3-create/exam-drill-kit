@@ -3,25 +3,26 @@
  *     node features/concept-statuses/ci/oncourse.js <kitDir> <courseSrcDir>
  *
  * The course data is the fixture of the module's own test.js, read from that file as it
- * stands: its `const FIX` (4 of Basic-Pharmacokinetics' questions, m1-ord-c07, m1-ord-c08,
- * m1-int-05 and m1-auc-n02, with their topics intro, orders and auc, from src/q1_module1.js,
- * and lecture L01 and the skills tell, order and auc from src/course.js, at ac2eb73; `prof`
- * set to the template's "Professor", `teachImg` left out) and its `const WORDS`
+ * stands: its `const FIX` (7 of Basic-Pharmacokinetics' questions of the topic "infusion",
+ * inf-c4, inf-c5, inf-c11, cq2-4, inf-n1, inf-n2 and inf-n4, from src/q3_module3.js and
+ * src/q13_quizzes.js, the topic from src/q1_module1.js, and lecture L04 and the skills recall,
+ * apply and infusion from src/course.js, at ac2eb73; `prof` set to the template's
+ * "Professor", `teachImg` left out) and its `const WORDS`
  * (Basic-Pharmacokinetics' CONCEPT_WORDS, src/views.js line 2634), written by that file's
  * `const WRITE`, the same writer the test's scratch copies use: one question per line in
  * the kit's form, with the course's own ids; the topics pushed after the course's topics;
  * the lecture under id L91 when the course has no entry for its deck; the skills the
  * course lacks.
  * Files written in <courseSrcDir>:
- *   q90_cst_fixture.js   the 3 topics and the 4 questions
+ *   q90_cst_fixture.js   the topic and the 7 questions
  * and one line appended to course.js: the file in COURSE.files, the lecture in
  * COURSE.lectures, the skills in COURSE.skills, and the module on at the version in its
  * module.json with `words` set to WORDS, kept beside any module already on. Writes only
  * inside <courseSrcDir>; stops with a non-zero exit on any failure, including a course
  * that already has this data (it runs once per course).
- * Known limit: m1-auc-n02 keeps its `setup` line, which names the equation "auc-trap". A
- * course that also has plan-the-problem on, with no "auc-trap" in its EQUATIONS, does not
- * build (plan-the-problem's build step stops it). The module's own test switches
+ * Known limit: inf-n1, inf-n2 and inf-n4 keep their `setup` lines, which name the equations
+ * "css" and "cp-infusing". A course that also has plan-the-problem on, without those in its
+ * EQUATIONS, does not build (plan-the-problem's build step stops it). The module's own test switches
  * plan-the-problem off in its scratch copies for that reason.
  */
 const fs = require('fs'), path = require('path'), vm = require('vm');
