@@ -1,0 +1,4 @@
+
+stepper_test.js: passed (1 step-through; settle problems 0; wrongly faded 0; page errors 0)
+
+PASS: stepper_test.js: 1 step-through(s) settle at every step
