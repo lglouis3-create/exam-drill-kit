@@ -10,8 +10,9 @@ Dated kit changes, newest first.
   past the pace is red and says "over 2:00". On a paper the time on each question is added
   up while it is shown and kept with its answer as `ms`. The core already recorded the time
   of quiz answers and lists "Right, but slow"; PK's time per kind of calculation on Weak
-  spots is not ported. Test `features/stopwatch/current/test.js` (22 checks; 12 fail with
-  the module's code removed). No course switches it on; `core/` and `template/` unchanged.
+  spots is not ported. Test `features/stopwatch/current/test.js` (23 checks); CI course
+  script `features/stopwatch/ci/oncourse.js`. No course switches it on; `core/` and
+  `template/` unchanged.
 - `core/render_test.js`: answers calculation and matching items with their own controls; no more random failures.
 
 ## 2026-11-01

@@ -18,7 +18,8 @@
  * engine recorded; an answer within the pace is shown in green; a multiple-choice
  * question has no clock; on an exam paper the calculation has its own clock, the
  * time on each question is added up while it is shown (Back adds to it), and each
- * answer of the submitted paper keeps its question's time as `ms`. On a copy with
+ * answer of the submitted paper keeps its question's time as `ms`, also after a
+ * reload 400 ms later (the core saves 150 ms after a change). On a copy with
  * `paceSeconds: 0`: the clock runs and stops the same way, with no pace.
  *
  *     node features/stopwatch/test.js
@@ -135,6 +136,11 @@ const clockInit = () => { window.__off = 0; const real = Date.now.bind(Date); Da
       check(paper.length === 2 && calc && calc.ms >= 45000 && other && other.ms >= 20000 && other.ms < 45000,
             'each answer of the submitted paper keeps its question\'s time as ms (Back added to the calculation\'s)', paper);
       check(!(await timer('#v-exam')), 'the result page shows no clock');
+      // the times are saved with the progress: the core writes 150 ms after the last change
+      await page.waitForTimeout(400); await page.reload();
+      await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+      const kept = await ev(n0 => DB.answers.slice(n0).map(a => ({qid: a.qid, ms: a.ms})), n0);
+      check(JSON.stringify(kept) === JSON.stringify(paper), 'after a reload the paper\'s answers come back with their times', kept);
     } else L.skip('the clock on an exam paper', 'the active exam does not draw calculations (exams[].typed is off)');
     check(!errors.length, 'no page error', errors.slice(0, 3).join(' | '));
     await ctx.close();

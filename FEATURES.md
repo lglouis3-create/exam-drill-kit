@@ -480,7 +480,7 @@ Versions:
 Evidence: the professor's statement quoted above.
 Used by: PK (v1, its own copy); the kit module: none yet.
 Known issues: the core already records the time of each quiz answer (`ms`) and lists "Right, but slow" on Weak spots; the module adds the clock, the pace and the time of paper answers, and reads no course data. Not ported: PK's time per kind of calculation on Weak spots (`src/views.js` 2160-2200, grouped by PK's `CALC_TYPES`, which the kit does not have yet) and the one-page layout's "Start timer" button (the core has no one-page layout). The time on a paper question is kept in the page only: after a reload in the middle of a paper it is counted again from the reload.
-Test: `features/stopwatch/current/test.js` (PK `src/review_test.py` lines 517-541 ported: 22 checks).
+Test: `features/stopwatch/current/test.js` (PK `src/review_test.py` lines 517-541 ported: 23 checks); `features/stopwatch/ci/oncourse.js` switches it on in a scratch course for the kit's CI.
 
 ## variables-quiz
 Does: which symbol a worded question asks for, and what each symbol means.
