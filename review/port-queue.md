@@ -22,7 +22,7 @@ item's status to `done`.
 | 5 | theme (light and dark) | `views.js` 6323-6383 | none | pending |
 | 6 | paper-picker (choose a practice paper, paper history) | `shell.html` 1099-1217; `views.js` 3083-3170 | none | pending |
 | 7 | quiz-prep-cards | `views.js` 466-546 | none | pending |
-| 8 | module-pages (Concepts, Calculations by type, Worksheets) | `views.js` 722-854 | none | done |
+| 8 | module-pages (Concepts, Calculations by type, Worksheets) | `views.js` 722-854 | none | partial (left: Extra practice rows, the module page kept through a reload) |
 | 9 | stopwatch | `views.js` 1467-1482 | listed | pending |
 | 10 | notes (Notes tab and flags) | `views.js` 5564-5654 | listed | pending |
 
