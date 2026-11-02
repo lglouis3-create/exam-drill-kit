@@ -125,6 +125,7 @@ is off says so on its card and offers the next question.
 | `pair-up-drills` | v1 | Intro-Pharmacology- `929cd62` | a Pair up tab (chips into boxes, checked with why) and one tab per course table (each row asked column from column; Cover and reveal), from the course's `PAIR_SETS` and `RECALL_TABLES` |
 | `short-answer-graphs` | v1 | Intro-Pharmacology `929cd62` | a Short answer page (write, show the model answer, tick the key points) and a Graphs page (drill one figure's questions; a wrong pick names the reading question skipped) |
 | `study-controls` | v1 | Intro-Pharmacology- `929cd62` | flags with Drill flagged, one question at a time or all on one page, keyboard shortcuts, a strict paper with no going back; each part an option; `FX.api('study-controls')` gives the flags to other modules |
+| `worksheets-ink` | v1 | Basic-Pharmacokinetics `ac2eb73` | a Worksheets tab of the course's source documents, each worksheet written on with a pen, a finger or a mouse, and Scratch paper beside a calculation; the writing is kept in the profile's progress |
 
 `port_from_pk.py` beside a module's `current/` (equation-drill, wrong-number-diagnosis) is the
 script that wrote the module's code from Basic-Pharmacokinetics' files (`port_from_ip.js` beside
