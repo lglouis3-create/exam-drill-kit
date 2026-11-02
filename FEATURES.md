@@ -35,8 +35,9 @@ How the fields were filled:
   (PHAR 4221), PH = Intro-Pharmacology- (PHAR 4344), BDK = BDK (PHAR 4232).
 
 Parts moved to the shared core rather than catalogued here (see
-`review/proposed-core.md`): course manifest, storage and profiles, scheduler and concept
-statuses, service worker and install manifest, update notice and place restore,
+`review/proposed-core.md`): course manifest, storage and profiles, the concept scheduler
+(the named concept statuses are not in the core: they are the feature module
+`concept-statuses`, below), service worker and install manifest, update notice and place restore,
 build, checks, Pages setup, exam draw, analytics and progress export, the answer
 history (first built in BDK on 2026-11-01), and the Home Screen card (BDK `080d5fa`,
 2026-11-01), because Safari's 7-day storage rule affects every drill opened on an
@@ -667,6 +668,18 @@ Evidence: Louis's messages of 2026-10-27 (PK notes §4).
 Used by: PK (v1)
 Known issues: none recorded.
 Test: `src/notes_test.py` (PK).
+
+## concept-statuses
+Does: a Concepts section on Weak spots: each concept answered gets a status read from its answers (Unfamiliar, Struggling, Improving, Mastered, Returning, Learning) with the counts behind it, the wrong option chosen most often and why it is not the answer, the most common kind of miss on missed calculations, and Practice this concept; mastered concepts are folded away, and the ones whose spaced check is due are listed with Check and Run the checks.
+Use when: concepts are asked in several wordings and the student wants to see which ideas are weak, not only which questions (PK, Intro to Pharmacology).
+Do not use when: each concept has one question (the statuses then repeat the per-question list on Weak spots).
+Enable: course.js → features['concept-statuses'] = { version: 'v1' }, with `words: {vd: 'VD'}` to write words of the concept ids on the cards; no data file.
+Versions:
+  v1  2026-10-17  from PK (`593c704`, which added Intro to Pharmacology's concept statuses to PK's scheduler; `review/proposed-core.md` §3)   best for: banks with several wordings per concept   weaker at: not evaluated   current/ (ported 2026-11-02 from PK `ac2eb73` `src/views.js` 2506-2725)
+Evidence: none recorded.
+Used by: PK (v1, its own copy); Intro to Pharmacology has its own form (`exam1-drill/src/app.js` `conceptRecord`, line 1174 at `929cd62`, with "Returned" and "On track" as two of its words); the kit module: none yet.
+Known issues: what the core already shows about a concept, without the module: "N of M concepts mastered" on Weak spots and per topic on Topics (box 3 or higher), per exam pool "not yet seen", "missed or guessed, still open" and "mastered", and on each missed question "now mastered" or "still in review". The module's Mastered (3 correct on 2 questions in 2 sessions) is read from the answers and can differ from that count; the section says so. A correct answer marked "Not sure" counts as a miss, as in the core's own "solid"; PK records "Not sure" on a flashcard as a guess (`src/views.js` line 2513). The spaced check's due line uses the concept's review steps in the core (`DB.concepts`), which the core keeps under every scheduler setting; under an FSRS setting the questions the scheduler asks next come from its own cards, not from this list. Not ported: PK's names for term and extra-practice concepts (`term:` and `x-` ids; the kit has no Terms tab or extra practice yet) and its fixed table of words for concept ids (now the `words` option).
+Test: `features/concept-statuses/current/test.js` (PK `src/test.js` section 4c and `src/sweep_test.py` `concept_check` ported, with 4 PK questions added to the template course: 58 checks).
 
 ## weak-spot-marks
 Does: marks weak concepts where they are studied (guides, reference), with a switch in Weak spots; marks go away once the concept is understood.
