@@ -12,6 +12,16 @@ Dated kit changes, newest first.
   glossary is not part of it (it moves with BDK). Its test: 43 checks pass on a template
   scratch course with the module on; with the module's code left out, 2 of 12 fail. Core and
   template unchanged; no course switches it on.
+- New feature module `pair-up-drills` v1 (`features/pair-up-drills/`), from Intro-Pharmacology-
+  `929cd62` `exam1-drill/src/app.js` (Pair up, the drug ↔ receptor drill and the poisoning table
+  drill; port queue item 19): a Pair up tab over the course's `PAIR_SETS` (chips dragged or tapped
+  into boxes, one or several per box, checked with where each belongs and why, the wrong ones
+  retried) and one tab per table of the course's `RECALL_TABLES` (each row asked column from
+  column with one tap among answers from the other rows, misses first in the next round, Cover
+  and reveal). Best scores and misses are kept in the progress as `DB.pairup`. No course switches
+  it on yet; the core and the template are unchanged. Its test: 41 checks pass on a template
+  scratch course with Intro to Pharmacology's 5 sets, 39-drug table and 12-row poisoning table
+  (written by `port_from_ip.js`); with the module's code left out, 1 of 1 fails.
 - `core/render_test.js`: answers calculation and matching items with their own controls; no more random failures.
 - New feature module `plan-the-problem` v1 (`features/plan-the-problem/`), from
   Basic-Pharmacokinetics `ac2eb73` (`src/views.js` 4754-5120, the set-up drill): on the
