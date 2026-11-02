@@ -46,10 +46,20 @@ function playwright(name){
   } catch(e) {}
   notRun(name, 'Node Playwright is not installed');
 }
-async function launch(name, opts){
+/* The browser the checks run in: Chromium, or the one DRILL_BROWSER names
+   ('webkit', Safari's engine; 'firefox'). The kit's GitHub workflow runs them in
+   Chromium and in WebKit; the cloud container has Chromium only. */
+const BROWSER = (process.env.DRILL_BROWSER || 'chromium').toLowerCase();
+const BROWSER_NAME = {chromium: 'Chromium', webkit: 'WebKit', firefox: 'Firefox'}[BROWSER] || BROWSER;
+function browserType(name){
   const pw = playwright(name);
-  try { return {pw, browser: await pw.chromium.launch(opts || {})}; }
-  catch(e) { notRun(name, 'Chromium did not start: ' + String(e.message).split('\n')[0]); }
+  if(!pw[BROWSER] || typeof pw[BROWSER].launch !== 'function') notRun(name, `DRILL_BROWSER=${BROWSER} is not a Playwright browser`);
+  return pw[BROWSER];
+}
+async function launch(name, opts){
+  const pw = playwright(name), type = browserType(name);
+  try { return {pw, browser: await type.launch(opts || {})}; }
+  catch(e) { notRun(name, `${BROWSER_NAME} did not start: ` + String(e.message).split('\n')[0]); }
 }
 /* A page opened from disk, with the first-run name prompt answered and every
    page error collected. */
@@ -193,6 +203,6 @@ const quizOn = (page, ids) => page.evaluate(ids => {
   return !!Q.current;
 }, [].concat(ids));
 
-module.exports = {PAGE, check, skip, notRun, finish, playwright, launch, openFile, serve, engine, scratchRepo,
+module.exports = {browserType, BROWSER, BROWSER_NAME, PAGE, check, skip, notRun, finish, playwright, launch, openFile, serve, engine, scratchRepo,
                   scratchBuild, featureOn, openPage, quizOn,
                   counts: () => ({fails, passes, skipped: skipped.length})};
