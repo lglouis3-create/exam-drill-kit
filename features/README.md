@@ -126,6 +126,7 @@ is off says so on its card and offers the next question.
 | `short-answer-graphs` | v1 | Intro-Pharmacology `929cd62` | a Short answer page (write, show the model answer, tick the key points) and a Graphs page (drill one figure's questions; a wrong pick names the reading question skipped) |
 | `study-controls` | v1 | Intro-Pharmacology- `929cd62` | flags with Drill flagged, one question at a time or all on one page, keyboard shortcuts, a strict paper with no going back; each part an option; `FX.api('study-controls')` gives the flags to other modules |
 | `worksheets-ink` | v1 | Basic-Pharmacokinetics `ac2eb73` | a Worksheets tab of the course's source documents, each worksheet written on with a pen, a finger or a mouse, and Scratch paper beside a calculation; the writing is kept in the profile's progress |
+| `terms-variables` | v1 | Basic-Pharmacokinetics `ac2eb73` | a Terms tab: flashcards and questions over the course's `TERMS`, and the variables quiz over its `ASKS` (which symbol a stem asks for, what each symbol means) |
 
 `port_from_pk.py` beside a module's `current/` (equation-drill, wrong-number-diagnosis) is the
 script that wrote the module's code from Basic-Pharmacokinetics' files (`port_from_ip.js` beside

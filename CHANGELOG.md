@@ -74,6 +74,24 @@ Dated kit changes, newest first.
   with a notice on screen, keeping the last saved progress, so later answers are still saved (before,
   every later save failed and the answers given after it were lost on reload); the test now has 157
   checks (persistence, chained-problem-sets on and off) and a CI set-up script `ci/oncourse.js`.
+- New feature module `terms-variables` v1 (`features/terms-variables/`), from
+  Basic-Pharmacokinetics `ac2eb73` (`src/views.js` 1029-1260, its Terms tab, and 4173-4175):
+  a Terms tab with Flashcards over the course's `TERMS` (a situation with the term blanked,
+  then the term, marked and recorded) and Quiz me (up to three questions per term, drilled by
+  the scheduler), and the variables quiz over the course's `ASKS`: which symbol one of the
+  professor's own calculation stems asks for, what each symbol means and which symbol a
+  meaning belongs to, also offered on the Equations tab when equation-drill is on. It reads
+  `TERMS` in the shape glossary-tap (pull request #13) reads and `ASKS` in the shape
+  plan-the-problem (pull request #11) reads; PK's Glossary mode is left to glossary-tap, and
+  its tab id (`terms`) differs from glossary-tap's (`glossary`). PK's symbol families, usual
+  names and twins are the options `families`, `names` and `twins`; the sentence split has no
+  regex lookbehind. The questions stay out of the bank and off exam papers, and Weak spots
+  does not list them. On PK's whole bank the module makes the same 282 term and 301 variable
+  questions, with the same keyed answers, as PK's own code. Its test (PK `src/test.js`
+  943-972 and `src/var_test.py` ported): 41 checks pass; with the module's code left out,
+  1 of 1 fails; with PK's lookbehind split in its place, `device_lint.js` fails 2 of 3.
+  FEATURES.md: PK added to the `glossary` entry; new entry `terms-variables`. Port queue
+  item 3 is done.
 
 ## 2026-11-01
 - `core/`: an exam with `questions: null` or a pool with `marks: null` no longer breaks the page (`nullexam.js`).
