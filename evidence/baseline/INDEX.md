@@ -50,3 +50,17 @@ Folder `main-98e7b5b/`, run 2026-11-02 from 20:14:19 UTC with the same `baseline
 Port branches whose core and template trees are `c9fde5b` and `cbac5bd` may cite this run.
 
 Note: commit `22b4290` removed the folder `mc-full-clone/` by mistake; commit `a18eadb` restored it unchanged from `51b524d`.
+
+## Third baseline: kit `main` `366caf6` (coordinator-verified)
+
+Folder `main-366caf6/`, run 2026-11-02 from 21:52:12 UTC with `baseline.sh` (output folder `baseline3`). Inputs: kit `366caf6a0a0e7ec0f651e3673e9268afb7e9b07e` (kit PR #27 merged), core tree `d588c64f900ec13ca7afec70554f9c5b864a8449`, template tree `cbac5bd425d480944293f8e1fb5d5d703e8baba1`, Medicinal-chemistry `f1f5ee57840f014cf5ccebd9631b4f413226ea70` (full clone).
+
+| Step | Exit code | Result |
+|---|---|---|
+| Template course, no module: `python3 build.py` | 0 | built |
+| Template course, no module: `./run_checks.sh` | 0 | 24 PASS, 0 FAIL, 1 NOT RUN (`cite_check.py`), 1 REPORT |
+| Medicinal-chemistry, full clone, with the kit core: `./run_checks.sh` | 0 | 23 PASS, 0 FAIL, 2 NOT RUN (`stepper_test.js`, `cite_check.py`), 1 REPORT |
+
+`home_test.js` passed (33 checks) in both runs. Its fix, kit PR #28, is not on this main. By Louis's rule of 2026-11-02, a pass is not proof that the check is fixed, and a failure is not exempt.
+
+Port branches whose core and template trees are `d588c64` and `cbac5bd` may cite this run.
