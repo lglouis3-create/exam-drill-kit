@@ -4,6 +4,18 @@ Dated kit changes, newest first.
 
 ## 2026-11-02
 - `core/render_test.js`: answers calculation and matching items with their own controls; no more random failures.
+- New feature module `worksheets-ink` v1 (`features/worksheets-ink/`), from
+  Basic-Pharmacokinetics `ac2eb73` (`src/views.js` 5122-5434 and 6040-6322): a Worksheets
+  tab of the documents the course's questions come from (`SOURCES`), each worksheet opened
+  over the page to write on with a pen, a finger or a mouse (pen, highlighter, eraser,
+  undo, More room, Pencil only, Hold to snap, two-finger undo, Show solutions, Save as
+  PDF), Practice in the drill, and Scratch paper beside a calculation in the quiz and on an
+  exam paper. The writing is kept in the profile's progress (`DB.ink`), so Export, Import
+  and Erase cover it. Its build step checks every document against the bank. PK's
+  headings, number-variant id patterns and audit phrases are options, not code. Not
+  ported: the PDF files, the source line under an answer, the likely-paper marks.
+  Its test (PK `src/ink_test.py` ported to Node Playwright, Chromium only): 114 checks
+  pass; with the module's code left out, 1 of 1 fails. Port queue item 2 is done.
 
 ## 2026-11-01
 - `core/`: an exam with `questions: null` or a pool with `marks: null` no longer breaks the page (`nullexam.js`).
