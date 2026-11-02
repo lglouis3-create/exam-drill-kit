@@ -3,6 +3,7 @@
 Dated kit changes, newest first.
 
 ## 2026-11-02
+- Kit checks on GitHub: every pull request runs the checks in Chromium and, as information, in WebKit.
 - New feature module `notes` v1 (`features/notes/`), from Basic-Pharmacokinetics `ac2eb73`
   (`src/views.js` 5564-5654 and the Note button): a Note on any question card, a Notes tab,
   and every note copied or downloaded as one text for an AI, with the key left out while a
