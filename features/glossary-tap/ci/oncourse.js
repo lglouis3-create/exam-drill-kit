@@ -9,12 +9,12 @@
  * invented. It writes only inside <courseSrcDir>:
  *   - terms_gtap.js: `const TERMS = [...]`, FIX.terms (glossary.js; lecture and fig
  *     left out);
- *   - q1_topics.js, replacing the template's sample questions: topics L02, L10 and
- *     TERMS and the questions of FIXCOURSE (every L02 and L10 question with no
- *     figure, graph, image or dupOf, and L02-018, L02-023, T-affinity-3);
+ *   - q1_topics.js, replacing the template's sample questions: topics L04 and L10
+ *     and the 66 questions of FIXCOURSE (see its comment in test.js);
  *   - guide.js, replacing the template's sample guide: FIX.guide (guide.js sections
  *     1 and 4, opening lines);
- *   - one line appended to course.js: the course's lectures L01, L02 and L10 and its
+ *   - course.js: its `lectures` list given the course's lectures L04 and L10
+ *     in place of the template's sample entry, and one line appended: the course's
  *     skills, terms_gtap.js added to `files`, and the module switched on at the
  *     version in its module.json, kept beside any module already on (for example
  *     formulas-in-text, whose own script may run first).
@@ -58,16 +58,20 @@ const terms = '/* glossary-tap ci: Intro to Pharmacology exam1-drill/src/glossar
   '   lecture and fig left out */\nconst TERMS = ' + JSON.stringify(FIX.terms) + ';\n';
 const guide = 'const GUIDE_HTML = `\n<h2>Guides</h2>\n<section class="gobj" id="ipguide">\n' + FIX.guide + '\n</section>\n`;\n';
 if(/`|\$\{/.test(FIX.guide)) fail('the guide fixture holds a backtick or ${, which guide.js cannot carry');
-const line = `\n;/* glossary-tap ci */ COURSE.lectures = [${FC.lectures.map(lLine).join(', ')}]; COURSE.skills = ${JSON.stringify(FC.skills)}; ` +
+// the lectures go into course.js's own `lectures: [` list, in place of the template's sample entry
+const LEC_RE = /(\n  lectures: \[\n)([\s\S]*?)(\n  \],)/;
+if(!LEC_RE.test(text)) fail('course.js has no `  lectures: [` list in the template\'s form');
+const course2 = text.replace(LEC_RE, (m, a, b, c) => a + FC.lectures.map(l => '    ' + lLine(l) + ',').join('\n') + c);
+const line = `\n;/* glossary-tap ci */ COURSE.skills = ${JSON.stringify(FC.skills)}; ` +
   `COURSE.files = (COURSE.files || ['atlas.js', 'diagrams.js', 'q1_topics.js']).concat(['terms_gtap.js']); ` +
   `COURSE.features = Object.assign({}, COURSE.features, {"glossary-tap": ${JSON.stringify({version: meta.version})}});\n`;
 try {
   fs.writeFileSync(data, terms);
   fs.writeFileSync(path.join(src, 'q1_topics.js'), qfile);
   fs.writeFileSync(path.join(src, 'guide.js'), guide);
-  fs.appendFileSync(course, line);
+  fs.writeFileSync(course, course2 + line);
 } catch(e){ fail('cannot write in ' + src + ': ' + e.message); }
 console.log('wrote: ' + data + ' (' + FIX.terms.length + ' terms)');
 console.log('wrote: ' + path.join(src, 'q1_topics.js') + ' (' + FC.topics.length + ' topics, ' + FC.qs.length + ' questions; replaces the template sample)');
 console.log('wrote: ' + path.join(src, 'guide.js') + ' (Intro to Pharmacology guide.js sections 1 and 4, opening lines; replaces the template sample)');
-console.log('wrote: appended to ' + course + ': lectures ' + FC.lectures.map(l => l.id).join(', ') + ', ' + FC.skills.length + ' skills, terms_gtap.js in files, glossary-tap ' + meta.version + ' on');
+console.log('wrote: ' + course + ': lectures ' + FC.lectures.map(l => l.id).join(', ') + ' in its list; appended ' + FC.skills.length + ' skills, terms_gtap.js in files, glossary-tap ' + meta.version + ' on');
