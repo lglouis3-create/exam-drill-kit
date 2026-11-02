@@ -1,0 +1,33 @@
+
+=== the copied text on the course's own bank (node) ===
+  ok    the page carries notes, working
+  ok    the text has one section per question (7 questions)
+  ok    a key for every multiple-choice, numeric and matching question (7)
+  ok    no "undefined" or "[object Object]" in the text
+  ok    noted() lists every note, newest first
+  FAIL  the converter keeps each note {t, at} and drops anything else
+  ok    a saved `notes` that is not an object is dropped
+
+=== on a scratch copy with Basic-Pharmacokinetics' question (Chromium) ===
+
+--- 390 px ---
+  ok    the quiz card carries ✎ Note
+  ok    a note on a drill question is saved as it is typed
+  ok    the button then reads My note
+  ok    typing a1b2 and Enter in a note picks and checks nothing (study-controls keys)
+  FAIL  the note is still there after a reload
+  ok    the exam paper's card carries ✎ Note
+  ok    typing a1, Enter and the arrows in a note on the paper moves and picks nothing (study-controls keys)
+  ok    a note on a running paper leaves its key and the reason out of the text
+  ok    the Notes tab hides that question's key while the paper runs
+  FAIL  the test stopped: page.evaluate: TypeError: Cannot read properties of undefined (reading 'nt-many-7')
+    at eval (eval at evaluate (:311:30), <anonymous>:1:37)
+    at UtilityScript.evaluate (<anonymous>:313:16)
+    at UtilityScript.<anonymous> (<anonymous>:1:44)
+    at ev (/tmp/port-notes/mut/src/features/notes/test.js:104:33)
+    at /tmp/port-notes/mut/src/features/notes/test.js:154:19
+  FAIL  the test ran to its end  — page.evaluate: TypeError: Cannot read properties of undefined (reading 'nt-many-7')
+    at eval (eval at evaluate (:311:30), <anonymous>:1:37)
+    at UtilityScript.evaluate (<anonymous>:313:16)
+    at UtilityScript.<anonymous> (<anonymous>:1:44)
+FAIL: features/notes/test.js: 3 of 17 checks failed: the converter keeps each note {t, at} and drops anything else; the note is still there after a reload; the test ran to its end

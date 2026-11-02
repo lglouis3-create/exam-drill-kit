@@ -1,0 +1,24 @@
+
+=== the copied text on the course's own bank (node) ===
+  ok    the page carries notes, working
+  ok    the text has one section per question (7 questions)
+  ok    a key for every multiple-choice, numeric and matching question (7)
+  ok    no "undefined" or "[object Object]" in the text
+  ok    noted() lists every note, newest first
+  ok    the converter keeps each note {t, at} and drops anything else
+  ok    a saved `notes` that is not an object is dropped
+
+=== on a scratch copy with Basic-Pharmacokinetics' question (Chromium) ===
+
+--- 390 px ---
+  ok    the quiz card carries ✎ Note
+  FAIL  the test stopped: page.fill: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for locator('#v-quiz textarea[data-notetext="nt-cq5-5"]')[22m
+
+    at /tmp/port-notes/mut/src/features/notes/test.js:111:18
+  FAIL  the test ran to its end  — page.fill: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for locator('#v-quiz textarea[data-notetext="nt-cq5-5"]')[22m
+
+FAIL: features/notes/test.js: 1 of 9 checks failed: the test ran to its end

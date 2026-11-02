@@ -1,0 +1,108 @@
+
+=== the copied text on the course's own bank (node) ===
+  ok    the page carries notes, working
+  ok    the text has one section per question (7 questions)
+  FAIL  a key for every multiple-choice, numeric and matching question (7)
+  ok    no "undefined" or "[object Object]" in the text
+  ok    noted() lists every note, newest first
+  ok    the converter keeps each note {t, at} and drops anything else
+  ok    a saved `notes` that is not an object is dropped
+
+=== on a scratch copy with Basic-Pharmacokinetics' question (Chromium) ===
+
+--- 390 px ---
+  ok    the quiz card carries ✎ Note
+  ok    a note on a drill question is saved as it is typed
+  ok    the button then reads My note
+  ok    typing a1b2 and Enter in a note picks and checks nothing (study-controls keys)
+  ok    the note is still there after a reload
+  ok    the exam paper's card carries ✎ Note
+  ok    typing a1, Enter and the arrows in a note on the paper moves and picks nothing (study-controls keys)
+  ok    a note on a running paper leaves its key and the reason out of the text
+  ok    the Notes tab hides that question's key while the paper runs
+  ok    after a reload the paper and its note are both there
+  ok    after Submit every result card carries ✎ Note
+  ok    the result card of the noted question reads My note
+  FAIL  after Submit the text carries both notes with their keys
+  ok    the course's {{frac:a|b}} is written (a)/(b) in the text
+  ok    the text names no professor by pronoun
+  ok    Weak spots has the notes line
+  ok    Weak spots counts the 2 notes
+  ok    Open Notes opens the Notes tab with a card for each note
+  ok    the newest note is first
+  ok    each card says the answer last given, or that there is none
+  ok    Copy for AI says Copied
+  ok    Copy for AI copies the whole text
+  ok    Download saves <course id>-my-questions.md
+  ok    the downloaded file is the text
+  ok    a note edits in the Notes tab
+  ok    with study-controls on, the flagged question's card says ⚑ flagged
+  ok    the mark goes when the flag does
+  ok    Delete note removes it
+  ok    an emptied note is removed from the progress
+  ok    Drill these drills the noted questions
+  ok    Settings says what is kept and where
+  ok    study-controls' one-page quiz cards each carry ✎ Note
+  ok    study-controls' one-page paper cards each carry ✎ Note
+
+--- persistence: a large saved state (390 px) ---
+  ok    41 notes of up to 2,000 characters and 308 answers come back after a reload
+  ok    the Notes tab lists all 41
+  ok    the topic filter lists only that topic's notes, and Drill these counts them
+  ok    Drill these drills only that topic's noted questions
+  ok    Export progress carries every note (41)
+  ok    a new profile starts with no notes
+  ok    Import progress into the new profile brings back the same notes
+  ok    a third profile has no notes
+  ok    switching back, the first profile has its own notes
+  ok    the other profile keeps only its own note
+  ok    back on the first profile
+  ok    a reload 400 ms after typing keeps the change
+  report  a reload under 150 ms after typing: the note reads "Kept: reloaded 400 ms after." (the last change was lost; the earlier text is kept), 41 notes
+  ok    a reload under 150 ms after typing loses at most that change, and every note is still there
+  ok    storage denied: the student is told the progress was not saved
+  ok    storage denied: the stored progress is left as it was, and the note stays on screen
+  ok    storage denied: once storage works, the next change is saved with every earlier note and loads after a reload
+  ok    storage full: the student is told the progress was not saved
+  ok    storage full: the stored progress is left as it was, and the note stays on screen
+  ok    storage full: once storage works, the next change is saved with every earlier note and loads after a reload
+  ok    a saved note in a bad shape is dropped on load, the others load
+  ok    Erase my history removes the notes
+  ok    no page error and no module error at 390 px
+
+--- 1200 px ---
+  ok    the quiz card carries ✎ Note
+  ok    a note on a drill question is saved as it is typed
+  ok    the button then reads My note
+  ok    typing a1b2 and Enter in a note picks and checks nothing (study-controls keys)
+  ok    the note is still there after a reload
+  ok    the exam paper's card carries ✎ Note
+  ok    typing a1, Enter and the arrows in a note on the paper moves and picks nothing (study-controls keys)
+  ok    a note on a running paper leaves its key and the reason out of the text
+  ok    the Notes tab hides that question's key while the paper runs
+  ok    after a reload the paper and its note are both there
+  ok    after Submit every result card carries ✎ Note
+  ok    the result card of the noted question reads My note
+  FAIL  after Submit the text carries both notes with their keys
+  ok    the course's {{frac:a|b}} is written (a)/(b) in the text
+  ok    the text names no professor by pronoun
+  ok    Weak spots has the notes line
+  ok    Weak spots counts the 2 notes
+  ok    Open Notes opens the Notes tab with a card for each note
+  ok    the newest note is first
+  ok    each card says the answer last given, or that there is none
+  ok    Copy for AI says Copied
+  ok    Copy for AI copies the whole text
+  ok    Download saves <course id>-my-questions.md
+  ok    the downloaded file is the text
+  ok    a note edits in the Notes tab
+  ok    with study-controls on, the flagged question's card says ⚑ flagged
+  ok    the mark goes when the flag does
+  ok    Delete note removes it
+  ok    an emptied note is removed from the progress
+  ok    Drill these drills the noted questions
+  ok    Settings says what is kept and where
+  ok    study-controls' one-page quiz cards each carry ✎ Note
+  ok    study-controls' one-page paper cards each carry ✎ Note
+  ok    no page error and no module error at 1200 px
+FAIL: features/notes/test.js: 3 of 96 checks failed: a key for every multiple-choice, numeric and matching question (7); after Submit the text carries both notes with their keys; after Submit the text carries both notes with their keys

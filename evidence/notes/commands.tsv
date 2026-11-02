@@ -1,0 +1,11 @@
+build, template course without the module	0	off-build.log
+module test on a page without the module (expected FAIL, exit 1)	1	off-moduletest.log
+ci/oncourse.js on a fresh course, build, module test (see ci-test.log)	0	ci-test.log
+mkcourse + build, notes on alone	0	on-build.log
+module test, notes alone, run 1	0	on-moduletest-1.log
+module test, notes alone, run 2	0	on-moduletest-2.log
+module test, notes alone, run 3	0	on-moduletest-3.log
+run_checks.sh, notes alone	0	on-run_checks.log
+mkcourse + build, notes and study-controls on	0	onsc-build.log
+module test, notes with study-controls	0	onsc-moduletest.log
+run_checks.sh, notes and study-controls	0	onsc-run_checks.log

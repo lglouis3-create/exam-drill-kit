@@ -1,0 +1,10 @@
+notes ci/oncourse.js: appended to /tmp/port-notes/ci-course/src/course.js:
+;/* switched on by features/notes/ci/oncourse.js */ COURSE.features = Object.assign({}, COURSE.features, {"notes": {version: "v1"}});
+notes ci/oncourse.js: no data files written (the module reads no course data)
+oncourse exit 0
+notes ci/oncourse.js: course.js already has the line this script writes; run it on a fresh course
+second oncourse exit 1 (expected 1)
+build exit 0
+[{"name": "notes", "version": "v1", "dir": "features/notes", "options": {"request": "", "file": ""}, "types": []}]
+module test exit 0
+PASS: features/notes/test.js: 86 checks passed

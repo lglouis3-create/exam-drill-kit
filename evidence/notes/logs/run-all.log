@@ -1,0 +1,12 @@
+build, template course without the module -> 0
+module test on a page without the module (expected FAIL, exit 1) -> 1
+ci/oncourse.js on a fresh course, build, module test (see ci-test.log) -> 0
+mkcourse + build, notes on alone -> 0
+module test, notes alone, run 1 -> 0
+module test, notes alone, run 2 -> 0
+module test, notes alone, run 3 -> 0
+run_checks.sh, notes alone -> 0
+mkcourse + build, notes and study-controls on -> 0
+module test, notes with study-controls -> 0
+run_checks.sh, notes and study-controls -> 0
+done
