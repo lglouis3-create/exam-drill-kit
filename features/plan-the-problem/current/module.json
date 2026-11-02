@@ -1,0 +1,14 @@
+{
+ "name": "plan-the-problem",
+ "version": "v1",
+ "does": "A set-up drill on the Equations tab: the course's calculation stems with no arithmetic, where the student picks the equation line that solves what is asked from four, then reads why, the lines used on the way and when the line holds; and \"Plan the problem\", which first asks what is asked and its unit (with ASKS) and the dosing model (PLAN), then the line, whether the sheet prints it and which givens it uses, and writes the plan out. Reads each numeric question's setup {eq, pre, why}, asks, givens and check, the course's EQUATIONS, and ASKS and PLAN when a data file listed in course.js `files` declares them.",
+ "source": "Basic-Pharmacokinetics src/views.js lines 4754-5120 and src/shell.html lines 406-420, 881-889, at ac2eb73",
+ "js": ["plan-the-problem.js"],
+ "css": ["plan-the-problem.css"],
+ "step": "step.js",
+ "needs": ["equation-drill"],
+ "options": {
+  "groups": {"default": {}, "about": "{module number: name} for the scope chips and the card heads; without it, Module <n>"}
+ },
+ "test": "test.js"
+}
