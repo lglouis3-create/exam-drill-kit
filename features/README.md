@@ -133,6 +133,7 @@ is off says so on its card and offers the next question.
 | `quiz-prep-cards` | v1 | Basic-Pharmacokinetics `ac2eb73` | a card on Topics for each quiz in course.js `quizzes` until it is over: day, days left, what it covers, what the professor said, drills over its questions |
 | `module-pages` | v1 | Basic-Pharmacokinetics `ac2eb73` | a card per module on Topics opening the module's Concepts (by objective), Calculations (by kind, with a worked example) and, with worksheets-ink on, Worksheets |
 | `stopwatch` | v1 | Basic-Pharmacokinetics `ac2eb73` | a running clock on each calculation, the time taken after the answer, the professor's pace (`paceSeconds`); the time on each exam paper question kept with its answer |
+| `notes` | v1 | Basic-Pharmacokinetics `ac2eb73` | a Note on any question card, a Notes tab, and every note copied or downloaded as one text for an AI; kept in the progress as `DB.notes`; marks study-controls' flags when that module is on |
 
 `port_from_pk.py` beside a module's `current/` (equation-drill, wrong-number-diagnosis) is the
 script that wrote the module's code from Basic-Pharmacokinetics' files (`port_from_ip.js` beside
