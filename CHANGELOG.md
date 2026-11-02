@@ -4,6 +4,8 @@ Dated kit changes, newest first.
 
 ## 2026-11-02
 - Kit checks on GitHub: every pull request runs the checks in Chromium and, as information, in WebKit.
+- Checks open built pages over HTTP from 127.0.0.1, not from disk, so WebKit no longer refuses the manifest.
+- Kit checks on GitHub: each changed feature module, and each module that needs it, is checked on a course of its own.
 - `core/render_test.js`: answers calculation and matching items with their own controls; no more random failures.
 - New feature module `short-answer-graphs` v1 (`features/short-answer-graphs/`), from
   Intro-Pharmacology `929cd62` (`exam1-drill/src/app.js` 2402-2444, 3716-3778 and
