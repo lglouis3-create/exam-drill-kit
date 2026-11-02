@@ -1,0 +1,20 @@
++ worksheets-ink ci
+wrote: /tmp/port-module-pages/v2/c-f6/src/q90_wsc_fixture.js (83747 characters)
+wrote: /tmp/port-module-pages/v2/c-f6/src/wsc_data.js (4236 characters)
+wrote: appended to /tmp/port-module-pages/v2/c-f6/src/course.js:
+;/* worksheets-ink ci */ COURSE.files = (COURSE.files || []).concat(['q90_wsc_fixture.js', 'wsc_data.js']); COURSE.features = Object.assign({}, COURSE.features, {"worksheets-ink": {"version":"v1","modules":[[1,"1","Module 1 - Introduction & Math Review"],[2,"2","Module 2 - IV Bolus Administration"]],"originalIds":"^wsc-(hwo|hw7o-|nl-hwo-)","changedIds":"^wsc-(hw\\d|hw7-|nl-hw-)","drillWorked":"no worked answer|without a worked answer|does not record|stated no final value|did not state|ends before she states|not one she asks|computed here|chosen here|recording stops|does not work|applied to that example|her spoken values","spokenOnly":"recording|aloud|spoken","writtenWorking":"written working|her key|her sheet|worked on the|worked answers"}});
+data: 4 documents, 33 questions, 6 problem sets, 3 topics
+checking sources...
+  14 sources and sw.js parse cleanly
+  scheduler: concept (no library)
+  40 questions in 5 topics, from 2 question files: q1_topics.js, q90_wsc_fixture.js
+  feature worksheets-ink v1: build step done
+  feature worksheets-ink v1 in the page (options {"tab": "sheets", "label": "Worksheets", "before": "settings", "modules": [[1, "1", "Module 1 - Introduction & Math Review"], [2, "2", "Module 2 - IV Bolus Administration"]], "originalIds": "^wsc-(hwo|hw7o-|nl-hwo-)", "changedIds": "^wsc-(hw\\d|hw7-|nl-hw-)", "drillWorked": "no worked answer|without a worked answer|does not record|stated no final value|did not state|ends before she states|not one she asks|computed here|chosen here|recording stops|does not work|applied to that example|her spoken values", "spokenOnly": "recording|aloud|spoken", "writtenWorking": "written working|her key|her sheet|worked on the|worked answers"})
+  change log: 1 entries, newest "2026-10-02 (set up from the template)"
+  assembled script parses cleanly
+wrote index.html  (0.40 MB)
+wrote COURSE0000_Drill.html  (redirect to index.html)
+wrote version.json  (built 2026-11-02T20:41:30Z)
+  note: placeholder icons (a plain square) for icon-192.png, icon-512.png, icon-maskable-512.png, apple-touch-icon.png; put the course's own PNGs under src/icons/ to replace them
+wrote manifest.json and the icons
+wrote sw.js  (caches named course-id-drill-v<n>; 7 files saved at install)

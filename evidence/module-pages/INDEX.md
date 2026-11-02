@@ -1,5 +1,7 @@
 # Evidence: module-pages (port queue item 8)
 
+> **Hardening 2 (2026-11-02 evening, agent-run):** integration finding F6 fixed and the CI course script rewritten from real PK data, final tested commit `45cc0ae794a9ffa6b00e899e441d126e7b147c7f`: see `harden-45cc0ae/INDEX.md`. The results below are for `c9492c8`.
+
 Every result here is **agent-run** (the porting session, 2026-11-02). The coordinator adds its own
 re-runs, labelled coordinator-verified, under `coordinator/`.
 

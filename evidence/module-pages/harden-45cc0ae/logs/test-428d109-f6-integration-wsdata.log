@@ -1,0 +1,47 @@
+
+=== the course's own objectives and kinds of problem ===
+  ok    the page carries module-pages, working
+  skip  every calculation belongs to a kind of problem  — the course declares no CALC_TYPES for a module with calculations
+  skip  every concept question belongs to an objective  — the course declares no OBJECTIVES for a module with concept questions
+
+=== the build step stops on bad module data ===
+  ok    an objective naming a subtopic not in TOPICS stops the build and says so
+  ok    an objective of a module the course does not have stops the build and says so
+  ok    two objectives of one module with one number stops the build and says so
+  ok    a kind of problem matching a topic not in TOPICS stops the build and says so
+  ok    two kinds of problem with one id stops the build and says so
+  ok    a worked example not in the bank stops the build and says so
+  ok    a worked example that is not a calculation stops the build and says so
+  ok    a worked example of another kind stops the build and says so
+  ok    a modules option of the wrong shape stops the build and says so
+
+=== on a scratch copy with Basic-Pharmacokinetics' Module 2 (Chromium) ===
+  ok    Topics shows a card per module, above the topic list, and keeps the topic list
+  FAIL  the Module 2 card offers Concepts (10 questions, 5 objectives) and Calculations (12 problems, 4 types), and no Worksheets without worksheets-ink  — ["concepts: 10 questions · 5 objectives","calcs: 35 problems · 4 types"]
+  ok    Concepts lists the 5 objectives and All objectives, under the module's heading; no status line without concept-statuses
+  ok    an objective's drill draws only concepts of its subtopics (4)
+  ok    an objective whose subtopics also hold calculations draws only their concept questions (2 of the 2 concept and 6 calculation questions there)
+  ok    coming back to Topics from the quiz shows the module's page again
+  ok    Calculations lists the 4 kinds of problem, each with a worked example worked line by line (no raw {{frac}} markup)
+  ok    Single problems draws only its own kind (2 of mpt-m2-k)
+  FAIL  All calculations in this module draws its 12 calculations
+  FAIL  with chained-problem-sets on, the two-compartment kind offers In parts for the professor's set  — {"types":4,"worked":true,"frac":false,"chain":3}
+FAIL: features/module-pages/test.js: page.click: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for locator('#v-topics [data-mpchain]')[22m
+[2m    - locator resolved to 3 elements. Proceeding with the first one: <button data-mpchain="wsc-hw2-p2">Start</button>[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is not visible[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is not visible[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    58 × waiting for element to be visible, enabled and stable[22m
+[2m       - element is not visible[22m
+[2m     - retrying click action[22m
+[2m       - waiting 500ms[22m
+
+    at /tmp/port-module-pages/v2/c-f6/src/features/module-pages/test.js:184:18

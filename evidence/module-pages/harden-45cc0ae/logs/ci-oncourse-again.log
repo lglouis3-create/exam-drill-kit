@@ -1,0 +1,2 @@
+module-pages ci/oncourse.js: this course already has the module-pages ci data (this script runs once per course)
+course.js unchanged by the second run

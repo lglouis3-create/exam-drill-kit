@@ -1,0 +1,22 @@
++ module-pages ci
+wrote: /tmp/port-module-pages/v2/c-own/src/q90_mpc_fixture.js (21901 characters)
+wrote: /tmp/port-module-pages/v2/c-own/src/mpc_data.js (1077 characters)
+wrote: appended to /tmp/port-module-pages/v2/c-own/src/course.js:
+;/* module-pages ci */ COURSE.files = (COURSE.files || ['atlas.js', 'diagrams.js', 'q1_topics.js']).concat(["q90_mpc_fixture.js", "mpc_data.js"]); COURSE.lectures = (COURSE.lectures || []).concat([{id:'mpc-L02', deck:'2IVBolusAdministration.pdf', label:'Module 2: One-compartment IV bolus (24 Aug)', prof:'Professor', exam:1, module:2}, {id:'mpc-L03', deck:'2IVBolusAdministration.pdf', label:'Module 2: Multicompartment IV bolus (26 Aug)', prof:'Professor', exam:1, module:2}]); COURSE.features = Object.assign({}, COURSE.features, {"module-pages": {"version":"v1","modules":[["Module 1","Module 1"],[2,"Module 2 - IV Bolus Administration"]]}});
+data: 8 questions (calculations: 1), 2 topics, 5 objectives, 1 kinds of problem, 1 skills, 2 lectures; left out: 12 questions citing no lecture deck and 2 second wordings, 3 kinds whose worked example is not among the questions written, 1 problem sets
+ci exit 0
+checking sources...
+  14 sources and sw.js parse cleanly
+  scheduler: concept (no library)
+  15 questions in 4 topics, from 2 question files: q1_topics.js, q90_mpc_fixture.js
+  feature module-pages v1: build step done
+  feature module-pages v1 in the page (options {"modules": [["Module 1", "Module 1"], [2, "Module 2 - IV Bolus Administration"]], "title": "Study by module"})
+  change log: 1 entries, newest "2026-10-02 (set up from the template)"
+  assembled script parses cleanly
+wrote index.html  (0.30 MB)
+wrote COURSE0000_Drill.html  (redirect to index.html)
+wrote version.json  (built 2026-11-02T20:36:25Z)
+  note: placeholder icons (a plain square) for icon-192.png, icon-512.png, icon-maskable-512.png, apple-touch-icon.png; put the course's own PNGs under src/icons/ to replace them
+wrote manifest.json and the icons
+wrote sw.js  (caches named course-id-drill-v<n>; 7 files saved at install)
+build exit 0

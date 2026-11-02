@@ -1,0 +1,4 @@
+
+=== the course's own objectives and kinds of problem ===
+  FAIL  the page carries module-pages, working  — []
+FAIL: features/module-pages/test.js: 1 of 1 checks failed: the page carries module-pages, working

@@ -1,0 +1,48 @@
+
+=== the course's own objectives and kinds of problem ===
+  ok    the page carries module-pages, working
+  skip  every calculation belongs to a kind of problem  — the course declares no CALC_TYPES for a module with calculations
+  skip  every concept question belongs to an objective  — the course declares no OBJECTIVES for a module with concept questions
+
+=== the build step stops on bad module data ===
+  ok    an objective naming a subtopic not in TOPICS stops the build and says so
+  ok    an objective of a module the course does not have stops the build and says so
+  ok    two objectives of one module with one number stops the build and says so
+  ok    a kind of problem matching a topic not in TOPICS stops the build and says so
+  ok    two kinds of problem with one id stops the build and says so
+  ok    a worked example not in the bank stops the build and says so
+  ok    a worked example that is not a calculation stops the build and says so
+  ok    a worked example of another kind stops the build and says so
+  ok    a modules option of the wrong shape stops the build and says so
+
+=== on a scratch copy with Basic-Pharmacokinetics' Module 2 (Chromium) ===
+  ok    Topics shows a card per module, above the topic list, and keeps the topic list
+  ok    the Module 2 card offers Concepts (10 questions, 5 objectives) and Calculations (12 problems, 4 types), and no Worksheets without worksheets-ink
+  ok    Concepts lists the 5 objectives and All objectives, under the module's heading; no status line without concept-statuses
+  ok    an objective's drill draws only concepts of its subtopics (4)
+  ok    an objective whose subtopics also hold calculations draws only their concept questions (2 of the 2 concept and 6 calculation questions there)
+  ok    coming back to Topics from the quiz shows the module's page again
+  ok    Calculations lists the 4 kinds of problem, each with a worked example worked line by line (no raw {{frac}} markup)
+  ok    Single problems draws only its own kind (2 of mpt-m2-k)
+  ok    All calculations in this module draws its 12 calculations
+  ok    with chained-problem-sets on, the two-compartment kind offers In parts for the professor's set
+  ok    In parts starts the set at its first part
+  ok    what another module adds to Topics is hidden under a module's page
+  ok    ← All modules goes back to the cards and the topic list
+  ok    a tap on Topics while on a module's page goes back to the cards
+  ok    no page error and no module error
+  ok    the scratch copy builds with no objectives and no kinds of problem for Module 2
+  ok    a module with no objectives or kinds lists its questions under All concept questions and Calculations by subtopic
+  ok    its 12 calculations start as one pass
+  ok    its 10 concept questions start as one drill
+  ok    no page error on the copy without objectives
+  ok    the scratch copy builds without chained-problem-sets
+  ok    without chained-problem-sets: the kinds are listed and no In parts
+  ok    the scratch copy builds with worksheets-ink and concept-statuses on
+  ok    with worksheets-ink on, the Module 2 card offers Worksheets (1 document)
+  ok    the Worksheets page lists Homework 2 with its 4 problems, Write on it and Practice in the drill
+  ok    Write on it opens the worksheet to write on
+  ok    Practice in the drill asks the document's 4 problems
+  ok    with concept-statuses on, each objective row says how many of its concepts are in each status
+  ok    no page error and no module error with worksheets-ink and concept-statuses on
+PASS: features/module-pages/test.js: 39 checks passed (2 skipped: every calculation belongs to a kind of problem; every concept question belongs to an objective)

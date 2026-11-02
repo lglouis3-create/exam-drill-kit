@@ -1,0 +1,20 @@
+
+=== the course's own objectives and kinds of problem ===
+  ok    the page carries module-pages, working
+  ok    every calculation of a module with kinds of problem belongs to one (1 calculations)
+  ok    every concept question of a module with objectives belongs to one (7 questions)
+  ok    every kind of problem's worked example is of its own kind (1 kinds)
+
+=== the build step stops on bad module data ===
+  ok    an objective naming a subtopic not in TOPICS stops the build and says so
+  ok    an objective of a module the course does not have stops the build and says so
+  ok    two objectives of one module with one number stops the build and says so
+  ok    a kind of problem matching a topic not in TOPICS stops the build and says so
+  ok    two kinds of problem with one id stops the build and says so
+  ok    a worked example not in the bank stops the build and says so
+  ok    a worked example that is not a calculation stops the build and says so
+  ok    a worked example of another kind stops the build and says so
+  ok    a modules option of the wrong shape stops the build and says so
+
+=== on a scratch copy with Basic-Pharmacokinetics' Module 2 (Chromium) ===
+NOT RUN: features/module-pages/test.js: the scratch copy with the test questions does not build: ERROR: feature module-pages: its build step stopped the build: two objectives of module 2 are numbered "1"; two objectives of module 2 are numbered "2"; two objectives of module 2 are numbered "4"; two objectives of module 2 are numbered "5"; two objectives of module 2 are numbered "6"; the worked example mpt-m2-n-koverall of "mpt-m2-two" belongs to "mpc-m2-two"

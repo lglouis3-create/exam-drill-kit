@@ -1,0 +1,12 @@
+pair [
+  'mpc-m2-mod-1 bolus1 dupOf=undefined',
+  'mpc-m2-mod-2 bolus1 dupOf=mpc-m2-mod-1'
+]
+pool mpc-m2-mod-1:onecpt-assumptions mpc-m2-mod-2:onecpt-assumptions mpc-m2-vd-1:vd-definition mpc-m2-vd-2:vd-definition mpc-m2-cl-1:cl-definition mpc-m2-cl-3:cl-constant
+warm mpc-m2-cl-3
+warm mpc-m2-cl-1
+warm mpc-m2-vd-2
+warm null
+warm null
+warm null
+pick null
