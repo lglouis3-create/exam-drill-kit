@@ -8,9 +8,10 @@
 #
 # A job fails on any FAIL and on any NOT RUN that is not a documented exclusion
 # (listed at the top of core/ci_course.sh), so a missing Playwright, browser or
-# pdfplumber fails it. The WebKit job is informational (continue-on-error) until its
-# first results are reviewed; it never makes the pull request red. The results are visible on each
-# pull request, and kit sessions merge only when the Chromium and module jobs pass (KIT_DESIGN.md
+# pdfplumber fails it. Every job blocks a merge, the WebKit job too (Louis, 2026-11-02, after
+# its first passing runs on pull request #27). WebKit on this Linux runner is not the Safari
+# app: an iPhone and an iPad are still tried by hand before BDK goes live. The results are
+# visible on each pull request, and kit sessions merge only when every job passes (KIT_DESIGN.md
 # §12.9). GitHub does not enforce this on this private repository (no required
 # checks or rulesets without a paid plan or a public repository).
 name: Kit checks
@@ -54,10 +55,9 @@ jobs:
         run: bash core/ci_course.sh "${{ matrix.course }}" chromium
 
   webkit:
-    name: WebKit · template (informational)
+    name: WebKit · template
     runs-on: ubuntu-24.04
     timeout-minutes: 45
-    continue-on-error: true
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
