@@ -4,6 +4,8 @@ Dated kit changes, newest first.
 
 ## 2026-11-02
 - Kit checks on GitHub: every pull request runs the checks in Chromium and, as information, in WebKit.
+- Checks open built pages over HTTP from 127.0.0.1, not from disk, so WebKit no longer refuses the manifest.
+- Kit checks on GitHub: each changed feature module, and each module that needs it, is checked on a course of its own.
 - New feature module `module-pages` v1 (`features/module-pages/`), from Basic-Pharmacokinetics `ac2eb73` (`src/views.js` 722-854): a card per module above the topic list on Topics, each opening the module's Concepts (by the professor's objectives), Calculations (by kind of problem, each with a worked example) and, with worksheets-ink on, Worksheets; with chained-problem-sets on, In parts; with concept-statuses on, a status line per objective. Course data `OBJECTIVES` and `CALC_TYPES` (both optional), checked by its build step. Test: 30 checks on its own course (PK's Module 2 written by `ci/oncourse.js`), 42 with chained-problem-sets, worksheets-ink and concept-statuses also in the course. `core/` and `template/` unchanged.
 - `core/render_test.js`: answers calculation and matching items with their own controls; no more random failures.
 
