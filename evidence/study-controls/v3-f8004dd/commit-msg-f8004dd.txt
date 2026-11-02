@@ -1,0 +1,8 @@
+study-controls test: report the paper-picker skip once
+
+Commit 6661669 left the earlier line that skips the earlier-exam checks when paper-picker is not
+on in place beside the new one, so a course without paper-picker reported the skip twice
+("2 skipped"). The line is removed; the checks are unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01LVkWFDVVDwgsL5WF7yWqcV

@@ -1,0 +1,11 @@
+study-controls test: the earlier-exam checks use an exam the bank can draw
+
+On paper-picker's own Basic-Pharmacokinetics 3-exam course (features/paper-picker/ci/oncourse.js
+at ed152de), the bank holds too few questions for a paper of Exam 1, so paper-picker draws that
+paper for the current exam, and the checks of a paper drawn for an earlier exam failed (found by
+the coordinator, agent-run). The test now takes the first earlier exam for which paper-picker's
+start page does not say "The bank holds too few questions" (on that course, Exam 2), notes the
+exams left out, and skips the two checks with that reason when no earlier exam can be drawn.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01LVkWFDVVDwgsL5WF7yWqcV

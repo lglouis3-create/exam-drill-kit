@@ -1,0 +1,9 @@
+own-make	0	bash /tmp/port-study-controls/v3/bin/modcourse.sh /home/user/exam-drill-kit/.claude/worktrees/agent-ae70c0f888081b96b /tmp/port-study-controls/v3/courses/own study-controls
+own-oncourse-again	1	node /home/user/exam-drill-kit/.claude/worktrees/agent-ae70c0f888081b96b/features/study-controls/ci/oncourse.js /home/user/exam-drill-kit/.claude/worktrees/agent-ae70c0f888081b96b /tmp/port-study-controls/v3/courses/own/src
+own-test-1	0	node features/study-controls/test.js
+own-test-2	0	node features/study-controls/test.js
+own-test-3	0	node features/study-controls/test.js
+own-run-checks	0	./run_checks.sh
+absent-make	0	bash /tmp/port-tools/mkcourse.sh /home/user/exam-drill-kit/.claude/worktrees/agent-ae70c0f888081b96b /tmp/port-study-controls/v3/courses/absent
+absent-build	0	python3 build.py
+absent-test	1	node features/study-controls/test.js
