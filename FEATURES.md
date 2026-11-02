@@ -421,16 +421,16 @@ Known issues: a `{{frac:...}}` that a glossary gloss is inserted into is left as
 Test: `features/formulas-in-text/current/test.js` (its stems, options and worked steps drawn exactly as PK's own formatter draws them, on 8 PK questions and 1 calculation; PK `src/test.js` 826-874 ported).
 
 ## plan-the-problem
-Does: before a calculation, asks what is wanted and its unit, which givens apply, and a sanity check.
+Does: on the Equations tab, a set-up drill: a calculation stem with no arithmetic, where the student picks the equation line that solves what is asked from four (the right line and three others, first from the same module), then reads why, one sentence a line, the lines used on the way, and what each symbol is, when the line holds and how to reach it from a printed line; "Plan the problem" first asks what is asked and the unit the answer carries, then the dosing model from the stem's words, then the line, whether the equation sheet prints it and which of the stem's givens it uses, and writes the plan out with the estimate to make before computing. The lines picked wrong are tallied per line and the most-missed are listed.
 Use when: the exam supplies the equation sheet, so choosing the line is the skill (PK: "You've got to think about which one do I want to apply in this application", `src/reference.js` line 32).
 Do not use when: no calculations.
-Enable: course.js → features.plan-the-problem = { version: 'v1' }
+Enable: course.js → features['plan-the-problem'] = { version: 'v1' }, with equation-drill and formulas-in-text on (it `needs` equation-drill); on each numeric question `setup: {eq, pre, why}` and, for the plan, `asks`, `givens: [[symbol, value, role]]` and `check: {t}`; in a data file listed in `files`, `ASKS = {key: [symbol, meaning]}` and `PLAN = {models, topics, also, units, same, routine}` (the shapes in the module's header; without `PLAN.models` only "Set-up only" is offered, without ASKS the plan starts at the model)
 Versions:
-  v1  2026-10-07  from PK (`fb07443`)   best for: equation-sheet exams   weaker at: not evaluated   current/
+  v1  2026-10-07  from PK (`fb07443`)   best for: equation-sheet exams   weaker at: not evaluated   current/ (ported 2026-11-02 from PK `ac2eb73` `src/views.js` 4754-5120)
 Evidence: the professor's remark quoted above (PK notes §1).
-Used by: PK (v1)
-Known issues: none open.
-Test: `src/test.js` (PK).
+Used by: PK (v1, its own copy); the kit module: none yet.
+Known issues: none recorded. In the kit the dosing models, the topic-to-model map, the stem words that also accept a route, the unit lures, the lines counted as one relation and "How to go about any calculation" are the course's `PLAN` data (in PK they are code in `src/views.js`); the sentence split of the set-up reason is written without regex lookbehind (PK `src/views.js:4937`); the tally is kept in the progress as `DB.setup` (PK keeps it in its own storage key). Not ported: choosing the line from the whole sheet (it needs the sheet map, `sheet.js`), ten stems to a page (the kit has no Answer layout setting), the quiz and exam scopes, "Work it yourself in the quiz", "Type this line from memory", the origin tag, the button back to the view the drill started from, and the set-up repair chips in Weak spots.
+Test: `features/plan-the-problem/current/test.js` (PK `src/test.js` 788-795 and 997-1068 and `src/review_test.py` 255-268 and 396-438 ported: 34 checks on the template course with 10 PK calculation questions, its ASKS and its plan tables added).
 
 ## equation-drill
 Does: type an equation line, build it from pieces ("Build it"), find it on the whole sheet, and "How she asks it"; a sheet map of which lines the printed sheet includes and omits, printed in the sheet's own layout.
@@ -442,7 +442,7 @@ Versions:
   v2  2026-10-07  from PK (`164ac5a`; sheet print layout `33789e3` 2026-10-27)   best for: equation sheets   weaker at: not evaluated   current/ (the Equations tab and its drill, ported 2026-11-01 from PK `ac2eb73` by `features/equation-drill/port_from_pk.py`; each equation also opens its symbols, the condition it holds under, its derivation and its source)
 Evidence: Louis asked that reordered factors count as right while order still matters in some equations (PK notes §1, from session memory).
 Used by: PK (v2, its own copy); the kit module: none yet.
-Known issues: in PK, the set-up reasoning's `whySentences` uses regex lookbehind (`src/views.js:4937`, added in `0f266e5`); it is part of the set-up drill, which the kit module does not include, so the module has none (`device_lint.js`). Not ported: the set-up drill ("Set-up only") and "How she asks it" (both need plan-the-problem's set-up data), the variables quiz (variables-quiz, Tier 2), the sheet map and its print layouts (`sheet.js`), the exam chip. The normaliser keeps PK's kinetics spellings (half-life, clearance, the ideal-body-weight height term).
+Known issues: in PK, the set-up reasoning's `whySentences` uses regex lookbehind (`src/views.js:4937`, added in `0f266e5`); it is part of the set-up drill, which is the plan-the-problem module, written there without lookbehind (`device_lint.js`). Not ported: "How she asks it" (it needs plan-the-problem's set-up data), the variables quiz (variables-quiz, Tier 2), the sheet map and its print layouts (`sheet.js`), the exam chip. The normaliser keeps PK's kinetics spellings (half-life, clearance, the ideal-body-weight height term).
 Test: `features/equation-drill/current/test.js` (PK `src/equation_test.py` and `src/test.js` section 5d ported: 30 checks on the template course with 14 PK equations added); `src/review_test.py` (PK) was not ported, since the sheet map is not.
 
 ## wrong-number-diagnosis

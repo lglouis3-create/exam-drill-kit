@@ -2,6 +2,23 @@
 
 Dated kit changes, newest first.
 
+## 2026-11-02
+- New feature module `plan-the-problem` v1 (`features/plan-the-problem/`), from
+  Basic-Pharmacokinetics `ac2eb73` (`src/views.js` 4754-5120, the set-up drill): on the
+  Equations tab, a calculation stem with no arithmetic, where the student picks the line
+  that solves what is asked from four and then reads why, the lines used on the way and
+  how to reach a line the sheet does not print; "Plan the problem" asks first what is
+  asked and its unit (with `ASKS`) and the dosing model (with `PLAN`), then the line,
+  whether the sheet prints it and which givens it uses, and writes the plan out. It
+  needs `equation-drill`. PK's dosing models, unit lures and calculation routine are the
+  course's `PLAN` data in the kit, not code; the sentence split has no regex lookbehind;
+  the lines missed are kept in the progress as `DB.setup`. Not ported: the whole-sheet
+  choice, ten stems to a page, the quiz and exam scopes, and the buttons into the quiz and
+  the typing drill. Its test (PK `src/test.js` 788-795 and 997-1068, `src/review_test.py`
+  255-268 and 396-438 ported): 34 checks pass; with the module's code left out, 1 of 1
+  fails; with PK's lookbehind split in its place, `device_lint.js` fails 2 of 3.
+  Port queue item 1 is done.
+
 ## 2026-11-01
 - `core/`: an exam with `questions: null` or a pool with `marks: null` no longer breaks the page (`nullexam.js`).
 - `core/`: a pool without marks makes the whole exam unweighted; `minutes: null` with a count gives an untimed paper.
