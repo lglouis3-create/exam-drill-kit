@@ -31,6 +31,15 @@ Dated kit changes, newest first.
   core's state and does not change how the core schedules. `FEATURES.md` corrected: the
   core has the concept scheduler and a mastered count, not the named statuses. Test: 58
   checks (PK `src/test.js` section 4c and `src/sweep_test.py` `concept_check` ported).
+- New feature module `paper-picker` v1 (`features/paper-picker/`), from Basic-Pharmacokinetics
+  `ac2eb73` (`pickExam`, `chooseExam`, `examPicker`, `examHistory`): on the Exam view and in
+  Settings, a chip per exam a paper can be drawn for; a paper for an earlier exam is drawn
+  from that exam's pools through the `X.paper` hook, at the current exam's length and clock
+  (an exam of another length, clock or `typed` setting is left off the chips, with the
+  reason shown); "Your papers so far" lists each paper submitted on a page with the module
+  on (`DB.paperPicker`). Topics, Weak spots and the weighted pass still follow the current
+  exam. No course switches it on yet. Test: `features/paper-picker/current/test.js`
+  (45 checks).
 - `core/render_test.js`: answers calculation and matching items with their own controls; no more random failures.
 - New feature module `plan-the-problem` v1 (`features/plan-the-problem/`), from
   Basic-Pharmacokinetics `ac2eb73` (`src/views.js` 4754-5120, the set-up drill): on the

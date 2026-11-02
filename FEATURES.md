@@ -669,6 +669,18 @@ Test: none.
 
 ## Exam simulation additions
 
+## paper-picker
+Does: on the Exam view and in Settings, one chip per exam a paper can be drawn for; a paper started while an earlier exam is chosen is drawn from that exam's pools (each pool's share by marks, the exam's select-all count, the engine's own draw rules); the choice is kept with the progress and moves on to the current exam once the chosen exam is over, unless it was chosen after that exam (to review it); "Your papers so far" lists each paper submitted (exam, day, score, blank items), newest first.
+Use when: the course has more than one exam in `course.js` `exams` and a student will sit an earlier exam's paper again, for example before a cumulative final (PK).
+Do not use when: the course has one exam; or the exam to practise has another question count, time limit or `typed` setting than the current exam (it is left off the chips, with the reason on the Exam view; a paper of another length or clock needs "several exams on one site" in the core, `review/port-queue.md`).
+Enable: course.js → features['paper-picker'] = { version: 'v1' }
+Versions:
+  v1  2026-09-22  from PK (`fa9c49d`; the paper list `8ce8de2` 2026-09-28; the rule for a choice made before its exam `71ce449` 2026-10-26)   best for: courses with several exams on one blueprint shape   weaker at: not evaluated   current/ (ported 2026-11-02 from PK `ac2eb73` `src/shell.html` 1108-1128 and 1174-1186, `src/views.js` 3108-3136 and 3146-3168)
+Evidence: none recorded.
+Used by: PK (v1, its own copy); the kit module: none yet.
+Known issues: in the kit only the paper follows the choice; Topics, Weak spots and the exam-weighted pass follow the current exam (`activeExam`), where PK's followed the choice. The paper list holds only papers submitted on a page with the module on, kept in the progress as `DB.paperPicker.papers` (the 100 newest; the 12 newest shown); the core keeps no record of earlier papers, and the result page is still lost on a reload, as in the core. PK's quiz-scope papers and the "practice" label in its list are not ported (they belong to quiz-prep-cards).
+Test: `features/paper-picker/current/test.js` (45 checks; PK has no test of its own for the paper choice or the list, so the checks are written from its code).
+
 ## exam-notes
 Does: notes on any question with an export for an AI to review, flags on exam papers, and a Notes tab to read, edit, drill, delete or export.
 Use when: Louis wants to record his own questions while practising (PK).
