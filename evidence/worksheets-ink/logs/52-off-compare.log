@@ -1,0 +1,4 @@
+same: index.html
+same: sw.js
+same: version.json
+same: manifest.json

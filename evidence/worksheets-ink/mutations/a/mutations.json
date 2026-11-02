@@ -1,0 +1,197 @@
+[
+ {
+  "name": "plan-order",
+  "what": "sheetPlan: problems in the sheet's numbering",
+  "file": "worksheets-ink.js",
+  "build": 0,
+  "exit": 1,
+  "seconds": 57,
+  "failed": [
+   "a sheet's problems follow its numbering whatever order the items are listed in, slides keep the deck's order, and a set's name or ids say which numbers it carries [\"changed\",\"original\",\"original\",\"original\",\"\"]  \u2014 {\"own\":\"wsi-hwo2-1a wsi-hwo2-1b wsi-hwo2-1c wsi-hwo2-1d wsi-hwo2-1e wsi-hwo2-1f, wsi-hwo2-2a wsi-hwo2-2b wsi-hwo2-2c wsi-hwo2-2d\",\"rev\":\"wsi-hwo2-2a wsi-hwo2-2b wsi-hwo2-2c wsi-hwo2-2d, wsi-hwo2-1a wsi-hwo2-1b wsi-hwo2-1c wsi-hwo2-1d wsi-hwo2-1e wsi-hwo2-1f\",\"ex\":\"wsi-hwo2-2a wsi-hwo2-2b wsi-hwo2-2c wsi-hwo2-2d, wsi-hwo2-1a wsi-hwo2-1b wsi-hwo2-1c wsi-hwo2-1d wsi-hwo2-1e wsi-hwo2-1f\",\"back\":\"wsi-hwo2-2a wsi-hwo2-2b wsi-hwo2-2c wsi-hwo2-2d, wsi-hwo2-1a wsi-hwo2-1b wsi-hwo2-1c wsi-hwo2-1d wsi-hwo2-1e wsi-hwo2-1f\",\"bare\":true,\"kinds\":[\"changed\",\"original\",\"original\",\"original\",\"\"]}"
+  ],
+  "summary": "FAIL: features/worksheets-ink/test.js: 1 of 160 checks failed: a sheet's problems follow its numbering whatever order the items are listed in, slides keep the deck's order, and a set's name or ids say which numbers it carries [\"changed\",\"original\",\"original\",\"original\",\"\"]"
+ },
+ {
+  "name": "plan-changed",
+  "what": "setNumbers: a '(changed numbers)' set is the extra-practice sheet",
+  "file": "worksheets-ink.js",
+  "build": 0,
+  "exit": 1,
+  "seconds": 57,
+  "failed": [
+   "a sheet's problems follow its numbering whatever order the items are listed in, slides keep the deck's order, and a set's name or ids say which numbers it carries [\"\",\"original\",\"original\",\"original\",\"\"]  \u2014 {\"own\":\"wsi-hwo2-1a wsi-hwo2-1b wsi-hwo2-1c wsi-hwo2-1d wsi-hwo2-1e wsi-hwo2-1f, wsi-hwo2-2a wsi-hwo2-2b wsi-hwo2-2c wsi-hwo2-2d\",\"rev\":\"wsi-hwo2-1a wsi-hwo2-1b wsi-hwo2-1c wsi-hwo2-1d wsi-hwo2-1e wsi-hwo2-1f, wsi-hwo2-2a wsi-hwo2-2b wsi-hwo2-2c wsi-hwo2-2d\",\"ex\":\"wsi-hwo2-2a wsi-hwo2-2b wsi-hwo2-2c wsi-hwo2-2d, wsi-hwo2-1a wsi-hwo2-1b wsi-hwo2-1c wsi-hwo2-1d wsi-hwo2-1e wsi-hwo2-1f\",\"back\":\"wsi-hwo2-2a wsi-hwo2-2b wsi-hwo2-2c wsi-hwo2-2d, wsi-hwo2-1a wsi-hwo2-1b wsi-hwo2-1c wsi-hwo2-1d wsi-hwo2-1e wsi-hwo2-1f\",\"bare\":true,\"kinds\":[\"\",\"original\",\"original\",\"original\",\"\"]}"
+  ],
+  "summary": "FAIL: features/worksheets-ink/test.js: 1 of 160 checks failed: a sheet's problems follow its numbering whatever order the items are listed in, slides keep the deck's order, and a set's name or ids say which numbers it carries [\"\",\"original\",\"original\",\"original\",\"\"]"
+ },
+ {
+  "name": "plan-dup",
+  "what": "sheetPlan: an older copy of a problem already on the sheet is left off",
+  "file": "worksheets-ink.js",
+  "build": 0,
+  "exit": 1,
+  "seconds": 57,
+  "failed": [
+   "Homework 2's re-numbered copies, named without \"(changed numbers)\", are still left off the worksheet and kept as the extra-practice sheet  \u2014 {\"own\":\"wsi-hwo2-1a wsi-hwo2-1b wsi-hwo2-1c wsi-hwo2-1d wsi-hwo2-1e wsi-hwo2-1f, wsi-hwo2-2a wsi-hwo2-2b wsi-hwo2-2c wsi-hwo2-2d\",\"rev\":\"wsi-hwo2-1a wsi-hwo2-1b wsi-hwo2-1c wsi-hwo2-1d wsi-hwo2-1e wsi-hwo2-1f, wsi-hwo2-2a wsi-hwo2-2b wsi-hwo2-2c wsi-hwo2-2d\",\"ex\":\"wsi-hwo2-2a wsi-hwo2-2b wsi-hwo2-2c wsi-hwo2-2d, wsi-hwo2-1a wsi-hwo2-1b wsi-hwo2-1c wsi-hwo2-1d wsi-hwo2-1e wsi-hwo2-1f\",\"back\":\"wsi-hwo2-2a wsi-hwo2-2b wsi-hwo2-2c wsi-hwo2-2d, wsi-hwo2-1a wsi-hwo2-1b wsi-hwo2-1c wsi-hwo2-1d wsi-hwo2-1e wsi-hwo2-1f\",\"bare\":false,\"kinds\":[\"changed\",\"original\",\"original\",\"original\",\"\"]}"
+  ],
+  "summary": "FAIL: features/worksheets-ink/test.js: 1 of 160 checks failed: Homework 2's re-numbered copies, named without \"(changed numbers)\", are still left off the worksheet and kept as the extra-practice sheet"
+ },
+ {
+  "name": "solved-by",
+  "what": "solvedBy: only the professor's own solved sheet is the professor's key",
+  "file": "worksheets-ink.js",
+  "build": 0,
+  "exit": 1,
+  "seconds": 57,
+  "failed": [
+   "each worksheet's problems, their order, the changed-numbers sheet and who solved each part are Basic-Pharmacokinetics' own (4 documents)  \u2014 hw-2: {\"main\":[[\"hwo2-1a\",\"hwo2-1b\",\"hwo2-1c\",\"hwo2-1d\",\"hwo2-1e\",\"hwo2-1f\"],[\"hwo2-2a\",\"hwo2-2b\",\"hwo2-2c\",\"hwo2-2d\"]],\"changed\":[[\"hw2-1a\",\"hw2-1b\",\"hw2-1c\",\"hw2-1d\",\"hw2-1e\",\"hw2-1f\"],[\"hw2-2a\",\"hw2-2b\",\"hw2-2c\",\"hw2-2d\"]],\"mainChanged\":false,\"by\":{\"hwo2-1a\":\"prof\",\"hwo2-1b\":\"prof\",\"hwo2-1c\":\"prof\",\"hwo2-1d\":\"prof\",\"hwo2-1e\":\"prof\",\"hwo2-1f\":\"prof\",\"hwo2-2a\":\"prof\",\"hwo2-2b\":\"prof\",\"hwo2-2c\":\"p"
+  ],
+  "summary": "FAIL: features/worksheets-ink/test.js: 1 of 160 checks failed: each worksheet's problems, their order, the changed-numbers sheet and who solved each part are Basic-Pharmacokinetics' own (4 documents)"
+ },
+ {
+  "name": "solved-spoken",
+  "what": "solvedBy: working only heard is the drill's",
+  "file": "worksheets-ink.js",
+  "build": 0,
+  "exit": 0,
+  "seconds": 58,
+  "failed": [],
+  "summary": "PASS: features/worksheets-ink/test.js: 160 checks passed (1 skipped: Apple Pencil, iPad and Safari)"
+ },
+ {
+  "name": "carry",
+  "what": "dropCarry: carried values left out on paper",
+  "file": "worksheets-ink.js",
+  "build": 0,
+  "exit": 1,
+  "seconds": 58,
+  "failed": [
+   "the text on paper is Basic-Pharmacokinetics' own: carried values left out (12 parts), each set's shared text (6 sets), the options' order (3 questions)  \u2014 carry cq1-3b; carry cq1-3c; carry ws1-3-1b; carry ws1-3-1c; carry hw2-1c; carry hw2-1f; carry hwo2-1c; carry hwo2-1d; carry hwo2-1e; carry hwo2-1f; carry hw2-2d; carry hwo2-2d"
+  ],
+  "summary": "FAIL: features/worksheets-ink/test.js: 1 of 160 checks failed: the text on paper is Basic-Pharmacokinetics' own: carried values left out (12 parts), each set's shared text (6 sets), the options' order (3 questions)"
+ },
+ {
+  "name": "shared-lead",
+  "what": "sharedLead: a set's shared text printed once",
+  "file": "worksheets-ink.js",
+  "build": 0,
+  "exit": 1,
+  "seconds": 57,
+  "failed": [
+   "the text on paper is Basic-Pharmacokinetics' own: carried values left out (12 parts), each set's shared text (6 sets), the options' order (3 questions)  \u2014 cut hw-2:main:0: 0; cut hw-2:main:1: 0; cut hw-2:changed:0: 0; cut hw-2:changed:1: 0"
+  ],
+  "summary": "FAIL: features/worksheets-ink/test.js: 1 of 160 checks failed: the text on paper is Basic-Pharmacokinetics' own: carried values left out (12 parts), each set's shared text (6 sets), the options' order (3 questions)"
+ },
+ {
+  "name": "ws-order",
+  "what": "wsOrder: the options' fixed order",
+  "file": "worksheets-ink.js",
+  "build": 0,
+  "exit": 1,
+  "seconds": 59,
+  "failed": [
+   "the text on paper is Basic-Pharmacokinetics' own: carried values left out (12 parts), each set's shared text (6 sets), the options' order (3 questions)  \u2014 order cq1-1; order cq1-2; order ws1-3-1a"
+  ],
+  "summary": "FAIL: features/worksheets-ink/test.js: 1 of 160 checks failed: the text on paper is Basic-Pharmacokinetics' own: carried values left out (12 parts), each set's shared text (6 sets), the options' order (3 questions)"
+ },
+ {
+  "name": "chain-start",
+  "what": "startSheetSet: a whole problem set starts that set (chained-problem-sets on)",
+  "file": "worksheets-ink.js",
+  "build": 0,
+  "exit": 1,
+  "seconds": 59,
+  "failed": [
+   "with chained-problem-sets on, a sheet that is one whole problem set starts that set (part 1 of 5, with its vignette line) {\"view\":\"quiz\",\"chain\":null,\"sweep\":[\"wsi-ws1-3-1a\",\"wsi-ws1-3-1b\",\"wsi-ws1-3-1c\",\"wsi-ws1-3-2a\",\"wsi-ws1-3-2b\"],\"cur\":\"wsi-ws1-3-1a\",\"prog\":\"question 1 of 5\",\"cset\":false,\"on\":true}"
+  ],
+  "summary": "FAIL: features/worksheets-ink/test.js: 1 of 160 checks failed: with chained-problem-sets on, a sheet that is one whole problem set starts that set (part 1 of 5, with its vignette line) {\"view\":\"quiz\",\"chain\":null,\"sweep\":[\"wsi-ws1-3-1a\",\"wsi-ws1-3-1b\",\"wsi-ws1-3-1c\",\"wsi-ws1-3-2a\",\"wsi-ws1-3-2b\"],\"cur\":\"wsi-ws1-3-1a\",\"prog\":\"question 1 of 5\",\"cset\":false,\"on\":true}"
+ },
+ {
+  "name": "sheet-sweep",
+  "what": "startSheetSet: the sheet's order",
+  "file": "worksheets-ink.js",
+  "build": 0,
+  "exit": 1,
+  "seconds": 60,
+  "failed": [
+   "with chained-problem-sets off, the same sheet is asked as one pass in the sheet's order {\"view\":\"quiz\",\"chain\":null,\"sweep\":[\"wsi-ws1-3-2b\",\"wsi-ws1-3-2a\",\"wsi-ws1-3-1c\",\"wsi-ws1-3-1b\",\"wsi-ws1-3-1a\"],\"cur\":\"wsi-ws1-3-2b\",\"prog\":\"question 1 of 5\",\"cset\":false,\"on\":false}",
+   "a sheet of two problem sets is asked as one pass in the sheet's order (chained-problem-sets off) [null,10]",
+   "a sheet of two problem sets is asked as one pass in the sheet's order (chained-problem-sets on) [null,10]"
+  ],
+  "summary": "FAIL: features/worksheets-ink/test.js: 3 of 160 checks failed: with chained-problem-sets off, the same sheet is asked as one pass in the sheet's order {\"view\":\"quiz\",\"chain\":null,\"sweep\":[\"wsi-ws1-3-2b\",\"wsi-ws1-3-2a\",\"wsi-ws1-3-1c\",\"wsi-ws1-3-1b\",\"wsi-ws1-3-1a\"],\"cur\":\"wsi-ws1-3-2b\",\"prog\":\"question 1 of 5\",\"cset\":false,\"on\":false}; a sheet of two problem sets is asked as one pass in the sheet's order (chained-problem-sets off) [null,10]; a sheet of two problem sets is asked as one pass in the sheet's order (chained-problem-sets on) [null,10]"
+ },
+ {
+  "name": "room",
+  "what": "More room / Less room",
+  "file": "worksheets-ink.js",
+  "build": 0,
+  "exit": 1,
+  "seconds": 37,
+  "failed": [
+   "More room adds 240 px and Less room takes it back (480 \u2192 720 \u2192 1200)",
+   "a stroke in the work area is kept on its problem (0 stroke, 0 points)",
+   "the stroke is drawn on the canvas (0 pixels)",
+   "the stroke is saved in the profile's progress, and in no localStorage key of its own (0,0)"
+  ],
+  "summary": "FAIL: features/worksheets-ink/test.js: page.click: Timeout 30000ms exceeded."
+ },
+ {
+  "name": "eraser",
+  "what": "the stroke eraser",
+  "file": "worksheets-ink.js",
+  "build": 0,
+  "exit": 1,
+  "seconds": 65,
+  "failed": [
+   "the eraser removes a stroke it touches, and undo brings it back (1, 2)",
+   "after a reload the writing and the extra room are back [3,1,240,true,720]",
+   "Clear page removes all of it and undo restores it (0, 4)",
+   "a second profile has no writing, and the first keeps its own ([\"Other\",0], [\"me\",4])",
+   "Settings says how much writing is kept (1 page with writing, 4 strokes, 0.8 KB of this profile's progress. The writing i)",
+   "Import progress brings the writing back",
+   "the eraser removes a stroke it touches, and undo brings it back (1, 2)",
+   "after a reload the writing and the extra room are back [3,1,240,true,720]",
+   "Clear page removes all of it and undo restores it (0, 4)",
+   "the eraser removes a straight line touched in its middle (12 \u2192 12)",
+   "the eraser removes a straight line touched in its middle (12 \u2192 12)"
+  ],
+  "summary": "FAIL: features/worksheets-ink/test.js: 11 of 160 checks failed: the eraser removes a stroke it touches, and undo brings it back (1, 2); after a reload the writing and the extra room are back [3,1,240,true,720]; Clear page removes all of it and undo restores it (0, 4) \u2026"
+ },
+ {
+  "name": "redo",
+  "what": "undo and redo",
+  "file": "worksheets-ink.js",
+  "build": 0,
+  "exit": 1,
+  "seconds": 37,
+  "failed": [
+   "undo removes the stroke and redo puts it back (0, 0)"
+  ],
+  "summary": "FAIL: features/worksheets-ink/test.js: page.click: Timeout 30000ms exceeded."
+ },
+ {
+  "name": "pencil-only",
+  "what": "Pencil only: a finger scrolls",
+  "file": "worksheets-ink.js",
+  "build": 0,
+  "exit": 1,
+  "seconds": 62,
+  "failed": [
+   "a pen writes and switches to Pencil only; then a finger scrolls the page and does not write [1,2,true,3,200,200]",
+   "after a reload the writing and the extra room are back [3,1,240,true,720]",
+   "Clear page removes all of it and undo restores it (0, 4)",
+   "a second profile has no writing, and the first keeps its own ([\"Other\",0], [\"me\",4])",
+   "Settings says how much writing is kept (1 page with writing, 4 strokes, 0.7 KB of this profile's progress. The writing i)",
+   "Import progress brings the writing back",
+   "a pen writes and switches to Pencil only; then a finger scrolls the page and does not write [1,2,true,3,200,200]",
+   "after a reload the writing and the extra room are back [3,1,240,true,720]",
+   "Clear page removes all of it and undo restores it (0, 4)",
+   "two fingers that move scroll and undo nothing (10,11,11,)",
+   "two touches the system cancels, such as a rejected palm, undo nothing (11,12,12,)",
+   "a hand that touches and lifts while the pen writes undoes nothing and does not end the pen's stroke (12,13,13,160)",
+   "two fingers that move scroll and undo nothing (10,11,11,)",
+   "two touches the system cancels, such as a rejected palm, undo nothing (11,12,12,)",
+   "a hand that touches and lifts while the pen writes undoes nothing and does not end the pen's stroke (12,13,13,160)"
+  ],
+  "summary": "FAIL: features/worksheets-ink/test.js: 15 of 160 checks failed: a pen writes and switches to Pencil only; then a finger scrolls the page and does not write [1,2,true,3,200,200]; after a reload the writing and the extra room are back [3,1,240,true,720]; Clear page removes all of it and undo restores it (0, 4) \u2026"
+ }
+]

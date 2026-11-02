@@ -1,0 +1,27 @@
+[
+ {
+  "name": "solved-spoken",
+  "what": "solvedBy: working only heard is the drill's",
+  "file": "worksheets-ink.js",
+  "build": 0,
+  "exit": 1,
+  "seconds": 56,
+  "failed": [
+   "working only heard in the recording is the drill's, unless the sheet has it written [\"prof\",\"prof\",\"prof\",\"prof\"]"
+  ],
+  "summary": "FAIL: features/worksheets-ink/test.js: 1 of 161 checks failed: working only heard in the recording is the drill's, unless the sheet has it written [\"prof\",\"prof\",\"prof\",\"prof\"]"
+ },
+ {
+  "name": "exam-clear",
+  "what": "a new paper's scratch paper starts clean",
+  "file": "worksheets-ink.js",
+  "build": 0,
+  "exit": 1,
+  "seconds": 57,
+  "failed": [
+   "a new paper starts with clean scratch paper and the old one is cleared (1, [0,1])",
+   "a new paper starts with clean scratch paper and the old one is cleared (1, [0,1])"
+  ],
+  "summary": "FAIL: features/worksheets-ink/test.js: 2 of 161 checks failed: a new paper starts with clean scratch paper and the old one is cleared (1, [0,1]); a new paper starts with clean scratch paper and the old one is cleared (1, [0,1])"
+ }
+]

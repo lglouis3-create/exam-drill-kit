@@ -1,0 +1,81 @@
+
+=== 1. Question bank integrity ===
+  26 questions, 6 topics, 0 images
+  ok    the build's question count equals QUESTIONS.length (26)
+
+=== 2. Exam blueprint coverage ===
+  Lectures 1–4: 7 questions (paper takes 4)
+
+=== 3. Concept spread per topic ===
+  topic1       3 q /   3 concepts  (Professor)
+  topic2       4 q /   4 concepts  (Professor)
+  multoral     6 q /   6 concepts  (Professor)
+  warn  subtopic "multoral/oeq" (The multiple-oral-dose equations) has no questions
+  warn  subtopic "multoral/oparam" (Changing the dose and the dosing interval) has no questions
+  bioavail     5 q /   5 concepts  (Professor)
+  warn  subtopic "bioavail/defs" (Drug product performance, bioavailability, absolute and relative, bioequivalence) has no questions
+  warn  subtopic "bioavail/factors" (Factors influencing bioavailability) has no questions
+  warn  subtopic "bioavail/frel" (Relative bioavailability) has no questions
+  warn  subtopic "bioavail/figure" (Reading the bioequivalence example) has no questions
+  pkpd         5 q /   5 concepts  (Professor)
+  warn  subtopic "pkpd/pd" (Pharmacodynamics and the exposure–response relationship) has no questions
+  warn  subtopic "pkpd/doseresp" (Response rising with dose and concentration up to a maximum) has no questions
+  warn  subtopic "pkpd/thalf" (Elimination half-life and the duration of activity) has no questions
+  nonlin       3 q /   3 concepts  (Professor)
+  warn  subtopic "nonlin/linear" (Linear and nonlinear pharmacokinetics; saturation kinetics) has no questions
+  warn  subtopic "nonlin/kmcp" (KM and Cp: the order of saturable elimination, half-life and clearance) has no questions
+
+=== 4. Spaced repetition rules ===
+feature module worksheets-ink (tab): TypeError: nav.querySelector is not a function
+    at evalmachine.<anonymous>:1608:17
+    at run (evalmachine.<anonymous>:1569:18)
+    at dom (evalmachine.<anonymous>:1601:7)
+    at startUp (evalmachine.<anonymous>:1622:11)
+    at evalmachine.<anonymous>:1683:5
+    at Object.askProfile (evalmachine.<anonymous>:907:3)
+    at Object.<anonymous> (/tmp/port-worksheets-ink/fin/src/test.js:118:3)
+    at Module._compile (node:internal/modules/cjs/loader:1781:14)
+    at Object..js (node:internal/modules/cjs/loader:1913:10)
+    at Module.load (node:internal/modules/cjs/loader:1505:32)
+  ok    missed concept is held back rather than repeated at once
+  (resurfacing test needs a topic with 6+ concepts; skipped on this bank)
+  ok    box advanced 0 -> 3 with repeated correct answers
+  ok    a later miss resets the concept to active review
+  ok    a guess resets the concept to unresolved and outranks never-seen material
+  ok    "I guessed that one" rewrites the log, resets the box, keeps picked and ms
+  note  every concept currently has a single question
+
+=== 5. Exam simulation draw ===
+  blueprint: Exam 1 — Lectures 1–4 4 (4 of 4)
+  drew 4
+  ok    no duplicate questions on a single paper
+  ok    dupOf partners never share a paper (0 marked; 0 lowYield kept off the paper)
+  ok    20 repeated draws all kept the paper shape
+  select-all on the paper: 0 of 4 (target 0)
+  ok    the paper carries the intended number of select-all items
+  ok    every question resolves to a lecture, exam and module
+  ok    every question carries a skill from the course taxonomy (recall, tell, apply, read, calc, oral, multidose, bioavail, pkpd, nonlin)
+  ok    numeric grading accepts the answer within tolerance and rejects the rest
+
+=== 6. Storage isolation ===
+  ok    progress written under namespaced key: course-id-drill:data:me
+  ok    the page opened without asking for a name
+=== 7. Different wording when a missed concept returns ===
+  skip  no multi-question concept
+=== 8. Small pools end instead of looping ===
+  ok    pool of 2 served 2 (2 distinct) then stopped
+  ok    "Ask everything" still serves (10 more)
+
+=== 9. Figures, read links, change log, blueprint ===
+  ok    every DIAGRAMS key is in DIA
+  ok    1 step-through figure(s), each with a dot per step
+  ok    2 read link(s), every one naming guide, tell or ref
+  7 of 26 questions resolve to a reading section (the rest group by topic in the review plan)
+  ok    a session is the run with no half-hour gap (2 of 4 answers)
+  ok    a correct answer marked "not sure" does not count as solid
+  skip  blueprint draw (this course draws by pool marks, not announced counts)
+  ok    1 change log entry embedded, each with bullets
+
+All checks passed  (warnings: 11)
+
+PASS: test.js: 26 questions checked, 11 warning(s)

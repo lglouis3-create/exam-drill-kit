@@ -1,0 +1,5 @@
+wrote: /tmp/port-worksheets-ink/ci/src/q90_wsc_fixture.js (83747 characters)
+wrote: /tmp/port-worksheets-ink/ci/src/wsc_data.js (4236 characters)
+wrote: appended to /tmp/port-worksheets-ink/ci/src/course.js:
+;/* worksheets-ink ci */ COURSE.files = (COURSE.files || []).concat(['q90_wsc_fixture.js', 'wsc_data.js']); COURSE.features = Object.assign({}, COURSE.features, {"worksheets-ink": {"version":"v1","modules":[[1,"1","Module 1 - Introduction & Math Review"],[2,"2","Module 2 - IV Bolus Administration"]],"originalIds":"^wsc-(hwo|hw7o-|nl-hwo-)","changedIds":"^wsc-(hw\\d|hw7-|nl-hw-)","drillWorked":"no worked answer|without a worked answer|does not record|stated no final value|did not state|ends before she states|not one she asks|computed here|chosen here|recording stops|does not work|applied to that example|her spoken values","spokenOnly":"recording|aloud|spoken","writtenWorking":"written working|her key|her sheet|worked on the|worked answers"}});
+data: 4 documents, 33 questions, 6 problem sets, 3 topics

@@ -1,0 +1,4 @@
+plan-order exit 0 NOT CAUGHT
+plan-changed exit 0 NOT CAUGHT
+plan-dup exit 0 NOT CAUGHT
+solved-by exit 1 each worksheet's problems, their order, the changed-numbers sheet and who solved each part are Basic

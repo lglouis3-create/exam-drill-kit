@@ -1,0 +1,12 @@
+checking sources...
+  10 sources and sw.js parse cleanly
+  scheduler: concept (no library)
+  7 questions in 2 topics, from 1 question file: q1_topics.js
+  change log: 1 entries, newest "2026-10-02 (set up from the template)"
+  assembled script parses cleanly
+wrote index.html  (0.24 MB)
+wrote COURSE0000_Drill.html  (redirect to index.html)
+wrote version.json  (built 2026-11-02T20:08:46Z)
+  note: placeholder icons (a plain square) for icon-192.png, icon-512.png, icon-maskable-512.png, apple-touch-icon.png; put the course's own PNGs under src/icons/ to replace them
+wrote manifest.json and the icons
+wrote sw.js  (caches named course-id-drill-v<n>; 7 files saved at install)

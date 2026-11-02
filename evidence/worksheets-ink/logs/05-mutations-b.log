@@ -1,0 +1,13 @@
+snap-box exit 1 a box held still becomes a box with square corners (shape, null, 220,560,220,563,219,567,217,570,215
+two-finger exit 1 two fingers tapped together undo the last stroke (11,11,11,)
+exam-clear exit 0 NOT CAUGHT
+continue exit 1 Done closes it and the card says "✍️ Write on it"
+print exit 1 Save as PDF prints the worksheet alone, ink as pictures in place of the canvases [1,false,false,fals
+no-write exit 1 a reload at once after a stroke keeps the stroke: the module writes the progress when the pen lifts 
+no-rollback exit 1 with storage denied the page says the writing is not being saved, on screen ({"shown":true,"text":"T
+warn-hidden exit 1 with storage denied the page says the writing is not being saved, on screen ({"shown":false,"text":"
+warn-fixed exit 1 after a reload the writing and the extra room are back [0,0,0,false,480]
+progress-shape exit 1 Import leaves out writing that is not in the module's shape and keeps the rest (["x|main","y|main","
+erase-all exit 1 Erase all writing removes the writing and keeps the answers ([3,1,true])
+step-dup exit 1 a question on two documents stops the build and says so  — wrote manifest.json and the icons wrote s
+step-lookbehind exit 1 an option holding a lookbehind stops the build and says so  — wrote manifest.json and the icons wrot

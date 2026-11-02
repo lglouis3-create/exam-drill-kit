@@ -1,0 +1,190 @@
+[
+ {
+  "name": "snap-box",
+  "what": "Hold to snap: a box",
+  "file": "worksheets-ink.js",
+  "build": 0,
+  "exit": 1,
+  "seconds": 62,
+  "failed": [
+   "a box held still becomes a box with square corners (shape, null, 220,560,220,563,219,567,217,570,215,574,212,577,208,580,204,583,199,586,194,588,188,591,182,593,175,595,168,596,161,598,153,599,146,599,138,600,130,600,122,600,114,599,107,599,99,598,92,596,85,595,78,593,72,591,66,588,61,586,56,583,52,580,48,577,45,574,43,570,41,567,40,563,40,560,40,557,41,553,43,550,45,546,48,543,52,540,56,537,61,534,66,532,72,529,78,527,85,525,92,524,99,522,107,521,114,521,122,520,130,520,138,520,146,521,153,521,161,522,168,524,175,525,182,527,188,529,194,532,199,534,204,537,208,540,212,543,215,546,217,550,219,553,220,557,220,560)",
+   "a box held still becomes a box with square corners (shape, null, 220,560,220,563,219,567,217,570,215,574,212,577,208,580,204,583,199,586,194,588,188,591,182,593,175,595,168,596,161,598,153,599,146,599,138,600,130,600,122,600,114,599,107,599,99,598,92,596,85,595,78,593,72,591,66,588,61,586,56,583,52,580,48,577,45,574,43,570,41,567,40,563,40,560,40,557,41,553,43,550,45,546,48,543,52,540,56,537,61,534,66,532,72,529,78,527,85,525,92,524,99,522,107,521,114,521,122,520,130,520,138,520,146,521,153,521,161,522,168,524,175,525,182,527,188,529,194,532,199,534,204,537,208,540,212,543,215,546,217,550,219,553,220,557,220,560)"
+  ],
+  "summary": "FAIL: features/worksheets-ink/test.js: 2 of 161 checks failed: a box held still becomes a box with square corners (shape, null, 220,560,220,563,219,567,217,570,215,574,212,577,208,580,204,583,199,586,194,588,188,591,182,593,175,595,168,596,161,598,153,599,146,599,138,600,130,600,122,600,114,599,107,599,99,598,92,596,85,595,78,593,72,591,66,588,61,586,56,583,52,580,48,577,45,574,43,570,41,567,40,563,40,560,40,557,41,553,43,550,45,546,48,543,52,540,56,537,61,534,66,532,72,529,78,527,85,525,92,524,99,522,107,521,114,521,122,520,130,520,138,520,146,521,153,521,161,522,168,524,175,525,182,527,188,529,194,532,199,534,204,537,208,540,212,543,215,546,217,550,219,553,220,557,220,560); a box held still becomes a box with square corners (shape, null, 220,560,220,563,219,567,217,570,215,574,212,577,208,580,204,583,199,586,194,588,188,591,182,593,175,595,168,596,161,598,153,599,146,599,138,600,130,600,122,600,114,599,107,599,99,598,92,596,85,595,78,593,72,591,66,588,61,586,56,583,52,580,48,577,45,574,43,570,41,567,40,563,40,560,40,557,41,553,43,550,45,546,48,543,52,540,56,537,61,534,66,532,72,529,78,527,85,525,92,524,99,522,107,521,114,521,122,520,130,520,138,520,146,521,153,521,161,522,168,524,175,525,182,527,188,529,194,532,199,534,204,537,208,540,212,543,215,546,217,550,219,553,220,557,220,560)"
+ },
+ {
+  "name": "two-finger",
+  "what": "two fingers tapped together undo",
+  "file": "worksheets-ink.js",
+  "build": 0,
+  "exit": 1,
+  "seconds": 61,
+  "failed": [
+   "two fingers tapped together undo the last stroke (11,11,11,)",
+   "two fingers tapped together undo the last stroke (11,11,11,)"
+  ],
+  "summary": "FAIL: features/worksheets-ink/test.js: 2 of 161 checks failed: two fingers tapped together undo the last stroke (11,11,11,); two fingers tapped together undo the last stroke (11,11,11,)"
+ },
+ {
+  "name": "exam-clear",
+  "what": "a new paper's scratch paper starts clean",
+  "file": "worksheets-ink.js",
+  "build": 0,
+  "exit": 1,
+  "seconds": 62,
+  "failed": [
+   "a new paper starts with clean scratch paper and the old one is cleared (1, [0,1])",
+   "a new paper starts with clean scratch paper and the old one is cleared (1, [0,1])"
+  ],
+  "summary": "FAIL: features/worksheets-ink/test.js: 2 of 161 checks failed: a new paper starts with clean scratch paper and the old one is cleared (1, [0,1]); a new paper starts with clean scratch paper and the old one is cleared (1, [0,1])"
+ },
+ {
+  "name": "continue",
+  "what": "Continue writing on the card",
+  "file": "worksheets-ink.js",
+  "build": 0,
+  "exit": 1,
+  "seconds": 62,
+  "failed": [
+   "Done closes it and the card says \"\u270d\ufe0f Write on it\"",
+   "Done closes it and the card says \"\u270d\ufe0f Write on it\""
+  ],
+  "summary": "FAIL: features/worksheets-ink/test.js: 2 of 161 checks failed: Done closes it and the card says \"\u270d\ufe0f Write on it\"; Done closes it and the card says \"\u270d\ufe0f Write on it\""
+ },
+ {
+  "name": "print",
+  "what": "Save as PDF prints the ink",
+  "file": "worksheets-ink.js",
+  "build": 0,
+  "exit": 1,
+  "seconds": 61,
+  "failed": [
+   "Save as PDF prints the worksheet alone, ink as pictures in place of the canvases [1,false,false,false,false,false]",
+   "Save as PDF prints the worksheet alone, ink as pictures in place of the canvases [1,false,false,false,false,false]"
+  ],
+  "summary": "FAIL: features/worksheets-ink/test.js: 2 of 161 checks failed: Save as PDF prints the worksheet alone, ink as pictures in place of the canvases [1,false,false,false,false,false]; Save as PDF prints the worksheet alone, ink as pictures in place of the canvases [1,false,false,false,false,false]"
+ },
+ {
+  "name": "no-write",
+  "what": "the writing is written when the pen lifts (not 150 ms later)",
+  "file": "worksheets-ink.js",
+  "build": 0,
+  "exit": 1,
+  "seconds": 60,
+  "failed": [
+   "a reload at once after a stroke keeps the stroke: the module writes the progress when the pen lifts ([\"Fresh\",2])",
+   "with storage denied the page says the writing is not being saved, on screen ({\"shown\":false,\"text\":\"This browser is not saving: the writing lasts only until the page closes. Save as PDF to keep it.\",\"state\":\"ok\",\"core\":false})",
+   "with storage denied the page says the writing is not being saved, on screen ({\"shown\":false,\"text\":\"This browser is not saving: the writing lasts only until the page closes. Save as PDF to keep it.\",\"state\":\"ok\",\"core\":false})",
+   "when the stroke would make the progress too big, the page says it was not saved, on screen ({\"shown\":false,\"text\":\"This browser is not saving: the writing lasts only until the page closes. Save as PDF to keep it.\",\"state\":\"ok\",\"core\":false})",
+   "the saved progress is left as it was, and the stroke stays on screen only (true, [1,true])",
+   "an answer given after the refused stroke is still saved (1 answers saved)",
+   "after a reload the answers and the writing saved before load, without the refused stroke ([\"me\",1,293,0])",
+   "after Erase all writing makes room, new writing is saved and the answers are kept ({\"answers\":1,\"pages\":0,\"strokes\":0,\"page\":0,\"len\":218})",
+   "when the stroke would make the progress too big, the page says it was not saved, on screen ({\"shown\":false,\"text\":\"This browser is not saving: the writing lasts only until the page closes. Save as PDF to keep it.\",\"state\":\"ok\",\"core\":false})",
+   "the saved progress is left as it was, and the stroke stays on screen only (true, [1,true])",
+   "an answer given after the refused stroke is still saved (1 answers saved)",
+   "after a reload the answers and the writing saved before load, without the refused stroke ([\"me\",1,293,0])",
+   "after Erase all writing makes room, new writing is saved and the answers are kept ({\"answers\":1,\"pages\":0,\"strokes\":0,\"page\":0,\"len\":218})"
+  ],
+  "summary": "FAIL: features/worksheets-ink/test.js: 13 of 161 checks failed: a reload at once after a stroke keeps the stroke: the module writes the progress when the pen lifts ([\"Fresh\",2]); with storage denied the page says the writing is not being saved, on screen ({\"shown\":false,\"text\":\"This browser is not saving: the writing lasts only until the page closes. Save as PDF to keep it.\",\"state\":\"ok\",\"core\":false}); with storage denied the page says the writing is not being saved, on screen ({\"shown\":false,\"text\":\"This browser is not saving: the writing lasts only until the page closes. Save as PDF to keep it.\",\"state\":\"ok\",\"core\":false}) \u2026"
+ },
+ {
+  "name": "no-rollback",
+  "what": "storage full: the change is refused and the last good progress kept",
+  "file": "worksheets-ink.js",
+  "build": 0,
+  "exit": 1,
+  "seconds": 60,
+  "failed": [
+   "with storage denied the page says the writing is not being saved, on screen ({\"shown\":true,\"text\":\"This browser is not saving: the writing lasts only until the page closes. Save as PDF to keep it.\",\"state\":\"full\",\"core\":false})",
+   "with storage denied the page says the writing is not being saved, on screen ({\"shown\":true,\"text\":\"This browser is not saving: the writing lasts only until the page closes. Save as PDF to keep it.\",\"state\":\"full\",\"core\":false})",
+   "when the stroke would make the progress too big, the page says it was not saved, on screen ({\"shown\":true,\"text\":\"This browser is not saving: the writing lasts only until the page closes. Save as PDF to keep it.\",\"state\":\"full\",\"core\":false})",
+   "the saved progress is left as it was, and the stroke stays on screen only (true, [1,true])",
+   "an answer given after the refused stroke is still saved (1 answers saved)",
+   "after a reload the answers and the writing saved before load, without the refused stroke ([\"me\",1,293,0])",
+   "after Erase all writing makes room, new writing is saved and the answers are kept ({\"answers\":1,\"pages\":1,\"strokes\":1,\"page\":1,\"len\":524})",
+   "when the stroke would make the progress too big, the page says it was not saved, on screen ({\"shown\":true,\"text\":\"This browser is not saving: the writing lasts only until the page closes. Save as PDF to keep it.\",\"state\":\"full\",\"core\":false})",
+   "the saved progress is left as it was, and the stroke stays on screen only (true, [1,true])",
+   "an answer given after the refused stroke is still saved (1 answers saved)",
+   "after a reload the answers and the writing saved before load, without the refused stroke ([\"me\",1,293,0])",
+   "after Erase all writing makes room, new writing is saved and the answers are kept ({\"answers\":1,\"pages\":1,\"strokes\":1,\"page\":1,\"len\":525})"
+  ],
+  "summary": "FAIL: features/worksheets-ink/test.js: 12 of 161 checks failed: with storage denied the page says the writing is not being saved, on screen ({\"shown\":true,\"text\":\"This browser is not saving: the writing lasts only until the page closes. Save as PDF to keep it.\",\"state\":\"full\",\"core\":false}); with storage denied the page says the writing is not being saved, on screen ({\"shown\":true,\"text\":\"This browser is not saving: the writing lasts only until the page closes. Save as PDF to keep it.\",\"state\":\"full\",\"core\":false}); when the stroke would make the progress too big, the page says it was not saved, on screen ({\"shown\":true,\"text\":\"This browser is not saving: the writing lasts only until the page closes. Save as PDF to keep it.\",\"state\":\"full\",\"core\":false}) \u2026"
+ },
+ {
+  "name": "warn-hidden",
+  "what": "the not-saved notice is shown",
+  "file": "worksheets-ink.js",
+  "build": 0,
+  "exit": 1,
+  "seconds": 62,
+  "failed": [
+   "with storage denied the page says the writing is not being saved, on screen ({\"shown\":false,\"text\":\"This browser is not saving: the writing lasts only until the page closes. Save as PDF to keep it.\",\"state\":\"off\",\"core\":true})",
+   "with storage denied the page says the writing is not being saved, on screen ({\"shown\":false,\"text\":\"This browser is not saving: the writing lasts only until the page closes. Save as PDF to keep it.\",\"state\":\"off\",\"core\":true})",
+   "when the stroke would make the progress too big, the page says it was not saved, on screen ({\"shown\":false,\"text\":\"This browser is not saving: the writing lasts only until the page closes. Save as PDF to keep it.\",\"state\":\"refused\",\"core\":false})",
+   "when the stroke would make the progress too big, the page says it was not saved, on screen ({\"shown\":false,\"text\":\"This browser is not saving: the writing lasts only until the page closes. Save as PDF to keep it.\",\"state\":\"refused\",\"core\":false})"
+  ],
+  "summary": "FAIL: features/worksheets-ink/test.js: 4 of 161 checks failed: with storage denied the page says the writing is not being saved, on screen ({\"shown\":false,\"text\":\"This browser is not saving: the writing lasts only until the page closes. Save as PDF to keep it.\",\"state\":\"off\",\"core\":true}); with storage denied the page says the writing is not being saved, on screen ({\"shown\":false,\"text\":\"This browser is not saving: the writing lasts only until the page closes. Save as PDF to keep it.\",\"state\":\"off\",\"core\":true}); when the stroke would make the progress too big, the page says it was not saved, on screen ({\"shown\":false,\"text\":\"This browser is not saving: the writing lasts only until the page closes. Save as PDF to keep it.\",\"state\":\"refused\",\"core\":false}) \u2026"
+ },
+ {
+  "name": "warn-fixed",
+  "what": "the notice on screen at 390 px",
+  "file": "worksheets-ink.css",
+  "build": 0,
+  "exit": 1,
+  "seconds": 62,
+  "failed": [
+   "with storage denied the page says the writing is not being saved, on screen ({\"shown\":false,\"text\":\"This browser is not saving: the writing lasts only until the page closes. Save as PDF to keep it.\",\"state\":\"off\",\"core\":true})",
+   "when the stroke would make the progress too big, the page says it was not saved, on screen ({\"shown\":false,\"text\":\"This browser's storage is full, so the last change on this page was not saved. The writing saved before and your answers are kept. Save as PDF to keep this page, or use Erase all writing in Settings to make room.\",\"state\":\"refused\",\"core\":false})"
+  ],
+  "summary": "FAIL: features/worksheets-ink/test.js: 2 of 161 checks failed: with storage denied the page says the writing is not being saved, on screen ({\"shown\":false,\"text\":\"This browser is not saving: the writing lasts only until the page closes. Save as PDF to keep it.\",\"state\":\"off\",\"core\":true}); when the stroke would make the progress too big, the page says it was not saved, on screen ({\"shown\":false,\"text\":\"This browser's storage is full, so the last change on this page was not saved. The writing saved before and your answers are kept. Save as PDF to keep this page, or use Erase all writing in Settings to make room.\",\"state\":\"refused\",\"core\":false})"
+ },
+ {
+  "name": "progress-shape",
+  "what": "an imported page in another shape is left out",
+  "file": "worksheets-ink.js",
+  "build": 0,
+  "exit": 1,
+  "seconds": 39,
+  "failed": [
+   "Import leaves out writing that is not in the module's shape and keeps the rest ([\"x|main\",\"y|main\",\"z|main\",\"wsi-dp-m1-2|main\"])"
+  ],
+  "summary": "FAIL: features/worksheets-ink/test.js: page.evaluate: TypeError: Cannot read properties of null (reading 'inkOpen')"
+ },
+ {
+  "name": "erase-all",
+  "what": "Erase all writing",
+  "file": "worksheets-ink.js",
+  "build": 0,
+  "exit": 1,
+  "seconds": 62,
+  "failed": [
+   "Erase all writing removes the writing and keeps the answers ([3,1,true])"
+  ],
+  "summary": "FAIL: features/worksheets-ink/test.js: 1 of 161 checks failed: Erase all writing removes the writing and keeps the answers ([3,1,true])"
+ },
+ {
+  "name": "step-dup",
+  "what": "build step: a question on two documents",
+  "file": "step.js",
+  "build": 0,
+  "exit": 1,
+  "seconds": 63,
+  "failed": [
+   "a question on two documents stops the build and says so  \u2014 wrote manifest.json and the icons wrote sw.js  (caches named course-id-drill-v<n>; 7 files saved at install)"
+  ],
+  "summary": "FAIL: features/worksheets-ink/test.js: 1 of 161 checks failed: a question on two documents stops the build and says so"
+ },
+ {
+  "name": "step-lookbehind",
+  "what": "build step: an option with a lookbehind",
+  "file": "step.js",
+  "build": 0,
+  "exit": 1,
+  "seconds": 61,
+  "failed": [
+   "an option holding a lookbehind stops the build and says so  \u2014 wrote manifest.json and the icons wrote sw.js  (caches named course-id-drill-v<n>; 7 files saved at install)"
+  ],
+  "summary": "FAIL: features/worksheets-ink/test.js: 1 of 161 checks failed: an option holding a lookbehind stops the build and says so"
+ }
+]

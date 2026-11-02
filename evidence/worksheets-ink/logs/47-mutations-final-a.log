@@ -1,0 +1,14 @@
+plan-order exit 1 a sheet's problems follow its numbering whatever order the items are listed in, slides keep the deck
+plan-changed exit 1 a sheet's problems follow its numbering whatever order the items are listed in, slides keep the deck
+plan-dup exit 1 Homework 2's re-numbered copies, named without "(changed numbers)", are still left off the worksheet
+solved-by exit 1 each worksheet's problems, their order, the changed-numbers sheet and who solved each part are Basic
+solved-spoken exit 1 working only heard in the recording is the drill's, unless the sheet has it written ["prof","prof","
+carry exit 1 the text on paper is Basic-Pharmacokinetics' own: carried values left out (16 parts), each set's sha
+shared-lead exit 1 the text on paper is Basic-Pharmacokinetics' own: carried values left out (16 parts), each set's sha
+ws-order exit 1 the text on paper is Basic-Pharmacokinetics' own: carried values left out (16 parts), each set's sha
+chain-start exit 1 with chained-problem-sets on, a sheet that is one whole problem set starts that set (part 1 of 5, wi
+sheet-sweep exit 1 with chained-problem-sets off, the same sheet is asked as one pass in the sheet's order {"view":"qui
+room exit 1 More room adds 240 px and Less room takes it back (480 → 720 → 1200)
+eraser exit 1 the eraser removes a stroke it touches, and undo brings it back (1, 2)
+redo exit 1 undo removes the stroke and redo puts it back (0, 0)
+pencil-only exit 1 a pen writes and switches to Pencil only; then a finger scrolls the page and does not write [1,2,tru

@@ -1,0 +1,51 @@
+
+=== the course's own documents ===
+  ok    the page carries worksheets-ink, working
+  ok    every document's worksheet holds its problems with their numbers, and its solutions one answer each (2 documents, 6 problems)
+
+=== the build step stops on bad documents ===
+  ok    an item naming a question the bank does not have stops the build and says so
+  ok    a document of an unknown type stops the build and says so
+  ok    a problem set CHAINS does not have stops the build and says so
+  ok    a question on two documents stops the build and says so
+  ok    an option holding a lookbehind stops the build and says so
+  ok    a SOURCE_OF that disagrees with the documents' items stops the build and says so
+
+=== on a scratch copy with four of Basic-Pharmacokinetics' documents (Chromium) ===
+  ok    each worksheet's problems, their order, the changed-numbers sheet and who solved each part are Basic-Pharmacokinetics' own (4 documents)
+  ok    Homework 2's re-numbered copies, named without "(changed numbers)", are still left off the worksheet and kept as the extra-practice sheet
+  ok    a sheet's problems follow its numbering whatever order the items are listed in, slides keep the deck's order, and a set's name or ids say which numbers it carries ["changed","original","original","original",""]
+  ok    the text on paper is Basic-Pharmacokinetics' own: carried values left out (12 parts), each set's shared text (6 sets), the options' order (3 questions)
+  ok    the tab lists every document under its module, Homework 2 with its changed-numbers worksheet, and names no one as she or her
+  ok    Practice in the drill asks the sheet's problems in the sheet's order
+
+--- write on a worksheet at 820 px ---
+  ok    every worksheet card has Write on it (7 buttons)
+  ok    a worksheet with a calculation to write on (wsi-quiz-1)
+  ok    a calculation has at least 480 px to work in on screen (480 px)
+  ok    a short answer has at least 200 px (200 px)
+  ok    More room adds 240 px and Less room takes it back (480 → 720 → 720)
+  ok    a stroke in the work area is kept on its problem (1 stroke, 13 points)
+  size  one stroke of 13 points is 221 bytes in the progress
+  ok    the stroke is drawn on the canvas (547 pixels)
+  ok    the stroke is saved in the profile's progress, and in no localStorage key of its own (1,0)
+  FAIL  undo removes the stroke and redo puts it back (0, 0)
+FAIL: features/worksheets-ink/test.js: page.click: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for locator('#ink [data-inkundo]')[22m
+[2m    - locator resolved to <button disabled class="chip" type="button" data-inkundo="" aria-label="Undo">↶ Undo</button>[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is not enabled[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is not enabled[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    58 × waiting for element to be visible, enabled and stable[22m
+[2m       - element is not enabled[22m
+[2m     - retrying click action[22m
+[2m       - waiting 500ms[22m
+
+    at /tmp/port-worksheets-ink/onchain/src/features/worksheets-ink/test.js:245:18
