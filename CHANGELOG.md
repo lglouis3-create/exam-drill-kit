@@ -15,6 +15,7 @@ Dated kit changes, newest first.
   template scratch course with the module on, 93 when `formulas-in-text` is in the course too;
   CI script `features/glossary-tap/ci/oncourse.js`. Core and template unchanged; no course
   switches it on.
+- Kit checks on GitHub: every pull request runs the checks in Chromium and, as information, in WebKit.
 - `core/render_test.js`: answers calculation and matching items with their own controls; no more random failures.
 
 ## 2026-11-01
