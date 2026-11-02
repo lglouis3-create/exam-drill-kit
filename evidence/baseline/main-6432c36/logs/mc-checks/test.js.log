@@ -1,0 +1,68 @@
+
+=== 1. Question bank integrity ===
+  479 questions, 13 topics, 189 images
+  ok    the build's question count equals QUESTIONS.length (479)
+
+=== 2. Exam blueprint coverage ===
+  Sikazwe, lectures 13–15: 266 questions (paper takes 38)
+  Yendapally: 78 questions (paper takes 8)
+  Sikazwe, earlier lectures: 135 questions (paper takes 4)
+
+=== 3. Concept spread per topic ===
+  cyp         75 q /  59 concepts  (Sikazwe)
+  fgdm        55 q /  40 concepts  (Sikazwe)
+  factors     38 q /  28 concepts  (Sikazwe)
+  elim        38 q /  28 concepts  (Sikazwe)
+  tox         60 q /  44 concepts  (Sikazwe)
+  dmfound     16 q /  15 concepts  (Sikazwe)
+  paths       37 q /  33 concepts  (Sikazwe)
+  fgs         82 q /  82 concepts  (Sikazwe)
+  stereo      10 q /   8 concepts  (Yendapally)
+  disc        18 q /  17 concepts  (Yendapally)
+  recept       6 q /   5 concepts  (Yendapally)
+  physchem    16 q /  14 concepts  (Yendapally)
+  admet       28 q /  25 concepts  (Yendapally)
+
+=== 4. Spaced repetition rules ===
+  ok    missed concept is held back rather than repeated at once
+  ok    missed concept resurfaces after other questions
+  ok    box advanced 0 -> 3 with repeated correct answers
+  ok    a later miss resets the concept to active review
+  ok    a guess resets the concept to unresolved and outranks never-seen material
+  ok    "I guessed that one" rewrites the log, resets the box, keeps picked and ms
+  ok    79 concepts have more than one wording available
+
+=== 5. Exam simulation draw ===
+  blueprint: Exam 4 (cumulative final) — Sikazwe, lectures 13–15 38, Yendapally 8, Sikazwe, earlier lectures 4 (50 of 50)
+  drew 50
+  ok    no duplicate questions on a single paper
+  ok    dupOf partners never share a paper (66 marked; 8 lowYield kept off the paper)
+  ok    20 repeated draws all kept the paper shape
+  select-all on the paper: 8 of 50 (target 8)
+  ok    the paper carries the intended number of select-all items
+  ok    every question resolves to a lecture, exam and module
+  ok    every question carries a skill from the course taxonomy (recall, tell, apply, read, calc)
+  ok    numeric grading accepts the answer within tolerance and rejects the rest
+
+=== 6. Storage isolation ===
+  ok    progress written under namespaced key: phar4342final:data:me
+  ok    the page opened without asking for a name
+=== 7. Different wording when a missed concept returns ===
+  ok    returned as a different question (cyp-c2 -> sa-cyp-4)
+=== 8. Small pools end instead of looping ===
+  ok    pool of 2 served 2 (2 distinct) then stopped
+  ok    "Ask everything" still serves (10 more)
+
+=== 9. Figures, read links, change log, blueprint ===
+  ok    every DIAGRAMS key is in DIA
+  ok    0 step-through figure(s), each with a dot per step
+  ok    0 read link(s), every one naming guide, tell or ref
+  0 of 479 questions resolve to a reading section (the rest group by topic in the review plan)
+  ok    a session is the run with no half-hour gap (2 of 4 answers)
+  ok    a correct answer marked "not sure" does not count as solid
+  skip  blueprint draw (this course draws by pool marks, not announced counts)
+  ok    1 change log entry embedded, each with bullets
+
+All checks passed
+
+PASS: test.js: 479 questions checked

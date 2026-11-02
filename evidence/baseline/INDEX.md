@@ -64,3 +64,15 @@ Folder `main-366caf6/`, run 2026-11-02 from 21:52:12 UTC with `baseline.sh` (out
 `home_test.js` passed (33 checks) in both runs. Its fix, kit PR #28, is not on this main. By Louis's rule of 2026-11-02, a pass is not proof that the check is fixed, and a failure is not exempt.
 
 Port branches whose core and template trees are `d588c64` and `cbac5bd` may cite this run.
+
+## Fourth baseline: kit `main` `6432c36` (coordinator-verified)
+
+Folder `main-6432c36/`, run 2026-11-02 from 22:14:04 UTC with `baseline.sh` (output folder `baseline4`). Inputs: kit `6432c36709ad3dc3ab78d8558239971b18234aec` (kit PR #28 merged: the `home_test.js` fix), core tree `a2dbf03d6ccea270f77ac440f3fd8b7a86d855cf`, template tree `cbac5bd425d480944293f8e1fb5d5d703e8baba1`, Medicinal-chemistry `f1f5ee57840f014cf5ccebd9631b4f413226ea70` (full clone).
+
+| Step | Exit code | Result |
+|---|---|---|
+| Template course, no module: `python3 build.py` | 0 | built |
+| Template course, no module: `./run_checks.sh` | 0 | 24 PASS, 0 FAIL, 1 NOT RUN (`cite_check.py`), 1 REPORT; `home_test.js` 36 checks PASS |
+| Medicinal-chemistry, full clone, with the kit core: `./run_checks.sh` | 0 | 23 PASS, 0 FAIL, 2 NOT RUN (`stepper_test.js`, `cite_check.py`), 1 REPORT; `home_test.js` 36 checks PASS |
+
+Port branches whose core and template trees are `a2dbf03` and `cbac5bd` may cite this run.
