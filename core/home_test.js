@@ -103,9 +103,34 @@ async function noneOnTopics(page, label){
     const body = await text(page, CARD);
     check(/open the drill in Safari/.test(body) && /Export progress/.test(body) && /Import progress/.test(body),
       'opened, it says how to bring progress from Safari', body.slice(0, 120));
-    await page.evaluate(() => { startQuiz(TOPICS[0].id); const b = document.querySelector('#v-quiz button[data-o]'); if(b) b.click(); });
-    await go(page, 'settings');
-    check(!(await page.$('#v-settings [data-hs]')), 'once this copy has progress of its own, the card is gone from Settings');
+    // The answer that gives this copy progress of its own. The quiz's own first draw on
+    // TOPICS[0] can be a select-all question, where one tap ticks a box and records no
+    // answer (Medicinal-chemistry's first topic holds 7 among its 75), and the check used
+    // to tap once on whatever was drawn, so it failed at random. The test picks the
+    // question itself: a select-all question when the bank has one. It first takes the
+    // old check's step on it, which records nothing and leaves the card, then answers it
+    // as a student does (the right boxes, then Check).
+    const nAnswers = () => page.evaluate(() => DB.answers.length);
+    const sa = await page.evaluate(() => (QUESTIONS.find(q => isMulti(q) && Array.isArray(q.options) && q.options.length) || {}).id);
+    const single = await page.evaluate(() => (QUESTIONS.find(q => !q.type && !isMulti(q) && Array.isArray(q.options) && q.options.length) || {}).id);
+    if(sa){
+      await L.quizOn(page, sa);
+      await page.evaluate(() => document.querySelector('#v-quiz button[data-o]').click());
+      check(await nAnswers() === 0, `one tap on the select-all question ${sa} records no answer (the step the old check took)`, await nAnswers());
+      await go(page, 'settings');
+      check(!!(await page.$('#v-settings [data-hs]')), 'so the card is still in Settings: the old check failed whenever the quiz drew a select-all question');
+      await L.quizOn(page, sa);
+      await page.evaluate(() => { for(const i of correctSet(Q.current)) document.querySelector(`#v-quiz button[data-o="${i}"]`).click(); document.getElementById('btnCheck').click(); });
+    } else {
+      L.skip('one tap on a select-all question records no answer', 'the bank has no select-all question');
+      if(single){ await L.quizOn(page, single); await page.evaluate(() => document.querySelector('#v-quiz button[data-o]').click()); }
+    }
+    if(!sa && !single) L.skip('a Home Screen copy with progress of its own', 'the bank has no select-all or single-answer question');
+    else {
+      check(await nAnswers() === 1, `answering ${sa ? `the select-all question ${sa} with its right boxes and Check` : `the question ${single}`} records one answer in this copy`, await nAnswers());
+      await go(page, 'settings');
+      check(!(await page.$('#v-settings [data-hs]')), 'once this copy has progress of its own, the card is gone from Settings');
+    }
     await noneOnTopics(page, 'with progress');
     check(!errors.length, 'no page errors', errors.slice(0, 2).join('; '));
     await ctx.close();
