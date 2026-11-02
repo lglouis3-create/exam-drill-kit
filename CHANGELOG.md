@@ -3,6 +3,7 @@
 Dated kit changes, newest first.
 
 ## 2026-11-02
+- Kit checks on GitHub: every pull request runs the checks in Chromium and, as information, in WebKit.
 - New feature module `study-controls` v1 (`features/study-controls/`), from Intro-Pharmacology- `929cd62`: flags with Drill flagged, one at a time or all on one page, keyboard shortcuts, and a strict paper with no going back, each switched on by its own option. No course switches it on yet. After review: no shortcut acts while a dialog such as worksheets-ink's Scratch paper is open or while a pen is down on a canvas; the ticked strict box survives a redraw of the start page; a paper with calculations stays one at a time. Test: 59 checks (61 with paper-picker on).
 - `core/render_test.js`: answers calculation and matching items with their own controls; no more random failures.
 

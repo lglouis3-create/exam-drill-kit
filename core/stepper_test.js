@@ -17,7 +17,7 @@ const OUT = L.PAGE.PAGE;
 // A check that cannot run exits 2 with NOT RUN (codes in check_lib.js); it used
 // to exit 0, which a chained command could not tell from a pass.
 L.PAGE.need('stepper_test.js');
-const {chromium} = L.playwright('stepper_test.js');
+const browserType = L.browserType('stepper_test.js');
 
 /* Passed to the page as a function, not a string: a string is evaluated as an
    expression, and an arrow-function expression serializes back as undefined. */
@@ -44,8 +44,8 @@ const SETTLE = () => {
 
 (async () => {
   let b;
-  try { b = await chromium.launch(); }
-  catch (e) { L.notRun('stepper_test.js', 'Chromium did not start: ' + String(e.message).split('\n')[0]); }
+  try { b = await browserType.launch(); }
+  catch (e) { L.notRun('stepper_test.js', `${L.BROWSER_NAME} did not start: ` + String(e.message).split('\n')[0]); }
   const p = await b.newPage({viewport: {width: 900, height: 1000}});
   const errs = [];
   p.on('pageerror', e => errs.push(e.message));
