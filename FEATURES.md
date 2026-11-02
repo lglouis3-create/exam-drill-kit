@@ -488,11 +488,23 @@ Use when: worded calculation questions name a quantity without its symbol (PK: "
 Do not use when: no symbol-heavy content.
 Enable: course.js → features.variables-quiz = { version: 'v1' }
 Versions:
-  v1  2026-10-27  from PK (`f013ced`)   best for: kinetics symbols   weaker at: not evaluated   current/
+  v1  2026-10-27  from PK (`f013ced`)   best for: kinetics symbols   weaker at: not evaluated   current/ (ported 2026-11-02 from PK `ac2eb73` `src/views.js` 1072-1147 into the kit module `terms-variables`, below)
 Evidence: Louis's request (PK notes §1).
-Used by: PK (v1)
-Known issues: `askSentence` uses regex lookbehind (`src/views.js:1087`, added in `f013ced`).
-Test: `src/var_test.py` (PK).
+Used by: PK (v1, its own copy); the kit module: none yet.
+Known issues: in PK, `askSentence` uses regex lookbehind (`src/views.js:1087`, added in `f013ced`); the kit module splits sentences without it and gives the same sentence on all 829 of PK's stems (checked 2026-11-02).
+Test: `src/var_test.py` (PK); in the kit, `features/terms-variables/current/test.js`.
+
+## terms-variables
+Does: a Terms tab. Flashcards over the course's `TERMS`: a situation that shows a term in action with the term's own words blanked, then the term, its one-line meaning, its definition and the professor's point, marked Knew it, Not sure or Did not know (recorded as an answer to the term's meaning question). Quiz me: up to three questions per term (which term a situation describes, what a term means, which term a definition belongs to), with the wrong options from the term's `confuse` terms first, then its group; drilled by the scheduler, by group or all. The variables quiz over the course's `ASKS`: which symbol one of the professor's own calculation stems asks for (the stem's question sentence, left out when it names its own answer), what each symbol means, and which symbol a meaning belongs to, with the wrong options from the same family of symbols first; offered under Quiz me and on the Equations tab when equation-drill is on. These questions are kept off exam papers and out of the bank.
+Use when: the course keeps a term list with situations (PK: 94 terms in `src/glossary.js` at `ac2eb73`), or a calculation course whose numeric questions carry `asks` (PK: 201 stem sentences and 50 symbols, 301 variable questions; 282 term questions; counted 2026-11-02 by running PK's own `termQuestions` and `varQuestions` on its bank).
+Do not use when: the course has neither a term list nor symbols; a list to read alone is `glossary-tap`.
+Enable: course.js → features['terms-variables'] = { version: 'v1', families: {k: 'rate constants', ...}, names: {thalf: ['half-life'], ...}, twins: {Cp: ['Cpn']}, groups: {1: 'Module 1'} }, with `TERMS = [{id, term, group, def, cite, gist, scene, hook, module, confuse}]` (the shape glossary-tap reads) and/or `ASKS = {key: [symbol, meaning]}` (the shape plan-the-problem reads) in a data file listed in `files`, and `asks` on each numeric question
+Versions:
+  v1  2026-11-02  from PK (`ac2eb73` `src/views.js` 1029-1260: `termQuestions`, `varQuestions`, `varQuizHTML`, `renderTerms`; 4173-4175, the Equations tab button)   best for: a term list with situations; calculation courses with symbol-heavy stems   weaker at: not evaluated   current/
+Evidence: Louis's request for the variables quiz (PK notes §1, under variables-quiz above); none recorded for the term questions.
+Used by: none yet (PK keeps its own copy until it moves onto the core).
+Known issues: the core's Weak spots finds an answered question by id in `QUESTIONS` only, so answers to these questions are recorded (the scheduler's concepts `term:<id>` and `var:<key>`, and the answer history) but not listed in Weak spots; PK lists them under the skill "Terms". A reload during one of these drills comes back to Topics, not to the question, for the same reason. PK's symbol families, usual names and twins (`VAR_FAMILY`, `VAR_NAMES`, `VAR_TWINS`) are the options `families`, `names` and `twins` in the kit; PK's module order (7b after 7a) and its Module chips' names are the option `groups`. Not ported: PK's Glossary mode (the `glossary-tap` module of kit pull request #13 shows the list; this module's tab links to it when it is on), the search box, letter bar and back-to-search button (part of that list), Weak spots marks on the Terms tab, the term figures (`fig`) and quotes on cards.
+Test: `features/terms-variables/current/test.js` (PK `src/test.js` 943-972 and `src/var_test.py` ported: 41 checks on the template course with 8 PK terms, 10 PK calculation questions, its ASKS and its symbol tables added; the module makes the same question ids, with the same keyed answers, as PK's own code makes from that data).
 
 ---
 
@@ -673,7 +685,7 @@ Known issues: 16 questions named their own answer before masking (fixed `71da38b
 Test: `tests/data.js`, `tests/regression.js` (BDK).
 
 ## glossary
-Does: defines technical terms: MC glosses a term once per question at first use (`GLOSS`); PH builds a Terms bank and page from `glossary.js`; BDK defines a term on tap (198 entries) with a MedlinePlus search link.
+Does: defines technical terms: MC glosses a term once per question at first use (`GLOSS`); PH builds a Terms bank and page from `glossary.js`; PK builds a Terms tab from `src/glossary.js` `TERMS` (94 terms in 8 groups at `ac2eb73`, counted 2026-11-02) with three modes, Glossary, Flashcards and Quiz me (three questions per term, kept out of the exam bank), and its variables quiz under Quiz me (`src/views.js` 1029-1260); BDK defines a term on tap (198 entries) with a MedlinePlus search link.
 Use when: questions use terms the course defines.
 Do not use when: terms are already defined in each question.
 Enable: course.js → features.glossary = { version: 'v3', mode: 'inline' | 'terms-page' | 'tap' }
@@ -682,7 +694,7 @@ Versions:
   v2  2026-09-28  from PH (`0327661`, `vTerms()`, `gen_terms.py`)   best for: a term bank with questions   weaker at: not evaluated   archive/v2/
   v3  2026-10-22  from BDK (`bf91dc0`, `data/glossary.json`)   best for: drug-list terms   weaker at: not evaluated   current/
 Evidence: Louis asked for tap-to-define (BDK notes §4).
-Used by: MC (v1), PH (v2), BDK (v3)
+Used by: MC (v1), PH (v2), BDK (v3), PK (its own Terms tab; no version line, since the commit that first has it was not looked up: the read-only clone of PK is one commit deep). PK's Flashcards and Quiz me are the kit module `terms-variables` (below, under Calculation courses); its Glossary mode is the list that the module `glossary-tap` (kit pull request #13, not merged when this was written) shows from the same `TERMS` shape.
 Known issues: BDK's MedlinePlus link points outside the course material; decision 3 bars outside content from questions, explanations and tables, and a link is not covered by its wording. **Decision for Louis.** BDK's `loadGlossary` builds a lookbehind pattern (`assets/app.js:655`); where that is rejected, tap-to-define would be missing.
 Test: `explain_check.js` `WEIGHTY` table (MC, PK).
 
