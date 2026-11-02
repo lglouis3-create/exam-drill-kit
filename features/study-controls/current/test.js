@@ -425,7 +425,6 @@ function fixtureFiles(own, have, copies){
     /* ---- with paper-picker on: a paper drawn for an earlier exam ---- */
     if(await page.locator('#exAgain').count()){ await page.click('#exAgain'); await settle(); }
     const pp = await ev(() => FX.api('paper-picker') ? [...document.querySelectorAll('#v-exam [data-ppexam]')].map(b => b.dataset.ppexam).filter(id => id !== String(EXAM.id)) : null);   // data-ppexam is text; an exam id may be a number
-    if(!pp) L.skip('the flags bar and the strict paper on a paper drawn for an earlier exam', 'paper-picker is not on in this course');
     // an earlier exam the bank can draw a paper for: paper-picker says on the start page when its pools hold too few ([data-pp="short"])
     let other = null;
     const short = [];
