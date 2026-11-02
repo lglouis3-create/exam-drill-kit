@@ -12,7 +12,7 @@ C2=/tmp/port-coord/vc-$N; /tmp/port-tools/mkcourse.sh $W $C2 $NEEDS "$@" $N >>$O
 for m in $NEEDS "$@" $N; do if [ -f $W/features/$m/ci/oncourse.js ]; then echo "\$ node features/$m/ci/oncourse.js" >>$OUT/setup.log; node $W/features/$m/ci/oncourse.js $W $C2/src >>$OUT/setup.log 2>&1; echo "oncourse $m exit=$?" >>$OUT/exit-codes.txt; else
   echo "$m has no ci/oncourse.js; switched on by a course.js line only" >>$OUT/setup.log
   V=$(node -e "console.log(require('$W/features/$m/current/module.json').version)"); echo ";COURSE.features = Object.assign({}, COURSE.features, {'$m': {version: '$V'}});" >> $C2/src/course.js; fi; done
-cd $C2 && git add -A && git -c user.email=t@t -c user.name=t commit -qm data; cd src
+cd $C2 && git add -A && git -c user.email=t@t -c user.name=t commit -q --amend -m "scratch course"; cd src
 python3 build.py > $OUT/build.log 2>&1; echo "build exit=$?" >> $OUT/exit-codes.txt
 for i in 1 2 3; do node features/$N/test.js > $OUT/test-run$i.log 2>&1; echo "module test run $i exit=$?" >> $OUT/exit-codes.txt; done
 tail -1 $OUT/test-run1.log > $OUT/summary.txt

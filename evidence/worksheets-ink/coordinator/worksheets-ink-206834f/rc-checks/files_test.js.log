@@ -1,0 +1,16 @@
+
+=== course.js `files` ===
+  ok    the course builds with its question files listed in course.js `files`
+  ok    after build.py is copied from the core, the page holds every question of the 4 listed question files (28 = 26 + 2)
+  ok    the page's question count says 28, the number of questions it holds
+  ok    build.py names none of the course's question files: the list is the course's
+  ok    build.py --list-files gives the course.js list, in its order, with the question files of it
+  ok    build.py --list-sources ships every listed file (19 sources)
+  ok    the device lint reads the same list and passes
+  ok    without `files`, a question file in src/ that the default list leaves out (q90_files_test_a.js) stops the build, named, and nothing is written
+  ok    without `files` the build uses the template's list ["atlas.js","diagrams.js","q1_topics.js"]
+  ok    the build stops on a listed file that is not in src/, names it and writes nothing
+  ok    the build stops on a file listed twice, names it and writes nothing
+  ok    the build stops on a source the build always includes (glossary.js), names it and writes nothing
+  ok    the build stops on a path instead of a file name, names it and writes nothing
+PASS: files_test.js: 13 checks passed

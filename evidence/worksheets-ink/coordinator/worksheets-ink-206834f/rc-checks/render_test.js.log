@@ -1,0 +1,36 @@
+feature module worksheets-ink (tab): TypeError: nav.querySelector is not a function
+    at evalmachine.<anonymous>:1608:17
+    at run (evalmachine.<anonymous>:1569:18)
+    at dom (evalmachine.<anonymous>:1601:7)
+    at startUp (evalmachine.<anonymous>:1622:11)
+    at evalmachine.<anonymous>:1683:5
+    at Object.askProfile (evalmachine.<anonymous>:907:3)
+    at Object.<anonymous> (/tmp/port-coord/rc-worksheets-ink/src/render_test.js:15:19)
+    at Module._compile (node:internal/modules/cjs/loader:1781:14)
+    at Object..js (node:internal/modules/cjs/loader:1913:10)
+    at Module.load (node:internal/modules/cjs/loader:1505:32)
+
+=== Render smoke test ===
+  ok    topics list            9451 chars
+  ok    quiz, unanswered       1277 chars
+  ok    quiz, answered         3039 chars
+         explanations rendered: 4 option rows
+         citation present: true
+  skip  quiz, image item        no question in this bank carries an image
+  ok    quiz, numeric answered 2218 chars
+  ok    quiz, match answered   2197 chars
+  ok    weak spots             3822 chars
+  ok    reference              5930 chars
+  ok    tell apart             793 chars
+  ok    guides                 1695 chars
+  ok    diagrams               3693 chars
+         figures registered: 1, step-throughs: 1
+  ok    settings               3952 chars
+  ok    settings says 26 questions; the page holds 26
+  ok    exam paper             1229 chars
+  ok    exam question count: 4 of 4
+         0 questions carry an image
+
+Render smoke test passed
+
+PASS: render_test.js: every view rendered clean
