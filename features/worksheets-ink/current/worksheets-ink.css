@@ -81,6 +81,10 @@ body.inking{overflow:hidden}
 .inkc::after{content:"";position:absolute;inset:10px;border-radius:50%;background:var(--c)}
 .inkc[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
 .inkwarn{color:var(--bad);font-size:13px}
+/* the notice that writing was not saved sits at the foot of the screen at every width (in the bar it could be
+   scrolled out of sight on a phone, where the bar scrolls sideways) */
+.inkwarn:not([hidden]){position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:6;
+  background:var(--paper);border:1px solid var(--bad);border-radius:8px;padding:10px 12px;white-space:normal;box-shadow:0 2px 10px rgba(0,0,0,.2)}
 .inkpaper{max-width:860px;margin:14px auto 60px;background:#fff;color:#111;padding:22px 26px;border-radius:6px;box-shadow:0 1px 6px rgba(0,0,0,.15)}
 .inkpaper .wsdoc{font-size:15px}
 /* a pen or finger held on the page selects nothing and opens no menu (Basic-Pharmacokinetics views.js inkOpen, its #inkstyle) */
@@ -93,7 +97,7 @@ body.inking{overflow:hidden}
 .inkroom .chip{min-height:40px;cursor:pointer}
 .inksol{border-top:2px solid #333;margin-top:18px;padding-top:6px}
 .inksol .wssol{break-before:auto;page-break-before:auto}
-@media (max-width:600px){.inkpaper{padding:14px 12px;margin:8px 0 40px;border-radius:0}.inkbar{flex-wrap:nowrap;overflow-x:auto}.inkgrp{flex-wrap:nowrap}.inkwarn{white-space:nowrap}}
+@media (max-width:600px){.inkpaper{padding:14px 12px;margin:8px 0 40px;border-radius:0}.inkbar{flex-wrap:nowrap;overflow-x:auto}.inkgrp{flex-wrap:nowrap}}
 @media print{
   body.inking > *:not(#ink){display:none !important}
   body.inking{overflow:visible}

@@ -371,14 +371,46 @@ const inkLoad = (id, v) => { const all = inkStore(), d = all && all[inkKey(id, v
 const strokeCount = d => Object.values(d.parts || {}).reduce((n, a) => n + (Array.isArray(a) ? a.length : 0), 0);
 const inkCount = (id, v) => strokeCount(inkLoad(id, v));
 const inkBytes = () => { const all = inkStore(); return all ? JSON.stringify(all).length : 0; };
-/* the writing on the page open now, into the progress; a page with no writing and no extra room is not kept */
+/* The progress, written now rather than 150 ms later (Basic-Pharmacokinetics wrote each stroke at once):
+   'ok' when the browser kept it, 'full' when it refused it, 'off' when nothing may be written (the saved
+   progress was not loaded in this visit). The first try goes to localStorage itself, so a refusal that the
+   module then handles does not raise the core's "did not save your progress" notice. */
+function inkWrite(){
+  if(!canSave()) return 'off';
+  const k = keyFor(PROFILE), v = JSON.stringify(DB);
+  try { localStorage.setItem(k, v); } catch(e){ return 'full'; }
+  if(typeof FAILED !== 'undefined' && FAILED.has(k)) store.set(k, v);   // a write that works again: the core's store stops serving its copy in memory
+  return 'ok';
+}
+/* The writing on the page open now, into the progress; a page with no writing and no extra room is not kept.
+   The progress is written whole, so writing that makes it too big for the browser's storage would stop every
+   later save, answers included. When the browser refuses it, this page goes back to its last saved writing in
+   the progress, the progress is written again without the change, and the page says the change was not saved
+   (the writing stays on screen until the page closes). When even that write is refused, nothing is being saved
+   at all: the change stays in the progress in memory, and the page says the browser is not saving. */
 function inkSave(){
   if(!INK) return;
   const k = inkKey(INK.id, INK.variant), empty = !strokeCount(INK.data) && !Object.values(INK.data.room).some(v => v > 0);
-  if(empty){ const all = inkStore(); if(all && k in all){ delete all[k]; save(); } }
-  else { if(!inkStore()) DB.ink = {}; DB.ink[k] = {parts: INK.data.parts, room: INK.data.room, at: Date.now()}; save(); }
-  const failed = typeof FAILED !== 'undefined' && PROFILE && FAILED.has(keyFor(PROFILE));
-  const w = document.querySelector('#ink .inkwarn'); if(w) w.hidden = canSave() && !failed;
+  if(empty){ const all = inkStore(); if(all && k in all) delete all[k]; }
+  else { if(!inkStore()) DB.ink = {}; DB.ink[k] = {parts: INK.data.parts, room: INK.data.room, at: Date.now()}; }
+  let state = inkWrite();
+  if(state === 'full'){
+    const now = DB.ink && DB.ink[k];
+    if(INK.good){ if(!inkStore()) DB.ink = {}; DB.ink[k] = JSON.parse(INK.good); } else if(DB.ink) delete DB.ink[k];
+    if(store.set(keyFor(PROFILE), JSON.stringify(DB))) state = 'refused';
+    else { if(now){ if(!inkStore()) DB.ink = {}; DB.ink[k] = now; } else if(DB.ink) delete DB.ink[k]; state = 'off'; }
+  }
+  if(state === 'ok'){ const d = inkStore() && DB.ink[k]; INK.good = d ? JSON.stringify(d) : null; }
+  INK.saved = state;
+  inkWarn();
+}
+const INK_WARN = {
+  refused: "This browser's storage is full, so the last change on this page was not saved. The writing saved before and your answers are kept. Save as PDF to keep this page, or use Erase all writing in Settings to make room.",
+  off: 'This browser is not saving: the writing lasts only until the page closes. Save as PDF to keep it.'};
+function inkWarn(){
+  const w = document.querySelector('#ink .inkwarn'); if(!w || !INK) return;
+  w.hidden = INK.saved === 'ok';
+  if(!w.hidden) w.textContent = INK_WARN[INK.saved] || INK_WARN.off;
 }
 // the Write on it buttons say Continue writing where writing is kept
 function inkMark(root){
@@ -400,7 +432,8 @@ function inkOpen(id, variant){
   }
   const prefs = prefsLoad();
   INK = {id, variant, data: inkLoad(id, variant), tool: 'pen', color: prefs.color || INK_COLORS[0][0], size: prefs.size || 2,
-         pencil: 'pencil' in prefs ? !!prefs.pencil : false, shapes: 'shapes' in prefs ? !!prefs.shapes : true, undo: [], redo: [], scrollY: window.scrollY || 0};   // a finger writes until a pen touches the page
+         pencil: 'pencil' in prefs ? !!prefs.pencil : false, shapes: 'shapes' in prefs ? !!prefs.shapes : true, undo: [], redo: [], scrollY: window.scrollY || 0,   // a finger writes until a pen touches the page
+         good: (() => { const all = inkStore(), d = all && all[inkKey(id, variant)]; return d ? JSON.stringify(d) : null; })()};   // the page as last saved
   const mode = variant === 'changed' ? 'changed-worksheet' : 'worksheet', solMode = variant === 'changed' ? 'changed-solutions' : 'solutions';
   const sol = q ? '' : (sheetHTML(id, solMode).match(/<section class="wssol">[\s\S]*<\/section>/) || [''])[0];
   const exam = q && variant.startsWith('exam:');
@@ -412,7 +445,7 @@ function inkOpen(id, variant){
       <span class="inkgrp"><button type="button" class="chip" data-inksize="1.5">Fine</button><button type="button" class="chip" data-inksize="2.5">Medium</button><button type="button" class="chip" data-inksize="4">Bold</button></span>
       <span class="inkgrp"><button type="button" class="chip" data-inkundo aria-label="Undo">↶ Undo</button><button type="button" class="chip" data-inkredo aria-label="Redo">↷ Redo</button></span>
       <span class="inkgrp"><button type="button" class="chip" data-inkpencil aria-pressed="false">Pencil only</button><button type="button" class="chip" data-inkshapes aria-pressed="true" title="Draw a line, a circle or a box and hold the pen still at the end: it becomes a straight line or a clean shape. Two fingers tapped together undo.">Hold to snap</button>${q ? '' : '<button type="button" class="chip" data-inksol aria-expanded="false">Show solutions</button>'}<button type="button" class="chip" data-inkpdf>Save as PDF</button><button type="button" class="chip" data-inkclear>Clear page</button></span>
-      <span class="inkwarn" hidden>This browser is not saving: the writing lasts only until the page closes. Save as PDF to keep it.</span>
+      <span class="inkwarn" role="status" hidden>${INK_WARN.off}</span>
     </div>
     <div class="inkpaper">${q ? inkQuestionHTML(q) : sheetHTML(id, mode)}<div class="inksol" hidden>${sol}</div></div>`;
   document.body.appendChild(ov); document.body.classList.add('inking');

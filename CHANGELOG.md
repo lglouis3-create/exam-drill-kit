@@ -15,7 +15,13 @@ Dated kit changes, newest first.
   headings, number-variant id patterns and audit phrases are options, not code. Not
   ported: the PDF files, the source line under an answer, the likely-paper marks.
   Its test (PK `src/ink_test.py` ported to Node Playwright, Chromium only): 114 checks
-  pass; with the module's code left out, 1 of 1 fails. Port queue item 2 is done.
+  pass; with the module's code left out, 1 of 1 fails. Port queue item 2 is partial (left: the PDF
+  files, the source line under an answer, each part's vignette line on a sheet of several sets,
+  the missed-on-this-sheet marks). Hardened the same evening: the writing is written when the pen
+  lifts, and a change that would make the progress too big for the browser's storage is refused
+  with a notice on screen, keeping the last saved progress, so later answers are still saved (before,
+  every later save failed and the answers given after it were lost on reload); the test now has 157
+  checks (persistence, chained-problem-sets on and off) and a CI set-up script `ci/oncourse.js`.
 
 ## 2026-11-01
 - `core/`: an exam with `questions: null` or a pool with `marks: null` no longer breaks the page (`nullexam.js`).
