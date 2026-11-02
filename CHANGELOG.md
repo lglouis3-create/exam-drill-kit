@@ -3,6 +3,7 @@
 Dated kit changes, newest first.
 
 ## 2026-11-02
+- `core/style_check.js`: "given as" in a dose or a problem (given as an IV infusion) is no longer flagged.
 - `core/home_test.js`: answers a select-all question it picks, with its right boxes, so it no longer fails at random.
 - Kit checks on GitHub: every pull request runs the checks in Chromium and, as information, in WebKit.
 - Checks open built pages over HTTP from 127.0.0.1, not from disk, so WebKit no longer refuses the manifest.
