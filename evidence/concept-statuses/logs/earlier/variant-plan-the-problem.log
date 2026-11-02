@@ -1,0 +1,17 @@
+mkcourse exit 0
+wrote: appended to /tmp/port-concept-statuses/v-ptp/src/course.js: formulas-in-text v1 on with 56 symbols, 4 rates, halfLife, times, minus and powers (the options of its test.js)
+wrote: no data files (the module reads no course data file)
+formulas-in-text oncourse exit 0
+wrote: /tmp/port-concept-statuses/v-ptp/src/eqc_equations.js (14 equations from the fixture in test.js)
+wrote: appended to /tmp/port-concept-statuses/v-ptp/src/course.js: the file in COURSE.files and equation-drill v2 on
+equation-drill oncourse exit 0
+;COURSE.features = Object.assign({}, COURSE.features, {'concept-statuses': {version: 'v1'}, 'plan-the-problem': {version: 'v1'}});
+build exit 1
+  feature concept-statuses v1 in the page (options {"words": {}})
+ERROR: feature plan-the-problem: its build step stopped the build: no numeric question carries a setup line from EQUATIONS, so the set-up drill would have nothing to ask
+test exit 2
+=== the course's own data ===
+NOT RUN: features/concept-statuses/test.js: no built page at /tmp/port-concept-statuses/v-ptp/index.html (run python3 build.py first)
+test at 46e3156 exit 2
+=== the course's own data ===
+NOT RUN: features/concept-statuses/test.js: no built page at /tmp/port-concept-statuses/v-ptp/index.html (run python3 build.py first)

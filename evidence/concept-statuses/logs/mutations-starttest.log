@@ -1,0 +1,23 @@
+M1 1 the status rules hold on 13 synthetic logs (unfamiliar, struggling, improving, mastered, returning, learning)
+M2 1 the status rules hold on 13 synthetic logs (unfamiliar, struggling, improving, mastered, returning, learning)
+M3 1 a correct answer marked "Not sure" is a miss: it blocks mastery; the evidence line counts a "Not sure": 1 miss in 2 attempts, last 2 at 50% (1 of them a correct
+M4 1 the status rules hold on 13 synthetic logs (unfamiliar, struggling, improving, mastered, returning, learning)
+M5 1 the status rules hold on 13 synthetic logs (unfamiliar, struggling, improving, mastered, returning, learning); mastery starts the spaced check at the mastery bo
+M6 1 mastery starts the spaced check at the mastery box at the pace's intervals, and each further solid answer moves it up one
+M7 1 on the weekly pace the spaced check uses the weekly days
+M8 0 NOT CAUGHT
+M9 1 "Ask everything" does not list a concept mastered minutes ago as due
+M10 0 NOT CAUGHT
+M11 0 NOT CAUGHT
+M12 0 NOT CAUGHT
+M13 0 NOT CAUGHT
+M14 1 a calculation concept shows its most common kind of miss; a calculation concept shows its most common kind of miss; a calculation concept shows its most common 
+M15 1 the section is drawn once, after "This session" and before "What to review next"
+M16 0 NOT CAUGHT
+M17 0 NOT CAUGHT
+M18 1 the course's `words` option names the concept ("trapezoidal-auc" as "Trapezoidal AUC")
+M19 1 the evidence line counts a "Not sure": 2 misses in 2 attempts, last 2 at 0%
+M20 0 NOT CAUGHT
+M21 1 an answer to a question no longer in the bank reaches no concept
+M22 1 Check starts a one-question spaced review of that concept
+M23 1 FAIL: features/concept-statuses/test.js: crashed: page.evaluate: TypeError: Cannot read properties of null (reading 'click')

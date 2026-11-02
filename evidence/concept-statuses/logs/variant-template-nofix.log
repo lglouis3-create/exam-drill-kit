@@ -1,0 +1,18 @@
+mkcourse exit 0
+;COURSE.features = Object.assign({}, COURSE.features, {'concept-statuses': {version: 'v1'}});
+build exit 0
+wrote manifest.json and the icons
+wrote sw.js  (caches named course-id-drill-v<n>; 7 files saved at install)
+test exit 0
+=== the course's own data ===
+  the course lacks 7 of the 7 questions of FIX: the scratch copy adds them (1 topics, 1 skills, the lecture as L91 added)
+=== on a scratch copy with 7 of Basic-Pharmacokinetics' questions (Chromium) ===
+  formulas-in-text is off in this copy
+=== Weak spots, concepts: 390 px, light ===
+=== Weak spots, concepts: 1100 px, light ===
+=== Weak spots, concepts: 390 px, dark ===
+=== Weak spots, concepts: 1100 px, dark ===
+=== persistence: a history of 4100 answers, then one more on the page ===
+  report: the core keeps the last 4000 answers (record(), DB.answers.splice); the statuses are read from those, so a concept answered only earlier is no longer listed
+  report: a reload 50 ms after an answer: the answer was lost (DB.qn 4101 before, 4101 after); the core writes the progress 150 ms after the last change
+PASS: features/concept-statuses/test.js: 89 checks passed

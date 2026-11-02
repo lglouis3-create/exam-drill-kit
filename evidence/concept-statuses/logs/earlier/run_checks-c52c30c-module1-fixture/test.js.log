@@ -1,0 +1,68 @@
+
+=== 1. Question bank integrity ===
+  11 questions, 5 topics, 0 images
+  ok    the build's question count equals QUESTIONS.length (11)
+
+=== 2. Exam blueprint coverage ===
+  Lectures 1–4: 11 questions (paper takes 4)
+
+=== 3. Concept spread per topic ===
+  topic1       3 q /   3 concepts  (Professor)
+  topic2       4 q /   4 concepts  (Professor)
+  intro        1 q /   1 concepts  (Professor)
+  warn  subtopic "intro/disc" (Pharmacokinetics and the related disciplines) has no questions
+  warn  subtopic "intro/terms" (ADME and the fundamental terms) has no questions
+  warn  subtopic "intro/models" (Pharmacokinetic models) has no questions
+  warn  subtopic "intro/curve" (The concentration versus time curve) has no questions
+  orders       2 q /   1 concepts  (Professor)
+  warn  subtopic "orders/zero" (Zero-order reactions) has no questions
+  warn  subtopic "orders/first" (First-order reactions) has no questions
+  warn  subtopic "orders/half" (Half-life, both orders) has no questions
+  warn  subtopic "orders/plots" (Linear and semi-logarithmic plots) has no questions
+  auc          1 q /   1 concepts  (Professor)
+  warn  subtopic "auc/concept" (What the area under the curve tells you) has no questions
+
+=== 4. Spaced repetition rules ===
+  ok    missed concept is held back rather than repeated at once
+  (resurfacing test needs a topic with 6+ concepts; skipped on this bank)
+  ok    box advanced 0 -> 3 with repeated correct answers
+  ok    a later miss resets the concept to active review
+  ok    a guess resets the concept to unresolved and outranks never-seen material
+  ok    "I guessed that one" rewrites the log, resets the box, keeps picked and ms
+  ok    1 concepts have more than one wording available
+
+=== 5. Exam simulation draw ===
+  FAIL  m1-auc-n02 dupOf points at missing m1-auc-n01
+  blueprint: Exam 1 — Lectures 1–4 4 (4 of 4)
+  drew 4
+  ok    no duplicate questions on a single paper
+  ok    dupOf partners never share a paper (2 marked; 0 lowYield kept off the paper)
+  ok    20 repeated draws all kept the paper shape
+  select-all on the paper: 0 of 4 (target 0)
+  ok    the paper carries the intended number of select-all items
+  ok    every question resolves to a lecture, exam and module
+  ok    every question carries a skill from the course taxonomy (recall, tell, apply, read, calc, order, auc)
+  ok    numeric grading accepts the answer within tolerance and rejects the rest
+
+=== 6. Storage isolation ===
+  ok    progress written under namespaced key: course-id-drill:data:me
+  ok    the page opened without asking for a name
+=== 7. Different wording when a missed concept returns ===
+  FAIL  missed concept never returned
+=== 8. Small pools end instead of looping ===
+  ok    pool of 2 served 2 (2 distinct) then stopped
+  ok    "Ask everything" still serves (10 more)
+
+=== 9. Figures, read links, change log, blueprint ===
+  ok    every DIAGRAMS key is in DIA
+  ok    1 step-through figure(s), each with a dot per step
+  ok    2 read link(s), every one naming guide, tell or ref
+  7 of 11 questions resolve to a reading section (the rest group by topic in the review plan)
+  ok    a session is the run with no half-hour gap (2 of 4 answers)
+  ok    a correct answer marked "not sure" does not count as solid
+  skip  blueprint draw (this course draws by pool marks, not announced counts)
+  ok    1 change log entry embedded, each with bullets
+
+FAILURES: 2  (warnings: 9)
+
+FAIL: test.js: 2 failure(s)

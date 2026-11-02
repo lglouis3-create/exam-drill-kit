@@ -1,0 +1,1 @@
+concept-statuses ci/oncourse.js: course.js already switches concept-statuses on (this script runs once per course)

@@ -1,0 +1,111 @@
+build exit 0
+
+=== the course's own data ===
+  ok    the page carries concept-statuses, working
+  ok    every concept has a readable name (13; e.g. "Sample definition")
+  ok    an answer to a question no longer in the bank reaches no concept
+  the course holds the questions of FIX: the scratch copy uses its copy (0 topics, 0 skills, no lecture added)
+
+=== on a scratch copy with 7 of Basic-Pharmacokinetics' questions (Chromium) ===
+  formulas-in-text is off in this copy
+  ok    the status rules hold on 13 synthetic logs (unfamiliar, struggling, improving, mastered, returning, learning)
+  ok    mastery starts the spaced check at the mastery box at the pace's intervals, and each further solid answer moves it up one
+  FAIL  on the weekly pace the spaced check uses the weekly days
+  ok    a concept mastered 40 days ago is due for its spaced check, one mastered minutes ago is not
+  ok    "Ask everything" does not list a concept mastered minutes ago as due
+  ok    a concept mastered 40 days ago is not listed as due while the scheduler's own record for it is not due
+  ok    the evidence line gives exact counts: 3 misses in 5 attempts, last 5 at 40% (1 of them a correct answer marked as a guess)
+  ok    a correct answer marked "Not sure" is a miss: it blocks mastery
+  ok    the evidence line counts a "Not sure": 2 misses in 2 attempts, last 2 at 0% (1 of them a correct answer marked "Not sure")
+  ok    the course's `words` option names the concept ("time-to-css" as "Time to Css")
+  ok    a select-all answer counts only the wrong options it picked
+  ok    wrong options chosen more than once are all listed as repeated, one chosen once is not
+  ok    a matching answer names each left item with the wrong right-hand item picked
+  ok    a card shows the ratio of the why as (R)/(Cl), with no {{frac:...}} markup (formulas-in-text off)
+  ok    with no answers there is no Concepts section
+  ok    8 of the 13 weak concepts are shown and the rest folded
+  ok    the section is drawn once, after "This session" and before "What to review next"
+  ok    drawing the Concepts section with no scheduler records leaves DB.concepts, DB.qn and the saved progress unchanged
+  ok    Check starts a one-question spaced review of that concept
+  ok    Run the check starts the due checks, one question each (1 due)
+  ok    drawing the Concepts section changes neither the scheduler's records (DB.concepts, DB.qn) nor the saved progress
+  ok    no page error
+
+=== Weak spots, concepts: 390 px, light ===
+  ok    struggling card shown (Rate vs time to Css)
+  ok    the struggling card comes first, then the unfamiliar one
+  ok    the wrong option chosen 3 times is shown with its why
+  ok    the evidence line gives exact counts
+  ok    a calculation concept shows its most common kind of miss
+  ok    mastered concept folded away (Loading purpose)
+  ok    the mastered concept is listed as due for spaced review
+  ok    no undefined or NaN on Weak spots
+  ok    the Concepts section and its cards fit the width
+  ok    Practice this concept opens a quiz on that concept
+  ok    no page errors
+
+=== Weak spots, concepts: 1100 px, light ===
+  ok    struggling card shown (Rate vs time to Css)
+  ok    the struggling card comes first, then the unfamiliar one
+  ok    the wrong option chosen 3 times is shown with its why
+  ok    the evidence line gives exact counts
+  ok    a calculation concept shows its most common kind of miss
+  ok    mastered concept folded away (Loading purpose)
+  ok    the mastered concept is listed as due for spaced review
+  ok    no undefined or NaN on Weak spots
+  ok    the Concepts section and its cards fit the width
+  ok    Practice this concept opens a quiz on that concept
+  ok    no page errors
+
+=== Weak spots, concepts: 390 px, dark ===
+  ok    struggling card shown (Rate vs time to Css)
+  ok    the struggling card comes first, then the unfamiliar one
+  ok    the wrong option chosen 3 times is shown with its why
+  ok    the evidence line gives exact counts
+  ok    a calculation concept shows its most common kind of miss
+  ok    mastered concept folded away (Loading purpose)
+  ok    the mastered concept is listed as due for spaced review
+  ok    no undefined or NaN on Weak spots
+  ok    the Concepts section and its cards fit the width
+  ok    Practice this concept opens a quiz on that concept
+  ok    no page errors
+
+=== Weak spots, concepts: 1100 px, dark ===
+  ok    struggling card shown (Rate vs time to Css)
+  ok    the struggling card comes first, then the unfamiliar one
+  ok    the wrong option chosen 3 times is shown with its why
+  ok    the evidence line gives exact counts
+  ok    a calculation concept shows its most common kind of miss
+  ok    mastered concept folded away (Loading purpose)
+  ok    the mastered concept is listed as due for spaced review
+  ok    no undefined or NaN on Weak spots
+  ok    the Concepts section and its cards fit the width
+  ok    Practice this concept opens a quiz on that concept
+  ok    no page errors
+
+=== persistence: a history of 4100 answers, then one more on the page ===
+  ok    a saved history of 4100 answers loads whole, and the first concept (answered only in its first 100) has a status
+  ok    after one more answer the core keeps the last 4000, and the statuses are those of exactly those 4000
+  ok    a concept answered only before the last 4000 answers has no status any more (the core keeps 4000; reported)
+  report: the core keeps the last 4000 answers (record(), DB.answers.splice); the statuses are read from those, so a concept answered only earlier is no longer listed
+  ok    the Concepts section draws from the long history (12 concepts)
+  ok    Export progress writes the 4000 answers (531 KB)
+  ok    Import progress in a fresh browser profile gives the same statuses, counts and Concepts section
+  ok    after a reload the imported profile still has the same statuses
+  ok    no page error in the fresh profile
+  ok    a new profile starts with no answers and shows only its own concept (3 misses: struggling)
+  ok    switching back to "me" gives its statuses unchanged, and "Second" keeps its own
+  report: a reload 50 ms after an answer: the answer was lost (DB.qn 4101 before, 4101 after); the core writes the progress 150 ms after the last change
+  ok    a reload 400 ms after an answer keeps it, and the statuses read it
+  ok    storage full (QuotaExceededError): the student sees that the progress was not saved
+  ok    storage full: the saved progress is not overwritten
+  ok    storage full: the Concepts section still draws, from the answers of this visit
+  ok    storage full, then working again: the saved progress is still there and loads with the same statuses
+  ok    storage denied (SecurityError): the student sees that the progress was not saved
+  ok    storage denied: the saved progress is not overwritten
+  ok    storage denied: the Concepts section still draws, from the answers of this visit
+  ok    storage denied, then working again: the saved progress is still there and loads with the same statuses
+  ok    no page error in the persistence checks
+FAIL: features/concept-statuses/test.js: 1 of 89 checks failed: on the weekly pace the spaced check uses the weekly days
+
+exit 1

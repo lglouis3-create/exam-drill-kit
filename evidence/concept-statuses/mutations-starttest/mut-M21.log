@@ -1,0 +1,74 @@
+build exit 0
+
+=== the course's own data ===
+  ok    the page carries concept-statuses, working
+  ok    every concept has a readable name (13; e.g. "Sample definition")
+  FAIL  an answer to a question no longer in the bank reaches no concept
+
+=== on a scratch copy with 4 of Basic-Pharmacokinetics' questions (Chromium) ===
+  ok    the status rules hold on 13 synthetic logs (unfamiliar, struggling, improving, mastered, returning, learning)
+  ok    mastery starts the spaced check at the mastery box at the pace's intervals, and each further solid answer moves it up one
+  ok    on the weekly pace the spaced check uses the weekly days
+  ok    a concept mastered 40 days ago is due for its spaced check, one mastered minutes ago is not
+  ok    "Ask everything" does not list a concept mastered minutes ago as due
+  ok    the evidence line gives exact counts: 3 misses in 5 attempts, last 5 at 40% (1 of them a correct answer marked as a guess)
+  ok    a correct answer marked "Not sure" is a miss: it blocks mastery
+  ok    the evidence line counts a "Not sure": 2 misses in 2 attempts, last 2 at 0% (1 of them a correct answer marked "Not sure")
+  ok    the course's `words` option names the concept ("trapezoidal-auc" as "Trapezoidal AUC")
+  ok    with no answers there is no Concepts section
+  ok    the section is drawn once, after "This session" and before "What to review next"
+  ok    Check starts a one-question spaced review of that concept
+  ok    Run the check starts the due checks, one question each (1 due)
+  ok    drawing the Concepts section changes neither the scheduler's records (DB.concepts, DB.qn) nor the saved progress
+  ok    no page error
+
+=== Weak spots, concepts: 390 px, light ===
+  ok    struggling card shown (Blood components)
+  ok    the wrong option chosen 3 times is shown with its why
+  ok    the evidence line gives exact counts
+  ok    a calculation concept shows its most common kind of miss
+  ok    mastered concept folded away (Order from data)
+  ok    the mastered concept is listed as due for spaced review
+  ok    no undefined or NaN on Weak spots
+  ok    the Concepts section and its cards fit the width
+  ok    Practice this concept opens a quiz on that concept
+  ok    no page errors
+
+=== Weak spots, concepts: 1100 px, light ===
+  ok    struggling card shown (Blood components)
+  ok    the wrong option chosen 3 times is shown with its why
+  ok    the evidence line gives exact counts
+  ok    a calculation concept shows its most common kind of miss
+  ok    mastered concept folded away (Order from data)
+  ok    the mastered concept is listed as due for spaced review
+  ok    no undefined or NaN on Weak spots
+  ok    the Concepts section and its cards fit the width
+  ok    Practice this concept opens a quiz on that concept
+  ok    no page errors
+
+=== Weak spots, concepts: 390 px, dark ===
+  ok    struggling card shown (Blood components)
+  ok    the wrong option chosen 3 times is shown with its why
+  ok    the evidence line gives exact counts
+  ok    a calculation concept shows its most common kind of miss
+  ok    mastered concept folded away (Order from data)
+  ok    the mastered concept is listed as due for spaced review
+  ok    no undefined or NaN on Weak spots
+  ok    the Concepts section and its cards fit the width
+  ok    Practice this concept opens a quiz on that concept
+  ok    no page errors
+
+=== Weak spots, concepts: 1100 px, dark ===
+  ok    struggling card shown (Blood components)
+  ok    the wrong option chosen 3 times is shown with its why
+  ok    the evidence line gives exact counts
+  ok    a calculation concept shows its most common kind of miss
+  ok    mastered concept folded away (Order from data)
+  ok    the mastered concept is listed as due for spaced review
+  ok    no undefined or NaN on Weak spots
+  ok    the Concepts section and its cards fit the width
+  ok    Practice this concept opens a quiz on that concept
+  ok    no page errors
+FAIL: features/concept-statuses/test.js: 1 of 58 checks failed: an answer to a question no longer in the bank reaches no concept
+
+exit 1

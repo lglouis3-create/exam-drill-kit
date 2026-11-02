@@ -1,0 +1,18 @@
+worktree HEAD c52c30c5ac6348f4b806de0f19b0e60897dcda31, status: 0 changed files
+mkcourse exit 0
+wrote: /tmp/port-concept-statuses/final/src/q90_cst_fixture.js (3 topics and 4 questions from FIX in test.js)
+wrote: appended to /tmp/port-concept-statuses/final/src/course.js: the file in COURSE.files, the lecture Introduction.pdf (id L91) in COURSE.lectures, 2 skill(s) in COURSE.skills, and concept-statuses v1 on with words (61 entries)
+oncourse exit 0
+build exit 0
+commit exit 0
+module test run 1 exit 0: PASS: features/concept-statuses/test.js: 89 checks passed
+module test run 2 exit 0: PASS: features/concept-statuses/test.js: 89 checks passed
+module test run 3 exit 0: PASS: features/concept-statuses/test.js: 89 checks passed
+run_checks.sh exit 1
+22 PASS, 4 FAIL, 1 NOT RUN, 1 REPORT; logs in /tmp/drill-checks-elaFSl
+FAIL     test.js           2 failure(s)
+REPORT   explain_check.js  5 of 11 questions carry at least one explanation issue
+NOT RUN  cite_check.py     no lecture PDFs found under decks/ or src/
+FAIL     output_test.js    1 of 16 checks failed: test.js reads that page and passes
+FAIL     checks_test.js    5 of 32 checks failed: test.js passes with exit 0 and a PASS line; run_checks.sh exits 0 when nothing fails (a NOT RUN is listed, not failed); a passing check is one PASS line with its summary …
+FAIL     browser_test.js   1 of 99 checks failed: every stem that promises a figure shows one before the answer

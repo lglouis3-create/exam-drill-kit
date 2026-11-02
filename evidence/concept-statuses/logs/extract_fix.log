@@ -1,0 +1,9 @@
+questions inf-c4 (q3_module3.js, time-to-css, mcq); inf-c5 (q3_module3.js, rate-vs-time-to-css, mcq); inf-c11 (q3_module3.js, loading-purpose, mcq); cq2-4 (q13_quizzes.js, loading-purpose, mcq); inf-n1 (q3_module3.js, css-from-rate, numeric); inf-n2 (q3_module3.js, rate-for-target-css, numeric); inf-n4 (q3_module3.js, time-to-percent-css, numeric)
+topics infusion (7 subs)
+lecture {"id":"L04","deck":"3IntravenousInfusions.pdf","label":"Module 3: Intravenous infusion (2 Sep)","prof":"Professor","exam":1,"module":3}
+skills recall, apply, infusion
+CONCEPT_WORDS entries 61
+left out (not in the kit): inf-c4 teachImg slide_3IntravenousInfusi_p4; inf-c5 teachImg slide_3IntravenousInfusi_p4; inf-n1 teachImg slide_3IntravenousInfusi_p7; inf-n2 teachImg slide_3IntravenousInfusi_p8; inf-n4 teachImg slide_3IntravenousInfusi_p11
+findings: none
+remaining "Mosley" in the fixture: 0
+exit 0

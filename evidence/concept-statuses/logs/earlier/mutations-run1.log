@@ -1,0 +1,24 @@
+M1 1 the status rules hold on 13 synthetic logs (unfamiliar, struggling, improving, mastered, returning, learning)
+M2 1 the status rules hold on 13 synthetic logs (unfamiliar, struggling, improving, mastered, returning, learning)
+M3 1 a correct answer marked "Not sure" is a miss: it blocks mastery; the evidence line counts a "Not sure": 1 miss in 2 attempts, last 2 at 50% (1 of them a correct
+M4 1 the status rules hold on 13 synthetic logs (unfamiliar, struggling, improving, mastered, returning, learning)
+M5 1 the status rules hold on 13 synthetic logs (unfamiliar, struggling, improving, mastered, returning, learning); mastery starts the spaced check at the mastery bo
+M6 1 mastery starts the spaced check at the mastery box at the pace's intervals, and each further solid answer moves it up one
+M7 1 on the weekly pace the spaced check uses the weekly days
+M8 1 a concept mastered 40 days ago is not listed as due while the scheduler's own record for it is not due
+M9 1 "Ask everything" does not list a concept mastered minutes ago as due
+M10 1 a select-all answer counts only the wrong options it picked
+M11 1 wrong options chosen more than once are all listed as repeated, one chosen once is not
+M12 1 the struggling card comes first, then the unfamiliar one; the struggling card comes first, then the unfamiliar one; the struggling card comes first, then the un
+M13 1 8 of the 10 weak concepts are shown and the rest folded
+M14 1 a calculation concept shows its most common kind of miss; a calculation concept shows its most common kind of miss; a calculation concept shows its most common 
+M15 1 the section is drawn once, after "This session" and before "What to review next"
+M16 1 drawing the Concepts section with no scheduler records leaves DB.concepts, DB.qn and the saved progress unchanged
+M17 1 a card shows a ratio of the why as (a)/(b), with no {{frac:...}} markup (formulas-in-text off)
+M18 1 the course's `words` option names the concept ("trapezoidal-auc" as "Trapezoidal AUC")
+M19 1 the evidence line counts a "Not sure": 2 misses in 2 attempts, last 2 at 0%
+M20 1 a matching answer names each left item with the wrong right-hand item picked
+M21 1 an answer to a question no longer in the bank reaches no concept
+M22 1 Check starts a one-question spaced review of that concept
+M23 1 8 of the 10 weak concepts are shown and the rest folded; drawing the Concepts section with no scheduler records leaves DB.concepts, DB.qn and the saved progress
+exit 0

@@ -1,0 +1,15 @@
+make_on.sh (mkcourse + ci/oncourse.js + build)	4/4 steps exit 0	final-make.log
+ci/oncourse.js a second time on the same course	1	final-oncourse-second.log
+module test run 1 (module's own course)	0	final-test-1.log
+module test run 2 (module's own course)	0	final-test-2.log
+module test run 3 (module's own course)	0	final-test-3.log
+run_checks.sh on the module's own course	0	final-run_checks.log
+core/ci_course.sh module:concept-statuses	0	ci-module.log
+core/ci_course.sh template (no module)	0	ci-template.log
+core/ci_course.sh medicinal-chemistry (full history clone)	0	ci-mc.log
+module test, module absent (must FAIL)	1	module-absent.log
+module test, template course without FIX, formulas-in-text absent	0	variant-template-nofix.log
+F5: plan-the-problem + formulas-in-text on; test at 46e3156 / committed test	2 / 0	f5-plan-the-problem.log
+mutations.py, committed test	0	mutations.log
+mutations.py, test at 46e3156	0	mutations-starttest.log
+done

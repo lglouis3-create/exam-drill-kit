@@ -1,0 +1,8 @@
+mkcourse exit 0
+build exit 0
+mentions of concept-statuses in the page: 0
+
+=== the course's own data ===
+  FAIL  the page carries concept-statuses, working  — "no feature modules in the page"
+FAIL: features/concept-statuses/test.js: 1 of 1 checks failed: the page carries concept-statuses, working
+test exit 1

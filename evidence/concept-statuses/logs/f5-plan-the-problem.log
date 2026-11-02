@@ -1,0 +1,24 @@
+mkcourse exit 0
+plan course exit 0
+build exit 0
+  feature formulas-in-text v1 in the page (options {"symbols": [], "rates": [], "halfLife": true, "times": true, "minus": true, "powers": true})
+  feature equation-drill v2: build step done
+  feature equation-drill v2 in the page (options {"label": "Equations", "before": "settings", "groups": {}})
+  feature plan-the-problem v1: build step done
+  feature plan-the-problem v1 in the page (options {"groups": {}})
+  feature concept-statuses v1 in the page (options {"words": {}})
+test at 46e3156 exit 2
+NOT RUN: features/concept-statuses/test.js: the scratch copy with the test questions does not build: ERROR: feature plan-the-problem: its build step stopped the build: cst-m1-auc-n02: setup names the equation "auc-trap", which is not in EQUATIONS
+committed test exit 0
+=== the course's own data ===
+  the course lacks 7 of the 7 questions of FIX: the scratch copy adds them (1 topics, 1 skills, the lecture as L91 added)
+=== on a scratch copy with 7 of Basic-Pharmacokinetics' questions (Chromium) ===
+  formulas-in-text is on in this copy
+=== Weak spots, concepts: 390 px, light ===
+=== Weak spots, concepts: 1100 px, light ===
+=== Weak spots, concepts: 390 px, dark ===
+=== Weak spots, concepts: 1100 px, dark ===
+=== persistence: a history of 4100 answers, then one more on the page ===
+  report: the core keeps the last 4000 answers (record(), DB.answers.splice); the statuses are read from those, so a concept answered only earlier is no longer listed
+  report: a reload 50 ms after an answer: the answer was lost (DB.qn 4101 before, 4101 after); the core writes the progress 150 ms after the last change
+PASS: features/concept-statuses/test.js: 89 checks passed
