@@ -426,9 +426,19 @@ function fixtureFiles(own, have, copies){
     if(await page.locator('#exAgain').count()){ await page.click('#exAgain'); await settle(); }
     const pp = await ev(() => FX.api('paper-picker') ? [...document.querySelectorAll('#v-exam [data-ppexam]')].map(b => b.dataset.ppexam).filter(id => id !== String(EXAM.id)) : null);   // data-ppexam is text; an exam id may be a number
     if(!pp) L.skip('the flags bar and the strict paper on a paper drawn for an earlier exam', 'paper-picker is not on in this course');
+    // an earlier exam the bank can draw a paper for: paper-picker says on the start page when its pools hold too few ([data-pp="short"])
+    let other = null;
+    const short = [];
+    for(const id of pp || []){
+      await page.click(`#v-exam [data-ppexam="${id}"]`); await settle();
+      if(await ev(() => !!document.querySelector('#v-exam [data-pp="short"]'))) short.push(id); else { other = id; break; }
+    }
+    if(pp && pp.length && !other) await page.click(`#v-exam [data-ppexam="${await ev(() => String(EXAM.id))}"]`).catch(() => {});
+    if(!pp) L.skip('the flags bar and the strict paper on a paper drawn for an earlier exam', 'paper-picker is not on in this course');
     else if(!pp.length) L.skip('the flags bar and the strict paper on a paper drawn for an earlier exam', 'paper-picker offers no exam other than the current one');
+    else if(!other) L.skip('the flags bar and the strict paper on a paper drawn for an earlier exam', `the bank holds too few questions for a paper of any earlier exam (${short.join(', ')}), as paper-picker says on the start page`);
     else {
-      const other = pp[0];
+      if(short.length) console.log(`  note  earlier exam(s) ${short.join(', ')} left out: paper-picker says the bank holds too few questions for a paper of it`);
       const startFor = async strict => {
         if(await page.locator('#exAgain').count()){ await page.click('#exAgain'); await settle(); }
         await page.click(`#v-exam [data-ppexam="${other}"]`); await settle();
