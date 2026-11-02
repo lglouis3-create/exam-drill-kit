@@ -21,6 +21,11 @@
  *   records Not sure and 3 records I guessed, each moving on; 1 and Enter on a
  *   select-all item pick and check; a key typed in a field does nothing; on the
  *   paper a letter picks, the right arrow moves on and the left arrow back.
+ *   keys where the student is doing something else do nothing: typing in a
+ *   textarea or a contenteditable, a modal <dialog> open, a panel marked as a
+ *   dialog open (the shape of worksheets-ink's Scratch paper) over the quiz and
+ *   over the paper, the pointer held down drawing on a canvas (and after it lifts
+ *   the letter answers again), and the Import file picker open.
  *   one page: every multiple-choice question of the set on one page; one answer
  *   there records one answer; Not sure is offered on the card answered last only;
  *   back to one at a time, the questions answered on the page are not asked
@@ -30,10 +35,24 @@
  *   strict: the box on the start page with the course's note; a strict paper has
  *   no Back, no flags and no one-page layout, the left arrow does nothing, Next
  *   on a blank question asks first and stays when the answer is Cancel, the
- *   paper stays strict through a reload, and the next paper started without the
- *   box has Back again.
+ *   paper stays strict through a reload, the browser Back button leaves the drill
+ *   and Forward brings the paper back at the same question with no Back, the left
+ *   arrow pressed while the native "Move on without answering?" box is open does
+ *   nothing, the ticked box stays ticked when the start page is drawn again, and
+ *   the next paper started without the box has Back again.
+ *   with paper-picker on (skipped otherwise): on a paper drawn for an earlier exam,
+ *   the flags bar and its links, and the strict paper (no Back, no flags, the left
+ *   arrow does nothing, strict through a reload).
  * On a copy with every option off: no Flag, no layout chips, no strict box, and
  * the letter keys do nothing.
+ * On a copy with 300 more questions (50 copies of the 6, ids suffixed) and
+ * calculations on the paper (exams[].typed): 300 flags and the layout kept through
+ * a reload, Drill flagged 40 to a page; a reload at once after a flag is reported
+ * (the core saves 150 ms after the last change), one 300 ms after is kept; Export
+ * and Import into a fresh profile; each profile keeps its own; storage denied and
+ * storage full (QuotaExceededError): the notice shows, the saved progress is not
+ * overwritten, and it loads after storage works again; a paper with a calculation
+ * stays one at a time with All on one page chosen.
  *
  *     node features/study-controls/test.js
  */
@@ -48,10 +67,14 @@ const IP = [{"id": "L01-002", "concept": "metoprolol-predict-effect", "stem": "W
 const NOTE = 'Strict-paper note set by the study-controls test.';
 const pre = id => 'sct-' + id;
 
-function fixtureFiles(own){
+/* copies: for the persistence checks, that many more copies of the 6 questions, content unchanged,
+   ids and concepts suffixed -c<n> (test pages only; nothing here ships) */
+function fixtureFiles(own, copies){
   const topic = {id: 'sct-L01', name: 'Day 1: drugs, receptors, potency', prof: own.prof, cite: 'Day 1 (9/22) \u2014 Pharmacodynamics-Day-1-2026s.pdf',
     subs: [{id: 'a', name: 'Must know vs should know', cite: 'slides ~7\u2013~12'}]};
-  const qs = IP.map(q => Object.assign({}, q, {id: pre(q.id), concept: 'sct-' + q.concept, prof: own.prof, tier: 'new', topic: 'sct-L01', sub: 'a', skill: own.skill, tags: []}));
+  const one = (q, c) => Object.assign({}, q, {id: pre(q.id) + c, concept: 'sct-' + q.concept + c, prof: own.prof, tier: 'new', topic: 'sct-L01', sub: 'a', skill: own.skill, tags: []});
+  const qs = IP.map(q => one(q, ''));
+  for(let c = 1; c <= (copies || 0); c++) IP.forEach(q => qs.push(one(q, '-c' + c)));
   return {'q90_sc_fixture.js': '/* 6 of Intro to Pharmacology\'s questions (exam1-drill/src/q_L01.js, 929cd62), added by the study-controls test */\n' +
     `TOPICS.push(${JSON.stringify(topic)});\nQUESTIONS.push(...${JSON.stringify(qs)});\n`};
 }
@@ -83,6 +106,8 @@ function fixtureFiles(own){
   const s = L.scratchBuild('sc', {files: fixtureFiles(own), courseLine: L.featureOn(dir, {flags: true, layout: true, keys: true, strict: true, strictNote: NOTE})});
   if(s.code !== 0) L.notRun(NAME, 'the scratch copy with the test questions does not build: ' + s.out.split('\n').pop());
   const s2 = L.scratchBuild('sc-off', {files: fixtureFiles(own), courseLine: L.featureOn(dir, {flags: false, layout: false, keys: false, strict: false})});
+  const COPIES = 50;   // 300 more questions, for hundreds of flags
+  const s3 = L.scratchBuild('sc-many', {files: fixtureFiles(own, COPIES), courseLine: 'COURSE.exams.forEach(e => { e.typed = true; });' + L.featureOn(dir, {flags: true, layout: true, keys: true, strict: true})});
   const ids = IP.map(q => pre(q.id)), single = IP.filter(q => !q.multi).map(q => pre(q.id)), multi = IP.filter(q => q.multi).map(q => pre(q.id));
   const {browser} = await L.launch(NAME);
   try {
@@ -143,6 +168,57 @@ function fixtureFiles(own){
     await page.keyboard.press('a'); await settle();
     check(!(await ev(() => Q.revealed)), 'a key typed in a field is not a shortcut');
 
+    /* ---- keys where the student is doing something else ---- */
+    const noKey = async (label, setup, keys, undo) => {
+      await L.quizOn(page, [single[0]]); await settle();
+      const n0 = await ev(() => DB.answers.length);
+      await ev(setup);
+      for(const k of keys) await page.keyboard.press(k);
+      await settle();
+      // an answer followed by Enter would move past the only question: the question must still be on screen, unanswered
+      const r = await ev(id => ({revealed: Q.revealed, picked: Q.picked, view: VIEW, current: Q.current && Q.current.id === id}), single[0]);
+      r.answers = (await ev(() => DB.answers.length)) - n0;
+      if(undo) await ev(undo);
+      return check(!r.revealed && r.current && !r.answers && (r.picked === null || r.picked === undefined), label, r);
+    };
+    await noKey('typing in a textarea is not a shortcut (a, Enter)',
+      () => { const t = document.createElement('textarea'); t.id = 'scTA'; document.getElementById('v-quiz').prepend(t); t.focus(); }, ['a', 'Enter']);
+    await noKey('typing in a contenteditable is not a shortcut (a, 1, Enter)',
+      () => { const d = document.createElement('div'); d.contentEditable = 'true'; d.id = 'scCE'; document.getElementById('v-quiz').prepend(d); d.focus(); }, ['a', '1', 'Enter']);
+    await noKey('a key pressed while a modal <dialog> is open does not answer the question under it',
+      () => { const d = document.createElement('dialog'); d.id = 'scDlg'; d.innerHTML = '<p>a dialog</p>'; document.body.appendChild(d); d.showModal(); }, ['a', 'Enter'],
+      () => { const d = document.getElementById('scDlg'); d.close(); d.remove(); });
+    // the shape of worksheets-ink's Scratch paper: a panel marked as a dialog, focused, with a canvas on it
+    const PANEL = () => { const p = document.createElement('div'); p.id = 'scPanel'; p.setAttribute('role', 'dialog'); p.tabIndex = -1;
+      p.style.cssText = 'position:fixed;inset:0;background:#fff;z-index:99'; p.innerHTML = '<canvas width="400" height="300" style="width:400px;height:300px"></canvas>';
+      document.body.appendChild(p); p.focus(); };
+    await noKey('a key pressed while a panel marked as a dialog is open (as Scratch paper) does not answer the question under it', PANEL, ['a', 'Enter'],
+      () => document.getElementById('scPanel').remove());
+    await L.quizOn(page, [single[0]]); await settle();
+    const cvKey = await rightKey();
+    await ev(() => { const c = document.createElement('canvas'); c.id = 'scCv'; c.width = 300; c.height = 120; c.style.cssText = 'display:block;width:300px;height:120px';
+      document.getElementById('v-quiz').prepend(c); window.scrollTo(0, 0); });
+    const cb = await page.locator('#scCv').boundingBox();
+    await page.mouse.move(cb.x + 20, cb.y + 20); await page.mouse.down(); await page.mouse.move(cb.x + 90, cb.y + 60);
+    const cvN = await ev(() => DB.answers.length);
+    await page.keyboard.press(cvKey); await page.keyboard.press('Enter'); await settle();
+    const cv1 = await ev(([id, n]) => ({revealed: Q.revealed || !Q.current || Q.current.id !== id || DB.answers.length !== n}), [single[0], cvN]);
+    await page.mouse.up(); await settle();
+    await ev(() => document.activeElement && document.activeElement.blur && document.activeElement.blur());
+    await page.keyboard.press(cvKey); await settle();
+    const cv2 = await ev(() => ({revealed: Q.revealed}));
+    await ev(() => { const c = document.getElementById('scCv'); if(c) c.remove(); });   // the answer redraws the card, which can take it away
+    check(!cv1.revealed && cv2.revealed, 'no key acts while the pointer is held down drawing on a canvas; after it lifts the letter key answers again', {cv1, cv2});
+    await L.quizOn(page, [single[0]]); await settle();
+    const fpN = await ev(() => DB.answers.length);
+    await goTab('settings');
+    const [chooser] = await Promise.all([page.waitForEvent('filechooser', {timeout: 5000}).catch(() => null), page.click('#btnImport')]);
+    for(const k of ['a', '1', 'Enter', 'ArrowRight']) await page.keyboard.press(k);
+    await settle();
+    const fp = await ev(([id, n]) => ({view: VIEW, revealed: Q.revealed, picked: Q.picked, current: !!Q.current && Q.current.id === id, answers: DB.answers.length - n}), [single[0], fpN]);
+    check(!!chooser && fp.view === 'settings' && !fp.revealed && fp.current && !fp.answers && (fp.picked === null || fp.picked === undefined),
+      'keys pressed while the Import file picker is open do not answer the quiz left open behind it', Object.assign({chooser: !!chooser}, fp));
+
     /* ---- the quiz on one page ---- */
     await L.quizOn(page, ids); await settle();
     await page.click('#v-quiz [data-sclayout="all"]'); await settle();
@@ -186,7 +262,11 @@ function fixtureFiles(own){
     check(x0.box && x0.note.includes(NOTE) && x0.chips, 'the exam start page has the layout chips and the strict-paper box with the course\'s note', x0);
     await page.click('.scstart [data-sclayout="one"]'); await settle();
     await page.click('#startExam'); await settle();
-    const nq = await ev(() => EX.qs.length);
+    // a course with calculations on its papers (exams[].typed): the lettered items first, so the keys below have options to pick
+    const toFront = () => ev(() => { const k = EX.qs.map((q, i) => i).sort((a, b) => (EX.qs[a].type ? 1 : 0) - (EX.qs[b].type ? 1 : 0));
+      ['qs', 'picks', 'orders'].forEach(f => { EX[f] = k.map(i => EX[f][i]); }); EX.i = 0; saveExam(); renderExamQ(); });
+    await toFront(); await settle();
+    const nq = await ev(() => EX.qs.filter(q => !q.type).length);
     if(nq < 2) L.skip('the paper\'s flags and keys', 'the paper has fewer than 2 questions');
     else {
       await page.keyboard.press('a'); await settle();
@@ -196,7 +276,17 @@ function fixtureFiles(own){
       await page.keyboard.press('ArrowLeft'); await settle();
       const x3 = await ev(() => EX.i);
       check(x1 && x2 === 1 && x3 === 0, 'on the paper a letter picks, the right arrow moves on and the left arrow back', {x1, x2, x3});
+      const xp0 = JSON.stringify(await ev(() => EX.picks[0]));
+      await ev(PANEL);
+      for(const k of ['ArrowRight', 'Enter', 'b', '2']) await page.keyboard.press(k);
+      await settle();
+      const xp = await ev(() => ({i: EX.i, pick: JSON.stringify(EX.picks[0]), saved: JSON.parse(store.get(EXAM_KEY())).i}));
+      await ev(() => document.getElementById('scPanel').remove());
+      check(xp.i === 0 && xp.saved === 0 && xp.pick === xp0,
+        'on the paper, keys pressed while a panel marked as a dialog is open neither move the paper nor change the pick', Object.assign({before: xp0}, xp));
       await page.click('#v-exam .qcard .qhead [data-scflag]'); await settle();
+      const x3b = await ev(() => [...document.querySelectorAll('#v-exam .scxflags [data-scjump]')].map(b => b.textContent));
+      check(x3b.join() === '1', 'a flag on the paper is listed on the question bar at once, before moving on', x3b);
       await page.click('#exNext'); await settle();
       const x4 = await ev(() => ({links: [...document.querySelectorAll('#v-exam .scxflags [data-scjump]')].map(b => b.textContent), i: EX.i}));
       await page.click('#v-exam .scxflags [data-scjump="0"]'); await settle();
@@ -205,6 +295,10 @@ function fixtureFiles(own){
     }
 
     /* ---- the exam paper on one page ---- */
+    // calculation or matching items stay one at a time (checked on the copy with calculations below): leave them off this paper
+    await ev(() => { const k = EX.qs.map((q, i) => i).filter(i => !EX.qs[i].type);
+      ['qs', 'picks', 'orders'].forEach(f => { EX[f] = k.map(i => EX[f][i]); }); EX.i = Math.min(EX.i, EX.qs.length - 1); saveExam(); renderExamQ(); });
+    await settle();
     await page.click('#v-exam .examhead [data-sclayout="all"]'); await settle();
     const p1 = await ev(() => ({cards: document.querySelectorAll('#v-exam .scxq').length, n: EX.qs.length, clock: document.getElementById('exClock').textContent}));
     await page.waitForTimeout(2200);   // the clock shows whole seconds, so two ticks
@@ -229,7 +323,11 @@ function fixtureFiles(own){
     /* ---- the strict paper ---- */
     await page.click('#exAgain'); await settle();
     await page.check('#scStrict');
+    await ev(() => renderExam()); await settle();
+    check(await ev(() => !!(document.getElementById('scStrict') || {}).checked),
+      'the ticked strict box stays ticked when the start page is drawn again (as a paper-picker chip does)');
     await page.click('#startExam'); await settle();
+    await toFront(); await settle();
     const r1 = await ev(() => ({layout: DB.layout, all: !!document.querySelector('#v-exam .scxall'), prev: !!document.getElementById('exPrev'), note: !!document.querySelector('.scnoback'),
       flag: !!document.querySelector('#v-exam [data-scflag]'), chips: !!document.querySelector('#v-exam [data-sclayout]'), strict: FX.api('study-controls').strictPaper()}));
     check(r1.layout === 'all' && !r1.all && !r1.prev && r1.note && !r1.flag && !r1.chips && r1.strict,
@@ -248,6 +346,22 @@ function fixtureFiles(own){
     await goTab('exam');
     const r5 = await ev(() => ({run: !!(EX && EX.running), prev: !!document.getElementById('exPrev'), all: !!document.querySelector('#v-exam .scxall'), i: EX && EX.i}));
     check(r5.run && !r5.prev && !r5.all && r5.i === 1, 'the strict paper stays strict through a reload', r5);
+    const here = page.url();
+    await page.goBack(); await page.waitForTimeout(300);
+    const away = page.url();
+    await page.goForward(); await page.waitForFunction(() => typeof VIEW === 'string' && document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+    await goTab('exam');
+    const r7 = await ev(() => ({i: EX && EX.i, prev: !!document.getElementById('exPrev'), strict: FX.api('study-controls').strictPaper()}));
+    check(away !== here && r7.i === 1 && !r7.prev && r7.strict,
+      'the browser Back button leaves the drill (it keeps no history of its own); Forward brings the strict paper back at the same question with no Back', Object.assign({away}, r7));
+    page.removeAllListeners('dialog');
+    let asked = null;
+    page.on('dialog', async d => { asked = d.message(); await page.keyboard.press('ArrowLeft').catch(() => {}); await d.dismiss(); });
+    await page.keyboard.press('ArrowRight'); await page.waitForTimeout(400);
+    page.removeAllListeners('dialog'); page.on('dialog', d => d.accept());
+    const r8 = await ev(() => ({i: EX.i, prev: !!document.getElementById('exPrev')}));
+    check(/cannot come back/.test(asked || '') && r8.i === 1 && !r8.prev,
+      'on a blank strict question the right arrow asks first; the left arrow pressed while that question is open, then Cancel, leaves the paper where it was', Object.assign({asked}, r8));
     await ev(() => finishExam(true)); await settle();
     await page.click('#exAgain'); await settle();
     await page.uncheck('#scStrict');
@@ -255,7 +369,50 @@ function fixtureFiles(own){
     await page.click('#startExam'); await settle();
     const r6 = await ev(() => ({prev: !!document.getElementById('exPrev'), strict: FX.api('study-controls').strictPaper(), flag: !!document.querySelector('#v-exam [data-scflag]')}));
     check(r6.prev && !r6.strict && r6.flag, 'the next paper started without the box has Back and flags again', r6);
-    await ev(() => finishExam(true));
+    await ev(() => finishExam(true)); await settle();
+
+    /* ---- with paper-picker on: a paper drawn for an earlier exam ---- */
+    if(await page.locator('#exAgain').count()){ await page.click('#exAgain'); await settle(); }
+    const pp = await ev(() => FX.api('paper-picker') ? [...document.querySelectorAll('#v-exam [data-ppexam]')].map(b => b.dataset.ppexam).filter(id => id !== EXAM.id) : null);
+    if(!pp) L.skip('the flags bar and the strict paper on a paper drawn for an earlier exam', 'paper-picker is not on in this course');
+    else if(!pp.length) L.skip('the flags bar and the strict paper on a paper drawn for an earlier exam', 'paper-picker offers no exam other than the current one');
+    else {
+      const other = pp[0];
+      const startFor = async strict => {
+        if(await page.locator('#exAgain').count()){ await page.click('#exAgain'); await settle(); }
+        await page.click(`#v-exam [data-ppexam="${other}"]`); await settle();
+        if(strict) await page.check('#scStrict'); else await page.uncheck('#scStrict');
+        await page.click(`#v-exam [data-ppexam="${other}"]`); await settle();   // the start page is drawn again
+        const box = await ev(() => !!document.getElementById('scStrict').checked);
+        await page.click('.scstart [data-sclayout="one"]'); await page.click('#startExam'); await settle();
+        const drawn = await ev(() => (FX.api('paper-picker').state().drawn || {}).exam);
+        await toFront(); await settle();
+        return {box, drawn};
+      };
+      const g1 = await startFor(false);
+      await page.click('#v-exam .qcard .qhead [data-scflag]'); await settle();
+      const fl = await ev(() => EX.qs[0].id);
+      await page.click('#exNext'); await settle();
+      const g2 = await ev(() => [...document.querySelectorAll('#v-exam .scxflags [data-scjump]')].map(b => b.textContent));
+      await page.click('#v-exam .scxflags [data-scjump="0"]'); await settle();
+      const g3 = await ev(() => EX.i);
+      check(g1.drawn === other && g2.join() === '1' && g3 === 0,
+        `on a paper drawn for an earlier exam (${other}) a flagged question is listed on the bar and its link moves to it`, {g1, g2, g3});
+      await ev(id => FX.api('study-controls').set(id, false), fl);
+      await ev(() => finishExam(true)); await settle();
+      const g4 = await startFor(true);
+      await page.keyboard.press('a'); await settle();
+      await page.keyboard.press('ArrowRight'); await settle();
+      await page.keyboard.press('ArrowLeft'); await settle();
+      const g5 = await ev(() => ({i: EX.i, prev: !!document.getElementById('exPrev'), strict: FX.api('study-controls').strictPaper(), flag: !!document.querySelector('#v-exam [data-scflag]')}));
+      await page.waitForTimeout(300);
+      await page.reload(); await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+      await goTab('exam');
+      const g6 = await ev(() => ({i: EX.i, prev: !!document.getElementById('exPrev'), strict: FX.api('study-controls').strictPaper()}));
+      check(g4.box && g4.drawn === other && g5.i === 1 && !g5.prev && g5.strict && !g5.flag && g6.i === 1 && !g6.prev && g6.strict,
+        `a strict paper drawn for an earlier exam (${other}): the box stays ticked when a paper is chosen, no Back, no flags, the left arrow does nothing, strict through a reload`, {g4, g5, g6});
+      await ev(() => finishExam(true)); await settle();
+    }
 
     /* ---- clear flags ---- */
     await goTab('topics');
@@ -281,9 +438,132 @@ function fixtureFiles(own){
       check(!b.errors.length, 'no page error with every option off', b.errors.slice(0, 3).join(' | '));
       await b.ctx.close();
     }
+
+    /* ---- persistence: hundreds of flags, Export and Import, profiles, reloads, storage denied and full ---- */
+    if(s3.code !== 0) check(false, 'the copy with 300 more questions builds', s3.out.split('\n').pop());
+    else {
+      // sessionStorage '__scfail' = 'deny' or 'full' makes every localStorage write throw, as a blocked or full storage does
+      const CTL = () => { const real = Storage.prototype.setItem;
+        Storage.prototype.setItem = function(k, v){ const m = this === window.localStorage ? sessionStorage.getItem('__scfail') : null;
+          if(m === 'full') throw new DOMException('The quota has been exceeded.', 'QuotaExceededError');
+          if(m === 'deny') throw new DOMException('The operation is insecure.', 'SecurityError');
+          return real.call(this, k, v); }; };
+      const m = await L.openPage(browser, s3.page, {viewport: {width: 1000, height: 900}, acceptDownloads: true}, CTL);
+      const P = m.page, pe = (f, a) => P.evaluate(f, a), wait = t => P.waitForTimeout(t);
+      const ready = () => P.waitForFunction(() => typeof VIEW === 'string' && document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+      const tab = async v => { await P.click(`#nav button[data-v="${v}"]`); await wait(60); };
+      const nFlags = () => pe(() => Object.keys(DB.flags || {}).length);
+      const rawFlags = p => pe(p => { const d = JSON.parse(localStorage.getItem(NS + ':data:' + p) || '{}'); return {n: Object.keys(d.flags || {}).length, layout: d.layout || null, flags: d.flags || {}}; }, p);
+      const many = await pe(() => QUESTIONS.filter(q => /^sct-.*-c\d+$/.test(q.id)).map(q => q.id));
+      await pe(ids => { const S = FX.api('study-controls'); ids.forEach(id => S.set(id, true)); }, many);
+      await tab('topics');
+      await P.click('#scRow [data-sclayout="all"]'); await wait(60);
+      const h0 = await pe(() => ({n: document.getElementById('scFlagN').textContent, db: Object.keys(DB.flags).length}));
+      await wait(400);
+      await P.reload(); await ready(); await tab('topics');
+      const h1 = await pe(() => ({n: document.getElementById('scFlagN').textContent, db: Object.keys(DB.flags || {}).length, layout: DB.layout}));
+      await P.click('#scDrillFlag'); await wait(100);
+      const h2 = await pe(() => ({pool: Q.pool.length, cards: document.querySelectorAll('#v-quiz .scq').length, more: !!document.getElementById('scMore')}));
+      await P.click('#scMore'); await wait(100);
+      const h3 = await pe(() => document.querySelectorAll('#v-quiz .scq').length);
+      check(many.length === 6 * COPIES && h0.n === String(many.length) && h1.db === many.length && h1.n === String(many.length) && h1.layout === 'all' &&
+        h2.pool === many.length && h2.cards === 40 && h2.more && h3 === 80,
+        `${many.length} flags and the layout are kept through a reload; Drill flagged drills all ${many.length}, 40 to a page`, {n: many.length, h0, h1, h2, h3});
+
+      // a reload soon after a change: the core writes the progress 150 ms after the last change
+      await pe(id => FX.api('study-controls').set(id, true), single[0]);
+      await P.reload(); await ready();
+      const fast = await pe(id => !!(DB.flags || {})[id], single[0]);
+      console.log(`  note  a reload at once (under 150 ms) after a flag: the flag was ${fast ? 'kept' : 'lost'} (the core saves 150 ms after the last change; agent-run report, not a check)`);
+      await pe(id => FX.api('study-controls').set(id, true), single[1]);
+      await wait(300);
+      await P.reload(); await ready();
+      check(await pe(id => !!(DB.flags || {})[id], single[1]), 'a flag is kept through a reload made 300 ms after it');
+
+      // Export, then Import into a fresh profile
+      const me = await pe(() => PROFILE), mine = await nFlags();
+      await tab('settings');
+      const [dl] = await Promise.all([P.waitForEvent('download', {timeout: 10000}), P.click('#btnExport')]);
+      const file = await dl.path();
+      const ex = JSON.parse(fs.readFileSync(file, 'utf8'));
+      await pe(() => { window.__name = 'SecondProfile'; });
+      await P.click('#btnWho'); await wait(100);
+      const fresh = await pe(() => ({p: PROFILE, n: Object.keys(DB.flags || {}).length, layout: DB.layout || null}));
+      await tab('settings');
+      await P.setInputFiles('#fileIn', file); await wait(500);
+      const imp = await pe(() => ({p: PROFILE, n: Object.keys(DB.flags || {}).length, layout: DB.layout}));
+      check(Object.keys(ex.db.flags || {}).length === mine && ex.db.layout === 'all' && fresh.p === 'SecondProfile' && fresh.n === 0 && fresh.layout !== 'all' &&
+        imp.n === mine && imp.layout === 'all',
+        `Export carries the ${mine} flags and the layout; Import into a fresh profile brings them back`, {exported: Object.keys(ex.db.flags || {}).length, fresh, imp});
+      // each profile keeps its own
+      await tab('topics');
+      await P.click('#scClearFlag'); await wait(400);
+      await P.click('#scRow [data-sclayout="one"]'); await wait(400);
+      await pe(n => { window.__name = n; }, me);
+      await P.click('#btnWho'); await wait(100);
+      const back = await pe(() => ({p: PROFILE, n: Object.keys(DB.flags || {}).length, layout: DB.layout}));
+      const other = await rawFlags('SecondProfile');
+      check(back.p === me && back.n === mine && back.layout === 'all' && other.n === 0 && other.layout === 'one',
+        'a profile switch: each profile keeps its own flags and layout', {back, other: {n: other.n, layout: other.layout}});
+
+      // storage denied: the failure shows; what was saved is not overwritten; once storage works the change is saved
+      const before = await rawFlags(me);
+      await pe(() => sessionStorage.setItem('__scfail', 'deny'));
+      await L.quizOn(P, [single[2]]); await wait(60);
+      await P.click('#v-quiz .qcard .qhead [data-scflag]'); await wait(400);
+      const d1 = await pe(id => ({warn: !!document.getElementById('savewarn') && document.getElementById('savewarn').getClientRects().length > 0, mem: !!(DB.flags || {})[id]}), single[2]);
+      const d1raw = await rawFlags(me);
+      // a strict paper started while storage is denied is strict for the visit
+      await tab('exam');
+      if(await P.locator('#exAgain').count()){ await P.click('#exAgain'); await wait(60); }
+      await P.check('#scStrict'); await P.click('#startExam'); await wait(100);
+      const d2 = await pe(() => ({strict: FX.api('study-controls').strictPaper(), prev: !!document.getElementById('exPrev')}));
+      await pe(() => finishExam(true)); await wait(60);
+      check(d1.warn && d1.mem && d1raw.n === before.n && JSON.stringify(d1raw.flags) === JSON.stringify(before.flags) && d2.strict && !d2.prev,
+        'storage denied: the student is told, the saved flags are not overwritten, the new flag and a strict paper hold for the visit', {d1, saved: d1raw.n, before: before.n, d2});
+      await pe(() => sessionStorage.removeItem('__scfail'));
+      await pe(id => FX.api('study-controls').set(id, true), single[3]); await wait(400);
+      await P.reload(); await ready();
+      const d3 = await pe(ids => ids.map(id => !!(DB.flags || {})[id]), [single[2], single[3]]);
+      check(d3[0] && d3[1] && (await nFlags()) === before.n + 2, 'once storage works again the next save writes the flag made while it was denied, and a reload loads all of them', {d3, n: await nFlags()});
+
+      // storage full: the same, and a reload before storage works again loads the progress saved before
+      const full0 = await rawFlags(me);
+      await pe(() => sessionStorage.setItem('__scfail', 'full'));
+      await L.quizOn(P, [single[0]]); await wait(60);
+      await P.click('#v-quiz .qcard .qhead [data-scflag]'); await wait(60);
+      await P.click('#v-quiz [data-sclayout="one"]'); await wait(400);
+      const f1 = await pe(() => ({warn: !!document.getElementById('savewarn') && document.getElementById('savewarn').getClientRects().length > 0, layout: DB.layout}));
+      const f1raw = await rawFlags(me);
+      await pe(() => sessionStorage.removeItem('__scfail'));
+      await P.reload(); await ready();
+      const f2 = await pe(() => ({n: Object.keys(DB.flags || {}).length, layout: DB.layout}));
+      check(f1.warn && f1.layout === 'one' && JSON.stringify(f1raw.flags) === JSON.stringify(full0.flags) && f1raw.layout === 'all' && f2.n === full0.n && f2.layout === 'all',
+        'storage full (QuotaExceededError): the student is told, nothing saved is overwritten, and the saved flags and layout load after storage works again', {f1, saved: f1raw.n, f2, full0: full0.n});
+
+      // a paper with calculations on it (exams[].typed) stays one at a time with All on one page chosen
+      await pe(() => { DB.layout = 'all'; save(); });
+      let tp = null;
+      for(let t = 0; t < 8 && !tp; t++){
+        await tab('exam');
+        if(await P.locator('#exAgain').count()){ await P.click('#exAgain'); await wait(60); }
+        await P.uncheck('#scStrict'); await P.click('#startExam'); await wait(100);
+        const k = await pe(() => EX.qs.findIndex(q => q.type === 'numeric'));
+        if(k >= 0){
+          await pe(k => { EX.i = k; saveExam(); renderExamQ(); }, k); await wait(100);
+          tp = await pe(() => ({all: !!document.querySelector('#v-exam .scxall'), note: !!document.querySelector('#v-exam .sctyped'), box: !!document.getElementById('exNum')}));
+        }
+        await pe(() => finishExam(true)); await wait(60);
+      }
+      if(!tp) L.skip('a paper with a calculation stays one at a time', 'no calculation was drawn on 8 papers');
+      else check(!tp.all && tp.note && tp.box, 'with All on one page chosen, a paper with a calculation on it is shown one at a time, with the answer box, and says why', tp);
+      check(!m.errors.length, 'no page error in the persistence checks', m.errors.slice(0, 3).join(' | '));
+      check(!(await pe(() => FX.errors.length)), 'no module error in the persistence checks', await pe(() => FX.errors));
+      await m.ctx.close();
+    }
   } finally {
     await browser.close();
-    s.rm(); s2.rm();
+    s.rm(); s2.rm(); s3.rm();
   }
   L.finish(NAME);
 })().catch(e => { console.log('FAIL: ' + NAME + ': crashed: ' + (e && e.stack || e)); process.exit(1); });

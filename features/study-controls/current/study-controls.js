@@ -21,13 +21,15 @@
      recorded when it is answered; or every question of the exam paper, with
      the clock and Submit on a bar that stays in view. The choice is kept as
      DB.layout. Calculation and matching questions stay one at a time.
-   keys (the keydown handler, lines 3936-3961): A-J or 1-9 pick an option,
+   keys (the keydown handler, lines 3936-3963): A-J or 1-9 pick an option,
      Enter checks or continues, after a right answer 1 = Knew it, 2 = Not sure,
      3 = I guessed; on the exam paper Enter or the right arrow moves to the next
      question and the left arrow to the previous one. Typing in a field is never
      a shortcut, and Enter or Space on a focused button keeps its own meaning.
-   strict (the noBack paper: vExam line 1616 and 1633, renderExam 1690-1714,
-     exLeaveOk 1716): a box on the exam start page. A paper started with it
+     No key is a shortcut while a dialog is open over the page (worksheets-ink's
+     Scratch paper is one) or while a pointer is held down on a canvas.
+   strict (the noBack paper: vExam line 1616 and 1633, renderExam 1688-1716,
+     exLeaveOk 1718): a box on the exam start page. A paper started with it
      ticked is one question at a time with no going back: no Back button, no
      flags, no one-page layout, and moving on from a blank question asks first.
      The box is offered only when the course sets `strict: true`.
@@ -271,16 +273,20 @@ const strictPaper = () => STRICT && !!EX && !!EX.running && store.get(STRICT_KEY
 let PENDING = null;    // the strict box as it stood when Start was pressed
 const EXAM_KEYS = strict => 'Keys: A–J or 1–9 pick an option · Enter or → next question' + (strict ? '' : ' · ← previous question');
 const blankAt = i => examBlank(EX.qs[i], EX.picks[i]);
+// a calculation or matching item (exams[].typed) has its answer box drawn by the core on the one-at-a-time paper only
+const typedPaper = () => !!EX && Array.isArray(EX.qs) && EX.qs.some(q => q && q.type);
 
 function onExam(pane){
   if(typeof EX === 'undefined') return;
   if(EX && EX.running){
     if(PENDING !== null){ if(PENDING) store.set(STRICT_KEY(), paperKey()); else store.del(STRICT_KEY()); PENDING = null; }
     if(pane.querySelector('.scxall')) return;
-    const strict = strictPaper();
-    if(!strict && layout() === 'all'){ examAll(pane); return; }
+    const strict = strictPaper(), typed = typedPaper();
+    if(!strict && !typed && layout() === 'all'){ examAll(pane); return; }
     const head = pane.querySelector(':scope > .examhead');
     if(!head) return;
+    if(!strict && typed && layout() === 'all' && !pane.querySelector('.sctyped'))
+      head.insertAdjacentHTML('afterend', '<p class="sub sctyped">This paper has calculation or matching questions, so it is shown one question at a time.</p>');
     if(strict){
       const back = pane.querySelector('#exPrev'); if(back) back.remove();
       if(!pane.querySelector('.scnoback')) head.insertAdjacentHTML('afterend', '<p class="sub scnoback">No going back: once you move on you cannot return to this question.</p>');
@@ -413,7 +419,19 @@ function onClickFirst(e){
 /* ---- keys ------------------------------------------------------------------ */
 const letterIndex = k => /^[1-9]$/.test(k) ? +k - 1 : /^[a-jA-J]$/.test(k) ? 'ABCDEFGHIJ'.indexOf(k.toUpperCase()) : -1;
 const press = sel => { const b = typeof sel === 'string' ? document.querySelector(sel) : sel; if(b && !b.disabled){ b.click(); return true; } return false; };
+/* Something drawn over the quiz or the paper (a <dialog>, or a panel marked as a dialog, such as
+   worksheets-ink's Scratch paper): no shortcut acts on the page underneath (Intro to Pharmacology's
+   handler returns while its diagram panel or break video is open). A pointer held down on a canvas
+   is a pen or a finger writing: no key acts until it lifts. */
+const MODAL = 'dialog[open], [role="dialog"], [role="alertdialog"], [aria-modal="true"]';
+const modalOpen = t => !!(t && t.closest && t.closest(MODAL)) || [...document.querySelectorAll(MODAL)].some(d => d.getClientRects().length > 0);
+const DOWN = new Set();
+function onPointer(e){
+  if(e.type === 'pointerdown'){ if(e.target && e.target.closest && e.target.closest('canvas')) DOWN.add(e.pointerId); }
+  else if(e.type !== 'pointermove' || !e.buttons) DOWN.delete(e.pointerId);   // a move with no button held: the lift was missed
+}
 function onKey(e){
+  if(DOWN.size || modalOpen(e.target)) return;
   // typing in a field is never a shortcut; on a focused button or link, Enter and Space keep their own meaning
   const tg = (e.target && e.target.tagName) || '';
   if(/^(INPUT|SELECT|TEXTAREA)$/.test(tg) || (e.target && e.target.isContentEditable)) return;
@@ -462,7 +480,15 @@ X.rendered((pane, view) => {
 X.start(() => {
   document.addEventListener('click', e => FX.run('study-controls', 'click', () => onClickFirst(e)), true);
   document.addEventListener('click', e => FX.run('study-controls', 'click', () => onClick(e)));
-  if(KEYS) document.addEventListener('keydown', e => FX.run('study-controls', 'keys', () => onKey(e)));
+  // the strict box is kept as it is ticked, so a redraw of the start page (paper-picker's chips) keeps it
+  document.addEventListener('change', e => FX.run('study-controls', 'strict box', () => {
+    if(STRICT && e.target && e.target.id === 'scStrict') store.set(PREF_KEY(), e.target.checked ? '1' : '0');
+  }));
+  if(KEYS){
+    document.addEventListener('keydown', e => FX.run('study-controls', 'keys', () => onKey(e)));
+    ['pointerdown', 'pointerup', 'pointercancel', 'pointermove'].forEach(t => window.addEventListener(t, e => FX.run('study-controls', 'pointer', () => onPointer(e)), {capture: true, passive: true}));
+    window.addEventListener('blur', () => DOWN.clear());
+  }
 });
 X.api({isFlagged, flagged: flaggedIds, set: setFlag, toggle: toggleFlag, button: flagBtn,
        onChange: fn => { if(typeof fn === 'function') listeners.push(fn); },
