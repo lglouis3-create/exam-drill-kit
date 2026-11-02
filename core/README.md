@@ -666,8 +666,13 @@ push to `main`. `ci_course.sh <course> [browser]` builds a scratch course from t
 and runs `run_checks.sh` on it, in Chromium for `template`, `template-unset` (the
 exam's question count and the pools' marks unset) and `medicinal-chemistry` (its live
 repository with this core copied in), and in WebKit, Safari's engine, for `template`.
-`DRILL_BROWSER=webkit` makes `check_lib.js` start WebKit instead of Chromium; a run
-whose browser did not start fails rather than passing on NOT RUN lines. The WebKit job
+`DRILL_BROWSER=webkit` makes `check_lib.js` start WebKit instead of Chromium. A run fails
+on any NOT RUN that is not a documented exclusion with its documented reason, so a
+missing Playwright, a browser that did not start or a missing pdfplumber fails it rather
+than passing on NOT RUN lines. The exclusions, listed at the top of `ci_course.sh`:
+`cite_check.py` with "no lecture PDFs found" on every course (the decks are kept in
+Louis's Drive, never in a repository), and `stepper_test.js` with "no step-through
+figures" on Medicinal-chemistry. The WebKit job
 is informational until its first results are reviewed. WebKit is not the Safari app on
 an iPhone or iPad, so a device check stays a separate step. The repository is private
 and GitHub enforces required checks only on a paid plan or a public repository, so

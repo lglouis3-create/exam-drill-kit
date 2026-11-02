@@ -2,8 +2,10 @@
 # scratch courses built from the kit (core/ci_course.sh), in Chromium, and the
 # template once in WebKit (Safari's engine, not the Safari app).
 #
-# The WebKit job is informational (continue-on-error) until its first results are
-# reviewed; it never makes the pull request red. The results are visible on each
+# A job fails on any FAIL and on any NOT RUN that is not a documented exclusion
+# (listed at the top of core/ci_course.sh), so a missing Playwright, browser or
+# pdfplumber fails it. The WebKit job is informational (continue-on-error) until its
+# first results are reviewed; it never makes the pull request red. The results are visible on each
 # pull request, and kit sessions merge only when the Chromium jobs pass (KIT_DESIGN.md
 # §12.9). GitHub does not enforce this on this private repository (no required
 # checks or rulesets without a paid plan or a public repository).

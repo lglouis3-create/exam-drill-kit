@@ -12,9 +12,17 @@
 #                                    main) with this core copied in, as Mode 7 does
 #     browser  chromium (default) or webkit (Safari's engine, not the Safari app)
 #
-# Exit status: run_checks.sh's (1 when the build or any check fails), and 1 when the
-# browser named did not start, so a run whose browser checks could not run is never
-# reported as passed.
+# Exit status: run_checks.sh's (1 when the build or any check fails), and 1 when any
+# check is NOT RUN that is not one of the documented exclusions below, with the reason
+# given there: a missing Playwright, a browser that did not start, a missing pdfplumber
+# or any other unplanned NOT RUN fails the run instead of passing on NOT RUN lines.
+#
+# Documented exclusions (check, the reason it must give, which courses, why):
+#   cite_check.py    "no lecture PDFs found"     every course   the lecture decks are kept
+#                                                               in Louis's Drive, never in
+#                                                               a repository
+#   stepper_test.js  "no step-through figures"   medicinal-     that course has no
+#                                                chemistry      step-through figures
 set -euo pipefail
 kind="${1:?usage: core/ci_course.sh <template|template-unset|medicinal-chemistry> [chromium|webkit]}"
 browser="${2:-chromium}"
@@ -60,8 +68,26 @@ if [ -n "$logs" ] && [ -d "$logs" ]; then
     tail -n 25 "$f"
   done
 fi
-if grep -qE '^NOT RUN .*did not start' "$work/checks.log"; then
-  echo "FAIL: the browser ($browser) did not start, so its checks did not run" >&2
+# every NOT RUN must be a documented exclusion with its documented reason
+allowed() {   # $1 check, $2 reason
+  case "$1" in
+    cite_check.py)   [[ "$2" == "no lecture PDFs found"* ]] ;;
+    stepper_test.js) [ "$kind" = medicinal-chemistry ] && [[ "$2" == "no step-through figures"* ]] ;;
+    *) return 1 ;;
+  esac
+}
+unexpected=0
+while IFS= read -r line; do
+  check="$(printf '%s' "$line" | sed -E 's/^NOT RUN +([^ ]+) +.*$/\1/')"
+  reason="$(printf '%s' "$line" | sed -E 's/^NOT RUN +[^ ]+ +//')"
+  if ! allowed "$check" "$reason"; then
+    [ $unexpected -eq 0 ] && echo && echo "---- NOT RUN that is not a documented exclusion ----"
+    echo "  $check: $reason"
+    unexpected=$((unexpected + 1))
+  fi
+done < <(grep -E '^NOT RUN +[^ ]+ ' "$work/checks.log" || true)
+if [ $unexpected -gt 0 ]; then
+  echo "FAIL: $unexpected check(s) did not run for a reason that is not a documented exclusion" >&2
   exit 1
 fi
 exit "$status"
