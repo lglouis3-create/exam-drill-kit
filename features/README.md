@@ -8,6 +8,7 @@ features/<name>/
     module.json  what the module is and which files it ships (below)
     <name>.js    its code; <name>.css its styles; step.js its build step, if any
     test.js      the module's test, which run_checks.sh runs when the module is on
+  ci/oncourse.js switches the module on in a scratch course for the kit's checks (below)
   archive/vN/    every earlier version, unchanged (decision 4), each with its test
 ```
 
@@ -81,6 +82,34 @@ The build refuses a field it does not know, so a misspelt field cannot be ignore
   `device_lint.js` reads them; `--list-checks` names `features_test.js` and each module's
   test, which `run_checks.sh` adds to its checks; `--list-features` prints the modules
   on, with their options.
+
+## Checked on a course of its own
+
+Every module has `ci/oncourse.js`, beside `current/`. `core/ci_course.sh module:<name>`
+builds the template course, copies `current/` into `src/features/<name>/` and runs
+
+    node features/<name>/ci/oncourse.js <kitDir> <courseSrcDir>
+
+which switches the module on in that course: it writes the module's course data (taken
+from the fixture its `test.js` already uses, nothing invented; ids prefixed so they never
+meet the test's own copies) and appends one `course.js` line with the module at the
+version in its `module.json`. It writes only inside `<courseSrcDir>`, prints what it
+wrote, and exits non-zero on any failure, including a course it already ran on. A module
+named in `needs` is copied and switched on first, by its own script, so the course has
+every module the module needs. Questions it adds are written in the kit's question-file
+format (one question per line opening `{id:'...'`, the professor as a literal), so the
+core checks count and read them as they do the course's own; a lecture it adds is written
+as `{id:'L91', ...}`, the form `state_check.js` reads. `run_checks.sh` then runs every core
+check and the module's test, and the test of each module it needs, on that course.
+`modules:<a>,<b>` switches several on together. The run stops before any check when a
+module, its `module.json` or its `ci/oncourse.js` is missing, when the `needs` form a
+loop, or when a script exits non-zero.
+
+On GitHub, `.github/ci_plan.js` picks the module courses of each pull request: each module
+with a changed file, every module that needs one of them, and each combination in
+`features/ci-combinations.txt` that holds one of them (every module when `core/`,
+`template/` or `.github/` changes, and on every push to `main`). Each runs as its own job,
+in Chromium.
 
 ## The hooks
 
