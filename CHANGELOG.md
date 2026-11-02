@@ -12,8 +12,10 @@ Dated kit changes, newest first.
   Learning) read from the answers, the counts behind it, the option chosen most often, the
   most common kind of miss, Practice this concept, and the spaced checks due. It reads the
   core's state and does not change how the core schedules. `FEATURES.md` corrected: the
-  core has the concept scheduler and a mastered count, not the named statuses. Test: 58
-  checks (PK `src/test.js` section 4c and `src/sweep_test.py` `concept_check` ported).
+  core has the concept scheduler and a mastered count, not the named statuses. Test: 89
+  checks (PK `src/test.js` section 4c and `src/sweep_test.py` `concept_check` ported, on PK
+  data taken verbatim, with persistence checks on a long answer history); `ci/oncourse.js`
+  writes the module's course for the kit's CI.
 - `core/render_test.js`: answers calculation and matching items with their own controls; no more random failures.
 
 ## 2026-11-01

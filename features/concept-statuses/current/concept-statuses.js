@@ -187,7 +187,13 @@ function conceptGroups(){
   return {all: cs, strug, unfam, impr, weak: strug.concat(unfam, impr), mastered, learning: of(['learning']),
           due: mastered.filter(x => conceptDue(x.c, x.rec))};
 }
-const clip = (t, n) => t.length > n ? t.slice(0, n - 1) + '…' : t;
+/* Option text and its why, as Basic-Pharmacokinetics shows them (src/views.js
+   2683-2684, 2747-2748): the why with each {{frac:a|b}} as (a)/(b), cut at a
+   word before 400 characters; both set with formulas-in-text's rich() when
+   that module is on, else escaped, so no {{frac:...}} markup is ever shown. */
+const plainMath = s => String(s || '').replace(/\{\{frac:([^|}]*)\|([^}]*)\}\}/g, '($1)/($2)');
+const clip = (s, n) => s.length > n ? s.slice(0, n - 1).replace(/\s+\S*$/, '') + '…' : s;
+const richText = s => { const F = FX.api('formulas-in-text'); return F ? F.rich(s) : esc(plainMath(s)); };
 function conceptCard(x){
   const {c, rec, st} = x;
   let h = `<div class="ccard s-${rec.s}"><div class="chead"><b>${esc(conceptTitle(c))}</b><span class="cstat s-${rec.s}">${STATUS_WORD[rec.s]}</span></div>`;
@@ -195,8 +201,8 @@ function conceptCard(x){
   if(where) h += `<div class="cwhere">${esc(where)}</div>`;
   h += `<div class="cwhy">${esc(STATUS_WORD[rec.s])}: ${esc(statusLine(c, rec, st))}</div>`;
   const errs = st.recurring.length ? st.recurring : st.errs.slice(0, 1);
-  for(const e of errs) h += `<div class="cpw"><b>${e.n > 1 ? `You chose this ${e.n} times:` : 'You chose:'}</b> ${esc(e.t)}${
-    e.why ? `<span class="cpwhy">Why it is not the answer: ${esc(clip(e.why, 400))}</span>` : ''}</div>`;
+  for(const e of errs) h += `<div class="cpw"><b>${e.n > 1 ? `You chose this ${e.n} times:` : 'You chose:'}</b> ${richText(e.t)}${
+    e.why ? `<span class="cpwhy">Why it is not the answer: ${richText(clip(plainMath(e.why), 400))}</span>` : ''}</div>`;
   if(st.numMiss) h += `<div class="cpw">${st.topKind
     ? `<b>Most common kind of miss:</b> ${esc(MISS_KINDS[st.topKind.id])} (${st.topKind.n} of ${nOf(st.numMiss, 'missed calculation')})`
     : `<b>Kind of miss:</b> not yet named on ${st.numMiss === 1 ? 'the missed calculation' : `the ${st.numMiss} missed calculations`}`}</div>`;
