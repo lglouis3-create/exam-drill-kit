@@ -597,7 +597,7 @@ function fixtureFiles(own, have, copies){
       // a paper with calculations on it (exams[].typed) stays one at a time with All on one page chosen
       await pe(() => { DB.layout = 'all'; save(); });
       let tp = null;
-      for(let t = 0; t < 8 && !tp; t++){
+      for(let t = 0; t < 40 && !tp; t++){
         await tab('exam');
         if(await P.locator('#exAgain').count()){ await P.click('#exAgain'); await wait(60); }
         await P.uncheck('#scStrict'); await P.click('#startExam'); await wait(100);
@@ -608,7 +608,7 @@ function fixtureFiles(own, have, copies){
         }
         await pe(() => finishExam(true)); await wait(60);
       }
-      if(!tp) L.skip('a paper with a calculation stays one at a time', 'no calculation was drawn on 8 papers');
+      if(!tp) L.skip('a paper with a calculation stays one at a time', 'no calculation was drawn on 40 papers');
       else check(!tp.all && tp.note && tp.box, 'with All on one page chosen, a paper with a calculation on it is shown one at a time, with the answer box, and says why', tp);
       check(!m.errors.length, 'no page error in the persistence checks', m.errors.slice(0, 3).join(' | '));
       check(!(await pe(() => FX.errors.length)), 'no module error in the persistence checks', await pe(() => FX.errors));
