@@ -1,0 +1,20 @@
+
+=== the course's own terms ===
+  FAIL  the module loads in the course's page and offers its finder  — null
+
+=== the build step ===
+  FAIL  10 of the course's terms in 4 groups pass  — {"ok":false,"msg":"ENOENT: no such file or directory, open '/tmp/port-glossary-tap-h/off/src/features/glossary-tap/step.js'"}
+  FAIL  no TERMS stops the step with its reason  — ENOENT: no such file or directory, open '/tmp/port-glossary-tap-h/off/src/features/glossary-tap/step.js'
+  FAIL  an empty TERMS stops the step with its reason  — ENOENT: no such file or directory, open '/tmp/port-glossary-tap-h/off/src/features/glossary-tap/step.js'
+  FAIL  an id used twice stops the step with its reason  — ENOENT: no such file or directory, open '/tmp/port-glossary-tap-h/off/src/features/glossary-tap/step.js'
+  FAIL  a term with no definition stops the step with its reason  — ENOENT: no such file or directory, open '/tmp/port-glossary-tap-h/off/src/features/glossary-tap/step.js'
+  FAIL  a figure not in DIA stops the step with its reason  — ENOENT: no such file or directory, open '/tmp/port-glossary-tap-h/off/src/features/glossary-tap/step.js'
+  FAIL  a lecture not in COURSE.lectures stops the step with its reason  — ENOENT: no such file or directory, open '/tmp/port-glossary-tap-h/off/src/features/glossary-tap/step.js'
+  FAIL  two terms found by the same name stops the step with its reason  — ENOENT: no such file or directory, open '/tmp/port-glossary-tap-h/off/src/features/glossary-tap/step.js'
+  FAIL  a notTapped id that is not a term stops the step with its reason  — ENOENT: no such file or directory, open '/tmp/port-glossary-tap-h/off/src/features/glossary-tap/step.js'
+  FAIL  a duplicate name stops the build, with no page written  — wrote sw.js  (caches named course-id-drill-v<n>; 7 files saved at install)
+
+=== worked in the browser (scratch copy) ===
+  FAIL  the Glossary tab is in the nav, before Settings (only other modules' tabs between them)  — {"v":["topics","quiz","gaps","exam","diagrams","guide","tell","ref","settings"],"mods":[]}
+FAIL: features/glossary-tap/test.js: 12 of 12 checks failed: the module loads in the course's page and offers its finder; 10 of the course's terms in 4 groups pass; no TERMS stops the step with its reason …
+exit 1

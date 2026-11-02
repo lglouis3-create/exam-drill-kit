@@ -1,0 +1,2 @@
+glossary-tap ci/oncourse.js: course.js already switches glossary-tap on (this script runs once per course)
+exit 1

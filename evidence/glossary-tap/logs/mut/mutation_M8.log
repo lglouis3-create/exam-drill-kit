@@ -1,0 +1,105 @@
+
+=== the course's own terms ===
+  ok    the module loads in the course's page and offers its finder
+  ok    all 10 terms are found by their own name, as themselves
+  info  5 of 10 terms are named in the bank's explanations
+
+=== the build step ===
+  ok    10 of the course's terms in 4 groups pass
+  ok    no TERMS stops the step with its reason
+  ok    an empty TERMS stops the step with its reason
+  ok    an id used twice stops the step with its reason
+  ok    a term with no definition stops the step with its reason
+  ok    a figure not in DIA stops the step with its reason
+  ok    a lecture not in COURSE.lectures stops the step with its reason
+  ok    two terms found by the same name stops the step with its reason
+  ok    a notTapped id that is not a term stops the step with its reason
+  ok    a duplicate name stops the build, with no page written
+
+=== worked in the browser (scratch copy) ===
+  ok    the Glossary tab is in the nav, before Settings (only other modules' tabs between them)
+  ok    the glossary shows the 10 terms (IP browser_test.js line 55)
+  ok    under their groups, in the course's order
+  ok    each card has the term's definition, one-line meaning, situation and source
+  ok    a term with a figure shows it (IP browser_test.js line 56)
+  ok    the count line
+  ok    a search lists the 2 names that match first, then the terms that mention the word
+  ok    8 matches, counted, with Clear shown
+  ok    a search with no match says so
+  ok    Clear empties the box and shows every term again
+  ok    the letters with no term are disabled
+  ok    a letter switches to A-Z order, by first letter, and jumps to it
+  ok    a group chip shows that group only (5 terms)
+  ok    the floating button appears once the search bar is off screen
+  ok    and goes once it is used
+  FAIL  before the answer is shown, no term is marked
+  ok    after the answer, 5 terms are marked, each once
+  ok    affinity, efficacy, pharmacodynamics and receptor among them
+  FAIL  none in the stem, an option's own text or the verdict  — {"ids":["gtp-efficacy","gtp-receptor","gtp-drug","gtp-affinity","gtp-pharmacodynamics"],"inStem":1,"inLabel":0,"inVerdict":0,"gloss":0,"inCite":0,"cite":"“Efficacy is the ability of that drug to change the receptor behavior. It's activity, its state from active to inactive or inactive to active, right?”slides and lecture audioPharmacodynamics-Day_2_2026s copy.pdf slide ~31; transcript 9/23"}
+  ok    none in the source line, whose quoted words name efficacy
+  ok    the core gave no bracketed gloss here (the explanation defines affinity itself)
+  ok    a tap opens the term's definition, meaning and source under the line
+  ok    a second tap closes it
+  ok    "Open in the Glossary" opens the tab at the term, with the way back to the question
+  ok    a term the core has glossed in brackets is not a button in that question; the others are
+  ok    in a guide section each term is marked once
+  ok    a new section marks affinity again, but not efficacy, which its word list defines
+  ok    no heading holds a button
+  ok    a tap in a guide opens the definition inside that line
+  ok    in the page, each of the 10 terms is found by its own name, as itself
+  ok    a plural is found: "receptors" in T-affinity-3's concept block is Receptor
+  ok    a term inside a link is not marked (guide4 section 23 names "drug" only in a link)
+  FAIL  the exam review marks terms in each question card, each once, none in the stem, an option's own text or the source line  — [{"ids":["gtp-efficacy","gtp-affinity","gtp-receptor","gtp-drug","gtp-pharmacodynamics"],"inStem":1,"inLabel":0,"inCite":0},{"ids":["gtp-receptor","gtp-affinity","gtp-efficacy","gtp-orthosteric"],"inStem":1,"inLabel":0,"inCite":0}]
+  ok    L02-018 in the exam review marks affinity (the review has no bracketed gloss) and efficacy
+  ok    a tap in the exam review opens the definition
+  ok    T-affinity-3: no term marked inside its quotation of the poll sentence, which stays whole; receptor is marked at its next mention
+  ok    T-affinity-3: its source line names Pharmacodynamics (a deck name) and nothing is marked there
+  ok    L10-030: “cheese effect”, a quotation of the name alone, is marked
+  ok    the module stores nothing: the 3 saved keys are unchanged after the glossary and taps are used
+  ok    no page error
+  ok    with storage blocked (setItem throws SecurityError), the glossary and the taps work
+  ok    with storage full (setItem throws QuotaExceededError), the glossary and the taps work
+
+=== the options ===
+  ok    with notTapped, that term is no longer found
+  ok    with tap off, nothing is marked and the Glossary tab stays
+
+=== with formulas-in-text ===
+  ok    formulas-in-text alone: the page runs formulas-in-text
+  ok    formulas-in-text alone, quiz card: no {{frac: or markup shown as text; the 3 fractions stack; subscripts set
+  ok    formulas-in-text alone, exam review: no {{frac: or markup shown as text; the 3 fractions stack; subscripts set
+  ok    formulas-in-text alone, guide: the fraction in the section stacks
+  ok    formulas-in-text alone: no module error and no page error
+  ok    formulas-in-text first: the page runs formulas-in-text, then glossary-tap
+  ok    formulas-in-text first, quiz card: no {{frac: or markup shown as text; the 3 fractions stack; subscripts set
+  FAIL  formulas-in-text first, quiz card: every term named is a button, once, on its own words, holding no formula markup (6 terms)  — {"ids":["gtp-clearance","gtp-elimination","gtp-plasma","gtp-nonlinear-pharmacokinetics"],"want":["gtp-bioavailability","gtp-clearance","gtp-elimination","gtp-nonlinear-pharmacokinetics","gtp-plasma","gtp-total-body-clearance"],"wordsOk":true,"nested":0}
+  FAIL  formulas-in-text first, quiz card: elimination (before ", ClT"), total body clearance, plasma and clearance among them  — ["gtp-clearance","gtp-elimination","gtp-plasma","gtp-nonlinear-pharmacokinetics"]
+  ok    formulas-in-text first, quiz card: with the buttons put back to text, each explanation and the concept block are exactly as formulas-in-text alone draws them
+  ok    formulas-in-text first, exam review: no {{frac: or markup shown as text; the 3 fractions stack; subscripts set
+  ok    formulas-in-text first, exam review: every term named is a button, once, on its own words, holding no formula markup (6 terms)
+  ok    formulas-in-text first, exam review: elimination (before ", ClT"), total body clearance, plasma and clearance among them
+  ok    formulas-in-text first, exam review: with the buttons put back to text, each explanation and the concept block are exactly as formulas-in-text alone draws them
+  ok    formulas-in-text first, guide: the fraction in the section stacks
+  ok    formulas-in-text first, guide: "elimination" inside the fraction's numerator is a button
+  ok    formulas-in-text first, guide: nothing is marked in the line that quotes the professor in <q> (guide.js line 94), which names pharmacokinetics
+  ok    formulas-in-text first, guide: with the button put back, the section is as formulas-in-text alone draws it
+  ok    formulas-in-text first, guide: a tap on it opens the definition, and the fraction keeps its parts
+  ok    formulas-in-text first, quiz card: a tap opens the definition and no fraction comes undone
+  ok    formulas-in-text first: no module error and no page error
+  ok    glossary-tap first: the page runs glossary-tap, then formulas-in-text
+  ok    glossary-tap first, quiz card: no {{frac: or markup shown as text; the 3 fractions stack; subscripts set
+  FAIL  glossary-tap first, quiz card: every term named is a button, once, on its own words, holding no formula markup (6 terms)  — {"ids":["gtp-clearance","gtp-elimination","gtp-plasma","gtp-nonlinear-pharmacokinetics"],"want":["gtp-bioavailability","gtp-clearance","gtp-elimination","gtp-nonlinear-pharmacokinetics","gtp-plasma","gtp-total-body-clearance"],"wordsOk":true,"nested":0}
+  FAIL  glossary-tap first, quiz card: elimination (before ", ClT"), total body clearance, plasma and clearance among them  — ["gtp-clearance","gtp-elimination","gtp-plasma","gtp-nonlinear-pharmacokinetics"]
+  ok    glossary-tap first, quiz card: with the buttons put back to text, each explanation and the concept block are exactly as formulas-in-text alone draws them
+  ok    glossary-tap first, exam review: no {{frac: or markup shown as text; the 3 fractions stack; subscripts set
+  ok    glossary-tap first, exam review: every term named is a button, once, on its own words, holding no formula markup (6 terms)
+  ok    glossary-tap first, exam review: elimination (before ", ClT"), total body clearance, plasma and clearance among them
+  ok    glossary-tap first, exam review: with the buttons put back to text, each explanation and the concept block are exactly as formulas-in-text alone draws them
+  ok    glossary-tap first, guide: the fraction in the section stacks
+  ok    glossary-tap first, guide: "elimination" inside the fraction's numerator is a button
+  ok    glossary-tap first, guide: nothing is marked in the line that quotes the professor in <q> (guide.js line 94), which names pharmacokinetics
+  ok    glossary-tap first, guide: with the button put back, the section is as formulas-in-text alone draws it
+  ok    glossary-tap first, guide: a tap on it opens the definition, and the fraction keeps its parts
+  ok    glossary-tap first, quiz card: a tap opens the definition and no fraction comes undone
+  ok    glossary-tap first: no module error and no page error
+FAIL: features/glossary-tap/test.js: 7 of 93 checks failed: before the answer is shown, no term is marked; none in the stem, an option's own text or the verdict; the exam review marks terms in each question card, each once, none in the stem, an option's own text or the source line …

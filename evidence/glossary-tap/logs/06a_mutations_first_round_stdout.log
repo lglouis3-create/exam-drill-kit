@@ -1,0 +1,30 @@
+M1 1 glossary-tap first, quiz card: no {{frac: or markup shown as text; the 3 fractions stack; subscripts set; glossary-tap first, quiz card: with the buttons put back to text, each explanation and the con
+M2 1 T-affinity-3: no term marked inside its quotation of the poll sentence, which stays whole; receptor is marked at its next mention
+M3 1 L10-030: “cheese effect”, a quotation of the name alone, is marked
+M4 1 a term inside a link is not marked (guide4 section 23 names "drug" only in a link)
+M5 1 formulas-in-text first, guide: nothing is marked in the line that quotes the professor in <q> (guide.js line 94), which names pharmacokinetics; glossary-tap first, guide: nothing is marked in the line
+M6 1 after the answer, 18 terms are marked, each once; a term the core has glossed in brackets is not a button in that question; the others are; in a guide section each term is marked once (+6 more)
+M7 1 a term the core has glossed in brackets is not a button in that question; the others are
+M8 1 before the answer is shown, no term is marked; none in the stem, an option's own text or the verdict; the exam review marks terms in each question card, each once, none in the stem, an option's own te
+M9 1 none in the stem, an option's own text or the verdict; the exam review marks terms in each question card, each once, none in the stem, an option's own text or the source line
+M10 1 a new section marks affinity again, but not efficacy, which its word list defines
+M11 1 a new section marks affinity again, but not efficacy, which its word list defines
+M12 1 the exam review marks terms in each question card, each once, none in the stem, an option's own text or the source line; L02-018 in the exam review marks affinity (the review has no bracketed gloss) a
+M13 0 PASS: features/glossary-tap/test.js: 90 checks passed
+M14 1 a second tap closes it
+M15 1 "Open in the Glossary" opens the tab at the term, with the way back to the question
+M16 1 the module stores nothing: the 4 saved keys are unchanged after the glossary and taps are used; with storage blocked (setItem throws SecurityError), the glossary and the taps work; with storage full (
+M17 1 with tap off, nothing is marked and the Glossary tab stays
+M18 1 with notTapped, that term is no longer found
+M19 1 a search lists the 1 names that match first, then the terms that mention the word
+M20 1 a search lists the 1 names that match first, then the terms that mention the word; 7 matches, counted, with Clear shown
+M21 1 a letter switches to A-Z order, by first letter, and jumps to it
+M22 1 the letters with no term are disabled
+M23 1 a group chip shows that group only (5 terms)
+M24 1 the floating button appears once the search bar is off screen
+M25 0 PASS: features/glossary-tap/test.js: 90 checks passed
+M26 0 PASS: features/glossary-tap/test.js: 90 checks passed
+M27 1 two terms found by the same name stops the step with its reason; a duplicate name stops the build, with no page written
+M28 1 a figure not in DIA stops the step with its reason
+caught: 25 of 28
+exit 0

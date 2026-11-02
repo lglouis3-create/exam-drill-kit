@@ -1,0 +1,66 @@
+
+=== the course's own terms ===
+  ok    the module loads in the course's page and offers its finder
+  ok    all 9 terms are found by their own name, as themselves
+  info  1 of 9 terms are named in the bank's explanations
+
+=== the build step ===
+  ok    9 of the course's terms in 3 groups pass
+  ok    no TERMS stops the step with its reason
+  ok    an empty TERMS stops the step with its reason
+  ok    an id used twice stops the step with its reason
+  ok    a term with no definition stops the step with its reason
+  ok    a figure not in DIA stops the step with its reason
+  ok    a lecture not in COURSE.lectures stops the step with its reason
+  ok    two terms found by the same name stops the step with its reason
+  ok    a notTapped id that is not a term stops the step with its reason
+  ok    a duplicate name stops the build, with no page written
+
+=== worked in the browser (scratch copy) ===
+  ok    the Glossary tab is in the nav, before Settings
+  ok    the glossary shows the 9 terms (IP browser_test.js line 55)
+  ok    under their groups, in the course's order
+  ok    each card has the term's definition, one-line meaning, situation and source
+  ok    a term with a figure shows it (IP browser_test.js line 56)
+  ok    the count line
+  ok    a search lists the 1 names that match first, then the terms that mention the word
+  ok    7 matches, counted, with Clear shown
+  ok    a search with no match says so
+  ok    Clear empties the box and shows every term again
+  ok    the letters with no term are disabled
+  ok    a letter switches to A-Z order, by first letter, and jumps to it
+  ok    a group chip shows that group only (5 terms)
+  ok    the floating button appears once the search bar is off screen
+  ok    and goes once it is used
+  ok    before the answer is shown, no term is marked
+  ok    after the answer, 5 terms are marked, each once
+  ok    affinity, efficacy, pharmacodynamics and receptor among them
+  ok    none in the stem, an option's own text or the verdict
+  ok    none in the source line, whose quoted words name efficacy
+  ok    the core gave no bracketed gloss here (the explanation defines affinity itself)
+  ok    a tap opens the term's definition, meaning and source under the line
+  ok    a second tap closes it
+  ok    "Open in the Glossary" opens the tab at the term, with the way back to the question
+  ok    a term the core has glossed in brackets is not a button in that question; the others are
+  ok    in a guide section each term is marked once
+  ok    a new section marks affinity again, but not efficacy, which its word list defines
+  ok    no heading holds a button
+  ok    a tap in a guide opens the definition inside that line
+  ok    a term inside a link is not marked (guide4 section 23 names "drug" only in a link)
+  ok    the exam review marks terms in each question card, each once, none in the stem, an option's own text or the source line
+  ok    L02-018 in the exam review marks affinity (the review has no bracketed gloss) and efficacy
+  ok    a tap in the exam review opens the definition
+  FAIL  T-affinity-3: no term marked inside its quotation of the poll sentence, which stays whole; receptor is marked at its next mention  — [{"term":"gtp-affinity","open":false,"nameOnly":false},{"term":"gtp-drug","open":false,"nameOnly":false},{"term":"gtp-efficacy","open":false,"nameOnly":false},{"term":"gtp-receptor","open":true,"nameOnly":false},{"term":"gtp-orthosteric","open":false,"nameOnly":false}]
+  ok    L10-030: “cheese effect”, a quotation of the name alone, is marked
+  ok    the module stores nothing: the 3 saved keys are unchanged after the glossary and taps are used
+  ok    no page error
+  ok    with storage blocked (setItem throws SecurityError), the glossary and the taps work
+  ok    with storage full (setItem throws QuotaExceededError), the glossary and the taps work
+
+=== the options ===
+  ok    with notTapped, that term is no longer found
+  ok    with tap off, nothing is marked and the Glossary tab stays
+
+=== with formulas-in-text ===
+  skip  glossary-tap with formulas-in-text  — formulas-in-text is not in this course (src/features/formulas-in-text): copy it in to run these checks
+FAIL: features/glossary-tap/test.js: 1 of 53 checks failed: T-affinity-3: no term marked inside its quotation of the poll sentence, which stays whole; receptor is marked at its next mention

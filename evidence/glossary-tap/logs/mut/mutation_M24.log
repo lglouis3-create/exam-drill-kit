@@ -1,0 +1,38 @@
+
+=== the course's own terms ===
+  ok    the module loads in the course's page and offers its finder
+  ok    all 10 terms are found by their own name, as themselves
+  info  5 of 10 terms are named in the bank's explanations
+
+=== the build step ===
+  ok    10 of the course's terms in 4 groups pass
+  ok    no TERMS stops the step with its reason
+  ok    an empty TERMS stops the step with its reason
+  ok    an id used twice stops the step with its reason
+  ok    a term with no definition stops the step with its reason
+  ok    a figure not in DIA stops the step with its reason
+  ok    a lecture not in COURSE.lectures stops the step with its reason
+  ok    two terms found by the same name stops the step with its reason
+  ok    a notTapped id that is not a term stops the step with its reason
+  ok    a duplicate name stops the build, with no page written
+
+=== worked in the browser (scratch copy) ===
+  ok    the Glossary tab is in the nav, before Settings (only other modules' tabs between them)
+  ok    the glossary shows the 10 terms (IP browser_test.js line 55)
+  ok    under their groups, in the course's order
+  ok    each card has the term's definition, one-line meaning, situation and source
+  ok    a term with a figure shows it (IP browser_test.js line 56)
+  ok    the count line
+  ok    a search lists the 2 names that match first, then the terms that mention the word
+  ok    8 matches, counted, with Clear shown
+  ok    a search with no match says so
+  ok    Clear empties the box and shows every term again
+  ok    the letters with no term are disabled
+  ok    a letter switches to A-Z order, by first letter, and jumps to it
+  ok    a group chip shows that group only (5 terms)
+  FAIL  the floating button appears once the search bar is off screen
+FAIL: features/glossary-tap/test.js: crashed: page.click: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for locator('#gtback')[22m
+
+    at /tmp/port-glossary-tap-h/mut/src/features/glossary-tap/test.js:254:18

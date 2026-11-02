@@ -1,0 +1,5 @@
+wrote: /tmp/port-glossary-tap-h/ci/src/terms_gtap.js (10 terms)
+wrote: /tmp/port-glossary-tap-h/ci/src/q1_topics.js (2 topics, 66 questions; replaces the template sample)
+wrote: /tmp/port-glossary-tap-h/ci/src/guide.js (Intro to Pharmacology guide.js sections 1 and 4, opening lines; replaces the template sample)
+wrote: /tmp/port-glossary-tap-h/ci/src/course.js: lectures L04, L10 in its list; appended 7 skills, terms_gtap.js in files, glossary-tap v1 on
+exit 0

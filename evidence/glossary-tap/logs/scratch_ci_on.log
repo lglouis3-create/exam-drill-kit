@@ -1,0 +1,4 @@
+wrote: /tmp/port-glossary-tap-h/on/src/terms_gtap.js (9 terms from the fixture in test.js)
+wrote: appended to /tmp/port-glossary-tap-h/on/src/course.js:
+;/* glossary-tap ci */ COURSE.files = (COURSE.files || ['atlas.js', 'diagrams.js', 'q1_topics.js']).concat(['terms_gtap.js']); COURSE.features = Object.assign({}, COURSE.features, {"glossary-tap": {"version":"v1"}});
+exit 0
