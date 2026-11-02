@@ -2,7 +2,7 @@
  "name": "short-answer-graphs",
  "version": "v1",
  "does": "Two pages. Short answer: one prompt at a time; the student writes an answer, then shows the model answer and ticks the key points it covers (self-check: nothing grades the text); the draft and the ticks are kept in the progress. Graphs: one card per figure of the professor's, with its questions' counts (unseen, right, wrong) and the reading questions the student skips; Drill this figure asks every question on that figure in turn, a wrong pick names the reading question skipped (the option's miss tag), each answer shows how to read the figure, and the end of the pass lists what was skipped. Reads SHORT_ANSWERS, GRAPHS, GRAPH_MISS and GRAPH_EXAMS from a data file listed in course.js `files`, and the questions whose img is a figure's key; each page appears only when its data is there.",
- "source": "Intro-Pharmacology exam1-drill/src/app.js (sections \"Short answer\" and \"Graphs: drill one of his figures\"; queue lines 2308-2351 and 3518-3580 at d0d3d2d, re-found as lines 2402-2444, 3716-3778 and 3821-3854) and src/shell.html lines 162, 170-171, 370-371, at 929cd62",
+ "source": "Intro-Pharmacology- exam1-drill/src at 929cd62: app.js lines 2402-2444 (Short answer: SA_LIST, saState, saSave, vSa), 3704-3715 (lastMap, lastOutcome), 3716-3778 (Graphs: GR, MISS, MISS2, missOf, graphOf, graphQs, missTally, graphFeedback, graphDone, startGraph), 3821-3854 (vGraphs), 850 and 911 (the end of a pass and the feedback on the quiz card); shell.html lines 162, 170-171 and 370-371 (styles)",
  "js": ["short-answer-graphs.js"],
  "css": ["short-answer-graphs.css"],
  "step": "step.js",

@@ -2,7 +2,7 @@
    SHORT ANSWER AND GRAPHS (feature module short-answer-graphs v1)
    ==========================================================================
    Ported from Intro-Pharmacology exam1-drill/src/app.js at 929cd62 (lines
-   2402-2444, 3716-3778 and 3821-3854): the
+   2402-2444, 3704-3778, 3821-3854, 850 and 911): the
    Short answer page (vSa, saState, saSave; the "Short answer" section) and
    the Graphs drill (GR, MISS, MISS2, missOf, graphOf, graphQs, missTally,
    graphFeedback, graphDone, startGraph, vGraphs; the "Graphs: drill one of
@@ -17,6 +17,8 @@
      answer, tick the key points covered. Nothing grades the typed text. The
      draft, the ticks and "checked" are kept in the progress as DB.sa (that
      course kept them per browser), so they follow the profile and Export;
+     a saved DB.sa read in is cleaned first (saClean, below), so an entry of
+     another shape cannot stop the page;
    - a figure's questions are drilled as a fixed pass of the core's quiz
      (a sweep with Q.graph set); right, wrong and the skipped-reading tally
      are read from the core's answers (DB.answers: result and picked);
@@ -41,6 +43,27 @@ const SA = {i: 0, order: null, shown: false};
 const FORM = {her: " · the professor's wording", key: " · the professor's key"};
 const saLec = id => { const l = (COURSE.lectures || []).find(x => x.id === id); return l ? l.label : (id || ''); };
 const saState = () => (DB.sa && typeof DB.sa === 'object' ? DB.sa : {});
+/* A saved progress read in (page load, profile switch, Import), before the page
+   uses it: in DB.sa, an entry that is not an object is dropped; a text that is
+   not text, a checked that is not true or false and ticks that are not a list
+   are removed; ticks keep only whole numbers from 0 that number one of the
+   prompt's key points (any whole number from 0 when the course no longer has
+   the prompt). Without this, a file edited by hand or saved in another shape
+   stopped the page at Check my answer. */
+const SA_BY = Object.fromEntries(SA_LIST.map(p => [p.id, p]));
+function saClean(db){
+  if(!db || db.sa === undefined) return;
+  if(!db.sa || typeof db.sa !== 'object' || Array.isArray(db.sa)){ delete db.sa; return; }
+  for(const [id, e] of Object.entries(db.sa)){
+    if(!e || typeof e !== 'object' || Array.isArray(e)){ delete db.sa[id]; continue; }
+    if(e.text !== undefined && typeof e.text !== 'string') delete e.text;
+    if(e.checked !== undefined && typeof e.checked !== 'boolean') delete e.checked;
+    if(e.ticks !== undefined){
+      if(!Array.isArray(e.ticks)) delete e.ticks;
+      else { const n = SA_BY[id] ? SA_BY[id].points.length : Infinity; e.ticks = [...new Set(e.ticks.filter(k => Number.isInteger(k) && k >= 0 && k < n))]; }
+    }
+  }
+}
 function saSave(id, patch){
   const all = DB.sa = saState();
   all[id] = Object.assign({}, all[id] || {}, patch);
@@ -191,7 +214,10 @@ function quizPane(pane){
   if(verdict) verdict.insertAdjacentHTML('afterend', html); else if(body) body.insertAdjacentHTML('beforeend', html);
 }
 
-if(HAS_SA) X.tab({id: 'sa', label: OPT.saLabel, before: OPT.before, render: pane => vSa(pane)});
+if(HAS_SA){
+  X.tab({id: 'sa', label: OPT.saLabel, before: OPT.before, render: pane => vSa(pane)});
+  X.progress(saClean);
+}
 if(HAS_GR){
   X.tab({id: 'graphs', label: OPT.graphsLabel, before: OPT.before, render: pane => vGraphs(pane)});
   X.rendered((pane, view) => { if(view === 'quiz') quizPane(pane); });

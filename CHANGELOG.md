@@ -18,9 +18,12 @@ Dated kit changes, newest first.
   of the pass lists what was skipped. The prompts, the figures and the miss-tag tables are
   the course's `SHORT_ANSWERS`, `GRAPHS`, `GRAPH_MISS` and `GRAPH_EXAMS` data; each page
   appears only when its data is there. Not ported: the quote clean-up (`tidySpeech`), the
-  page cache and the one-exam focus mode. Its test (that course's `browser_test.js`
-  114-123 and C8 and `test.js` 60-84 ported): 40 checks pass, 7 of them build refusals;
-  with the module's code left out, 1 of 1 fails. Port queue item 20 is done.
+  page cache and the one-exam focus mode. A saved short answer of another shape is
+  cleaned when the progress is read in. `ci/oncourse.js` writes the module's own course
+  from that course's data. Its test (that course's `browser_test.js` 114-123 and C8 and
+  `test.js` 60-84 ported, with persistence checks): 69 checks pass, 7 of them build
+  refusals; with the module's code left out, 1 of 1 fails. Port queue item 20 is partial
+  (left: the transcript-quote clean-up).
 
 ## 2026-11-01
 - `core/`: an exam with `questions: null` or a pool with `marks: null` no longer breaks the page (`nullexam.js`).
