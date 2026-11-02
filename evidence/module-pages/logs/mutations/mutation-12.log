@@ -1,0 +1,47 @@
+checking sources...
+  14 sources and sw.js parse cleanly
+  scheduler: concept (no library)
+  7 questions in 2 topics, from 1 question file: q1_topics.js
+  feature module-pages v1: build step done
+  feature module-pages v1 in the page (options {"modules": [], "title": "Study by module"})
+  feature chained-problem-sets v2: build step done
+  feature chained-problem-sets v2 in the page
+  change log: 1 entries, newest "2026-10-02 (set up from the template)"
+  assembled script parses cleanly
+wrote index.html  (0.28 MB)
+wrote COURSE0000_Drill.html  (redirect to index.html)
+wrote version.json  (built 2026-11-02T19:02:18Z)
+  note: placeholder icons (a plain square) for icon-192.png, icon-512.png, icon-maskable-512.png, apple-touch-icon.png; put the course's own PNGs under src/icons/ to replace them
+wrote manifest.json and the icons
+wrote sw.js  (caches named course-id-drill-v<n>; 7 files saved at install)
+
+
+=== the course's own objectives and kinds of problem ===
+  ok    the page carries module-pages, working
+  skip  every calculation belongs to a kind of problem  — the course declares no CALC_TYPES for a module with calculations
+  ok    every concept question of a module with objectives belongs to one (7 questions)
+  FAIL  every kind of problem's worked example is of its own kind (1 kinds)  — m1-dose
+
+=== the build step stops on bad module data ===
+  ok    an objective naming a subtopic not in TOPICS stops the build and says so
+  ok    an objective of a module the course does not have stops the build and says so
+  ok    two objectives of one module with one number stops the build and says so
+  ok    a kind of problem matching a topic not in TOPICS stops the build and says so
+  ok    two kinds of problem with one id stops the build and says so
+  ok    a worked example not in the bank stops the build and says so
+  ok    a worked example that is not a calculation stops the build and says so
+  ok    a worked example of another kind stops the build and says so
+  ok    a modules option of the wrong shape stops the build and says so
+
+=== on a scratch copy with Basic-Pharmacokinetics' Module 2 (Chromium) ===
+  ok    Topics shows a card per module, above the topic list, and keeps the topic list
+  FAIL  the Module 2 card offers Concepts (10 questions, 5 objectives) and Calculations (12 problems, 4 types), and no Worksheets without worksheets-ink  — ["concepts: 22 questions · 5 objectives"]
+  FAIL  Concepts lists the 5 objectives and All objectives, under the module's heading; no status line without concept-statuses  — {"objs":5,"all":true,"h2":"Module 2 - IV Bolus Administration","status":0,"tabs":["concepts:true"]}
+  ok    an objective's drill draws only concepts of its subtopics (4)
+  FAIL  an objective whose subtopics also hold calculations draws only their concept questions (2 of the 2 concept and 6 calculation questions there)  — ["mpt-m2-mod-1","mpt-m2-mod-2","mpt-m2-n-c0a","mpt-m2-n-c15","mpt-m2-n-cl2","mpt-m2-n-k1","mpt-m2-n-k2","mpt-m2-n-vd1"]
+  ok    coming back to Topics from the quiz shows the module's page again
+FAIL: features/module-pages/test.js: page.click: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for locator('#v-topics .mtab[data-mpsec="calcs"]')[22m
+
+    at /tmp/port-module-pages/with/src/features/module-pages/test.js:169:16

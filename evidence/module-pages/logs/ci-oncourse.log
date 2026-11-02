@@ -1,0 +1,3 @@
+module-pages ci/oncourse.js: appended to /tmp/port-module-pages/ci/src/course.js:
+;/* switched on by features/module-pages/ci/oncourse.js */ COURSE.features = Object.assign({}, COURSE.features, {"module-pages": {version: "v1"}});
+module-pages ci/oncourse.js: no data files written (OBJECTIVES and CALC_TYPES are optional; the test adds its own fixture)
