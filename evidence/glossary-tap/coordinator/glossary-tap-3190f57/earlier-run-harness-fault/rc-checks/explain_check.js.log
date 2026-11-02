@@ -1,0 +1,80 @@
+
+=== Explanation quality ===
+  66 of 66 questions carry at least one issue
+
+    66  thin option why
+    18  no diagnosis of the error
+     1  vague reference
+
+  by pool:
+    58  none (supplies ? of the 4)
+     8  all (supplies 4 of the 4)
+
+  worst 30, ranked by severity x exam weight:
+
+  L04-009     L04       all             rank 16.0
+      - thin option why: B (30), C (60), D (32), E (45)
+  L04-023     L04       all             rank 16.0
+      - thin option why: A (76), B (66), C (83), D (68)
+  L04-025     L04       all             rank 16.0
+      - thin option why: A (105), B (97), C (106), D (25)
+  L04-021     L04       all             rank 14.0
+      - thin option why: A (100), C (80), D (56)
+      - no diagnosis of the error: B
+  L04-013     L04       all             rank 12.0
+      - thin option why: B (81), C (65), D (77)
+  L04-015     L04       all             rank 12.0
+      - thin option why: B (75), C (65), D (83)
+  L04-017     L04       all             rank 8.0
+      - thin option why: B (76), D (35)
+  L04-022     L04       all             rank 8.0
+      - thin option why: B (91), C (101)
+  L10-004     L10       none            rank 6.5
+      - thin option why: A (58), B (39), C (22), D (51), E (44)
+      - vague reference: concept block: "does the opposite", unnamed
+  L10-033     L10       none            rank 6.0
+      - thin option why: A (30), B (56), C (40), D (71), E (23), F (75)
+  L10-036     L10       none            rank 6.0
+      - thin option why: A (79), B (75), C (67), D (71), E (42), F (69)
+  L10-045     L10       none            rank 6.0
+      - thin option why: A (72), B (77), C (97), D (78), E (29), F (30)
+  L10-053     L10       none            rank 6.0
+      - thin option why: A (67), B (46), C (62), D (43), E (27)
+      - no diagnosis of the error: F, G
+  L10-058     L10       none            rank 6.0
+      - thin option why: A (56), B (33), C (32), D (24), E (38), F (71)
+  L10-041     L10       none            rank 5.5
+      - thin option why: A (61), B (92), C (76), D (28), F (48)
+      - no diagnosis of the error: E
+  L10-001     L10       none            rank 5.0
+      - thin option why: A (84), B (57), C (56), D (39), E (40)
+  L10-002     L10       none            rank 5.0
+      - thin option why: A (68), B (36), C (48), D (25), E (25)
+  L10-007     L10       none            rank 5.0
+      - thin option why: A (94), B (89), C (45), D (75), E (55)
+  L10-016     L10       none            rank 5.0
+      - thin option why: A (78), B (49), C (73), D (67), E (70)
+  L10-018     L10       none            rank 5.0
+      - thin option why: A (73), B (40), C (36), D (48), E (46)
+  L10-025     L10       none            rank 5.0
+      - thin option why: A (94), B (85), C (67), D (46), E (53)
+  L10-028     L10       none            rank 5.0
+      - thin option why: A (95), B (49), C (28), D (51), E (93)
+  L10-030     L10       none            rank 5.0
+      - thin option why: A (109), B (44), C (45), D (74), E (105)
+  L10-039     L10       none            rank 5.0
+      - thin option why: A (104), B (23), C (49), D (25), E (23)
+  L10-046     L10       none            rank 5.0
+      - thin option why: A (59), B (54), C (33), D (23), E (59)
+  L10-048     L10       none            rank 5.0
+      - thin option why: A (105), B (50), C (35), D (41), E (67)
+  L10-003     L10       none            rank 4.0
+      - thin option why: B (23), C (64), D (90), E (36)
+  L10-005     L10       none            rank 4.0
+      - thin option why: B (56), C (88), D (67), E (100)
+  L10-008     L10       none            rank 4.0
+      - thin option why: A (101), B (88), C (64), D (48)
+  L10-009     L10       none            rank 4.0
+      - thin option why: A (80), B (64), C (70), D (80)
+
+REPORT: explain_check.js: 66 of 66 questions carry at least one explanation issue

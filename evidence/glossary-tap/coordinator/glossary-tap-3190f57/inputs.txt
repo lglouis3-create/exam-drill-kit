@@ -1,0 +1,5 @@
+module glossary-tap
+commit 3190f57914087a9fbe5b8e3dd6e91937d63bc357
+core a2dbf03d6ccea270f77ac440f3fd8b7a86d855cf template cbac5bd425d480944293f8e1fb5d5d703e8baba1
+extra modules: 
+2026-11-02T22:41:38Z

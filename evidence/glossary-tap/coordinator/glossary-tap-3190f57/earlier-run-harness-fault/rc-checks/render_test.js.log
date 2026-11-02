@@ -1,0 +1,36 @@
+feature module glossary-tap (tab): TypeError: nav.querySelector is not a function
+    at evalmachine.<anonymous>:1546:17
+    at run (evalmachine.<anonymous>:1507:18)
+    at dom (evalmachine.<anonymous>:1539:7)
+    at startUp (evalmachine.<anonymous>:1560:11)
+    at evalmachine.<anonymous>:1621:5
+    at Object.askProfile (evalmachine.<anonymous>:845:3)
+    at Object.<anonymous> (/tmp/port-coord/rc-glossary-tap/src/render_test.js:15:19)
+    at Module._compile (node:internal/modules/cjs/loader:1781:14)
+    at Object..js (node:internal/modules/cjs/loader:1913:10)
+    at Module.load (node:internal/modules/cjs/loader:1505:32)
+
+=== Render smoke test ===
+  ok    topics list            7537 chars
+  ok    quiz, unanswered       1402 chars
+  ok    quiz, answered         3571 chars
+         explanations rendered: 5 option rows
+         citation present: true
+  skip  quiz, image item        no question in this bank carries an image
+  skip  quiz, numeric item answered   no numeric item in this bank
+  skip  quiz, match item answered   no match item in this bank
+  ok    weak spots             3144 chars
+  ok    reference              5930 chars
+  ok    tell apart             793 chars
+  ok    guides                 983 chars
+  ok    diagrams               3693 chars
+         figures registered: 1, step-throughs: 1
+  ok    settings               3952 chars
+  ok    settings says 66 questions; the page holds 66
+  ok    exam paper             1257 chars
+  ok    exam question count: 4 of 4
+         0 questions carry an image
+
+Render smoke test passed
+
+PASS: render_test.js: every view rendered clean
