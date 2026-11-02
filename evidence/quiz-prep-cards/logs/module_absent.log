@@ -1,0 +1,6 @@
+build.py exit 0
+
+=== the course's own quizzes ===
+  FAIL  the page carries quiz-prep-cards, working  — []
+FAIL: features/quiz-prep-cards/test.js: 1 of 1 checks failed: the page carries quiz-prep-cards, working
+test.js exit 1

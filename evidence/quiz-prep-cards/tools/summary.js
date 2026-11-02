@@ -1,0 +1,11 @@
+const d = JSON.parse(require('fs').readFileSync(process.argv[2], 'utf8'));
+console.log(JSON.stringify(d.counts));
+console.log(d.topics.map(t => t.id + ':' + t.subs.map(s => s.id)).join(' | '));
+console.log(d.lectures.map(l => l.id + ' ' + l.deck + ' module ' + l.module).join('\n'));
+console.log(d.skills.map(s => s.id).join(','));
+for(const q of d.qs) console.log(q.id, q.type || '', q.multi ? 'multi' : '', q.module, q.topic + '/' + q.sub, q.skill, 'dupOf=' + (q.dupOf || ''), Object.keys(q).join(','));
+const names = new RegExp([...new Set(d.qs.map(q => q.prof))].join('|'));
+const where = [];
+const walk = (o, p) => { if(typeof o === 'string'){ if(names.test(o)) where.push(p); } else if(o && typeof o === 'object') for(const k of Object.keys(o)) walk(o[k], p + '.' + k); };
+walk({quizzes: d.quizzes, topics: d.topics, qs: d.qs, lectures: d.lectures, skills: d.skills}, '');
+console.log('professor name at:', where.join(' '));

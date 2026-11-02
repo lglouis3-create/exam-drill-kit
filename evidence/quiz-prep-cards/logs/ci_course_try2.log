@@ -1,0 +1,152 @@
+$ core/ci_course.sh module:quiz-prep-cards   (kit e407385, 2026-11-02T22:58:09Z)
+== modules switched on, in this order: quiz-prep-cards
+-- quiz-prep-cards: node features/quiz-prep-cards/ci/oncourse.js
+wrote: /tmp/port-quiz-prep-cards/tmp/kit-ci-z3ery5/course/src/q90_qpc_pk.js (6 topics, 26 questions from the fixture in test.js)
+wrote: appended to /tmp/port-quiz-prep-cards/tmp/kit-ci-z3ery5/course/src/course.js: q90_qpc_pk.js in COURSE.files, lectures L08, L09, L10, L11, L12, 4 skills (multidose, bioavail, pkpd, nonlin), 2 quizzes (q5 2026-10-19T08:00, q4 2026-10-05T08:00), and quiz-prep-cards v1 on
+== module:quiz-prep-cards, chromium, kit e407385
+PASS     build.py          wrote index.html  (0.33 MB)
+FAIL     test.js           2 failure(s)
+PASS     style_check.js    33 stems and 33 explanations clean
+PASS     render_test.js    every view rendered clean
+REPORT   explain_check.js  5 of 33 questions carry at least one explanation issue
+PASS     stepper_test.js   1 step-through(s) settle at every step
+NOT RUN  cite_check.py     no lecture PDFs found under decks/ or src/
+PASS     device_lint.js    3 checks passed
+FAIL     output_test.js    1 of 16 checks failed: test.js reads that page and passes
+PASS     files_test.js     13 checks passed
+PASS     tables_test.js    20 checks passed
+FAIL     checks_test.js    5 of 32 checks failed: test.js passes with exit 0 and a PASS line; run_checks.sh exits 0 when nothing fails (a NOT RUN is listed, not failed); a passing check is one PASS line with its summary …
+PASS     draw_test.js      9 checks passed
+PASS     browser_test.js   98 checks passed (5 skipped: concept-block figures render after answering; drawn structures; stems that promise a figure show one …)
+PASS     storage_test.js   24 checks passed
+PASS     startup_test.js   77 checks passed
+PASS     update_test.js    38 checks passed
+PASS     offline_test.js   29 checks passed
+PASS     home_test.js      36 checks passed
+PASS     history_test.js   28 checks passed
+PASS     scheduler_test.js 110 checks passed
+PASS     preview_test.js   14 checks passed
+PASS     state_check.js    2 checks passed
+PASS     state_check_test.js 8 checks passed
+PASS     oldcache_test.js  12 checks passed
+PASS     nullexam_test.js  76 checks passed (1 skipped: the Weighting chips)
+PASS     features_test.js  40 checks passed
+FAIL     features/quiz-prep-cards/test.js 1 of 54 checks failed: an answer in a quiz drill is saved 400 ms later and survives a reload
+22 PASS, 4 FAIL, 1 NOT RUN, 1 REPORT; logs in /tmp/port-quiz-prep-cards/tmp/drill-checks-JpCXhC
+
+---- test.js (failing lines, then the end of its log) ----
+  FAIL  pd-c13: only 2 options
+  FAIL  nl-c01: only 2 options
+  ok    every question carries a skill from the course taxonomy (recall, tell, apply, read, calc, multidose, bioavail, pkpd, nonlin)
+  ok    numeric grading accepts the answer within tolerance and rejects the rest
+
+=== 6. Storage isolation ===
+  ok    progress written under namespaced key: course-id-drill:data:me
+  ok    the page opened without asking for a name
+=== 7. Different wording when a missed concept returns ===
+  ok    returned as a different question (cq4-5 -> m6b-c14)
+=== 8. Small pools end instead of looping ===
+  ok    pool of 2 served 2 (2 distinct) then stopped
+  ok    "Ask everything" still serves (10 more)
+
+=== 9. Figures, read links, change log, blueprint ===
+  ok    every DIAGRAMS key is in DIA
+  ok    1 step-through figure(s), each with a dot per step
+  ok    2 read link(s), every one naming guide, tell or ref
+  7 of 33 questions resolve to a reading section (the rest group by topic in the review plan)
+  ok    a session is the run with no half-hour gap (2 of 4 answers)
+  ok    a correct answer marked "not sure" does not count as solid
+  skip  blueprint draw (this course draws by pool marks, not announced counts)
+  ok    1 change log entry embedded, each with bullets
+
+FAILURES: 2  (warnings: 9)
+
+FAIL: test.js: 2 failure(s)
+
+---- output_test.js (failing lines, then the end of its log) ----
+  FAIL  test.js reads that page and passes  — FAIL: test.js: 2 failure(s)
+
+=== Where the build writes and the checks read ===
+  ok    no file in the source tree names /mnt/user-data (58 files read)
+  ok    every check that reads the built page gets its location from built_page.js (7 checks)
+  ok    no check works out the page name from course.js itself
+  ok    the build runs in a fresh copy
+  ok    the app is written to the repository root as index.html
+  ok    .nojekyll is written beside it
+  ok    the course.js output name (COURSE0000_Drill.html) is a redirect to index.html
+  ok    no temporary file is left behind
+  ok    nothing built is written into src/
+  ok    built_page.js names the repository root index.html
+  FAIL  test.js reads that page and passes  — FAIL: test.js: 2 failure(s)
+  ok    DRILL_PAGE points every check at another page
+  ok    without course.js `manifest`, manifest.json has no description and no orientation
+  ok    course.js `manifest` gives manifest.json its description and orientation
+  ok    course.js `manifest` with an orientation the web manifest does not name stops the build before it writes
+  ok    course.js `manifest` with a field other than description and orientation stops the build before it writes
+FAIL: output_test.js: 1 of 16 checks failed: test.js reads that page and passes
+
+---- checks_test.js (failing lines, then the end of its log) ----
+  FAIL  test.js passes with exit 0 and a PASS line  — exit 1: FAIL: test.js: 2 failure(s)
+  FAIL  run_checks.sh exits 0 when nothing fails (a NOT RUN is listed, not failed)  — exit 1
+  FAIL  a passing check is one PASS line with its summary
+  FAIL  run_checks.sh ends with the counts
+  FAIL  test.js passes on a course whose diagrams.js declares no DIAGRAMS list  — exit 1: FAIL: test.js: 2 failure(s)
+  ok    explain_check.js with no built page exits 2 and says NOT RUN
+  ok    stepper_test.js with no built page exits 2 and says NOT RUN
+  ok    browser_test.js with no built page exits 2 and says NOT RUN
+  ok    cite_check.py with no built page exits 2 and says NOT RUN
+  ok    the build runs in the copy
+  ok    explain_check.js is a report: exit 0, last line REPORT
+  ok    cite_check.py with no decks exits 2 and says NOT RUN
+  FAIL  test.js passes with exit 0 and a PASS line  — exit 1: FAIL: test.js: 2 failure(s)
+  ok    browser_test.js without Playwright exits 2 and says NOT RUN
+  ok    stepper_test.js without Playwright exits 2 and says NOT RUN
+  ok    device_lint.js passes on the clean copy
+  ok    device_lint.js fails on a lookbehind in a shipped source and names the line
+  ok    run_checks.sh prints FAIL for it and exits 1
+  ok    device_lint.js fails on a lookbehind that reaches only the built page
+  FAIL  run_checks.sh exits 0 when nothing fails (a NOT RUN is listed, not failed)  — exit 1
+  ok    run_checks.sh builds first and reports the build
+  FAIL  a passing check is one PASS line with its summary
+  ok    a report is one REPORT line
+  ok    a check that could not run is one NOT RUN line with the reason
+  ok    the device lint is one PASS line on the clean copy
+  FAIL  run_checks.sh ends with the counts
+  ok    every check run_checks.sh lists is in the source tree (25)
+  FAIL  test.js passes on a course whose diagrams.js declares no DIAGRAMS list  — exit 1: FAIL: test.js: 2 failure(s)
+  ok    render_test.js passes on a course whose diagrams.js declares no DIAGRAMS list
+FAIL: checks_test.js: 5 of 32 checks failed: test.js passes with exit 0 and a PASS line; run_checks.sh exits 0 when nothing fails (a NOT RUN is listed, not failed); a passing check is one PASS line with its summary …
+
+---- features/quiz-prep-cards/test.js (failing lines, then the end of its log) ----
+  ok    no page error and no module error
+  ok    no page error with the clock moved
+  FAIL  an answer in a quiz drill is saved 400 ms later and survives a reload  — {"before":26,"quick":26,"late":26}
+  ok    no page error
+  ok    quota: no page error
+  ok    denied: no page error
+  ok    Mon 19 Oct: Quiz 5 says quiz day at 07:00 and in progress at 08:10, and its card is gone at 08:24, its start plus 24 minutes
+  ok    no page error with the clock moved
+
+=== persistence: Export and Import, a profile switch, reloads ===
+  ok    the two straight passes record 26 answers (14 on Quiz 5, 12 on Quiz 4), all on the quizzes' questions
+  ok    Export writes the 26 answers; the hide flag is not in it (it is kept per browser)
+  ok    a profile switch: the other profile has no answers, and switching back brings the 26 answers back
+  ok    the hidden Quiz 4 card stays hidden in both profiles (one browser)
+  ok    a reload at once (under 150 ms) and 400 ms after Hide keeps the hidden card hidden (Quiz 5 both times; Quiz 4 shows again after Show again)
+  note  an answer followed at once by a reload: 0 of 1 kept (the core saves 150 ms after the last change); 400 ms later: 0 of 1 kept
+  FAIL  an answer in a quiz drill is saved 400 ms later and survives a reload  — {"before":26,"quick":26,"late":26}
+  ok    no page error
+  ok    Import into a fresh browser brings the same 26 answers and 19 concepts back
+  ok    in the fresh browser both cards show: a hidden card is hidden on its own browser only
+
+=== persistence: storage full and storage denied ===
+  ok    quota: Hide shows the notice that nothing was saved, and the card is hidden for this visit
+  ok    quota: the saved Quiz 4 flag and the 14 saved answers are unchanged
+  ok    quota: with storage working again, the saved flag and the 14 answers load; the Hide that was not saved is not applied
+  ok    quota: no page error
+  ok    denied: Hide shows the notice that nothing was saved, and the card is hidden for this visit
+  ok    denied: the saved Quiz 4 flag and the 14 saved answers are unchanged
+  ok    denied: with storage working again, the saved flag and the 14 answers load; the Hide that was not saved is not applied
+  ok    denied: no page error
+FAIL: features/quiz-prep-cards/test.js: 1 of 54 checks failed: an answer in a quiz drill is saved 400 ms later and survives a reload
+exit code: 1

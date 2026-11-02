@@ -1,0 +1,41 @@
+
+=== the course's own quizzes ===
+  ok    the page carries quiz-prep-cards, working
+  FAIL  every quiz covers at least one question, and only questions of the topics or modules it names (2 quizzes)  — q5, q4
+  ok    one card per quiz still ahead and not hidden (0 of 2)
+
+=== Quiz 5 of the fixture: the days left and the end of the quiz ===
+  ok    the days-left line for Quiz 5 (2026-10-19T08:00, 24 minutes) at 5 fixed times
+  ok    Quiz 5 is ahead until its start plus its 24 minutes (08:24), and not after
+
+=== the build step stops on bad quiz data ===
+  ok    no quizzes stops the build and says so
+  ok    a topic that TOPICS does not have stops the build and says so
+  ok    a module no question carries stops the build and says so
+  ok    a quiz that covers no question stops the build and says so
+  ok    a when that is not YYYY-MM-DDTHH:MM stops the build and says so
+  ok    minutes below 0 stops the build and says so
+  ok    an id with a space stops the build and says so
+  ok    two quizzes with one id stops the build and says so
+  ok    a field the module does not read stops the build and says so
+  ok    said that is not a list stops the build and says so
+  ok    a tag other than sub, sup, b, i, em in a said line stops the build and says so
+  ok    a tag in covers stops the build and says so
+
+=== on a scratch copy with Basic-Pharmacokinetics' Quiz 5 and Quiz 4 (Chromium) ===
+  ok    Fri 2 Oct 2026: a card for each of the two quizzes ahead, in the course's order
+  ok    the Quiz 5 card names the quiz, its day and time, the days left (17) and what it covers
+  ok    the Quiz 4 card says 3 days until the quiz
+  ok    the card carries the professor's words and the source
+  ok    every said line is listed (8 and 11), with each <sub> and <sup> kept
+  ok    {{frac:a|b}} is written (a)/(b) when formulas-in-text is off
+  ok    the cards sit under the build stamp or the What's new card, above the Topics filters
+  ok    the Hide button says what it hides
+  FAIL  the Quiz 5 card offers concepts (0), calculations (0), everything (0) and a straight pass (0)  — ["Everything on this quiz, adaptive0 questions — missed concepts first; stops when nothing is due Start","Straight pass0 questions, each asked once, shuffled, nothing held back by scheduling Start"]
+FAIL: features/quiz-prep-cards/test.js: crashed: page.evaluate: TypeError: Cannot read properties of null (reading 'label')
+    at eval (eval at evaluate (:311:30), <anonymous>:1:32)
+    at UtilityScript.evaluate (<anonymous>:313:16)
+    at UtilityScript.<anonymous> (<anonymous>:1:44)
+    at ev (/tmp/port-quiz-prep-cards/tmp/qp-mut-M01-r2rio8xy/course/src/features/quiz-prep-cards/test.js:143:31)
+    at drill (/tmp/port-quiz-prep-cards/tmp/qp-mut-M01-r2rio8xy/course/src/features/quiz-prep-cards/test.js:181:14)
+    at async /tmp/port-quiz-prep-cards/tmp/qp-mut-M01-r2rio8xy/course/src/features/quiz-prep-cards/test.js:186:17

@@ -1,0 +1,353 @@
+[
+ {
+  "id": "M01",
+  "file": "quiz-prep-cards.js",
+  "what": "a quiz scope ignores `modules`",
+  "exit": 1,
+  "failed": [
+   "every quiz covers at least one question, and only questions of the topics or modules it names (2 quizzes)",
+   "the Quiz 5 card offers concepts (0), calculations (0), everything (0) and a straight pass (0)"
+  ],
+  "caught": true
+ },
+ {
+  "id": "M02",
+  "file": "quiz-prep-cards.js",
+  "what": "no question counts as a calculation",
+  "exit": 1,
+  "failed": [
+   "the Quiz 5 card offers concepts (4), calculations (4), everything (8) and a straight pass (8)"
+  ],
+  "caught": true
+ },
+ {
+  "id": "M03",
+  "file": "quiz-prep-cards.js",
+  "what": "the quiz ends at its start, not start plus minutes",
+  "exit": 1,
+  "failed": [
+   "the days-left line for Quiz 5 (2026-10-19T08:00, 24 minutes) at 5 fixed times",
+   "Quiz 5 is ahead until its start plus its 24 minutes (08:24), and not after",
+   "Mon 19 Oct: Quiz 5 says quiz day at 07:00 and in progress at 08:10, and its card is gone at 08:24, its start plus 24 minutes"
+  ],
+  "caught": true
+ },
+ {
+  "id": "M04",
+  "file": "quiz-prep-cards.js",
+  "what": "days left counted in hours rounded up, not calendar days",
+  "exit": 1,
+  "failed": [
+   "the days-left line for Quiz 5 (2026-10-19T08:00, 24 minutes) at 5 fixed times",
+   "Mon 19 Oct: Quiz 5 says quiz day at 07:00 and in progress at 08:10, and its card is gone at 08:24, its start plus 24 minutes"
+  ],
+  "caught": true
+ },
+ {
+  "id": "M05",
+  "file": "quiz-prep-cards.js",
+  "what": "no in-progress line",
+  "exit": 1,
+  "failed": [
+   "the days-left line for Quiz 5 (2026-10-19T08:00, 24 minutes) at 5 fixed times",
+   "Mon 19 Oct: Quiz 5 says quiz day at 07:00 and in progress at 08:10, and its card is gone at 08:24, its start plus 24 minutes"
+  ],
+  "caught": true
+ },
+ {
+  "id": "M06",
+  "file": "quiz-prep-cards.js",
+  "what": "a hidden card is never hidden",
+  "exit": 1,
+  "failed": [
+   "Hide removes the card and the choice survives a reload",
+   "Settings offers to put the hidden card back, by name"
+  ],
+  "caught": true
+ },
+ {
+  "id": "M07",
+  "file": "quiz-prep-cards.js",
+  "what": "a card for every quiz, over or hidden",
+  "exit": 1,
+  "failed": [
+   "one card per quiz still ahead and not hidden (0 of 2)",
+   "Hide removes the card and the choice survives a reload",
+   "Mon 12 Oct: no card for Quiz 4, which is over; Quiz 5 is 7 days away",
+   "Mon 19 Oct: Quiz 5 says quiz day at 07:00 and in progress at 08:10, and its card is gone at 08:24, its start plus 24 minutes",
+   "the hidden Quiz 4 card stays hidden in both profiles (one browser)",
+   "a reload at once (under 150 ms) and 400 ms after Hide keeps the hidden card hidden (Quiz 5 both times; Quiz 4 shows again after Show again)",
+   "quota: Hide shows the notice that nothing was saved, and the card is hidden for this visit",
+   "quota: with storage working again, the saved flag and the 8 answers load; the Hide that was not saved is not applied",
+   "denied: Hide shows the notice that nothing was saved, and the card is hidden for this visit",
+   "denied: with storage working again, the saved flag and the 8 answers load; the Hide that was not saved is not applied"
+  ],
+  "caught": true
+ },
+ {
+  "id": "M08",
+  "file": "quiz-prep-cards.js",
+  "what": "<sub> and <sup> shown as text",
+  "exit": 1,
+  "failed": [
+   "every said line is listed (8 and 11), with each <sub> and <sup> kept",
+   "{{frac:a|b}} is written (a)/(b) when formulas-in-text is off"
+  ],
+  "caught": true
+ },
+ {
+  "id": "M09",
+  "file": "quiz-prep-cards.js",
+  "what": "{{frac}} left raw without formulas-in-text",
+  "exit": 1,
+  "failed": [
+   "{{frac:a|b}} is written (a)/(b) when formulas-in-text is off"
+  ],
+  "caught": true
+ },
+ {
+  "id": "M10",
+  "file": "quiz-prep-cards.js",
+  "what": "the straight pass asks one question twice",
+  "exit": 1,
+  "failed": [
+   "the Quiz 4 straight pass queues each of its 12 questions once",
+   "the two straight passes record 22 answers (9 on Quiz 5, 13 on Quiz 4), all on the quizzes' questions"
+  ],
+  "caught": true
+ },
+ {
+  "id": "M11",
+  "file": "quiz-prep-cards.js",
+  "what": "concepts and calculations drills not narrowed",
+  "exit": 1,
+  "failed": [
+   "the concepts drill (8) has no typed number and the calculations drill (8) only typed numbers"
+  ],
+  "caught": true
+ },
+ {
+  "id": "M12",
+  "file": "quiz-prep-cards.js",
+  "what": "Hide kept for the visit only, not stored",
+  "exit": 1,
+  "failed": [
+   "Hide removes the card and the choice survives a reload",
+   "Settings offers to put the hidden card back, by name"
+  ],
+  "caught": true
+ },
+ {
+  "id": "M13",
+  "file": "quiz-prep-cards.js",
+  "what": "Show again does nothing",
+  "exit": 1,
+  "failed": [
+   "the card is back on Topics and Settings says no card is hidden"
+  ],
+  "caught": true
+ },
+ {
+  "id": "M14",
+  "file": "quiz-prep-cards.js",
+  "what": "Settings offers back a hidden card of a quiz that is over",
+  "exit": 1,
+  "failed": [
+   "a hidden card of a quiz that is over is not offered back in Settings"
+  ],
+  "caught": true
+ },
+ {
+  "id": "M15",
+  "file": "quiz-prep-cards.js",
+  "what": "the cards go above the heading, not under the stamp",
+  "exit": 1,
+  "failed": [
+   "the cards sit under the build stamp or the What's new card, above the Topics filters"
+  ],
+  "caught": true
+ },
+ {
+  "id": "M16",
+  "file": "quiz-prep-cards.js",
+  "what": "Settings does not name the hidden quiz",
+  "exit": 1,
+  "failed": [
+   "Settings offers to put the hidden card back, by name"
+  ],
+  "caught": true
+ },
+ {
+  "id": "M17",
+  "file": "quiz-prep-cards.js",
+  "what": "the first tooltip, which the core reads as skipping a question",
+  "exit": 1,
+  "failed": [
+   "the Hide button says what it hides"
+  ],
+  "caught": true
+ },
+ {
+  "id": "M18",
+  "file": "quiz-prep-cards.js",
+  "what": "what the quiz covers is not shown",
+  "exit": 1,
+  "failed": [
+   "the Quiz 5 card names the quiz, its day and time, the days left (17) and what it covers",
+   "the Quiz 4 card says 3 days until the quiz"
+  ],
+  "caught": true
+ },
+ {
+  "id": "M19",
+  "file": "quiz-prep-cards.js",
+  "what": "the professor's words are not shown",
+  "exit": 1,
+  "failed": [
+   "the card carries the professor's words and the source"
+  ],
+  "caught": true
+ },
+ {
+  "id": "M20",
+  "file": "quiz-prep-cards.js",
+  "what": "the source is not shown",
+  "exit": 1,
+  "failed": [
+   "the card carries the professor's words and the source"
+  ],
+  "caught": true
+ },
+ {
+  "id": "M21",
+  "file": "quiz-prep-cards.js",
+  "what": "the drill is not labelled as the quiz's prep",
+  "exit": 1,
+  "failed": [
+   "Everything on this quiz starts the drill on Quiz 5's 8 questions: every fixture question of modules 9 and 8, and only those modules",
+   "the concepts drill (4) has no typed number and the calculations drill (4) only typed numbers",
+   "the Quiz 4 straight pass queues each of its 12 questions once"
+  ],
+  "caught": true
+ },
+ {
+  "id": "S01",
+  "file": "step.js",
+  "what": "a misspelt field is accepted",
+  "exit": 1,
+  "failed": [
+   "a field the module does not read stops the build and says so"
+  ],
+  "caught": true
+ },
+ {
+  "id": "S02",
+  "file": "step.js",
+  "what": "a tag in covers, quote or src is accepted",
+  "exit": 1,
+  "failed": [
+   "a tag in covers stops the build and says so"
+  ],
+  "caught": true
+ },
+ {
+  "id": "S03",
+  "file": "step.js",
+  "what": "any tag in a said line is accepted",
+  "exit": 1,
+  "failed": [
+   "a tag other than sub, sup, b, i, em in a said line stops the build and says so"
+  ],
+  "caught": true
+ },
+ {
+  "id": "S04",
+  "file": "step.js",
+  "what": "two quizzes with one id are accepted",
+  "exit": 1,
+  "failed": [
+   "two quizzes with one id stops the build and says so"
+  ],
+  "caught": true
+ },
+ {
+  "id": "S05",
+  "file": "step.js",
+  "what": "negative minutes accepted",
+  "exit": 1,
+  "failed": [
+   "minutes below 0 stops the build and says so"
+  ],
+  "caught": true
+ },
+ {
+  "id": "S06",
+  "file": "step.js",
+  "what": "a when that is not YYYY-MM-DDTHH:MM accepted",
+  "exit": 1,
+  "failed": [
+   "a when that is not YYYY-MM-DDTHH:MM stops the build and says so"
+  ],
+  "caught": true
+ },
+ {
+  "id": "S07",
+  "file": "step.js",
+  "what": "a quiz that covers no question accepted",
+  "exit": 1,
+  "failed": [
+   "a quiz that covers no question stops the build and says so"
+  ],
+  "caught": true
+ },
+ {
+  "id": "S08",
+  "file": "step.js",
+  "what": "a module no question carries accepted",
+  "exit": 1,
+  "failed": [
+   "a module no question carries stops the build and says so"
+  ],
+  "caught": true
+ },
+ {
+  "id": "S09",
+  "file": "step.js",
+  "what": "a topic TOPICS does not have accepted",
+  "exit": 1,
+  "failed": [
+   "a topic that TOPICS does not have stops the build and says so"
+  ],
+  "caught": true
+ },
+ {
+  "id": "S10",
+  "file": "step.js",
+  "what": "an id with a space accepted",
+  "exit": 1,
+  "failed": [
+   "an id with a space stops the build and says so"
+  ],
+  "caught": true
+ },
+ {
+  "id": "S11",
+  "file": "step.js",
+  "what": "an empty quiz list accepted",
+  "exit": 1,
+  "failed": [
+   "no quizzes stops the build and says so"
+  ],
+  "caught": true
+ },
+ {
+  "id": "S12",
+  "file": "step.js",
+  "what": "said that is not a list accepted",
+  "exit": 1,
+  "failed": [
+   "said that is not a list stops the build and says so"
+  ],
+  "caught": true
+ }
+]

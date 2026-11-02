@@ -1,0 +1,68 @@
+
+=== the course's own quizzes ===
+  ok    the page carries quiz-prep-cards, working
+  ok    every quiz covers at least one question, and only questions of the topics or modules it names (2 quizzes)
+  ok    one card per quiz still ahead and not hidden (0 of 2)
+
+=== Quiz 5 of the fixture: the days left and the end of the quiz ===
+  FAIL  the days-left line for Quiz 5 (2026-10-19T08:00, 24 minutes) at 5 fixed times  — 2026-10-19T08:10: "Quiz day is today.", wanted "The quiz is in progress."
+  ok    Quiz 5 is ahead until its start plus its 24 minutes (08:24), and not after
+
+=== the build step stops on bad quiz data ===
+  ok    no quizzes stops the build and says so
+  ok    a topic that TOPICS does not have stops the build and says so
+  ok    a module no question carries stops the build and says so
+  ok    a quiz that covers no question stops the build and says so
+  ok    a when that is not YYYY-MM-DDTHH:MM stops the build and says so
+  ok    minutes below 0 stops the build and says so
+  ok    an id with a space stops the build and says so
+  ok    two quizzes with one id stops the build and says so
+  ok    a field the module does not read stops the build and says so
+  ok    said that is not a list stops the build and says so
+  ok    a tag other than sub, sup, b, i, em in a said line stops the build and says so
+  ok    a tag in covers stops the build and says so
+
+=== on a scratch copy with Basic-Pharmacokinetics' Quiz 5 and Quiz 4 (Chromium) ===
+  ok    Fri 2 Oct 2026: a card for each of the two quizzes ahead, in the course's order
+  ok    the Quiz 5 card names the quiz, its day and time, the days left (17) and what it covers
+  ok    the Quiz 4 card says 3 days until the quiz
+  ok    the card carries the professor's words and the source
+  ok    every said line is listed (8 and 11), with each <sub> and <sup> kept
+  ok    {{frac:a|b}} is written (a)/(b) when formulas-in-text is off
+  ok    the cards sit under the build stamp or the What's new card, above the Topics filters
+  ok    the Hide button says what it hides
+  ok    the Quiz 5 card offers concepts (4), calculations (4), everything (8) and a straight pass (8)
+  ok    Everything on this quiz starts the drill on Quiz 5's 8 questions: every fixture question of modules 9 and 8, and only those modules
+  ok    the concepts drill (4) has no typed number and the calculations drill (4) only typed numbers
+  ok    the Quiz 4 straight pass queues each of its 12 questions once
+  ok    Hide removes the card and the choice survives a reload
+  ok    Settings offers to put the hidden card back, by name
+  ok    the card is back on Topics and Settings says no card is hidden
+  ok    no page error and no module error
+  ok    Mon 12 Oct: no card for Quiz 4, which is over; Quiz 5 is 7 days away
+  ok    a hidden card of a quiz that is over is not offered back in Settings
+  FAIL  Mon 19 Oct: Quiz 5 says quiz day at 07:00 and in progress at 08:10, and its card is gone at 08:24, its start plus 24 minutes  — ["Quiz 5 — Monday, Oct 19, 8:00 AMQuiz day is today. Her last quiz, then an in-class review. Scope not stated; this card assumes the two lectures since Exam 2: PK-PD (12 Oct) and nonlinear pharmacokinetics (14 Oct).","Quiz 5 — Monday, Oct 19, 8:00 AMQuiz day is today. Her last quiz, then an in-class review. Scope not stated; this card assumes the two lectures since Exam 2: PK-PD (12 Oct) and nonlinear pharmacokinetics (14 Oct).","no card"]
+  ok    no page error with the clock moved
+
+=== persistence: Export and Import, a profile switch, reloads ===
+  ok    the two straight passes record 20 answers (8 on Quiz 5, 12 on Quiz 4), all on the quizzes' questions
+  ok    Export writes the 20 answers; the hide flag is not in it (it is kept per browser)
+  ok    a profile switch: the other profile has no answers, and switching back brings the 20 answers back
+  ok    the hidden Quiz 4 card stays hidden in both profiles (one browser)
+  ok    a reload at once (under 150 ms) and 400 ms after Hide keeps the hidden card hidden (Quiz 5 both times; Quiz 4 shows again after Show again)
+  note  an answer followed at once by a reload: 0 of 1 kept (the core saves 150 ms after the last change); 400 ms later: 1 of 1 kept
+  ok    an answer in a quiz drill is saved 400 ms later and survives a reload
+  ok    no page error
+  ok    Import into a fresh browser brings the same 20 answers and 16 concepts back
+  ok    in the fresh browser both cards show: a hidden card is hidden on its own browser only
+
+=== persistence: storage full and storage denied ===
+  ok    quota: Hide shows the notice that nothing was saved, and the card is hidden for this visit
+  ok    quota: the saved Quiz 4 flag and the 8 saved answers are unchanged
+  ok    quota: with storage working again, the saved flag and the 8 answers load; the Hide that was not saved is not applied
+  ok    quota: no page error
+  ok    denied: Hide shows the notice that nothing was saved, and the card is hidden for this visit
+  ok    denied: the saved Quiz 4 flag and the 8 saved answers are unchanged
+  ok    denied: with storage working again, the saved flag and the 8 answers load; the Hide that was not saved is not applied
+  ok    denied: no page error
+FAIL: features/quiz-prep-cards/test.js: 2 of 54 checks failed: the days-left line for Quiz 5 (2026-10-19T08:00, 24 minutes) at 5 fixed times; Mon 19 Oct: Quiz 5 says quiz day at 07:00 and in progress at 08:10, and its card is gone at 08:24, its start plus 24 minutes
