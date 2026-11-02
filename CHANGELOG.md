@@ -4,6 +4,8 @@ Dated kit changes, newest first.
 
 ## 2026-11-02
 - Kit checks on GitHub: every pull request runs the checks in Chromium and, as information, in WebKit.
+- Checks open built pages over HTTP from 127.0.0.1, not from disk, so WebKit no longer refuses the manifest.
+- Kit checks on GitHub: each changed feature module, and each module that needs it, is checked on a course of its own.
 - New feature module `concept-statuses` v1 (`features/concept-statuses/`), from
   Basic-Pharmacokinetics `ac2eb73` (`src/views.js` 2506-2725): a Concepts section on Weak
   spots with a status per concept (Unfamiliar, Struggling, Improving, Mastered, Returning,

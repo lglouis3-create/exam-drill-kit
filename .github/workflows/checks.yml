@@ -1,12 +1,16 @@
 # Kit checks: every pull request and every push to main runs core/run_checks.sh on
 # scratch courses built from the kit (core/ci_course.sh), in Chromium, and the
-# template once in WebKit (Safari's engine, not the Safari app).
+# template once in WebKit (Safari's engine, not the Safari app). Feature modules are
+# checked on courses of their own (job "modules"): .github/ci_plan.js picks each module
+# a pull request changes, the modules that need it, and the combinations in
+# features/ci-combinations.txt; every module on a push to main or a change to core/,
+# template/ or .github/.
 #
 # A job fails on any FAIL and on any NOT RUN that is not a documented exclusion
 # (listed at the top of core/ci_course.sh), so a missing Playwright, browser or
 # pdfplumber fails it. The WebKit job is informational (continue-on-error) until its
 # first results are reviewed; it never makes the pull request red. The results are visible on each
-# pull request, and kit sessions merge only when the Chromium jobs pass (KIT_DESIGN.md
+# pull request, and kit sessions merge only when the Chromium and module jobs pass (KIT_DESIGN.md
 # §12.9). GitHub does not enforce this on this private repository (no required
 # checks or rulesets without a paid plan or a public repository).
 name: Kit checks
@@ -69,3 +73,48 @@ jobs:
           python -m pip install pdfplumber==0.11.10
       - name: Build the course and run every check in WebKit
         run: bash core/ci_course.sh template webkit
+
+  plan:
+    name: Modules to check
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      courses: ${{ steps.plan.outputs.courses }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          fetch-depth: 0
+      - id: plan
+        name: The module courses this run checks
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: node .github/ci_plan.js "$EVENT" "$BASE" >> "$GITHUB_OUTPUT"
+
+  modules:
+    name: Chromium · ${{ matrix.course }}
+    needs: plan
+    if: needs.plan.outputs.courses != '[]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        course: ${{ fromJSON(needs.plan.outputs.courses) }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
+        with:
+          python-version: '3.13'
+      - name: Playwright 1.63.0, Chromium and pdfplumber 0.11.10 (the versions the cloud container has)
+        run: |
+          npm install -g playwright@1.63.0
+          npx --yes playwright@1.63.0 install --with-deps chromium
+          python -m pip install pdfplumber==0.11.10
+      - name: Switch the modules on in a template course and run every check
+        env:
+          COURSE: ${{ matrix.course }}
+        run: bash core/ci_course.sh "$COURSE" chromium

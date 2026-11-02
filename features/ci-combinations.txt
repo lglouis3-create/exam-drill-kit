@@ -1,0 +1,15 @@
+# Modules the kit's GitHub workflow switches on together in one course
+# (.github/ci_plan.js; core/ci_course.sh modules:<a>,<b>). One combination per line,
+# module names separated by commas; `*` stands for every module in the tree. A line
+# runs when every module it names exists and at least one of them is checked in that
+# run; each module also runs alone, so the partner is checked present and absent.
+#
+# The combinations Louis named on 2026-11-02 (relayed by the "Kit feature porter"
+# session): worksheets-ink with chained-problem-sets, glossary-tap with
+# formulas-in-text, study-controls with paper-picker, notes with study-controls
+# (shared flags), and theme with the new modules.
+worksheets-ink,chained-problem-sets
+glossary-tap,formulas-in-text
+study-controls,paper-picker
+notes,study-controls
+theme,*
