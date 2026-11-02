@@ -1,0 +1,30 @@
+
+=== 1 reload 400 ms after a paper ===
+  ok    the paper's two answers carry their times
+  ok    after the reload: the 400 earlier answers and the paper's ms are back
+
+=== 2 reload 20 ms after a paper (below the core's 150 ms; reported) ===
+  report  answers of the paper back after a 20 ms reload: 0 of 2 (ms [])
+
+=== 3 Export, then Import into a fresh profile ===
+  ok    the export holds every answer (402)
+  ok    the fresh profile starts empty
+  ok    after Import: the same 402 answers with the same ms
+
+=== 4 a profile switch ===
+  FAIL  TestUser keeps its own answers, without the other profile's paper  — {"n":0,"has70":false}
+  ok    the other profile keeps its own paper times
+
+=== 5 storage denied (setItem throws) ===
+  ok    the student is told the progress was not saved
+  ok    the paper's times are kept in the page for this visit
+  ok    the progress already stored is not overwritten
+  ok    after storage works again, the saved progress loads (0 answers)
+
+=== 5 storage full (QuotaExceededError) ===
+  ok    the student is told the progress was not saved
+  ok    the paper's times are kept in the page for this visit
+  ok    the progress already stored is not overwritten
+  ok    after storage works again, the saved progress loads (0 answers)
+  ok    no page error
+FAIL: persistence_test.js (stopwatch evidence): 1 of 16 checks failed: TestUser keeps its own answers, without the other profile's paper

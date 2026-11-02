@@ -1,0 +1,11 @@
+M1	exit 1	5 failed	a calculation shows one running clock in its card head; its title gives the professor's pace; it counts in place (the same element, the text moved on); past 2 minutes it is red and says over 2:00; the clock runs with no pace and no "over"
+M2	exit 1	3 failed	it counts in place (the same element, the text moved on); past 2 minutes it is red and says over 2:00; the clock runs with no pace and no "over"
+M3	exit 1	2 failed	past 2 minutes it is red and says over 2:00; after the answer it stops on the time taken, over the pace
+M4	exit 1	4 failed	after the answer it stops on the time taken, over the pace; the time shown is the ms the engine recorded with the answer; an answer within the pace is shown in green, with no "over"; it stops on the time taken, with no pace colour
+M5	exit 1	1 failed	an answer within the pace is shown in green, with no "over"
+M6	exit 1	2 failed	a multiple-choice question has no clock; the multiple-choice question of the paper has no clock
+M7	exit 1	1 failed	each answer of the submitted paper keeps its question's time as ms (Back added to the calculation's)
+M8	exit 1	1 failed	each answer of the submitted paper keeps its question's time as ms (Back added to the calculation's)
+M9	exit 1	2 failed	the clock runs with no pace and no "over"; it stops on the time taken, with no pace colour
+M10	exit 1	2 failed	an exam calculation shows its own clock; the time on each paper question is added up while it is shown: 40, 20 s; back on the calculation its clock reads undefined
+caught 10 of 10
