@@ -9,8 +9,10 @@
  * Quiz 5), the questions on them and the questions their dupOf names, their problem
  * sets, their topics, the skills those questions use and the lectures their cites
  * name. Ids are prefixed `wsc-` (the test's own scratch copies use `wsi-`, so the two
- * never share an id). The one change to the data: `prof` is the course's own
- * (COURSE.professors[0], the template's "Professor"), as the test does. Files written
+ * never share an id). The changes to the data: `prof` is the course's own
+ * (COURSE.professors[0], the template's "Professor"), as the test does; and a question's
+ * `setup` line (plan-the-problem's) is left out when it names an equation the course's
+ * EQUATIONS does not have. Files written
  * in <courseSrcDir>:
  *   q90_wsc_fixture.js   the topics (pushed onto TOPICS) and the questions, one per line
  *                        in the template's form ({id:'…', prof:'…', …}), pushed onto QUESTIONS
@@ -55,7 +57,8 @@ try {
   const files = vm.runInNewContext(courseText + '\n;COURSE.files', {}) || [];
   const code = files.map(f => fs.readFileSync(path.join(src, f), 'utf8')).join('\n;\n');
   own = vm.runInNewContext(courseText + '\n;\n' + code + '\n;({COURSE, TOPICS: typeof TOPICS === "undefined" ? [] : TOPICS, QUESTIONS: typeof QUESTIONS === "undefined" ? [] : QUESTIONS,' +
-    ' SOURCES: typeof SOURCES !== "undefined", CHAINS: typeof CHAINS !== "undefined"})', {});
+    ' SOURCES: typeof SOURCES !== "undefined", CHAINS: typeof CHAINS !== "undefined",' +
+    ' EQ: typeof EQUATIONS !== "undefined" && Array.isArray(EQUATIONS) ? EQUATIONS.map(e => e && e.id) : []})', {});
 } catch(e){ fail('the course could not be read: ' + e.message); }
 if(typeof own.QUESTIONS.push !== 'function') fail('the course declares no QUESTIONS list');
 const prof = (own.COURSE.professors || [])[0];
@@ -74,8 +77,13 @@ const topics = PK.topics.filter(t => qsRaw.some(q => q.topic === t.id) && !ownTo
 const skills = PK.skills.filter(k => qsRaw.some(q => q.skill === k.id) && !ownSkills.includes(k.id));
 const lectures = PK.lectures.filter(l => qsRaw.some(q => (q.cite || '').includes(l.deck))).map(l => Object.assign({}, l, {id: pre(l.id), prof}));
 const sources = docs.map(s => Object.assign({}, s, {id: pre(s.id), chains: (s.chains || []).map(pre), items: s.items.map(it => ({q: pre(it.q), label: it.label}))}));
+// a question's `setup` is plan-the-problem's (worksheets-ink does not read it): it is left out when it names an
+// equation the course's EQUATIONS does not have, since plan-the-problem's build step refuses it
+const EQ = new Set(own.EQ || []), setupOk = st => !!st && (st.eq === 'none' || EQ.has(st.eq)) && (st.pre || []).every(id => EQ.has(id));
+let dropped = 0;
 // one question per line, in the template's form: id and prof first, unquoted
 const qLine = q => { const rest = Object.assign({}, q); delete rest.id;
+  if(rest.setup !== undefined && !setupOk(rest.setup)){ delete rest.setup; dropped++; }
   if(rest.dupOf) rest.dupOf = pre(rest.dupOf); if(rest.lecture) rest.lecture = pre(rest.lecture);
   const body = JSON.stringify(rest).slice(1, -1);
   return `{id:'${pre(q.id)}', prof:'${prof.replace(/'/g, "\\'")}'${body ? ', ' + body : ''}},`; };
@@ -98,4 +106,4 @@ const line = `\n;/* worksheets-ink ci */ COURSE.files = (COURSE.files || []).con
   `COURSE.features = Object.assign({}, COURSE.features, {"worksheets-ink": ${JSON.stringify(cfg)}});\n`;
 try { fs.appendFileSync(course, line); } catch(e){ fail('cannot write ' + course + ': ' + e.message); }
 console.log('wrote: appended to ' + course + ':' + line.trimEnd());
-console.log(`data: ${sources.length} documents (${PK.ci.join(', ')}), ${qsRaw.length} questions, ${chains.length} problem sets, ${topics.length} topics, ${skills.length} skills, ${lectures.length} lectures`);
+console.log(`data: ${sources.length} documents (${PK.ci.join(', ')}), ${qsRaw.length} questions, ${chains.length} problem sets, ${topics.length} topics, ${skills.length} skills, ${lectures.length} lectures; ${dropped} setup lines left out (equations the course does not have)`);

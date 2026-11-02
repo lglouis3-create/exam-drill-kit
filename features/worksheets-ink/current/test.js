@@ -87,7 +87,10 @@ function fixtureFiles(own, mutate){
             decl('CHAINS', chains, own.CHAINS) + '\n' + decl('SOURCES', sources, own.SOURCES) + '\n' + `COURSE.lectures.push(...${JSON.stringify(lectures)});\nCOURSE.skills.push(...${JSON.stringify(skills)});\n`};
 }
 const courseLine = opt => "COURSE.files = (COURSE.files || ['atlas.js', 'diagrams.js', 'q1_topics.js']).filter(f => f !== 'ws_test_data.js').concat(['ws_test_data.js']);" +
-  'COURSE.exams.forEach(e => { e.typed = true; });' + L.featureOn(__dirname, Object.assign({}, PK_OPT, opt || {}));
+  'COURSE.exams.forEach(e => { e.typed = true; });' + L.featureOn(__dirname, Object.assign({}, PK_OPT, opt || {})) +
+  // plan-the-problem, when the course has it on, is switched off in these copies: the fixture's questions keep
+  // their `setup` lines, which name equations the course's EQUATIONS need not have (its build step refuses them)
+  "if(COURSE.features) delete COURSE.features['plan-the-problem'];";
 const countOf = (h, re) => (h.match(re) || []).length;
 
 (async () => {
