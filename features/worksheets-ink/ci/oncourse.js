@@ -2,19 +2,24 @@
  *
  *     node features/worksheets-ink/ci/oncourse.js <kitDir> <courseSrcDir>
  *
- * The course data is the fixture of the module's own test.js (its `const PK = ...`
- * line: four of Basic-Pharmacokinetics' documents, their 33 questions, 6 problem
- * sets and 3 topics, verbatim from ac2eb73), written the way that test's
- * fixtureFiles writes it, with the ids prefixed `wsc-` (the test's own scratch
- * copies use `wsi-`, so the two never share an id) and each question's professor
- * and skill set to the course's own (COURSE.professors[0], and the skill of the
- * course's first calculation question, else its first skill). Files written in
- * <courseSrcDir>:
- *   q90_wsc_fixture.js   the topics and questions (pushed onto TOPICS and QUESTIONS)
- *   wsc_data.js          SOURCES and CHAINS (pushed when the course already has them)
- * and one line appended to course.js: both files in COURSE.files, and the module
- * on at the version in its module.json with the test's Basic-Pharmacokinetics
- * options (PK_OPT, prefix wsc-), kept beside any module already on.
+ * The course data is taken from the fixture of the module's own test.js (its
+ * `const PK = ...` line, Basic-Pharmacokinetics at ac2eb73, verbatim): the documents
+ * its `ci` list names, which are those whose questions meet the kit core's checks
+ * (the worked examples of Modules 3 and 6, the in-class activity of Module 7a and
+ * Quiz 5), the questions on them and the questions their dupOf names, their problem
+ * sets, their topics, the skills those questions use and the lectures their cites
+ * name. Ids are prefixed `wsc-` (the test's own scratch copies use `wsi-`, so the two
+ * never share an id). The one change to the data: `prof` is the course's own
+ * (COURSE.professors[0], the template's "Professor"), as the test does. Files written
+ * in <courseSrcDir>:
+ *   q90_wsc_fixture.js   the topics (pushed onto TOPICS) and the questions, one per line
+ *                        in the template's form ({id:'…', prof:'…', …}), pushed onto QUESTIONS
+ *   wsc_data.js          SOURCES and CHAINS (pushed when the course already has them),
+ *                        and the lectures and skills, pushed onto COURSE.lectures and
+ *                        COURSE.skills (a skill the course already has is not added again)
+ * and one line appended to course.js: both files in COURSE.files, and the module on at
+ * the version in its module.json with the test's Basic-Pharmacokinetics options
+ * (PK_OPT, prefix wsc-), kept beside any module already on.
  * Writes only inside <courseSrcDir>; stops with a non-zero exit on any failure,
  * including a course that already has this data (run once per course).
  */
@@ -39,35 +44,47 @@ if(!pkLine || !optM) fail('the test.js fixture (const PK = ...) or its options (
 const PRE = 'wsc-', pre = id => PRE + id;
 let PK, PK_OPT;
 try { PK = JSON.parse(pkLine.slice('const PK = '.length).replace(/;\s*$/, ''));
-      PK_OPT = vm.runInNewContext(optM[0].replace(/^const PK_OPT = /, '(') .replace(/;$/, ')'), {PRE}); }
+      PK_OPT = vm.runInNewContext(optM[0].replace(/^const PK_OPT = /, '(').replace(/;$/, ')'), {PRE}); }
 catch(e){ fail('the test.js fixture could not be read: ' + e.message); }
+if(!Array.isArray(PK.ci) || !PK.ci.length) fail('the test.js fixture names no documents for a course (PK.ci)');
 
 // what the course already declares (course.js and its data files, run as the build runs them)
 let own;
 try {
-  const ctx = {};
-  vm.createContext(ctx);
-  const files = vm.runInContext(courseText + '\n;COURSE.files', ctx) || [];
+  const files = vm.runInNewContext(courseText + '\n;COURSE.files', {}) || [];
   const code = files.map(f => fs.readFileSync(path.join(src, f), 'utf8')).join('\n;\n');
-  own = vm.runInContext(courseText + '\n;\n' + code + '\n;({COURSE, TOPICS: typeof TOPICS === "undefined" ? [] : TOPICS, QUESTIONS: typeof QUESTIONS === "undefined" ? [] : QUESTIONS,' +
-    ' SOURCES: typeof SOURCES !== "undefined", CHAINS: typeof CHAINS !== "undefined"})', vm.createContext({}));
+  own = vm.runInNewContext(courseText + '\n;\n' + code + '\n;({COURSE, TOPICS: typeof TOPICS === "undefined" ? [] : TOPICS, QUESTIONS: typeof QUESTIONS === "undefined" ? [] : QUESTIONS,' +
+    ' SOURCES: typeof SOURCES !== "undefined", CHAINS: typeof CHAINS !== "undefined"})', {});
 } catch(e){ fail('the course could not be read: ' + e.message); }
 if(typeof own.QUESTIONS.push !== 'function') fail('the course declares no QUESTIONS list');
-const prof = (own.COURSE.professors || [])[0], skill = (own.QUESTIONS.find(q => q.type === 'numeric') || {}).skill || ((own.COURSE.skills || [])[0] || {}).id;
-if(!prof || !skill) fail('the course names no professor (COURSE.professors) or no skill');
-const ownTopics = own.TOPICS.map(t => t.id);
+const prof = (own.COURSE.professors || [])[0];
+if(!prof) fail('the course names no professor (COURSE.professors)');
 
-// the test's fixtureFiles, with the prefix wsc-
-const qs = PK.qs.map(q => Object.assign({}, q, {id: pre(q.id), prof, skill}, q.dupOf ? {dupOf: pre(q.dupOf)} : {}));
-const chains = PK.chains.map(c => Object.assign({}, c, {id: pre(c.id), parts: c.parts.map(pre)}));
-const sources = PK.sources.map(s => Object.assign({}, s, {id: pre(s.id), chains: (s.chains || []).map(pre), items: s.items.map(it => ({q: pre(it.q), label: it.label}))}));
-const topics = PK.topics.filter(t => !ownTopics.includes(t.id)).map(t => Object.assign({}, t, {prof}));
+// the documents of PK.ci, with what they need
+const docs = PK.ci.map(id => PK.sources.find(s => s.id === id) || fail('the fixture has no document ' + id));
+const byQ = Object.fromEntries(PK.qs.map(q => [q.id, q])), want = [];
+const add = id => { const q = byQ[id]; if(!q) fail('the fixture has no question ' + id); if(want.includes(id)) return; want.push(id); if(q.dupOf) add(q.dupOf); };
+docs.forEach(s => s.items.forEach(it => add(it.q)));
+const qsRaw = want.map(id => byQ[id]);
+const chainIds = new Set(docs.flatMap(s => s.chains || []));
+const chains = PK.chains.filter(c => chainIds.has(c.id)).map(c => Object.assign({}, c, {id: pre(c.id), parts: c.parts.map(pre)}));
+const ownTopics = own.TOPICS.map(t => t.id), ownSkills = (own.COURSE.skills || []).map(k => k.id);
+const topics = PK.topics.filter(t => qsRaw.some(q => q.topic === t.id) && !ownTopics.includes(t.id)).map(t => Object.assign({}, t, {prof}));
+const skills = PK.skills.filter(k => qsRaw.some(q => q.skill === k.id) && !ownSkills.includes(k.id));
+const lectures = PK.lectures.filter(l => qsRaw.some(q => (q.cite || '').includes(l.deck))).map(l => Object.assign({}, l, {id: pre(l.id), prof}));
+const sources = docs.map(s => Object.assign({}, s, {id: pre(s.id), chains: (s.chains || []).map(pre), items: s.items.map(it => ({q: pre(it.q), label: it.label}))}));
+// one question per line, in the template's form: id and prof first, unquoted
+const qLine = q => { const rest = Object.assign({}, q); delete rest.id;
+  if(rest.dupOf) rest.dupOf = pre(rest.dupOf); if(rest.lecture) rest.lecture = pre(rest.lecture);
+  const body = JSON.stringify(rest).slice(1, -1);
+  return `{id:'${pre(q.id)}', prof:'${prof.replace(/'/g, "\\'")}'${body ? ', ' + body : ''}},`; };
 const decl = (n, v, has) => has ? `${n}.push(...${JSON.stringify(v)});` : `const ${n} = ${JSON.stringify(v)};`;
 const out = {
-  'q90_wsc_fixture.js': '/* four of Basic-Pharmacokinetics\' documents\' questions (ac2eb73), from the worksheets-ink test fixture, ids prefixed wsc- (ci/oncourse.js) */\n' +
-    `TOPICS.push(...${JSON.stringify(topics)});\nQUESTIONS.push(...${JSON.stringify(qs)});\n`,
-  'wsc_data.js': '/* Basic-Pharmacokinetics\' documents and problem sets (ac2eb73), from the worksheets-ink test fixture, ids prefixed wsc- (ci/oncourse.js) */\n' +
-    decl('CHAINS', chains, own.CHAINS) + '\n' + decl('SOURCES', sources, own.SOURCES) + '\n'};
+  'q90_wsc_fixture.js': `/* ${docs.length} of Basic-Pharmacokinetics' documents' questions (ac2eb73), from the worksheets-ink test fixture, ids prefixed wsc- (ci/oncourse.js) */\n` +
+    `TOPICS.push(...${JSON.stringify(topics)});\nQUESTIONS.push(\n${qsRaw.map(qLine).join('\n')}\n);\n`,
+  'wsc_data.js': '/* Basic-Pharmacokinetics\' documents, problem sets, lectures and skills (ac2eb73), from the worksheets-ink test fixture, ids prefixed wsc- (ci/oncourse.js) */\n' +
+    decl('CHAINS', chains, own.CHAINS) + '\n' + decl('SOURCES', sources, own.SOURCES) + '\n' +
+    `COURSE.lectures.push(...${JSON.stringify(lectures)});\nCOURSE.skills.push(...${JSON.stringify(skills)});\n`};
 try { for(const [f, t] of Object.entries(out)){ fs.writeFileSync(path.join(src, f), t); console.log(`wrote: ${path.join(src, f)} (${t.length} characters)`); } }
 catch(e){ fail('cannot write the data files: ' + e.message); }
 const cfg = Object.assign({version: meta.version}, PK_OPT);
@@ -75,4 +92,4 @@ const line = `\n;/* worksheets-ink ci */ COURSE.files = (COURSE.files || []).con
   `COURSE.features = Object.assign({}, COURSE.features, {"worksheets-ink": ${JSON.stringify(cfg)}});\n`;
 try { fs.appendFileSync(course, line); } catch(e){ fail('cannot write ' + course + ': ' + e.message); }
 console.log('wrote: appended to ' + course + ':' + line.trimEnd());
-console.log(`data: ${sources.length} documents, ${qs.length} questions, ${chains.length} problem sets, ${topics.length} topics`);
+console.log(`data: ${sources.length} documents (${PK.ci.join(', ')}), ${qsRaw.length} questions, ${chains.length} problem sets, ${topics.length} topics, ${skills.length} skills, ${lectures.length} lectures`);

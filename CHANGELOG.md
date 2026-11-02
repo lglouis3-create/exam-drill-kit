@@ -22,7 +22,8 @@ Dated kit changes, newest first.
   lifts, and a change that would make the progress too big for the browser's storage is refused
   with a notice on screen, keeping the last saved progress, so later answers are still saved (before,
   every later save failed and the answers given after it were lost on reload); the test now has 157
-  checks (persistence, chained-problem-sets on and off) and a CI set-up script `ci/oncourse.js`.
+  checks (persistence, chained-problem-sets on and off) on 8 Pharmacokinetics documents taken
+  verbatim, and `ci/oncourse.js` builds the module's own course from 4 of them.
 
 ## 2026-11-01
 - `core/`: an exam with `questions: null` or a pool with `marks: null` no longer breaks the page (`nullexam.js`).
