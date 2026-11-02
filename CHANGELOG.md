@@ -3,6 +3,7 @@
 Dated kit changes, newest first.
 
 ## 2026-11-02
+- Kit checks on GitHub: every pull request runs the checks in Chromium and, as information, in WebKit.
 - New feature module `paper-picker` v1 (`features/paper-picker/`), from Basic-Pharmacokinetics
   `ac2eb73` (`pickExam`, `chooseExam`, `examPicker`, `examHistory`): on the Exam view and in
   Settings, a chip per exam a paper can be drawn for; a paper for an earlier exam is drawn

@@ -95,7 +95,8 @@ check(all.code === 0, 'run_checks.sh exits 0 when nothing fails (a NOT RUN is li
 check(/^PASS +build\.py /m.test(out), 'run_checks.sh builds first and reports the build');
 check(/^PASS +test\.js +\S/m.test(out), 'a passing check is one PASS line with its summary');
 check(/^REPORT +explain_check\.js +\S/m.test(out), 'a report is one REPORT line');
-check(/^NOT RUN +cite_check\.py +no lecture PDFs/m.test(out), 'a check that could not run is one NOT RUN line with the reason');
+// the reason depends on the machine (no lecture PDFs here; no pdfplumber on a bare one), so any reason will do
+check(/^NOT RUN +cite_check\.py +\S/m.test(out), 'a check that could not run is one NOT RUN line with the reason', (out.match(/^NOT RUN +cite_check\.py.*$/m) || ['no NOT RUN line'])[0]);
 check(/^PASS +device_lint\.js /m.test(out), 'the device lint is one PASS line on the clean copy');
 check(/^3 PASS, 0 FAIL, 1 NOT RUN, 1 REPORT/m.test(out), 'run_checks.sh ends with the counts');
 const listed = (fs.readFileSync(path.join(src, 'run_checks.sh'), 'utf8').match(/^CHECKS=\(([\s\S]*?)\)/m) || [, ''])[1].split(/\s+/).filter(Boolean);
