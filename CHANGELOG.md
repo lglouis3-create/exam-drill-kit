@@ -3,6 +3,7 @@
 Dated kit changes, newest first.
 
 ## 2026-11-02
+- Kit checks on GitHub: every pull request runs the checks in Chromium and, as information, in WebKit.
 - New feature module `pair-up-drills` v1 (`features/pair-up-drills/`), from Intro-Pharmacology-
   `929cd62` `exam1-drill/src/app.js` (Pair up, the drug ↔ receptor drill and the poisoning table
   drill; port queue item 19): a Pair up tab over the course's `PAIR_SETS` (chips dragged or tapped
