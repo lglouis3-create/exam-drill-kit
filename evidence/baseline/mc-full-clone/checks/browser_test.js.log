@@ -1,0 +1,106 @@
+
+=== Browser smoke test ===
+  ok    page loads with no uncaught JavaScript error
+  ok    no console errors on load
+  ok    page renders visible text
+  ok    question bank present in the page (479 of 479 in the sources)
+  ok    image bank present in the page (189 of 189 in images.json)
+  ok    all 189 embedded images decode
+  ok    a quiz starts
+  ok    question options render (4 found)
+  ok    answering reveals the explanation
+  ok    questions carrying a figure can be reached
+  ok    every teachImg sits on a question that has a concept block
+  ok    all 231 concept-block figures render after answering
+  ok    every rendered figure is an embedded data URL
+  ok    all 479 questions answer without throwing
+  ok    every question renders all of its options
+  ok    every answer produces an explanation panel
+  ok    every option gets its own explanation row
+  ok    every question shows a citation
+  ok    the full sweep starts from the topics view
+  ok    the sweep serves all 479 questions
+  ok    the sweep repeats nothing
+  ok    the sweep covers every question
+  ok    the sweep ends on its completion panel
+  ok    the drill still runs when the browser denies localStorage
+  ok    no uncaught error with storage denied
+  ok    reference has 23 sections, each with a jump link
+  ok    reference figures render (12)
+  ok    every reference figure is an embedded data URL
+  ok    no unexpanded figure token reached the reference
+  ok    no raw HTML entity reaches the reader
+  ok    atlas renders a tile per item (86 of 86)
+  ok    every atlas tile draws a structure
+  ok    atlas boards render (11 of 11)
+  ok    hiding the names puts the atlas into recall mode
+  ok    recall mode offers a way to reveal every name again
+  ok    atlas search narrows the tiles
+  ok    clearing the search brings every tile back
+  ok    questions carry a drawn structure (54)
+  ok    every drawn structure resolves to a group
+  ok    no drawing names the group it is asking about
+  ok    every structure question shows its drawing before the answer
+  ok    stems that promise a figure exist (72)
+  ok    every stem that promises a figure shows one before the answer
+  ok    select-all questions exist (48, the paper draws 8)
+  ok    a select-all item renders its banner and toggle options
+  ok    the Check button waits for a selection and toggles mark on
+  ok    a partial selection is marked wrong
+  ok    the answer log stores the picked set and the verdict
+  ok    the review marks which options were selected
+  ok    the complete correct set is marked right and can be flagged as a guess
+  ok    the correct set plus a wrong option is marked wrong
+  ok    the Exam tab offers a Start button (the number of questions is set)
+  ok    the Start button draws a paper with questions (50 drawn)
+  ok    the exam paper carries 8 select-all items
+  ok    exam select-all items render toggles, a chip, and store an array of picks
+  ok    weak spots shows a next-step card per pool (3 of 3)
+  ok    weak spots renders its tables
+  ok    numeric item grades the answer and shows its steps (6 steps)
+  ok    a wrong numeric answer logs the kind of miss
+  ok    matching item grades every pair (6 rows)
+  ok    beginExam draws a paper with questions (the number of questions is set)
+  ok    an exam paper in progress is saved and restored
+  ok    submitting a partial paper logs only the answered items (1 logged)
+  ok    What's new card shows the newest entries (8 bullets)
+  ok    "Got it" dismisses the card and remembers the entry
+  ok    the card stays dismissed on the next visit to Topics
+  ok    Settings lists the whole change log
+  ok    answers land in this session (1198 logged)
+  ok    the quiz carries a session line
+  ok    Weak spots shows this session's dots (20)
+  ok    Weak spots shows the review plan
+  ok    the plan groups what is not solid (6 section(s))
+  ok    a plan section drills its own questions
+  skip  Explain more links  — no question in this bank resolves to a reading section
+  skip  Explain-one cards  — no table in this bank carries one
+  skip  step-through figures  — no figure in DIA carries step controls
+  ok    every figure label sits inside its figure
+  ok    view 'topics' renders
+  ok    view 'quiz' renders
+  ok    view 'gaps' renders
+  ok    view 'exam' renders
+  ok    view 'atlas' renders
+  ok    view 'guide' renders
+  ok    view 'tell' renders
+  ok    view 'ref' renders
+  ok    view 'settings' renders
+  ok    no uncaught error after interaction
+  ok    no sideways scroll on phone (light)
+  ok    no undefined or NaN on screen on phone (light)
+  ok    a table wider than the screen scrolls inside its own box and the page does not (2588 px table, 353 px wide around it)
+  ok    each of the course's 17 reading-tab tables wider than the screen scrolls inside its own box
+  ok    every jump-list chip in the reading tabs fits on the phone screen
+  ok    no page error on phone (light)
+  ok    no sideways scroll on phone (dark)
+  ok    no undefined or NaN on screen on phone (dark)
+  ok    no page error on phone (dark)
+  ok    no sideways scroll on desktop (light)
+  ok    no undefined or NaN on screen on desktop (light)
+  ok    no page error on desktop (light)
+  ok    no sideways scroll on desktop (dark)
+  ok    no undefined or NaN on screen on desktop (dark)
+  ok    no page error on desktop (dark)
+
+PASS: browser_test.js: 99 checks passed (3 skipped: Explain more links; Explain-one cards; step-through figures)
