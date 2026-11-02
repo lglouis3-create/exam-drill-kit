@@ -1,0 +1,1 @@
+paper-picker ci/oncourse.js: course.js already switches paper-picker on (this script runs once per course)

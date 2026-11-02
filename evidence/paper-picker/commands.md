@@ -1,0 +1,41 @@
+| When (UTC) | Exit | Directory | Command | Log |
+|---|---|---|---|---|
+| 2026-11-02T20:34:11Z | 0 | `/tmp/port-paper-picker/try1/src` | `node <kit>/features/paper-picker/ci/oncourse.js <kit> /tmp/port-paper-picker/try1/src` | `logs/try1-oncourse.log` |
+| 2026-11-02T20:34:12Z | 0 | `/tmp/port-paper-picker/try1/src` | `python3 build.py` | `logs/try1-build.log` |
+| 2026-11-02T20:37:16Z | 1 | `/tmp/port-paper-picker/try1/src` | `./run_checks.sh` | `logs/try1-run_checks.log` |
+| 2026-11-02T20:40:45Z | 1 | `/tmp/port-paper-picker` | `/tmp/port-paper-picker/bin/mkci.sh /tmp/port-paper-picker/try2` | `logs/try2-mkci.log` |
+| 2026-11-02T20:41:00Z | 0 | `/tmp/port-paper-picker` | `/tmp/port-paper-picker/bin/mkci.sh /tmp/port-paper-picker/try2` | `logs/try2-mkci.log` |
+| 2026-11-02T20:44:06Z | 0 | `/tmp/port-paper-picker/try2/src` | `./run_checks.sh` | `logs/try2-run_checks.log` |
+| 2026-11-02T20:44:53Z | 1 | `/tmp/port-paper-picker/try2/src` | `node features/paper-picker/test.js` | `logs/try2-newtest.log` |
+| 2026-11-02T20:45:25Z | 0 | `/tmp/port-paper-picker/try2/src` | `node features/paper-picker/test.js` | `logs/try2-newtest2.log` |
+| 2026-11-02T20:45:36Z | 0 | `/tmp/port-paper-picker` | `/tmp/port-paper-picker/bin/mkplain.sh /tmp/port-paper-picker/one` | `logs/one-mk.log` |
+| 2026-11-02T20:45:53Z | 0 | `/tmp/port-paper-picker/one/src` | `node features/paper-picker/test.js` | `logs/one-test.log` |
+| 2026-11-02T20:46:04Z | 0 | `/tmp/port-paper-picker` | `env EXTRA_KIT_study_controls=/tmp/port-paper-picker/sc-kit /tmp/port-paper-picker/bin/mkci.sh /tmp/port-paper-picker/sc3 study-controls` | `logs/sc3-mk.log` |
+| 2026-11-02T20:46:23Z | 0 | `/tmp/port-paper-picker/sc3/src` | `node features/paper-picker/test.js` | `logs/sc3-test-paper-picker.log` |
+| 2026-11-02T20:46:48Z | 1 | `/tmp/port-paper-picker/sc3/src` | `node features/paper-picker/test.js` | `logs/sc3-test-F3-old-selector.log` |
+| 2026-11-02T20:46:54Z | 0 | `/tmp/port-paper-picker` | `env EXTRA_KIT_study_controls=/tmp/port-paper-picker/sc-kit /tmp/port-paper-picker/bin/mkplain.sh /tmp/port-paper-picker/sc1 study-controls` | `logs/sc1-mk.log` |
+| 2026-11-02T20:47:12Z | 0 | `/tmp/port-paper-picker/sc1/src` | `node features/paper-picker/test.js` | `logs/sc1-test-paper-picker.log` |
+| 2026-11-02T20:47:19Z | 0 | `/tmp/port-paper-picker/absent/src` | `python3 build.py` | `logs/absent-build.log` |
+| 2026-11-02T20:47:19Z | 1 | `/tmp/port-paper-picker/absent/src` | `node features/paper-picker/test.js` | `logs/absent-test.log` |
+| 2026-11-02T20:49:49Z | 0 | `/tmp/port-paper-picker` | `node bin/mkfixture.js /tmp/port-paper-picker/fixture-check.json` | `logs/mkfixture-repro.log` |
+| 2026-11-02T20:57:29Z | 0 | `/tmp/port-paper-picker/evidence` | `python3 -I mutations.py /tmp/port-paper-picker/mut /tmp/port-paper-picker/evidence/logs/mutations-run1` | `logs/mutations-run1.log` |
+| 2026-11-02T20:58:45Z | 1 | `/tmp/port-paper-picker/try2/src` | `node features/paper-picker/test.js` | `logs/try2-newtest3.log` |
+| 2026-11-02T20:59:22Z | 0 | `/tmp/port-paper-picker/try2/src` | `node features/paper-picker/test.js` | `logs/try2-newtest4.log` |
+| 2026-11-02T21:01:01Z | 0 | `/tmp/port-paper-picker/evidence` | `python3 -I mutations.py /tmp/port-paper-picker/mut /tmp/port-paper-picker/evidence/logs/mutations-run2-missed M1 M6 M17 M26 M27` | `logs/mutations-run2-missed.log` |
+| 2026-11-02T21:01:25Z | 0 | `/tmp/port-paper-picker/one/src` | `node features/paper-picker/test.js` | `logs/one-test2.log` |
+| 2026-11-02T21:01:58Z | 0 | `/tmp/port-paper-picker` | `/tmp/port-paper-picker/bin/mkci.sh /tmp/port-paper-picker/final` | `logs/final-mkci.log` |
+| 2026-11-02T21:01:58Z | 1 | `/tmp/port-paper-picker/final/src` | `node <kit>/features/paper-picker/ci/oncourse.js <kit> /tmp/port-paper-picker/final/src` | `logs/final-ci-oncourse-again.log` |
+| 2026-11-02T21:02:20Z | 0 | `/tmp/port-paper-picker/final/src` | `node features/paper-picker/test.js` | `logs/final-module-test-run1.log` |
+| 2026-11-02T21:02:39Z | 0 | `/tmp/port-paper-picker/final/src` | `node features/paper-picker/test.js` | `logs/final-module-test-run2.log` |
+| 2026-11-02T21:02:58Z | 0 | `/tmp/port-paper-picker/final/src` | `node features/paper-picker/test.js` | `logs/final-module-test-run3.log` |
+| 2026-11-02T21:06:03Z | 0 | `/tmp/port-paper-picker/final/src` | `./run_checks.sh` | `logs/final-run_checks.log` |
+| 2026-11-02T21:06:15Z | 0 | `/tmp/port-paper-picker` | `env EXTRA_KIT_study_controls=/tmp/port-paper-picker/sc-kit /tmp/port-paper-picker/bin/mkci.sh /tmp/port-paper-picker/fsc3 study-controls` | `logs/final-sc3-mk.log` |
+| 2026-11-02T21:06:33Z | 0 | `/tmp/port-paper-picker/fsc3/src` | `node features/paper-picker/test.js` | `logs/final-sc3-paper-picker-test.log` |
+| 2026-11-02T21:06:34Z | 0 | `/tmp/port-paper-picker` | `env EXTRA_KIT_study_controls=/tmp/port-paper-picker/sc-kit /tmp/port-paper-picker/bin/mkplain.sh /tmp/port-paper-picker/fsc1 study-controls` | `logs/final-sc1-mk.log` |
+| 2026-11-02T21:06:51Z | 0 | `/tmp/port-paper-picker/fsc1/src` | `node features/paper-picker/test.js` | `logs/final-sc1-paper-picker-test.log` |
+| 2026-11-02T21:06:52Z | 0 | `/tmp/port-paper-picker` | `/tmp/port-paper-picker/bin/mkplain.sh /tmp/port-paper-picker/fone` | `logs/final-one-mk.log` |
+| 2026-11-02T21:07:09Z | 0 | `/tmp/port-paper-picker/fone/src` | `node features/paper-picker/test.js` | `logs/final-one-paper-picker-test.log` |
+| 2026-11-02T21:07:16Z | 0 | `/tmp/port-paper-picker/fabsent/src` | `python3 build.py` | `logs/final-absent-build.log` |
+| 2026-11-02T21:07:16Z | 1 | `/tmp/port-paper-picker/fabsent/src` | `node features/paper-picker/test.js` | `logs/final-absent-test.log` |
+| 2026-11-02T21:07:38Z | 1 | `/tmp/port-paper-picker/fsc3/src` | `node features/study-controls/test.js` | `logs/final-sc3-study-controls-test.log` |
+| 2026-11-02T21:07:55Z | 0 | `/tmp/port-paper-picker/evidence` | `node scripts/shot.js /tmp/port-paper-picker/final/index.html /tmp/port-paper-picker/evidence/shots` | `logs/shots.log` |

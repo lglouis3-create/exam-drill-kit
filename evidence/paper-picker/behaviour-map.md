@@ -1,0 +1,33 @@
+# Behaviour map: paper-picker (agent-run)
+
+Source read: Basic-Pharmacokinetics- `ac2eb73`, read-only copy `/tmp/pk-readonly`, `src/shell.html` and `src/views.js`.
+Module: `features/paper-picker/current/paper-picker.js` and `step.js`.
+
+| # | Behaviour in the source (file:line) | In the kit module | Status |
+|---|---|---|---|
+| 1 | The paper's exam is `COURSE.activeExam` unless the student chose another (`shell.html` 1107-1110, 1113-1118 `pickExam`) | `chosen()` returns the course's current exam unless an offered exam is chosen | ported |
+| 2 | The choice is kept with the progress, with the time it was made (`views.js` 3112-3115 `chooseExam`: `DB.settings.exam`, `DB.settings.examAt`) | kept as `DB.paperPicker.exam` and `.at` (the kit's core has no `DB.settings.exam`) | adapted: another field name, same content |
+| 3 | A choice of an exam that is over gives way to the current exam, unless it was made after that exam ended (`shell.html` 1110-1118) | `chosen()`: same rule | ported |
+| 4 | An exam ends at its `when` (else its `date` at 23:59) plus its minutes (`shell.html` 1112 `examEnds`) | `examEnds()`: same; an exam with no ISO date never ends (in the source it gives NaN, which also never counts as over) | ported |
+| 5 | No change of choice while a paper runs (`views.js` 3113) | `choose()` refuses while `EX.running` | ported |
+| 6 | One chip per exam on the Exam view, the chosen one pressed, with a note under them (`views.js` 3118-3123 `examPicker`, 3159) | one chip per exam the build step offers; the note says Topics, Weak spots and the weighted pass follow the current exam | adapted: only exams a paper can be drawn for get a chip (the X.paper hook keeps the current exam's length and clock), and the others are named with the reason |
+| 7 | No chips when the course has one exam (`views.js` 3119) | nothing to offer, nothing shown | ported |
+| 8 | The chips also in Settings (`shell.html` 1108 comment "Exam view or Settings") | `X.settings` "Practice paper" with the same chips | ported |
+| 9 | Each pool supplies its share of the paper by marks, largest remainder (`shell.html` 1174-1186 `poolShares`) | `shares()`: same method | ported |
+| 10 | A question belongs to the first pool its filter matches (`shell.html` 1137-1139 `poolOf`); lowYield items stay off (`views.js` `poolDrawable`) | `poolsOf()`: first pool by the core's `poolFilter`; no lowYield; typed items only when the exam takes them | ported (typed: adapted to the kit's `exams[].typed`) |
+| 11 | The select-all count is split across pools by marks (`shell.html` 1187-1215 `sataShares`, which also moves the share of a pool with no select-all item to a pool that has one) | split by marks, the pool with the most marks taking the rounding, each pool giving what it holds, as the core's `drawPaper` does | adapted: no moving of a share between pools (as the kit's own draw) |
+| 12 | Never two wordings of one fact on a paper; one question per concept before a concept repeats (`views.js` 3172 `drawN`) | the core's `drawMixed`/`drawN` with one blocked set for the whole paper | ported (the engine's own) |
+| 13 | A bank short of questions for a pool leaves those marks off and draws a shorter paper (`views.js` 3083-3108 `blueprintCoverage`, `shortfallNote`; 3141-3143 the start button's count) | no paper is drawn for that exam; the page says how many of the questions its pools can supply and that the paper is drawn for the current exam | adapted: X.paper must return as many questions as the engine drew |
+| 14 | The Exam view's opening page shows the chosen exam's name, count and minutes, its pools with marks and what the bank holds (`views.js` 3146-3156) | for an exam other than the current one: its name, blurb, the count, the clock, a table of pools with the questions each supplies and holds | ported (the clock is the current exam's, see 6) |
+| 15 | Topics, Weak spots and the exam-weighted pass follow the choice (`shell.html` 1119-1126 `setActiveExam`, "everything weighted by the blueprint follows it at once", `views.js` 3110-3111) | they follow the course's current exam; the page says so | omitted: the student does not get Topics, Weak spots and the weighted pass for the chosen earlier exam (needs several exams on one site in the core) |
+| 16 | A paper of another exam's length and clock (`setActiveExam` makes it the exam) | the paper keeps the current exam's length and clock; such an exam gets no chip | omitted: the student cannot sit an earlier exam that had another length or time limit |
+| 17 | Each submitted paper is recorded: when, exam, right, total, blank (`views.js` 3374-3376 in `finishExam`) | recorded when the result page is first drawn, with whether it was submitted with blanks (`DB.paperPicker.papers`) | adapted: written by the module (the core keeps no record of papers) |
+| 18 | The 100 newest records are kept (`views.js` 3376) | same | ported |
+| 19 | "Your papers so far" under the start button: newest first, the 12 newest, exam name, day, score, blank, a bar and the percentage (`views.js` 3124-3136, 3164) | same, with a line saying how many are listed of how many | ported |
+| 20 | A record names the exam the paper was drawn for (`EX.paper || EXAM.id`, `views.js` 3374) | the draw is recorded (`DB.paperPicker.drawn`) and a submitted paper whose questions match it is recorded for that exam; the result page says "This paper was drawn for <exam>." | adapted: the result line is new, so the student sees which exam a paper was |
+| 21 | A quiz paper is listed as "<quiz> practice" (`views.js` 3129 `ex.modules ? ' practice'`, 3268 `paperOf`) | not done | omitted: belongs to quiz-prep-cards (port queue item 7) |
+| 22 | The Progress view lists the 8 newest practice papers (`views.js` 2020-2029) | not done | omitted: the student sees the list on the Exam view only |
+| 23 | The start button and the facts line give the select-all count the bank can supply (`views.js` 3137-3143 `sataLine`, from `shell.html` `sataShares`) | not done; the module's page says "About N of the 40 are select-all" from the exam's `sata` | omitted: the student is not told when the bank holds fewer select-all items than the exam's count |
+| 24 | Papers sat before the feature existed are listed (`DB.exams` is the engine's own record) | not listed: the kit's core keeps no record | omitted: papers from before the module was switched on are not in the list |
+| 25 | The exam's id may be a number (`chooseExam(+b.dataset.exam)`) | ids compared as strings on the chips, kept as the course's own value | ported |
+| 26 | (kit only) The build step leaves off an exam a paper cannot be drawn for, with the reason, and stops the build for an exam with no id or a shared id (`step.js`) | — | added for the kit |

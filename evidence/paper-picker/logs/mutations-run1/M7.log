@@ -1,0 +1,87 @@
+checking sources...
+  13 sources and sw.js parse cleanly
+  scheduler: concept (no library)
+  125 questions in 13 topics, from 2 question files: q1_topics.js, q90_paper_picker_pk.js
+  feature paper-picker v1: build step done
+  feature paper-picker v1 in the page
+  change log: 1 entries, newest "2026-10-02 (set up from the template)"
+  assembled script parses cleanly
+wrote index.html  (0.67 MB)
+wrote COURSE0000_Drill.html  (redirect to index.html)
+wrote version.json  (built 2026-11-02T20:50:19Z)
+  note: placeholder icons (a plain square) for icon-192.png, icon-512.png, icon-maskable-512.png, apple-touch-icon.png; put the course's own PNGs under src/icons/ to replace them
+wrote manifest.json and the icons
+wrote sw.js  (caches named course-id-drill-v<n>; 7 files saved at install)
+
+---- test ----
+
+=== the course's own exams ===
+  ok    the page carries paper-picker, working
+  ok    Exam 1: a paper of 40 split by marks 16/16/8 gives 16/16/8
+  ok    Exam 1: the module's pools hold the 16 questions the core's pool filter puts in them (no lowYield, no typed item)
+  ok    Exam 1: its pools fill 16 of 40, so no paper is drawn for it
+  ok    Exam 2: a paper of 40 split by marks 7/7/20/6 gives 7/7/20/6
+  ok    Exam 2: the module's pools hold the 59 questions the core's pool filter puts in them (no lowYield, no typed item)
+  ok    Exam 2: a paper is drawn for it
+  ok    Exam 2: 40 questions, none twice, each from one of its pools
+  ok    Exam 2: each pool supplies its share (7/7/20/6)
+  ok    Exam 2: no two wordings of one fact on the paper
+  ok    Exam 2: the paper carries 3 select-all item(s) (its sata 4, split by marks, as many as each pool holds)
+  ok    Exam 3 (final): a paper of 40 split by marks 15/15/5/5 gives 15/15/5/5
+  ok    Exam 3 (final): the module's pools hold the 123 questions the core's pool filter puts in them (no lowYield, no typed item)
+  ok    Exam 3 (final): a paper is drawn for it
+  ok    Exam 3 (final): 40 questions, none twice, each from one of its pools
+  ok    Exam 3 (final): each pool supplies its share (15/15/5/5)
+  ok    Exam 3 (final): no two wordings of one fact on the paper
+  ok    Exam 3 (final): the paper carries 4 select-all item(s) (its sata 4, split by marks, as many as each pool holds)
+  ok    a paper longer than the pools can fill is not drawn
+
+=== the build step: which exams get a chip ===
+  ok    an exam with another question count is left off the chips, with the reason
+  ok    an exam with another time limit is left off the chips, with the reason
+  ok    an exam with a blueprint is left off the chips, with the reason
+  ok    a pool without marks is left off the chips, with the reason
+  ok    an exam with another typed setting is left off the chips, with the reason
+  ok    an exam like the current one gets a chip
+  ok    a course with one exam builds, with nothing to choose
+  ok    an exam without an id stops the build and says so
+  ok    two exams with one id stops the build and says so
+
+=== on a scratch copy with Basic-Pharmacokinetics' own data (Chromium) ===
+  (the course's own copy of the fixture: 118 questions, 3 exams)
+  ok    opening Settings and the Exam view before any choice adds nothing to the progress
+  ok    the Exam view offers one chip per exam, the current exam (Exam 3 (final)) chosen, and no list before a paper
+  ok    choosing Exam 2 keeps the choice in the progress and marks its chip
+  ok    the page says the paper is drawn at Exam 2's blueprint, with its 4 pools, their 7/7/20/6 split and what the bank holds (11/8/25/15)
+  ok    and shows Exam 2's own blurb
+  ok    and says Topics, Weak spots and the weighted pass follow the current exam
+  ok    its paper is 40 questions from Modules 4, 5, 6, 7: 7, 7, 20, 6 of them
+  ok    the paper keeps the current exam's clock (120 minutes)
+  ok    the choice cannot change while a paper runs
+  ok    after a reload during the paper it is the same paper, at question 4, still recorded as drawn for Exam 2
+  ok    the result page names the exam the paper was drawn for
+  ok    the paper is kept in the progress: Exam 2, 12 of 40, none blank
+  ok    "Your papers so far" lists it: Exam 2, the score, 0 blank, 30%
+  ok    after a reload the choice and the list are kept
+  ok    with the current exam chosen, the engine's own opening page is shown
+  ok    a paper for the current exam is the engine's own draw of 40, recorded for Exam 3 (final)
+  ok    a paper submitted with 39 blank is kept for Exam 3 (final) with its blank count, and its result page names no other exam
+  ok    the list shows the newest paper first
+  ok    Exam 1 chosen before it was sat gives way to Exam 3 (final) now it is over; chosen after it (to review it), it is kept
+  ok    an exam ends at its `when` plus its minutes; one with no date in ISO form never ends
+  ok    Exam 1's pools hold too few questions (8/0/8): the page says they supply 16 of the 40, and that the paper is drawn for the current exam
+  ok    the paper started then is the current exam's
+  ok    Settings offers the same chips and changes the choice
+  ok    no page error
+  FAIL  101 papers submitted: the 100 newest are kept (the first one dropped), the 12 newest are listed, and all 100 come back after a reload  — {"kept":101,"first":2,"rows":12,"sub":"Every paper submitted since this list was added to the drill, newest first (the 12 newest of 101).","same":true}
+  note  a reload at once (under 150 ms) after a choice: the choice was lost (the core saves 150 ms after the last change; agent-run report, not a check)
+  ok    a choice is kept through a reload made 300 ms after it
+  ok    Export carries the choice and the 101 papers; Import into a fresh profile brings them back
+  FAIL  a profile switch: each profile keeps its own choice and papers  — {"me":3,"other":1}
+  FAIL  storage denied: the student is told, the saved choice and papers are not overwritten, the new paper and choice hold for the visit  — {"warn":true,"savedSame":true,"mem":2}
+  FAIL  once storage works again the next save writes the paper made while it was denied, and a reload loads it  — {"exam":2,"last":false}
+  ok    storage full (QuotaExceededError): the student is told, nothing saved is overwritten, and the saved choice and papers load after storage works again
+  ok    no page error in the persistence checks
+  ok    the Exam view names the exam left off and why, offers no chips, and keeps its start button
+  ok    no page error with an exam left off
+FAIL: features/paper-picker/test.js: 4 of 62 checks failed: 101 papers submitted: the 100 newest are kept (the first one dropped), the 12 newest are listed, and all 100 come back after a reload; a profile switch: each profile keeps its own choice and papers; storage denied: the student is told, the saved choice and papers are not overwritten, the new paper and choice hold for the visit …

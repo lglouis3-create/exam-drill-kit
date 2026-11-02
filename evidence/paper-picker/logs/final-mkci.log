@@ -1,0 +1,18 @@
+-- paper-picker: node features/paper-picker/ci/oncourse.js
+wrote: /tmp/port-paper-picker/final/src/q90_paper_picker_pk.js (11 topics and 118 questions from features/paper-picker/current/test_fixture.js, prof "Professor")
+wrote: /tmp/port-paper-picker/final/src/images.json (the 9 images those questions show, added to the course's own)
+wrote: appended to /tmp/port-paper-picker/final/src/course.js: the file in COURSE.files, 12 lectures in COURSE.lectures, the skills the course lacks, COURSE.exams (Exam 1, Exam 2, Exam 3 (final)), COURSE.activeExam 3, and paper-picker v1 on
+checking sources...
+  13 sources and sw.js parse cleanly
+  scheduler: concept (no library)
+  125 questions in 13 topics, from 2 question files: q1_topics.js, q90_paper_picker_pk.js
+  feature paper-picker v1: build step done
+  feature paper-picker v1 in the page
+  change log: 1 entries, newest "2026-10-02 (set up from the template)"
+  assembled script parses cleanly
+wrote index.html  (0.67 MB)
+wrote COURSE0000_Drill.html  (redirect to index.html)
+wrote version.json  (built 2026-11-02T21:01:58Z)
+  note: placeholder icons (a plain square) for icon-192.png, icon-512.png, icon-maskable-512.png, apple-touch-icon.png; put the course's own PNGs under src/icons/ to replace them
+wrote manifest.json and the icons
+wrote sw.js  (caches named course-id-drill-v<n>; 7 files saved at install)

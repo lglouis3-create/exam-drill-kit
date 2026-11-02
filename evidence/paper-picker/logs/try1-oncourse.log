@@ -1,0 +1,2 @@
+wrote: /tmp/port-paper-picker/try1/src/q90_paper_picker_pk.js (12 topics and 149 questions from features/paper-picker/current/test_fixture.js, prof "Professor")
+wrote: appended to /tmp/port-paper-picker/try1/src/course.js: the file in COURSE.files, 12 lectures in COURSE.lectures, the skills the course lacks, COURSE.exams (Exam 1, Exam 2, Exam 3 (final)), COURSE.activeExam 3, and paper-picker v1 on

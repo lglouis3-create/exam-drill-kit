@@ -1,0 +1,55 @@
+
+=== Explanation quality ===
+  20 of 125 questions carry at least one issue
+
+    14  no diagnosis of the error
+     6  thin option why
+
+  by pool:
+    12  f-e1 (supplies 15 of the 40)
+     8  f-e2 (supplies 15 of the 40)
+
+  worst 20, ranked by severity x exam weight:
+
+  s2-1        topic2    f-e1            rank 75.0
+      - thin option why: A (48), B (42), C (39), D (49), E (55)
+  s1-1        topic1    f-e1            rank 60.0
+      - thin option why: A (69), B (67), C (77), D (65)
+  s1-2        topic1    f-e1            rank 60.0
+      - thin option why: A (52), B (40), C (28), D (29)
+  s1-3        topic1    f-e1            rank 60.0
+      - thin option why: A (91), B (45), C (31), D (46)
+  s2-2        topic2    f-e1            rank 60.0
+      - thin option why: A (25), B (42), C (51), D (50)
+  x3-b-intsata multoral  f-e2            rank 30.0
+      - thin option why: C (108), D (98)
+  m1-ord-c01  orders    f-e1            rank 15.0
+      - no diagnosis of the error: C, D
+  m6b-c13     multoral  f-e2            rank 15.0
+      - no diagnosis of the error: C, D
+  x3-a-kpos   orders    f-e1            rank 15.0
+      - no diagnosis of the error: C, D
+  inf-c9      infusion  f-e1            rank 7.5
+      - no diagnosis of the error: C
+  inf-c10     infusion  f-e1            rank 7.5
+      - no diagnosis of the error: D
+  inf-c13     infusion  f-e1            rank 7.5
+      - no diagnosis of the error: C
+  m5-c06      oral      f-e2            rank 7.5
+      - no diagnosis of the error: C
+  m6b-c03     intermit  f-e2            rank 7.5
+      - no diagnosis of the error: C
+  m6b-c06     intermit  f-e2            rank 7.5
+      - no diagnosis of the error: B
+  m6b-c07     multoral  f-e2            rank 7.5
+      - no diagnosis of the error: D
+  m6b-c09     multoral  f-e2            rank 7.5
+      - no diagnosis of the error: B
+  m6b-c19     multoral  f-e2            rank 7.5
+      - no diagnosis of the error: B
+  fig-ord-3   orders    f-e1            rank 7.5
+      - no diagnosis of the error: C
+  fig-ord-5   orders    f-e1            rank 7.5
+      - no diagnosis of the error: D
+
+REPORT: explain_check.js: 20 of 125 questions carry at least one explanation issue

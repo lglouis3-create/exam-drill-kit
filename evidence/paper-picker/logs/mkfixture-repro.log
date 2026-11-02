@@ -1,0 +1,100 @@
+{
+ "questions": 118,
+ "selectAll": 14,
+ "withImage": 10,
+ "perModule": {
+  "1": 8,
+  "3": 8,
+  "4": 11,
+  "5": 8,
+  "6": 25,
+  "7": 15,
+  "8": 17,
+  "9": 26
+ },
+ "familiesPerPool": {
+  "Exam 1": "m1 8/16, m2 0/16, m3 7/8",
+  "Exam 2": "m4 9/7, m5 8/7, m6 20/20, m7 13/6",
+  "Exam 3 (final)": "f-e1 15/15, f-e2 50/15, f-pkpd 24/5, f-nl 16/5"
+ },
+ "added": [
+  "Exam 2 m5: fig-oral-2",
+  "Exam 2 m5: cq3-4",
+  "Exam 2 m6: m6-c19",
+  "Exam 3 (final) f-e1: m1-ord-c03",
+  "Exam 3 (final) f-e1: m1-ord-c04",
+  "Exam 3 (final) f-e1: fig-ord-3",
+  "Exam 3 (final) f-e1: fig-ord-5",
+  "Exam 3 (final) f-e1: m1-int-01",
+  "Exam 3 (final) f-e1: m1-ord-c01",
+  "Exam 3 (final) f-e1: fig-ord-4"
+ ],
+ "topics": [
+  "intro",
+  "orders",
+  "infusion",
+  "clearance",
+  "oral",
+  "multi",
+  "intermit",
+  "multoral",
+  "bioavail",
+  "pkpd",
+  "nonlin"
+ ],
+ "lectures": 12,
+ "skills": [
+  "recall",
+  "tell",
+  "read",
+  "apply",
+  "order",
+  "infusion",
+  "multidose",
+  "bioavail",
+  "pkpd"
+ ],
+ "images": [
+  "oral_peak",
+  "oral_semilog",
+  "ord_semilog_curve",
+  "ord_semilog_straight",
+  "slide_6RepetitiveIVBolus_p17",
+  "slide_Introduction_p20",
+  "slide_Introduction_p23",
+  "slide_Introduction_p24",
+  "slide_Introduction_p6"
+ ],
+ "imageBytes": 130223,
+ "skipped": {
+  "names the professor": 25,
+  "has a type (match)": 6,
+  "image question not needed to fill a pool": 74,
+  "lowYield": 10,
+  "stem promises a figure and has none (browser_test.js)": 6,
+  "dupOf chain leaves the selection": 12,
+  "has a type (numeric)": 534,
+  "stem matches style_check.js STEM_RE": 10,
+  "cite names no lecture deck (test.js)": 23,
+  "text holds the word undefined, null or NaN (browser_test.js, nullexam_test.js)": 1,
+  "fewer than 3 options (test.js line 84)": 10
+ },
+ "bytes": 421349,
+ "styleHits": [
+  "inf-c8",
+  "m5-c25",
+  "m6-c01",
+  "m6b-c01",
+  "m6b-c02",
+  "fig-cpt-1",
+  "fig-cpt-2",
+  "nl-c10",
+  "fr-2",
+  "x3-a-p3h"
+ ],
+ "badWord": [
+  "m1-int-10",
+  "m5-c25",
+  "fig-elim-2"
+ ]
+}
