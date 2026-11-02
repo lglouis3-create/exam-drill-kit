@@ -3,6 +3,15 @@
 Dated kit changes, newest first.
 
 ## 2026-11-02
+- New feature module `glossary-tap` v1 (`features/glossary-tap/`), from Intro-Pharmacology
+  `929cd62` (`exam1-drill/src/app.js` 1771-1922, port queue item 18): a Glossary tab over the
+  course's `TERMS` with search, a letter bar, by-group or A-Z order and group chips; and,
+  written for the kit, after an answer is shown a term named in the explanation, or in a
+  section of the Guides, Tell apart and Reference tabs, can be tapped for its definition. A
+  term the core's `GLOSS` has glossed in brackets in a question is left to the core. BDK's
+  glossary is not part of it (it moves with BDK). Its test: 43 checks pass on a template
+  scratch course with the module on; with the module's code left out, 2 of 12 fail. Core and
+  template unchanged; no course switches it on.
 - `core/render_test.js`: answers calculation and matching items with their own controls; no more random failures.
 - New feature module `plan-the-problem` v1 (`features/plan-the-problem/`), from
   Basic-Pharmacokinetics `ac2eb73` (`src/views.js` 4754-5120, the set-up drill): on the
