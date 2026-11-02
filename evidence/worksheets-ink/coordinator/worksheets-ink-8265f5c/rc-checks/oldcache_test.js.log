@@ -1,0 +1,15 @@
+
+=== Deleting an old worker's caches ===
+  ok    without oldCachePrefix the worker deletes no other prefix
+  ok    with oldCachePrefix 'old-drill-' the build passes it to the worker
+  ok    the build refuses oldCachePrefix 'course-id-drill-'
+  ok    the build refuses oldCachePrefix 'course-'
+  ok    the build refuses oldCachePrefix 'nodash'
+  ok    the worker installs and controls the page
+  ok    the old worker's cache old-drill-v7 is deleted
+  ok    the old worker's cache old-drill-images is deleted
+  ok    old-drillx-v1 is kept
+  ok    bdk-v18 is kept
+  ok    other-old-drill-v1 is kept
+  ok    this course's own cache course-id-drill-v1 is there
+PASS: oldcache_test.js: 12 checks passed

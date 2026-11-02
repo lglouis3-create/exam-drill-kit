@@ -1,0 +1,5 @@
+module worksheets-ink
+commit 8265f5c114a80dba22cbdbc5268a9d9d8f8c81e0
+core c9fde5b23f43746ff8d392314f86e8ff313c1cda template cbac5bd425d480944293f8e1fb5d5d703e8baba1
+extra modules: 
+2026-11-02T20:41:16Z

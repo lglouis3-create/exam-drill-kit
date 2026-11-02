@@ -1,0 +1,16 @@
+checking sources...
+  15 sources and sw.js parse cleanly
+  scheduler: concept (no library)
+  26 questions in 6 topics, from 2 question files: q1_topics.js, q90_wsc_fixture.js
+  feature chained-problem-sets v2: build step done
+  feature chained-problem-sets v2 in the page
+  feature worksheets-ink v1: build step done
+  feature worksheets-ink v1 in the page (options {"tab": "sheets", "label": "Worksheets", "before": "settings", "modules": [[1, "1", "Module 1 - Introduction & Math Review"], [2, "2", "Module 2 - IV Bolus Administration"], [3, "3", "Module 3 - Intravenous Infusions"], [4, "4", "Module 4 - Drug Elimination and Clearance"], [5, "5", "Module 5 - Single Oral Administration"], [6, "6", "Module 6 - Multiple Dosings"], [7, "7a", "Module 7a - Bioavailability and Bioequivalence"], [9, "7b", "Module 7b - PK-PD Relationship"], [8, "8", "Module 8 - Nonlinear Pharmacokinetics"]], "originalIds": "^wsc-(hwo|hw7o-|nl-hwo-)", "changedIds": "^wsc-(hw\\d|hw7-|nl-hw-)", "drillWorked": "no worked answer|without a worked answer|does not record|stated no final value|did not state|ends before she states|not one she asks|computed here|chosen here|recording stops|does not work|applied to that example|her spoken values", "spokenOnly": "recording|aloud|spoken", "writtenWorking": "written working|her key|her sheet|worked on the|worked answers"})
+  change log: 1 entries, newest "2026-10-02 (set up from the template)"
+  assembled script parses cleanly
+wrote index.html  (0.38 MB)
+wrote COURSE0000_Drill.html  (redirect to index.html)
+wrote version.json  (built 2026-11-02T20:38:10Z)
+  note: placeholder icons (a plain square) for icon-192.png, icon-512.png, icon-maskable-512.png, apple-touch-icon.png; put the course's own PNGs under src/icons/ to replace them
+wrote manifest.json and the icons
+wrote sw.js  (caches named course-id-drill-v<n>; 7 files saved at install)
