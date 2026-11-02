@@ -39,10 +39,11 @@ jobs:
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
         with:
           python-version: '3.13'
-      - name: Playwright 1.63.0 and Chromium (the versions the cloud container has)
+      - name: Playwright 1.63.0, Chromium and pdfplumber 0.11.10 (the versions the cloud container has)
         run: |
           npm install -g playwright@1.63.0
           npx --yes playwright@1.63.0 install --with-deps chromium
+          python -m pip install pdfplumber==0.11.10
       - name: Build the course and run every check
         run: bash core/ci_course.sh "${{ matrix.course }}" chromium
 
@@ -59,9 +60,10 @@ jobs:
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
         with:
           python-version: '3.13'
-      - name: Playwright 1.63.0 and WebKit
+      - name: Playwright 1.63.0, WebKit and pdfplumber 0.11.10
         run: |
           npm install -g playwright@1.63.0
           npx --yes playwright@1.63.0 install --with-deps webkit
+          python -m pip install pdfplumber==0.11.10
       - name: Build the course and run every check in WebKit
         run: bash core/ci_course.sh template webkit

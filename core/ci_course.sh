@@ -49,6 +49,17 @@ set +e
 (cd "$course/src" && DRILL_BROWSER="$browser" bash ./run_checks.sh) 2>&1 | tee "$work/checks.log"
 status=${PIPESTATUS[0]}
 set -e
+# the full log of each failing check, so the reason is in the workflow's output
+logs="$(sed -n 's/.*; logs in \(.*\)$/\1/p' "$work/checks.log" | tail -n 1)"
+if [ -n "$logs" ] && [ -d "$logs" ]; then
+  for c in $(sed -n 's/^FAIL  *\([^ ]*\).*/\1/p' "$work/checks.log"); do
+    f="$logs/${c//\//__}.log"
+    [ -f "$f" ] || continue
+    echo; echo "---- $c (failing lines, then the end of its log) ----"
+    grep -E '^ +FAIL|Error|error' "$f" | head -n 40 || true
+    tail -n 25 "$f"
+  done
+fi
 if grep -qE '^NOT RUN .*did not start' "$work/checks.log"; then
   echo "FAIL: the browser ($browser) did not start, so its checks did not run" >&2
   exit 1
