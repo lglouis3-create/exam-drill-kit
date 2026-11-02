@@ -1,0 +1,17 @@
+
+=== The /preview/ build ===
+  ok    build.py --preview runs
+  ok    every file of the live site is unchanged (10 files compared)
+  ok    preview/ holds index.html and version.json
+  ok    preview/ holds no service worker, manifest, icons or temporary file
+  ok    the preview page is marked as a preview and says so
+  ok    the preview page links no web manifest
+  ok    the live page is not marked as a preview
+  ok    the live page's worker takes control and the page records it before the live keys are read
+  ok    the preview's namespace is phar4342final-preview
+  ok    the preview starts from a copy of the live progress
+  ok    the preview keeps its own answers across a reload (it does not copy the live progress again)
+  ok    no live key was written or removed (3 live keys compared)
+  ok    the preview registers no service worker
+  ok    no script error on either page
+PASS: preview_test.js: 14 checks passed

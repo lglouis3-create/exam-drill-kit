@@ -1,0 +1,34 @@
+
+=== the course's own set-up data ===
+  ok    the page carries plan-the-problem, working
+  ok    every set-up stem is offered four distinct lines, the right one among them (10 stems)
+  ok    every set-up reason splits into whole sentences (no fraction or decimal cut)
+  ok    the sentence split without lookbehind gives Basic-Pharmacokinetics' sentences on 9 control texts and 10 reasons
+  ok    no wrong choice is a line used on the way or the same relation (10 stems, 20 draws each)
+  ok    the wrong choices come from the stem's own module first
+
+=== the build step stops on bad set-up data ===
+  ok    a set-up line that is not in EQUATIONS, named with its question stops the build and says so
+  ok    a line used on the way that is not in EQUATIONS, named with its question stops the build and says so
+  ok    a given that is not [symbol, value, role] stops the build and says so
+  ok    an asks key that ASKS does not have stops the build and says so
+  ok    a PLAN.same id that is not in EQUATIONS stops the build and says so
+  ok    a bank with no set-up stem stops the build and says so
+  ok    with formulas-in-text and equation-drill off, the build stops and names both
+
+=== on a scratch copy with Basic-Pharmacokinetics' calculation questions (Chromium) ===
+  ok    the Equations tab offers the set-up drill with a scope per module
+  ok    it offers the plan per module, and the course's six steps for any calculation
+  ok    starting it shows one Module 3 stem with four lines to choose from (4 stems)
+  ok    a wrong pick is marked, the right line is shown with why, one sentence a line
+  ok    the missed line is tallied per equation in the progress
+  ok    Show the problem worked out opens the keyed answer and the steps in place
+  ok    a right pick of a line the sheet does not print comes with the way to reach it
+  ok    and says the professor said it is not on the sheet, and said to know it
+  ok    after the last stem: the count, the lines missed most often, Again
+  FAIL  opening the tab again while the drill runs shows the drill
+FAIL: features/plan-the-problem/test.js: crashed: page.click: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for locator('#v-eq [data-suhome]')[22m
+
+    at /tmp/port-plan-the-problem/mut/M20/src/features/plan-the-problem/test.js:182:16

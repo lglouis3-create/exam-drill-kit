@@ -1,0 +1,18 @@
+wrote: appended to /tmp/port-plan-the-problem/ci-scripts/src/course.js: formulas-in-text v1 on with 56 symbols, 4 rates, halfLife, times, minus and powers (the options of its test.js)
+wrote: no data files (the module reads no course data file)
+formulas-in-text ci exit=0
+wrote: /tmp/port-plan-the-problem/ci-scripts/src/eqc_equations.js (14 equations from the fixture in test.js)
+wrote: appended to /tmp/port-plan-the-problem/ci-scripts/src/course.js: the file in COURSE.files and equation-drill v2 on
+equation-drill ci exit=0
+wrote: /tmp/port-plan-the-problem/ci-scripts/src/plc_plan_data.js (9 equations, added to the course's EQUATIONS, 55 ASKS, PLAN with 12 models)
+wrote: /tmp/port-plan-the-problem/ci-scripts/src/q90_plc_fixture.js (6 topics, 10 questions from the fixture in test.js)
+wrote: appended to /tmp/port-plan-the-problem/ci-scripts/src/course.js: both files in COURSE.files, 8 lecture(s) (L91 Introduction.pdf, L92 2IVBolusAdministration.pdf, L93 3IntravenousInfusions.pdf, L94 4---Clearance-and-Elimination.pdf, L95 5---Pharmacokinetics-of-Oral-Absorption.pdf, L96 6---Repetitive-IV-Bolus-and-Intermittent-IV-Infusions.pdf, L97 IV-Bolus-Practice-3---Solutions.pdf, L98 Multiple-IV-Bolus-Practice-1---Solutions.pdf), 6 skill(s), and plan-the-problem v1 on
+plan-the-problem ci exit=0
+plan-the-problem ci/oncourse.js: course.js already switches plan-the-problem on (this script runs once per course)
+plan-the-problem ci second run exit=1 (must be non-zero)
+build exit=0
+  note  the 20 picks made while storage was full were lost on the reload (the core keeps them only for the visit, as its notice says; agent-run report)
+  ok    a saved tally of another shape starts afresh, and the next pick is saved
+  ok    no page error in the persistence runs
+PASS: features/plan-the-problem/test.js: 54 checks passed
+module test exit=0

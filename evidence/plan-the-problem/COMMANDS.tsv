@@ -1,0 +1,14 @@
+ci-module-plan	/home/user/exam-drill-kit/.claude/worktrees/agent-a8f9b556157fce3e0	env TMPDIR=/tmp/port-plan-the-problem/tmp bash core/ci_course.sh module:plan-the-problem chromium	0	logs/ci-module-plan.log	2026-11-02T22:26:57Z
+module-test-run1	/tmp/port-plan-the-problem/tmp/kit-ci-e4nti6/course/src	node features/plan-the-problem/test.js	0	logs/module-test-run1.log	2026-11-02T22:27:29Z
+module-test-run2	/tmp/port-plan-the-problem/tmp/kit-ci-e4nti6/course/src	node features/plan-the-problem/test.js	0	logs/module-test-run2.log	2026-11-02T22:27:45Z
+module-test-run3	/tmp/port-plan-the-problem/tmp/kit-ci-e4nti6/course/src	node features/plan-the-problem/test.js	0	logs/module-test-run3.log	2026-11-02T22:28:01Z
+module-absent-build	/tmp/port-plan-the-problem/c-absent/src	python3 build.py	0	logs/module-absent-build.log	2026-11-02T22:28:10Z
+module-absent-test	/tmp/port-plan-the-problem/c-absent/src	node features/plan-the-problem/test.js	1	logs/module-absent-test.log	2026-11-02T22:28:10Z
+ci-script-test-scripts	/tmp	/tmp/port-plan-the-problem/scripts/ci_script_test.sh /home/user/exam-drill-kit/.claude/worktrees/agent-a8f9b556157fce3e0 scripts	0	logs/ci-script-test-scripts.log	2026-11-02T22:28:35Z
+ci-script-test-plain	/tmp	/tmp/port-plan-the-problem/scripts/ci_script_test.sh /home/user/exam-drill-kit/.claude/worktrees/agent-a8f9b556157fce3e0 plain	0	logs/ci-script-test-plain.log	2026-11-02T22:28:58Z
+ci-script-needs-off	/tmp/port-plan-the-problem/ci-noneeds/src	node /home/user/exam-drill-kit/.claude/worktrees/agent-a8f9b556157fce3e0/features/plan-the-problem/ci/oncourse.js /home/user/exam-drill-kit/.claude/worktrees/agent-a8f9b556157fce3e0 /tmp/port-plan-the-problem/ci-noneeds/src	1	logs/ci-script-needs-off.log	2026-11-02T22:29:04Z
+ci-template	/home/user/exam-drill-kit/.claude/worktrees/agent-a8f9b556157fce3e0	env TMPDIR=/tmp/port-plan-the-problem/tmp bash core/ci_course.sh template chromium	0	logs/ci-template.log	2026-11-02T22:31:40Z
+mc-run-checks-own-core-discarded	/tmp/port-plan-the-problem/mc/src	env DRILL_BROWSER=chromium bash ./run_checks.sh	0	logs/mc-run-checks-own-core-discarded.log	2026-11-02T22:35:13Z
+mc-run-checks	/tmp/port-plan-the-problem/mc/src	env DRILL_BROWSER=chromium bash ./run_checks.sh	0	logs/mc-run-checks.log	2026-11-02T22:38:52Z
+screenshots	/tmp	node /tmp/port-plan-the-problem/scripts/shot.js /tmp/port-plan-the-problem/tmp/kit-ci-e4nti6/course/src /tmp/port-plan-the-problem/evidence/screenshots	0	logs/screenshots.log	2026-11-02T22:39:19Z
+verify-fixture-vs-pk	/tmp	node /tmp/port-plan-the-problem/scripts/verify_fixture.js /home/user/exam-drill-kit/.claude/worktrees/agent-a8f9b556157fce3e0 /tmp/pk-readonly/src	1	logs/verify-fixture-vs-pk.log	2026-11-02T22:39:33Z

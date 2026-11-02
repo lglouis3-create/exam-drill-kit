@@ -1,0 +1,1 @@
+plan-the-problem ci/oncourse.js: formulas-in-text and equation-drill must be switched on first, by features/formulas-in-text/ci/oncourse.js and features/equation-drill/ci/oncourse.js

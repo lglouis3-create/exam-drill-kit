@@ -1,0 +1,63 @@
+
+=== the course's own set-up data ===
+  ok    the page carries plan-the-problem, working
+  ok    every set-up stem is offered four distinct lines, the right one among them (10 stems)
+  ok    every set-up reason splits into whole sentences (no fraction or decimal cut)
+  ok    the sentence split without lookbehind gives Basic-Pharmacokinetics' sentences on 9 control texts and 10 reasons
+  ok    no wrong choice is a line used on the way or the same relation (10 stems, 20 draws each)
+  ok    the wrong choices come from the stem's own module first
+
+=== the build step stops on bad set-up data ===
+  ok    a set-up line that is not in EQUATIONS, named with its question stops the build and says so
+  ok    a line used on the way that is not in EQUATIONS, named with its question stops the build and says so
+  ok    a given that is not [symbol, value, role] stops the build and says so
+  ok    an asks key that ASKS does not have stops the build and says so
+  ok    a PLAN.same id that is not in EQUATIONS stops the build and says so
+  ok    a bank with no set-up stem stops the build and says so
+  ok    with formulas-in-text and equation-drill off, the build stops and names both
+
+=== on a scratch copy with Basic-Pharmacokinetics' calculation questions (Chromium) ===
+  ok    the Equations tab offers the set-up drill with a scope per module
+  ok    it offers the plan per module, and the course's six steps for any calculation
+  ok    starting it shows one Module 3 stem with four lines to choose from (4 stems)
+  ok    a wrong pick is marked, the right line is shown with why, one sentence a line
+  ok    the missed line is tallied per equation in the progress
+  ok    Show the problem worked out opens the keyed answer and the steps in place
+  ok    a right pick of a line the sheet does not print comes with the way to reach it
+  ok    and says the professor said it is not on the sheet, and said to know it
+  ok    after the last stem: the count, the lines missed most often, Again
+  ok    opening the tab again while the drill runs shows the drill
+  ok    Stop returns to the Equations picker, with the card
+  -- plan the problem --
+  ok    the plan opens on "What is asked?" with six symbols and nothing else yet
+  ok    the right symbol is marked, its meaning shown, and six units offered
+  ok    the unit is judged and the 12 models of the course's list are offered, the line held back
+  ok    a wrong model is marked, the stem's model named, then the four lines
+  ok    after the line: whether the sheet prints it, before the givens
+  ok    the sheet answer is judged; the 3 givens are offered as ticks with their roles hidden
+  ok    ticks toggle and show as pressed
+  ok    the plan is written out: asked, model, line, givens, estimate; each given's role shown
+  ok    the givens are right, and a plan with a wrong model is not counted as right in every step
+  ok    a plan right in every step is counted
+  ok    the plan names the model's block of the sheet
+  ok    a stem of an "Any route" model: the plan says the block, not the block of the sheet (src/views.js line 4974)
+  ok    "What is asked?" offers six distinct symbols with the right one and its module's first, and the units are distinct with the right one (20 stems, 20 draws each)
+  ok    the models a stem accepts are Basic-Pharmacokinetics' own (100 stems and variants)
+  ok    the tally of lines picked is kept in the progress through a reload (5 picks)
+  ok    no page error
+  ok    without ASKS and PLAN: no plan row, and the set-up drill runs on its own
+  ok    no page error without ASKS and PLAN
+  -- persistence: a long tally, reloads, Export and Import, profiles, storage denied and full --
+  ok    a tally of 160 picks over 16 lines is kept whole through a reload
+  ok    with that tally the closing card lists the six lines missed most often
+  note  a reload at once (under 150 ms) after a pick: the pick was lost (the core saves 150 ms after the last change; agent-run report, not a check)
+  ok    a pick is kept through a reload made 300 ms after it
+  ok    Export carries the tally (161 picks); Import into a fresh profile brings it back whole
+  ok    a profile switch: each profile keeps its own tally
+  ok    storage denied: the student is told, the saved tally is not overwritten, the new picks hold for the visit
+  ok    once storage works again the next save writes the picks made while it was denied, and a reload loads all of them
+  ok    storage full (QuotaExceededError): the student is told, nothing saved is overwritten, and the saved tally loads after storage works again
+  note  the 20 picks made while storage was full were lost on the reload (the core keeps them only for the visit, as its notice says; agent-run report)
+  ok    a saved tally of another shape starts afresh, and the next pick is saved
+  ok    no page error in the persistence runs
+PASS: features/plan-the-problem/test.js: 52 checks passed
