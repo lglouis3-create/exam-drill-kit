@@ -5,9 +5,10 @@
  * progress (DB.flags), an id the bank does not have is refused, and a saved
  * progress with flags or a layout of another shape loses that field on load,
  * while a saved progress without them is read back exactly as saved.
- * On a scratch copy with 6 of Intro to Pharmacology's questions (exam1-drill/src/
- * q_L01.js at 929cd62: 4 single-answer, 2 select-all; ids prefixed sct-, the
- * professor and the skill set to the course's own), in Chromium, with
+ * On a scratch copy with Intro to Pharmacology's Day 1 topic, its lecture and 6 of
+ * its questions (FIX below, verbatim from exam1-drill/src at 929cd62: 4 single-answer,
+ * 2 select-all; the professor set to the course's own; the course's own copy when
+ * ci/oncourse.js wrote it), in Chromium, with
  * Intro to Pharmacology's own browser checks of these controls ported
  * (exam1-drill/src/browser_test.js lines 41-48, 124-139, 150-156, 243-246,
  * 286-294 and 332-337 at 929cd62):
@@ -46,7 +47,7 @@
  * On a copy with every option off: no Flag, no layout chips, no strict box, and
  * the letter keys do nothing.
  * On a copy with 300 more questions (50 copies of the 6, ids suffixed) and
- * calculations on the paper (exams[].typed): 300 flags and the layout kept through
+ * calculations on the paper (exams[].typed, drawn from the course's other topics): 300 flags and the layout kept through
  * a reload, Drill flagged 40 to a page; a reload at once after a flag is reported
  * (the core saves 150 ms after the last change), one 300 ms after is kept; Export
  * and Import into a fresh profile; each profile keeps its own; storage denied and
@@ -62,27 +63,69 @@ const NAME = 'features/study-controls/test.js';
 const {check} = L;
 delete process.env.DRILL_PAGE;
 
-/* 6 of Intro to Pharmacology's questions (exam1-drill/src/q_L01.js, 929cd62), the fields the controls use */
-const IP = [{"id": "L01-002", "concept": "metoprolol-predict-effect", "stem": "What effect would metoprolol have on heart rate?", "options": [{"t": "Slower heart rate", "correct": true, "why": "Blocking the heart’s β1 receptors slows the heart rate; this is the prediction he asked the class to make."}, {"t": "Faster heart rate", "correct": false, "why": "Treats an antagonist as if it were an agonist at β1."}, {"t": "No change in heart rate", "correct": false, "why": "Ignores that the blocked receptor is located in the heart."}, {"t": "Increased urination", "correct": false, "why": "Confuses the β1 blocker with the thiazide diuretic example."}], "teach": "If you know the mechanism of action (β1-selective antagonist) and the site of action (β1 receptors in the heart), the effect follows: the heart rate slows. The same reasoning predicts side effects such as bradycardia.", "cite": "Pharmacodynamics-Day-1-2026s.pdf slide ~9; transcript 9/22"}, {"id": "L01-004", "concept": "drugs-alter-ongoing-system", "stem": "Which statement is CORRECT about what drugs do to a biological system?", "options": [{"t": "Drugs alter an ongoing physiological or pathological function", "correct": true, "why": "Drugs change an ongoing physiological or pathological function; they initiate, inhibit or modulate."}, {"t": "Drugs create a new physiological pathway in the body", "correct": false, "why": "He states drugs do not create anything new."}, {"t": "Drugs can only block receptors", "correct": false, "why": "Drugs can also initiate or modulate a signal."}, {"t": "Drugs can only mimic hormones and neurotransmitters the body already makes", "correct": false, "why": "Some drugs mimic body products; others are unique. Either way they alter an existing system."}, {"t": "All of the above", "correct": false, "why": "Only the first statement is correct; drugs do not create new pathways, and they can initiate or modulate as well as block."}], "teach": "Drugs are chemical substances that alter an ongoing physiological or pathological function by interacting with components of the biological system. They can initiate, inhibit or modulate a signal, but they do not create a new pathway.", "cite": "Pharmacodynamics-Day-1-2026s.pdf slides ~11, ~31; transcript 9/22"}, {"id": "L01-005", "concept": "receptor-message-physiological-response", "stem": "Norepinephrine binds β1 receptors and cardiac output increases. In receptor terms, what is the increase in cardiac output?", "options": [{"t": "The physiological response", "correct": true, "why": "The message a drug–receptor interaction creates is seen as the physiological response."}, {"t": "The affinity of norepinephrine for β1", "correct": false, "why": "Affinity is how well the drug binds, not the response produced."}, {"t": "The site of action", "correct": false, "why": "The site of action is where the receptor is (the heart), not the response."}, {"t": "The apparent potency", "correct": false, "why": "Apparent potency concerns how much drug reaches the site; it is not the response itself."}], "teach": "Receptors sense signals such as hormones, neurotransmitters and drugs. The message the receptor creates after binding is what we observe as the physiological response, for example increased cardiac output when norepinephrine binds β1.", "cite": "Pharmacodynamics-Day-1-2026s.pdf slide ~11; transcript 9/22"}, {"id": "L01-006", "concept": "curare-not-absorbed", "stem": "Curare (Strychnos toxifera) is a very large, positively charged molecule used as a paralytic agent. Why does eating the plant produce no effect?", "options": [{"t": "It cannot be absorbed", "correct": true, "why": "A large, charged molecule is not absorbed, so eating it does nothing."}, {"t": "It has no affinity", "correct": false, "why": "Curare paralyzes fish through the gills, so it does act once it reaches its target."}, {"t": "It is a partial agonist", "correct": false, "why": "Its lack of oral effect is about absorption, not intrinsic activity."}, {"t": "Stomach acid adds a charge", "correct": false, "why": "The charge is a property of the molecule itself."}], "teach": "Curare is a large molecule with a positive charge, so it is not absorbed when eaten. It was discovered when fish, whose gills are outside the body, became paralyzed and floated up. It was later used as a paralyzing agent for surgery.", "cite": "Pharmacodynamics-Day-1-2026s.pdf slide ~14; transcript 9/22"}, {"id": "L01-003", "concept": "metoprolol-predict-adr", "stem": "Which adverse drug reactions (ADRs) would metoprolol be expected to produce? Select all that apply.", "multi": true, "options": [{"t": "Bradycardia", "correct": true, "why": "Blocking β1 in the heart can slow it too much; bradycardia is listed as an ADR."}, {"t": "Fatigue", "correct": true, "why": "Fatigue is listed as an ADR and he ties it to β1 receptors in the brain."}, {"t": "Tachycardia", "correct": false, "why": "A β1 antagonist slows the heart; tachycardia reverses the effect."}, {"t": "Hyponatremia", "correct": false, "why": "Hyponatremia was the thiazide diuretic example, from losing sodium."}], "teach": "Metoprolol blocks β1 receptors. In the heart that slows the rate, and too much slowing is bradycardia. β1 receptors are also in the brain, which he links to fatigue and patients forgetting things.", "cite": "Pharmacodynamics-Day-1-2026s.pdf slide ~9; transcript 9/22"}, {"id": "L01-007", "concept": "nds-regulation", "stem": "Which statements about natural dietary supplements (NDS) are correct? Select all that apply.", "multi": true, "options": [{"t": "They are regulated as food", "correct": true, "why": "NDS are regulated as food, not as drugs."}, {"t": "They have less FDA oversight", "correct": true, "why": "Because they are not drugs, the FDA oversees them less; they stay on the market until they cause harm."}, {"t": "Labels cannot claim they cure", "correct": true, "why": "Labels cannot state that the product treats, cures, diagnoses or prevents a disease."}, {"t": "They are tested like Rx drugs", "correct": false, "why": "The label states the claims have not been evaluated by the FDA."}, {"t": "Being natural makes them safe", "correct": false, "why": "He answered this with cyanide and lead: natural does not mean safe."}], "teach": "NDS are regulated as food, so they receive less FDA oversight and remain on the market until they cause harm. Their labels cannot claim to treat, cure, diagnose or prevent disease. Natural does not mean safe.", "cite": "Pharmacodynamics-Day-1-2026s.pdf slides ~15–~16; transcript 9/22"}];
-const NOTE = 'Strict-paper note set by the study-controls test.';
-const pre = id => 'sct-' + id;
+/* The course data of this test and of ../ci/oncourse.js, verbatim from Intro-Pharmacology-
+   exam1-drill/src at 929cd62: the Day 1 topic (q_L01.js line 1), its lecture (course.js
+   `lectures`, id L01), 6 of its questions (q_L01.js: L01-002, -004, -005, -006 single-answer;
+   L01-003, -007 select-all) and the professor's 10/21 answer on going back to a question
+   (app.js line 678), the strict-paper note. The one change: `prof` is the template's
+   "Professor" (the source names the professor). WRITE below says how it is written into a course. */
+const FIX = {
+  topic: {"id":"L01","name":"Day 1: drugs, receptors, potency","prof":"Professor","lecture":"L01","cite":"Day 1 (9/22) — Pharmacodynamics-Day-1-2026s.pdf","subs":[{"id":"intro","name":"Must know vs should know","cite":"slides ~7–~12"},{"id":"nds","name":"Drug discovery and supplements","cite":"slides ~13–~20"},{"id":"potency","name":"Affinity, efficacy and potency","cite":"slides ~21–~27, ~37–~38"},{"id":"theory","name":"Receptor theories and the two-state model","cite":"slides ~28–~29"},{"id":"drugs","name":"Drugs, selectivity and drug classes","cite":"slides ~29–~33"},{"id":"receptors","name":"Receptor classes","cite":"slides ~34–~36"},{"id":"ion","name":"Ion channels","cite":"slides ~39–~48"},{"id":"gpcr","name":"G protein–coupled receptors","cite":"slides ~49–~55"}]},
+  lecture: {"id":"L01","deck":"Pharmacodynamics-Day-1-2026s.pdf","label":"Day 1 (9/22): Course intro, drugs & receptors","prof":"Professor","exam":1,"module":1},
+  strictNote: "10/21 (asked whether you can go back to a question): \"No, there will not, yeah, no backwards nav, OK, yes.\"",
+  qs: [
+    {"id":"L01-002","lecture":"L01","prof":"Professor","tier":"new","topic":"L01","sub":"intro","skill":"apply","concept":"metoprolol-predict-effect","tags":["metoprolol","beta1"],"source":"both","stem":"What effect would metoprolol have on heart rate?","options":[{"t":"Slower heart rate","correct":true,"why":"Blocking the heart’s β1 receptors slows the heart rate; this is the prediction he asked the class to make."},{"t":"Faster heart rate","correct":false,"why":"Treats an antagonist as if it were an agonist at β1."},{"t":"No change in heart rate","correct":false,"why":"Ignores that the blocked receptor is located in the heart."},{"t":"Increased urination","correct":false,"why":"Confuses the β1 blocker with the thiazide diuretic example."}],"teach":"If you know the mechanism of action (β1-selective antagonist) and the site of action (β1 receptors in the heart), the effect follows: the heart rate slows. The same reasoning predicts side effects such as bradycardia.","quote":"If I give you metoprolol, which is a beta 1 selective antagonist, and beta ones are in the heart, what kind of effect is it going to produce? ... Slow down the heart rate.","reading":[{"src":"Katzung 16e, Ch. 6","sec":"Table 6–2 Major autonomic receptor types; Table 6–5","t":"β1 adrenoceptors are located especially in the heart, where sympathetic activity accelerates the sinoatrial node through them. A β-blocker binds β receptors and prevents their activation, removing that acceleration."}],"cite":"Pharmacodynamics-Day-1-2026s.pdf slide ~9; transcript 9/22"},
+    {"id":"L01-004","lecture":"L01","prof":"Professor","tier":"new","topic":"L01","sub":"intro","skill":"recall","concept":"drugs-alter-ongoing-system","tags":["definition","poll"],"source":"both","stem":"Which statement is CORRECT about what drugs do to a biological system?","options":[{"t":"Drugs alter an ongoing physiological or pathological function","correct":true,"why":"Drugs change an ongoing physiological or pathological function; they initiate, inhibit or modulate."},{"t":"Drugs create a new physiological pathway in the body","correct":false,"why":"He states drugs do not create anything new."},{"t":"Drugs can only block receptors","correct":false,"why":"Drugs can also initiate or modulate a signal."},{"t":"Drugs can only mimic hormones and neurotransmitters the body already makes","correct":false,"why":"Some drugs mimic body products; others are unique. Either way they alter an existing system."},{"t":"All of the above","correct":false,"why":"Only the first statement is correct; drugs do not create new pathways, and they can initiate or modulate as well as block."}],"teach":"Drugs are chemical substances that alter an ongoing physiological or pathological function by interacting with components of the biological system. They can initiate, inhibit or modulate a signal, but they do not create a new pathway.","quote":"drugs don’t create anything new, they just change whatever is happening in the body.","reading":[{"src":"Katzung 16e, Ch. 1","sec":"The Nature of Drugs; Pharmacology (opening definition)","t":"A drug is any substance that brings about a change in biologic function through its chemical actions. In most cases the drug molecule acts as an agonist or antagonist on a target molecule that already plays a regulatory role in the biologic system."}],"cite":"Pharmacodynamics-Day-1-2026s.pdf slides ~11, ~31; transcript 9/22"},
+    {"id":"L01-005","lecture":"L01","prof":"Professor","tier":"new","topic":"L01","sub":"intro","skill":"recall","concept":"receptor-message-physiological-response","tags":["receptor"],"source":"both","stem":"Norepinephrine binds β1 receptors and cardiac output increases. In receptor terms, what is the increase in cardiac output?","options":[{"t":"The physiological response","correct":true,"why":"The message a drug–receptor interaction creates is seen as the physiological response."},{"t":"The affinity of norepinephrine for β1","correct":false,"why":"Affinity is how well the drug binds, not the response produced."},{"t":"The site of action","correct":false,"why":"The site of action is where the receptor is (the heart), not the response."},{"t":"The apparent potency","correct":false,"why":"Apparent potency concerns how much drug reaches the site; it is not the response itself."}],"teach":"Receptors sense signals such as hormones, neurotransmitters and drugs. The message the receptor creates after binding is what we observe as the physiological response, for example increased cardiac output when norepinephrine binds β1.","quote":"the message that a drug receptor interaction creates is what we see as a physiological response ... norepinephrine to the beta 1 receptor increases your cardiac output. That’s the physiological response.","reading":[{"src":"Katzung 16e, Ch. 1","sec":"Pharmacodynamic Principles","t":"Drug binding is only the first step: the drug–receptor complex acts through coupling and effector molecules, and the final change in function is accomplished by that effector mechanism. The rise in cardiac output is that altered function, the effect, not the binding itself."}],"cite":"Pharmacodynamics-Day-1-2026s.pdf slide ~11; transcript 9/22"},
+    {"id":"L01-006","lecture":"L01","prof":"Professor","tier":"new","topic":"L01","sub":"nds","skill":"apply","concept":"curare-not-absorbed","tags":["curare","absorption"],"source":"both","stem":"Curare (Strychnos toxifera) is a very large, positively charged molecule used as a paralytic agent. Why does eating the plant produce no effect?","options":[{"t":"It cannot be absorbed","correct":true,"why":"A large, charged molecule is not absorbed, so eating it does nothing."},{"t":"It has no affinity","correct":false,"why":"Curare paralyzes fish through the gills, so it does act once it reaches its target."},{"t":"It is a partial agonist","correct":false,"why":"Its lack of oral effect is about absorption, not intrinsic activity."},{"t":"Stomach acid adds a charge","correct":false,"why":"The charge is a property of the molecule itself."}],"teach":"Curare is a large molecule with a positive charge, so it is not absorbed when eaten. It was discovered when fish, whose gills are outside the body, became paralyzed and floated up. It was later used as a paralyzing agent for surgery.","quote":"What does that tell you to be large and have a charge to it, positive or negative? You can’t absorb, right?","reading":[{"src":"Katzung 16e, Ch. 1","sec":"Drug Size; Ionization of Weak Acids and Weak Bases","t":"Molecules much larger than about 1000 molecular weight do not diffuse readily between body compartments. The charge of an ionized molecule makes it water-soluble and lipid-insoluble, so a permanently charged molecule permeates membranes poorly."}],"cite":"Pharmacodynamics-Day-1-2026s.pdf slide ~14; transcript 9/22"},
+    {"id":"L01-003","lecture":"L01","prof":"Professor","tier":"new","topic":"L01","sub":"intro","skill":"apply","multi":true,"concept":"metoprolol-predict-adr","tags":["metoprolol","adr"],"source":"both","stem":"Which adverse drug reactions (ADRs) would metoprolol be expected to produce? Select all that apply.","options":[{"t":"Bradycardia","correct":true,"why":"Blocking β1 in the heart can slow it too much; bradycardia is listed as an ADR."},{"t":"Fatigue","correct":true,"why":"Fatigue is listed as an ADR and he ties it to β1 receptors in the brain."},{"t":"Tachycardia","correct":false,"why":"A β1 antagonist slows the heart; tachycardia reverses the effect."},{"t":"Hyponatremia","correct":false,"why":"Hyponatremia was the thiazide diuretic example, from losing sodium."}],"teach":"Metoprolol blocks β1 receptors. In the heart that slows the rate, and too much slowing is bradycardia. β1 receptors are also in the brain, which he links to fatigue and patients forgetting things.","quote":"severe bradycardia that can be a side effect if you get to the brain or the beta ones are as well, it may cause fatigue. Patients may forget things.","reading":[{"src":"Katzung 16e, Ch. 6","sec":"Table 6–2 Major autonomic receptor types","t":"β1 adrenoceptors are on postsynaptic effector cells, especially heart, lipocytes and brain. Because the sinoatrial node is accelerated through β1 receptors, blocking them slows the heart, and slowing it too far is bradycardia."}],"cite":"Pharmacodynamics-Day-1-2026s.pdf slide ~9; transcript 9/22"},
+    {"id":"L01-007","lecture":"L01","prof":"Professor","tier":"new","topic":"L01","sub":"nds","skill":"recall","multi":true,"concept":"nds-regulation","tags":["nds"],"source":"both","stem":"Which statements about natural dietary supplements (NDS) are correct? Select all that apply.","options":[{"t":"They are regulated as food","correct":true,"why":"NDS are regulated as food, not as drugs."},{"t":"They have less FDA oversight","correct":true,"why":"Because they are not drugs, the FDA oversees them less; they stay on the market until they cause harm."},{"t":"Labels cannot claim they cure","correct":true,"why":"Labels cannot state that the product treats, cures, diagnoses or prevents a disease."},{"t":"They are tested like Rx drugs","correct":false,"why":"The label states the claims have not been evaluated by the FDA."},{"t":"Being natural makes them safe","correct":false,"why":"He answered this with cyanide and lead: natural does not mean safe."}],"teach":"NDS are regulated as food, so they receive less FDA oversight and remain on the market until they cause harm. Their labels cannot claim to treat, cure, diagnose or prevent disease. Natural does not mean safe.","quote":"when we look at natural dietary supplements, they are treated as food, which means they have less oversight by the FDA. Which means that until they cause harm, they’re still in the market","reading":[{"src":"Katzung 16e, Ch. 1","sec":"Table 1–6 Some major legislation pertaining to drugs in the USA; The History of Pharmacology","t":"Under the Dietary Supplement Health and Education Act, supplements are part of the food supply and are not fully reviewed by the FDA as drugs. All substances can be toxic, and botanical chemicals are no different from manufactured drug chemicals except for more impurities."}],"cite":"Pharmacodynamics-Day-1-2026s.pdf slides ~15–~16; transcript 9/22"}
+  ]};
+const NOTE = FIX.strictNote;
 
-/* copies: for the persistence checks, that many more copies of the 6 questions, content unchanged,
-   ids and concepts suffixed -c<n> (test pages only; nothing here ships) */
-function fixtureFiles(own, copies){
-  const topic = {id: 'sct-L01', name: 'Day 1: drugs, receptors, potency', prof: own.prof, cite: 'Day 1 (9/22) \u2014 Pharmacodynamics-Day-1-2026s.pdf',
-    subs: [{id: 'a', name: 'Must know vs should know', cite: 'slides ~7\u2013~12'}]};
-  const one = (q, c) => Object.assign({}, q, {id: pre(q.id) + c, concept: 'sct-' + q.concept + c, prof: own.prof, tier: 'new', topic: 'sct-L01', sub: 'a', skill: own.skill, tags: []});
-  const qs = IP.map(q => one(q, ''));
-  for(let c = 1; c <= (copies || 0); c++) IP.forEach(q => qs.push(one(q, '-c' + c)));
-  return {'q90_sc_fixture.js': '/* 6 of Intro to Pharmacology\'s questions (exam1-drill/src/q_L01.js, 929cd62), added by the study-controls test */\n' +
-    `TOPICS.push(${JSON.stringify(topic)});\nQUESTIONS.push(...${JSON.stringify(qs)});\n`};
+/* How FIX is written into a course, as a question file in the kit's form: one question per line,
+   opening {id:'...', skill:'...', prof:'...' (browser_test.js counts the bank that way), in a topic
+   of its own after the course's topics. own = {prof, skills, lectures} of the course: `prof` is the
+   course's first professor; a question's own skill is kept when the course has it (the template has
+   both of FIX's, recall and apply), else the course's first skill. The source's `lecture` field
+   (the source's lecture id) is left out: the kit finds a question's lecture from the deck its
+   `cite` names. The topic keeps the subtopics FIX's questions are in (intro, nds). The lecture is
+   added under id L91 (the template has its own L01), unless the course already has its deck.
+   opt.base writes the topic and the 6 questions; opt.copies writes that many more copies of the 6
+   (ids and concepts suffixed -c<n>, content unchanged; test pages only). ../ci/oncourse.js reads
+   FIX and WRITE from this file, so the CI course and the test's copies hold the same data. */
+const WRITE = (fix, own, opt) => {
+  const lit = v => { if(!/^[^'\\\n]*$/.test(String(v))) throw new Error('cannot be written as a literal: ' + v); return `'${v}'`; };
+  const skill = q => own.skills.includes(q.skill) ? q.skill : own.skills[0];
+  const row = (q, c) => { const r = Object.assign({}, q); ['id', 'skill', 'prof', 'lecture'].forEach(k => delete r[k]);
+    if(c) r.concept = q.concept + c;
+    return `{id:${lit(q.id + c)}, skill:${lit(skill(q))}, prof:${lit(own.prof)}, ${JSON.stringify(r).slice(1)},`; };
+  const topic = Object.assign({}, fix.topic, {prof: own.prof, subs: fix.topic.subs.filter(t => fix.qs.some(q => q.sub === t.id))});
+  delete topic.lecture;
+  const rows = [];
+  if(opt.base) fix.qs.forEach(q => rows.push(row(q, '')));
+  for(let c = 1; c <= (opt.copies || 0); c++) fix.qs.forEach(q => rows.push(row(q, '-c' + c)));
+  let body = `/* study-controls: Intro to Pharmacology's Day 1 topic and 6 of its questions (exam1-drill/src/q_L01.js,\n   929cd62)${opt.copies ? `, ${opt.copies} copies of the 6 (ids suffixed -c<n>)` : ''}; written from FIX in features/study-controls/test.js */\n`;
+  if(opt.base) body += `TOPICS.push(${JSON.stringify(topic)});\n`;
+  if(rows.length) body += `QUESTIONS.push(\n${rows.join('\n')}\n);\n`;
+  const l = fix.lecture;
+  const lecture = (own.lectures || []).some(x => x.deck === l.deck) ? '' :
+    `{id:'L91', deck:${lit(l.deck)}, label:${lit(l.label)}, prof:${lit(own.prof)}, exam:${JSON.stringify(l.exam)}, module:${JSON.stringify(l.module)}}`;
+  return {body, lecture, rows: rows.length};
+  };
+
+/* The test's scratch copies: the course's own copy of FIX when it has one (a course made by
+   ../ci/oncourse.js), else FIX written in; `copies` more copies for the persistence checks. */
+function fixtureFiles(own, have, copies){
+  const w = WRITE(FIX, own, {base: !have, copies});
+  const files = w.rows ? {[have ? 'q91_sc_copies.js' : 'q90_sc_fixture.js']: w.body} : {};
+  return {files, line: w.lecture ? `COURSE.lectures = (COURSE.lectures || []).concat([${w.lecture}]);` : ''};
 }
 
 (async () => {
   console.log('\n=== the course\'s own page (node) ===');
   L.PAGE.need(NAME);
-  const X = L.engine('({FX: typeof FX === "undefined" ? null : FX, DB: () => DB, upgradeDB, QUESTIONS, COURSE})');
+  const X = L.engine('({FX: typeof FX === "undefined" ? null : FX, DB: () => DB, upgradeDB, QUESTIONS, TOPICS, COURSE})');
   const S = X.FX && X.FX.api('study-controls');
   if(!check(!!S, 'the page carries study-controls, working', JSON.stringify((X.FX && X.FX.errors) || 'no feature modules in the page'))) L.finish(NAME);
   const id0 = X.QUESTIONS[0].id, id1 = X.QUESTIONS[1].id;
@@ -99,16 +142,21 @@ function fixtureFiles(own, copies){
   const up2 = X.upgradeDB({v: 2});
   check(!('flags' in up[0]) && !('layout' in up[0]) && !('flags' in up2) && !('layout' in up2) && up[1].flags[id0] === 5 && up[1].layout === 'all',
     'a saved progress with flags or a layout of another shape loses that field on load; a good one is kept, and one without them is left as saved', up.map(d => ({flags: d.flags, layout: d.layout})));
-  const own = {prof: X.COURSE.professors[0], skill: X.COURSE.skills[0].id};
+  const own = {prof: X.COURSE.professors[0], skills: X.COURSE.skills.map(k => k.id), lectures: X.COURSE.lectures};
+  // a course made by ci/oncourse.js has FIX already: the copies use the course's own
+  const have = FIX.qs.every(q => X.QUESTIONS.some(x => x.id === q.id));
+  const otherTopics = X.TOPICS.map(t => t.id).filter(t => t !== FIX.topic.id);
 
   console.log('\n=== on a scratch copy with Intro to Pharmacology\'s questions (Chromium) ===');
   const dir = __dirname;
-  const s = L.scratchBuild('sc', {files: fixtureFiles(own), courseLine: L.featureOn(dir, {flags: true, layout: true, keys: true, strict: true, strictNote: NOTE})});
+  const f1 = fixtureFiles(own, have), f3 = fixtureFiles(own, have, 50);
+  const s = L.scratchBuild('sc', {files: f1.files, courseLine: f1.line + L.featureOn(dir, {flags: true, layout: true, keys: true, strict: true, strictNote: NOTE})});
   if(s.code !== 0) L.notRun(NAME, 'the scratch copy with the test questions does not build: ' + s.out.split('\n').pop());
-  const s2 = L.scratchBuild('sc-off', {files: fixtureFiles(own), courseLine: L.featureOn(dir, {flags: false, layout: false, keys: false, strict: false})});
-  const COPIES = 50;   // 300 more questions, for hundreds of flags
-  const s3 = L.scratchBuild('sc-many', {files: fixtureFiles(own, COPIES), courseLine: 'COURSE.exams.forEach(e => { e.typed = true; });' + L.featureOn(dir, {flags: true, layout: true, keys: true, strict: true})});
-  const ids = IP.map(q => pre(q.id)), single = IP.filter(q => !q.multi).map(q => pre(q.id)), multi = IP.filter(q => q.multi).map(q => pre(q.id));
+  const s2 = L.scratchBuild('sc-off', {files: f1.files, courseLine: f1.line + L.featureOn(dir, {flags: false, layout: false, keys: false, strict: false})});
+  const COPIES = 50;   // 300 more questions, for hundreds of flags (f3 above)
+  // calculations on the paper (exams[].typed); the papers drawn from the course's other topics, so the 300 copies do not crowd out its calculations
+  const s3 = L.scratchBuild('sc-many', {files: f3.files, courseLine: f3.line + `COURSE.exams.forEach(e => { e.typed = true; e.pools.forEach(p => { p.filter = Object.assign({}, p.filter, {topic: ${JSON.stringify(otherTopics)}}); }); });` + L.featureOn(dir, {flags: true, layout: true, keys: true, strict: true})});
+  const ids = FIX.qs.map(q => q.id), single = FIX.qs.filter(q => !q.multi).map(q => q.id), multi = FIX.qs.filter(q => q.multi).map(q => q.id);
   const {browser} = await L.launch(NAME);
   try {
     const {ctx, page, errors} = await L.openPage(browser, s.page, {viewport: {width: 1000, height: 900}});
@@ -257,6 +305,8 @@ function fixtureFiles(own, copies){
     check(a4.one && !done.includes(a4.cur) && !a4.again.length, 'back to one at a time, the questions answered on the page are not asked again', a4);
 
     /* ---- the exam paper, one at a time: flags and keys ---- */
+    // the paper can carry the questions flagged above (FIX's questions are in the exam's pools): start with none flagged
+    await ev(() => { const S = FX.api('study-controls'); S.flagged().slice().forEach(id => S.set(id, false)); });
     await goTab('exam');
     const x0 = await ev(() => ({box: !!document.getElementById('scStrict'), note: (document.querySelector('.scstart') || {}).textContent || '', chips: !!document.querySelector('.scstart [data-sclayout]')}));
     check(x0.box && x0.note.includes(NOTE) && x0.chips, 'the exam start page has the layout chips and the strict-paper box with the course\'s note', x0);
@@ -303,7 +353,8 @@ function fixtureFiles(own, copies){
     const p1 = await ev(() => ({cards: document.querySelectorAll('#v-exam .scxq').length, n: EX.qs.length, clock: document.getElementById('exClock').textContent}));
     await page.waitForTimeout(2200);   // the clock shows whole seconds, so two ticks
     const c2 = await ev(() => document.getElementById('exClock').textContent);
-    check(p1.cards === p1.n && /^\d\d:\d\d$/.test(p1.clock) && c2 !== p1.clock, `All on one page shows every question of the paper (${p1.n}) with its clock running`, {p1, c2});
+    check(p1.cards === p1.n && /^\d+:\d\d$/.test(p1.clock) && c2 !== p1.clock,   // a paper of 100 minutes or more shows 119:59
+    `All on one page shows every question of the paper (${p1.n}) with its clock running (${p1.clock}, then ${c2})`, {p1, c2});
     await ev(() => document.querySelector('#v-exam [data-scxk="1"]').click()); await settle();
     const p2 = await ev(() => ({pick: EX.picks[1], saved: JSON.parse(store.get(EXAM_KEY())).picks[1]}));
     await page.reload(); await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
@@ -373,7 +424,7 @@ function fixtureFiles(own, copies){
 
     /* ---- with paper-picker on: a paper drawn for an earlier exam ---- */
     if(await page.locator('#exAgain').count()){ await page.click('#exAgain'); await settle(); }
-    const pp = await ev(() => FX.api('paper-picker') ? [...document.querySelectorAll('#v-exam [data-ppexam]')].map(b => b.dataset.ppexam).filter(id => id !== EXAM.id) : null);
+    const pp = await ev(() => FX.api('paper-picker') ? [...document.querySelectorAll('#v-exam [data-ppexam]')].map(b => b.dataset.ppexam).filter(id => id !== String(EXAM.id)) : null);   // data-ppexam is text; an exam id may be a number
     if(!pp) L.skip('the flags bar and the strict paper on a paper drawn for an earlier exam', 'paper-picker is not on in this course');
     else if(!pp.length) L.skip('the flags bar and the strict paper on a paper drawn for an earlier exam', 'paper-picker offers no exam other than the current one');
     else {
@@ -396,7 +447,8 @@ function fixtureFiles(own, copies){
       const g2 = await ev(() => [...document.querySelectorAll('#v-exam .scxflags [data-scjump]')].map(b => b.textContent));
       await page.click('#v-exam .scxflags [data-scjump="0"]'); await settle();
       const g3 = await ev(() => EX.i);
-      check(g1.drawn === other && g2.join() === '1' && g3 === 0,
+      // an exam id may be a number (Basic-Pharmacokinetics: 1, 2, 3); the chip's data-ppexam is text
+      check(String(g1.drawn) === other && g2.join() === '1' && g3 === 0,
         `on a paper drawn for an earlier exam (${other}) a flagged question is listed on the bar and its link moves to it`, {g1, g2, g3});
       await ev(id => FX.api('study-controls').set(id, false), fl);
       await ev(() => finishExam(true)); await settle();
@@ -409,12 +461,13 @@ function fixtureFiles(own, copies){
       await page.reload(); await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
       await goTab('exam');
       const g6 = await ev(() => ({i: EX.i, prev: !!document.getElementById('exPrev'), strict: FX.api('study-controls').strictPaper()}));
-      check(g4.box && g4.drawn === other && g5.i === 1 && !g5.prev && g5.strict && !g5.flag && g6.i === 1 && !g6.prev && g6.strict,
+      check(g4.box && String(g4.drawn) === other && g5.i === 1 && !g5.prev && g5.strict && !g5.flag && g6.i === 1 && !g6.prev && g6.strict,
         `a strict paper drawn for an earlier exam (${other}): the box stays ticked when a paper is chosen, no Back, no flags, the left arrow does nothing, strict through a reload`, {g4, g5, g6});
       await ev(() => finishExam(true)); await settle();
     }
 
     /* ---- clear flags ---- */
+    await ev(ids => { const S = FX.api('study-controls'); ids.forEach(id => S.set(id, true)); }, [single[0], single[3]]);   // two flags at least, whatever the papers above left
     await goTab('topics');
     await page.click('#scClearFlag'); await settle();
     const c1 = await ev(() => ({db: Object.keys(DB.flags || {}).length, n: (document.getElementById('scFlagN') || {}).textContent}));
@@ -454,7 +507,7 @@ function fixtureFiles(own, copies){
       const tab = async v => { await P.click(`#nav button[data-v="${v}"]`); await wait(60); };
       const nFlags = () => pe(() => Object.keys(DB.flags || {}).length);
       const rawFlags = p => pe(p => { const d = JSON.parse(localStorage.getItem(NS + ':data:' + p) || '{}'); return {n: Object.keys(d.flags || {}).length, layout: d.layout || null, flags: d.flags || {}}; }, p);
-      const many = await pe(() => QUESTIONS.filter(q => /^sct-.*-c\d+$/.test(q.id)).map(q => q.id));
+      const many = await pe(base => QUESTIONS.filter(q => /-c\d+$/.test(q.id) && base.includes(q.id.replace(/-c\d+$/, ''))).map(q => q.id), ids);
       await pe(ids => { const S = FX.api('study-controls'); ids.forEach(id => S.set(id, true)); }, many);
       await tab('topics');
       await P.click('#scRow [data-sclayout="all"]'); await wait(60);
