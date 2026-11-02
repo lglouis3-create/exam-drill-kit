@@ -31,8 +31,14 @@
    made a button in that question, and a term a reading section defines in its
    own word list (<dt>) is not made a button in that section, so a definition
    is never shown twice in one place. Text inside a heading, a button, a link,
-   a figure, an option's own text and the core's bracketed glosses is left as
-   it is. The text is changed only between tags, so only the buttons are added.
+   a figure, a quotation (blockquote, q, the source line's quote, or words in
+   quotation marks, unless the quotation is a term's name alone), an option's
+   own text and the core's bracketed glosses is left as it is. The text is
+   changed only between tags, so only the buttons are added.
+   With formulas-in-text on, its pass over a question card is run before the
+   buttons are added, whichever module course.js lists first: it leaves alone
+   an element that holds a button, so the other order would leave {{frac:}}
+   and the subscripts unset.
    Other modules use it through FX.api('glossary-tap'): {terms, nameOf, find}.
    ========================================================================== */
 const ALL = (typeof TERMS === 'undefined' || !Array.isArray(TERMS)) ? [] : TERMS;
@@ -151,10 +157,20 @@ function renderGlossary(pane){
 X.tab({id: 'glossary', label: OPT.label, before: OPT.before, render: renderGlossary});
 
 /* ---- tap a term (written for the kit) ------------------------------------ */
-const NO_TAP = 'A,BUTTON,SELECT,INPUT,TEXTAREA,LABEL,SUMMARY,SVG,FIGURE,IMG,H1,H2,H3,H4,H5,H6,SCRIPT,STYLE,CODE,NAV';
+const NO_TAP = 'A,BUTTON,SELECT,INPUT,TEXTAREA,LABEL,SUMMARY,SVG,FIGURE,IMG,H1,H2,H3,H4,H5,H6,SCRIPT,STYLE,CODE,NAV,BLOCKQUOTE,Q';
 const NO_TAP_SET = new Set(NO_TAP.split(','));
 const noTapClass = el => el.classList && (el.classList.contains('gloss') || el.classList.contains('gtap-box') ||
-  el.classList.contains('refnav-wrap') || el.classList.contains('verdict') || el.classList.contains('cite'));
+  el.classList.contains('refnav-wrap') || el.classList.contains('verdict') || el.classList.contains('cite') || el.classList.contains('quote'));
+/* the stretches of a text inside quotation marks (“…” or ‘…’), each [from, to)
+   without the marks: quoted words are the speaker's or the slide's own */
+function quotedIn(text){
+  const out = [];
+  for(const [o, c] of [['\u201c', '\u201d'], ['\u2018', '\u2019']]){
+    let i = text.indexOf(o);
+    while(i >= 0){ const j = text.indexOf(c, i + 1); if(j < 0) break; out.push([i + 1, j]); i = text.indexOf(o, j + 1); }
+  }
+  return out;
+}
 /* Make the first mention of each term a button, in the text of `root`. `seen`
    holds the terms already marked (or already defined) in this question or
    section; `resetAt` names an element (H3) that starts a new section. */
@@ -171,13 +187,16 @@ function tapText(root, seen, resetAt){
         if(tag === 'B' && n.parentElement && n.parentElement.classList.contains('wtxt')) continue;   // an option's own text
         walk(n);
       } else if(n.nodeType === 3 && NAME_RE){
-        const text = n.nodeValue;
+        const text = n.nodeValue, quoted = quotedIn(text);
         NAME_RE.lastIndex = 0;
         let m; const hits = [];
         while((m = NAME_RE.exec(text))){
           const t = termOf(m[2]);
           if(!t || seen.has(t.id)) continue;
           const at = m.index + m[1].length, end = at + m[2].length;
+          // inside a quotation the term is left alone, unless the quotation is its name alone (“cheese effect”)
+          const qt = quoted.find(([a, b]) => at < b && end > a);
+          if(qt && text.slice(qt[0], qt[1]).trim().toLowerCase() !== m[2].toLowerCase()) continue;
           // the core has glossed this mention in brackets right after it: leave it to the core
           const nx = n.nextSibling;
           if(/^\s*$/.test(text.slice(end)) && nx && nx.nodeType === 1 && nx.classList && nx.classList.contains('gloss')){ seen.add(t.id); continue; }
@@ -210,6 +229,13 @@ function tapText(root, seen, resetAt){
 function tapPane(pane, view){
   if(!OPT.tap || !NAME_RE) return;
   if(view === 'quiz' || view === 'exam'){
+    /* formulas-in-text, when the course has it on, rewrites the same explanations
+       after they are drawn and leaves alone an element that holds a button. The
+       two modules' hooks run in course.js order, so when this one runs first its
+       buttons would leave the formulas unset ({{frac:...}} shown as typed). Its
+       pass is run here first (it marks what it has done, so it does not run twice). */
+    const fx = FX.api('formulas-in-text');
+    if(fx && typeof fx.setPane === 'function') FX.run('formulas-in-text', 'rendered', () => fx.setPane(pane));
     pane.querySelectorAll('.qcard').forEach(card => {
       const parts = [...card.querySelectorAll('.wtxt, .teach')].filter(p => !p.hasAttribute('data-gtap'));
       if(!parts.length) return;

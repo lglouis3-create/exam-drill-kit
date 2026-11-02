@@ -9,9 +9,12 @@ Dated kit changes, newest first.
   written for the kit, after an answer is shown a term named in the explanation, or in a
   section of the Guides, Tell apart and Reference tabs, can be tapped for its definition. A
   term the core's `GLOSS` has glossed in brackets in a question is left to the core. BDK's
-  glossary is not part of it (it moves with BDK). Its test: 43 checks pass on a template
-  scratch course with the module on; with the module's code left out, 2 of 12 fail. Core and
-  template unchanged; no course switches it on.
+  glossary is not part of it (it moves with BDK). With `formulas-in-text` on, its pass over a
+  question card runs before the buttons are added, in either course.js order; a term inside a
+  quotation is not marked unless the quotation is its name alone. Its test: 56 checks on a
+  template scratch course with the module on, 93 when `formulas-in-text` is in the course too;
+  CI script `features/glossary-tap/ci/oncourse.js`. Core and template unchanged; no course
+  switches it on.
 - `core/render_test.js`: answers calculation and matching items with their own controls; no more random failures.
 
 ## 2026-11-01
