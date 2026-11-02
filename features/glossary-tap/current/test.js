@@ -193,8 +193,11 @@ function step(terms, opt, extra){
   const {browser} = await L.launch(NAME);
   try {
     const {ctx, page, errors} = await L.openPage(browser, s.page);
-    const nav = await page.evaluate(() => [...document.querySelectorAll('#nav button')].map(b => b.dataset.v));
-    check(nav.includes('glossary') && nav.indexOf('glossary') === nav.indexOf('settings') - 1, 'the Glossary tab is in the nav, before Settings', nav);
+    // other modules may put their own tabs before Settings too: only module tabs (FX.tabs()) may stand between
+    const navx = await page.evaluate(() => ({v: [...document.querySelectorAll('#nav button')].map(b => b.dataset.v), mods: FX.tabs()}));
+    const gi = navx.v.indexOf('glossary'), si = navx.v.indexOf('settings');
+    check(gi >= 0 && gi < si && navx.v.slice(gi + 1, si).every(v => navx.mods.includes(v)), 'the Glossary tab is in the nav, before Settings (only other modules\' tabs between them)', navx);
+    const nav = navx.v;
     if(!nav.includes('glossary')){ await browser.close(); s.rm(); L.finish(NAME); }   // nothing else can be checked
     await page.click('#nav button[data-v="glossary"]');
     const tab = await page.evaluate(() => ({n: document.querySelectorAll('#v-glossary .gterm').length,
@@ -473,7 +476,8 @@ function step(terms, opt, extra){
             q: q ? q.textContent : null, inQ: q ? q.parentElement.querySelectorAll('.gtap').length : -1,
             stacks: !!(a && z && a.bottom <= z.top + 1 && a.height > 0), raw: /\{\{frac:/.test(p.textContent)}; });
         seen[label] = {quiz, exam, guide};
-        check(JSON.stringify(quiz.modules) === JSON.stringify(names), `${label}: the page runs ${names.join(', then ')}`, quiz.modules);
+        // the course may have other modules on: only the order of these two is compared
+        check(JSON.stringify(quiz.modules.filter(n => ['formulas-in-text', 'glossary-tap'].includes(n))) === JSON.stringify(names), `${label}: the page runs ${names.join(', then ')}`, quiz.modules);
         for(const [where, r] of [['quiz card', quiz], ['exam review', exam]]){
           check(!r.raw && r.fracs.length === nFrac && r.fracs.every(f => f.ok) && r.subs > 0,
             `${label}, ${where}: no {{frac: or markup shown as text; the ${nFrac} fractions stack; subscripts set`, {raw: r.raw, fracs: r.fracs, subs: r.subs});
