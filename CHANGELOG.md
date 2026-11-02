@@ -14,9 +14,10 @@ Dated kit changes, newest first.
   retried) and one tab per table of the course's `RECALL_TABLES` (each row asked column from
   column with one tap among answers from the other rows, misses first in the next round, Cover
   and reveal). Best scores and misses are kept in the progress as `DB.pairup`. No course switches
-  it on yet; the core and the template are unchanged. Its test: 41 checks pass on a template
+  it on yet; the core and the template are unchanged. Its test: 69 checks pass on a template
   scratch course with Intro to Pharmacology's 5 sets, 39-drug table and 12-row poisoning table
-  (written by `port_from_ip.js`); with the module's code left out, 1 of 1 fails.
+  as course data (written by `features/pair-up-drills/ci/oncourse.js` from the fixture that
+  `port_from_ip.js` takes from that course's files); with the module's code left out, 1 of 1 fails.
 - `core/render_test.js`: answers calculation and matching items with their own controls; no more random failures.
 
 ## 2026-11-01

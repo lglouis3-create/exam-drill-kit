@@ -107,7 +107,10 @@ const expect = {
 };
 const IP = {pairSets, tables: [rxTable, ptTable], expect};
 const line = 'const IP = ' + JSON.stringify(IP) + ';';
-if(/Smith/.test(line)) throw new Error('a personal name is in the fixture');
+// no professor's name in the fixture: the names are read from the course's own course.js, so none is written here
+const profs = new Function(fs.readFileSync(path.join(SRC, 'course.js'), 'utf8') + '\n;return COURSE;')().professors || [];
+if(!profs.length) throw new Error('course.js lists no professors, so the fixture cannot be checked for their names');
+if(profs.some(p => p && line.includes(p))) throw new Error('a professor\'s name is in the fixture');
 const test = path.join(__dirname, 'current', 'test.js');
 const t = fs.readFileSync(test, 'utf8'), m = t.match(/^const IP = .*;$/m);
 if(!m) throw new Error('current/test.js has no `const IP = ...;` line');

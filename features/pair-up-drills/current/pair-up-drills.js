@@ -44,6 +44,12 @@
    - Left out: the "See the figure" links (they open that course's own
      diagrams), the antidote diagrams beside the poisoning table, the variant
      drill (pgx_table.js, the same pattern; a course can give it as a table).
+   - In every table drill a tap on an answer or on Skip within 350 ms of the
+     card being drawn is not taken (Intro to Pharmacology's poisoning table
+     drill had this guard; its drug drill had none): the second tap of a
+     double tap on Next would otherwise land on the next card's Skip.
+   - A saved best score or miss list in another shape (an older or edited
+     export) is read as none instead of stopping the tab.
    - The professor is named as "the professor".
    Answers in these drills are not answers to bank questions: they are not
    recorded in DB.answers and the scheduler does not see them, as in Intro to
@@ -59,12 +65,12 @@ const pane = id => document.getElementById('v-' + id);
 /* ---------- progress: best scores and misses, in DB.pairup ---------- */
 function PD(){
   if(!DB.pairup || typeof DB.pairup !== 'object') DB.pairup = {};
-  if(!DB.pairup.best) DB.pairup.best = {};
-  if(!DB.pairup.miss) DB.pairup.miss = {};
+  for(const f of ['best', 'miss']) if(!DB.pairup[f] || typeof DB.pairup[f] !== 'object' || Array.isArray(DB.pairup[f])) DB.pairup[f] = {};
   return DB.pairup;
 }
-const bestOf = k => ((DB.pairup || {}).best || {})[k] || '';
-const missOf = k => ((DB.pairup || {}).miss || {})[k] || [];
+/* a saved value in another shape (an older or edited export) is read as nothing, not as an error */
+const bestOf = k => { const v = ((DB.pairup || {}).best || {})[k]; return typeof v === 'string' && /^\d+\/\d+$/.test(v) ? v : ''; };
+const missOf = k => { const v = ((DB.pairup || {}).miss || {})[k]; return Array.isArray(v) ? v.filter(x => typeof x === 'string') : []; };
 const frac = s => { const [a, b] = String(s).split('/').map(Number); return b ? a / b : -1; };
 
 /* ==================== Pair up ==================== */
@@ -174,6 +180,9 @@ function options(t, m, it, all){
   near.concat(far).forEach(x => add(x.ans));
   return shuffle(out);
 }
+/* a tap within this many ms of a card being drawn is taken as the end of the tap before
+   it, not as an answer or a skip (Intro to Pharmacology's ptCheck and its Skip button) */
+const GUARD = 350;
 const TS = {};   // per table: {mode, queue, i, opts, pick, result, right, redo, round, shown, cover}
 const stOf = t => TS[t.id] || (TS[t.id] = {mode: t.modes[0].id, queue: [], i: 0, opts: null, pick: null, result: null, right: 0, redo: [], round: 1, shown: {}, cover: null});
 const modeOf = (t, S) => t.modes.find(m => m.id === S.mode);
@@ -224,12 +233,13 @@ function vTable(t){
   S.t0 = Date.now();
   const nx = el.querySelector('[data-ptnext]'); if(nx){ nx.onclick = e => { if(e.detail > 1) return; tAdvance(t); }; try { nx.focus({preventScroll: true}); } catch(_){} }
   const sk = el.querySelector('[data-ptskip]'); if(sk) sk.onclick = () => {
+    if(Date.now() - S.t0 < GUARD) return;   // the second tap of a double tap on Next lands here
     if(S.result){ if(confirm('Start over? This round and its missed list are cleared.')){ S.queue = []; S.opts = null; vTable(t); } }
     else { S.redo.push(S.queue[S.i]); tAdvance(t); } };
 }
 function tCheck(t, n){
   const S = stOf(t);
-  if(S.result) return;
+  if(S.result || Date.now() - (S.t0 || 0) < GUARD) return;
   const it = S.queue[S.i]; S.pick = n; const ok = S.opts[n] === it.ans;
   S.result = {ok}; if(ok) S.right++; else S.redo.push(it);
   vTable(t);
