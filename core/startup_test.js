@@ -83,7 +83,7 @@ const WATCH = ([seed, session]) => {
   const {browser} = await L.launch(NAME);
   async function open(file, opts){
     opts = opts || {};
-    const ctx = await browser.newContext({viewport: {width: 390, height: 844}});
+    const ctx = await browser.newContext(L.OPEN_CTX);
     await ctx.addInitScript(WATCH, [opts.seed || null, opts.session || null]);
     if(opts.init) await ctx.addInitScript(opts.init);
     const page = await ctx.newPage();
@@ -91,7 +91,7 @@ const WATCH = ([seed, session]) => {
     page.on('pageerror', e => errors.push(e.message));
     page.on('console', m => { if(m.type() === 'error') logged.push(m.text()); });
     page.on('dialog', d => { dialogs.push(d.message()); d.accept(); });
-    await page.goto('file://' + file);
+    await page.goto(await L.pageUrl(file));
     await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
     await page.waitForTimeout(300);
     return {ctx, page, errors, logged, dialogs};
