@@ -1,0 +1,71 @@
+# Kit checks: every pull request and every push to main runs core/run_checks.sh on
+# scratch courses built from the kit (core/ci_course.sh), in Chromium, and the
+# template once in WebKit (Safari's engine, not the Safari app).
+#
+# A job fails on any FAIL and on any NOT RUN that is not a documented exclusion
+# (listed at the top of core/ci_course.sh), so a missing Playwright, browser or
+# pdfplumber fails it. The WebKit job is informational (continue-on-error) until its
+# first results are reviewed; it never makes the pull request red. The results are visible on each
+# pull request, and kit sessions merge only when the Chromium jobs pass (KIT_DESIGN.md
+# §12.9). GitHub does not enforce this on this private repository (no required
+# checks or rulesets without a paid plan or a public repository).
+name: Kit checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kit-checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  chromium:
+    name: Chromium · ${{ matrix.course }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        course: [template, template-unset, medicinal-chemistry]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
+        with:
+          python-version: '3.13'
+      - name: Playwright 1.63.0, Chromium and pdfplumber 0.11.10 (the versions the cloud container has)
+        run: |
+          npm install -g playwright@1.63.0
+          npx --yes playwright@1.63.0 install --with-deps chromium
+          python -m pip install pdfplumber==0.11.10
+      - name: Build the course and run every check
+        run: bash core/ci_course.sh "${{ matrix.course }}" chromium
+
+  webkit:
+    name: WebKit · template (informational)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
+        with:
+          python-version: '3.13'
+      - name: Playwright 1.63.0, WebKit and pdfplumber 0.11.10
+        run: |
+          npm install -g playwright@1.63.0
+          npx --yes playwright@1.63.0 install --with-deps webkit
+          python -m pip install pdfplumber==0.11.10
+      - name: Build the course and run every check in WebKit
+        run: bash core/ci_course.sh template webkit
