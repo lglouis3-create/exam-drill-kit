@@ -1,0 +1,5 @@
+module terms-variables
+commit 8641b3f96c37f09b89c7ef85419794c312500a4f
+core a2dbf03d6ccea270f77ac440f3fd8b7a86d855cf template cbac5bd425d480944293f8e1fb5d5d703e8baba1
+extra modules: 
+2026-11-02T22:45:03Z

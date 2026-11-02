@@ -1,0 +1,1 @@
+PASS: features/terms-variables/test.js: 57 checks passed (2 skipped: the Terms tab links to the Glossary tab; the Equations tab offers the variables quiz)
