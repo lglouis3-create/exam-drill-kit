@@ -1,0 +1,1 @@
+NOT RUN: stepper_test.js: no step-through figures in DIA

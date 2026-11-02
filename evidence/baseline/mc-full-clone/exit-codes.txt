@@ -1,0 +1,5 @@
+clone exit=0
+run_checks exit=1
+home_test alone run 1 exit=1 FAIL: home_test.js: 1 of 33 checks failed: once this copy has progress of its own, the card is gone from Settings
+home_test alone run 2 exit=0 PASS: home_test.js: 33 checks passed
+home_test alone run 3 exit=1 FAIL: home_test.js: 1 of 33 checks failed: once this copy has progress of its own, the card is gone from Settings
