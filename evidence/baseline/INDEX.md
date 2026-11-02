@@ -48,3 +48,5 @@ Folder `main-98e7b5b/`, run 2026-11-02 from 20:14:19 UTC with the same `baseline
 `home_test.js` passed (33 checks) in this run. It is intermittent (core finding 9), so one pass does not show it fixed. An earlier attempt at this run failed before any check ran because the worktree for `main` was missing; its output was discarded and is not cited.
 
 Port branches whose core and template trees are `c9fde5b` and `cbac5bd` may cite this run.
+
+Note: commit `22b4290` removed the folder `mc-full-clone/` by mistake; commit `a18eadb` restored it unchanged from `51b524d`.
