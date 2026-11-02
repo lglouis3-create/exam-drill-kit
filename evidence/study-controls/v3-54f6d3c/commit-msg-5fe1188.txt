@@ -1,0 +1,22 @@
+study-controls: the module's course from Intro to Pharmacology's own data; test fix F2
+
+The test's fixture is now `const FIX` in test.js: Intro to Pharmacology's Day 1 topic, its
+lecture and 6 of its questions, verbatim from exam1-drill/src at 929cd62 (q_L01.js, course.js),
+and the professor's 10/21 answer on going back to a question (app.js line 678) as the strict
+note. The one change to the data: `prof` is the template's "Professor". `const WRITE` writes it
+into a course in the kit's question-file form (one question per line, a topic of its own, the
+lecture as L91). ci/oncourse.js now reads FIX and WRITE from test.js and writes that course
+(q90_sc_fixture.js and one course.js line, with strict: true and the strict note); the test
+uses the course's own copy when it is there.
+
+F2 from the integration check (evidence/integration 1329222): the test no longer assumes a
+paper under 100 minutes (the clock reads 119:59 on a 120-minute paper) or exam ids that are
+text (Basic-Pharmacokinetics' ids are numbers); the same id assumption on the line that picks
+the earlier exam is fixed too. Two test-order fixes for the course's questions now being on
+the paper: no flags at the start of the paper checks, two flags before Clear flags. The copy
+with 300 more questions draws its papers from the course's other topics.
+
+FEATURES.md and CHANGELOG.md say so. No change to the module, core/ or template/.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01LVkWFDVVDwgsL5WF7yWqcV

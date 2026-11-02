@@ -1,0 +1,11 @@
+make-one-exam-pp-absent	0	bash /tmp/port-study-controls/v3/bin/modcourse.sh /tmp/port-study-controls/v3/kit-combo /tmp/port-study-controls/v3/courses/one-exam-pp-absent study-controls
+test-one-exam-pp-absent	0	node features/study-controls/test.js
+make-one-exam-pp-present	0	bash /tmp/port-study-controls/v3/bin/modcourse.sh /tmp/port-study-controls/v3/kit-combo /tmp/port-study-controls/v3/courses/one-exam-pp-present study-controls paper-picker
+test-one-exam-pp-present	0	node features/study-controls/test.js
+make-three-exam-pp-absent	0	bash /tmp/port-study-controls/v3/bin/modcourse.sh /tmp/port-study-controls/v3/kit-combo /tmp/port-study-controls/v3/courses/three-exam-pp-absent study-controls
+test-three-exam-pp-absent	0	node features/study-controls/test.js
+make-three-exam-pp-present	0	bash /tmp/port-study-controls/v3/bin/modcourse.sh /tmp/port-study-controls/v3/kit-combo /tmp/port-study-controls/v3/courses/three-exam-pp-present study-controls paper-picker
+test-three-exam-pp-present	0	node features/study-controls/test.js
+make-keys	0	bash /tmp/port-study-controls/v3/bin/modcourse.sh /tmp/port-study-controls/v3/kit-combo /tmp/port-study-controls/v3/courses/keys study-controls worksheets-ink notes
+test-keys	0	node features/study-controls/test.js
+keys-partners	0	node /tmp/port-study-controls/v3/bin/keys_test.js .

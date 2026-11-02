@@ -1,0 +1,6 @@
+-- study-controls: node features/study-controls/ci/oncourse.js
+wrote: /tmp/port-study-controls/v3/c-own/src/q90_sc_fixture.js (topic L01 and 6 questions from FIX in test.js)
+wrote: appended to /tmp/port-study-controls/v3/c-own/src/course.js: the file in COURSE.files, the lecture Pharmacodynamics-Day-1-2026s.pdf (id L91) in COURSE.lectures, and study-controls v1 on with strict: true and the strict note
+commits: 1
+wrote manifest.json and the icons
+wrote sw.js  (caches named course-id-drill-v<n>; 7 files saved at install)

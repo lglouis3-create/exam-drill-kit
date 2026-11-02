@@ -1,0 +1,8 @@
+study-controls test: 40 papers, not 8, to draw one with a calculation
+
+On a course with Basic-Pharmacokinetics' three exams, 8 papers drawn did not always include
+the course's one calculation, so the check of a paper with a calculation was skipped
+(agent-run, one run of two). The check itself is unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01LVkWFDVVDwgsL5WF7yWqcV

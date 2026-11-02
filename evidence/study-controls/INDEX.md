@@ -1,5 +1,7 @@
 # Review evidence: `study-controls` (port queue item 21, pull request #16)
 
+**Pass 3 (2026-11-02 evening, agent-run), final tested commit `54f6d3c`:** the module's own course from Intro to Pharmacology's data, and fix F2 of the integration check. See `v3-54f6d3c/INDEX.md`. The rest of this file is the earlier pass, on `8622653`.
+
 Every result here is **agent-run** (the hardening session, 2026-11-02). The coordinator's re-runs go in `coordinator/`, labelled coordinator-verified.
 
 ## What was read and tested

@@ -1,0 +1,10 @@
+-- study-controls: node features/study-controls/ci/oncourse.js
+wrote: appended to /tmp/port-study-controls/v3/courses/f2-old/src/course.js:
+;/* study-controls ci */ COURSE.features = Object.assign({}, COURSE.features, {"study-controls": {"version":"v1","strict":true}});
+wrote: no data files (the module reads no course data)
+-- paper-picker: no ci/oncourse.js; switched on at v1 by one course.js line
+-- extra data: /tmp/port-study-controls/v3/bin/three_exams.js
+three_exams wrote q92_sc3_exams.js: 18 questions, 10 topics, 10 lectures; 3 exams (ids 1, 2, 3, minutes 120/120/120), current 3
+commits: 1
+wrote manifest.json and the icons
+wrote sw.js  (caches named course-id-drill-v<n>; 7 files saved at install)
