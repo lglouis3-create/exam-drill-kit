@@ -1,0 +1,5 @@
+module study-controls
+commit 1c1d590932c2dc48122e43c965dc44c70f7226d7
+core a2dbf03d6ccea270f77ac440f3fd8b7a86d855cf template cbac5bd425d480944293f8e1fb5d5d703e8baba1
+extra modules: 
+2026-11-02T22:37:24Z
