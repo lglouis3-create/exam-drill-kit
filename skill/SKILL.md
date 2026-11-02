@@ -79,7 +79,9 @@ COURSE = {id, title, short, ns, output, professors:[…],
   all the pools together, every list is ordered by accuracy, and no marks figure or
   exam-weighted pass is shown. `minutes: null` with a count set makes the paper
   untimed: no countdown, the time taken is shown and reported, and the paper ends
-  only when it is submitted; no time limit is made up (`core/nullexam.js`;
+  only when it is submitted; no time limit is made up. A paper keeps the timing it
+  started with, so one in progress stays untimed if a time limit is added later
+  (`core/nullexam.js`, `core/views.js`;
   `core/README.md` "Exam draw").
 - `files` lists the data files in build order; every new question file goes there. A
   core update replaces `build.py`, never `course.js`, so the list is kept

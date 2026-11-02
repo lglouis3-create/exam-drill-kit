@@ -37,14 +37,15 @@
      that clause.
 
    The time limit not set, with the question count set (Louis, 2026-11-01:
-   untimed practice with measured elapsed time and manual submission): the
-   paper is untimed. It has no countdown and never ends by itself; the clock
-   shows the time taken so far, the paper is submitted with its own buttons,
-   and the result says how long it took. The paper saved for a reload is the
-   engine's ({ids, picks, orders, i, ends}) with `ends: null` and one more
-   field, `started` (when the paper began, in ms), so the time taken goes on
-   after a reload; a timed paper is saved exactly as before. No time limit is
-   made up. Topics leaves the minutes out of the exam line.
+   untimed practice with measured elapsed time and manual submission): this
+   file starts the paper untimed (ends: null, started: when it began). The
+   engine (views.js) does the rest, so that a paper started untimed stays
+   untimed after the course gains a time limit and this file is no longer in
+   the page: it has no countdown and never ends by itself, the clock shows the
+   time taken so far, it is submitted with its own buttons, the result says how
+   long it took, and the paper saved for a reload is the engine's with
+   `ends: null` and `started`. No time limit is made up. Topics leaves the
+   minutes out of the exam line, and the opening page says the paper is untimed.
 
    How: renderTopics, renderGaps and filterBar are the engine's, with the
    figures taken out of what they drew (text and table cells only, so every
@@ -58,7 +59,6 @@ const EXAM_UNSET = (() => {
   const marksUnset = () => EXAM.pools.some(p => p.marks === null || p.marks === undefined);
   const minutesUnset = () => EXAM.minutes === null || EXAM.minutes === undefined;
   const untimed = () => !countUnset() && minutesUnset();
-  const untimedPaper = () => !!EX && EX.ends === null && typeof EX.started === 'number';
   const UNTIMED = 'No time limit is set in the course manifest, so this paper is untimed: it shows the time you take and ends when you submit it.';
   const hasBlueprint = () => !!(EXAM.blueprint && Array.isArray(EXAM.blueprint.parts) && EXAM.blueprint.parts.length);
   const NOT_SET = () => `The number of questions on ${esc(EXAM.name)} is not set in the course manifest, so no practice paper is drawn.`;
@@ -88,66 +88,12 @@ const EXAM_UNSET = (() => {
   beginExam = function(){
     if(countUnset()){ renderExam(); return; }
     const r = engineBegin.apply(this, arguments);
-    if(untimed() && EX && EX.running && !untimedPaper()){
-      // the engine set ends from minutes (now + 0); the paper is untimed instead
+    if(untimed() && EX && EX.running && EX.ends !== null){
+      // the engine set ends from minutes (now + 0); the paper is untimed instead, which the
+      // engine itself saves, brings back, times and reports (views.js, untimedPaper)
       clearInterval(EX.timer);
       EX.ends = null; EX.started = Date.now();
       saveExam(); startClock(); renderExamQ();
-    }
-    return r;
-  };
-
-  /* the untimed paper: saved with `started`, brought back after a reload,
-     a clock that counts up, and the time taken on the result */
-  const engineSave = saveExam;
-  saveExam = function(){
-    if(!untimedPaper()) return engineSave.apply(this, arguments);
-    if(!EX.running || !canSave()) return;
-    store.set(EXAM_KEY(), JSON.stringify({ids:EX.qs.map(q=>q.id), picks:EX.picks, orders:EX.orders, i:EX.i, ends:null, started:EX.started}));
-  };
-  const engineRestore = restoreExam;
-  restoreExam = function(){
-    let j = null;
-    try { j = JSON.parse(store.get(EXAM_KEY()) || 'null'); } catch(e){ j = null; }
-    if(!j || !j.ids || typeof j.started !== 'number') return engineRestore.apply(this, arguments);
-    const qs = j.ids.map(byId); if(!qs.length || qs.some(q => !q)){ clearExam(); return false; }
-    EX = {qs, i:Math.min(j.i||0, qs.length-1), picks:j.picks, orders:j.orders, running:true, done:false, ends:null, started:j.started};
-    startClock();
-    return true;
-  };
-  const elapsedText = () => fmt(Date.now() - EX.started) + ' taken';
-  const engineClock = startClock;
-  startClock = function(){
-    if(!untimedPaper()) return engineClock.apply(this, arguments);
-    clearInterval(EX.timer);
-    EX.timer = setInterval(() => {
-      if(!EX || !EX.running) return clearInterval(EX && EX.timer);
-      const c = document.getElementById('exClock'); if(c) c.textContent = elapsedText();
-    }, 1000);
-  };
-  const engineQ = renderExamQ;
-  renderExamQ = function(){
-    const r = engineQ.apply(this, arguments);
-    if(untimedPaper()){
-      const c = document.getElementById('exClock');
-      if(c){ c.textContent = elapsedText(); c.classList.remove('low'); c.title = 'Time taken so far: this paper is untimed'; }
-    }
-    return r;
-  };
-  const engineFinish = finishExam;
-  finishExam = function(){
-    if(untimedPaper()) EX.took = Date.now() - EX.started;
-    return engineFinish.apply(this, arguments);
-  };
-  const engineResult = renderExamResult;
-  renderExamResult = function(){
-    const r = engineResult.apply(this, arguments);
-    const el = $('#v-exam');
-    if(EX && typeof EX.took === 'number' && real(el)){
-      const h = el.querySelector('h2'), p = document.createElement('p');
-      p.className = 'sub'; p.id = 'exTook';
-      p.textContent = `Time taken: ${fmt(EX.took)}. No time limit is set in the course manifest, so the paper was untimed.`;
-      if(h) h.after(p);
     }
     return r;
   };

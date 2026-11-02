@@ -22,8 +22,13 @@
  *      limit is set; a started paper is still running after more than the
  *      engine's one-second tick, its clock counts the time taken up, the paper
  *      saved for a reload is the engine's with `ends: null` and `started`,
- *      a reload brings the same paper back with its answers and the time
- *      taken still counting, submitting logs only the answered items and says
+ *      a reload brings the same paper back with its answers, its place and the
+ *      time taken still counting. Then the course gains a time limit (the
+ *      scratch copy is built again with every exam number set, so nullexam.js
+ *      is left out of the page): the paper still comes back untimed, with its
+ *      answers, its place and the time taken, and does not end by itself; a
+ *      paper started after it counts down. Submitting logs only the answered
+ *      items and says
  *      how long the paper took, the saved paper is then removed, and a reload
  *      after submitting starts no paper. In case 3 the saved paper of a timed
  *      exam keeps the engine's fields exactly;
@@ -46,7 +51,7 @@
  *
  *     node nullexam_test.js
  */
-const fs = require('fs'), path = require('path');
+const fs = require('fs'), path = require('path'), child = require('child_process');
 const L = require('./check_lib');
 const NAME = 'nullexam_test.js';
 const {check} = L;
@@ -210,25 +215,47 @@ const badWords = page => page.evaluate(src => {
             else if(q.type === 'match'){ EX.picks[0] = q.pairs.map((p, i) => i); saveExam(); }
             else if(isMulti(q)){ for(const i of correctSet(q)){ const b = document.querySelector(`#v-exam button.opt[data-o="${i}"]`) || [...document.querySelectorAll('#v-exam button.opt')][EX.orders[0].indexOf(i)]; if(b) b.click(); } }
             else { const b = [...document.querySelectorAll('#v-exam button.opt')][EX.orders[0].indexOf(q.options.findIndex(o => o.correct))]; if(b) b.click(); }
-            return {ids: EX.qs.map(q => q.id), pick: JSON.stringify(EX.picks[0]), started: EX.started};
+            const next = document.getElementById('exNext'); if(next && EX.qs.length > 1) next.click();
+            return {ids: EX.qs.map(q => q.id), pick: JSON.stringify(EX.picks[0]), started: EX.started, i: EX.i};
           });
           check(first.pick !== 'null' && first.pick !== '[]', 'the first item is answered', first.pick);
+          const place = Math.min(1, first.ids.length - 1);
+          check(first.i === place, `the paper is on question ${place + 1}`, first.i);
           await page.reload();
           await page.waitForFunction(() => typeof NS === 'string' && document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
           await page.click('#nav button[data-v="exam"]');
           await page.waitForTimeout(1200);
-          const back = await page.evaluate(() => ({running: !!(EX && EX.running), ids: EX ? EX.qs.map(q => q.id) : [], pick: EX ? JSON.stringify(EX.picks[0]) : '',
-            started: EX && EX.started, clock: (document.getElementById('exClock') || {}).textContent}));
-          check(back.running && back.ids.join() === first.ids.join() && back.pick === first.pick && back.started === first.started,
-                'after a reload the same paper comes back with its answer and its start time', JSON.stringify({running: back.running, pick: back.pick}));
+          const resumed = () => page.evaluate(() => ({running: !!(EX && EX.running), done: !!(EX && EX.done), ids: EX ? EX.qs.map(q => q.id) : [],
+            pick: EX ? JSON.stringify(EX.picks[0]) : '', i: EX ? EX.i : -1, ends: EX ? EX.ends : undefined, started: EX && EX.started,
+            clock: (document.getElementById('exClock') || {}).textContent, onScreen: ((document.querySelector('#v-exam .prog') || {}).textContent || '')}));
+          const same = (x, label) => check(x.running && x.ids.join() === first.ids.join() && x.pick === first.pick && x.i === place && x.started === first.started
+                && x.onScreen.startsWith(`Question ${place + 1} of `), label, JSON.stringify({running: x.running, pick: x.pick, i: x.i, onScreen: x.onScreen}));
+          const back = await resumed();
+          same(back, 'after a reload the same paper comes back with its answer, its place and its start time');
           check(secs(back.clock) >= secs(run.clock), `after a reload the time taken goes on from where it was (${run.clock}, then ${back.clock})`, back.clock);
+
+          // the course gains a time limit: built again with every exam number set, so nullexam.js is left out
+          fs.appendFileSync(path.join(b.src, 'course.js'), `\n;{ ${ACTIVE} E.minutes = 10; }\n`);   // a test value standing for a later-announced limit
+          const rb = child.spawnSync('python3', ['build.py'], {cwd: b.src, encoding: 'utf8', timeout: 600000});
+          check(rb.status === 0, 'the scratch copy builds again with a time limit of 10 minutes', ((rb.stdout || '') + (rb.stderr || '')).trim().split('\n').slice(-2).join(' | '));
+          check(!/\bconst EXAM_UNSET = /.test(fs.readFileSync(b.page, 'utf8')), 'with every exam number set the page leaves nullexam.js out');
+          await page.reload();
+          await page.waitForFunction(() => typeof NS === 'string' && document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+          check(await page.evaluate(() => EXAM.minutes === 10 && typeof EXAM_UNSET === 'undefined'), 'the reloaded page has the 10-minute limit and no nullexam.js');
+          await page.click('#nav button[data-v="exam"]');
+          await page.waitForTimeout(2500);
+          const kept = await resumed();
+          same(kept, 'after the course gains a time limit the paper in progress comes back with its answer, its place and its start time');
+          check(kept.ends === null && !kept.done && TAKEN.test(String(kept.clock).trim()) && secs(kept.clock) >= secs(back.clock),
+                `it stays untimed and is not submitted by itself after 2.5 seconds; the time taken goes on (${back.clock}, then ${kept.clock})`,
+                JSON.stringify({ends: kept.ends, done: kept.done, clock: kept.clock}));
           const before = await page.evaluate(() => (JSON.parse(localStorage.getItem(NS + ':log:' + PROFILE) || '[]')).length);
           await page.click('#exEnd');
           await page.waitForTimeout(400);
           const res = await page.evaluate(() => ({done: !!(EX && EX.done), took: (document.getElementById('exTook') || {}).textContent || '',
             log: JSON.parse(localStorage.getItem(NS + ':log:' + PROFILE) || '[]'), saved: localStorage.getItem(NS + ':exam:' + PROFILE)}));
           const added = res.log.slice(before);
-          check(res.done && /^Time taken: \d\d:\d\d\. No time limit is set in the course manifest, so the paper was untimed\.$/.test(res.took),
+          check(res.done && /^Time taken: \d\d:\d\d\. This paper was untimed\.$/.test(res.took),
                 'submitting ends the paper and the result says how long it took', res.took);
           check(added.length === 1 && added[0][3] === 'exam', `only the answered item is logged, as an exam answer (${added.length} logged)`, JSON.stringify(added));
           check(res.saved === null, 'the saved paper is removed once it is submitted');
@@ -239,12 +266,22 @@ const badWords = page => page.evaluate(src => {
           await page.waitForTimeout(300);
           const after = await page.evaluate(() => ({running: !!(EX && EX.running), start: !!document.getElementById('startExam')}));
           check(!after.running && after.start, 'a reload after submitting starts no paper and offers a new one (the result is not kept after a reload, as with a timed paper)');
+          // a paper started now has the course's new time limit
+          await page.click('#startExam');
+          await page.waitForTimeout(1200);
+          const fresh = await page.evaluate(() => ({ends: EX && EX.ends, started: EX && EX.started, left: EX && typeof EX.ends === 'number' ? EX.ends - Date.now() : null,
+            clock: (document.getElementById('exClock') || {}).textContent, saved: JSON.parse(localStorage.getItem(NS + ':exam:' + PROFILE) || 'null')}));
+          check(typeof fresh.ends === 'number' && fresh.started === undefined && fresh.left > 9 * 60000 && fresh.left <= 10 * 60000 && /^\d\d:\d\d$/.test(String(fresh.clock).trim()),
+                `a paper started after the time limit is set counts down from 10 minutes (${fresh.clock})`, JSON.stringify({ends: fresh.ends, started: fresh.started, clock: fresh.clock}));
+          check(fresh.saved && Object.keys(fresh.saved).sort().join(',') === 'ends,i,ids,orders,picks' && typeof fresh.saved.ends === 'number',
+                'it is saved with the engine\'s fields only', fresh.saved && Object.keys(fresh.saved).join(','));
+          await page.evaluate(() => { if(EX){ clearInterval(EX.timer); EX = null; } clearExam(); });
         }
 
         // Weak spots
         await page.click('#nav button[data-v="gaps"]');
         await page.waitForTimeout(200);
-        const gaps = await page.evaluate(() => ({text: document.getElementById('v-gaps').innerText,
+        const gaps = await page.evaluate(() => ({text: document.getElementById('v-gaps').innerText, unsetFile: typeof EXAM_UNSET !== 'undefined',
           pools: [...document.querySelectorAll('#v-gaps .nextcard .nexthead span')].map(s => s.textContent)}));
         check(gaps.pools.length > 0, `Weak spots shows a card per pool (${gaps.pools.length})`);
         if(!c.marks){
@@ -253,7 +290,9 @@ const badWords = page => page.evaluate(src => {
           const MARKS = /Marks at risk|losing marks|worth on the paper|\d+ of \d+ marks|\bnull marks\b/;
           check(!MARKS.test(gaps.text), 'Weak spots shows no marks figure and no weighting by marks', (gaps.text.match(new RegExp('.{0,40}(' + MARKS.source + ').{0,30}')) || [''])[0]);
           check(/Accuracy by topic/.test(gaps.text), 'the topic table is headed "Accuracy by topic"');
-        } else check(gaps.pools.every(t => /^\d+ marks? · \d+ concepts?$/.test(t)), 'each pool card gives its marks and concepts, with no count of the paper', gaps.pools);
+        } else if(gaps.unsetFile) check(gaps.pools.every(t => /^\d+ marks? · \d+ concepts?$/.test(t)), 'each pool card gives its marks and concepts, with no count of the paper', gaps.pools);
+        // the time-limit case ends on a page built with every exam number set: the engine's own card line
+        else check(gaps.pools.every(t => /^\d+ of \d+ marks · \d+ concepts?$/.test(t)), 'each pool card gives the engine\'s marks line (every exam number is set)', gaps.pools);
 
         check(!seen.length, 'no tab shows "null", "NaN" or "undefined"', seen.slice(0, 3).join(' ; '));
         check(!errors.length, 'no page errors', errors.slice(0, 2).join('; '));

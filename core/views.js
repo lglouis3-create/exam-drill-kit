@@ -1545,10 +1545,21 @@ function drawPaper(){
   return shuffle(parts.flat());
 }
 const EXAM_KEY = () => NS + ':exam:' + PROFILE;
+/* An untimed paper (nullexam.js starts one when the course sets a count and no
+   time limit) has ends: null and `started`, when it began. It keeps its own
+   rules whatever the course says later: a course that gains a time limit while
+   such a paper is open still brings it back untimed, with its answers, its
+   place and the time taken, and only a paper started after that has the
+   countdown. The engine reads it, not nullexam.js, because a course that sets
+   every number has no nullexam.js in its page. A timed paper is saved exactly
+   as before. */
+const untimedPaper = () => !!EX && EX.ends === null && typeof EX.started === 'number';
 // written, and removed, only when the saved progress was loaded (canSave in shell.html)
 function saveExam(){
   if(!EX || !EX.running || !canSave()) return;
-  store.set(EXAM_KEY(), JSON.stringify({ids:EX.qs.map(q=>q.id), picks:EX.picks, orders:EX.orders, i:EX.i, ends:EX.ends}));
+  const paper = {ids:EX.qs.map(q=>q.id), picks:EX.picks, orders:EX.orders, i:EX.i, ends:EX.ends};
+  if(untimedPaper()) paper.started = EX.started;
+  store.set(EXAM_KEY(), JSON.stringify(paper));
 }
 function clearExam(){ if(canSave()) store.del(EXAM_KEY()); }
 /* A paper saved by an earlier visit is brought back if its clock has not run
@@ -1559,12 +1570,21 @@ function restoreExam(){
   if(!j || !j.ids) return false;
   const qs = j.ids.map(byId); if(qs.some(q => !q)) { clearExam(); return false; }
   EX = {qs, i:Math.min(j.i||0, qs.length-1), picks:j.picks, orders:j.orders, running:true, done:false, ends:j.ends};
-  if(Date.now() >= EX.ends){ finishExam(true); return true; }
+  if(j.ends === null && typeof j.started === 'number') EX.started = j.started;   // untimed: never expires
+  else if(Date.now() >= EX.ends){ finishExam(true); return true; }
   startClock();
   return true;
 }
+const tookText = () => fmt(Date.now() - EX.started) + ' taken';
 function startClock(){
   clearInterval(EX.timer);
+  if(untimedPaper()){
+    EX.timer = setInterval(()=>{
+      if(!EX || !EX.running) return clearInterval(EX && EX.timer);
+      const c = document.getElementById('exClock'); if(c) c.textContent = tookText();
+    }, 1000);
+    return;
+  }
   EX.timer = setInterval(()=>{
     if(!EX || !EX.running) return clearInterval(EX.timer);
     if(Date.now() >= EX.ends){ finishExam(true); return; }
@@ -1589,7 +1609,7 @@ function renderExamQ(){
   const answered = EX.picks.filter(p => Array.isArray(p) ? p.length > 0 : p !== null).length;
   const multi = isMulti(q);
   let h = `<div class="examhead">
-    <span class="clock" id="exClock">${fmt(EX.ends-Date.now())}</span>
+    <span class="clock" id="exClock"${untimedPaper() ? ' title="Time taken so far: this paper is untimed"' : ''}>${untimedPaper() ? tookText() : fmt(EX.ends-Date.now())}</span>
     <span class="prog">Question ${EX.i+1} of ${EX.qs.length} · ${answered} answered</span>
   </div>
   <div class="qcard"><div class="qhead">${profTag(q.prof)}${multi ? '<span class="tag sata">select all that apply</span>' : ''}<span class="spacer"></span>
@@ -1633,6 +1653,7 @@ const examBlank = (q, p) => isMulti(q) ? !(Array.isArray(p) && p.length) : (p ==
    misses, for a paper that could not be finished. */
 function finishExam(partial){
   clearInterval(EX.timer);
+  if(untimedPaper()) EX.took = Date.now() - EX.started;
   EX.running = false; EX.done = true; EX.partial = !!partial;
   EX.qs.forEach((q,i)=>{
     const p = EX.picks[i];
@@ -1647,7 +1668,8 @@ function renderExamResult(){
   const right = EX.qs.filter((q,i)=> examRight(q, EX.picks[i])).length;
   const blank = EX.qs.filter((q,i)=> examBlank(q, EX.picks[i])).length;
   const pct = Math.round(100*right/EX.qs.length);
-  let h = `<h2>Exam simulation — ${right} / ${EX.qs.length} (${pct}%)</h2>
+  let h = `<h2>Exam simulation — ${right} / ${EX.qs.length} (${pct}%)</h2>${typeof EX.took === 'number' ? `
+  <p class="sub" id="exTook">Time taken: ${fmt(EX.took)}. This paper was untimed.</p>` : ''}
   <p class="sub">${blank ? blank + ' left blank' + (EX.partial ? ', not logged. ' : ', scored as incorrect. ') : ''}${EX.partial ? 'The answered items are' : 'All ' + EX.qs.length + ' are'} now in your history,
   so anything you missed is back in active review.</p>
   <p><button class="btn" id="exAgain">New paper</button>

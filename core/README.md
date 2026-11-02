@@ -627,17 +627,24 @@ the paper has no countdown, its clock counts the time taken up, and it ends only
 is submitted, after which the result gives the time taken. The paper saved for a reload
 is the engine's (`ids`, `picks`, `orders`, `i`, `ends`) with `ends: null` and one more
 field, `started`, so a reload brings it back with the time still counting; a timed paper
-is saved exactly as before. No time limit is made up. Before this, the engine's clock
+is saved exactly as before. No time limit is made up. A paper keeps the timing it started
+with: the engine itself (`views.js`, `untimedPaper`) saves, brings back, times and reports
+an untimed paper, so when the course later gains a time limit and `nullexam.js` leaves the
+page, a paper in progress still comes back untimed with its answers, its place and the
+time taken, and only a paper started after that counts down. Before this, the engine read
+`ends: null` as a deadline already past and submitted the paper on the next visit. Before this, the engine's clock
 read `null` minutes as 0 and ended the paper at its first one-second tick, with every
 item blank. As with a timed paper, the result is not kept after a reload.
-With every number set the page is unchanged: the `index.html` this core and the
-`7a6e81b` core build are identical once the two build stamps are removed, for the
-template course (248,119 bytes each) and for Medicinal-chemistry's live course at
-`d7331be` (7,208,805 bytes each). `nullexam_test.js` checks the five cases on scratch
+With every number set the page differs from the `7a6e81b` core's only by those lines of
+`views.js` (26 added, 4 removed: 249,541 against 248,119 bytes for the template course,
+7,210,227 against 7,208,805 for Medicinal-chemistry's live course at `d7331be`, build
+stamps aside), and a timed paper behaves as before (`browser_test.js`,
+`startup_test.js`, `history_test.js`, and the timed-save checks of `nullexam_test.js`). `nullexam_test.js` checks the five cases on scratch
 copies of any course. On the template course 34 of its 55 checks fail on the `7a6e81b`
-core and 11 of its 60 on `d0f9223` (this change before the mixed-marks and time-limit
-corrections, all 11 in those two cases); on this core 68 pass and 1 is skipped (the
-Weighting chips: no pool of the template filters by tier).
+core, 11 of its 60 on `d0f9223` (before the mixed-marks and time-limit corrections, all 11
+in those two cases) and 3 of its 66 on `04dd3f6` (before a paper kept its own timing: the
+paper in progress was submitted once the course gained a time limit); on this core 76
+pass and 1 is skipped (the Weighting chips: no pool of the template filters by tier).
 
 ## Checks
 
