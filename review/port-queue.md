@@ -57,7 +57,7 @@ nightly porter takes only items whose status is `pending`.
 | 18 | glossary-tap (tap a term for its definition; upgrade of the Terms work in item 3) | BDK; Intro to Pharmacology `app.js` 1769-1922 | 2026-11-02 11:00 CT | partial (left: the per-exam scope of the list, which needs the several-exams core change; Intro to Pharmacology's glossary only, from `929cd62`; BDK's glossary stays with the BDK move) |
 | 19 | pair-up and table-recall drills (drug ↔ receptor, poisoning table) | Intro to Pharmacology `app.js` 1923-2060 | 2026-11-02 11:00 CT | done |
 | 20 | short-answer page and graphs drill | Intro to Pharmacology `app.js` 2308-2351, 3518-3580 | 2026-11-02 11:00 CT | done |
-| 21 | flags, one-page layout, keyboard shortcuts, strict exam mode | Intro to Pharmacology; BDK | 2026-11-02 11:00 CT | pending |
+| 21 | flags, one-page layout, keyboard shortcuts, strict exam mode (`study-controls`; Intro to Pharmacology's code only, BDK's shortcuts go with the BDK move) | Intro to Pharmacology; BDK | 2026-11-02 11:00 CT | partial (left: matching and fill-in cards on the one-page quiz; Not sure and I guessed on earlier one-page cards, which needs a core change) |
 
 ## Core changes found by the assessments (not nightly)
 

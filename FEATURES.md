@@ -191,13 +191,25 @@ Test: none specific.
 Does: an opt-in exam paper with no backward navigation.
 Use when: the professor's exam forbids going back (PH: her 10/21 remark, PH notes §1).
 Do not use when: the real exam allows review.
-Enable: course.js → features.strict-exam-mode = { version: 'v1' }
+Enable: ported as the `strict` option of `study-controls` (below): course.js → features['study-controls'] = { version: 'v1', strict: true }
 Versions:
-  v1  2026-10-22  from PH (`f2090d7`, store key `ns+':noback'`)   best for: exams without back navigation   weaker at: not evaluated   current/
+  v1  2026-10-22  from PH (`f2090d7`, store key `ns+':noback'`)   best for: exams without back navigation   weaker at: not evaluated   current/ (ported 2026-11-02 from PH `929cd62` into `features/study-controls/`)
 Evidence: none recorded.
-Used by: PH (v1)
+Used by: PH (v1, its own copy); the kit module: none yet.
 Known issues: none recorded.
-Test: none found.
+Test: none found in PH; the kit module's test covers it (`study-controls` below).
+
+## study-controls
+Does: four study controls, each switched on by its own option: flags (a Flag button on every quiz card, the exam question and the exam result; the flagged set kept in the progress; a Topics row with the count, Drill flagged and Clear flags; a paper's flagged numbers as links on its question bar); a one-page layout (One at a time / All on one page: every multiple-choice and select-all question of the quiz, 40 at a time, or every question of the exam paper with the clock and Submit on a bar that stays in view); keyboard shortcuts (A-J or 1-9 pick, Enter checks or continues, after a right answer 1 Knew it, 2 Not sure, 3 I guessed; on the paper the arrow keys); a strict paper (a box on the exam start page: one question at a time, no going back, moving on from a blank question asks first).
+Use when: flags, layout and keys: any course. Strict: the professor's exam allows no going back (PH: "no backwards nav", 10/21).
+Do not use when: strict, when the real exam allows review.
+Enable: course.js → features['study-controls'] = { version: 'v1' } (options `flags`, `layout`, `keys` default true; `strict` default false; `strictNote`, a sentence from the course's files beside the strict box)
+Versions:
+  v1  2026-11-02  from PH (`929cd62`, `exam1-drill/src/app.js`: isFlagged/toggleFlag/flagBtn/layoutToggle 145-151, the flag and layout handler 576-595, the Topics row 722-723 and 777-778, renderAll 994-1080, renderExamAll 1663-1689, the noBack paper 1616, 1633, 1688-1716, exLeaveOk 1718, the keydown handler 3936-3963)   best for: any course   weaker at: not evaluated   current/
+Evidence: none recorded.
+Used by: the kit module: none yet. PH has its own copy. BDK's keyboard shortcuts are not part of this module; they are ported in the BDK move.
+Known issues: the one-page quiz leaves calculation and matching questions to one at a time (the page says how many), and so does the one-page paper when it has calculation or matching items on it (`exams[].typed`; it says so); Not sure, I guessed and I was sure of that are offered on the card answered last only, because the core changes the confidence of the last recorded answer only. PH's question map (its flagged filter) is not in the kit. The browser's Back button leaves the drill (the core keeps no history entries); a strict paper comes back strict where it was. A strict paper relies on the module's own saved key: with storage blocked it holds for the visit only, as the paper itself does. A reload under 150 ms after a flag or a layout choice loses it (the core saves 150 ms after the last change). No shortcut acts while a dialog is open over the page (worksheets-ink's Scratch paper is one) or while a pointer is held down on a canvas. Other modules read the flags with `FX.api('study-controls')` (`isFlagged`, `flagged`, `set`, `toggle`, `button`, `onChange`); queue item 10 (Pharmacokinetics notes and flags) is to build on it.
+Test: `features/study-controls/current/test.js` (PH `exam1-drill/src/browser_test.js` lines 41-48, 124-139, 150-156, 243-246, 286-294, 332-337 ported, with checks of the strict paper, which PH had none of; with the review checks of 2026-11-02: keys where the student is doing something else, the strict paper against a reload, the browser's Back and Forward and the arrow keys, 300 flags through Export, Import, a profile switch, reloads and storage denied or full: 59 checks, and 2 more when paper-picker is on). Review evidence: branch `evidence/study-controls`.
 
 ## short-answer-page
 Does: practice of written short-answer items.
