@@ -61,6 +61,7 @@ const ANSWER = right => {
   const b = document.getElementById('btnNext'); if(b) b.click();
   return q.id;
 };
+const noCount = () => EXAM.questions === null || EXAM.questions === undefined;
 const answer = async (page, n) => { for(let i = 0; i < n; i++) await page.evaluate(ANSWER, i % 2 === 0); await page.waitForTimeout(400); };
 
 // every write of the progress, the history and the exam paper, with its count
@@ -129,8 +130,12 @@ const WATCH = ([seed, session]) => {
     await answer(page, 1);
     check(count(await stored(page, info.data)) === N + 1, `an answer is saved (${N + 1} answers stored)`, count(await stored(page, info.data)));
     check(count(await stored(page, info.log)) === N + 1, `the answer history is saved (${N + 1} entries stored)`, count(await stored(page, info.log)));
-    await page.evaluate(() => { show('exam'); beginExam(); });
-    check(!!(await stored(page, info.exam)), 'a started exam paper is saved');
+    // with exams[].questions: null no paper is drawn (nullexam.js)
+    if(await page.evaluate(noCount)) L.skip('a started exam paper is saved', 'the number of questions on the exam is not set, so no paper is drawn');
+    else {
+      await page.evaluate(() => { show('exam'); beginExam(); });
+      check(!!(await stored(page, info.exam)), 'a started exam paper is saved');
+    }
     const dia = await page.evaluate(() => !!document.querySelector('#nav button[data-v="diagrams"]') === (DIA_LIST().length > 0));
     check(dia, 'the Diagrams tab is there exactly when the course lists figures');
     check(!errors.length && !logged.length, 'no page errors and no errors on the console', errors.concat(logged).slice(0, 2).join('; '));
@@ -197,8 +202,11 @@ const WATCH = ([seed, session]) => {
     check(!(await writes(page, info.data)).length && !(await writes(page, info.log)).length, 'nothing was written to the progress or the history',
       JSON.stringify((await writes(page, info.data)).concat(await writes(page, info.log))));
     if(full){
-      await page.evaluate(() => { show('exam'); beginExam(); });
-      check(!(await stored(page, info.exam)) && !(await writes(page, info.exam)).length, 'a started exam paper is not written');
+      if(await page.evaluate(noCount)) L.skip('a started exam paper is not written', 'the number of questions on the exam is not set, so no paper is drawn');
+      else {
+        await page.evaluate(() => { show('exam'); beginExam(); });
+        check(!(await stored(page, info.exam)) && !(await writes(page, info.exam)).length, 'a started exam paper is not written');
+      }
       await page.evaluate(() => show('settings'));
       await page.click('#btnReset');
       await page.waitForTimeout(400);

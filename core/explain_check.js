@@ -208,7 +208,7 @@ const byPool = {};
 for (const r of rows) byPool[r.pool] = (byPool[r.pool] || 0) + 1;
 console.log('\n  by pool:');
 for (const k of Object.keys(byPool).sort((a, b) => byPool[b] - byPool[a]))
-  console.log(`  ${String(byPool[k]).padStart(4)}  ${k} (supplies ${POOL_WEIGHT[k] || '?'} of the ${EXAM.questions})`);
+  console.log(`  ${String(byPool[k]).padStart(4)}  ${k} (supplies ${POOL_WEIGHT[k] || '?'} of the ${EXAM.questions == null ? '?' : EXAM.questions})`);
 
 const LIMIT = Number(process.env.LIMIT || 30);
 console.log(`\n  worst ${Math.min(LIMIT, shown.length)}, ranked by severity x exam weight:\n`);

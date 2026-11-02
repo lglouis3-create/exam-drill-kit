@@ -55,6 +55,8 @@ console.log('\n=== The course bank ===');
   const fam = families(real);
   const inFam = Object.entries(fam).filter(([id, f]) => id !== f || real.some(q => fam[q.id] === id && q.id !== id));
   if(!real.some(q => q.dupOf)) skip('no two wordings of one fact on a paper drawn from this bank', 'no question in this bank carries dupOf');
+  else if(X.EXAM.questions === null || X.EXAM.questions === undefined)
+    skip('no two wordings of one fact on a paper drawn from this bank', 'the number of questions on the exam is not set, so no paper is drawn');
   else {
     const famOnly = Object.fromEntries(inFam);
     const papers = Array.from({length: PAPERS}, () => X.drawPaper());

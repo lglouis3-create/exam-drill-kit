@@ -2,7 +2,7 @@ const fs=require('fs'), vm=require('vm');
 const PAGE=require('./built_page'); PAGE.need('render_test.js');
 let code=PAGE.engine();
 // DIA and DIAGRAMS are optional (a course without drawn figures may leave them out)
-code+="\nglobalThis.__X={QUESTIONS,TOPICS,DIA:typeof DIA!=='undefined'?DIA:{},DIAGRAMS:typeof DIAGRAMS!=='undefined'?DIAGRAMS:[],startQuiz,renderTopics,renderQuiz,renderGaps,renderRef,renderTell,renderGuide,renderDiagrams,renderSettings,answer,Qref:()=>Q,askProfile,record,beginExam,renderExamQ,EXref:()=>EX,sessionLog,linksFor,drawPaper};\n";
+code+="\nglobalThis.__X={QUESTIONS,TOPICS,DIA:typeof DIA!=='undefined'?DIA:{},DIAGRAMS:typeof DIAGRAMS!=='undefined'?DIAGRAMS:[],startQuiz,renderTopics,renderQuiz,renderGaps,renderRef,renderTell,renderGuide,renderDiagrams,renderSettings,answer,Qref:()=>Q,askProfile,record,beginExam,renderExamQ,EXref:()=>EX,sessionLog,linksFor,drawPaper,EXAM};\n";
 const store={}, sinks={};
 function mk(id){ return sinks[id] ||= {innerHTML:'',textContent:'',dataset:{},style:{},classList:{toggle(){},add(){},remove(){},contains(){return false}},setAttribute(){},querySelectorAll(){return []},onclick:null,click(){}}; }
 const sb={console,localStorage:{getItem:k=>k in store?store[k]:null,setItem:(k,v)=>{store[k]=String(v)},removeItem:k=>{delete store[k]}},
@@ -56,13 +56,25 @@ X.renderSettings();      ok &= check('settings', sinks['#v-settings'].innerHTML)
 const said = (sinks['#v-settings'].innerHTML.match(/· (\d+) questions ·/) || [])[1];
 const countOk = Number(said) === X.QUESTIONS.length;
 console.log(`  ${countOk ? 'ok  ' : 'FAIL'}  settings says ${said === undefined ? 'no' : said} questions; the page holds ${X.QUESTIONS.length}`);
-X.beginExam();           ok &= check('exam paper', sinks['#v-exam'].innerHTML);
-console.log('         exam question count: '+X.EXref().qs.length);
+// the course's own setting decides: with exams[].questions: null no paper is drawn
+// (nullexam.js); with a count, a paper with no questions is a fault
+const countSet = X.EXAM.questions !== null && X.EXAM.questions !== undefined;
+let beginError = '';
+try { X.beginExam(); } catch(e){ beginError = e.message; }
+if(!beginError) ok &= check(countSet ? 'exam paper' : 'exam, no paper', sinks['#v-exam'].innerHTML);
+const paperN = X.EXref() && X.EXref().qs ? X.EXref().qs.length : 0;
+const paperOk = !beginError && (countSet ? paperN > 0 : paperN === 0);
+console.log(`  ${paperOk ? 'ok  ' : 'FAIL'}  exam question count: ${countSet ? paperN + ' of ' + X.EXAM.questions : 'none (the number of questions is not set)'}`
+  + (beginError ? `; beginExam threw: ${beginError}` : ''));
+// kept apart from ok, so the summary line names this fault rather than a rendering one
 // verify an image actually embeds
 const withImg = X.QUESTIONS.filter(q=>q.img).length;
 console.log(`         ${withImg} questions carry an image`);
-console.log(ok&&countOk?'\nRender smoke test passed\n':'\nRENDER PROBLEMS FOUND\n');
+console.log(ok&&countOk&&paperOk?'\nRender smoke test passed\n':'\nRENDER PROBLEMS FOUND\n');
 console.log(!ok?'FAIL: render_test.js: a view rendered undefined, NaN, [object Object] or unbalanced markup'
   :!countOk?`FAIL: render_test.js: Settings says ${said === undefined ? 'no' : said} questions; the page holds ${X.QUESTIONS.length}`
+  :!paperOk?(beginError?`FAIL: render_test.js: starting the exam paper threw: ${beginError}`
+            :countSet?`FAIL: render_test.js: the exam paper holds no questions although the exam sets ${X.EXAM.questions}`
+                     :`FAIL: render_test.js: a paper of ${paperN} questions was drawn although the number of questions is not set`)
   :'PASS: render_test.js: every view rendered clean');
-process.exit(ok&&countOk?0:1);
+process.exit(ok&&countOk&&paperOk?0:1);
