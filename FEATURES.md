@@ -146,6 +146,18 @@ Used by: PK (v1), BDK (v2)
 Known issues: none open.
 Test: `tests/cram.js` pins the clock to `QUIZ_DAY` (BDK).
 
+## quiz-prep-cards
+Does: a card at the top of Topics for each quiz the course lists, until the quiz is over (its start plus its minutes) or the student hides it: the quiz's day and time, the days left, what it covers, the professor's words about it and what the professor said to prepare (with the transcript it comes from), and drills over the questions of the topics or modules the quiz covers: concepts, calculations and everything, each adaptive, and a straight pass that asks each once. Hide keeps the card off on that browser; Settings puts it back. The kit core's Topics tab shows only the active exam (its name, length, date and days left); it has nothing on quizzes.
+Use when: the professor announces quizzes between exams and says what each covers (PK: Quiz 4 and Quiz 5, `src/course.js` lines 224-276).
+Do not use when: the course has no quizzes, or the quizzes are not dated.
+Enable: course.js → features['quiz-prep-cards'] = { version: 'v1' }, with `COURSE.quizzes = [{id, name, when: 'YYYY-MM-DDTHH:MM', minutes, topics: [TOPICS ids] and/or modules: [question module values], covers, quote, said: [lines], src}]` in course.js
+Versions:
+  v1  2026-10-04  from PK (`90b60da`)   best for: dated quizzes between exams   weaker at: not evaluated   current/ (ported 2026-11-02 from PK `ac2eb73` `src/views.js` 466-512)
+Evidence: none recorded.
+Used by: PK (v1, its own copy); the kit module: none yet.
+Known issues: the module does not change the exam the page prepares for, the exam countdown or the Exam sim: several exams on one site, the next exam by date and quizzes that run over several days are a core change (`review/port-queue.md`, "Core changes found by the assessments"), and a quiz here has one start time. Not ported: PK's timed practice quiz ("Sit a practice quiz", `beginQuiz`, which runs a paper with its own title and clock on PK's exam engine; the kit's exam engine draws only the active exam's paper), its question and minute chips, and the "Set-up only: which equation?" row (plan-the-problem's quiz scope). A calculation here is a typed-number question; PK also counts a matching item of quantities as a calculation. The said lines keep only `<sub>`, `<sup>`, `<b>`, `<i>` and `<em>`; `{{frac:a|b}}` is stacked when formulas-in-text is on and written (a)/(b) when it is off. The build step checks each quiz (PK checked none of this).
+Test: `features/quiz-prep-cards/current/test.js` (PK `src/review_test.py` lines 76-108 ported, without the practice paper: 26 checks on the template course with PK's Quiz 5 and Quiz 4 added).
+
 ## question-map
 Does: colour-coded tiles of every question by lecture and concept.
 Use when: the bank is large and the student wants to see coverage at a glance (PH).

@@ -21,7 +21,7 @@ item's status to `done`.
 | 4 | concept-statuses | `views.js` 2506-2725 | FEATURES.md line 36 wrongly says the core has them | pending |
 | 5 | theme (light and dark) | `views.js` 6323-6383 | none | pending |
 | 6 | paper-picker (choose a practice paper, paper history) | `shell.html` 1099-1217; `views.js` 3083-3170 | none | pending |
-| 7 | quiz-prep-cards | `views.js` 466-546 | none | pending |
+| 7 | quiz-prep-cards | `views.js` 466-546 | none | done |
 | 8 | module-pages (Concepts, Calculations by type, Worksheets) | `views.js` 722-854 | none | pending |
 | 9 | stopwatch | `views.js` 1467-1482 | listed | pending |
 | 10 | notes (Notes tab and flags) | `views.js` 5564-5654 | listed | pending |
