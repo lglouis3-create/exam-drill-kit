@@ -1,0 +1,162 @@
+m2-mod-1.options.0.why: fixture "The bolus puts the whole dose in at once, and the one-compartment assumption spreads it evenly through the body at the same instant. The pr | source "The bolus puts the whole dose in at once, and the one-compartment assumption spreads it evenly through the body at the same instant. Dr. Mo
+m2-mod-1.options.3.why: fixture "This adds a waiting period before elimination starts, which the model does not have. The professor says that as soon as the drug is in the  | source "This adds a waiting period before elimination starts, which the model does not have. Dr. Mosley says that as soon as the drug is in the bod
+m2-mod-1.prof: fixture (absent) | source "Mosley"
+m2-mod-1.exam: fixture (absent) | source 1
+m2-mod-1.lecture: fixture (absent) | source "L02"
+m2-mod-1.teachImg: fixture (absent) | source "slide_2IVBolusAdministra_p3"
+m2-mod-1.quote: fixture (absent) | source "the drug goes into the body all at once, like instantly all the drug is into the body and all the drug is instantly uniformly distributed t
+m2-mod-2.options.2.why: fixture "The professor calls this instantaneous input of drug into the body, and it is what distinguishes a bolus from an infusion. It sets the amou | source "Dr. Mosley calls this instantaneous input of drug into the body, and it is what distinguishes a bolus from an infusion. It sets the amount 
+m2-mod-2.prof: fixture (absent) | source "Mosley"
+m2-mod-2.exam: fixture (absent) | source 1
+m2-mod-2.lecture: fixture (absent) | source "L02"
+m2-mod-2.teachImg: fixture (absent) | source "slide_2IVBolusAdministra_p3"
+m2-mod-2.quote: fixture (absent) | source "Assumes that the drug can enter and leave the body. Body acts like a single, uniform compartment"
+m2-vd-1.options.0.why: fixture "It is the hypothetical volume of body fluid needed to dissolve the total amount of drug at the concentration found in the blood. Because it | source "It is the hypothetical volume of body fluid needed to dissolve the total amount of drug at the concentration found in the blood. Because it
+m2-vd-1.prof: fixture (absent) | source "Mosley"
+m2-vd-1.exam: fixture (absent) | source 1
+m2-vd-1.lecture: fixture (absent) | source "L02"
+m2-vd-1.teachImg: fixture (absent) | source "slide_2IVBolusAdministra_p6"
+m2-vd-1.quote: fixture (absent) | source "The volume of distribution is a hypothetical volume of body fluid that would be required to dissolve the total amount of drug at the same c
+m2-vd-2.prof: fixture (absent) | source "Mosley"
+m2-vd-2.exam: fixture (absent) | source 1
+m2-vd-2.lecture: fixture (absent) | source "L02"
+m2-vd-2.teachImg: fixture (absent) | source "slide_2IVBolusAdministra_p6"
+m2-vd-2.quote: fixture (absent) | source "we are talking about the volume distribution being a proportionality constant which relates the amount of drug into the in the body to what
+m2-cl-1.options.0.why: fixture "Clearance is the volume of plasma cleared of drug per unit time. It measures drug elimination from the body without identifying the mechani | source "Clearance is the volume of plasma cleared of drug per unit time. It measures drug elimination from the body without identifying the mechani
+m2-cl-1.prof: fixture (absent) | source "Mosley"
+m2-cl-1.exam: fixture (absent) | source 1
+m2-cl-1.lecture: fixture (absent) | source "L02"
+m2-cl-1.teachImg: fixture (absent) | source "slide_2IVBolusAdministra_p8"
+m2-cl-1.quote: fixture (absent) | source "Volume of plasma that is cleared of drug per unit time"
+m2-cl-3.options.0.why: fixture "Both k and VD are constants for a given drug in a given patient, so their product is a constant too. The professor makes exactly that argum | source "Both k and VD are constants for a given drug in a given patient, so their product is a constant too. Dr. Mosley makes exactly that argument
+m2-cl-3.prof: fixture (absent) | source "Mosley"
+m2-cl-3.exam: fixture (absent) | source 1
+m2-cl-3.lecture: fixture (absent) | source "L02"
+m2-cl-3.teachImg: fixture (absent) | source "slide_2IVBolusAdministra_p8"
+m2-cl-3.quote: fixture (absent) | source "what we like about clearance is that clearance. For most drugs in most situations, it is going to be a constant … a constant times a consta
+m2-mc-1.options.0.why: fixture "Some drugs distribute at different rates into different tissue groups. The professor describes the drug going to some organs first, before  | source "Some drugs distribute at different rates into different tissue groups. Dr. Mosley describes the drug going to some organs first, before it 
+m2-mc-1.prof: fixture (absent) | source "Mosley"
+m2-mc-1.exam: fixture (absent) | source 1
+m2-mc-1.lecture: fixture (absent) | source "L03"
+m2-mc-1.teachImg: fixture (absent) | source "slide_2IVBolusAdministra_p14"
+m2-mc-1.quote: fixture (absent) | source "Multi-compartment models describe the observation of some drugs that distribute at various rates into different tissue groups"
+m2-mc-2.options.0.why: fixture "On a logarithmic scale a one-compartment first-order decline is one straight line. A steep segment bending into a shallower line has two sl | source "On a logarithmic scale a one-compartment first-order decline is one straight line. A steep segment bending into a shallower line has two sl
+m2-mc-2.prof: fixture (absent) | source "Mosley"
+m2-mc-2.exam: fixture (absent) | source 1
+m2-mc-2.lecture: fixture (absent) | source "L03"
+m2-mc-2.quote: fixture (absent) | source "if I give you a graph that looks something like this without the red and blue and just a log scale and I am telling you that it is an IV bo
+m2-mc-2.audit: fixture (absent) | source "The deck slide \"Why Multicompartment Models?\" plots log Cp against time without labelling the scale as logarithmic. Dr. Mosley supplies t
+m2-mc-4.options.0.why: fixture "The model diagram puts the elimination rate constant k on the central compartment, with k12 and k21 moving drug back and forth between cent | source "The model diagram puts the elimination rate constant k on the central compartment, with k12 and k21 moving drug back and forth between cent
+m2-mc-4.prof: fixture (absent) | source "Mosley"
+m2-mc-4.exam: fixture (absent) | source 1
+m2-mc-4.lecture: fixture (absent) | source "L03"
+m2-mc-4.teachImg: fixture (absent) | source "slide_2IVBolusAdministra_p17"
+m2-mc-4.quote: fixture (absent) | source "if we have got a central compartment, it is going to and from that tissue compartment … and then that the drug is being eliminated from the
+m2-mc-5.prof: fixture (absent) | source "Mosley"
+m2-mc-5.exam: fixture (absent) | source 1
+m2-mc-5.lecture: fixture (absent) | source "L03"
+m2-mc-5.teachImg: fixture (absent) | source "slide_2IVBolusAdministra_p17"
+m2-mc-5.quote: fixture (absent) | source "dCp/dt = k21·Ct − k12·Cp − k·Cp"
+m2-n-k2.steps.1.why: fixture "The professor tells the class to take it on her word that micrograms per millilitre equals milligrams per litre, so no arithmetic conversio | source "Dr. Mosley tells the class to take it on her word that micrograms per millilitre equals milligrams per litre, so no arithmetic conversion i
+m2-n-k2.prof: fixture (absent) | source "Mosley"
+m2-n-k2.exam: fixture (absent) | source 1
+m2-n-k2.lecture: fixture (absent) | source "L02"
+m2-n-k2.setup: fixture (absent) | source {"eq":"first-ln","pre":[],"why":"\"IV bolus injection\" with concentrations at two times, so the one-compartment IV bolus block with first-o
+m2-n-k2.asks: fixture (absent) | source "k"
+m2-n-k2.givens: fixture (absent) | source [["D0","250 mg","not needed: k comes from two concentrations alone"],["weight","70-kg","not needed"],["t₁","4","the earlier time, in hr"],["
+m2-n-k2.check: fixture (absent) | source {"t":"From 4 to 8 hr the concentration falls 6.6 → 2.18 mcg/mL, to about a third: more than halved but not quartered in 4 hr, so t½ is betwe
+m2-n-k2.quote: fixture (absent) | source "k = −ln(6.6/2.18) / (4 − 8) hr = 0.2769 hr⁻¹"
+m2-n-k1.steps.0.t: fixture "k = −slope = {{frac:ln Cp1 − ln Cp2|t2 − t1}}, taking the 1.0 hr and 2.0 hr points, which is the pair the professor works in her own key" | source "k = −slope = {{frac:ln Cp1 − ln Cp2|t2 − t1}}, taking the 1.0 hr and 2.0 hr points, which is the pair Dr. Mosley works in her own key"
+m2-n-k1.prof: fixture (absent) | source "Mosley"
+m2-n-k1.exam: fixture (absent) | source 1
+m2-n-k1.lecture: fixture (absent) | source "L02"
+m2-n-k1.setup: fixture (absent) | source {"eq":"first-ln","pre":[],"why":"\"intravenous bolus injection\" with a table of plasma concentrations, so the one-compartment IV bolus bloc
+m2-n-k1.asks: fixture (absent) | source "k"
+m2-n-k1.givens: fixture (absent) | source [["D0","50 mg","not needed: k comes from two concentrations alone"],["weight","70-kg","not needed"],["Cp₁","1.59","the 1.0 hr concentration,
+m2-n-k1.check: fixture (absent) | source {"t":"From 1.0 to 2.0 hr the concentration falls 1.59 → 0.64 mg/L, more than half in one hour, so the half-life is under 1 hr and k is above
+m2-n-k1.audit: fixture (absent) | source "Her key works the 1.0 hr and 2.0 hr points and prints 0.9100 hr⁻¹. The other adjacent pairs in the same table give 0.893 to 0.940 hr⁻¹, and
+m2-n-k1.quote: fixture (absent) | source "k = −slope = −[ln 0.64 − ln 1.59] / (2 − 1) hr = 0.9100 hr⁻¹"
+m2-n-c0a.prof: fixture (absent) | source "Mosley"
+m2-n-c0a.exam: fixture (absent) | source 1
+m2-n-c0a.lecture: fixture (absent) | source "L02"
+m2-n-c0a.setup: fixture (absent) | source {"eq":"first-exp","pre":[],"why":"\"intravenous bolus injection\" with a rate constant and one sampled concentration, so the one-compartment
+m2-n-c0a.asks: fixture (absent) | source "C0"
+m2-n-c0a.givens: fixture (absent) | source [["D0","50 mg","not needed: the decline is worked in concentration"],["k","0.91 hr⁻¹","the exponent kt = 0.91 × 2.5"],["Cp","0.40 mg/L","the
+m2-n-c0a.check: fixture (absent) | source {"t":"With k = 0.91 hr⁻¹ the half-life is about three quarters of an hour, so 2.5 hours is more than three half-lives: Cp0 is more than eigh
+m2-n-c0a.quote: fixture (absent) | source "C₀ = (0.4 mg/L)e^(0.91)(2.5) = 3.89 mg/L"
+m2-n-c15.prof: fixture (absent) | source "Mosley"
+m2-n-c15.exam: fixture (absent) | source 1
+m2-n-c15.lecture: fixture (absent) | source "L02"
+m2-n-c15.setup: fixture (absent) | source {"eq":"first-exp","pre":[],"why":"\"intravenous bolus injection\" with an \"initial plasma concentration\", so the one-compartment first-ord
+m2-n-c15.asks: fixture (absent) | source "Cp"
+m2-n-c15.givens: fixture (absent) | source [["Cp0","3.89 mg/L","the starting concentration, multiplied by e^(−kt)"],["k","0.91 hr⁻¹","the exponent kt = 0.91 × 0.25"],["t","15 minutes"
+m2-n-c15.check: fixture (absent) | source {"t":"A quarter hour is about a third of the half-life of three quarters of an hour, so only about 20 per cent is lost: Cp sits a little und
+m2-n-c15.quote: fixture (absent) | source "C₀.₂₅ = (3.89 mg/L)e^−(0.91)(0.25) = 3.1 mg/L"
+m2-n-cl2.steps.1.why: fixture "Total body clearance is k multiplied by VD, and neither is given directly: the stem gives a half-life and a percentage. Naming the relation | source "Total body clearance is k multiplied by VD, and neither is given directly: the stem gives a half-life and a percentage. Naming the relation
+m2-n-cl2.prof: fixture (absent) | source "Mosley"
+m2-n-cl2.exam: fixture (absent) | source 1
+m2-n-cl2.lecture: fixture (absent) | source "L02"
+m2-n-cl2.dupOf: fixture (absent) | source "m2-n-cl1"
+m2-n-cl2.setup: fixture (absent) | source {"eq":"cl-k-vd","pre":["thalf-first"],"why":"\"rapid IV injection\" and \"total body clearance\", so the clearance line. Given t½ and VD as 
+m2-n-cl2.asks: fixture (absent) | source "ClT"
+m2-n-cl2.givens: fixture (absent) | source [["weight","187-pound","becomes 85.0 kg, then VD = 0.2 × 85.0 = 17.0 L"],["t½","4 hours","gives k = {{frac:0.693|4}} = 0.1733 hr⁻¹"],["VD","
+m2-n-cl2.check: fixture (absent) | source {"t":"187 lb is 85.0 kg, so VD is 17.0 L, and k is 0.693 over 4, 0.1733 hr⁻¹; about a sixth of 17.0 L cleared each hour is a little under 3 
+m2-n-cl2.quote: fixture (absent) | source "Cl_T = (17 L)(0.1733 hr⁻¹) = 2.95 L/hr"
+m2-n-vd1.prof: fixture (absent) | source "Mosley"
+m2-n-vd1.exam: fixture (absent) | source 1
+m2-n-vd1.lecture: fixture (absent) | source "L02"
+m2-n-vd1.setup: fixture (absent) | source {"eq":"cp-db-vd","pre":[],"why":"\"intravenous bolus dose\" with an \"initial plasma concentration\", so the one-compartment block at time z
+m2-n-vd1.asks: fixture (absent) | source "VD"
+m2-n-vd1.givens: fixture (absent) | source [["D0","50 mg","the numerator: the amount in the body at time zero"],["Cp0","3.89 mg/L","the denominator"],["weight","70-kg","not needed: VD
+m2-n-vd1.check: fixture (absent) | source {"t":"50 mg over 4 mg/L would be near 12 L, and 3.89 is a little under 4, so VD is a little over 12 L; 12.85 L fits, roughly a fifth of the 
+m2-n-vd1.quote: fixture (absent) | source "V_D = 50 mg / 3.89 mg/L = 12.85 L"
+m2-n-koverall.prof: fixture (absent) | source "Mosley"
+m2-n-koverall.exam: fixture (absent) | source 1
+m2-n-koverall.lecture: fixture (absent) | source "L03"
+m2-n-koverall.setup: fixture (absent) | source {"eq":"k-overall","pre":[],"why":"\"IV bolus dose\" described by A, B, α and β, so the two-compartment block. Given the two intercepts and t
+m2-n-koverall.asks: fixture (absent) | source "k"
+m2-n-koverall.givens: fixture (absent) | source [["D0","250-mg","not needed: k comes from the intercepts and slopes"],["A","8.45 mg/L","in A + B = 13.77 and in Aβ"],["B","5.32 mg/L","in A 
+m2-n-koverall.check: fixture (absent) | source {"t":"The overall k always lies between the two slopes, above β = 0.114 hr⁻¹ and below α = 2.18 hr⁻¹, and 0.272 does; it sits nearer β becau
+m2-n-koverall.teachImg: fixture (absent) | source "slide_2IVBolusAdministra_p24"
+m2-n-koverall.quote: fixture (absent) | source "I got for the overall rate constant K 0.272 per hour."
+m2-n-koverall.audit: fixture (absent) | source "The A, B, alpha and beta values for this practice sheet appear on this copy of the deck as handwriting, which is not on its own a source. T
+m2-n-tb1.prof: fixture (absent) | source "Mosley"
+m2-n-tb1.exam: fixture (absent) | source 1
+m2-n-tb1.lecture: fixture (absent) | source "L03"
+m2-n-tb1.setup: fixture (absent) | source {"eq":"thalf-beta","pre":[],"why":"\"IV bolus dose\" described by \"A\", \"B\", \"α\" and \"β\", so the two-compartment block. Given β, aske
+m2-n-tb1.asks: fixture (absent) | source "thalf"
+m2-n-tb1.givens: fixture (absent) | source [["D0","300-mg","not needed: the half-life comes from β alone"],["A","10.21 mg/L","not needed"],["B","8.53 mg/L","not needed"],["α","3.14 hr
+m2-n-tb1.check: fixture (absent) | source {"t":"0.693 over 0.198 is 0.693 over about a fifth, about 3.5 hr. The elimination half-life comes from β, the smaller slope, so it must be l
+m2-n-tb1.quote: fixture (absent) | source "t½β = 0.693 / 0.198 hr⁻¹ = 3.5 hr"
+hw2-2a.prof: fixture (absent) | source "Mosley"
+hw2-2a.exam: fixture (absent) | source 1
+hw2-2a.lecture: fixture (absent) | source "L03"
+hw2-2a.asks: fixture (absent) | source "thalf"
+hw2-2a.setup: fixture (absent) | source {"eq":"thalf-beta","pre":[],"why":"The stem gives a two-exponential equation for \"IV bolus administration\", so the two-compartment block. 
+hw2-2a.givens: fixture (absent) | source [["D0","350 mg bolus dose","not needed: half-life does not depend on the dose"],["A","8.72","not needed: an intercept, not a rate"],["α","3.
+hw2-2a.check: fixture (absent) | source {"t":"β = 0.154 hr⁻¹ removes about 14% an hour, so halving takes between 4 and 5 hours: 4.50 hr. The α term, with a half-life well under an 
+hw2-2b.prof: fixture (absent) | source "Mosley"
+hw2-2b.exam: fixture (absent) | source 1
+hw2-2b.lecture: fixture (absent) | source "L03"
+hw2-2b.asks: fixture (absent) | source "C0"
+hw2-2b.setup: fixture (absent) | source {"eq":"c0-ab","pre":[],"why":"Two-compartment \"IV bolus\" equation. A and B are read from the equation and \"the initial concentration\" is
+hw2-2b.givens: fixture (absent) | source [["D0","350 mg bolus dose","not needed: the intercepts already carry the dose"],["A","8.72","added to B"],["α","3.85","not needed: at t = 0 
+hw2-2b.check: fixture (absent) | source {"t":"At time zero both exponentials are 1, so Cp0 is the plain sum 8.72 + 5.40 = 14.12 mcg/mL, above either intercept alone.","lo":8.72}
+hw2-2c.prof: fixture (absent) | source "Mosley"
+hw2-2c.exam: fixture (absent) | source 1
+hw2-2c.lecture: fixture (absent) | source "L03"
+hw2-2c.asks: fixture (absent) | source "Cp"
+hw2-2c.setup: fixture (absent) | source {"eq":"biexp","pre":[],"why":"Two-compartment \"IV bolus\" equation. A, α, B and β are read from the equation and the concentration \"4 hour
+hw2-2c.givens: fixture (absent) | source [["D0","350 mg bolus dose","not needed"],["A","8.72","the coefficient of e^(−αt)"],["α","3.85","the exponent αt = 3.85 × 4 = 15.4"],["B","5.
+hw2-2c.check: fixture (absent) | source {"t":"By 4 hours the α term, e^(−15.4), is zero to five decimals, so only the B term is left; βt = 0.616 is a bit under 0.693, so a bit over
+hw2-2d.prof: fixture (absent) | source "Mosley"
+hw2-2d.exam: fixture (absent) | source 1
+hw2-2d.lecture: fixture (absent) | source "L03"
+hw2-2d.asks: fixture (absent) | source "Vp"
+hw2-2d.setup: fixture (absent) | source {"eq":"vp-ab","pre":[],"why":"Two-compartment \"IV bolus\" of a stated \"bolus dose\" in mg. The dose and the intercepts A and B are known a
+hw2-2d.givens: fixture (absent) | source [["D0","350 mg bolus dose","the numerator"],["A","8.72","added to B for Cp0"],["α","3.85","not needed"],["B","5.40","added to A for Cp0 = 14
+hw2-2d.check: fixture (absent) | source {"t":"350 mg producing 14.12 mg/L at time zero fills {{frac:350|14.12}}, about 25 L: 24.79 L, above zero.","lo":0}
+topic bolus1.prof: fixture (absent) | source "Mosley"
+topic bolus2.prof: fixture (absent) | source "Mosley"
+160 differences
+source questions in topics bolus1/bolus2: 99 ; module 2: 99

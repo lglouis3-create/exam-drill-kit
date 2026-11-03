@@ -1,0 +1,11 @@
+Course: /tmp/port-tools/mkcourse.sh <kit at 3e0a3fe> c module-pages; then
+  node features/module-pages/ci/oncourse.js <kit> c/src   with WITH_SECOND = true (the committed script has false);
+  git add -A && git commit; cd c/src && python3 build.py && node test.js   -> exit 1
+  ("=== 7. Different wording when a missed concept returns ===  FAIL  missed concept never returned"), core-test.log.
+Script: ../scripts/mp_exp.sh expA <that oncourse.js>.
+The core is main 4e0fae4's: core tree f631c5e on both (inputs.txt).
+section7-diag.log: the same course with core test.js section 7 printing each pick (test-section7-diag.js, a copy of
+core test.js with three console.log lines added, run in that course only): the missed concept mpc-m2-mod-1 is
+recorded at qn 1; the other three concepts of mpc-bolus1 (6 questions, 4 concepts) are each answered once (qn 4);
+then pickNext returns null, because the missed concept needs GAP = 4 other questions (core/shell.html line 887)
+and the topic has only 3 other concepts. Data: data/q90_mpc_fixture.js, data/mpc_data.js, data/course.js.

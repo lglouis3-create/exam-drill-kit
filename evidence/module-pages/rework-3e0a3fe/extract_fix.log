@@ -1,0 +1,10 @@
+image slide_2IVBolusAdministra_p3 webp 48967 chars, round-trips
+image slide_2IVBolusAdministra_p6 webp 62367 chars, round-trips
+image slide_2IVBolusAdministra_p8 webp 43455 chars, round-trips
+image slide_2IVBolusAdministra_p14 webp 44159 chars, round-trips
+image slide_2IVBolusAdministra_p17 webp 24439 chars, round-trips
+questions 23 m2-mod-1 [slide_2IVBolusAdministra_p3], m2-mod-2 [slide_2IVBolusAdministra_p3], m2-vd-1 [slide_2IVBolusAdministra_p6], m2-vd-2 [slide_2IVBolusAdministra_p6], m2-cl-1 [slide_2IVBolusAdministra_p8], m2-cl-3 [slide_2IVBolusAdministra_p8], m2-mc-1 [slide_2IVBolusAdministra_p14], m2-mc-2, m2-mc-4 [slide_2IVBolusAdministra_p17], m2-mc-5 [slide_2IVBolusAdministra_p17], m2-n-k2, m2-n-k1, m2-n-c0a, m2-n-c15, m2-n-cl1, m2-n-cl2, m2-n-vd1, m2-n-koverall [slide_2IVBolusAdministra_p24, calculation], m2-n-tb1, hw2-2a, hw2-2b, hw2-2c, hw2-2d
+topics bolus1 prof Mosley, bolus2 prof Mosley | objectives 5 | types 4 | chains hw2-p2
+lectures [{"id":"L02","deck":"2IVBolusAdministration.pdf","label":"Module 2: One-compartment IV bolus (24 Aug)","prof":"Mosley","exam":1,"module":2},{"id":"L03","deck":"2IVBolusAdministration.pdf","label":"Module 2: Multicompartment IV bolus (26 Aug)","prof":"Mosley","exam":1,"module":2}]
+dupOf targets missing: none | skills used but not in the fixture skills: recall, apply, read
+"Mosley" occurrences in the fixture: 39

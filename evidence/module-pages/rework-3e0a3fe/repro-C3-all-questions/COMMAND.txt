@@ -1,0 +1,7 @@
+Course: as repro-C1, with features/module-pages/ci/oncourse.js patched to write every question of the fixture
+(oncourse-all-questions.diff: the filter on a cited lecture deck removed; WITH_SECOND = true).
+  cd c/src && python3 build.py && node test.js   -> exit 1, core-test.log:
+  FAIL 13 questions cite no deck in the manifest (core fault C3, kit PR #30);
+  FAIL mpc-hw2-2a, mpc-hw2-2b, mpc-hw2-2d: numeric item needs worked steps (core test.js line 64 wants 2 steps;
+  Basic-Pharmacokinetics' own src/test.js line 167 wants 1; these three have 1). Not in PR #30: a new core-test entry.
+  Section 7 passes in this course (mpc-bolus1 then holds 9 concepts).

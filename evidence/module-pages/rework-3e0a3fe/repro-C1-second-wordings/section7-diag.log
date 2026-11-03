@@ -1,0 +1,10 @@
+=== 7. Different wording when a missed concept returns ===
+  diag  gap 0 mpc-m2-cl-3
+  diag  gap 1 mpc-m2-vd-2
+  diag  gap 2 mpc-m2-cl-1
+  diag  gap 3 null
+  diag  gap 4 null
+  diag  gap 5 null
+  diag  pair mpc-m2-mod-1,mpc-m2-mod-2 topic mpc-bolus1 pool 6 concepts 4 qn 4 lastQ of missed {"seen":1,"correct":0,"wrong":1,"guessed":0,"streak":0,"box":0,"dueAt":1793682626152,"dueQ":1,"lastQ":1,"asked":["mpc-m2-mod-1"],"last":{"mpc-m2-mod-1":1}}
+  diag  pick 0 null qn 4
+  FAIL  missed concept never returned

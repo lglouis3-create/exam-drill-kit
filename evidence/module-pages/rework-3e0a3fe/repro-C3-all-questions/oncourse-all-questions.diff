@@ -1,0 +1,4 @@
+96c96
+< PK.qs.filter(q => (WITH_SECOND || !q.dupOf) && decks.some(d => String(q.cite || '').includes(d))).forEach(q => add(q.id));
+---
+> PK.qs.filter(q => (WITH_SECOND || !q.dupOf)).forEach(q => add(q.id));
