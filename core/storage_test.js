@@ -130,10 +130,15 @@ const answerOne = page => page.evaluate(() => {
   {
     // an answer, then a reload in the same task: the 150 ms save timer never fires
     const {ctx, page, errors} = await L.openFile(browser, {}, ANSWER_NOW);
-    // the reload starts in the next task, well inside the 150 ms the save waits
-    const waiting = await page.evaluate(() => { answerNow(); const w = !!saveTimer; setTimeout(() => location.reload(), 0); return w; });
-    await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
-    const n = await page.evaluate(() => DB.answers.length);
+    // the answer and the reload in one task, well inside the 150 ms the save waits; whether a
+    // save was waiting goes to sessionStorage, which the reload keeps. The reload destroys the
+    // page's context, so evaluate may end with that error (WebKit does; Chromium may return
+    // first); only that error is expected here. window.__before marks the page before the reload,
+    // so the wait below cannot end on it.
+    await page.evaluate(() => { window.__before = 1; answerNow(); sessionStorage.setItem('__waiting', saveTimer ? '1' : '0'); location.reload(); })
+      .catch(e => { if(!/Execution context was destroyed|navigat/i.test(e.message)) throw e; });
+    await page.waitForFunction(() => !window.__before && document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+    const {n, waiting} = await page.evaluate(() => ({n: DB.answers.length, waiting: sessionStorage.getItem('__waiting') === '1'}));
     check(waiting && n === 1, 'an answer followed at once by a reload is kept (it was still waiting to be saved)', {waiting, n});
     // an answer, then the tab closed at once
     await page.evaluate(() => { answerNow(); });
