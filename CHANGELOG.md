@@ -4,6 +4,7 @@ Dated kit changes, newest first.
 
 ## 2026-11-03
 - An answer, flag or choice made just before the page is reloaded, closed or hidden is saved at once; it was lost when the 150 ms save had not yet run.
+- `core/test.js`: the check that a missed concept returns as a different wording takes its two questions from one topic, so a concept with wordings in two topics no longer fails it falsely.
 - Kit checks on GitHub: the WebKit job now blocks a merge, as the Chromium jobs do.
 - `FEATURES.md`: the focus-switch "Use when" line no longer quotes a professor by name; its source reference is kept.
 - `core/test.js`: two lectures with the same id in `course.js` fail the check.
