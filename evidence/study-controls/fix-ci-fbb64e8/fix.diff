@@ -1,0 +1,59 @@
+diff --git a/features/study-controls/ci/oncourse.js b/features/study-controls/ci/oncourse.js
+index c8e73a3..c41b5d9 100644
+--- a/features/study-controls/ci/oncourse.js
++++ b/features/study-controls/ci/oncourse.js
+@@ -8,9 +8,12 @@
+  * Intro-Pharmacology- exam1-drill/src at 929cd62, with `prof` set to the template's
+  * "Professor"), written by that file's `const WRITE`, the same writer the test's scratch
+  * copies use (its comment lists how: one question per line in the kit's form, a topic of
+- * its own after the course's topics, the lecture under id L91). The question ids are the
+- * course's own (L01-002 and so on); the test finds them in the course and uses the
+- * course's copy.
++ * its own after the course's topics, the lecture under the first id from L91 on that the
++ * course's lectures do not use). The question ids are the course's own (L01-002 and so on);
++ * the test finds them in the course and uses the course's copy.
++ * Lecture id: the source's L01 (Intro to Pharmacology course.js) is written as L91, or, when
++ * the course already has L91 (other modules' scripts write L91 and L92), as the next id from
++ * L92 on that is free (CIDATA rule 2). The output names the id used.
+  * Files written in <courseSrcDir>:
+  *   q90_sc_fixture.js   the topic and the 6 questions
+  * and one line appended to course.js: the file in COURSE.files, the lecture in
+@@ -61,5 +64,5 @@ const line = `\n;${TAG} COURSE.files = (COURSE.files || ['atlas.js', 'diagrams.j
+ try { fs.writeFileSync(data, w.body); } catch(e){ fail('cannot write ' + data + ': ' + e.message); }
+ try { fs.appendFileSync(course, line); } catch(e){ fail('cannot write ' + course + ': ' + e.message); }
+ console.log(`wrote: ${data} (topic ${FIX.topic.id} and ${w.rows} questions from FIX in test.js)`);
+-console.log(`wrote: appended to ${course}: the file in COURSE.files, ${w.lecture ? 'the lecture ' + FIX.lecture.deck + ' (id L91) in COURSE.lectures' : 'no lecture (the course has the deck)'}, ` +
++console.log(`wrote: appended to ${course}: the file in COURSE.files, ${w.lecture ? 'the lecture ' + FIX.lecture.deck + ' (id ' + w.lectureId + ', the source\'s ' + FIX.lecture.id + ') in COURSE.lectures' : 'no lecture (the course has the deck)'}, ` +
+   `and ${NAME} ${meta.version} on with strict: true and the strict note`);
+diff --git a/features/study-controls/current/test.js b/features/study-controls/current/test.js
+index 71f8dec..2253ea1 100644
+--- a/features/study-controls/current/test.js
++++ b/features/study-controls/current/test.js
+@@ -89,8 +89,10 @@ const NOTE = FIX.strictNote;
+    course's first professor; a question's own skill is kept when the course has it (the template has
+    both of FIX's, recall and apply), else the course's first skill. The source's `lecture` field
+    (the source's lecture id) is left out: the kit finds a question's lecture from the deck its
+-   `cite` names. The topic keeps the subtopics FIX's questions are in (intro, nds). The lecture is
+-   added under id L91 (the template has its own L01), unless the course already has its deck.
++   `cite` names. The topic keeps the subtopics FIX's questions are in (intro, nds). The lecture
++   (L01 in the source) is added under the first id from L91 on that the course's lectures do not
++   use (L91 on the template, which has its own L01; other modules' data may already hold L91 or
++   L92: CIDATA rule 2), unless the course already has its deck.
+    opt.base writes the topic and the 6 questions; opt.copies writes that many more copies of the 6
+    (ids and concepts suffixed -c<n>, content unchanged; test pages only). ../ci/oncourse.js reads
+    FIX and WRITE from this file, so the CI course and the test's copies hold the same data. */
+@@ -109,9 +111,12 @@ const WRITE = (fix, own, opt) => {
+   if(opt.base) body += `TOPICS.push(${JSON.stringify(topic)});\n`;
+   if(rows.length) body += `QUESTIONS.push(\n${rows.join('\n')}\n);\n`;
+   const l = fix.lecture;
++  const usedIds = new Set((own.lectures || []).map(x => String(x.id)));
++  let n = 91; while(usedIds.has('L' + n)) n++;
++  const lectureId = 'L' + n;
+   const lecture = (own.lectures || []).some(x => x.deck === l.deck) ? '' :
+-    `{id:'L91', deck:${lit(l.deck)}, label:${lit(l.label)}, prof:${lit(own.prof)}, exam:${JSON.stringify(l.exam)}, module:${JSON.stringify(l.module)}}`;
+-  return {body, lecture, rows: rows.length};
++    `{id:${lit(lectureId)}, deck:${lit(l.deck)}, label:${lit(l.label)}, prof:${lit(own.prof)}, exam:${JSON.stringify(l.exam)}, module:${JSON.stringify(l.module)}}`;
++  return {body, lecture, lectureId: lecture ? lectureId : '', rows: rows.length};
+   };
+ 
+ /* The test's scratch copies: the course's own copy of FIX when it has one (a course made by

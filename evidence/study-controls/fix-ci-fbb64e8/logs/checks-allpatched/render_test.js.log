@@ -1,0 +1,136 @@
+feature module equation-drill (tab): TypeError: nav.querySelector is not a function
+    at evalmachine.<anonymous>:2028:17
+    at run (evalmachine.<anonymous>:1989:18)
+    at dom (evalmachine.<anonymous>:2021:7)
+    at startUp (evalmachine.<anonymous>:2042:11)
+    at evalmachine.<anonymous>:2103:5
+    at Object.askProfile (evalmachine.<anonymous>:1327:3)
+    at Object.<anonymous> (/tmp/port-fix-a/run-study-controls/allpatched/kit-ci-owwYJG/course/src/render_test.js:15:19)
+    at Module._compile (node:internal/modules/cjs/loader:1781:14)
+    at Object..js (node:internal/modules/cjs/loader:1913:10)
+    at Module.load (node:internal/modules/cjs/loader:1505:32)
+feature module glossary-tap (tab): TypeError: nav.querySelector is not a function
+    at evalmachine.<anonymous>:2028:17
+    at run (evalmachine.<anonymous>:1989:18)
+    at dom (evalmachine.<anonymous>:2021:7)
+    at startUp (evalmachine.<anonymous>:2042:11)
+    at evalmachine.<anonymous>:2103:5
+    at Object.askProfile (evalmachine.<anonymous>:1327:3)
+    at Object.<anonymous> (/tmp/port-fix-a/run-study-controls/allpatched/kit-ci-owwYJG/course/src/render_test.js:15:19)
+    at Module._compile (node:internal/modules/cjs/loader:1781:14)
+    at Object..js (node:internal/modules/cjs/loader:1913:10)
+    at Module.load (node:internal/modules/cjs/loader:1505:32)
+feature module notes (tab): TypeError: nav.querySelector is not a function
+    at evalmachine.<anonymous>:2028:17
+    at run (evalmachine.<anonymous>:1989:18)
+    at dom (evalmachine.<anonymous>:2021:7)
+    at startUp (evalmachine.<anonymous>:2042:11)
+    at evalmachine.<anonymous>:2103:5
+    at Object.askProfile (evalmachine.<anonymous>:1327:3)
+    at Object.<anonymous> (/tmp/port-fix-a/run-study-controls/allpatched/kit-ci-owwYJG/course/src/render_test.js:15:19)
+    at Module._compile (node:internal/modules/cjs/loader:1781:14)
+    at Object..js (node:internal/modules/cjs/loader:1913:10)
+    at Module.load (node:internal/modules/cjs/loader:1505:32)
+feature module pair-up-drills (tab): TypeError: nav.querySelector is not a function
+    at evalmachine.<anonymous>:2028:17
+    at run (evalmachine.<anonymous>:1989:18)
+    at dom (evalmachine.<anonymous>:2021:7)
+    at startUp (evalmachine.<anonymous>:2042:11)
+    at evalmachine.<anonymous>:2103:5
+    at Object.askProfile (evalmachine.<anonymous>:1327:3)
+    at Object.<anonymous> (/tmp/port-fix-a/run-study-controls/allpatched/kit-ci-owwYJG/course/src/render_test.js:15:19)
+    at Module._compile (node:internal/modules/cjs/loader:1781:14)
+    at Object..js (node:internal/modules/cjs/loader:1913:10)
+    at Module.load (node:internal/modules/cjs/loader:1505:32)
+feature module short-answer-graphs (tab): TypeError: nav.querySelector is not a function
+    at evalmachine.<anonymous>:2028:17
+    at run (evalmachine.<anonymous>:1989:18)
+    at dom (evalmachine.<anonymous>:2021:7)
+    at startUp (evalmachine.<anonymous>:2042:11)
+    at evalmachine.<anonymous>:2103:5
+    at Object.askProfile (evalmachine.<anonymous>:1327:3)
+    at Object.<anonymous> (/tmp/port-fix-a/run-study-controls/allpatched/kit-ci-owwYJG/course/src/render_test.js:15:19)
+    at Module._compile (node:internal/modules/cjs/loader:1781:14)
+    at Object..js (node:internal/modules/cjs/loader:1913:10)
+    at Module.load (node:internal/modules/cjs/loader:1505:32)
+feature module terms-variables (tab): TypeError: nav.querySelector is not a function
+    at evalmachine.<anonymous>:2028:17
+    at run (evalmachine.<anonymous>:1989:18)
+    at dom (evalmachine.<anonymous>:2021:7)
+    at startUp (evalmachine.<anonymous>:2042:11)
+    at evalmachine.<anonymous>:2103:5
+    at Object.askProfile (evalmachine.<anonymous>:1327:3)
+    at Object.<anonymous> (/tmp/port-fix-a/run-study-controls/allpatched/kit-ci-owwYJG/course/src/render_test.js:15:19)
+    at Module._compile (node:internal/modules/cjs/loader:1781:14)
+    at Object..js (node:internal/modules/cjs/loader:1913:10)
+    at Module.load (node:internal/modules/cjs/loader:1505:32)
+feature module worksheets-ink (tab): TypeError: nav.querySelector is not a function
+    at evalmachine.<anonymous>:2028:17
+    at run (evalmachine.<anonymous>:1989:18)
+    at dom (evalmachine.<anonymous>:2021:7)
+    at startUp (evalmachine.<anonymous>:2042:11)
+    at evalmachine.<anonymous>:2103:5
+    at Object.askProfile (evalmachine.<anonymous>:1327:3)
+    at Object.<anonymous> (/tmp/port-fix-a/run-study-controls/allpatched/kit-ci-owwYJG/course/src/render_test.js:15:19)
+    at Module._compile (node:internal/modules/cjs/loader:1781:14)
+    at Object..js (node:internal/modules/cjs/loader:1913:10)
+    at Module.load (node:internal/modules/cjs/loader:1505:32)
+feature module study-controls (start): TypeError: window.addEventListener is not a function
+    at evalmachine.<anonymous>:6142:86
+    at Array.forEach (<anonymous>)
+    at evalmachine.<anonymous>:6142:66
+    at run (evalmachine.<anonymous>:1989:18)
+    at evalmachine.<anonymous>:2043:25
+    at Array.forEach (<anonymous>)
+    at startUp (evalmachine.<anonymous>:2043:12)
+    at evalmachine.<anonymous>:2103:5
+    at Object.askProfile (evalmachine.<anonymous>:1327:3)
+    at Object.<anonymous> (/tmp/port-fix-a/run-study-controls/allpatched/kit-ci-owwYJG/course/src/render_test.js:15:19)
+
+=== Render smoke test ===
+  ok    topics list            81386 chars
+  ok    quiz, unanswered       1402 chars
+  ok    quiz, answered         3571 chars
+         explanations rendered: 5 option rows
+         citation present: true
+  ok    quiz, image item       10255 chars
+         image shown: true
+  ok    quiz, numeric answered 3704 chars
+  skip  quiz, match item answered   no match item in this bank
+  ok    weak spots             5236 chars
+  ok    reference              5930 chars
+  ok    tell apart             793 chars
+  ok    guides                 983 chars
+  ok    diagrams               3693 chars
+         figures registered: 1, step-throughs: 1
+feature module quiz-prep-cards (settings): TypeError: el.appendChild is not a function
+    at evalmachine.<anonymous>:2087:10
+    at run (evalmachine.<anonymous>:1989:18)
+    at evalmachine.<anonymous>:2083:27
+    at Array.forEach (<anonymous>)
+    at Object.renderSettings (evalmachine.<anonymous>:2083:14)
+    at Object.<anonymous> (/tmp/port-fix-a/run-study-controls/allpatched/kit-ci-owwYJG/course/src/render_test.js:78:3)
+    at Module._compile (node:internal/modules/cjs/loader:1781:14)
+    at Object..js (node:internal/modules/cjs/loader:1913:10)
+    at Module.load (node:internal/modules/cjs/loader:1505:32)
+    at Function._load (node:internal/modules/cjs/loader:1309:12)
+feature module theme (settings): TypeError: el.appendChild is not a function
+    at evalmachine.<anonymous>:2087:10
+    at run (evalmachine.<anonymous>:1989:18)
+    at evalmachine.<anonymous>:2083:27
+    at Array.forEach (<anonymous>)
+    at Object.renderSettings (evalmachine.<anonymous>:2083:14)
+    at Object.<anonymous> (/tmp/port-fix-a/run-study-controls/allpatched/kit-ci-owwYJG/course/src/render_test.js:78:3)
+    at Module._compile (node:internal/modules/cjs/loader:1781:14)
+    at Object..js (node:internal/modules/cjs/loader:1913:10)
+    at Module.load (node:internal/modules/cjs/loader:1505:32)
+    at Function._load (node:internal/modules/cjs/loader:1309:12)
+  ok    settings               3954 chars
+  ok    settings says 364 questions; the page holds 364
+  ok    exam paper             1398 chars
+  ok    exam question count: 40 of 40
+         30 questions carry an image
+
+Render smoke test passed
+
+PASS: render_test.js: every view rendered clean

@@ -1,0 +1,13 @@
+
+=== the copied text on the course's own bank (node) ===
+  ok    the page carries notes, working
+  FAIL  the text has one section per question (364 questions)
+  FAIL  a key for every multiple-choice, numeric and matching question (364)
+  ok    no "undefined" or "[object Object]" in the text
+  FAIL  noted() lists every note, newest first
+  ok    the converter keeps each note {t, at} and drops anything else
+  ok    a saved `notes` that is not an object is dropped
+
+=== on a scratch copy with Basic-Pharmacokinetics' question (Chromium) ===
+  the course has FIX's 16 questions; the scratch copy adds 3 copies of them
+NOT RUN: features/notes/test.js: the scratch copy with the test question does not build: ERROR: feature plan-the-problem: its build step stopped the build: pd-ex-b-c1: setup names the equation "pd-teff-ln", which is not in EQUATIONS; pd-ex-b-c1: setup.pre names "cp-db-vd", which is not in EQUATIONS; nl-ex1-c1: setup names the equation "nl-rate", which is not in EQUATIONS; nl-ex2a-c1: setup names the equation "nl-km", which is not in EQUATIONS; pd-ex-b-c2: setup names the equation "pd-teff-ln", which is not in EQUATIONS; pd-ex-b-c2: setup.pre names "cp-db-vd", which is not in EQUATIONS (and 6 more)

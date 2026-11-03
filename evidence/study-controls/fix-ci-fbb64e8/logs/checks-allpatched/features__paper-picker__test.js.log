@@ -1,0 +1,30 @@
+
+=== the course's own exams ===
+  ok    the page carries paper-picker, working
+  ok    Exam 3 (final): a paper of 40 split by marks 15/15/5/5 gives 15/15/5/5
+  ok    Exam 3 (final): a paper of 7 is split 3/2/1/1 (the largest remainders take the rounding)
+  ok    Exam 3 (final): a paper of 41 is split 16/15/5/5 (the largest remainders take the rounding)
+  ok    Exam 3 (final): the module's pools hold the 300 questions the core's pool filter puts in them (no lowYield, no typed item)
+  ok    Exam 3 (final): a paper is drawn for it
+  ok    Exam 3 (final): 40 questions, none twice, each from one of its pools
+  ok    Exam 3 (final): each pool supplies its share (15/15/5/5)
+  ok    Exam 3 (final): no two wordings of one fact on the paper
+  ok    Exam 3 (final): the paper carries 4 select-all item(s) (its sata 4, split by marks, as many as each pool holds)
+  ok    Exam 3 (final): the paper is shuffled, not drawn pool by pool
+  ok    Exam 3 (final): a pool with one single-answer question too few gives its share with one select-all question more, from its own questions
+  ok    a paper longer than the pools can fill is not drawn
+
+=== the build step: which exams get a chip ===
+  ok    an exam with another question count is left off the chips, with the reason
+  ok    an exam with another time limit is left off the chips, with the reason
+  ok    an exam with a blueprint is left off the chips, with the reason
+  ok    a pool without marks is left off the chips, with the reason
+  ok    an exam with another typed setting is left off the chips, with the reason
+  ok    an exam like the current one gets a chip
+  ok    a course with one exam builds, with nothing to choose
+  ok    an exam without an id stops the build and says so
+  ok    two exams with one id stops the build and says so
+
+=== on a scratch copy with Basic-Pharmacokinetics' own data (Chromium) ===
+  FAIL  the course holds 118 of the 118 questions of test_fixture.js, so neither its own copy nor a new one can be used
+FAIL: features/paper-picker/test.js: 1 of 23 checks failed: the course holds 118 of the 118 questions of test_fixture.js, so neither its own copy nor a new one can be used
