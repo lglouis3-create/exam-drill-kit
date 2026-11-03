@@ -161,7 +161,7 @@ idle connections closed, and listens again on the same port after.
 | webkit refuse 3 | 15 of 15 PASS | 0 | 0 |
 | webkit refuse 4 | 15 of 15 PASS | 0 | 0 |
 | webkit drop 1 (control) | 14 of 15 PASS | 11 | 1 (the failed run) |
-| chromium refuse 1 | 9 of 9 PASS | 0 | 0 |
+| chromium refuse 1 | 9 of 9 PASS | not recorded | not recorded |
 
 In the 60 refused-connection WebKit runs:
 - no request reached the server while it was down;
@@ -177,11 +177,11 @@ using them, with a check that no request reaches the server while it is down.
 
 | Set | Result | libsoup assertions | "WebKit bug" |
 |---|---|---|---|
-| webkit sequential 1 | offline_test.js 10 of 10 PASS | 0 | 0 |
-| webkit sequential 2 | offline_test.js 10 of 10 PASS | 0 | 0 |
+| webkit sequential 1 | offline_test.js 10 of 10 PASS | not recorded | not recorded |
+| webkit sequential 2 | offline_test.js 10 of 10 PASS | not recorded | not recorded |
 | webkit load-plain 1-4 | offline_test.js 15 of 15 PASS in each (60 of 60) | 0 | 0 |
-| webkit mutate | 8 of 8 broken copies FAIL | 0 | 0 |
-| chromium mutate | 4 of 4 broken copies FAIL | 0 | 0 |
+| webkit mutate | 8 of 8 broken copies FAIL | not recorded | not recorded |
+| chromium mutate | 4 of 4 broken copies FAIL | not recorded | not recorded |
 
 How each broken copy failed:
 - **no offline fallback.** In Chromium it failed "the site opens from the saved copy with
@@ -202,18 +202,26 @@ The same `core/check_lib.js` and `core/offline_test.js` as in kit pull request #
 
 | Set | Result | libsoup assertions | "WebKit bug" |
 |---|---|---|---|
-| webkit sequential 1 | offline_test.js 10 of 10 PASS | 0 | 0 |
-| webkit sequential 2 | offline_test.js 10 of 10 PASS | 0 | 0 |
+| webkit sequential 1 | offline_test.js 10 of 10 PASS | not recorded | not recorded |
+| webkit sequential 2 | offline_test.js 10 of 10 PASS | not recorded | not recorded |
 | webkit load-plain 1-4 | offline_test.js 15 of 15 PASS in each (60 of 60) | 0 | 0 |
-| webkit mutate | 12 of 12 broken copies FAIL (3 of each) | 0 | 0 |
-| chromium mutate | 4 of 4 broken copies FAIL | 0 | 0 |
+| webkit mutate | 12 of 12 broken copies FAIL (3 of each) | not recorded | not recorded |
+| chromium mutate | 4 of 4 broken copies FAIL | not recorded | not recorded |
 
-Each broken copy fails on its own check in both browsers:
-- **no offline fallback:** "the site opens from the saved copy with the server down
-  (loaded again, not the page from before)", "the old file name ... opens it too", "a
-  quiz starts and serves a question offline";
-- **no timeout:** "the saved copy opens without waiting for the network" (8,052-8,053 ms
-  in WebKit, 8,061 ms in Chromium);
+How each broken copy failed (corrected after run 41574234473; the list first given here
+named Chromium's checks for both browsers):
+- **no offline fallback:**
+  - both browsers: "the site opens from the saved copy with the server down (loaded
+    again, not the page from before)" and "the old file name ... opens it too";
+  - WebKit also: "no page errors in the service worker checks" ("TypeError: Load
+    failed", index.html);
+  - Chromium also: "a quiz starts and serves a question offline";
+- **no timeout:**
+  - both browsers: "the saved copy opens without waiting for the network" (8,052-8,053
+    ms in WebKit, 8,061 ms in Chromium), "that copy is the last one saved", "a reload is
+    offered once the newer page arrives", "the page never reloads by itself";
+  - WebKit also: "no page errors in the service worker checks" ("version.json ... due to
+    access control checks");
 - **no reload offer:** "a reload is offered once the newer page arrives";
 - **S.down() leaving the server up:** "no request reaches the server while it is down".
 
@@ -261,3 +269,49 @@ reports the libsoup assertions and "This is a WebKit bug" lines found there.
 job 125684620836, before #33) stays unconfirmed: "version.json ... due to access control
 checks", then no reload offered. That has the shape of the diagnosed libsoup failure, but
 the job did not record WebKit's own output.
+
+### Results: run 41574234473 (commit b226ac0)
+
+The kit files these runs checked (`core/`, `template/`, `features/`,
+`.github/workflows/checks.yml`, `.github/ci_plan.js`) are the same at b226ac0 as on
+`main` at e3433d2 (`git diff --quiet`).
+
+| Set | Runs that exited 0 | libsoup assertions | "This is a WebKit bug" |
+|---|---|---|---|
+| webkit full 1 | 3 of 3 | 0 | 0 |
+| webkit full 2 | 3 of 3 | 0 | 0 |
+| webkit full 3 | 3 of 3 | 0 | 0 |
+| webkit full 4 | 3 of 3 | 0 | 0 |
+| webkit full-load 1 | 3 of 3 | 0 | 0 |
+| webkit full-load 2 | 3 of 3 | 0 | 0 |
+| webkit full-load 3 | 3 of 3 | 0 | 0 |
+| webkit mutate | 12 of 12 broken copies FAIL (3 of each) | not recorded | not recorded |
+| chromium mutate | 4 of 4 broken copies FAIL | not recorded | not recorded |
+
+- **The whole suite in WebKit:** 12 of 12 runs in turn and 9 of 9 under load ended "25
+  PASS, 0 FAIL, 1 NOT RUN, 1 REPORT". In all 21 the NOT RUN was `cite_check.py` ("no
+  lecture PDFs found"), the REPORT was `explain_check.js`, and `offline_test.js` passed
+  its 30 checks.
+- **Broken copies:** each failed, on the same checks as in run 41568079994 (listed above,
+  per browser): 12 of 12 in WebKit and 4 of 4 in Chromium. The no-timeout copy opened in
+  8,052-8,054 ms in WebKit and 8,068 ms in Chromium; the server that stayed up served 2
+  requests (WebKit) and 3 (Chromium) while it should have been down.
+- **What was recorded where.** The `full` and `full-load` sets ran with
+  `DEBUG=pw:browser*`, and the counts above are from each run's check logs, read on the
+  runner. The mutate sets ran without it, so whether WebKit logged libsoup assertions
+  there is not known.
+- **Not diagnosed:** the page errors in WebKit's broken copies (the "no page errors"
+  failures listed above). They occur only in copies that fail other checks.
+
+**Still unconfirmed:** the WebKit failure of run 41565101924 (job 125684620836), as
+described above.
+
+### Corrections made after run 41574234473
+
+- The tables of runs 41566211850, 41567099983 and 41568079994 gave 0 libsoup assertions
+  and 0 "WebKit bug" lines for the sets that ran without `DEBUG=pw:browser*` (the
+  sequential and mutate sets, and the Chromium sets), where WebKit's output was not
+  recorded. Those cells now read "not recorded". The counts of the load sets, which
+  recorded it, are unchanged.
+- Run 41568079994's list of how each broken copy failed named Chromium's checks for both
+  browsers. It now names each browser's.
