@@ -21,7 +21,8 @@ Dated kit changes, newest first.
   question card runs before the buttons are added, in either course.js order; a term inside a
   quotation is not marked unless the quotation is its name alone. Its test: 56 checks, 93 when
   `formulas-in-text` is in the course too. Its own course, from Intro to Pharmacology's
-  lectures L04 and L10 (66 questions), is written by `features/glossary-tap/ci/oncourse.js`.
+  lectures L02, L04 and L10 (122 questions, the professor's name kept as the source has it),
+  is written by `features/glossary-tap/ci/oncourse.js`.
   Core and template unchanged; no course switches it on.
 - Kit checks on GitHub: every pull request runs the checks in Chromium and, as information, in WebKit.
 - Checks open built pages over HTTP from 127.0.0.1, not from disk, so WebKit no longer refuses the manifest.
