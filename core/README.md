@@ -19,6 +19,7 @@ that course's repository. Both folders come from the recovered exam-drill templa
 | `files_test.js` | core | `course.js` `files`: every listed question file reaches the page after the core's `build.py` is copied over the course's; the lists the build refuses |
 | `tables_test.js` | core | `course.js` `tools`: `cite_check.py`, `explain_check.js` and `harvest_mask.py` read the course's tables from it after the core is copied over; the tables the build refuses |
 | `test.js`, `style_check.js`, `render_test.js`, `explain_check.js`, `stepper_test.js` | core | checks that run on any course's built page |
+| `style_rules.js`, `style_check_test.js` | core | the stem rule of `style_check.js` (a stem asks the subject, not what the material says; "given as" allowed in dose or problem wording), and its test on examples of both kinds |
 | `cite_check.py` | core | citation check; the deck spellings it cannot derive come from `course.js` `tools` |
 | `browser_test.js` | core | browser smoke test (Node Playwright port of the template's `browser_test.py`, which stays in `history/`), including no sideways scroll on a 375 px phone and wide reading-tab tables scrolling in their own box |
 | `device_lint.js` | core | fails on syntax older Safari rejects (regex lookbehind) in anything that ships |
@@ -30,7 +31,7 @@ that course's repository. Both folders come from the recovered exam-drill templa
 | `draw_test.js` | core | no exam paper carries two wordings of one fact, across pools too |
 | `update_test.js` | core | a newer version is offered; a reload comes back to the same place |
 | `sw.js` | core | the service worker; `build.py` fills in the course's cache prefix and file list and writes it to the root |
-| `offline_test.js` | core | the offline copy: other sites' caches kept, server down, server slow |
+| `offline_test.js` | core | the offline copy: other sites' caches kept, server down (connections refused), server slow |
 | `home_test.js` | core | the Home Screen card for each kind of browser: a closed section in Settings, nothing on Topics |
 | `history_test.js` | core | the answer history: its fields, Export, Import, Erase, a refused write |
 | `import_test.js` | core | Import progress: files of another course or app and damaged files refused; older files converted; a newer file replaces after a confirmed plan, with a backup to put back; an older file changes nothing; a diverged file goes into a new profile; repeats change nothing; refused reads and writes leave everything stored as it was |

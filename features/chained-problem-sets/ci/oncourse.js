@@ -15,7 +15,9 @@
  *   - each part's professor is the course's first professor, its skill the course's
  *     `calc` skill (else its first skill), tier 'new', source 'slide';
  *   - the decks the parts cite (Introduction.pdf, IntroductionandMathReviewSolutions.pdf),
- *     added to COURSE.lectures under exam 1 with the deck's file name as the label.
+ *     added to COURSE.lectures under exam 1 with the deck's file name as the label, each
+ *     with the first lecture id from L91 up that the course does not use yet (another
+ *     module's script may have added lectures first).
  * Files written in <courseSrcDir>:
  *   q90_cpc_fixture.js   the topic, the four parts and the problem set (CHAINS, pushed
  *                        when the course already has CHAINS)
@@ -66,6 +68,8 @@ const has = (COURSE.files || []).some(f => { try { return /^\s*(const|let|var)\s
 const decks = [...new Set(FIX.qs.flatMap(q => String(q.cite || '').split(';').map(s => (s.trim().match(/^([^,]+?\.pdf)\b/) || [])[1]).filter(Boolean)))];
 if(!decks.length) fail('the fixture\'s parts cite no deck');
 const known = new Set((COURSE.lectures || []).map(l => l.deck));
+const usedIds = new Set((COURSE.lectures || []).map(l => String(l.id)));
+const freeId = () => { for(let n = 91; n < 1000; n++){ const id = 'L' + n; if(!usedIds.has(id)){ usedIds.add(id); return id; } } fail('no free lecture id from L91 to L999'); };
 const lit = s => `'${s}'`;   // ids and the professor: no quote, backslash or newline (checked above for the professor)
 const chain = Object.assign({}, FIX.chain, {id: PRE + FIX.chain.id, parts: FIX.chain.parts.map(id => PRE + id)});
 const parts = FIX.chain.parts.map(id => {
@@ -85,7 +89,7 @@ ${parts.join('\n')}
 );
 ${has ? `CHAINS.push(${JSON.stringify(chain)});` : `const CHAINS = [${JSON.stringify(chain)}];`}
 `;
-const lectures = decks.filter(d => !known.has(d)).map((d, i) => ({id: `L9${i + 1}`, deck: d, label: d, prof, exam: 1, module: 'Module 1'}));
+const lectures = decks.filter(d => !known.has(d)).map(d => ({id: freeId(), deck: d, label: d, prof, exam: 1, module: 'Module 1'}));
 if(lectures.some(l => /['\\\n]/.test(l.deck))) fail('a cited deck name cannot be written as a literal');
 // in the course's own form, {id:'L91', ...}: state_check.js finds a lecture by its id:'...' entry in course.js
 const lectureLit = l => `{id:${lit(l.id)}, deck:${lit(l.deck)}, label:${lit(l.label)}, prof:${lit(l.prof)}, exam:${l.exam}, module:${lit(l.module)}}`;
@@ -96,4 +100,4 @@ try { fs.writeFileSync(data, body); } catch(e){ fail('cannot write ' + data + ':
 try { fs.appendFileSync(course, line); } catch(e){ fail('cannot write ' + course + ': ' + e.message); }
 console.log(`wrote: ${data} (topic cpc, ${parts.length} parts and the problem set ${chain.id} from the fixture in test.js)`);
 console.log(`wrote: appended to ${course}: the file in COURSE.files, ${lectures.length} deck(s) in COURSE.lectures ` +
-  `(${lectures.map(l => l.deck).join(', ') || 'none new'}), and ${NAME} ${meta.version} on`);
+  `(${lectures.map(l => `${l.id} ${l.deck}`).join(', ') || 'none new'}), and ${NAME} ${meta.version} on`);
