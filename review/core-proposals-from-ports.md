@@ -178,6 +178,12 @@ and agent-run (the failures).
   `rework-3e0a3fe/`).
 - Proposed change, for discussion: accept one worked step, or report fewer than two as a warning.
 
+**C12. `browser_test.js` reads "below" in ordinary text as a promise of a figure.** Agent-run (notes rework, `evidence/notes` folder `rework-5353092/`, citing `core/browser_test.js` line 376).
+- Seven Pharmacokinetics questions (nl-ic4a to nl-ic4e, nl-p1c-t, nl-p1c-cl) say "well below the
+  therapeutic range", and the check "every stem that promises a figure shows one" refuses them.
+- Proposed change: match "below" only in phrases that point at a figure ("the graph below", "shown
+  below").
+
 ## D. Display
 
 **D1. The concept block drops sections written as `{h, list}`.** Coordinator-checked: `teachParts`, `core/views.js` lines 137-139, keeps only parts with a `t` field.
