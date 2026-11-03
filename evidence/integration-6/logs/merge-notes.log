@@ -1,0 +1,18 @@
+Auto-merging CHANGELOG.md
+CONFLICT (content): Merge conflict in CHANGELOG.md
+Auto-merging FEATURES.md
+CONFLICT (content): Merge conflict in FEATURES.md
+Auto-merging features/README.md
+CONFLICT (content): Merge conflict in features/README.md
+Auto-merging review/port-queue.md
+CONFLICT (content): Merge conflict in review/port-queue.md
+Automatic merge failed; fix conflicts and then commit the result.
+conflicted: CHANGELOG.md
+FEATURES.md
+features/README.md
+review/port-queue.md
+CHANGELOG.md hunks 1
+FEATURES.md hunks 1
+features/README.md hunks 1
+port-queue resolved; both-changed rows: []
+fe2c977 Integration (never merged): merge port/notes db098a9
