@@ -56,7 +56,7 @@ nightly porter takes only items whose status is `pending`.
 | 17 | progress-dashboard (today's plan, readiness by page, trouble cards) | BDK `viewProgress` ~2320, `todaysPlan` ~1345 | — | BDK move |
 | 18 | glossary-tap (tap a term for its definition; upgrade of the Terms work in item 3) | BDK; Intro to Pharmacology `app.js` 1769-1922 | 2026-11-02 11:00 CT | partial (left: the per-exam scope of the list, which needs the several-exams core change; Intro to Pharmacology's glossary only, from `929cd62`; BDK's glossary stays with the BDK move) |
 | 19 | pair-up and table-recall drills (drug ↔ receptor, poisoning table) | Intro to Pharmacology `app.js` 1923-2060 | 2026-11-02 11:00 CT | partial (left: the links from a chip or a row to the course's own figures and reference page; the antidote diagrams beside the poisoning table) |
-| 20 | short-answer page and graphs drill | Intro to Pharmacology `app.js` 2308-2351, 3518-3580 | 2026-11-02 11:00 CT | pending |
+| 20 | short-answer page and graphs drill (`short-answer-graphs`) | Intro to Pharmacology `app.js` 2308-2351, 3518-3580 at `d0d3d2d`; at `929cd62`: 2402-2444, 3704-3778, 3821-3854 | 2026-11-02 11:00 CT | partial (left: the clean-up of transcript quotes, `tidySpeech`, which takes "um", "uh" and "OK?" out of the quote a prompt shows) |
 | 21 | flags, one-page layout, keyboard shortcuts, strict exam mode | Intro to Pharmacology; BDK | 2026-11-02 11:00 CT | pending |
 
 ## Core changes found by the assessments (not nightly)
