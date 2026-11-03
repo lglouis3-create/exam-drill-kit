@@ -680,10 +680,12 @@ than passing on NOT RUN lines. The exclusions, listed at the top of `ci_course.s
 Louis's Drive, never in a repository), and `stepper_test.js` with "no step-through
 figures" on Medicinal-chemistry. Every job blocks a merge, the WebKit job too (Louis,
 2026-11-02; held until the WebKit failures of `offline_test.js` were diagnosed and fixed in
-kit pull request #33, and repeated WebKit runs on `main` passed). WebKit on the runner is not the Safari app on an iPhone or iPad, so a device
-check stays a separate step, done by hand before BDK goes live. The repository is private
-and GitHub enforces required checks only on a paid plan or a public repository, so
-kit sessions read the results and merge only when every job passes.
+kit pull request #33, and repeated WebKit runs on `main` passed). WebKit on the runner is
+not the Safari app on an iPhone or iPad, so a device check stays a separate step, done by
+hand before BDK goes live. No branch protection is set up, so GitHub enforces no required
+check; kit sessions read the results and merge only when every applicable job concluded
+"success" on the final head commit (`KIT_DESIGN.md` §12 decision 10 defines which jobs
+apply: a module job the plan intentionally did not select does not).
 
 | Line | Exit code of the check | Meaning |
 |---|---|---|
