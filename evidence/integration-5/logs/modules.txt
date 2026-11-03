@@ -1,0 +1,1 @@
+modules: chained-problem-sets,concept-statuses,equation-drill,formulas-in-text,glossary-tap,module-pages,notes,pair-up-drills,paper-picker,plan-the-problem,quiz-prep-cards,short-answer-graphs,stopwatch,study-controls,terms-variables,theme,worksheets-ink,wrong-number-diagnosis

@@ -1,0 +1,9 @@
+Auto-merging CHANGELOG.md
+Auto-merging FEATURES.md
+Auto-merging features/README.md
+CONFLICT (content): Merge conflict in features/README.md
+Auto-merging review/port-queue.md
+Automatic merge failed; fix conflicts and then commit the result.
+conflicted: features/README.md
+features/README.md hunks 1
+beab686 Integration (never merged): merge port/glossary-tap d9c8ec7

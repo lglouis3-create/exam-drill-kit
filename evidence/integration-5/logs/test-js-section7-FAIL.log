@@ -1,0 +1,311 @@
+
+=== 1. Question bank integrity ===
+  522 questions, 60 topics, 39 images
+  ok    the build's question count equals QUESTIONS.length (522)
+  warn  gtap-L02-002: very short explanation on "Gαi → PLC → ↓ IP3 and Ca++"
+  warn  gtap-L10-003: very short explanation on "Heart"
+  warn  gtap-L10-004: very short explanation on "β3"
+  warn  gtap-L10-024: very short explanation on "Block postsynaptic α1"
+  warn  gtap-L10-027: very short explanation on "MAO-B is mainly in the gut"
+  warn  gtap-L10-029: very short explanation on "Phenelzine reversibly, selegil"
+  warn  gtap-L10-033: very short explanation on "Sinoatrial node"
+  warn  gtap-L10-039: very short explanation on "Ventricular muscle of the hear"
+  warn  gtap-L10-039: very short explanation on "Radial muscle of the iris"
+  warn  gtap-L10-046: very short explanation on "Cholinesterase inhibitor"
+  warn  gtap-L10-058: very short explanation on "α1"
+
+=== 2. Exam blueprint coverage ===
+  Exam 1 material (Modules 1–3): 200 questions (paper takes 15)
+  Exam 2 material (Modules 4–7a): 195 questions (paper takes 15)
+  Module 7b — PK-PD relationship: 63 questions (paper takes 5)
+  Module 8 — Nonlinear pharmacokinetics: 64 questions (paper takes 5)
+
+=== 3. Concept spread per topic ===
+  topic1       3 q /   3 concepts  (Professor)
+  topic2       4 q /   4 concepts  (Professor)
+  cpc          4 q /   4 concepts  (Professor)
+  cst-infusion  10 q /   9 concepts  (Mosley)
+  warn  subtopic "cst-infusion/cst-pre" (Concentration before steady state is reached) has no questions
+  warn  subtopic "cst-infusion/cst-stop" (Concentration after the infusion is stopped) has no questions
+  gtap-L02    38 q /  35 concepts  (Gottlieb)
+  warn  subtopic "gtap-L02/gtap-review" (Day 1 review (ion channels)) has no questions
+  gtap-L04    24 q /  22 concepts  (Gottlieb)
+  gtap-L10    59 q /  59 concepts  (Gottlieb)
+  gtap-PE2     1 q /   1 concepts  (Gottlieb)
+  warn  subtopic "gtap-PE2/gtap-variant" (Same idea, different correct option) has no questions
+  mpc-bolus1   4 q /   4 concepts  (Mosley)
+  warn  subtopic "mpc-bolus1/calc" (Parameters from concentration versus time data) has no questions
+  mpc-bolus2   4 q /   4 concepts  (Mosley)
+  nts-pkpd    19 q /  11 concepts  (Mosley)
+  nts-nonlin  31 q /  13 concepts  (Mosley)
+  pp-intro     4 q /   4 concepts  (Mosley)
+  warn  subtopic "pp-intro/pp-matrix" (Whole blood, serum and plasma) has no questions
+  warn  subtopic "pp-intro/pp-curve" (The concentration versus time curve) has no questions
+  pp-orders   16 q /  11 concepts  (Mosley)
+  pp-bolus1    8 q /   6 concepts  (Mosley)
+  warn  subtopic "pp-bolus1/pp-calc" (Parameters from concentration versus time data) has no questions
+  pp-bolus2   10 q /  10 concepts  (Mosley)
+  warn  subtopic "pp-bolus2/pp-calc" (Predicting concentration and the apparent volumes) has no questions
+  pp-infusion  12 q /   8 concepts  (Mosley)
+  warn  subtopic "pp-infusion/pp-rate" (Infusion rate for a target steady-state concentration) has no questions
+  warn  subtopic "pp-infusion/pp-time" (Time to reach a stated fraction of steady state) has no questions
+  pp-clearance  16 q /  11 concepts  (Mosley)
+  pp-oral     12 q /   9 concepts  (Mosley)
+  warn  subtopic "pp-oral/pp-changes" (Effects of changing ka, k and dose) has no questions
+  pp-multi     6 q /   4 concepts  (Mosley)
+  warn  subtopic "pp-multi/pp-accum" (Drug accumulation and steady state) has no questions
+  warn  subtopic "pp-multi/pp-superpos" (The principle of superposition) has no questions
+  pp-intermit   8 q /   8 concepts  (Mosley)
+  pp-multoral  17 q /  12 concepts  (Mosley)
+  pp-bioavail  14 q /   9 concepts  (Mosley)
+  warn  subtopic "pp-bioavail/pp-frel" (Relative bioavailability) has no questions
+  warn  subtopic "pp-bioavail/pp-figure" (Reading the bioequivalence example) has no questions
+  pp-pkpd     27 q /  25 concepts  (Mosley)
+  pp-nonlin   18 q /  16 concepts  (Mosley)
+  orders       1 q /   1 concepts  (Mosley)
+  warn  subtopic "orders/zero" (Zero-order reactions) has no questions
+  warn  subtopic "orders/first" (First-order reactions) has no questions
+  warn  subtopic "orders/plots" (Linear and semi-logarithmic plots) has no questions
+  warn  subtopic "orders/decide" (Deciding the order from a data set) has no questions
+  bolus1       1 q /   1 concepts  (Mosley)
+  warn  subtopic "bolus1/model" (The one-compartment model after an IV bolus injection) has no questions
+  warn  subtopic "bolus1/vd" (Volume of distribution) has no questions
+  warn  subtopic "bolus1/cl" (Clearance) has no questions
+  infusion     2 q /   2 concepts  (Mosley)
+  warn  subtopic "infusion/basics" (What an infusion does, and why the input is zero order) has no questions
+  warn  subtopic "infusion/pre" (Concentration before steady state is reached) has no questions
+  warn  subtopic "infusion/time" (Time to reach a stated fraction of steady state) has no questions
+  warn  subtopic "infusion/stop" (Concentration after the infusion is stopped) has no questions
+  warn  subtopic "infusion/load" (Loading dose, alone and with a continuous infusion) has no questions
+  clearance    2 q /   2 concepts  (Mosley)
+  warn  subtopic "clearance/routes" (The main routes of elimination, renal and hepatic) has no questions
+  warn  subtopic "clearance/renalmech" (Glomerular filtration, tubular secretion and reabsorption) has no questions
+  warn  subtopic "clearance/ionization" (Degree of ionization and renal excretion) has no questions
+  oral         2 q /   2 concepts  (Mosley)
+  warn  subtopic "oral/extravasc" (Kinetics after extravascular administration) has no questions
+  warn  subtopic "oral/conc" (Plasma concentration after a single oral dose) has no questions
+  warn  subtopic "oral/changes" (Effects of changing ka, k and dose) has no questions
+  multi        2 q /   2 concepts  (Mosley)
+  warn  subtopic "multi/accum" (Drug accumulation and steady state) has no questions
+  warn  subtopic "multi/superpos" (The principle of superposition) has no questions
+  warn  subtopic "multi/ndose" (Concentration after n doses and after the last dose) has no questions
+  qpc-multi    1 q /   1 concepts  (Mosley)
+  warn  subtopic "qpc-multi/qpc-accum" (Drug accumulation and steady state) has no questions
+  warn  subtopic "qpc-multi/qpc-superpos" (The principle of superposition) has no questions
+  warn  subtopic "qpc-multi/qpc-ndose" (Concentration after n doses and after the last dose) has no questions
+  qpc-intermit   2 q /   2 concepts  (Mosley)
+  qpc-multoral   6 q /   5 concepts  (Mosley)
+  warn  subtopic "qpc-multoral/qpc-oeq" (The multiple-oral-dose equations) has no questions
+  qpc-bioavail   3 q /   2 concepts  (Mosley)
+  warn  subtopic "qpc-bioavail/qpc-factors" (Factors influencing bioavailability) has no questions
+  warn  subtopic "qpc-bioavail/qpc-frel" (Relative bioavailability) has no questions
+  warn  subtopic "qpc-bioavail/qpc-figure" (Reading the bioequivalence example) has no questions
+  qpc-pkpd     4 q /   3 concepts  (Mosley)
+  warn  subtopic "qpc-pkpd/qpc-pd" (Pharmacodynamics and the exposure–response relationship) has no questions
+  warn  subtopic "qpc-pkpd/qpc-doseresp" (Response rising with dose and concentration up to a maximum) has no questions
+  qpc-nonlin   4 q /   3 concepts  (Mosley)
+  warn  subtopic "qpc-nonlin/qpc-kmcp" (KM and Cp: the order of saturable elimination, half-life and clearance) has no questions
+  sgc-FG      13 q /   6 concepts  (Gottlieb)
+  sgc-L06      3 q /   3 concepts  (Gottlieb)
+  warn  subtopic "sgc-L06/sgc-p3" (Desired vs undesired effects) has no questions
+  warn  subtopic "sgc-L06/sgc-recap" (Recap figure A–E) has no questions
+  warn  subtopic "sgc-L06/sgc-base50" (The 50% baseline figure) has no questions
+  warn  subtopic "sgc-L06/sgc-signal" (Signal transduction in his words) has no questions
+  sgc-PE2      5 q /   5 concepts  (Gottlieb)
+  sw-intro     2 q /   2 concepts  (Mosley)
+  warn  subtopic "sw-intro/sw-terms" (ADME and the fundamental terms) has no questions
+  warn  subtopic "sw-intro/sw-matrix" (Whole blood, serum and plasma) has no questions
+  warn  subtopic "sw-intro/sw-curve" (The concentration versus time curve) has no questions
+  sw-orders   13 q /   8 concepts  (Mosley)
+  warn  subtopic "sw-orders/sw-half" (Half-life, both orders) has no questions
+  sw-bolus2    2 q /   2 concepts  (Mosley)
+  warn  subtopic "sw-bolus2/sw-why" (Why some drugs need more than one compartment) has no questions
+  warn  subtopic "sw-bolus2/sw-calc" (Predicting concentration and the apparent volumes) has no questions
+  sw-infusion   8 q /   7 concepts  (Mosley)
+  warn  subtopic "sw-infusion/sw-css" (Steady state and continuous dosing) has no questions
+  warn  subtopic "sw-infusion/sw-rate" (Infusion rate for a target steady-state concentration) has no questions
+  warn  subtopic "sw-infusion/sw-time" (Time to reach a stated fraction of steady state) has no questions
+  sw-oral      4 q /   4 concepts  (Mosley)
+  warn  subtopic "sw-oral/sw-changes" (Effects of changing ka, k and dose) has no questions
+  sw-multi     1 q /   1 concepts  (Mosley)
+  warn  subtopic "sw-multi/sw-accum" (Drug accumulation and steady state) has no questions
+  warn  subtopic "sw-multi/sw-superpos" (The principle of superposition) has no questions
+  warn  subtopic "sw-multi/sw-ndose" (Concentration after n doses and after the last dose) has no questions
+  sw-intermit   8 q /   8 concepts  (Mosley)
+  sw-multoral  12 q /  10 concepts  (Mosley)
+  sw-bioavail   2 q /   2 concepts  (Mosley)
+  warn  subtopic "sw-bioavail/sw-defs" (Drug product performance, bioavailability, absolute and relative, bioequivalence) has no questions
+  warn  subtopic "sw-bioavail/sw-frel" (Relative bioavailability) has no questions
+  warn  subtopic "sw-bioavail/sw-figure" (Reading the bioequivalence example) has no questions
+  sw-pkpd      8 q /   7 concepts  (Mosley)
+  warn  subtopic "sw-pkpd/sw-dosefor" (The dose for a target duration of activity) has no questions
+  sw-nonlin    8 q /   6 concepts  (Mosley)
+  warn  subtopic "sw-nonlin/sw-kmvmax" (Vmax and KM from two dose rates in a patient) has no questions
+  warn  subtopic "sw-nonlin/sw-dose" (Dose rate and steady state for a nonlinear drug such as phenytoin) has no questions
+  L01          6 q /   6 concepts  (Gottlieb)
+  tvc-orders   6 q /   5 concepts  (Mosley)
+  warn  subtopic "tvc-orders/zero" (Zero-order reactions) has no questions
+  warn  subtopic "tvc-orders/plots" (Linear and semi-logarithmic plots) has no questions
+  tvc-bolus2   1 q /   1 concepts  (Mosley)
+  warn  subtopic "tvc-bolus2/why" (Why some drugs need more than one compartment) has no questions
+  warn  subtopic "tvc-bolus2/params" (A, B, alpha, beta and the rate constants) has no questions
+  tvc-infusion   1 q /   1 concepts  (Mosley)
+  warn  subtopic "tvc-infusion/basics" (What an infusion does, and why the input is zero order) has no questions
+  warn  subtopic "tvc-infusion/css" (Steady state and continuous dosing) has no questions
+  warn  subtopic "tvc-infusion/pre" (Concentration before steady state is reached) has no questions
+  warn  subtopic "tvc-infusion/time" (Time to reach a stated fraction of steady state) has no questions
+  warn  subtopic "tvc-infusion/stop" (Concentration after the infusion is stopped) has no questions
+  warn  subtopic "tvc-infusion/load" (Loading dose, alone and with a continuous infusion) has no questions
+  tvc-clearance   1 q /   1 concepts  (Mosley)
+  warn  subtopic "tvc-clearance/routes" (The main routes of elimination, renal and hepatic) has no questions
+  warn  subtopic "tvc-clearance/renalmech" (Glomerular filtration, tubular secretion and reabsorption) has no questions
+  warn  subtopic "tvc-clearance/crclcalc" (Creatinine clearance and its significance) has no questions
+  warn  subtopic "tvc-clearance/ionization" (Degree of ionization and renal excretion) has no questions
+  multoral     6 q /   6 concepts  (Mosley)
+  warn  subtopic "multoral/oeq" (The multiple-oral-dose equations) has no questions
+  warn  subtopic "multoral/oparam" (Changing the dose and the dosing interval) has no questions
+  bioavail     5 q /   5 concepts  (Mosley)
+  warn  subtopic "bioavail/defs" (Drug product performance, bioavailability, absolute and relative, bioequivalence) has no questions
+  warn  subtopic "bioavail/factors" (Factors influencing bioavailability) has no questions
+  warn  subtopic "bioavail/frel" (Relative bioavailability) has no questions
+  warn  subtopic "bioavail/figure" (Reading the bioequivalence example) has no questions
+  pkpd         5 q /   5 concepts  (Mosley)
+  warn  subtopic "pkpd/pd" (Pharmacodynamics and the exposure–response relationship) has no questions
+  warn  subtopic "pkpd/doseresp" (Response rising with dose and concentration up to a maximum) has no questions
+  warn  subtopic "pkpd/thalf" (Elimination half-life and the duration of activity) has no questions
+  nonlin       3 q /   3 concepts  (Mosley)
+  warn  subtopic "nonlin/linear" (Linear and nonlinear pharmacokinetics; saturation kinetics) has no questions
+  warn  subtopic "nonlin/kmcp" (KM and Cp: the order of saturable elimination, half-life and clearance) has no questions
+
+=== 4. Spaced repetition rules ===
+feature module equation-drill (tab): TypeError: nav.querySelector is not a function
+    at evalmachine.<anonymous>:2308:17
+    at run (evalmachine.<anonymous>:2269:18)
+    at dom (evalmachine.<anonymous>:2301:7)
+    at startUp (evalmachine.<anonymous>:2322:11)
+    at evalmachine.<anonymous>:2383:5
+    at Object.askProfile (evalmachine.<anonymous>:1607:3)
+    at Object.<anonymous> (/tmp/port-integration-5/ci/kit-ci-2KFx6u/course/src/test.js:118:3)
+    at Module._compile (node:internal/modules/cjs/loader:1781:14)
+    at Object..js (node:internal/modules/cjs/loader:1913:10)
+    at Module.load (node:internal/modules/cjs/loader:1505:32)
+feature module glossary-tap (tab): TypeError: nav.querySelector is not a function
+    at evalmachine.<anonymous>:2308:17
+    at run (evalmachine.<anonymous>:2269:18)
+    at dom (evalmachine.<anonymous>:2301:7)
+    at startUp (evalmachine.<anonymous>:2322:11)
+    at evalmachine.<anonymous>:2383:5
+    at Object.askProfile (evalmachine.<anonymous>:1607:3)
+    at Object.<anonymous> (/tmp/port-integration-5/ci/kit-ci-2KFx6u/course/src/test.js:118:3)
+    at Module._compile (node:internal/modules/cjs/loader:1781:14)
+    at Object..js (node:internal/modules/cjs/loader:1913:10)
+    at Module.load (node:internal/modules/cjs/loader:1505:32)
+feature module notes (tab): TypeError: nav.querySelector is not a function
+    at evalmachine.<anonymous>:2308:17
+    at run (evalmachine.<anonymous>:2269:18)
+    at dom (evalmachine.<anonymous>:2301:7)
+    at startUp (evalmachine.<anonymous>:2322:11)
+    at evalmachine.<anonymous>:2383:5
+    at Object.askProfile (evalmachine.<anonymous>:1607:3)
+    at Object.<anonymous> (/tmp/port-integration-5/ci/kit-ci-2KFx6u/course/src/test.js:118:3)
+    at Module._compile (node:internal/modules/cjs/loader:1781:14)
+    at Object..js (node:internal/modules/cjs/loader:1913:10)
+    at Module.load (node:internal/modules/cjs/loader:1505:32)
+feature module pair-up-drills (tab): TypeError: nav.querySelector is not a function
+    at evalmachine.<anonymous>:2308:17
+    at run (evalmachine.<anonymous>:2269:18)
+    at dom (evalmachine.<anonymous>:2301:7)
+    at startUp (evalmachine.<anonymous>:2322:11)
+    at evalmachine.<anonymous>:2383:5
+    at Object.askProfile (evalmachine.<anonymous>:1607:3)
+    at Object.<anonymous> (/tmp/port-integration-5/ci/kit-ci-2KFx6u/course/src/test.js:118:3)
+    at Module._compile (node:internal/modules/cjs/loader:1781:14)
+    at Object..js (node:internal/modules/cjs/loader:1913:10)
+    at Module.load (node:internal/modules/cjs/loader:1505:32)
+feature module short-answer-graphs (tab): TypeError: nav.querySelector is not a function
+    at evalmachine.<anonymous>:2308:17
+    at run (evalmachine.<anonymous>:2269:18)
+    at dom (evalmachine.<anonymous>:2301:7)
+    at startUp (evalmachine.<anonymous>:2322:11)
+    at evalmachine.<anonymous>:2383:5
+    at Object.askProfile (evalmachine.<anonymous>:1607:3)
+    at Object.<anonymous> (/tmp/port-integration-5/ci/kit-ci-2KFx6u/course/src/test.js:118:3)
+    at Module._compile (node:internal/modules/cjs/loader:1781:14)
+    at Object..js (node:internal/modules/cjs/loader:1913:10)
+    at Module.load (node:internal/modules/cjs/loader:1505:32)
+feature module terms-variables (tab): TypeError: nav.querySelector is not a function
+    at evalmachine.<anonymous>:2308:17
+    at run (evalmachine.<anonymous>:2269:18)
+    at dom (evalmachine.<anonymous>:2301:7)
+    at startUp (evalmachine.<anonymous>:2322:11)
+    at evalmachine.<anonymous>:2383:5
+    at Object.askProfile (evalmachine.<anonymous>:1607:3)
+    at Object.<anonymous> (/tmp/port-integration-5/ci/kit-ci-2KFx6u/course/src/test.js:118:3)
+    at Module._compile (node:internal/modules/cjs/loader:1781:14)
+    at Object..js (node:internal/modules/cjs/loader:1913:10)
+    at Module.load (node:internal/modules/cjs/loader:1505:32)
+feature module worksheets-ink (tab): TypeError: nav.querySelector is not a function
+    at evalmachine.<anonymous>:2308:17
+    at run (evalmachine.<anonymous>:2269:18)
+    at dom (evalmachine.<anonymous>:2301:7)
+    at startUp (evalmachine.<anonymous>:2322:11)
+    at evalmachine.<anonymous>:2383:5
+    at Object.askProfile (evalmachine.<anonymous>:1607:3)
+    at Object.<anonymous> (/tmp/port-integration-5/ci/kit-ci-2KFx6u/course/src/test.js:118:3)
+    at Module._compile (node:internal/modules/cjs/loader:1781:14)
+    at Object..js (node:internal/modules/cjs/loader:1913:10)
+    at Module.load (node:internal/modules/cjs/loader:1505:32)
+feature module study-controls (start): TypeError: window.addEventListener is not a function
+    at evalmachine.<anonymous>:6422:86
+    at Array.forEach (<anonymous>)
+    at evalmachine.<anonymous>:6422:66
+    at run (evalmachine.<anonymous>:2269:18)
+    at evalmachine.<anonymous>:2323:25
+    at Array.forEach (<anonymous>)
+    at startUp (evalmachine.<anonymous>:2323:12)
+    at evalmachine.<anonymous>:2383:5
+    at Object.askProfile (evalmachine.<anonymous>:1607:3)
+    at Object.<anonymous> (/tmp/port-integration-5/ci/kit-ci-2KFx6u/course/src/test.js:118:3)
+  ok    missed concept is held back rather than repeated at once
+  ok    missed concept resurfaces after other questions
+  ok    box advanced 0 -> 3 with repeated correct answers
+  ok    a later miss resets the concept to active review
+  ok    a guess resets the concept to unresolved and outranks never-seen material
+  ok    "I guessed that one" rewrites the log, resets the box, keeps picked and ms
+  ok    102 concepts have more than one wording available
+
+=== 5. Exam simulation draw ===
+  blueprint: Exam 3 (final) — Exam 1 material (Modules 1–3) 15, Exam 2 material (Modules 4–7a) 15, Module 7b — PK-PD relationship 5, Module 8 — Nonlinear pharmacokinetics 5 (40 of 40)
+  drew 40
+  ok    no duplicate questions on a single paper
+  ok    dupOf partners never share a paper (56 marked; 1 lowYield kept off the paper)
+  ok    20 repeated draws all kept the paper shape
+  select-all on the paper: 4 of 40 (target 4)
+  ok    the paper carries the intended number of select-all items
+  ok    the 61 lectures in the manifest have distinct ids
+  ok    every question resolves to a lecture, exam and module
+  ok    every question carries a skill from the course taxonomy (recall, tell, apply, read, calc, infusion, figure, drug, term, pkpd, nonlin, order, multidose, bioavail, krate, clearance, crcl, oral, conctime, multicpt)
+  ok    numeric grading accepts the answer within tolerance and rejects the rest
+
+=== 6. Storage isolation ===
+  ok    progress written under namespaced key: course-id-drill:data:me
+  ok    the page opened without asking for a name
+=== 7. Different wording when a missed concept returns ===
+  FAIL  returned the identical question, not a new wording
+=== 8. Small pools end instead of looping ===
+  ok    pool of 2 served 2 (2 distinct) then stopped
+  ok    "Ask everything" still serves (10 more)
+
+=== 9. Figures, read links, change log, blueprint ===
+  ok    every DIAGRAMS key is in DIA
+  ok    1 step-through figure(s), each with a dot per step
+  ok    2 read link(s), every one naming guide, tell or ref
+  7 of 522 questions resolve to a reading section (the rest group by topic in the review plan)
+  ok    a session is the run with no half-hour gap (2 of 4 answers)
+  ok    a correct answer marked "not sure" does not count as solid
+  skip  blueprint draw (this course draws by pool marks, not announced counts)
+  ok    1 change log entry embedded, each with bullets
+
+FAILURES: 1  (warnings: 106)
+
+FAIL: test.js: 1 failure(s)
