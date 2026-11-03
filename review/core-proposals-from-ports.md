@@ -184,6 +184,20 @@ and agent-run (the failures).
 - Proposed change: match "below" only in phrases that point at a figure ("the graph below", "shown
   below").
 
+**C13. `style_check.js` flags real explanations.** Agent-run (glossary-tap rework, `evidence/glossary-tap` folder `rework-d9c8ec7/repro-all-put-back/`).
+- Intro to Pharmacology's L02-007 and L02-057 ("downstream") and L10-042 and L10-051 ("not
+  memorized") are refused. C10 and kit PR #31 cover stems only.
+
+**C14. The core cannot draw a question's own stem graph.** Agent-run (glossary-tap rework, same folder).
+- 36 Intro to Pharmacology questions carry a `graph` in the stem. `browser_test.js` "every stem that
+  promises a figure shows one" fails on L04-016, L04-039 and L04-040, and the others ask about curves
+  the page does not draw. The student would see the question without its graph.
+
+**C15. The core reads `fg` as a drawn structure.** Agent-run (glossary-tap and short-answer-graphs reworks, `evidence/short-answer-graphs` folder `rework-0d63860/repro-fg-kept/`).
+- In Intro to Pharmacology `fg` names a figure shown after the answer. In the core it names an atlas
+  structure, so `browser_test.js` "every drawn structure resolves to a group" fails on the 15 FG
+  questions. The ports leave `fg` out, so the student does not get that figure.
+
 ## D. Display
 
 **D1. The concept block drops sections written as `{h, list}`.** Coordinator-checked: `teachParts`, `core/views.js` lines 137-139, keeps only parts with a `t` field.
