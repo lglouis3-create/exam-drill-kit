@@ -19,6 +19,7 @@ that course's repository. Both folders come from the recovered exam-drill templa
 | `files_test.js` | core | `course.js` `files`: every listed question file reaches the page after the core's `build.py` is copied over the course's; the lists the build refuses |
 | `tables_test.js` | core | `course.js` `tools`: `cite_check.py`, `explain_check.js` and `harvest_mask.py` read the course's tables from it after the core is copied over; the tables the build refuses |
 | `test.js`, `style_check.js`, `render_test.js`, `explain_check.js`, `stepper_test.js` | core | checks that run on any course's built page |
+| `style_rules.js`, `style_check_test.js` | core | the stem rule of `style_check.js` (a stem asks the subject, not what the material says; "given as" allowed in dose or problem wording), and its test on examples of both kinds |
 | `cite_check.py` | core | citation check; the deck spellings it cannot derive come from `course.js` `tools` |
 | `browser_test.js` | core | browser smoke test (Node Playwright port of the template's `browser_test.py`, which stays in `history/`), including no sideways scroll on a 375 px phone and wide reading-tab tables scrolling in their own box |
 | `device_lint.js` | core | fails on syntax older Safari rejects (regex lookbehind) in anything that ships |
@@ -30,7 +31,7 @@ that course's repository. Both folders come from the recovered exam-drill templa
 | `draw_test.js` | core | no exam paper carries two wordings of one fact, across pools too |
 | `update_test.js` | core | a newer version is offered; a reload comes back to the same place |
 | `sw.js` | core | the service worker; `build.py` fills in the course's cache prefix and file list and writes it to the root |
-| `offline_test.js` | core | the offline copy: other sites' caches kept, server down, server slow |
+| `offline_test.js` | core | the offline copy: other sites' caches kept, server down (connections refused), server slow |
 | `home_test.js` | core | the Home Screen card for each kind of browser: a closed section in Settings, nothing on Topics |
 | `history_test.js` | core | the answer history: its fields, Export, Import, Erase, a refused write |
 | `preview_test.js` | core | `build.py --preview`: the live site unchanged, the preview's own namespace |
@@ -677,12 +678,12 @@ missing Playwright, a browser that did not start or a missing pdfplumber fails i
 than passing on NOT RUN lines. The exclusions, listed at the top of `ci_course.sh`:
 `cite_check.py` with "no lecture PDFs found" on every course (the decks are kept in
 Louis's Drive, never in a repository), and `stepper_test.js` with "no step-through
-figures" on Medicinal-chemistry. The WebKit job
-is informational until its first results are reviewed. WebKit is not the Safari app on
-an iPhone or iPad, so a device check stays a separate step. The repository is private
+figures" on Medicinal-chemistry. Every job blocks a merge, the WebKit job too (Louis,
+2026-11-02; held until the WebKit failures of `offline_test.js` were diagnosed and fixed in
+kit pull request #33, and repeated WebKit runs on `main` passed). WebKit on the runner is not the Safari app on an iPhone or iPad, so a device
+check stays a separate step, done by hand before BDK goes live. The repository is private
 and GitHub enforces required checks only on a paid plan or a public repository, so
-kit sessions read the results and merge only when the Chromium jobs, the module jobs among
-them, pass.
+kit sessions read the results and merge only when every job passes.
 
 | Line | Exit code of the check | Meaning |
 |---|---|---|
@@ -714,5 +715,5 @@ the built page.
 - Intro-Pharmacology's exam-result page coming back after a reload, and its generator
   step in the build (`gen_*.py`), both named in `review/proposed-core.md` §5-§6.
 - `coverage_check.py`, `step_check.js` and `sources_check.js` from the drills.
-- A WebKit run of the browser checks that blocks a merge: the GitHub workflow's WebKit job
-  is informational (see "On GitHub" above), and no Safari app, iPhone or iPad runs anywhere.
+- WebKit on the module courses (their jobs run in Chromium; the template runs in WebKit),
+  and the Safari app on an iPhone or iPad, which no check here runs.
