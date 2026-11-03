@@ -7,15 +7,17 @@
  * On a scratch copy of the course that holds FIX (below): 7 of Basic-Pharmacokinetics'
  * questions of the topic "infusion", that topic, the lecture they cite and the skill the
  * course lacks, from src/q3_module3.js, src/q13_quizzes.js, src/q1_module1.js and
- * src/course.js at ac2eb73. The ids, the wording and every
- * field are the course's own; `prof` is the course's first professor ("Professor" in
+ * src/course.js at ac2eb73. The wording and every field are the course's own, and
+ * each id is the course's own with the prefix cst- (PFX below), so another module's
+ * copy of the same question never shares an id with this one; `prof` is the course's first professor ("Professor" in
  * FIX), and `teachImg` is left out (the kit has none of the course's slide images, and
  * the core's test.js stops on a teachImg missing from images.json). A course made by
  * ci/oncourse.js already holds FIX, and the test then uses the course's copy.
- * plan-the-problem is switched off in the scratch copy: inf-n1, inf-n2 and inf-n4 keep
- * their `setup` lines, which name the equations "css" and "cp-infusing", and
- * plan-the-problem's build step stops a
- * build whose EQUATIONS lack it. In Chromium:
+ * inf-n1, inf-n2 and inf-n4 carry plan-the-problem `setup` lines, which name the
+ * equations "css" and "cp-infusing", and `asks` keys: WRITE keeps a `setup` only when
+ * the course's EQUATIONS has every equation it names, and an `asks` only when the
+ * course's ASKS has the key, so the scratch copy builds whatever other modules the
+ * course has on. In Chromium:
  *   - Basic-Pharmacokinetics' src/test.js section 4c ported: the 13 synthetic logs
  *     give the statuses, mastery starts the spaced check at the mastery box at the
  *     pace's intervals and each further solid answer moves it up one, a concept
@@ -70,27 +72,47 @@ const FIX = {"qs":[{"id":"inf-c4","prof":"Professor","tier":"new","exam":1,"modu
 /* Basic-Pharmacokinetics src/views.js CONCEPT_WORDS (line 2634, ac2eb73), verbatim, as the
    course's `words` option. */
 const WORDS = {"999":"99.9%","vd":"VD","cl":"Cl","clr":"ClR","crcl":"CrCl","gfr":"GFR","ibw":"IBW","bw":"body weight","cmax":"Cmax","cmin":"Cmin","tmax":"tmax","c0":"C0","cp":"Cp","css":"Css","cavg":"Cavg","cav":"Cav","auc":"AUC","aucs":"AUCs","k":"k","ka":"ka","ke":"ke","kvd":"k × VD","thalf":"t½","tau":"τ","f":"F","fe":"fe","frel":"Frel","fabs":"Fabs","alpha":"α","beta":"β","vp":"Vp","db":"DB","d0":"D0","davg":"Davg","r":"R","mec":"MEC","pk":"PK","pd":"PD","adme":"ADME","iv":"IV","ph":"pH","ss":"steady state","halflife":"half-life","halflives":"half-lives","onecpt":"one-compartment","multicpt":"multicompartment","cpt":"compartment","defn":"definition","def":"definition","conc":"concentration","bioavail":"bioavailability","biexp":"biexponential","equiv":"equivalent","rel":"relative","params":"parameters","calc":"calculation","diffeq":"differential equation","cockcroft":"Cockcroft","gault":"Gault","henderson":"Henderson","hasselbalch":"Hasselbalch"};
-/* The course data file for FIX, in the kit's question-file form: one question per line,
-   opening {id:'...', the type, the skill, then prof as a literal (browser_test.js counts
-   the bank that way); the topics pushed after the course's own; the lecture as L91 when
-   the course has no entry for its deck; the skills the course lacks. Questions, topics
-   and skills the course already has are not written again. */
+/* Ids that cannot clash with another module's (rule 2 of the kit's CI data rules): every
+   question, topic, subtopic and lecture id of FIX, and every reference to one (dupOf,
+   topic, sub, lecture), gets the prefix cst-, with the course's own id kept inside it:
+   questions inf-c4 -> cst-inf-c4, inf-c5 -> cst-inf-c5, inf-c11 -> cst-inf-c11,
+   cq2-4 -> cst-cq2-4 (dupOf cst-inf-c11), inf-n1 -> cst-inf-n1, inf-n2 -> cst-inf-n2,
+   inf-n4 -> cst-inf-n4; topic infusion -> cst-infusion; its subtopics basics, css, pre,
+   rate, time, stop, load -> cst-basics ... cst-load; lecture L04 -> cst-L04. Concepts,
+   skills and every other field are the course's own. ../ci/oncourse.js reads PFX too. */
+const PFX = fix => {
+  const p = id => 'cst-' + id, ref = (o, ks) => { const r = Object.assign({}, o); ks.forEach(k => { if(r[k] !== undefined) r[k] = p(r[k]); }); return r; };
+  return {qs: fix.qs.map(q => ref(q, ['id', 'dupOf', 'topic', 'sub', 'lecture'])),
+          topics: fix.topics.map(t => Object.assign(ref(t, ['id']), t.subs ? {subs: t.subs.map(x => ref(x, ['id']))} : {})),
+          lecture: ref(fix.lecture, ['id']), skills: fix.skills};
+  };
+/* The course data file for FIX (written through PFX), in the kit's question-file form: one
+   question per line, opening {id:'...', the type, the skill, then prof as a literal
+   (browser_test.js counts the bank that way); the topics pushed after the course's own; the
+   lecture under its own prefixed id (cst-L04) unless the course already has that id; the
+   skills the course lacks. Questions, topics and skills the course already has are not
+   written again. A `setup` (plan-the-problem's) is written only when own.eq, the course's
+   EQUATIONS ids, has its equation and every one before it; an `asks` only when own.asks, the
+   course's ASKS keys, has it; otherwise it is left out and listed in `dropped`. */
 const WRITE = (fix, own) => {
   const lit = v => { if(!/^[^'\\\n]*$/.test(String(v))) throw new Error('cannot be written as a literal: ' + v); return `'${v}'`; };
+  const eq = new Set(own.eq || []), asks = new Set(own.asks || []), dropped = {setup: [], asks: []};
   const rows = fix.qs.filter(q => !own.qids.includes(q.id)).map(q => {
     const r = Object.assign({}, q); ['id', 'type', 'skill', 'prof'].forEach(k => delete r[k]);
+    if(r.setup !== undefined && !(r.setup && (r.setup.eq === 'none' || eq.has(r.setup.eq)) && (r.setup.pre || []).every(x => eq.has(x)))){ delete r.setup; dropped.setup.push(q.id); }
+    if(r.asks !== undefined && !asks.has(r.asks)){ delete r.asks; dropped.asks.push(q.id); }
     return `{id:${lit(q.id)},` + (q.type ? ` type:${lit(q.type)},` : '') + ` skill:${lit(q.skill)}, prof:${lit(own.prof)}, ${JSON.stringify(r).slice(1)},`; });
   const topics = fix.topics.filter(t => !own.topics.includes(t.id)).map(t => Object.assign({}, t, {prof: own.prof}));
   let body = '';
   if(topics.length) body += `TOPICS.push(\n${topics.map(t => JSON.stringify(t)).join(',\n')}\n);\n`;
   if(rows.length) body += `QUESTIONS.push(\n${rows.join('\n')}\n);\n`;
-  if(body) body = `/* concept-statuses: 7 of Basic-Pharmacokinetics' questions and their topic (ac2eb73),\n   written from FIX in features/concept-statuses/current/test.js */\n` + body;
+  if(body) body = `/* concept-statuses: 7 of Basic-Pharmacokinetics' questions and their topic (ac2eb73), ids prefixed cst-,\n   written from FIX in features/concept-statuses/current/test.js */\n` + body;
   const skills = fix.skills.filter(s => !own.skills.includes(s.id));
-  const l = fix.lecture, lecture = own.decks.includes(l.deck) ? '' :
-    `{id:'L91', deck:${lit(l.deck)}, label:${lit(l.label)}, prof:${lit(own.prof)}, exam:${JSON.stringify(l.exam)}, module:${JSON.stringify(l.module)}}`;
+  const l = fix.lecture, lecture = (own.lids || []).includes(l.id) ? '' :
+    `{id:${lit(l.id)}, deck:${lit(l.deck)}, label:${lit(l.label)}, prof:${lit(own.prof)}, exam:${JSON.stringify(l.exam)}, module:${JSON.stringify(l.module)}}`;
   const line = (lecture ? `COURSE.lectures = (COURSE.lectures || []).concat([${lecture}]); ` : '') +
     (skills.length ? `COURSE.skills = (COURSE.skills || []).concat(${JSON.stringify(skills)}); ` : '');
-  return {body, line, rows: rows.length, topics: topics.length, skills: skills.length, lecture: !!lecture};
+  return {body, line, rows: rows.length, topics: topics.length, skills: skills.length, lecture: !!lecture, dropped};
   };
 
 /* The 13 logs of Basic-Pharmacokinetics src/test.js section 4c: [question index,
@@ -118,7 +140,7 @@ const CASES = [
    times across two sessions ten days ago (mastered, its spaced check due). */
 const SEED = () => {
   DB.answers = []; DB.concepts = {}; DB.qn = 0; DB.settings.pace = 'semester';
-  const two = [byId('inf-c11'), byId('cq2-4')], mcq = byId('inf-c5'), num = byId('inf-n1');
+  const two = [byId('cst-inf-c11'), byId('cst-cq2-4')], mcq = byId('cst-inf-c5'), num = byId('cst-inf-n1');
   const now = Date.now(), MIN = 60000, old = now - 10 * 86400000;
   const add = (q, result, at, picked, miss) => { DB.qn++; const a = {qid: q.id, concept: q.concept, result, at, qn: DB.qn};
     if(picked !== undefined) a.picked = picked; if(miss) a.miss = miss; DB.answers.push(a); };
@@ -173,7 +195,9 @@ const SECTION = async page => {
 (async () => {
   console.log('\n=== the course\'s own data ===');
   L.PAGE.need(NAME);
-  const X = L.engine('({QUESTIONS, TOPICS, COURSE, FX: typeof FX === "undefined" ? null : FX})');
+  const X = L.engine('({QUESTIONS, TOPICS, COURSE, FX: typeof FX === "undefined" ? null : FX,' +
+    ' EQ: typeof EQUATIONS !== "undefined" && Array.isArray(EQUATIONS) ? EQUATIONS.map(e => e && e.id) : [],' +
+    ' ASKS: typeof ASKS !== "undefined" && ASKS && typeof ASKS === "object" ? Object.keys(ASKS) : []})');
   const S = X.FX && X.FX.api('concept-statuses');
   if(!check(!!S, 'the page carries concept-statuses, working', JSON.stringify((X.FX && X.FX.errors) || 'no feature modules in the page'))) L.finish(NAME);
   const concepts = [...new Set(X.QUESTIONS.map(q => q.concept))];
@@ -183,14 +207,15 @@ const SECTION = async page => {
   check(!Object.keys(ghost).length, 'an answer to a question no longer in the bank reaches no concept');
   const prof = X.COURSE.professors[0];
   const own = {prof, qids: X.QUESTIONS.map(q => q.id), topics: X.TOPICS.map(t => t.id), skills: (X.COURSE.skills || []).map(s => s.id),
-               decks: (X.COURSE.lectures || []).map(l => l.deck)};
-  const w = WRITE(FIX, own);
+               lids: (X.COURSE.lectures || []).map(l => l.id), eq: X.EQ, asks: X.ASKS};
+  const w = WRITE(PFX(FIX), own);
   console.log(`  the course ${w.rows ? `lacks ${w.rows} of the ${FIX.qs.length} questions of FIX: the scratch copy adds them` : 'holds the questions of FIX: the scratch copy uses its copy'}` +
-              ` (${w.topics} topics, ${w.skills} skills, ${w.lecture ? 'the lecture as L91' : 'no lecture'} added)`);
+              ` (${w.topics} topics, ${w.skills} skills, ${w.lecture ? 'the lecture as cst-L04' : 'no lecture'} added;` +
+              ` left out: ${w.dropped.setup.length} setup and ${w.dropped.asks.length} asks lines naming an equation or ASKS key the course lacks)`);
 
   console.log('\n=== on a scratch copy with 7 of Basic-Pharmacokinetics\' questions (Chromium) ===');
   const s = L.scratchBuild('cstat', {files: w.body ? {'q91_cst_fixture.js': w.body} : {},
-    courseLine: w.line + L.featureOn(__dirname, {words: WORDS}) + "if(COURSE.features) delete COURSE.features['plan-the-problem'];"});
+    courseLine: w.line + L.featureOn(__dirname, {words: WORDS})});
   if(s.code !== 0) L.notRun(NAME, 'the scratch copy with the test questions does not build: ' + s.out.split('\n').pop());
   const {browser} = await L.launch(NAME);
   const dl = fs.mkdtempSync(path.join(os.tmpdir(), 'cstat-dl-'));
@@ -200,7 +225,7 @@ const SECTION = async page => {
       const fm = await ev(() => !!FX.api('formulas-in-text'));
       console.log(`  formulas-in-text is ${fm ? 'on' : 'off'} in this copy`);
       const r = await ev(([CASES]) => {
-        const A = FX.api('concept-statuses'), two = [byId('inf-c11'), byId('cq2-4')];
+        const A = FX.api('concept-statuses'), two = [byId('cst-inf-c11'), byId('cst-cq2-4')];
         const MIN = 60000, DAYMS = 86400000, t0 = Date.now() - 2 * DAYMS;
         const log = (rows, start) => rows.map(([i, result, m, conf], k) => Object.assign({qid: two[i].id, concept: two[i].concept, result, at: (start === undefined ? t0 : start) + m * MIN, qn: k + 1}, conf ? {conf} : {}));
         const recOf = (rows, start) => A.conceptRecord(A.conceptLog(log(rows, start))[two[0].concept]);
@@ -229,9 +254,9 @@ const SECTION = async page => {
         out.line = line([[0, 'wrong', 0], [1, 'correct', 1], [0, 'wrong', 2], [1, 'guessed', 3], [0, 'correct', 4]]);
         out.shaky = recOf([[0, 'correct', 0], [1, 'correct', 5], [0, 'correct', 120, 'shaky']]).s;
         out.shakyLine = line([[0, 'wrong', 0], [1, 'correct', 1, 'shaky']]);
-        out.title = A.conceptTitle(byId('inf-c4').concept);
+        out.title = A.conceptTitle(byId('cst-inf-c4').concept);
         // wrong options: a select-all answer counts only the wrong options it picked
-        const mcq = byId('inf-c5'), ri = mcq.options.findIndex(o => o.correct), wi = mcq.options.map((o, i) => o.correct ? -1 : i).filter(i => i >= 0);
+        const mcq = byId('cst-inf-c5'), ri = mcq.options.findIndex(o => o.correct), wi = mcq.options.map((o, i) => o.correct ? -1 : i).filter(i => i >= 0);
         out.multi = A.wrongPicks(mcq, {result: 'wrong', picked: [ri, wi[0]]}).map(x => x.t);
         out.multiWant = [mcq.options[wi[0]].t];
         // repeated wrong options: each chosen twice are both listed; one chosen once is not
@@ -264,8 +289,8 @@ const SECTION = async page => {
       else L.skip('a matching answer names the wrong pairs', 'the bank has no matching question');
 
       // a card's option text and its why: no {{frac:...}} markup (inf-c5's wrong options hold the ratio {{frac:R|Cl}})
-      const want = await ev(() => { const o = byId('inf-c5').options.find(o => !o.correct && /\{\{frac:/.test(o.why || '')), m = o.why.match(/\{\{frac:([^|}]*)\|([^}]*)\}\}/); return `(${m[1]})/(${m[2]})`; });
-      await ev(() => { DB.answers = []; DB.concepts = {}; DB.qn = 0; const q = byId('inf-c5'), wi = q.options.findIndex(o => !o.correct && /\{\{frac:/.test(o.why || ''));
+      const want = await ev(() => { const o = byId('cst-inf-c5').options.find(o => !o.correct && /\{\{frac:/.test(o.why || '')), m = o.why.match(/\{\{frac:([^|}]*)\|([^}]*)\}\}/); return `(${m[1]})/(${m[2]})`; });
+      await ev(() => { DB.answers = []; DB.concepts = {}; DB.qn = 0; const q = byId('cst-inf-c5'), wi = q.options.findIndex(o => !o.correct && /\{\{frac:/.test(o.why || ''));
         [0, 1].forEach(k => { DB.qn++; DB.answers.push({qid: q.id, concept: q.concept, result: 'wrong', picked: wi, at: Date.now() - (5 - k) * 60000, qn: DB.qn}); });
         save(); show('gaps'); });
       await page.waitForTimeout(250);
@@ -422,7 +447,7 @@ const SECTION = async page => {
       // a profile switch: each profile keeps its own statuses
       const p1 = await ev(() => PROFILE);
       const sw = await ev(() => { window.__name = 'Second'; askProfile(true); const n0 = DB.answers.length;
-        const q = byId('inf-c5'), wi = q.options.findIndex(o => !o.correct); for(let k = 0; k < 3; k++) record(q, 'wrong', wi);
+        const q = byId('cst-inf-c5'), wi = q.options.findIndex(o => !o.correct); for(let k = 0; k < 3; k++) record(q, 'wrong', wi);
         return {n0, prof: PROFILE}; });
       await page.waitForTimeout(400);
       const sum2 = await ev(SUMMARY), sec2 = await SECTION(page);
@@ -440,11 +465,11 @@ const SECTION = async page => {
       await page.waitForTimeout(300);
 
       // a reload soon after an answer: 50 ms (before the core's 150 ms save) and 400 ms
-      const mark = async ms => { const e = await ev(ms => { const q = byId('inf-c5'), wi = q.options.findIndex(o => !o.correct); record(q, 'wrong', wi);
+      const mark = async ms => { const e = await ev(ms => { const q = byId('cst-inf-c5'), wi = q.options.findIndex(o => !o.correct); record(q, 'wrong', wi);
           const a = DB.answers[DB.answers.length - 1]; setTimeout(() => location.reload(), ms); return {at: a.at, qn: a.qn}; }, ms);
         await page.waitForTimeout(ms + 300);
         await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
-        return ev(e => ({kept: DB.answers.some(a => a.at === e.at && a.qn === e.qn && a.qid === 'inf-c5'), qn: DB.qn, n: DB.answers.length}), e); };
+        return ev(e => ({kept: DB.answers.some(a => a.at === e.at && a.qn === e.qn && a.qid === 'cst-inf-c5'), qn: DB.qn, n: DB.answers.length}), e); };
       const q0 = await ev(() => DB.qn);
       const fast = await mark(50);
       console.log(`  report: a reload 50 ms after an answer: the answer was ${fast.kept ? 'kept' : 'lost'} (DB.qn ${q0} before, ${fast.qn} after); the core writes the progress 150 ms after the last change`);
@@ -460,7 +485,7 @@ const SECTION = async page => {
         const res = await ev(([err]) => {
           window.__set = Storage.prototype.setItem;
           Storage.prototype.setItem = function(){ throw new DOMException('the test refuses this write', err); };
-          const q = byId('inf-c4'); record(q, 'correct', q.options.findIndex(o => o.correct));
+          const q = byId('cst-inf-c4'); record(q, 'correct', q.options.findIndex(o => o.correct));
           return {qn: DB.qn}; }, [err]);
         await page.waitForTimeout(400);
         const sec = await SECTION(page);
