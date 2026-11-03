@@ -709,15 +709,17 @@ Test: `features/paper-picker/current/test.js` (PK has no test of its own for the
 
 ## exam-notes
 Does: notes on any question with an export for an AI to review, flags on exam papers, and a Notes tab to read, edit, drill, delete or export.
+## notes
+Does: a "✎ Note" button on every question card (the quiz, the exam paper and its results) that opens a box for what the student is thinking or wants to ask, saved as it is typed; a Notes tab that lists every noted question, newest first, with the last answer given, the key and the working, to edit, delete or drill, filtered by topic; "Copy for AI" and "Download (.md)" give every note as one Markdown text with the question, the answer, the key and the working, ready to paste into an AI or bring to the professor's review. A question on a paper still running has its key left out until the paper is submitted. Weak spots says how many notes there are. (Listed before 2026-11-02 as `exam-notes`; COURSES.md keeps that name for PK's own copy.)
 Use when: Louis wants to record his own questions while practising (PK).
 Do not use when: no need to annotate.
-Enable: course.js → features.exam-notes = { version: 'v1' }
+Enable: course.js → features.notes = { version: 'v1' } (options: `request`, the request at the top of the text; `file`, the download's file name). Reads no course data.
 Versions:
-  v1  2026-10-27  from PK (`c1c847e`; Notes tab `87559c1`)   best for: practice papers   weaker at: not evaluated   current/
+  v1  2026-10-27  from PK (`c1c847e`; Notes tab `87559c1`)   best for: practice papers   weaker at: not evaluated   current/ (ported 2026-11-02 from PK `ac2eb73` `src/views.js` 5564-5654 and the Note button and handlers, 1494, 1587, 1791, 2062-2063, 3309, 3425, 6361-6375)
 Evidence: Louis's messages of 2026-10-27 (PK notes §4).
-Used by: PK (v1)
-Known issues: none recorded.
-Test: `src/notes_test.py` (PK).
+Used by: PK (v1, its own copy); the kit module: none yet.
+Known issues: none recorded. In the kit the notes are kept in the profile's progress as `DB.notes` {question id: {t, at}}, the shape PK keeps, so Export, Import, Erase and the profile switch cover them and PK's saved notes read in unchanged; a saved note in another shape is dropped on load. The course's name, exam and professor come from course.js, and the text says "the professor"; the Notes tab filters by topic (PK by module). Not ported: PK's flags on a paper (`EX.flags`, ⚑ in the Go to list, the count on Submit, the list on the results): the kit's flags are study-controls' (`DB.flags`), and when study-controls is on, a flagged question's card on the Notes tab says "⚑ flagged"; PK's origin and ★ likely tags on the cards (the kit has no such tags); the module colour on the topic chips. A reload within 150 ms of the last keystroke loses that keystroke's change (the core writes the progress 150 ms after the last change).
+Test: `features/notes/current/test.js` (PK `src/notes_test.py` ported, with persistence checks: 88 checks with the module alone, 106 with study-controls on), on Basic-Pharmacokinetics' course data (`ac2eb73`: topics pkpd and nonlin, lectures L11 and L12, skills pkpd and nonlin and 16 of their questions, with `prof` set to "Professor"), which `features/notes/ci/oncourse.js` writes into the module's own CI course.
 
 ## concept-statuses
 Does: a Concepts section on Weak spots: each concept answered gets a status read from its answers (Unfamiliar, Struggling, Improving, Mastered, Returning, Learning) with the counts behind it, the wrong option chosen most often and why it is not the answer, the most common kind of miss on missed calculations, and Practice this concept; mastered concepts are folded away, and the ones whose spaced check is due are listed with Check and Run the checks.
