@@ -7,10 +7,15 @@ documentation, catalog and proposal pull requests). Correctness takes priority o
 For the porter session's pull requests it replaces two merge rules: the rule in `CLAUDE.md` "Rules for
 kit sessions" that each merge needs Louis's yes, and the merge rules of `KIT_DESIGN.md` §12.9 (a
 feature merges only after Louis's yes; catalog bookkeeping and `small-fix` pull requests merge
-themselves once every check passes). Section 6 below holds the merge rules for these pull requests;
+themselves once every check passes). Section 7 below holds the merge rules for these pull requests;
 in particular a bookkeeping pull request of the porter no longer merges on passing checks alone.
 Louis: "This replaces the blanket approval requirement for routine port merges while preserving
 explicit holds." Every other rule in `CLAUDE.md` and `KIT_DESIGN.md` §12 stays as it is.
+
+Four rules below are written as standing rules from directives Louis gave for one case: the image
+rule in §3 (pull request #19), the pairing rule in §5 (#18), the deterministic-setup rule in §5 (the
+keyboard calculation case) and the integration-evidence rule in §5 (the all-module run with 14 port
+heads).
 
 ## 1. Scope and queue
 
@@ -30,7 +35,7 @@ explicit holds." Every other rule in `CLAUDE.md` and `KIT_DESIGN.md` §12 stays 
 - The porter proceeds independently with inspection, implementation, testing, separate topic
   branches and worktrees, opening pull requests, addressing reviews, and refreshing pending branches.
 - It continues authorized work without asking again about unchanged pull requests.
-- The holds of section 6 still need Louis's approval.
+- The holds of section 7 still need Louis's approval.
 
 ## 3. Source fidelity
 
