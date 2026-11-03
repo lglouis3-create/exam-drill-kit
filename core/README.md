@@ -678,12 +678,12 @@ missing Playwright, a browser that did not start or a missing pdfplumber fails i
 than passing on NOT RUN lines. The exclusions, listed at the top of `ci_course.sh`:
 `cite_check.py` with "no lecture PDFs found" on every course (the decks are kept in
 Louis's Drive, never in a repository), and `stepper_test.js` with "no step-through
-figures" on Medicinal-chemistry. The WebKit job
-is informational until its first results are reviewed. WebKit is not the Safari app on
-an iPhone or iPad, so a device check stays a separate step. The repository is private
+figures" on Medicinal-chemistry. Every job blocks a merge, the WebKit job too (Louis,
+2026-11-02; held until the WebKit failures of `offline_test.js` were diagnosed and fixed in
+kit pull request #33, and repeated WebKit runs on `main` passed). WebKit on the runner is not the Safari app on an iPhone or iPad, so a device
+check stays a separate step, done by hand before BDK goes live. The repository is private
 and GitHub enforces required checks only on a paid plan or a public repository, so
-kit sessions read the results and merge only when the Chromium jobs, the module jobs among
-them, pass.
+kit sessions read the results and merge only when every job passes.
 
 | Line | Exit code of the check | Meaning |
 |---|---|---|
@@ -715,5 +715,5 @@ the built page.
 - Intro-Pharmacology's exam-result page coming back after a reload, and its generator
   step in the build (`gen_*.py`), both named in `review/proposed-core.md` §5-§6.
 - `coverage_check.py`, `step_check.js` and `sources_check.js` from the drills.
-- A WebKit run of the browser checks that blocks a merge: the GitHub workflow's WebKit job
-  is informational (see "On GitHub" above), and no Safari app, iPhone or iPad runs anywhere.
+- WebKit on the module courses (their jobs run in Chromium; the template runs in WebKit),
+  and the Safari app on an iPhone or iPad, which no check here runs.
