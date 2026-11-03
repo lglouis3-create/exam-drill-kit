@@ -40,8 +40,8 @@ after Phase 1 and overrides earlier sections where they differ.
     experiment-file format, and `core/profile.py` (the material-profile script);
   - for §12.9 and decision 10: the kit workflow `checks.yml` runs the core checks on
     every pull request (kit pull request #12) and its WebKit job blocks a merge (#29,
-    merged 2026-11-03 as 4e0fae4); GitHub does not enforce required checks on this
-    private repository, so kit sessions read the results before any merge.
+    merged 2026-11-03 as 4e0fae4); no branch protection is set up, so GitHub does not
+    enforce required checks, and kit sessions read the results before any merge.
   Each of these goes to `main` in its own pull request, with a plain-terms summary for
   Louis's yes or no.
 - **Moving the courses onto the core** (Louis's order, 2026-11-01: Medicinal-chemistry,
@@ -95,12 +95,18 @@ after Phase 1 and overrides earlier sections where they differ.
   4e0fae4, the first refused). Every run since then (22 by 05:05 UTC) failed with no
   steps, with GitHub's message "The job was not started because recent account
   payments have failed or your spending limit needs to be increased" (check-run
-  annotations). Only Louis can change the account's billing. Until checks run
-  again, no pull request meets decision 10's merge conditions. The kit repository's own
-  job time from 2026-11-01 to that stop: 2,376 job-minutes, each job rounded up to a
-  minute (Kit checks 2,105, WebKit offline diagnosis 271; from the Actions runs and jobs
-  API, 122 runs and 631 jobs that ran); the account's total is not readable from a kit
-  session.
+  annotations). The kit repository was private, and GitHub's free amount for private
+  repositories on GitHub Free is $12 a month, at $0.006 a minute on a standard Linux
+  runner (GitHub Docs, "GitHub Actions billing", read 2026-11-03). The kit's own job time
+  from 2026-11-01 to that stop: 2,021 minutes by exact time ($12.13), 2,376 with each job
+  rounded up to a minute (Kit checks 2,105, WebKit offline diagnosis 271; from the
+  Actions runs and jobs API, 122 runs and 631 jobs that ran); the account's total is not
+  readable from a kit session. **Resolved:** Louis made the kit repository public on
+  2026-11-03 (visibility read 05:36 UTC); standard GitHub-hosted runners are free for
+  public repositories (same GitHub Docs page), and runs were starting again by 05:36 UTC
+  (run 41584721586, created 05:34 UTC, was in progress).
+  The refused runs stay in the record; a refused run that never started may be started
+  again, which is not rerunning a failure.
 - **Phase 3 (test) and Phase 4 (install): not started.**
 
 ## Rules for kit sessions
