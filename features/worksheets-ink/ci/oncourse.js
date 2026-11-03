@@ -5,21 +5,23 @@
  * The course data is taken from the fixture of the module's own test.js (its
  * `const PK = ...` line, Basic-Pharmacokinetics at ac2eb73, verbatim): the documents
  * its `ci` list names, which are those whose questions meet the kit core's checks
- * (the worked examples of Modules 3 and 6, the in-class activity of Module 7a and
- * Quiz 5), the questions on them and the questions their dupOf names, their problem
+ * (the worked examples of Modules 6a and 8, the in-class activities of Modules 7a and
+ * 7b; the test's comment says why the other four are not, with the core checks that
+ * refuse them), the questions on them and the questions their dupOf names, their problem
  * sets, their topics, the skills those questions use and the lectures their cites
  * name. Ids are prefixed `wsc-` (the test's own scratch copies use `wsi-`, so the two
- * never share an id). The changes to the data: `prof` is the course's own
- * (COURSE.professors[0], the template's "Professor"), as the test does; and a question's
- * `setup` line (plan-the-problem's) is left out when it names an equation the course's
- * EQUATIONS does not have. Files written
+ * never share an id). `prof` is Basic-Pharmacokinetics' own, verbatim (rework 2026-11-03,
+ * Louis's policy), and that professor is added to COURSE.professors when the course lacks
+ * it. The one change to the data: a question's `setup` line (plan-the-problem's) is left
+ * out when it names an equation the course's EQUATIONS does not have (kit rule 4,
+ * /tmp/port-tools/CIDATA.md). Files written
  * in <courseSrcDir>:
  *   q90_wsc_fixture.js   the topics (pushed onto TOPICS) and the questions, one per line
  *                        in the template's form ({id:'…', prof:'…', …}), pushed onto QUESTIONS
  *   wsc_data.js          SOURCES and CHAINS (pushed when the course already has them),
  *                        and the skills, pushed onto COURSE.skills (a skill the course
  *                        already has is not added again)
- * and one line appended to course.js: both files in COURSE.files, the lectures added to
+ * and one line appended to course.js: both files in COURSE.files, the professor added, the lectures added to
  * COURSE.lectures as literals ({id:'wsc-L09', deck:'…', …}), and the module on at
  * the version in its module.json with the test's Basic-Pharmacokinetics options
  * (PK_OPT, prefix wsc-), kept beside any module already on.
@@ -61,8 +63,6 @@ try {
     ' EQ: typeof EQUATIONS !== "undefined" && Array.isArray(EQUATIONS) ? EQUATIONS.map(e => e && e.id) : []})', {});
 } catch(e){ fail('the course could not be read: ' + e.message); }
 if(typeof own.QUESTIONS.push !== 'function') fail('the course declares no QUESTIONS list');
-const prof = (own.COURSE.professors || [])[0];
-if(!prof) fail('the course names no professor (COURSE.professors)');
 
 // the documents of PK.ci, with what they need
 const docs = PK.ci.map(id => PK.sources.find(s => s.id === id) || fail('the fixture has no document ' + id));
@@ -73,20 +73,24 @@ const qsRaw = want.map(id => byQ[id]);
 const chainIds = new Set(docs.flatMap(s => s.chains || []));
 const chains = PK.chains.filter(c => chainIds.has(c.id)).map(c => Object.assign({}, c, {id: pre(c.id), parts: c.parts.map(pre)}));
 const ownTopics = own.TOPICS.map(t => t.id), ownSkills = (own.COURSE.skills || []).map(k => k.id);
-const topics = PK.topics.filter(t => qsRaw.some(q => q.topic === t.id) && !ownTopics.includes(t.id)).map(t => Object.assign({}, t, {prof}));
+const topics = PK.topics.filter(t => qsRaw.some(q => q.topic === t.id) && !ownTopics.includes(t.id));
 const skills = PK.skills.filter(k => qsRaw.some(q => q.skill === k.id) && !ownSkills.includes(k.id));
-const lectures = PK.lectures.filter(l => qsRaw.some(q => (q.cite || '').includes(l.deck))).map(l => Object.assign({}, l, {id: pre(l.id), prof}));
+const lectures = PK.lectures.filter(l => qsRaw.some(q => (q.cite || '').includes(l.deck))).map(l => Object.assign({}, l, {id: pre(l.id)}));
+// the professors the data names (Basic-Pharmacokinetics' own `prof`), added to COURSE.professors when the course lacks them
+const profs = [...new Set(qsRaw.concat(topics, lectures).map(x => x.prof))];
+if(profs.some(p => typeof p !== 'string' || !p)) fail('a question, topic or lecture of the fixture has no prof');
+const addProfs = profs.filter(p => !(own.COURSE.professors || []).includes(p));
 const sources = docs.map(s => Object.assign({}, s, {id: pre(s.id), chains: (s.chains || []).map(pre), items: s.items.map(it => ({q: pre(it.q), label: it.label}))}));
 // a question's `setup` is plan-the-problem's (worksheets-ink does not read it): it is left out when it names an
 // equation the course's EQUATIONS does not have, since plan-the-problem's build step refuses it
 const EQ = new Set(own.EQ || []), setupOk = st => !!st && (st.eq === 'none' || EQ.has(st.eq)) && (st.pre || []).every(id => EQ.has(id));
 let dropped = 0;
 // one question per line, in the template's form: id and prof first, unquoted
-const qLine = q => { const rest = Object.assign({}, q); delete rest.id;
+const qLine = q => { const rest = Object.assign({}, q); delete rest.id; delete rest.prof;
   if(rest.setup !== undefined && !setupOk(rest.setup)){ delete rest.setup; dropped++; }
   if(rest.dupOf) rest.dupOf = pre(rest.dupOf); if(rest.lecture) rest.lecture = pre(rest.lecture);
   const body = JSON.stringify(rest).slice(1, -1);
-  return `{id:'${pre(q.id)}', prof:'${prof.replace(/'/g, "\\'")}'${body ? ', ' + body : ''}},`; };
+  return `{id:'${pre(q.id)}', prof:'${q.prof.replace(/'/g, "\\'")}'${body ? ', ' + body : ''}},`; };
 const decl = (n, v, has) => has ? `${n}.push(...${JSON.stringify(v)});` : `const ${n} = ${JSON.stringify(v)};`;
 const out = {
   'q90_wsc_fixture.js': `/* ${docs.length} of Basic-Pharmacokinetics' documents' questions (ac2eb73), from the worksheets-ink test fixture, ids prefixed wsc- (ci/oncourse.js) */\n` +
@@ -103,7 +107,8 @@ catch(e){ fail('cannot write the data files: ' + e.message); }
 const cfg = Object.assign({version: meta.version}, PK_OPT);
 const line = `\n;/* worksheets-ink ci */ COURSE.files = (COURSE.files || []).concat(['q90_wsc_fixture.js', 'wsc_data.js']); ` +
   `COURSE.lectures = (COURSE.lectures || []).concat([${lectures.map(lectureLit).join(', ')}]); ` +
+  `COURSE.professors = (COURSE.professors || []).concat(${JSON.stringify(addProfs)}); ` +
   `COURSE.features = Object.assign({}, COURSE.features, {"worksheets-ink": ${JSON.stringify(cfg)}});\n`;
 try { fs.appendFileSync(course, line); } catch(e){ fail('cannot write ' + course + ': ' + e.message); }
 console.log('wrote: appended to ' + course + ':' + line.trimEnd());
-console.log(`data: ${sources.length} documents (${PK.ci.join(', ')}), ${qsRaw.length} questions, ${chains.length} problem sets, ${topics.length} topics, ${skills.length} skills, ${lectures.length} lectures; ${dropped} setup lines left out (equations the course does not have)`);
+console.log(`data: ${sources.length} documents (${PK.ci.join(', ')}), ${qsRaw.length} questions, ${chains.length} problem sets, ${topics.length} topics, ${skills.length} skills, ${lectures.length} lectures, ${addProfs.length} professor(s) added (${addProfs.join(', ')}); ${dropped} setup lines left out (equations the course does not have)`);
