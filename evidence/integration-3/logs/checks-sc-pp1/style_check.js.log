@@ -1,0 +1,18 @@
+
+=== Stem check (every stem asks the subject, not "what does the deck say") ===
+  all 131 stems clean
+
+=== Style check (rebuilt questions only) ===
+
+  scanned 131 rebuilt questions
+  no flagged phrasing found
+
+=== Change log ===
+  1 entries, 1 bullets, all within one line
+
+  rebuilt questions whose citation names a slide: 123 of 131
+     by slide number: 75
+     by slide title:  48
+  citations naming neither a slide number nor a slide title: L01-002, L01-004, L01-005, L01-006, L01-003, L01-007 …
+  rebuilt questions with a diagram: 0
+PASS: style_check.js: 131 stems and 131 explanations clean

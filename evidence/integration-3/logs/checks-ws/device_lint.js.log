@@ -1,0 +1,6 @@
+
+=== Device lint: regex lookbehind ===
+  ok    every shipped source is on disk (17)
+  FAIL  no lookbehind in the 17 shipped sources  — views.js:2484: …const __planted = /(?<=a)b/;…
+  FAIL  no lookbehind in the built page or the service worker  — index.html:5617: …const __planted = /(?<=a)b/;…
+FAIL: device_lint.js: 2 of 3 checks failed: no lookbehind in the 17 shipped sources; no lookbehind in the built page or the service worker

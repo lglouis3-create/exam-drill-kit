@@ -1,0 +1,13 @@
+diff --git a/features/notes/ci/oncourse.js b/features/notes/ci/oncourse.js
+index f58b3c5..67687f3 100644
+--- a/features/notes/ci/oncourse.js
++++ b/features/notes/ci/oncourse.js
+@@ -55,6 +55,8 @@ try { COURSE = new Function(text + '\n;return COURSE;')(); } catch(e){ fail('cou
+ const own = {prof: (COURSE.professors || [])[0], skills: (COURSE.skills || []).map(s => s.id), lectures: COURSE.lectures || []};
+ if(typeof own.prof !== 'string' || !own.prof) fail('course.js has no first professor');
+ let w;
++// integration patch: as worksheets-ink's script does, a `setup` line naming equations the course lacks is left out
++FIX.qs.forEach(q => { delete q.setup; });
+ try { w = WRITE(FIX, own, {base: true}); } catch(e){ fail('the fixture cannot be written: ' + e.message); }
+ const line = `\n;${TAG} COURSE.files = (COURSE.files || ['atlas.js', 'diagrams.js', 'q1_topics.js']).concat([${JSON.stringify(FILE)}]); ` +
+   w.line + `COURSE.features = Object.assign({}, COURSE.features, {${JSON.stringify(NAME)}: ${JSON.stringify({version: meta.version})}});\n`;

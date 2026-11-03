@@ -1,0 +1,13 @@
+diff --git a/features/glossary-tap/ci/oncourse.js b/features/glossary-tap/ci/oncourse.js
+index 91f82ad..07b58fe 100644
+--- a/features/glossary-tap/ci/oncourse.js
++++ b/features/glossary-tap/ci/oncourse.js
+@@ -62,7 +62,7 @@ if(/`|\$\{/.test(FIX.guide)) fail('the guide fixture holds a backtick or ${, whi
+ const LEC_RE = /(\n  lectures: \[\n)([\s\S]*?)(\n  \],)/;
+ if(!LEC_RE.test(text)) fail('course.js has no `  lectures: [` list in the template\'s form');
+ const course2 = text.replace(LEC_RE, (m, a, b, c) => a + FC.lectures.map(l => '    ' + lLine(l) + ',').join('\n') + c);
+-const line = `\n;/* glossary-tap ci */ COURSE.skills = ${JSON.stringify(FC.skills)}; ` +
++const line = `\n;/* glossary-tap ci */ COURSE.skills = (COURSE.skills || []).concat(${JSON.stringify(FC.skills)}.filter(k => !(COURSE.skills || []).some(s => s.id === k.id))); ` +
+   `COURSE.files = (COURSE.files || ['atlas.js', 'diagrams.js', 'q1_topics.js']).concat(['terms_gtap.js']); ` +
+   `COURSE.features = Object.assign({}, COURSE.features, {"glossary-tap": ${JSON.stringify({version: meta.version})}});\n`;
+ try {

@@ -1,0 +1,17 @@
+diff --git a/features/quiz-prep-cards/ci/oncourse.js b/features/quiz-prep-cards/ci/oncourse.js
+index 05083df..0fbd868 100644
+--- a/features/quiz-prep-cards/ci/oncourse.js
++++ b/features/quiz-prep-cards/ci/oncourse.js
+@@ -57,7 +57,11 @@ if(COURSE.quizzes) fail('course.js already has quizzes');
+ const lit = s => { if(!/^[A-Za-z0-9 ._-]+$/.test(String(s))) fail(`"${s}" cannot be written as a literal`); return `'${s}'`; };
+ const has = new Set((COURSE.lectures || []).map(l => l.id));
+ const clash = FIX.lectures.filter(l => has.has(l.id)).map(l => l.id);
+-if(clash.length) fail('course.js already has lecture ' + clash.join(', '));
++// integration patch: on a clash, every lecture id of the fixture is prefixed qpc- (and each question's lecture with it)
++if(clash.length){ FIX.lectures = FIX.lectures.map(l => Object.assign({}, l, {id: 'qpc-' + l.id})); FIX.qs = FIX.qs.map(q => q.lecture ? Object.assign({}, q, {lecture: 'qpc-' + q.lecture}) : q);
++  const again = FIX.lectures.filter(l => has.has(l.id)).map(l => l.id); if(again.length) fail('course.js already has lecture ' + again.join(', ')); }
++// integration patch: as worksheets-ink's script does, a `setup` line naming equations the course lacks is left out
++FIX.qs = FIX.qs.map(q => { const r = Object.assign({}, q); delete r.setup; return r; });
+ const bad = FIX.qs.concat(FIX.topics, FIX.lectures).filter(o => o.prof !== PROF).map(o => o.id);
+ if(bad.length) fail(`the fixture has a prof other than "${PROF}": ` + bad.join(', '));
+ // one question per line, `{id:'…', [type:'…',] prof:'Professor', …}`, as browser_test.js counts them

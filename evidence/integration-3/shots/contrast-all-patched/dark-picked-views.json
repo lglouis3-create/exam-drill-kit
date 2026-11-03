@@ -1,0 +1,598 @@
+{
+ "theme": {
+  "attr": "dark",
+  "bg": "rgb(16, 22, 29)"
+ },
+ "seen": [
+  {
+   "view": "tab topics",
+   "low": 0,
+   "shot": "dark-picked-01-tab_topics.png"
+  },
+  {
+   "view": "topics after Got it",
+   "low": 0,
+   "shot": "dark-picked-02-topics_after_Got_it.png"
+  },
+  {
+   "view": "topics after All",
+   "low": 0,
+   "shot": "dark-picked-03-topics_after_All.png"
+  },
+  {
+   "view": "topics after Professor",
+   "low": 0,
+   "shot": "dark-picked-04-topics_after_Professor.png"
+  },
+  {
+   "view": "topics after Any",
+   "low": 0,
+   "shot": "dark-picked-05-topics_after_Any.png"
+  },
+  {
+   "view": "topics after read a structure",
+   "low": 0,
+   "shot": "dark-picked-06-topics_after_read_a_structure.png"
+  },
+  {
+   "view": "topics after name the enzyme or cofactor",
+   "low": 0,
+   "shot": "dark-picked-07-topics_after_name_the_enzyme_or_cofactor.png"
+  },
+  {
+   "view": "topics after predict the outcome",
+   "low": 0,
+   "shot": "dark-picked-08-topics_after_predict_the_outcome.png"
+  },
+  {
+   "view": "topics after define a term",
+   "low": 0,
+   "shot": "dark-picked-09-topics_after_define_a_term.png"
+  },
+  {
+   "view": "topics after list or rank",
+   "low": 0,
+   "shot": "dark-picked-10-topics_after_list_or_rank.png"
+  },
+  {
+   "view": "tab quiz",
+   "low": 0,
+   "shot": "dark-picked-11-tab_quiz.png"
+  },
+  {
+   "view": "tab gaps",
+   "low": 0,
+   "shot": "dark-picked-12-tab_gaps.png"
+  },
+  {
+   "view": "gaps after Open Notes",
+   "low": 0,
+   "shot": "dark-picked-13-gaps_after_Open_Notes.png"
+  },
+  {
+   "view": "tab notes",
+   "low": 0,
+   "shot": "dark-picked-14-tab_notes.png"
+  },
+  {
+   "view": "tab exam",
+   "low": 0,
+   "shot": "dark-picked-15-tab_exam.png"
+  },
+  {
+   "view": "exam after One at a time",
+   "low": 0,
+   "shot": "dark-picked-16-exam_after_One_at_a_time.png"
+  },
+  {
+   "view": "exam after All on one page",
+   "low": 0,
+   "shot": "dark-picked-17-exam_after_All_on_one_page.png"
+  },
+  {
+   "view": "exam after Start the 120-minute paper",
+   "low": 0,
+   "shot": "dark-picked-18-exam_after_Start_the_120_minute_paper.png"
+  },
+  {
+   "view": "tab sa",
+   "low": 0,
+   "shot": "dark-picked-19-tab_sa.png"
+  },
+  {
+   "view": "sa after Check my answer",
+   "low": 0,
+   "shot": "dark-picked-20-sa_after_Check_my_answer.png"
+  },
+  {
+   "view": "sa after Next",
+   "low": 0,
+   "shot": "dark-picked-21-sa_after_Next.png"
+  },
+  {
+   "view": "sa after Shuffle",
+   "low": 0,
+   "shot": "dark-picked-22-sa_after_Shuffle.png"
+  },
+  {
+   "view": "tab graphs",
+   "low": 0,
+   "shot": "dark-picked-23-tab_graphs.png"
+  },
+  {
+   "view": "graphs after Drill this figure",
+   "low": 0,
+   "shot": "dark-picked-24-graphs_after_Drill_this_figure.png"
+  },
+  {
+   "view": "tab diagrams",
+   "low": 0,
+   "shot": "dark-picked-25-tab_diagrams.png"
+  },
+  {
+   "view": "diagrams after ◀ Back",
+   "low": 0,
+   "shot": "dark-picked-26-diagrams_after_Back.png"
+  },
+  {
+   "view": "diagrams after Next ▶",
+   "low": 0,
+   "shot": "dark-picked-27-diagrams_after_Next_.png"
+  },
+  {
+   "view": "diagrams after ↻ Replay step",
+   "low": 0,
+   "shot": "dark-picked-28-diagrams_after_Replay_step.png"
+  },
+  {
+   "view": "diagrams after ▶ Play all",
+   "low": 0,
+   "shot": "dark-picked-29-diagrams_after_Play_all.png"
+  },
+  {
+   "view": "tab guide",
+   "low": 0,
+   "shot": "dark-picked-30-tab_guide.png"
+  },
+  {
+   "view": "guide after Affinity",
+   "low": 0,
+   "shot": "dark-picked-31-guide_after_Affinity.png"
+  },
+  {
+   "view": "guide after drug",
+   "low": 0,
+   "shot": "dark-picked-32-guide_after_drug.png"
+  },
+  {
+   "view": "guide after Efficacy",
+   "low": 0,
+   "shot": "dark-picked-33-guide_after_Efficacy.png"
+  },
+  {
+   "view": "guide after receptor",
+   "low": 0,
+   "shot": "dark-picked-34-guide_after_receptor.png"
+  },
+  {
+   "view": "guide after drugs",
+   "low": 0,
+   "shot": "dark-picked-35-guide_after_drugs.png"
+  },
+  {
+   "view": "guide after affinity",
+   "low": 0,
+   "shot": "dark-picked-36-guide_after_affinity.png"
+  },
+  {
+   "view": "guide after efficacy",
+   "low": 0,
+   "shot": "dark-picked-37-guide_after_efficacy.png"
+  },
+  {
+   "view": "tab tell",
+   "low": 0,
+   "shot": "dark-picked-38-tab_tell.png"
+  },
+  {
+   "view": "tab ref",
+   "low": 0,
+   "shot": "dark-picked-39-tab_ref.png"
+  },
+  {
+   "view": "ref after drug",
+   "low": 0,
+   "shot": "dark-picked-40-ref_after_drug.png"
+  },
+  {
+   "view": "ref after ◀ Back",
+   "low": 0,
+   "shot": "dark-picked-41-ref_after_Back.png"
+  },
+  {
+   "view": "ref after Next ▶",
+   "low": 0,
+   "shot": "dark-picked-42-ref_after_Next_.png"
+  },
+  {
+   "view": "ref after ↻ Replay step",
+   "low": 0,
+   "shot": "dark-picked-43-ref_after_Replay_step.png"
+  },
+  {
+   "view": "ref after ▶ Play all",
+   "low": 0,
+   "shot": "dark-picked-44-ref_after_Play_all.png"
+  },
+  {
+   "view": "ref after Why?",
+   "low": 0,
+   "shot": "dark-picked-45-ref_after_Why_.png"
+  },
+  {
+   "view": "tab eq",
+   "low": 0,
+   "shot": "dark-picked-46-tab_eq.png"
+  },
+  {
+   "view": "eq after Start",
+   "low": 0,
+   "shot": "dark-picked-47-eq_after_Start.png"
+  },
+  {
+   "view": "tab glossary",
+   "low": 0,
+   "shot": "dark-picked-48-tab_glossary.png"
+  },
+  {
+   "view": "glossary after All",
+   "low": 0,
+   "shot": "dark-picked-49-glossary_after_All.png"
+  },
+  {
+   "view": "glossary after Drug basics",
+   "low": 0,
+   "shot": "dark-picked-50-glossary_after_Drug_basics.png"
+  },
+  {
+   "view": "glossary after Drug–receptor binding",
+   "low": 0,
+   "shot": "dark-picked-51-glossary_after_Drug_receptor_binding.png"
+  },
+  {
+   "view": "glossary after Adrenergic drugs",
+   "low": 0,
+   "shot": "dark-picked-52-glossary_after_Adrenergic_drugs.png"
+  },
+  {
+   "view": "glossary after Receptors and signaling",
+   "low": 0,
+   "shot": "dark-picked-53-glossary_after_Receptors_and_signaling.png"
+  },
+  {
+   "view": "glossary after Basics and models",
+   "low": 0,
+   "shot": "dark-picked-54-glossary_after_Basics_and_models.png"
+  },
+  {
+   "view": "glossary after Absorption and oral dosing",
+   "low": 0,
+   "shot": "dark-picked-55-glossary_after_Absorption_and_oral_dosing.png"
+  },
+  {
+   "view": "glossary after Distribution and volume",
+   "low": 0,
+   "shot": "dark-picked-56-glossary_after_Distribution_and_volume.png"
+  },
+  {
+   "view": "tab pairup",
+   "low": 0,
+   "shot": "dark-picked-57-tab_pairup.png"
+  },
+  {
+   "view": "pairup after Receptor → what an agonist does there",
+   "low": 0,
+   "shot": "dark-picked-58-pairup_after_Receptor_what_an_agonist_does_there.png"
+  },
+  {
+   "view": "pairup after DUMBBELSS: each letter, with its recepto",
+   "low": 0,
+   "shot": "dark-picked-59-pairup_after_DUMBBELSS_each_letter_with_its_recept.png"
+  },
+  {
+   "view": "pairup after Anti-DUMBBELSS: what the antagonist give",
+   "low": 0,
+   "shot": "dark-picked-60-pairup_after_Anti_DUMBBELSS_what_the_antagonist_gi.png"
+  },
+  {
+   "view": "pairup after Receptor → G protein, or ion channel",
+   "low": 0,
+   "shot": "dark-picked-61-pairup_after_Receptor_G_protein_or_ion_channel.png"
+  },
+  {
+   "view": "pairup after Drug → its receptor (Exam 2 list)",
+   "low": 0,
+   "shot": "dark-picked-62-pairup_after_Drug_its_receptor_Exam_2_list_.png"
+  },
+  {
+   "view": "tab rt-ip-rx",
+   "low": 0,
+   "shot": "dark-picked-63-tab_rt_ip_rx.png"
+  },
+  {
+   "view": "rt-ip-rx after Name the receptor",
+   "low": 0,
+   "shot": "dark-picked-64-rt_ip_rx_after_Name_the_receptor.png"
+  },
+  {
+   "view": "rt-ip-rx after Name the drug",
+   "low": 0,
+   "shot": "dark-picked-65-rt_ip_rx_after_Name_the_drug.png"
+  },
+  {
+   "view": "rt-ip-rx after Cover and reveal",
+   "low": 0,
+   "shot": "dark-picked-66-rt_ip_rx_after_Cover_and_reveal.png"
+  },
+  {
+   "view": "tab rt-ip-pt",
+   "low": 0,
+   "shot": "dark-picked-67-tab_rt_ip_pt.png"
+  },
+  {
+   "view": "rt-ip-pt after Name the antidote",
+   "low": 0,
+   "shot": "dark-picked-68-rt_ip_pt_after_Name_the_antidote.png"
+  },
+  {
+   "view": "rt-ip-pt after Name the mechanism",
+   "low": 0,
+   "shot": "dark-picked-69-rt_ip_pt_after_Name_the_mechanism.png"
+  },
+  {
+   "view": "rt-ip-pt after Name the poison",
+   "low": 0,
+   "shot": "dark-picked-70-rt_ip_pt_after_Name_the_poison.png"
+  },
+  {
+   "view": "rt-ip-pt after The professor's special questions",
+   "low": 0,
+   "shot": "dark-picked-71-rt_ip_pt_after_The_professor_s_special_questions.png"
+  },
+  {
+   "view": "rt-ip-pt after Cover and reveal",
+   "low": 0,
+   "shot": "dark-picked-72-rt_ip_pt_after_Cover_and_reveal.png"
+  },
+  {
+   "view": "tab terms",
+   "low": 0,
+   "shot": "dark-picked-73-tab_terms.png"
+  },
+  {
+   "view": "terms after Glossary",
+   "low": 0,
+   "shot": "dark-picked-74-terms_after_Glossary.png"
+  },
+  {
+   "view": "terms after Flashcards",
+   "low": 0,
+   "shot": "dark-picked-75-terms_after_Flashcards.png"
+  },
+  {
+   "view": "terms after Quiz me",
+   "low": 0,
+   "shot": "dark-picked-76-terms_after_Quiz_me.png"
+  },
+  {
+   "view": "terms after All groups",
+   "low": 0,
+   "shot": "dark-picked-77-terms_after_All_groups.png"
+  },
+  {
+   "view": "terms after Drug basics",
+   "low": 0,
+   "shot": "dark-picked-78-terms_after_Drug_basics.png"
+  },
+  {
+   "view": "terms after Drug–receptor binding",
+   "low": 0,
+   "shot": "dark-picked-79-terms_after_Drug_receptor_binding.png"
+  },
+  {
+   "view": "terms after Adrenergic drugs",
+   "low": 0,
+   "shot": "dark-picked-80-terms_after_Adrenergic_drugs.png"
+  },
+  {
+   "view": "terms after Receptors and signaling",
+   "low": 0,
+   "shot": "dark-picked-81-terms_after_Receptors_and_signaling.png"
+  },
+  {
+   "view": "terms after Basics and models",
+   "low": 0,
+   "shot": "dark-picked-82-terms_after_Basics_and_models.png"
+  },
+  {
+   "view": "terms after Absorption and oral dosing",
+   "low": 0,
+   "shot": "dark-picked-83-terms_after_Absorption_and_oral_dosing.png"
+  },
+  {
+   "view": "tab sheets",
+   "low": 0,
+   "shot": "dark-picked-84-tab_sheets.png"
+  },
+  {
+   "view": "sheets after ✍️ Write on it",
+   "low": 0,
+   "shot": "dark-picked-85-sheets_after_Write_on_it.png"
+  },
+  {
+   "view": "sheets after Practice in the drill",
+   "low": 0,
+   "shot": "dark-picked-86-sheets_after_Practice_in_the_drill.png"
+  },
+  {
+   "view": "tab settings",
+   "low": 0,
+   "shot": "dark-picked-87-tab_settings.png"
+  },
+  {
+   "view": "settings after Exam cram",
+   "low": 0,
+   "shot": "dark-picked-88-settings_after_Exam_cram.png"
+  },
+  {
+   "view": "settings after Weekly exams",
+   "low": 0,
+   "shot": "dark-picked-89-settings_after_Weekly_exams.png"
+  },
+  {
+   "view": "settings after Semester",
+   "low": 0,
+   "shot": "dark-picked-90-settings_after_Semester.png"
+  },
+  {
+   "view": "settings after Ask everything",
+   "low": 0,
+   "shot": "dark-picked-91-settings_after_Ask_everything.png"
+  },
+  {
+   "view": "settings after Questions as text (Markdown)",
+   "low": 0,
+   "shot": "dark-picked-92-settings_after_Questions_as_text_Markdown_.png"
+  },
+  {
+   "view": "settings after Questions as data (JSON)",
+   "low": 0,
+   "shot": "dark-picked-93-settings_after_Questions_as_data_JSON_.png"
+  },
+  {
+   "view": "settings after Guides + Tell apart + Reference (HTML)",
+   "low": 0,
+   "shot": "dark-picked-94-settings_after_Guides_Tell_apart_Reference_HTML_.png"
+  },
+  {
+   "view": "quiz card unanswered (flag, note, keys line)",
+   "low": 0,
+   "shot": "dark-picked-95-quiz_card_unanswered_flag_note_keys_line_.png"
+  },
+  {
+   "view": "quiz card flagged, note box open",
+   "low": 0,
+   "shot": "dark-picked-96-quiz_card_flagged_note_box_open.png"
+  },
+  {
+   "view": "quiz card answered wrong",
+   "low": 0,
+   "shot": "dark-picked-97-quiz_card_answered_wrong.png"
+  },
+  {
+   "view": "quiz card, a glossary term tapped",
+   "low": 0,
+   "shot": "dark-picked-98-quiz_card_a_glossary_term_tapped.png"
+  },
+  {
+   "view": "calculation, stopwatch running",
+   "low": 0,
+   "shot": "dark-picked-99-calculation_stopwatch_running.png"
+  },
+  {
+   "view": "Scratch paper open over the calculation",
+   "low": 0,
+   "shot": "dark-picked-100-Scratch_paper_open_over_the_calculation.png"
+  },
+  {
+   "view": "calculation answered wrong (diagnosis, miss chips, time taken)",
+   "low": 0,
+   "shot": "dark-picked-101-calculation_answered_wrong_diagnosis_miss_chips_ti.png"
+  },
+  {
+   "view": "quiz, all on one page (study-controls)",
+   "low": 0,
+   "shot": "dark-picked-102-quiz_all_on_one_page_study_controls_.png"
+  },
+  {
+   "view": "one-page quiz, a note open",
+   "low": 0,
+   "shot": "dark-picked-103-one_page_quiz_a_note_open.png"
+  },
+  {
+   "view": "exam start (paper-picker chips, strict box)",
+   "low": 0,
+   "shot": "dark-picked-104-exam_start_paper_picker_chips_strict_box_.png"
+  },
+  {
+   "view": "exam paper running, one at a time",
+   "low": 0,
+   "shot": "dark-picked-105-exam_paper_running_one_at_a_time.png"
+  },
+  {
+   "view": "exam paper, a pick and a flag",
+   "low": 0,
+   "shot": "dark-picked-106-exam_paper_a_pick_and_a_flag.png"
+  },
+  {
+   "view": "exam result page",
+   "low": 0,
+   "shot": "dark-picked-107-exam_result_page.png"
+  },
+  {
+   "view": "module page 0 concepts",
+   "low": 0,
+   "shot": "dark-picked-108-module_page_0_concepts.png"
+  },
+  {
+   "view": "module page 0 calcs",
+   "low": 0,
+   "shot": "dark-picked-109-module_page_0_calcs.png"
+  },
+  {
+   "view": "module page 1 concepts",
+   "low": 0,
+   "shot": "dark-picked-110-module_page_1_concepts.png"
+  },
+  {
+   "view": "module page 2 calcs",
+   "low": 0,
+   "shot": "dark-picked-111-module_page_2_calcs.png"
+  },
+  {
+   "view": "Weak spots after answers (concept-statuses)",
+   "low": 0,
+   "shot": "dark-picked-112-Weak_spots_after_answers_concept_statuses_.png"
+  }
+ ],
+ "low": [],
+ "skipped": [
+  "topics > All changes",
+  "eq > Module 1",
+  "eq > Module 2",
+  "eq > Module 3",
+  "eq > Module 4",
+  "eq > Module 5",
+  "eq > Module 6",
+  "eq > All",
+  "eq > The 9 said to memorise",
+  "eq > The 0 not printed but reached from the s",
+  "glossary > A",
+  "pairup > β1 on the JG cells",
+  "pairup > M3 on the endothelium",
+  "pairup > α2 on the sympathetic nerve ending",
+  "pairup > Nm on skeletal muscle",
+  "pairup > β2 on vessel or airway smooth muscle",
+  "rt-ip-rx > β2 · agonist",
+  "rt-ip-rx > α1, β1 · agonist",
+  "rt-ip-rx > Low dose β1, β2; high dose also α1, α2 ·",
+  "rt-ip-rx > β3 · agonist",
+  "rt-ip-rx > β3 · antagonist",
+  "rt-ip-rx > Skip",
+  "rt-ip-pt > Ethanol or fomepizole",
+  "rt-ip-pt > octreotide",
+  "rt-ip-pt > Naloxone",
+  "rt-ip-pt > Flumazenil",
+  "rt-ip-pt > Atropine; Calcium; Glucagon; HIET; Vasop"
+ ]
+}

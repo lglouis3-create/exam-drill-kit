@@ -1,0 +1,407 @@
+== kit /tmp/port-integration-3/kitpatch at 9acfe9d (patched:  7 files changed, 24 insertions(+), 9 deletions(-))
+== modules switched on, in this order: chained-problem-sets concept-statuses formulas-in-text equation-drill glossary-tap module-pages notes pair-up-drills paper-picker plan-the-problem quiz-prep-cards short-answer-graphs stopwatch study-controls terms-variables theme worksheets-ink wrong-number-diagnosis
+-- chained-problem-sets: node features/chained-problem-sets/ci/oncourse.js
+wrote: /tmp/port-integration-3/ci/all-patched/kit-ci-zdccOP/course/src/q90_cpc_fixture.js (topic cpc, 4 parts and the problem set cpc-m1-first from the fixture in test.js)
+wrote: appended to /tmp/port-integration-3/ci/all-patched/kit-ci-zdccOP/course/src/course.js: the file in COURSE.files, 2 deck(s) in COURSE.lectures (IntroductionandMathReviewSolutions.pdf, Introduction.pdf), and chained-problem-sets v2 on
+-- concept-statuses: node features/concept-statuses/ci/oncourse.js
+wrote: /tmp/port-integration-3/ci/all-patched/kit-ci-zdccOP/course/src/q90_cst_fixture.js (1 topics and 7 questions from FIX in test.js)
+wrote: appended to /tmp/port-integration-3/ci/all-patched/kit-ci-zdccOP/course/src/course.js: the file in COURSE.files, the lecture 3IntravenousInfusions.pdf (id L91) in COURSE.lectures, 1 skill(s) in COURSE.skills, and concept-statuses v1 on with words (61 entries)
+-- formulas-in-text: node features/formulas-in-text/ci/oncourse.js
+wrote: appended to /tmp/port-integration-3/ci/all-patched/kit-ci-zdccOP/course/src/course.js: formulas-in-text v1 on with 56 symbols, 4 rates, halfLife, times, minus and powers (the options of its test.js)
+wrote: no data files (the module reads no course data file)
+-- equation-drill: node features/equation-drill/ci/oncourse.js
+wrote: /tmp/port-integration-3/ci/all-patched/kit-ci-zdccOP/course/src/eqc_equations.js (14 equations from the fixture in test.js)
+wrote: appended to /tmp/port-integration-3/ci/all-patched/kit-ci-zdccOP/course/src/course.js: the file in COURSE.files and equation-drill v2 on
+-- glossary-tap: node features/glossary-tap/ci/oncourse.js
+wrote: /tmp/port-integration-3/ci/all-patched/kit-ci-zdccOP/course/src/terms_gtap.js (10 terms)
+wrote: /tmp/port-integration-3/ci/all-patched/kit-ci-zdccOP/course/src/q1_topics.js (2 topics, 66 questions; replaces the template sample)
+wrote: /tmp/port-integration-3/ci/all-patched/kit-ci-zdccOP/course/src/guide.js (Intro to Pharmacology guide.js sections 1 and 4, opening lines; replaces the template sample)
+wrote: /tmp/port-integration-3/ci/all-patched/kit-ci-zdccOP/course/src/course.js: lectures L04, L10 in its list; appended 7 skills, terms_gtap.js in files, glossary-tap v1 on
+-- module-pages: node features/module-pages/ci/oncourse.js
+wrote: /tmp/port-integration-3/ci/all-patched/kit-ci-zdccOP/course/src/q90_mpc_fixture.js (21909 characters)
+wrote: /tmp/port-integration-3/ci/all-patched/kit-ci-zdccOP/course/src/mpc_data.js (1083 characters)
+wrote: appended to /tmp/port-integration-3/ci/all-patched/kit-ci-zdccOP/course/src/course.js:
+;/* module-pages ci */ COURSE.files = (COURSE.files || ['atlas.js', 'diagrams.js', 'q1_topics.js']).concat(["q90_mpc_fixture.js", "mpc_data.js"]); COURSE.lectures = (COURSE.lectures || []).concat([{id:'mpc-L02', deck:'2IVBolusAdministration.pdf', label:'Module 2: One-compartment IV bolus (24 Aug)', prof:'Professor', exam:1, module:92}, {id:'mpc-L03', deck:'2IVBolusAdministration.pdf', label:'Module 2: Multicompartment IV bolus (26 Aug)', prof:'Professor', exam:1, module:92}]); COURSE.features = Object.assign({}, COURSE.features, {"module-pages": {"version":"v1","modules":[[1,"Module 1"],[2,"Module 2"],["Module 1","Module 1"],[3,"Module 3"],[92,"Module 2 - IV Bolus Administration"]]}});
+data: 8 questions (calculations: 1), 2 topics, 5 objectives, 1 kinds of problem, 1 skills, 2 lectures; left out: 12 questions citing no lecture deck and 2 second wordings, 3 kinds whose worked example is not among the questions written, 1 problem sets
+-- notes: node features/notes/ci/oncourse.js
+wrote: /tmp/port-integration-3/ci/all-patched/kit-ci-zdccOP/course/src/q90_notes_fixture.js (topics pkpd, nonlin and 16 questions from FIX in test.js)
+wrote: appended to /tmp/port-integration-3/ci/all-patched/kit-ci-zdccOP/course/src/course.js: the file in COURSE.files, lectures L11, L12 in COURSE.lectures, skills pkpd, nonlin in COURSE.skills, and notes v1 on
+-- pair-up-drills: node features/pair-up-drills/ci/oncourse.js
+wrote: /tmp/port-integration-3/ci/all-patched/kit-ci-zdccOP/course/src/pud_ci_data.js (5 pair sets with 14, 9, 8, 12, 32 pairs; 2 tables with 39, 12 rows, from the fixture in test.js)
+wrote: appended to /tmp/port-integration-3/ci/all-patched/kit-ci-zdccOP/course/src/course.js: the file in COURSE.files and pair-up-drills v1 on
+-- paper-picker: node features/paper-picker/ci/oncourse.js
+wrote: /tmp/port-integration-3/ci/all-patched/kit-ci-zdccOP/course/src/q90_paper_picker_pk.js (11 topics and 118 questions from features/paper-picker/current/test_fixture.js, prof "Professor")
+wrote: /tmp/port-integration-3/ci/all-patched/kit-ci-zdccOP/course/src/images.json (the 9 images those questions show, added to the course's own)
+wrote: appended to /tmp/port-integration-3/ci/all-patched/kit-ci-zdccOP/course/src/course.js: the file in COURSE.files, 12 lectures in COURSE.lectures, the skills the course lacks, COURSE.exams (Exam 1, Exam 2, Exam 3 (final)), COURSE.activeExam 3, and paper-picker v1 on
+-- plan-the-problem: node features/plan-the-problem/ci/oncourse.js
+wrote: /tmp/port-integration-3/ci/all-patched/kit-ci-zdccOP/course/src/plc_plan_data.js (9 equations, added to the course's EQUATIONS, 55 ASKS, PLAN with 12 models)
+wrote: /tmp/port-integration-3/ci/all-patched/kit-ci-zdccOP/course/src/q90_plc_fixture.js (6 topics, 10 questions from the fixture in test.js)
+wrote: appended to /tmp/port-integration-3/ci/all-patched/kit-ci-zdccOP/course/src/course.js: both files in COURSE.files, 2 lecture(s) (L93 IV-Bolus-Practice-3---Solutions.pdf, L94 Multiple-IV-Bolus-Practice-1---Solutions.pdf), 4 skill(s), and plan-the-problem v1 on
+-- quiz-prep-cards: node features/quiz-prep-cards/ci/oncourse.js
+wrote: /tmp/port-integration-3/ci/all-patched/kit-ci-zdccOP/course/src/q90_qpc_pk.js (6 topics, 20 questions from the fixture in test.js)
+wrote: appended to /tmp/port-integration-3/ci/all-patched/kit-ci-zdccOP/course/src/course.js: q90_qpc_pk.js in COURSE.files, lectures qpc-L08, qpc-L09, qpc-L10, qpc-L11, qpc-L12, 0 skills (none new), 2 quizzes (q5 2026-10-19T08:00, q4 2026-10-05T08:00), and quiz-prep-cards v1 on
+-- short-answer-graphs: node features/short-answer-graphs/ci/oncourse.js
+wrote: /tmp/port-integration-3/ci/all-patched/kit-ci-zdccOP/course/src/q90_sgc_fixture.js (topics FG, L06, PE2; 21 questions from the fixture in test.js)
+wrote: /tmp/port-integration-3/ci/all-patched/kit-ci-zdccOP/course/src/sgc_data.js (5 prompts, 4 figures, GRAPH_MISS 12 tags, GRAPH_EXAMS Exam 2 with 4 tags)
+wrote: /tmp/port-integration-3/ci/all-patched/kit-ci-zdccOP/course/src/images.json (4 images added: sgc-rev-rt-figure, sgc-rev-allo-ant, sgc-rev-pindolol, sgc-pe2-gi-tracing)
+wrote: appended to /tmp/port-integration-3/ci/all-patched/kit-ci-zdccOP/course/src/course.js: the two files in COURSE.files, 5 lecture(s) in COURSE.lectures (L06, L07, L08, L09, PE2), 0 skill(s) in COURSE.skills (none new), and short-answer-graphs v1 on
+-- stopwatch: node features/stopwatch/ci/oncourse.js
+wrote: /tmp/port-integration-3/ci/all-patched/kit-ci-zdccOP/course/src/q90_stopwatch_pk.js (10 topics and 60 questions: the calculations sw-cq4-2, sw-cq4-4, sw-cq4-6, sw-cq4-8, sw-cq4-9 and 55 single-answer and select-all questions for Exam 3 (final); prof "Professor")
+wrote: /tmp/port-integration-3/ci/all-patched/kit-ci-zdccOP/course/src/images.json (the 7 images those questions show, added to the course's own)
+wrote: appended to /tmp/port-integration-3/ci/all-patched/kit-ci-zdccOP/course/src/course.js: q90_stopwatch_pk.js in COURSE.files, 9 lectures (sw-L01, sw-L04, sw-L06, sw-L07, sw-L08, sw-L09, sw-L10, sw-L11, sw-L12), the skills the course lacks, COURSE.exams = [Exam 3 (final)] (no typed, as in the course), COURSE.activeExam 3, and stopwatch v1 on with paceSeconds 120
+-- study-controls: node features/study-controls/ci/oncourse.js
+wrote: /tmp/port-integration-3/ci/all-patched/kit-ci-zdccOP/course/src/q90_sc_fixture.js (topic L01 and 6 questions from FIX in test.js)
+wrote: appended to /tmp/port-integration-3/ci/all-patched/kit-ci-zdccOP/course/src/course.js: the file in COURSE.files, the lecture Pharmacodynamics-Day-1-2026s.pdf (id L91) in COURSE.lectures, and study-controls v1 on with strict: true and the strict note
+-- terms-variables: node features/terms-variables/ci/oncourse.js
+wrote: /tmp/port-integration-3/ci/all-patched/kit-ci-zdccOP/course/src/tvc_course_data.js (7 terms, 55 ASKS entries, added to the course's own)
+wrote: /tmp/port-integration-3/ci/all-patched/kit-ci-zdccOP/course/src/q90_tvc_course.js (4 of 5 topics, 9 of 10 questions)
+left out: terms pharmacodynamics (the course's TERMS has a term of that name); questions m2-n-d3a (their cite names no deck of COURSE.lectures); 9 setup lines (equations the course does not have); 8 teachImg (crops the course's images.json does not have)
+wrote: appended to /tmp/port-integration-3/ci/all-patched/kit-ci-zdccOP/course/src/course.js: the 2 files in COURSE.files, 5 lectures, 1 skills, and terms-variables v1 on
+-- theme: node features/theme/ci/oncourse.js
+wrote: appended to /tmp/port-integration-3/ci/all-patched/kit-ci-zdccOP/course/src/course.js:
+;/* theme ci */ COURSE.features = Object.assign({}, COURSE.features, {"theme": {"version":"v1"}});
+wrote: no data files (the module reads no course data)
+-- worksheets-ink: node features/worksheets-ink/ci/oncourse.js
+wrote: /tmp/port-integration-3/ci/all-patched/kit-ci-zdccOP/course/src/q90_wsc_fixture.js (53345 characters)
+wrote: /tmp/port-integration-3/ci/all-patched/kit-ci-zdccOP/course/src/wsc_data.js (4196 characters)
+wrote: appended to /tmp/port-integration-3/ci/all-patched/kit-ci-zdccOP/course/src/course.js:
+;/* worksheets-ink ci */ COURSE.files = (COURSE.files || []).concat(['q90_wsc_fixture.js', 'wsc_data.js']); COURSE.lectures = (COURSE.lectures || []).concat([{id:'wsc-L09', deck:'6a---Multiple-Oral-Doses.pdf', label:'Module 6a: Multiple oral doses (28 Sep)', exam:2, module:6, prof:'Professor'}, {id:'wsc-L10', deck:'7a---Bioavailability-and-Bioequivalence.pdf', label:'Module 7a: Bioavailability and bioequivalence (30 Sep)', exam:2, module:7, prof:'Professor'}, {id:'wsc-L11', deck:'7b---Pharmacokinetics-and-Pharmacodynamics.pdf', label:'Module 7b: PK-PD relationship (12 Oct)', exam:3, module:9, prof:'Professor'}, {id:'wsc-L12', deck:'8 - Nonlinear PK.pdf', label:'Module 8: Nonlinear pharmacokinetics (14 Oct)', exam:3, module:8, prof:'Professor'}]); COURSE.features = Object.assign({}, COURSE.features, {"worksheets-ink": {"version":"v1","modules":[[1,"1","Module 1 - Introduction & Math Review"],[2,"2","Module 2 - IV Bolus Administration"],[3,"3","Module 3 - Intravenous Infusions"],[4,"4","Module 4 - Drug Elimination and Clearance"],[5,"5","Module 5 - Single Oral Administration"],[6,"6","Module 6 - Multiple Dosings"],[7,"7a","Module 7a - Bioavailability and Bioequivalence"],[9,"7b","Module 7b - PK-PD Relationship"],[8,"8","Module 8 - Nonlinear Pharmacokinetics"]],"originalIds":"^wsc-(hwo|hw7o-|nl-hwo-)","changedIds":"^wsc-(hw\\d|hw7-|nl-hw-)","drillWorked":"no worked answer|without a worked answer|does not record|stated no final value|did not state|ends before she states|not one she asks|computed here|chosen here|recording stops|does not work|applied to that example|her spoken values","spokenOnly":"recording|aloud|spoken","writtenWorking":"written working|her key|her sheet|worked on the|worked answers"}});
+data: 4 documents (ex-m6a, ic-m7, ic-m7b, ex-m8), 19 questions, 6 problem sets, 0 topics, 0 skills, 4 lectures; 19 setup lines left out (equations the course does not have)
+-- wrong-number-diagnosis: node features/wrong-number-diagnosis/ci/oncourse.js
+wrote: appended to /tmp/port-integration-3/ci/all-patched/kit-ci-zdccOP/course/src/course.js: wrong-number-diagnosis v1 on
+wrote: no data files (the module reads the course's own calculations)
+== modules:chained-problem-sets,concept-statuses,equation-drill,formulas-in-text,glossary-tap,module-pages,notes,pair-up-drills,paper-picker,plan-the-problem,quiz-prep-cards,short-answer-graphs,stopwatch,study-controls,terms-variables,theme,worksheets-ink,wrong-number-diagnosis, chromium, kit 9acfe9d
+PASS     build.py          wrote index.html  (1.79 MB)
+FAIL     test.js           26 failure(s)
+PASS     style_check.js    364 stems and 351 explanations clean
+PASS     render_test.js    every view rendered clean
+REPORT   explain_check.js  126 of 364 questions carry at least one explanation issue
+PASS     stepper_test.js   1 step-through(s) settle at every step
+NOT RUN  cite_check.py     no lecture PDFs found under decks/ or src/
+PASS     device_lint.js    3 checks passed
+FAIL     output_test.js    1 of 16 checks failed: test.js reads that page and passes
+PASS     files_test.js     13 checks passed
+PASS     tables_test.js    20 checks passed
+FAIL     checks_test.js    5 of 32 checks failed: test.js passes with exit 0 and a PASS line; run_checks.sh exits 0 when nothing fails (a NOT RUN is listed, not failed); a passing check is one PASS line with its summary …
+PASS     draw_test.js      9 checks passed
+FAIL     browser_test.js   2 of 99 checks failed: the sweep repeats nothing; the sweep covers every question
+PASS     storage_test.js   24 checks passed
+PASS     startup_test.js   77 checks passed
+PASS     update_test.js    38 checks passed
+PASS     offline_test.js   29 checks passed
+PASS     home_test.js      36 checks passed
+PASS     history_test.js   28 checks passed
+PASS     scheduler_test.js 110 checks passed
+PASS     preview_test.js   14 checks passed
+PASS     state_check.js    2 checks passed
+PASS     state_check_test.js 8 checks passed
+PASS     oldcache_test.js  12 checks passed
+PASS     nullexam_test.js  76 checks passed (1 skipped: the Weighting chips)
+PASS     features_test.js  40 checks passed
+PASS     features/chained-problem-sets/test.js 16 checks passed (1 skipped: parts on drawn papers)
+PASS     features/concept-statuses/test.js 88 checks passed (1 skipped: a matching answer names the wrong pairs)
+PASS     features/formulas-in-text/test.js 12 checks passed
+PASS     features/equation-drill/test.js 30 checks passed
+PASS     features/glossary-tap/test.js 93 checks passed
+PASS     features/module-pages/test.js 42 checks passed
+NOT RUN  features/notes/test.js the scratch copy with the test question does not build: ERROR: feature plan-the-problem: its build step stopped the build: pd-ex-b-c1: setup names the equation "pd-teff-ln", which is not in EQUATIONS;
+PASS     features/pair-up-drills/test.js 69 checks passed
+FAIL     features/paper-picker/test.js 1 of 23 checks failed: the course holds 118 of the 118 questions of test_fixture.js, so neither its own copy nor a new one can be used
+FAIL     features/plan-the-problem/test.js 2 of 53 checks failed: the copy without ASKS and PLAN builds; the copy with PLAN and no ASKS builds
+FAIL     features/quiz-prep-cards/test.js 2 of 54 checks failed: the Quiz 4 straight pass queues each of its 83 questions once; the two straight passes record 80 answers (40 on Quiz 5, 40 on Quiz 4), all on the quizzes' questions
+PASS     features/short-answer-graphs/test.js 69 checks passed (1 skipped: no Graphs tab without figures)
+PASS     features/stopwatch/test.js 29 checks passed
+PASS     features/study-controls/test.js 59 checks passed (1 skipped: the flags bar and the strict paper on a paper drawn for an earlier exam)
+PASS     features/terms-variables/test.js 62 checks passed
+FAIL     features/theme/test.js 1 of 41 checks failed: a stored Dark is on the page in the first frame that shows the tabs (no light page first)
+PASS     features/worksheets-ink/test.js 161 checks passed (1 skipped: Apple Pencil, iPad and Safari)
+PASS     features/wrong-number-diagnosis/test.js 14 checks passed (1 skipped: a paper's result page)
+34 PASS, 8 FAIL, 2 NOT RUN, 1 REPORT; logs in /tmp/port-integration-3/ci/all-patched/drill-checks-xrOyPX
+
+---- test.js (failing lines, then the end of its log) ----
+  FAIL  duplicate question id: inf-c11
+  FAIL  duplicate question id: cq2-4
+  FAIL  duplicate question id: cq5-1
+  FAIL  duplicate question id: cq5-6
+  FAIL  duplicate question id: pd-c01
+  FAIL  duplicate question id: pd-c02
+  FAIL  duplicate question id: pd-c04
+  FAIL  duplicate question id: pd-c06
+  FAIL  duplicate question id: pd-c20
+  FAIL  duplicate question id: pd-c22
+  FAIL  duplicate question id: nl-c02
+  FAIL  duplicate question id: nl-c03
+  FAIL  duplicate question id: nl-c04
+  FAIL  duplicate question id: nl-c05
+  FAIL  duplicate question id: nl-c06
+  FAIL  duplicate question id: cq4-3
+  FAIL  duplicate question id: m6b-c16
+  FAIL  duplicate question id: cq4-5
+  FAIL  duplicate question id: m6b-c14
+  FAIL  duplicate question id: cq4-7
+  FAIL  duplicate question id: cq4-10
+  FAIL  duplicate question id: m7-c03
+  FAIL  duplicate question id: cq5-1
+  FAIL  duplicate question id: pd-c20
+  FAIL  duplicate question id: cq5-6
+  FAIL  duplicate question id: nl-c04
+feature module equation-drill (tab): TypeError: nav.querySelector is not a function
+feature module glossary-tap (tab): TypeError: nav.querySelector is not a function
+feature module notes (tab): TypeError: nav.querySelector is not a function
+feature module pair-up-drills (tab): TypeError: nav.querySelector is not a function
+feature module short-answer-graphs (tab): TypeError: nav.querySelector is not a function
+feature module terms-variables (tab): TypeError: nav.querySelector is not a function
+feature module worksheets-ink (tab): TypeError: nav.querySelector is not a function
+feature module study-controls (start): TypeError: window.addEventListener is not a function
+  ok    every question carries a skill from the course taxonomy (recall, tell, apply, read, calc, infusion, figure, drug, term, pkpd, nonlin, order, multidose, bioavail, krate, clearance, crcl, oral, conctime, multicpt)
+  ok    numeric grading accepts the answer within tolerance and rejects the rest
+
+=== 6. Storage isolation ===
+  ok    progress written under namespaced key: course-id-drill:data:me
+  ok    the page opened without asking for a name
+=== 7. Different wording when a missed concept returns ===
+  ok    returned as a different question (inf-c11 -> cq2-4)
+=== 8. Small pools end instead of looping ===
+  ok    pool of 2 served 2 (2 distinct) then stopped
+  ok    "Ask everything" still serves (10 more)
+
+=== 9. Figures, read links, change log, blueprint ===
+  ok    every DIAGRAMS key is in DIA
+  ok    1 step-through figure(s), each with a dot per step
+  ok    2 read link(s), every one naming guide, tell or ref
+  0 of 364 questions resolve to a reading section (the rest group by topic in the review plan)
+  ok    a session is the run with no half-hour gap (2 of 4 answers)
+  ok    a correct answer marked "not sure" does not count as solid
+  skip  blueprint draw (this course draws by pool marks, not announced counts)
+  ok    1 change log entry embedded, each with bullets
+
+FAILURES: 26  (warnings: 63)
+
+FAIL: test.js: 26 failure(s)
+
+---- output_test.js (failing lines, then the end of its log) ----
+  FAIL  test.js reads that page and passes  — FAIL: test.js: 26 failure(s)
+
+=== Where the build writes and the checks read ===
+  ok    no file in the source tree names /mnt/user-data (77 files read)
+  ok    every check that reads the built page gets its location from built_page.js (7 checks)
+  ok    no check works out the page name from course.js itself
+  ok    the build runs in a fresh copy
+  ok    the app is written to the repository root as index.html
+  ok    .nojekyll is written beside it
+  ok    the course.js output name (COURSE0000_Drill.html) is a redirect to index.html
+  ok    no temporary file is left behind
+  ok    nothing built is written into src/
+  ok    built_page.js names the repository root index.html
+  FAIL  test.js reads that page and passes  — FAIL: test.js: 26 failure(s)
+  ok    DRILL_PAGE points every check at another page
+  ok    without course.js `manifest`, manifest.json has no description and no orientation
+  ok    course.js `manifest` gives manifest.json its description and orientation
+  ok    course.js `manifest` with an orientation the web manifest does not name stops the build before it writes
+  ok    course.js `manifest` with a field other than description and orientation stops the build before it writes
+FAIL: output_test.js: 1 of 16 checks failed: test.js reads that page and passes
+
+---- checks_test.js (failing lines, then the end of its log) ----
+  FAIL  test.js passes with exit 0 and a PASS line  — exit 1: FAIL: test.js: 26 failure(s)
+  FAIL  run_checks.sh exits 0 when nothing fails (a NOT RUN is listed, not failed)  — exit 1
+  FAIL  a passing check is one PASS line with its summary
+  FAIL  run_checks.sh ends with the counts
+  FAIL  test.js passes on a course whose diagrams.js declares no DIAGRAMS list  — exit 1: FAIL: test.js: 26 failure(s)
+  ok    explain_check.js with no built page exits 2 and says NOT RUN
+  ok    stepper_test.js with no built page exits 2 and says NOT RUN
+  ok    browser_test.js with no built page exits 2 and says NOT RUN
+  ok    cite_check.py with no built page exits 2 and says NOT RUN
+  ok    the build runs in the copy
+  ok    explain_check.js is a report: exit 0, last line REPORT
+  ok    cite_check.py with no decks exits 2 and says NOT RUN
+  FAIL  test.js passes with exit 0 and a PASS line  — exit 1: FAIL: test.js: 26 failure(s)
+  ok    browser_test.js without Playwright exits 2 and says NOT RUN
+  ok    stepper_test.js without Playwright exits 2 and says NOT RUN
+  ok    device_lint.js passes on the clean copy
+  ok    device_lint.js fails on a lookbehind in a shipped source and names the line
+  ok    run_checks.sh prints FAIL for it and exits 1
+  ok    device_lint.js fails on a lookbehind that reaches only the built page
+  FAIL  run_checks.sh exits 0 when nothing fails (a NOT RUN is listed, not failed)  — exit 1
+  ok    run_checks.sh builds first and reports the build
+  FAIL  a passing check is one PASS line with its summary
+  ok    a report is one REPORT line
+  ok    a check that could not run is one NOT RUN line with the reason
+  ok    the device lint is one PASS line on the clean copy
+  FAIL  run_checks.sh ends with the counts
+  ok    every check run_checks.sh lists is in the source tree (25)
+  FAIL  test.js passes on a course whose diagrams.js declares no DIAGRAMS list  — exit 1: FAIL: test.js: 26 failure(s)
+  ok    render_test.js passes on a course whose diagrams.js declares no DIAGRAMS list
+FAIL: checks_test.js: 5 of 32 checks failed: test.js passes with exit 0 and a PASS line; run_checks.sh exits 0 when nothing fails (a NOT RUN is listed, not failed); a passing check is one PASS line with its summary …
+
+---- browser_test.js (failing lines, then the end of its log) ----
+  ok    page loads with no uncaught JavaScript error
+  ok    no console errors on load
+  FAIL  the sweep repeats nothing  — 26 repeats
+  FAIL  the sweep covers every question  — 338 of 364 distinct
+  ok    no uncaught error with storage denied
+  ok    no uncaught error after interaction
+  ok    no page error on phone (light)
+  ok    no page error on phone (dark)
+  ok    no page error on desktop (light)
+  ok    no page error on desktop (dark)
+  ok    view 'gaps' renders
+  ok    view 'exam' renders
+  ok    view 'diagrams' renders
+  ok    view 'guide' renders
+  ok    view 'tell' renders
+  ok    view 'ref' renders
+  ok    view 'settings' renders
+  ok    no uncaught error after interaction
+  ok    no sideways scroll on phone (light)
+  ok    no undefined or NaN on screen on phone (light)
+  ok    a table wider than the screen scrolls inside its own box and the page does not (2588 px table, 353 px wide around it)
+  skip  the course's own tables wider than the screen  — none in this bank at 375 px
+  ok    every jump-list chip in the reading tabs fits on the phone screen
+  ok    no page error on phone (light)
+  ok    no sideways scroll on phone (dark)
+  ok    no undefined or NaN on screen on phone (dark)
+  ok    no page error on phone (dark)
+  ok    no sideways scroll on desktop (light)
+  ok    no undefined or NaN on screen on desktop (light)
+  ok    no page error on desktop (light)
+  ok    no sideways scroll on desktop (dark)
+  ok    no undefined or NaN on screen on desktop (dark)
+  ok    no page error on desktop (dark)
+
+FAIL: browser_test.js: 2 of 99 checks failed: the sweep repeats nothing; the sweep covers every question
+
+---- features/paper-picker/test.js (failing lines, then the end of its log) ----
+  FAIL  the course holds 118 of the 118 questions of test_fixture.js, so neither its own copy nor a new one can be used
+  ok    Exam 3 (final): a paper of 41 is split 16/15/5/5 (the largest remainders take the rounding)
+  ok    Exam 3 (final): the module's pools hold the 300 questions the core's pool filter puts in them (no lowYield, no typed item)
+  ok    Exam 3 (final): a paper is drawn for it
+  ok    Exam 3 (final): 40 questions, none twice, each from one of its pools
+  ok    Exam 3 (final): each pool supplies its share (15/15/5/5)
+  ok    Exam 3 (final): no two wordings of one fact on the paper
+  ok    Exam 3 (final): the paper carries 4 select-all item(s) (its sata 4, split by marks, as many as each pool holds)
+  ok    Exam 3 (final): the paper is shuffled, not drawn pool by pool
+  ok    Exam 3 (final): a pool with one single-answer question too few gives its share with one select-all question more, from its own questions
+  ok    a paper longer than the pools can fill is not drawn
+
+=== the build step: which exams get a chip ===
+  ok    an exam with another question count is left off the chips, with the reason
+  ok    an exam with another time limit is left off the chips, with the reason
+  ok    an exam with a blueprint is left off the chips, with the reason
+  ok    a pool without marks is left off the chips, with the reason
+  ok    an exam with another typed setting is left off the chips, with the reason
+  ok    an exam like the current one gets a chip
+  ok    a course with one exam builds, with nothing to choose
+  ok    an exam without an id stops the build and says so
+  ok    two exams with one id stops the build and says so
+
+=== on a scratch copy with Basic-Pharmacokinetics' own data (Chromium) ===
+  FAIL  the course holds 118 of the 118 questions of test_fixture.js, so neither its own copy nor a new one can be used
+FAIL: features/paper-picker/test.js: 1 of 23 checks failed: the course holds 118 of the 118 questions of test_fixture.js, so neither its own copy nor a new one can be used
+
+---- features/plan-the-problem/test.js (failing lines, then the end of its log) ----
+  ok    no page error
+  FAIL  the copy without ASKS and PLAN builds  — ERROR: feature terms-variables: its build step stopped the build: option families names "k", which is not a key of ASKS; option families names "ka", which is not a key of ASKS; option families names "k0", which is not a key of ASKS; option families names "ke", which is not a key of ASKS; option families names "alpha", which is not a key of ASKS; option families names "beta", which is not a key of ASKS (and 73 more)
+  FAIL  the copy with PLAN and no ASKS builds  — ERROR: feature terms-variables: its build step stopped the build: option families names "k", which is not a key of ASKS; option families names "ka", which is not a key of ASKS; option families names "k0", which is not a key of ASKS; option families names "ke", which is not a key of ASKS; option families names "alpha", which is not a key of ASKS; option families names "beta", which is not a key of ASKS (and 141 more)
+  ok    storage full (QuotaExceededError): the student is told, nothing saved is overwritten, and the saved tally loads after storage works again
+  ok    no page error in the persistence runs
+  ok    the givens are right, and a plan with a wrong model is not counted as right in every step
+  ok    a plan right in every step is counted
+  ok    the plan names the model's block of the sheet
+  ok    a stem of an "Any route" model: the plan says the block, not the block of the sheet (src/views.js line 4974)
+  ok    the three givens whose role says "not needed" are set aside, and ticking only the other two makes the plan right
+  ok    "What is asked?" offers six distinct symbols with the right one and its module's first, and the units are distinct with the right one (20 stems, 20 draws each)
+  ok    the models a stem accepts are Basic-Pharmacokinetics' own (100 stems and variants)
+  ok    the tally of lines picked is kept in the progress through a reload (6 picks)
+  ok    no page error
+  FAIL  the copy without ASKS and PLAN builds  — ERROR: feature terms-variables: its build step stopped the build: option families names "k", which is not a key of ASKS; option families names "ka", which is not a key of ASKS; option families names "k0", which is not a key of ASKS; option families names "ke", which is not a key of ASKS; option families names "alpha", which is not a key of ASKS; option families names "beta", which is not a key of ASKS (and 73 more)
+  FAIL  the copy with PLAN and no ASKS builds  — ERROR: feature terms-variables: its build step stopped the build: option families names "k", which is not a key of ASKS; option families names "ka", which is not a key of ASKS; option families names "k0", which is not a key of ASKS; option families names "ke", which is not a key of ASKS; option families names "alpha", which is not a key of ASKS; option families names "beta", which is not a key of ASKS (and 141 more)
+  -- persistence: a long tally, reloads, Export and Import, profiles, storage denied and full --
+  ok    a tally of 160 picks over 16 lines is kept whole through a reload
+  ok    with that tally the closing card lists the six lines missed most often
+  note  a reload at once (under 150 ms) after a pick: the pick was lost (the core saves 150 ms after the last change; agent-run report, not a check)
+  ok    a pick is kept through a reload made 300 ms after it
+  ok    Export carries the tally (161 picks); Import into a fresh profile brings it back whole
+  ok    a profile switch: each profile keeps its own tally
+  ok    storage denied: the student is told, the saved tally is not overwritten, the new picks hold for the visit
+  ok    once storage works again the next save writes the picks made while it was denied, and a reload loads all of them
+  ok    storage full (QuotaExceededError): the student is told, nothing saved is overwritten, and the saved tally loads after storage works again
+  note  the 20 picks made while storage was full were lost on the reload (the core keeps them only for the visit, as its notice says; agent-run report)
+  ok    a saved tally of another shape starts afresh, and the next pick is saved
+  ok    no page error in the persistence runs
+FAIL: features/plan-the-problem/test.js: 2 of 53 checks failed: the copy without ASKS and PLAN builds; the copy with PLAN and no ASKS builds
+
+---- features/quiz-prep-cards/test.js (failing lines, then the end of its log) ----
+  FAIL  the Quiz 4 straight pass queues each of its 83 questions once  — ["sw-cq4-8","sw-m6b-c07","wsc-m7-n07","m7-c03","e2r-9","wsc-m7-n04","m6b-c04","sw-m6b-c05","x3-b-dosesata","sw-m6b-c09","wsc-m6b-n11","m6b-c03","wsc-m6b-n13","wsc-m6b-n12","m7-c03","cq4-8","cq4-10","fr-8a","cq4-5","sw-cq4-4","wsc-m6b-n10","m7-c02","cq4-10","m7-c15","sw-m6b-c04","sw-cq4-6","sw-m6b-c06","sw-m6b-c16","sw-m6b-c14","m7-c05","sw-m6b-c20","cq4-6","m6b-c06","x3-b-maxbolus","wsc-m6b-n14","plc-m6-p1d","plc-m6-n05","m6b-c05","sw-m6b-c15","m7-c01","sw-m6b-c08","m6b-c16","m6b-c13","cq4-4","sw-m6b-c13","cq4-9","x3-b-intsata","sw-m6b-c10","m6b-c07","wsc-m7-n09","m6b-c20","m6b-c14","wsc-m6b-n09","e2r-8","cq4-7","m6b-c17","m7-c04","m7-c07","m6b-c16","wsc-m7-n08","m7-c09","m6b-c08","m6b-c10","cq4-3","m6b-c09","sw-cq4-9","m7-c08","sw-cq4-2","cq4-2","sw-x3-c-13","cq4-7","m7-c10","cq4-5","x3-c-13","m6b-c15","wsc-m7-n05","m6b-c19","x3-b-adjsata","m6-c19","cq4-3","sw-m6b-c03","m6b-c14","fr-6a"]
+  ok    no page error and no module error
+  ok    no page error with the clock moved
+  FAIL  the two straight passes record 80 answers (40 on Quiz 5, 40 on Quiz 4), all on the quizzes' questions  — {"n5":40,"n":80}
+  ok    no page error
+  ok    quota: no page error
+  ok    denied: no page error
+  ok    Mon 19 Oct: Quiz 5 says quiz day at 07:00 and in progress at 08:10, and its card is gone at 08:24, its start plus 24 minutes
+  ok    no page error with the clock moved
+
+=== persistence: Export and Import, a profile switch, reloads ===
+  FAIL  the two straight passes record 80 answers (40 on Quiz 5, 40 on Quiz 4), all on the quizzes' questions  — {"n5":40,"n":80}
+  ok    Export writes the 80 answers; the hide flag is not in it (it is kept per browser)
+  ok    a profile switch: the other profile has no answers, and switching back brings the 80 answers back
+  ok    the hidden Quiz 4 card stays hidden in both profiles (one browser)
+  ok    a reload at once (under 150 ms) and 400 ms after Hide keeps the hidden card hidden (Quiz 5 both times; Quiz 4 shows again after Show again)
+  note  an answer followed at once by a reload: 0 of 1 kept (the core saves 150 ms after the last change); 400 ms later: 1 of 1 kept
+  ok    an answer in a quiz drill is saved 400 ms later and survives a reload
+  ok    no page error
+  ok    Import into a fresh browser brings the same 80 answers and 54 concepts back
+  ok    in the fresh browser both cards show: a hidden card is hidden on its own browser only
+
+=== persistence: storage full and storage denied ===
+  ok    quota: Hide shows the notice that nothing was saved, and the card is hidden for this visit
+  ok    quota: the saved Quiz 4 flag and the 40 saved answers are unchanged
+  ok    quota: with storage working again, the saved flag and the 40 answers load; the Hide that was not saved is not applied
+  ok    quota: no page error
+  ok    denied: Hide shows the notice that nothing was saved, and the card is hidden for this visit
+  ok    denied: the saved Quiz 4 flag and the 40 saved answers are unchanged
+  ok    denied: with storage working again, the saved flag and the 40 answers load; the Hide that was not saved is not applied
+  ok    denied: no page error
+FAIL: features/quiz-prep-cards/test.js: 2 of 54 checks failed: the Quiz 4 straight pass queues each of its 83 questions once; the two straight passes record 80 answers (40 on Quiz 5, 40 on Quiz 4), all on the quizzes' questions
+
+---- features/theme/test.js (failing lines, then the end of its log) ----
+  FAIL  a stored Dark is on the page in the first frame that shows the tabs (no light page first)  — null
+  ok    storage denied (setItem throws SecurityError): Dark applies for the visit and the student sees the notice that the browser did not save
+  ok    storage denied (setItem throws SecurityError): the saved Light and the saved progress (25 answers) are not overwritten
+  ok    storage denied (setItem throws SecurityError): with storage working again, the saved Light and the 25 answers load
+  ok    storage denied (setItem throws SecurityError): with storage working again, a new choice is saved
+  ok    storage full (setItem throws QuotaExceededError): Dark applies for the visit and the student sees the notice that the browser did not save
+  ok    storage full (setItem throws QuotaExceededError): the saved Light and the saved progress (25 answers) are not overwritten
+  ok    storage full (setItem throws QuotaExceededError): with storage working again, the saved Light and the 25 answers load
+  ok    storage full (setItem throws QuotaExceededError): with storage working again, a new choice is saved
+  ok    no page error and no module error
+  ok    switching profile keeps the choice (a device setting)
+  ok    Light stored on a dark device shows the light colours
+  ok    Match device removes the stored choice and follows the dark device again
+  ok    a stored value that is not light or dark reads as Match device
+  ok    with storage refused the page runs and Dark applies for the visit
+  ok    a reload 0 ms after Dark is picked keeps Dark
+  ok    a reload 100 ms after Dark is picked keeps Dark
+  ok    a reload 400 ms after Dark is picked keeps Dark
+  ok    storage denied (setItem throws SecurityError): Dark applies for the visit and the student sees the notice that the browser did not save
+  ok    storage denied (setItem throws SecurityError): the saved Light and the saved progress (25 answers) are not overwritten
+  ok    storage denied (setItem throws SecurityError): with storage working again, the saved Light and the 25 answers load
+  ok    storage denied (setItem throws SecurityError): with storage working again, a new choice is saved
+  ok    storage full (setItem throws QuotaExceededError): Dark applies for the visit and the student sees the notice that the browser did not save
+  ok    storage full (setItem throws QuotaExceededError): the saved Light and the saved progress (25 answers) are not overwritten
+  ok    storage full (setItem throws QuotaExceededError): with storage working again, the saved Light and the 25 answers load
+  ok    storage full (setItem throws QuotaExceededError): with storage working again, a new choice is saved
+  ok    on a dark device (Match device), no text on the 19 tabs or on 5 quiz cards (4 of them Basic-Pharmacokinetics questions), unanswered and answered, reads below 4.5 : 1 (3 : 1 large)
+  ok    on a dark device (Match device), the answer box of a calculation (cpc-m1-ord-n01) is dark with text at 4.5 : 1 or better
+  ok    on a dark device (Match device), the page and the Settings radio buttons are drawn in the browser's dark style (color-scheme)
+  ok    with Dark picked on a light device, no text on the 19 tabs or on 5 quiz cards (4 of them Basic-Pharmacokinetics questions), unanswered and answered, reads below 4.5 : 1 (3 : 1 large)
+  ok    with Dark picked on a light device, the answer box of a calculation (cpc-m1-ord-n01) is dark with text at 4.5 : 1 or better
+  ok    with Dark picked on a light device, the page and the Settings radio buttons are drawn in the browser's dark style (color-scheme)
+  ok    no page error and no module error
+
+FAIL: features/theme/test.js: 1 of 41 checks failed: a stored Dark is on the page in the first frame that shows the tabs (no light page first)
+
+---- NOT RUN that is not a documented exclusion ----
+  features/notes/test.js: the scratch copy with the test question does not build: ERROR: feature plan-the-problem: its build step stopped the build: pd-ex-b-c1: setup names the equation "pd-teff-ln", which is not in EQUATIONS;
+FAIL: 1 check(s) did not run for a reason that is not a documented exclusion
+exit 1

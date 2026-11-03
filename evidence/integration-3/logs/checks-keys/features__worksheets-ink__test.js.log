@@ -1,0 +1,202 @@
+
+=== the course's own documents ===
+  ok    the page carries worksheets-ink, working
+  ok    every document's worksheet holds its problems with their numbers, and its solutions one answer each (4 documents, 19 problems)
+
+=== the build step stops on bad documents ===
+  ok    an item naming a question the bank does not have stops the build and says so
+  ok    a document of an unknown type stops the build and says so
+  ok    a problem set CHAINS does not have stops the build and says so
+  ok    a question on two documents stops the build and says so
+  ok    an option holding a lookbehind stops the build and says so
+  ok    a SOURCE_OF that disagrees with the documents' items stops the build and says so
+
+=== on a scratch copy with eight of Basic-Pharmacokinetics' documents (Chromium) ===
+  ok    each worksheet's problems, their order, the changed-numbers sheet and who solved each part are Basic-Pharmacokinetics' own (8 documents)
+  ok    working only heard in the recording is the drill's, unless the sheet has it written ["drill","prof","prof","prof"]
+  ok    Homework 2's re-numbered copies, named without "(changed numbers)", are still left off the worksheet and kept as the extra-practice sheet
+  ok    a sheet's problems follow its numbering whatever order the items are listed in, slides keep the deck's order, and a set's name or ids say which numbers it carries ["changed","original","original","original",""]
+  ok    the text on paper is Basic-Pharmacokinetics' own: carried values left out (16 parts), each set's shared text (12 sets), the options' order (3 questions)
+  ok    the tab lists every document under its module, Homework 2 with its changed-numbers worksheet, and names no one as she or her
+  ok    Practice in the drill asks the sheet's problems in the sheet's order
+
+--- write on a worksheet at 820 px ---
+  ok    every worksheet card has Write on it (13 buttons)
+  ok    a worksheet with a calculation to write on (wsi-quiz-1)
+  ok    a calculation has at least 480 px to work in on screen (480 px)
+  ok    a short answer has at least 200 px (200 px)
+  ok    More room adds 240 px and Less room takes it back (480 → 720 → 720)
+  ok    a stroke in the work area is kept on its problem (1 stroke, 13 points)
+  size  one stroke of 13 points is 221 bytes in the progress
+  ok    the stroke is drawn on the canvas (547 pixels)
+  ok    the stroke is saved in the profile's progress, and in no localStorage key of its own (1,0)
+  ok    undo removes the stroke and redo puts it back (0, 1)
+  ok    the eraser removes a stroke it touches, and undo brings it back (0, 1)
+  ok    picking a colour returns to the pen in that colour
+  ok    the name line takes writing too
+  ok    a pen writes and switches to Pencil only; then a finger scrolls the page and does not write [1,2,true,2,200,260]
+  ok    Show solutions opens the solutions under the worksheet
+  ok    the worksheet does not scroll sideways (0 px)
+  ok    Save as PDF prints the worksheet alone, ink as pictures in place of the canvases [1,false,false,false,true,true]
+  ok    the printed PDF has the worksheet (56 KB)
+  ok    Done closes it and the card says "✍️ Continue writing"
+  ok    after a reload the writing and the extra room are back [2,1,240,true,720]
+  ok    Clear page removes all of it and undo restores it (0, 3)
+  size  3 strokes on one page: 626 bytes of writing in a progress of 771 bytes
+  ok    a second profile has no writing, and the first keeps its own (["Other",0], ["me",3])
+  ok    Settings says how much writing is kept (1 page with writing, 3 strokes, 0.6 KB of this profile's progress. The writing i)
+  ok    Import progress brings the writing back
+  ok    Erase all writing removes the writing and keeps the answers ([0,1,false])
+  ok    Erase my history removes the writing too
+  ok    no page or console errors at 820 px
+
+--- write on a worksheet at 390 px ---
+  ok    every worksheet card has Write on it (13 buttons)
+  ok    a worksheet with a calculation to write on (wsi-quiz-1)
+  ok    a calculation has at least 480 px to work in on screen (480 px)
+  ok    a short answer has at least 200 px (200 px)
+  ok    More room adds 240 px and Less room takes it back (480 → 720 → 720)
+  ok    a stroke in the work area is kept on its problem (1 stroke, 13 points)
+  size  one stroke of 13 points is 219 bytes in the progress
+  ok    the stroke is drawn on the canvas (539 pixels)
+  ok    the stroke is saved in the profile's progress, and in no localStorage key of its own (1,0)
+  ok    undo removes the stroke and redo puts it back (0, 1)
+  ok    the eraser removes a stroke it touches, and undo brings it back (0, 1)
+  ok    picking a colour returns to the pen in that colour
+  ok    the name line takes writing too
+  ok    a pen writes and switches to Pencil only; then a finger scrolls the page and does not write [1,2,true,2,200,260]
+  ok    Show solutions opens the solutions under the worksheet
+  ok    the worksheet does not scroll sideways (0 px)
+  ok    Save as PDF prints the worksheet alone, ink as pictures in place of the canvases [1,false,false,false,true,true]
+  ok    the printed PDF has the worksheet (51 KB)
+  ok    Done closes it and the card says "✍️ Continue writing"
+  ok    after a reload the writing and the extra room are back [2,1,240,true,720]
+  ok    Clear page removes all of it and undo restores it (0, 3)
+  ok    no page or console errors at 390 px
+
+--- scratch paper at 820 px ---
+  ok    a calculation question in the quiz has Scratch paper (wsi-cq1-3a)
+  ok    it shows the stem over a 720 px work area, no solutions [true,720,false,"scratch"]
+  ok    a stroke lands on the scratch paper
+  ok    Done closes it and the writing is kept (1)
+  ok    on an exam paper its Scratch paper belongs to this paper (exam:1793670616467)
+  ok    no solutions on an exam paper
+  ok    the time on the paper shows over the scratch paper ("⏱ 10:00")
+  ok    a new paper starts with clean scratch paper and the old one is cleared (1, [0,0])
+  ok    no sideways scroll (0)
+  ok    no page or console errors at 820 px
+
+--- scratch paper at 390 px ---
+  ok    a calculation question in the quiz has Scratch paper (wsi-cq1-3a)
+  ok    it shows the stem over a 720 px work area, no solutions [true,720,false,"scratch"]
+  ok    a stroke lands on the scratch paper
+  ok    Done closes it and the writing is kept (1)
+  ok    on an exam paper its Scratch paper belongs to this paper (exam:1793670618284)
+  ok    no solutions on an exam paper
+  ok    the time on the paper shows over the scratch paper ("⏱ 10:00")
+  ok    a new paper starts with clean scratch paper and the old one is cleared (1, [0,0])
+  ok    no sideways scroll (0)
+  ok    no page or console errors at 390 px
+
+--- hold to snap and two-finger undo at 820 px ---
+  ok    Hold to snap is on by default
+  ok    a near-straight stroke held still becomes a straight line from where it started (line, 2 points, 30,220,330,282)
+  ok    after the snap the line's end follows the pen (30,220,290,360)
+  ok    the same stroke lifted at once stays as drawn (31 points)
+  ok    a closed loop held still becomes an ellipse (shape, 73 points)
+  ok    a box held still becomes a box with square corners (shape, poly, 40,520,220,520,220,600,40,600,40,520)
+  ok    a scribble held still stays as drawn (12 points)
+  ok    Hold to snap off: the held line stays as drawn, and the choice is saved (false,false,false, 31 points)
+  ok    a held highlighter stroke straightens (hl, line)
+  ok    a highlighter loop does not become a shape (42 points)
+  ok    a red highlighter drawn after black writing crosses it in red and the writing shows on top (crossing, highlighter alone: [[17,17,17,255],[199,40,40,82]])
+  ok    two fingers tapped together undo the last stroke (11,10,10,)
+  ok    two fingers that move scroll and undo nothing (10,10,10,)
+  ok    two touches the system cancels, such as a rejected palm, undo nothing (10,10,10,)
+  ok    a hand that touches and lifts while the pen writes undoes nothing and does not end the pen's stroke (10,10,11,130)
+  ok    the eraser removes a straight line touched in its middle (12 → 11)
+  ok    the page cannot be selected, a long press opens no menu, and a touch on the canvas starts no browser gesture (none,true,true,true)
+  size  the scratch paper's strokes: 3416 bytes of writing in the progress
+  ok    no page or console errors at 820 px
+
+--- hold to snap and two-finger undo at 390 px ---
+  ok    Hold to snap is on by default
+  ok    a near-straight stroke held still becomes a straight line from where it started (line, 2 points, 30,220,330,282)
+  ok    after the snap the line's end follows the pen (30,220,290,360)
+  ok    the same stroke lifted at once stays as drawn (31 points)
+  ok    a closed loop held still becomes an ellipse (shape, 73 points)
+  ok    a box held still becomes a box with square corners (shape, poly, 40,520,220,520,220,600,40,600,40,520)
+  ok    a scribble held still stays as drawn (12 points)
+  ok    Hold to snap off: the held line stays as drawn, and the choice is saved (false,false,false, 31 points)
+  ok    a held highlighter stroke straightens (hl, line)
+  ok    a highlighter loop does not become a shape (42 points)
+  ok    a red highlighter drawn after black writing crosses it in red and the writing shows on top (crossing, highlighter alone: [[17,17,17,255],[199,40,40,82]])
+  ok    two fingers tapped together undo the last stroke (11,10,10,)
+  ok    two fingers that move scroll and undo nothing (10,10,10,)
+  ok    two touches the system cancels, such as a rejected palm, undo nothing (10,10,10,)
+  ok    a hand that touches and lifts while the pen writes undoes nothing and does not end the pen's stroke (10,10,11,130)
+  ok    the eraser removes a straight line touched in its middle (12 → 11)
+  ok    the page cannot be selected, a long press opens no menu, and a touch on the canvas starts no browser gesture (none,true,true,true)
+  size  the scratch paper's strokes: 3438 bytes of writing in the progress
+  ok    no page or console errors at 390 px
+  skip  Practice in the drill with chained-problem-sets on  — NOT RUN: this course does not carry features/chained-problem-sets/
+
+--- Practice in the drill, chained-problem-sets off ---
+  ok    the scratch copy builds with chained-problem-sets off
+  ok    with chained-problem-sets off, the same sheet is asked as one pass in the sheet's order {"view":"quiz","chain":null,"sweep":["wsi-ws1-3-1a","wsi-ws1-3-1b","wsi-ws1-3-1c","wsi-ws1-3-2a","wsi-ws1-3-2b"],"cur":"wsi-ws1-3-1a","prog":"question 1 of 5","cset":false,"on":false}
+  ok    a sheet of two problem sets is asked as one pass in the sheet's order (chained-problem-sets off) [null,10]
+  ok    no page or console errors (chained-problem-sets off)
+
+=== persistence: much writing, Export and Import, profiles, reloads, storage refused or full (Chromium) ===
+  size  much writing: 61 pages, 1801 strokes, 1355888 characters of writing in a saved progress of 1356033 characters
+  ok    much writing is saved whole: 61 pages, 1801 strokes, 1324 KB
+  ok    after a reload every page of it is back and the page shows its writing (61 pages, 1355888 characters, 553 pixels)
+  size  the export file of that progress: 3407681 characters
+  ok    Export progress holds all the writing (61 pages, 3328 KB file)
+  ok    Import into a fresh profile brings the same writing back, and saves it (Fresh,0, true, true)
+  ok    after a switch each profile keeps its own writing (Fresh 2, ["me",1], ["Fresh",2])
+  ok    Import leaves out writing that is not in the module's shape and keeps the rest (["wsi-dp-m1-2|main"])
+  ok    a reload at once after a stroke keeps the stroke: the module writes the progress when the pen lifts (["Fresh",3])
+  ok    a reload 300 ms after a stroke keeps it (3 → 4)
+  report  core: an answer saved and the page reloaded at once: 0 of 1 kept; reloaded after 300 ms: 1 of 1 kept (the core writes the progress 150 ms after the last change)
+  ok    no page or console errors with much writing
+
+--- storage denied at 820 px ---
+  ok    with storage denied the page says the writing is not being saved, on screen ({"shown":true,"text":"This browser is not saving: the writing lasts only until the page closes. Save as PDF to keep it.","state":"off","core":true})
+  ok    nothing saved before is overwritten, and the new stroke stays on screen ({"answers":1,"pages":1,"strokes":1,"page":1,"len":524})
+  ok    once storage works again the answers and writing saved before load, and new writing is saved ([1,1], 2 strokes)
+  ok    no page or console errors with storage denied at 820 px
+
+--- storage denied at 390 px ---
+  ok    with storage denied the page says the writing is not being saved, on screen ({"shown":true,"text":"This browser is not saving: the writing lasts only until the page closes. Save as PDF to keep it.","state":"off","core":true})
+  ok    nothing saved before is overwritten, and the new stroke stays on screen ({"answers":1,"pages":1,"strokes":1,"page":1,"len":525})
+  ok    once storage works again the answers and writing saved before load, and new writing is saved ([1,1], 2 strokes)
+  ok    no page or console errors with storage denied at 390 px
+
+--- storage full (Chromium's own quota) at 820 px ---
+  size  Chromium's localStorage for this origin took 5242634 characters of keys and values (10.00 MiB as UTF-16); a save failed once the progress passed 5242656 characters, with 3072 left after the fill
+  ok    the progress, filled with writing, is saved with under 6000 characters left (5239584 characters, 3072 left)
+  ok    when the stroke would make the progress too big, the page says it was not saved, on screen ({"shown":true,"text":"This browser's storage is full, so the last change on this page was not saved. The writing saved before and your answers are kept. Save as PDF to keep this page, or use Erase all writing in Settings to make room.","state":"refused","core":false})
+  ok    the saved progress is left as it was, and the stroke stays on screen only (true, [1,false])
+  ok    an answer given after the refused stroke is still saved (2 answers saved)
+  ok    Export progress works with storage full (12668 KB file)
+  ok    an Import that does not fit shows the core's notice and leaves the first profile's saved progress as it was (true, null, true)
+  report  core: the imported progress that did not fit is kept for this visit only; the core says so (#savewarn) and nothing else changes
+  ok    after a reload the answers and the writing saved before load, without the refused stroke (["me",2,293,0])
+  ok    after Erase all writing makes room, new writing is saved and the answers are kept ({"answers":2,"pages":1,"strokes":1,"page":1,"len":605})
+  ok    no page or console errors with storage full at 820 px
+
+--- storage full (Chromium's own quota) at 390 px ---
+  size  Chromium's localStorage for this origin took 5242634 characters of keys and values (10.00 MiB as UTF-16); a save failed once the progress passed 5242656 characters, with 3072 left after the fill
+  ok    the progress, filled with writing, is saved with under 6000 characters left (5239584 characters, 3072 left)
+  ok    when the stroke would make the progress too big, the page says it was not saved, on screen ({"shown":true,"text":"This browser's storage is full, so the last change on this page was not saved. The writing saved before and your answers are kept. Save as PDF to keep this page, or use Erase all writing in Settings to make room.","state":"refused","core":false})
+  ok    the saved progress is left as it was, and the stroke stays on screen only (true, [1,false])
+  ok    an answer given after the refused stroke is still saved (2 answers saved)
+  ok    Export progress works with storage full (12668 KB file)
+  ok    an Import that does not fit shows the core's notice and leaves the first profile's saved progress as it was (true, null, true)
+  report  core: the imported progress that did not fit is kept for this visit only; the core says so (#savewarn) and nothing else changes
+  ok    after a reload the answers and the writing saved before load, without the refused stroke (["me",2,293,0])
+  ok    after Erase all writing makes room, new writing is saved and the answers are kept ({"answers":2,"pages":1,"strokes":1,"page":1,"len":606})
+  ok    no page or console errors with storage full at 390 px
+  skip  Apple Pencil, iPad and Safari  — NOT RUN: Chromium only, with synthetic pen and touch PointerEvents and Playwright mouse strokes
+PASS: features/worksheets-ink/test.js: 157 checks passed (2 skipped: Practice in the drill with chained-problem-sets on; Apple Pencil, iPad and Safari)

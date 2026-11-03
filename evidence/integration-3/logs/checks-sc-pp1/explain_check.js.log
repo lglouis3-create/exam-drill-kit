@@ -1,0 +1,68 @@
+
+=== Explanation quality ===
+  26 of 131 questions carry at least one issue
+
+    15  no diagnosis of the error
+    12  thin option why
+
+  by pool:
+    18  f-e1 (supplies 15 of the 40)
+     8  f-e2 (supplies 15 of the 40)
+
+  worst 26, ranked by severity x exam weight:
+
+  s2-1        topic2    f-e1            rank 75.0
+      - thin option why: A (48), B (42), C (39), D (49), E (55)
+  L01-007     L01       f-e1            rank 75.0
+      - thin option why: A (40), B (102), C (84), D (63), E (67)
+  L01-004     L01       f-e1            rank 67.5
+      - thin option why: A (99), B (43), C (45), D (92)
+      - no diagnosis of the error: E
+  s1-1        topic1    f-e1            rank 60.0
+      - thin option why: A (69), B (67), C (77), D (65)
+  s1-2        topic1    f-e1            rank 60.0
+      - thin option why: A (52), B (40), C (28), D (29)
+  s1-3        topic1    f-e1            rank 60.0
+      - thin option why: A (91), B (45), C (31), D (46)
+  s2-2        topic2    f-e1            rank 60.0
+      - thin option why: A (25), B (42), C (51), D (50)
+  L01-002     L01       f-e1            rank 60.0
+      - thin option why: A (106), B (52), C (58), D (59)
+  L01-005     L01       f-e1            rank 60.0
+      - thin option why: A (86), B (63), C (74), D (88)
+  L01-006     L01       f-e1            rank 60.0
+      - thin option why: A (69), B (83), C (68), D (48)
+  L01-003     L01       f-e1            rank 60.0
+      - thin option why: A (79), B (72), C (65), D (67)
+  x3-b-intsata multoral  f-e2            rank 30.0
+      - thin option why: C (108), D (98)
+  m1-ord-c01  orders    f-e1            rank 15.0
+      - no diagnosis of the error: C, D
+  m6b-c13     multoral  f-e2            rank 15.0
+      - no diagnosis of the error: C, D
+  x3-a-kpos   orders    f-e1            rank 15.0
+      - no diagnosis of the error: C, D
+  inf-c9      infusion  f-e1            rank 7.5
+      - no diagnosis of the error: C
+  inf-c10     infusion  f-e1            rank 7.5
+      - no diagnosis of the error: D
+  inf-c13     infusion  f-e1            rank 7.5
+      - no diagnosis of the error: C
+  m5-c06      oral      f-e2            rank 7.5
+      - no diagnosis of the error: C
+  m6b-c03     intermit  f-e2            rank 7.5
+      - no diagnosis of the error: C
+  m6b-c06     intermit  f-e2            rank 7.5
+      - no diagnosis of the error: B
+  m6b-c07     multoral  f-e2            rank 7.5
+      - no diagnosis of the error: D
+  m6b-c09     multoral  f-e2            rank 7.5
+      - no diagnosis of the error: B
+  m6b-c19     multoral  f-e2            rank 7.5
+      - no diagnosis of the error: B
+  fig-ord-3   orders    f-e1            rank 7.5
+      - no diagnosis of the error: C
+  fig-ord-5   orders    f-e1            rank 7.5
+      - no diagnosis of the error: D
+
+REPORT: explain_check.js: 26 of 131 questions carry at least one explanation issue

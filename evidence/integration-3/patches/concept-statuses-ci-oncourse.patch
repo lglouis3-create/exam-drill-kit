@@ -1,0 +1,13 @@
+diff --git a/features/concept-statuses/ci/oncourse.js b/features/concept-statuses/ci/oncourse.js
+index 563600b..998ed0a 100644
+--- a/features/concept-statuses/ci/oncourse.js
++++ b/features/concept-statuses/ci/oncourse.js
+@@ -68,6 +68,8 @@ let bank;
+ try { bank = vm.runInContext('({q: QUESTIONS.map(q => q.id), t: TOPICS.map(t => t.id)})', sb); } catch(e){ fail('the course has no QUESTIONS or TOPICS: ' + e.message); }
+ const own = {prof, qids: bank.q, topics: bank.t, skills: (COURSE.skills || []).map(s => s.id), decks: (COURSE.lectures || []).map(l => l.deck)};
+ let w;
++// integration patch: as worksheets-ink's script does, a `setup` line naming equations the course lacks is left out
++FIX.qs.forEach(q => { delete q.setup; });
+ try { w = WRITE(FIX, own); } catch(e){ fail('the fixture cannot be written: ' + e.message); }
+ if(!w.rows) fail('the course already has every question of the fixture');
+ const cfg = {version: meta.version, words: WORDS};

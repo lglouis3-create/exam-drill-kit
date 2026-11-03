@@ -1,0 +1,79 @@
+## all-patched
+34 PASS, 8 FAIL, 2 NOT RUN, 1 REPORT
+FAIL     test.js           26 failure(s)
+REPORT   explain_check.js  126 of 364 questions carry at least one explanation issue
+NOT RUN  cite_check.py     no lecture PDFs found under decks/ or src/
+FAIL     output_test.js    1 of 16 checks failed: test.js reads that page and passes
+FAIL     checks_test.js    5 of 32 checks failed: test.js passes with exit 0 and a PASS line; run_checks.sh exits 0 when nothing fails (a NOT RUN is listed, not failed); a passing check is one PASS li
+FAIL     browser_test.js   2 of 99 checks failed: the sweep repeats nothing; the sweep covers every question
+NOT RUN  features/notes/test.js the scratch copy with the test question does not build: ERROR: feature plan-the-problem: its build step stopped the build: pd-ex-b-c1: setup names the equation "pd-teff
+FAIL     features/paper-picker/test.js 1 of 23 checks failed: the course holds 118 of the 118 questions of test_fixture.js, so neither its own copy nor a new one can be used
+FAIL     features/plan-the-problem/test.js 2 of 53 checks failed: the copy without ASKS and PLAN builds; the copy with PLAN and no ASKS builds
+FAIL     features/quiz-prep-cards/test.js 2 of 54 checks failed: the Quiz 4 straight pass queues each of its 83 questions once; the two straight passes record 80 answers (40 on Quiz 5, 40 on Quiz 4), 
+FAIL     features/theme/test.js 1 of 41 checks failed: a stored Dark is on the page in the first frame that shows the tabs (no light page first)
+## all
+## ch
+26 PASS, 0 FAIL, 1 NOT RUN, 1 REPORT
+REPORT   explain_check.js  5 of 11 questions carry at least one explanation issue
+NOT RUN  cite_check.py     no lecture PDFs found under decks/ or src/
+## fit
+26 PASS, 0 FAIL, 1 NOT RUN, 1 REPORT
+REPORT   explain_check.js  5 of 7 questions carry at least one explanation issue
+NOT RUN  cite_check.py     no lecture PDFs found under decks/ or src/
+  features__formulas-in-text__test.js: PASS: features/formulas-in-text/test.js: 11 checks passed (1 skipped: the bank's own fractions)
+  home_test.js: PASS: home_test.js: 36 checks passed
+## gt-fit
+27 PASS, 0 FAIL, 1 NOT RUN, 1 REPORT
+REPORT   explain_check.js  66 of 66 questions carry at least one explanation issue
+NOT RUN  cite_check.py     no lecture PDFs found under decks/ or src/
+## gt
+26 PASS, 0 FAIL, 1 NOT RUN, 1 REPORT
+REPORT   explain_check.js  66 of 66 questions carry at least one explanation issue
+NOT RUN  cite_check.py     no lecture PDFs found under decks/ or src/
+## keys
+28 PASS, 0 FAIL, 1 NOT RUN, 1 REPORT
+REPORT   explain_check.js  11 of 48 questions carry at least one explanation issue
+NOT RUN  cite_check.py     no lecture PDFs found under decks/ or src/
+  features__notes__test.js: PASS: features/notes/test.js: 106 checks passed
+  features__study-controls__test.js: PASS: features/study-controls/test.js: 59 checks passed (1 skipped: the flags bar and the strict paper on a paper drawn for an earlier exam)
+  features__worksheets-ink__test.js: PASS: features/worksheets-ink/test.js: 157 checks passed (2 skipped: Practice in the drill with chained-problem-sets on; Apple Pencil, iPad and Safari)
+  home_test.js: PASS: home_test.js: 36 checks passed
+## nt-sc
+27 PASS, 0 FAIL, 1 NOT RUN, 1 REPORT
+REPORT   explain_check.js  11 of 29 questions carry at least one explanation issue
+NOT RUN  cite_check.py     no lecture PDFs found under decks/ or src/
+  features__notes__test.js: PASS: features/notes/test.js: 106 checks passed
+  features__study-controls__test.js: PASS: features/study-controls/test.js: 59 checks passed (1 skipped: the flags bar and the strict paper on a paper drawn for an earlier exam)
+  home_test.js: PASS: home_test.js: 36 checks passed
+## nt
+26 PASS, 0 FAIL, 1 NOT RUN, 1 REPORT
+REPORT   explain_check.js  5 of 23 questions carry at least one explanation issue
+NOT RUN  cite_check.py     no lecture PDFs found under decks/ or src/
+## pp3
+26 PASS, 0 FAIL, 1 NOT RUN, 1 REPORT
+REPORT   explain_check.js  20 of 125 questions carry at least one explanation issue
+NOT RUN  cite_check.py     no lecture PDFs found under decks/ or src/
+## sc-pp1
+26 PASS, 1 FAIL, 1 NOT RUN, 1 REPORT
+REPORT   explain_check.js  26 of 131 questions carry at least one explanation issue
+NOT RUN  cite_check.py     no lecture PDFs found under decks/ or src/
+FAIL     features/paper-picker/test.js 1 of 23 checks failed: the course holds 118 of the 118 questions of test_fixture.js, so neither its own copy nor a new one can be used
+  features__paper-picker__test.js: FAIL: features/paper-picker/test.js: 1 of 23 checks failed: the course holds 118 of the 118 questions of test_fixture.js, so neither its own copy nor a new one can be used
+  features__study-controls__test.js: PASS: features/study-controls/test.js: 59 checks passed (1 skipped: the flags bar and the strict paper on a paper drawn for an earlier exam)
+  home_test.js: PASS: home_test.js: 36 checks passed
+## sc-pp3
+27 PASS, 0 FAIL, 1 NOT RUN, 1 REPORT
+REPORT   explain_check.js  26 of 131 questions carry at least one explanation issue
+NOT RUN  cite_check.py     no lecture PDFs found under decks/ or src/
+## sc
+26 PASS, 0 FAIL, 1 NOT RUN, 1 REPORT
+REPORT   explain_check.js  11 of 13 questions carry at least one explanation issue
+NOT RUN  cite_check.py     no lecture PDFs found under decks/ or src/
+## ws-ch
+27 PASS, 0 FAIL, 1 NOT RUN, 1 REPORT
+REPORT   explain_check.js  5 of 30 questions carry at least one explanation issue
+NOT RUN  cite_check.py     no lecture PDFs found under decks/ or src/
+## ws
+26 PASS, 0 FAIL, 1 NOT RUN, 1 REPORT
+REPORT   explain_check.js  5 of 26 questions carry at least one explanation issue
+NOT RUN  cite_check.py     no lecture PDFs found under decks/ or src/

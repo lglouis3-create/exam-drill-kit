@@ -1,0 +1,276 @@
+
+=== 1. Question bank integrity ===
+  364 questions, 43 topics, 14 images
+  ok    the build's question count equals QUESTIONS.length (364)
+  warn  L10-003: very short explanation on "Heart"
+  warn  L10-004: very short explanation on "β3"
+  warn  L10-024: very short explanation on "Block postsynaptic α1"
+  warn  L10-027: very short explanation on "MAO-B is mainly in the gut"
+  warn  L10-029: very short explanation on "Phenelzine reversibly, selegil"
+  warn  L10-033: very short explanation on "Sinoatrial node"
+  warn  L10-039: very short explanation on "Ventricular muscle of the hear"
+  warn  L10-039: very short explanation on "Radial muscle of the iris"
+  warn  L10-046: very short explanation on "Cholinesterase inhibitor"
+  warn  L10-058: very short explanation on "α1"
+  FAIL  duplicate question id: inf-c11
+  FAIL  duplicate question id: cq2-4
+  FAIL  duplicate question id: cq5-1
+  FAIL  duplicate question id: cq5-6
+  FAIL  duplicate question id: pd-c01
+  FAIL  duplicate question id: pd-c02
+  FAIL  duplicate question id: pd-c04
+  FAIL  duplicate question id: pd-c06
+  FAIL  duplicate question id: pd-c20
+  FAIL  duplicate question id: pd-c22
+  FAIL  duplicate question id: nl-c02
+  FAIL  duplicate question id: nl-c03
+  FAIL  duplicate question id: nl-c04
+  FAIL  duplicate question id: nl-c05
+  FAIL  duplicate question id: nl-c06
+  FAIL  duplicate question id: cq4-3
+  FAIL  duplicate question id: m6b-c16
+  FAIL  duplicate question id: cq4-5
+  FAIL  duplicate question id: m6b-c14
+  FAIL  duplicate question id: cq4-7
+  FAIL  duplicate question id: cq4-10
+  FAIL  duplicate question id: m7-c03
+  FAIL  duplicate question id: cq5-1
+  FAIL  duplicate question id: pd-c20
+  FAIL  duplicate question id: cq5-6
+  FAIL  duplicate question id: nl-c04
+
+=== 2. Exam blueprint coverage ===
+  Exam 1 material (Modules 1–3): 98 questions (paper takes 15)
+  Exam 2 material (Modules 4–7a): 174 questions (paper takes 15)
+  Module 7b — PK-PD relationship: 52 questions (paper takes 5)
+  Module 8 — Nonlinear pharmacokinetics: 40 questions (paper takes 5)
+
+=== 3. Concept spread per topic ===
+  L04          8 q /   8 concepts  (Professor)
+  warn  subtopic "L04/comp" (Competitive antagonist) has no questions
+  warn  subtopic "L04/irrev" (Irreversible antagonist and spare receptors) has no questions
+  L10         58 q /  58 concepts  (Professor)
+  cpc          4 q /   4 concepts  (Professor)
+  infusion    17 q /  12 concepts  (Professor)
+  bolus1       5 q /   5 concepts  (Professor)
+  bolus2       4 q /   4 concepts  (Professor)
+  pkpd        44 q /  27 concepts  (Professor)
+  nonlin      32 q /  18 concepts  (Professor)
+  intro        1 q /   1 concepts  (Professor)
+  warn  subtopic "intro/terms" (ADME and the fundamental terms) has no questions
+  warn  subtopic "intro/matrix" (Whole blood, serum and plasma) has no questions
+  warn  subtopic "intro/models" (Pharmacokinetic models) has no questions
+  warn  subtopic "intro/curve" (The concentration versus time curve) has no questions
+  orders       8 q /   7 concepts  (Professor)
+  warn  subtopic "orders/decide" (Deciding the order from a data set) has no questions
+  infusion    17 q /  12 concepts  (Professor)
+  clearance   13 q /   8 concepts  (Professor)
+  warn  subtopic "clearance/routes" (The main routes of elimination, renal and hepatic) has no questions
+  oral        10 q /   9 concepts  (Professor)
+  warn  subtopic "oral/changes" (Effects of changing ka, k and dose) has no questions
+  multi        6 q /   4 concepts  (Professor)
+  warn  subtopic "multi/accum" (Drug accumulation and steady state) has no questions
+  warn  subtopic "multi/superpos" (The principle of superposition) has no questions
+  intermit     8 q /   7 concepts  (Professor)
+  multoral    28 q /  18 concepts  (Professor)
+  bioavail    22 q /  13 concepts  (Professor)
+  warn  subtopic "bioavail/frel" (Relative bioavailability) has no questions
+  warn  subtopic "bioavail/figure" (Reading the bioequivalence example) has no questions
+  pkpd        44 q /  27 concepts  (Professor)
+  nonlin      32 q /  18 concepts  (Professor)
+  multi        6 q /   4 concepts  (Professor)
+  warn  subtopic "multi/accum" (Drug accumulation and steady state) has no questions
+  warn  subtopic "multi/superpos" (The principle of superposition) has no questions
+  intermit     8 q /   7 concepts  (Professor)
+  multoral    28 q /  18 concepts  (Professor)
+  bioavail    22 q /  13 concepts  (Professor)
+  warn  subtopic "bioavail/frel" (Relative bioavailability) has no questions
+  warn  subtopic "bioavail/figure" (Reading the bioequivalence example) has no questions
+  pkpd        44 q /  27 concepts  (Professor)
+  nonlin      32 q /  18 concepts  (Professor)
+  FG          13 q /   6 concepts  (Professor)
+  L06          3 q /   3 concepts  (Professor)
+  warn  subtopic "L06/p3" (Desired vs undesired effects) has no questions
+  warn  subtopic "L06/recap" (Recap figure A–E) has no questions
+  warn  subtopic "L06/base50" (The 50% baseline figure) has no questions
+  warn  subtopic "L06/signal" (Signal transduction in his words) has no questions
+  PE2          5 q /   5 concepts  (Professor)
+  sw-intro     1 q /   1 concepts  (Professor)
+  warn  subtopic "sw-intro/terms" (ADME and the fundamental terms) has no questions
+  warn  subtopic "sw-intro/matrix" (Whole blood, serum and plasma) has no questions
+  warn  subtopic "sw-intro/models" (Pharmacokinetic models) has no questions
+  warn  subtopic "sw-intro/curve" (The concentration versus time curve) has no questions
+  sw-orders   12 q /   7 concepts  (Professor)
+  warn  subtopic "sw-orders/half" (Half-life, both orders) has no questions
+  sw-infusion   8 q /   7 concepts  (Professor)
+  warn  subtopic "sw-infusion/css" (Steady state and continuous dosing) has no questions
+  warn  subtopic "sw-infusion/rate" (Infusion rate for a target steady-state concentration) has no questions
+  warn  subtopic "sw-infusion/time" (Time to reach a stated fraction of steady state) has no questions
+  sw-oral      4 q /   4 concepts  (Professor)
+  warn  subtopic "sw-oral/changes" (Effects of changing ka, k and dose) has no questions
+  sw-multi     1 q /   1 concepts  (Professor)
+  warn  subtopic "sw-multi/accum" (Drug accumulation and steady state) has no questions
+  warn  subtopic "sw-multi/superpos" (The principle of superposition) has no questions
+  warn  subtopic "sw-multi/ndose" (Concentration after n doses and after the last dose) has no questions
+  sw-intermit   6 q /   6 concepts  (Professor)
+  sw-multoral  10 q /  10 concepts  (Professor)
+  sw-bioavail   2 q /   2 concepts  (Professor)
+  warn  subtopic "sw-bioavail/defs" (Drug product performance, bioavailability, absolute and relative, bioequivalence) has no questions
+  warn  subtopic "sw-bioavail/frel" (Relative bioavailability) has no questions
+  warn  subtopic "sw-bioavail/figure" (Reading the bioequivalence example) has no questions
+  sw-pkpd      8 q /   7 concepts  (Professor)
+  warn  subtopic "sw-pkpd/dosefor" (The dose for a target duration of activity) has no questions
+  sw-nonlin    8 q /   6 concepts  (Professor)
+  warn  subtopic "sw-nonlin/kmvmax" (Vmax and KM from two dose rates in a patient) has no questions
+  warn  subtopic "sw-nonlin/dose" (Dose rate and steady state for a nonlinear drug such as phenytoin) has no questions
+  L01          6 q /   6 concepts  (Professor)
+  tvc-orders   6 q /   5 concepts  (Professor)
+  warn  subtopic "tvc-orders/zero" (Zero-order reactions) has no questions
+  warn  subtopic "tvc-orders/plots" (Linear and semi-logarithmic plots) has no questions
+  tvc-bolus2   1 q /   1 concepts  (Professor)
+  warn  subtopic "tvc-bolus2/why" (Why some drugs need more than one compartment) has no questions
+  warn  subtopic "tvc-bolus2/params" (A, B, alpha, beta and the rate constants) has no questions
+  tvc-infusion   1 q /   1 concepts  (Professor)
+  warn  subtopic "tvc-infusion/basics" (What an infusion does, and why the input is zero order) has no questions
+  warn  subtopic "tvc-infusion/css" (Steady state and continuous dosing) has no questions
+  warn  subtopic "tvc-infusion/pre" (Concentration before steady state is reached) has no questions
+  warn  subtopic "tvc-infusion/time" (Time to reach a stated fraction of steady state) has no questions
+  warn  subtopic "tvc-infusion/stop" (Concentration after the infusion is stopped) has no questions
+  warn  subtopic "tvc-infusion/load" (Loading dose, alone and with a continuous infusion) has no questions
+  tvc-clearance   1 q /   1 concepts  (Professor)
+  warn  subtopic "tvc-clearance/routes" (The main routes of elimination, renal and hepatic) has no questions
+  warn  subtopic "tvc-clearance/renalmech" (Glomerular filtration, tubular secretion and reabsorption) has no questions
+  warn  subtopic "tvc-clearance/crclcalc" (Creatinine clearance and its significance) has no questions
+  warn  subtopic "tvc-clearance/ionization" (Degree of ionization and renal excretion) has no questions
+
+=== 4. Spaced repetition rules ===
+feature module equation-drill (tab): TypeError: nav.querySelector is not a function
+    at evalmachine.<anonymous>:2028:17
+    at run (evalmachine.<anonymous>:1989:18)
+    at dom (evalmachine.<anonymous>:2021:7)
+    at startUp (evalmachine.<anonymous>:2042:11)
+    at evalmachine.<anonymous>:2103:5
+    at Object.askProfile (evalmachine.<anonymous>:1327:3)
+    at Object.<anonymous> (/tmp/port-integration-3/ci/all-patched/checks-test-9avsPV/src/test.js:118:3)
+    at Module._compile (node:internal/modules/cjs/loader:1781:14)
+    at Object..js (node:internal/modules/cjs/loader:1913:10)
+    at Module.load (node:internal/modules/cjs/loader:1505:32)
+feature module glossary-tap (tab): TypeError: nav.querySelector is not a function
+    at evalmachine.<anonymous>:2028:17
+    at run (evalmachine.<anonymous>:1989:18)
+    at dom (evalmachine.<anonymous>:2021:7)
+    at startUp (evalmachine.<anonymous>:2042:11)
+    at evalmachine.<anonymous>:2103:5
+    at Object.askProfile (evalmachine.<anonymous>:1327:3)
+    at Object.<anonymous> (/tmp/port-integration-3/ci/all-patched/checks-test-9avsPV/src/test.js:118:3)
+    at Module._compile (node:internal/modules/cjs/loader:1781:14)
+    at Object..js (node:internal/modules/cjs/loader:1913:10)
+    at Module.load (node:internal/modules/cjs/loader:1505:32)
+feature module notes (tab): TypeError: nav.querySelector is not a function
+    at evalmachine.<anonymous>:2028:17
+    at run (evalmachine.<anonymous>:1989:18)
+    at dom (evalmachine.<anonymous>:2021:7)
+    at startUp (evalmachine.<anonymous>:2042:11)
+    at evalmachine.<anonymous>:2103:5
+    at Object.askProfile (evalmachine.<anonymous>:1327:3)
+    at Object.<anonymous> (/tmp/port-integration-3/ci/all-patched/checks-test-9avsPV/src/test.js:118:3)
+    at Module._compile (node:internal/modules/cjs/loader:1781:14)
+    at Object..js (node:internal/modules/cjs/loader:1913:10)
+    at Module.load (node:internal/modules/cjs/loader:1505:32)
+feature module pair-up-drills (tab): TypeError: nav.querySelector is not a function
+    at evalmachine.<anonymous>:2028:17
+    at run (evalmachine.<anonymous>:1989:18)
+    at dom (evalmachine.<anonymous>:2021:7)
+    at startUp (evalmachine.<anonymous>:2042:11)
+    at evalmachine.<anonymous>:2103:5
+    at Object.askProfile (evalmachine.<anonymous>:1327:3)
+    at Object.<anonymous> (/tmp/port-integration-3/ci/all-patched/checks-test-9avsPV/src/test.js:118:3)
+    at Module._compile (node:internal/modules/cjs/loader:1781:14)
+    at Object..js (node:internal/modules/cjs/loader:1913:10)
+    at Module.load (node:internal/modules/cjs/loader:1505:32)
+feature module short-answer-graphs (tab): TypeError: nav.querySelector is not a function
+    at evalmachine.<anonymous>:2028:17
+    at run (evalmachine.<anonymous>:1989:18)
+    at dom (evalmachine.<anonymous>:2021:7)
+    at startUp (evalmachine.<anonymous>:2042:11)
+    at evalmachine.<anonymous>:2103:5
+    at Object.askProfile (evalmachine.<anonymous>:1327:3)
+    at Object.<anonymous> (/tmp/port-integration-3/ci/all-patched/checks-test-9avsPV/src/test.js:118:3)
+    at Module._compile (node:internal/modules/cjs/loader:1781:14)
+    at Object..js (node:internal/modules/cjs/loader:1913:10)
+    at Module.load (node:internal/modules/cjs/loader:1505:32)
+feature module terms-variables (tab): TypeError: nav.querySelector is not a function
+    at evalmachine.<anonymous>:2028:17
+    at run (evalmachine.<anonymous>:1989:18)
+    at dom (evalmachine.<anonymous>:2021:7)
+    at startUp (evalmachine.<anonymous>:2042:11)
+    at evalmachine.<anonymous>:2103:5
+    at Object.askProfile (evalmachine.<anonymous>:1327:3)
+    at Object.<anonymous> (/tmp/port-integration-3/ci/all-patched/checks-test-9avsPV/src/test.js:118:3)
+    at Module._compile (node:internal/modules/cjs/loader:1781:14)
+    at Object..js (node:internal/modules/cjs/loader:1913:10)
+    at Module.load (node:internal/modules/cjs/loader:1505:32)
+feature module worksheets-ink (tab): TypeError: nav.querySelector is not a function
+    at evalmachine.<anonymous>:2028:17
+    at run (evalmachine.<anonymous>:1989:18)
+    at dom (evalmachine.<anonymous>:2021:7)
+    at startUp (evalmachine.<anonymous>:2042:11)
+    at evalmachine.<anonymous>:2103:5
+    at Object.askProfile (evalmachine.<anonymous>:1327:3)
+    at Object.<anonymous> (/tmp/port-integration-3/ci/all-patched/checks-test-9avsPV/src/test.js:118:3)
+    at Module._compile (node:internal/modules/cjs/loader:1781:14)
+    at Object..js (node:internal/modules/cjs/loader:1913:10)
+    at Module.load (node:internal/modules/cjs/loader:1505:32)
+feature module study-controls (start): TypeError: window.addEventListener is not a function
+    at evalmachine.<anonymous>:6142:86
+    at Array.forEach (<anonymous>)
+    at evalmachine.<anonymous>:6142:66
+    at run (evalmachine.<anonymous>:1989:18)
+    at evalmachine.<anonymous>:2043:25
+    at Array.forEach (<anonymous>)
+    at startUp (evalmachine.<anonymous>:2043:12)
+    at evalmachine.<anonymous>:2103:5
+    at Object.askProfile (evalmachine.<anonymous>:1327:3)
+    at Object.<anonymous> (/tmp/port-integration-3/ci/all-patched/checks-test-9avsPV/src/test.js:118:3)
+  ok    missed concept is held back rather than repeated at once
+  ok    missed concept resurfaces after other questions
+  ok    box advanced 0 -> 3 with repeated correct answers
+  ok    a later miss resets the concept to active review
+  ok    a guess resets the concept to unresolved and outranks never-seen material
+  ok    "I guessed that one" rewrites the log, resets the box, keeps picked and ms
+  ok    73 concepts have more than one wording available
+
+=== 5. Exam simulation draw ===
+  blueprint: Exam 3 (final) — Exam 1 material (Modules 1–3) 15, Exam 2 material (Modules 4–7a) 15, Module 7b — PK-PD relationship 5, Module 8 — Nonlinear pharmacokinetics 5 (40 of 40)
+  drew 40
+  ok    no duplicate questions on a single paper
+  ok    dupOf partners never share a paper (34 marked; 1 lowYield kept off the paper)
+  ok    20 repeated draws all kept the paper shape
+  select-all on the paper: 4 of 40 (target 4)
+  ok    the paper carries the intended number of select-all items
+  ok    every question resolves to a lecture, exam and module
+  ok    every question carries a skill from the course taxonomy (recall, tell, apply, read, calc, infusion, figure, drug, term, pkpd, nonlin, order, multidose, bioavail, krate, clearance, crcl, oral, conctime, multicpt)
+  ok    numeric grading accepts the answer within tolerance and rejects the rest
+
+=== 6. Storage isolation ===
+  ok    progress written under namespaced key: course-id-drill:data:me
+  ok    the page opened without asking for a name
+=== 7. Different wording when a missed concept returns ===
+  ok    returned as a different question (inf-c11 -> cq2-4)
+=== 8. Small pools end instead of looping ===
+  ok    pool of 2 served 2 (2 distinct) then stopped
+  ok    "Ask everything" still serves (10 more)
+
+=== 9. Figures, read links, change log, blueprint ===
+  ok    every DIAGRAMS key is in DIA
+  ok    1 step-through figure(s), each with a dot per step
+  ok    2 read link(s), every one naming guide, tell or ref
+  0 of 364 questions resolve to a reading section (the rest group by topic in the review plan)
+  ok    a session is the run with no half-hour gap (2 of 4 answers)
+  ok    a correct answer marked "not sure" does not count as solid
+  skip  blueprint draw (this course draws by pool marks, not announced counts)
+  ok    1 change log entry embedded, each with bullets
+
+FAILURES: 26  (warnings: 63)
+
+FAIL: test.js: 26 failure(s)

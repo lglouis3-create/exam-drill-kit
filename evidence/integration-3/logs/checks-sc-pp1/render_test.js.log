@@ -1,0 +1,37 @@
+feature module study-controls (start): TypeError: window.addEventListener is not a function
+    at evalmachine.<anonymous>:2383:86
+    at Array.forEach (<anonymous>)
+    at evalmachine.<anonymous>:2383:66
+    at run (evalmachine.<anonymous>:1691:18)
+    at evalmachine.<anonymous>:1745:25
+    at Array.forEach (<anonymous>)
+    at startUp (evalmachine.<anonymous>:1745:12)
+    at evalmachine.<anonymous>:1805:5
+    at Object.askProfile (evalmachine.<anonymous>:1029:3)
+    at Object.<anonymous> (/tmp/port-integration-3/ci/sc-pp1/course/src/render_test.js:15:19)
+
+=== Render smoke test ===
+  ok    topics list            26545 chars
+  ok    quiz, unanswered       1277 chars
+  ok    quiz, answered         3039 chars
+         explanations rendered: 4 option rows
+         citation present: true
+  ok    quiz, image item       10245 chars
+         image shown: true
+  ok    quiz, numeric answered 2254 chars
+  ok    quiz, match answered   2233 chars
+  ok    weak spots             5187 chars
+  ok    reference              5930 chars
+  ok    tell apart             793 chars
+  ok    guides                 1695 chars
+  ok    diagrams               3693 chars
+         figures registered: 1, step-throughs: 1
+  ok    settings               3953 chars
+  ok    settings says 131 questions; the page holds 131
+  ok    exam paper             1215 chars
+  ok    exam question count: 40 of 40
+         5 questions carry an image
+
+Render smoke test passed
+
+PASS: render_test.js: every view rendered clean

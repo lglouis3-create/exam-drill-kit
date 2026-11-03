@@ -1,0 +1,40 @@
+== modules switched on, in this order: study-controls paper-picker
+-- study-controls: node features/study-controls/ci/oncourse.js
+wrote: /tmp/port-integration-3/ci/sc-pp3/kit-ci-eLhczN/course/src/q90_sc_fixture.js (topic L01 and 6 questions from FIX in test.js)
+wrote: appended to /tmp/port-integration-3/ci/sc-pp3/kit-ci-eLhczN/course/src/course.js: the file in COURSE.files, the lecture Pharmacodynamics-Day-1-2026s.pdf (id L91) in COURSE.lectures, and study-controls v1 on with strict: true and the strict note
+-- paper-picker: node features/paper-picker/ci/oncourse.js
+wrote: /tmp/port-integration-3/ci/sc-pp3/kit-ci-eLhczN/course/src/q90_paper_picker_pk.js (11 topics and 118 questions from features/paper-picker/current/test_fixture.js, prof "Professor")
+wrote: /tmp/port-integration-3/ci/sc-pp3/kit-ci-eLhczN/course/src/images.json (the 9 images those questions show, added to the course's own)
+wrote: appended to /tmp/port-integration-3/ci/sc-pp3/kit-ci-eLhczN/course/src/course.js: the file in COURSE.files, 12 lectures in COURSE.lectures, the skills the course lacks, COURSE.exams (Exam 1, Exam 2, Exam 3 (final)), COURSE.activeExam 3, and paper-picker v1 on
+== modules:study-controls,paper-picker, chromium, kit 9acfe9d
+PASS     build.py          wrote index.html  (0.71 MB)
+PASS     test.js           131 questions checked, 15 warning(s)
+PASS     style_check.js    131 stems and 131 explanations clean
+PASS     render_test.js    every view rendered clean
+REPORT   explain_check.js  26 of 131 questions carry at least one explanation issue
+PASS     stepper_test.js   1 step-through(s) settle at every step
+NOT RUN  cite_check.py     no lecture PDFs found under decks/ or src/
+PASS     device_lint.js    3 checks passed
+PASS     output_test.js    16 checks passed
+PASS     files_test.js     13 checks passed
+PASS     tables_test.js    20 checks passed
+PASS     checks_test.js    32 checks passed
+PASS     draw_test.js      9 checks passed
+PASS     browser_test.js   104 checks passed (2 skipped: drawn structures; the course's own tables wider than the screen)
+PASS     storage_test.js   24 checks passed
+PASS     startup_test.js   77 checks passed
+PASS     update_test.js    38 checks passed
+PASS     offline_test.js   29 checks passed
+PASS     home_test.js      36 checks passed
+PASS     history_test.js   28 checks passed
+PASS     scheduler_test.js 110 checks passed
+PASS     preview_test.js   14 checks passed
+PASS     state_check.js    2 checks passed
+PASS     state_check_test.js 8 checks passed
+PASS     oldcache_test.js  12 checks passed
+PASS     nullexam_test.js  76 checks passed (1 skipped: the Weighting chips)
+PASS     features_test.js  40 checks passed
+PASS     features/study-controls/test.js 61 checks passed
+PASS     features/paper-picker/test.js 74 checks passed
+27 PASS, 0 FAIL, 1 NOT RUN, 1 REPORT; logs in /tmp/port-integration-3/ci/sc-pp3/drill-checks-EctY6M
+exit 0

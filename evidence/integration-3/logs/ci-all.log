@@ -1,0 +1,22 @@
+== modules switched on, in this order: chained-problem-sets concept-statuses formulas-in-text equation-drill glossary-tap module-pages notes pair-up-drills paper-picker plan-the-problem quiz-prep-cards short-answer-graphs stopwatch study-controls terms-variables theme worksheets-ink wrong-number-diagnosis
+-- chained-problem-sets: node features/chained-problem-sets/ci/oncourse.js
+wrote: /tmp/port-integration-3/ci/all/kit-ci-YJmwET/course/src/q90_cpc_fixture.js (topic cpc, 4 parts and the problem set cpc-m1-first from the fixture in test.js)
+wrote: appended to /tmp/port-integration-3/ci/all/kit-ci-YJmwET/course/src/course.js: the file in COURSE.files, 2 deck(s) in COURSE.lectures (IntroductionandMathReviewSolutions.pdf, Introduction.pdf), and chained-problem-sets v2 on
+-- concept-statuses: node features/concept-statuses/ci/oncourse.js
+wrote: /tmp/port-integration-3/ci/all/kit-ci-YJmwET/course/src/q90_cst_fixture.js (1 topics and 7 questions from FIX in test.js)
+wrote: appended to /tmp/port-integration-3/ci/all/kit-ci-YJmwET/course/src/course.js: the file in COURSE.files, the lecture 3IntravenousInfusions.pdf (id L91) in COURSE.lectures, 1 skill(s) in COURSE.skills, and concept-statuses v1 on with words (61 entries)
+-- formulas-in-text: node features/formulas-in-text/ci/oncourse.js
+wrote: appended to /tmp/port-integration-3/ci/all/kit-ci-YJmwET/course/src/course.js: formulas-in-text v1 on with 56 symbols, 4 rates, halfLife, times, minus and powers (the options of its test.js)
+wrote: no data files (the module reads no course data file)
+-- equation-drill: node features/equation-drill/ci/oncourse.js
+wrote: /tmp/port-integration-3/ci/all/kit-ci-YJmwET/course/src/eqc_equations.js (14 equations from the fixture in test.js)
+wrote: appended to /tmp/port-integration-3/ci/all/kit-ci-YJmwET/course/src/course.js: the file in COURSE.files and equation-drill v2 on
+-- glossary-tap: node features/glossary-tap/ci/oncourse.js
+wrote: /tmp/port-integration-3/ci/all/kit-ci-YJmwET/course/src/terms_gtap.js (10 terms)
+wrote: /tmp/port-integration-3/ci/all/kit-ci-YJmwET/course/src/q1_topics.js (2 topics, 66 questions; replaces the template sample)
+wrote: /tmp/port-integration-3/ci/all/kit-ci-YJmwET/course/src/guide.js (Intro to Pharmacology guide.js sections 1 and 4, opening lines; replaces the template sample)
+wrote: /tmp/port-integration-3/ci/all/kit-ci-YJmwET/course/src/course.js: lectures L04, L10 in its list; appended 7 skills, terms_gtap.js in files, glossary-tap v1 on
+-- module-pages: node features/module-pages/ci/oncourse.js
+module-pages ci/oncourse.js: the questions use skills neither the course nor the fixture has: read
+FAIL: features/module-pages/ci/oncourse.js exited non-zero
+exit 1

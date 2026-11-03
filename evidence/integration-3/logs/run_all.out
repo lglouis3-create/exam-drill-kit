@@ -1,0 +1,43 @@
+== all (modules:chained-problem-sets,concept-statuses,equation-drill,formulas-in-text,glossary-tap,module-pages,notes,pair-up-drills,paper-picker,plan-the-problem,quiz-prep-cards,short-answer-graphs,stopwatch,study-controls,terms-variables,theme,worksheets-ink,wrong-number-diagnosis) exit 1
+== modules switched on, in this order: chained-problem-sets concept-statuses formulas-in-text equation-drill glossary-tap module-pages notes pair-up-drills paper-picker plan-the-problem quiz-prep-cards short-answer-graphs stopwatch study-controls terms-variables theme worksheets-ink wrong-number-dia
+FAIL: features/module-pages/ci/oncourse.js exited non-zero
+== ws-ch (modules:worksheets-ink,chained-problem-sets) exit 0
+== modules switched on, in this order: worksheets-ink chained-problem-sets
+REPORT   explain_check.js  5 of 30 questions carry at least one explanation issue
+NOT RUN  cite_check.py     no lecture PDFs found under decks/ or src/
+27 PASS, 0 FAIL, 1 NOT RUN, 1 REPORT; logs in /tmp/port-integration-3/ci/ws-ch/drill-checks-mccis0
+== ws (module:worksheets-ink) exit 0
+== modules switched on, in this order: worksheets-ink
+REPORT   explain_check.js  5 of 26 questions carry at least one explanation issue
+NOT RUN  cite_check.py     no lecture PDFs found under decks/ or src/
+26 PASS, 0 FAIL, 1 NOT RUN, 1 REPORT; logs in /tmp/port-integration-3/ci/ws/drill-checks-qHJFE2
+== ch (module:chained-problem-sets) exit 0
+== modules switched on, in this order: chained-problem-sets
+REPORT   explain_check.js  5 of 11 questions carry at least one explanation issue
+NOT RUN  cite_check.py     no lecture PDFs found under decks/ or src/
+26 PASS, 0 FAIL, 1 NOT RUN, 1 REPORT; logs in /tmp/port-integration-3/ci/ch/drill-checks-q8iFb6
+== gt-fit (modules:glossary-tap,formulas-in-text) exit 0
+== modules switched on, in this order: glossary-tap formulas-in-text
+REPORT   explain_check.js  66 of 66 questions carry at least one explanation issue
+NOT RUN  cite_check.py     no lecture PDFs found under decks/ or src/
+27 PASS, 0 FAIL, 1 NOT RUN, 1 REPORT; logs in /tmp/port-integration-3/ci/gt-fit/drill-checks-lhlzd5
+== gt (module:glossary-tap) exit 0
+== modules switched on, in this order: glossary-tap
+REPORT   explain_check.js  66 of 66 questions carry at least one explanation issue
+NOT RUN  cite_check.py     no lecture PDFs found under decks/ or src/
+26 PASS, 0 FAIL, 1 NOT RUN, 1 REPORT; logs in /tmp/port-integration-3/ci/gt/drill-checks-RBcKWA
+== fit (module:formulas-in-text) exit 0
+== modules switched on, in this order: formulas-in-text
+REPORT   explain_check.js  5 of 7 questions carry at least one explanation issue
+NOT RUN  cite_check.py     no lecture PDFs found under decks/ or src/
+26 PASS, 0 FAIL, 1 NOT RUN, 1 REPORT; logs in /tmp/port-integration-3/ci/fit/drill-checks-YtuB0v
+== sc-pp3 (modules:study-controls,paper-picker) exit 0
+== modules switched on, in this order: study-controls paper-picker
+REPORT   explain_check.js  26 of 131 questions carry at least one explanation issue
+NOT RUN  cite_check.py     no lecture PDFs found under decks/ or src/
+27 PASS, 0 FAIL, 1 NOT RUN, 1 REPORT; logs in /tmp/port-integration-3/ci/sc-pp3/drill-checks-EctY6M
+== sc (module:study-controls) exit 0
+== modules switched on, in this order: study-controls
+REPORT   explain_check.js  11 of 13 questions carry at least one explanation issue
+NOT RUN  cite_check.py     no lecture PDFs found under decks/ or src/
+26 PASS, 0 FAIL, 1 NOT RUN, 1 REPORT; logs in /tmp/port-integration-3/ci/sc/drill-checks-ckoNkz

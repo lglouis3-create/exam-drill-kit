@@ -1,0 +1,23 @@
+
+=== Explanation quality ===
+  5 of 30 questions carry at least one issue
+
+     5  thin option why
+
+  by pool:
+     5  all (supplies 4 of the 4)
+
+  worst 5, ranked by severity x exam weight:
+
+  s2-1        topic2    all             rank 20.0
+      - thin option why: A (48), B (42), C (39), D (49), E (55)
+  s1-1        topic1    all             rank 16.0
+      - thin option why: A (69), B (67), C (77), D (65)
+  s1-2        topic1    all             rank 16.0
+      - thin option why: A (52), B (40), C (28), D (29)
+  s1-3        topic1    all             rank 16.0
+      - thin option why: A (91), B (45), C (31), D (46)
+  s2-2        topic2    all             rank 16.0
+      - thin option why: A (25), B (42), C (51), D (50)
+
+REPORT: explain_check.js: 5 of 30 questions carry at least one explanation issue

@@ -1,0 +1,133 @@
+diff --git a/features/concept-statuses/ci/oncourse.js b/features/concept-statuses/ci/oncourse.js
+index 563600b..998ed0a 100644
+--- a/features/concept-statuses/ci/oncourse.js
++++ b/features/concept-statuses/ci/oncourse.js
+@@ -68,6 +68,8 @@ let bank;
+ try { bank = vm.runInContext('({q: QUESTIONS.map(q => q.id), t: TOPICS.map(t => t.id)})', sb); } catch(e){ fail('the course has no QUESTIONS or TOPICS: ' + e.message); }
+ const own = {prof, qids: bank.q, topics: bank.t, skills: (COURSE.skills || []).map(s => s.id), decks: (COURSE.lectures || []).map(l => l.deck)};
+ let w;
++// integration patch: as worksheets-ink's script does, a `setup` line naming equations the course lacks is left out
++FIX.qs.forEach(q => { delete q.setup; });
+ try { w = WRITE(FIX, own); } catch(e){ fail('the fixture cannot be written: ' + e.message); }
+ if(!w.rows) fail('the course already has every question of the fixture');
+ const cfg = {version: meta.version, words: WORDS};
+diff --git a/features/glossary-tap/ci/oncourse.js b/features/glossary-tap/ci/oncourse.js
+index 91f82ad..07b58fe 100644
+--- a/features/glossary-tap/ci/oncourse.js
++++ b/features/glossary-tap/ci/oncourse.js
+@@ -62,7 +62,7 @@ if(/`|\$\{/.test(FIX.guide)) fail('the guide fixture holds a backtick or ${, whi
+ const LEC_RE = /(\n  lectures: \[\n)([\s\S]*?)(\n  \],)/;
+ if(!LEC_RE.test(text)) fail('course.js has no `  lectures: [` list in the template\'s form');
+ const course2 = text.replace(LEC_RE, (m, a, b, c) => a + FC.lectures.map(l => '    ' + lLine(l) + ',').join('\n') + c);
+-const line = `\n;/* glossary-tap ci */ COURSE.skills = ${JSON.stringify(FC.skills)}; ` +
++const line = `\n;/* glossary-tap ci */ COURSE.skills = (COURSE.skills || []).concat(${JSON.stringify(FC.skills)}.filter(k => !(COURSE.skills || []).some(s => s.id === k.id))); ` +
+   `COURSE.files = (COURSE.files || ['atlas.js', 'diagrams.js', 'q1_topics.js']).concat(['terms_gtap.js']); ` +
+   `COURSE.features = Object.assign({}, COURSE.features, {"glossary-tap": ${JSON.stringify({version: meta.version})}});\n`;
+ try {
+diff --git a/features/module-pages/ci/oncourse.js b/features/module-pages/ci/oncourse.js
+index 54a21d5..54040ba 100644
+--- a/features/module-pages/ci/oncourse.js
++++ b/features/module-pages/ci/oncourse.js
+@@ -78,25 +78,28 @@ try {
+ } catch(e){ fail('the course could not be read: ' + e.message); }
+ const prof = (own.COURSE.professors || [])[0];
+ if(typeof prof !== 'string' || !prof || /['\\\n]/.test(prof)) fail('course.js has no first professor that can be written as a literal');
++// integration patch: as test.js does (FM = free(92)), the fixture goes on a module number the course does not use
++const usedMods = new Set((own.COURSE.lectures || []).map(l => String(l.module)).concat(own.QUESTIONS.map(q => String(q.module))));
++let FM = PK.module.module; if(usedMods.has(String(FM))){ FM = 92; while(usedMods.has(String(FM))) FM++; }
+ 
+ // the questions that cite a lecture deck, with their dupOf partners
+ const decks = [...new Set(LECS.map(l => l.deck))];
+ const byQ = Object.fromEntries(PK.qs.map(q => [q.id, q])), want = [];
+ const add = id => { const q = byQ[id]; if(!q) fail('the fixture has no question ' + id); if(want.includes(id)) return; want.push(id); if(q.dupOf) add(q.dupOf); };
+ PK.qs.filter(q => !q.dupOf && decks.some(d => String(q.cite || '').includes(d))).forEach(q => add(q.id));
+-const qs = PK.qs.filter(q => want.includes(q.id));
++const qs = PK.qs.filter(q => want.includes(q.id)).map(q => Object.assign({}, q, {module: FM}));
+ if(!qs.length) fail('no question of the fixture cites ' + decks.join(', '));
+ const subs = new Set(qs.map(q => q.topic + '/' + q.sub));
+ const ownTopics = own.TOPICS.map(t => t.id), ownSkills = (own.COURSE.skills || []).map(k => k.id);
+ const clash = PK.topics.filter(t => qs.some(q => q.topic === t.id) && ownTopics.includes(t.id)).map(t => t.id);
+ if(clash.length) fail('the course already has the topic(s) ' + clash.join(', '));
+ const topics = PK.topics.filter(t => qs.some(q => q.topic === t.id)).map(t => Object.assign({}, t, {prof}));
+-const objectives = PK.objectives.filter(o => o.subs.some(s => subs.has(s)));
+-const types = PK.types.filter(t => t.example && want.includes(t.example)).map(t => Object.assign({}, t, {id: pre(t.id), example: pre(t.example)}));
++const objectives = PK.objectives.filter(o => o.subs.some(s => subs.has(s))).map(o => Object.assign({}, o, {module: FM}));
++const types = PK.types.filter(t => t.example && want.includes(t.example)).map(t => Object.assign({}, t, {id: pre(t.id), example: pre(t.example), module: FM}));
+ const skills = PK.skills.filter(k => qs.some(q => q.skill === k.id) && !ownSkills.includes(k.id));
+ const missingSkill = [...new Set(qs.map(q => q.skill))].filter(k => !ownSkills.includes(k) && !skills.some(s => s.id === k));
+ if(missingSkill.length) fail('the questions use skills neither the course nor the fixture has: ' + missingSkill.join(', '));
+-const lectures = LECS.map(l => Object.assign({}, l, {id: pre(l.id), prof}));
++const lectures = LECS.map(l => Object.assign({}, l, {id: pre(l.id), prof, module: FM}));
+ 
+ // one question per line, in the template's form: id and prof first, as literals
+ const qLine = q => { const rest = Object.assign({}, q); delete rest.id; delete rest.prof;
+@@ -115,8 +118,8 @@ const lectureLit = l => '{' + Object.entries(l).map(([k, v]) => `${k}:${lit(v)}`
+ if(lectures.some(l => Object.values(l).some(v => typeof v !== 'number' && typeof v !== 'string'))) fail('a lecture holds a value that cannot be written as a literal');
+ const ownMods = [];
+ (own.COURSE.lectures || []).forEach(l => { if(l.module !== undefined && l.module !== null && !ownMods.includes(l.module)) ownMods.push(l.module); });
+-if(ownMods.includes(PK.module.module)) fail(`the course already has a module ${PK.module.module}`);
+-const modules = ownMods.map(m => [m, typeof m === 'string' && /\D/.test(m) ? m : 'Module ' + m]).concat([[PK.module.module, PK.module.name]]);
++if(ownMods.includes(FM)) fail(`the course already has a module ${FM}`);
++const modules = ownMods.map(m => [m, typeof m === 'string' && /\D/.test(m) ? m : 'Module ' + m]).concat([[FM, PK.module.name]]);
+ try { for(const [f, t] of Object.entries(out)){ fs.writeFileSync(path.join(src, f), t); console.log(`wrote: ${path.join(src, f)} (${t.length} characters)`); } }
+ catch(e){ fail('cannot write the data files: ' + e.message); }
+ const line = `\n;${TAG} COURSE.files = (COURSE.files || ['atlas.js', 'diagrams.js', 'q1_topics.js']).concat([${JSON.stringify(QFILE)}, ${JSON.stringify(DFILE)}]); ` +
+diff --git a/features/notes/ci/oncourse.js b/features/notes/ci/oncourse.js
+index f58b3c5..67687f3 100644
+--- a/features/notes/ci/oncourse.js
++++ b/features/notes/ci/oncourse.js
+@@ -55,6 +55,8 @@ try { COURSE = new Function(text + '\n;return COURSE;')(); } catch(e){ fail('cou
+ const own = {prof: (COURSE.professors || [])[0], skills: (COURSE.skills || []).map(s => s.id), lectures: COURSE.lectures || []};
+ if(typeof own.prof !== 'string' || !own.prof) fail('course.js has no first professor');
+ let w;
++// integration patch: as worksheets-ink's script does, a `setup` line naming equations the course lacks is left out
++FIX.qs.forEach(q => { delete q.setup; });
+ try { w = WRITE(FIX, own, {base: true}); } catch(e){ fail('the fixture cannot be written: ' + e.message); }
+ const line = `\n;${TAG} COURSE.files = (COURSE.files || ['atlas.js', 'diagrams.js', 'q1_topics.js']).concat([${JSON.stringify(FILE)}]); ` +
+   w.line + `COURSE.features = Object.assign({}, COURSE.features, {${JSON.stringify(NAME)}: ${JSON.stringify({version: meta.version})}});\n`;
+diff --git a/features/plan-the-problem/ci/oncourse.js b/features/plan-the-problem/ci/oncourse.js
+index fe6f647..1abbc1e 100644
+--- a/features/plan-the-problem/ci/oncourse.js
++++ b/features/plan-the-problem/ci/oncourse.js
+@@ -113,8 +113,10 @@ for(const q of PK.qs){
+   if(!own || !file) fail(`question ${q.id} cites no deck of its lectures and no file a lecture can be written for`);
+   lectures.push(Object.assign({}, own, {deck: file})); decks.add(file);
+ }
+-lectures.forEach((l, i) => { l.id = 'L' + (91 + i); });
+ const used = new Set((COURSE.lectures || []).map(l => String(l.id)));
++// integration patch: the first run of free ids from L91 on (other modules' scripts take L91, L92)
++let base = 91; while(lectures.some((l, i) => used.has('L' + (base + i)))) base++;
++lectures.forEach((l, i) => { l.id = 'L' + (base + i); });
+ if(lectures.some(l => used.has(l.id))) fail('course.js already has a lecture id from L91 on');
+ const lecLit = l => `{id:${lit(l.id)}, deck:${lit(l.deck)}, label:${JSON.stringify(l.label)}, prof:${lit(l.prof)}, exam:${+l.exam}, module:${+l.module}}`;
+ const skills = PK.skills.filter(s => !(COURSE.skills || []).some(x => x.id === s.id));
+diff --git a/features/quiz-prep-cards/ci/oncourse.js b/features/quiz-prep-cards/ci/oncourse.js
+index 05083df..0fbd868 100644
+--- a/features/quiz-prep-cards/ci/oncourse.js
++++ b/features/quiz-prep-cards/ci/oncourse.js
+@@ -57,7 +57,11 @@ if(COURSE.quizzes) fail('course.js already has quizzes');
+ const lit = s => { if(!/^[A-Za-z0-9 ._-]+$/.test(String(s))) fail(`"${s}" cannot be written as a literal`); return `'${s}'`; };
+ const has = new Set((COURSE.lectures || []).map(l => l.id));
+ const clash = FIX.lectures.filter(l => has.has(l.id)).map(l => l.id);
+-if(clash.length) fail('course.js already has lecture ' + clash.join(', '));
++// integration patch: on a clash, every lecture id of the fixture is prefixed qpc- (and each question's lecture with it)
++if(clash.length){ FIX.lectures = FIX.lectures.map(l => Object.assign({}, l, {id: 'qpc-' + l.id})); FIX.qs = FIX.qs.map(q => q.lecture ? Object.assign({}, q, {lecture: 'qpc-' + q.lecture}) : q);
++  const again = FIX.lectures.filter(l => has.has(l.id)).map(l => l.id); if(again.length) fail('course.js already has lecture ' + again.join(', ')); }
++// integration patch: as worksheets-ink's script does, a `setup` line naming equations the course lacks is left out
++FIX.qs = FIX.qs.map(q => { const r = Object.assign({}, q); delete r.setup; return r; });
+ const bad = FIX.qs.concat(FIX.topics, FIX.lectures).filter(o => o.prof !== PROF).map(o => o.id);
+ if(bad.length) fail(`the fixture has a prof other than "${PROF}": ` + bad.join(', '));
+ // one question per line, `{id:'…', [type:'…',] prof:'Professor', …}`, as browser_test.js counts them
+diff --git a/features/stopwatch/ci/oncourse.js b/features/stopwatch/ci/oncourse.js
+index 6800a7a..92a8b5a 100644
+--- a/features/stopwatch/ci/oncourse.js
++++ b/features/stopwatch/ci/oncourse.js
+@@ -48,6 +48,8 @@ const prof = (COURSE.professors || [])[0];
+ if(prof !== 'Professor') fail(`the course's first professor is ${JSON.stringify(prof)}, not the template's "Professor"`);
+ const clash = (COURSE.lectures || []).filter(l => FX.FIX.lectures.some(x => FX.pre(x.id) === l.id)).map(l => l.id);
+ if(clash.length) fail('course.js already has lecture ' + clash.join(', '));
++// integration patch: as worksheets-ink's script does, a `setup` line naming equations the course lacks is left out
++FX.FIX.qs.forEach(q => { delete q.setup; });
+ let out;
+ try { out = FX.courseData(prof); } catch(e){ fail(e.message); }
+ const imagesFile = path.join(src, 'images.json');

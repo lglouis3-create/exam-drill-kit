@@ -1,0 +1,20 @@
+00:51:18	/tmp/port-integration-3/ci/all	core/ci_course.sh modules:chained-problem-sets,concept-statuses,equation-drill,formulas-in-text,glossary-tap,module-pages,notes,pair-up-drills,paper-picker,plan-the-problem,quiz-prep-cards,short-answer-graphs,stopwatch,study-controls,terms-variables,theme,worksheets-ink,wrong-number-diagnosis chromium	1	/tmp/port-integration-3/logs/ci-all.log
+00:51:18	/tmp/port-integration-3/ci/ws-ch	core/ci_course.sh modules:worksheets-ink,chained-problem-sets chromium	0	/tmp/port-integration-3/logs/ci-ws-ch.log
+00:55:03	/tmp/port-integration-3/ci/ws	core/ci_course.sh module:worksheets-ink chromium	0	/tmp/port-integration-3/logs/ci-ws.log
+00:58:36	/tmp/port-integration-3/ci/ch	core/ci_course.sh module:chained-problem-sets chromium	0	/tmp/port-integration-3/logs/ci-ch.log
+01:01:05	/tmp/port-integration-3/ci/gt-fit	core/ci_course.sh modules:glossary-tap,formulas-in-text chromium	0	/tmp/port-integration-3/logs/ci-gt-fit.log
+01:03:52	/tmp/port-integration-3/ci/gt	core/ci_course.sh module:glossary-tap chromium	0	/tmp/port-integration-3/logs/ci-gt.log
+01:06:31	/tmp/port-integration-3/ci/fit	core/ci_course.sh module:formulas-in-text chromium	0	/tmp/port-integration-3/logs/ci-fit.log
+01:09:01	/tmp/port-integration-3/ci/sc-pp3	core/ci_course.sh modules:study-controls,paper-picker chromium	0	/tmp/port-integration-3/logs/ci-sc-pp3.log
+01:12:14	/tmp/port-integration-3/ci/sc	core/ci_course.sh module:study-controls chromium	0	/tmp/port-integration-3/logs/ci-sc.log
+01:24:16	/tmp/port-integration-3/ci/pp3	core/ci_course.sh module:paper-picker chromium	0	/tmp/port-integration-3/logs/ci-pp3.log
+01:30:33	/tmp/port-integration-3/ci/sc-pp1/course	ci_1exam.sh (study-controls,paper-picker, 1 exam)	exit 1	/tmp/port-integration-3/logs/ci-sc-pp1.log
+01:30:34	/tmp/port-integration-3/ci/nt-sc	core/ci_course.sh modules:notes,study-controls chromium	0	/tmp/port-integration-3/logs/ci-nt-sc.log
+01:33:53	/tmp/port-integration-3/ci/nt	core/ci_course.sh module:notes chromium	0	/tmp/port-integration-3/logs/ci-nt.log
+01:36:46	/tmp/port-integration-3/ci/keys	core/ci_course.sh modules:study-controls,worksheets-ink,notes chromium	0	/tmp/port-integration-3/logs/ci-keys.log
+01:41:20	/tmp/port-integration-3/ci/keys/kit-ci-5jDBIV/course/src	node scripts/keys_test.js on keys	0	/tmp/port-integration-3/logs/keys-keys.log
+01:41:24	/tmp/port-integration-3/ci/all-patched	[patched kit /tmp/port-integration-3/kitpatch] core/ci_course.sh modules:chained-problem-sets,concept-statuses,equation-drill,formulas-in-text,glossary-tap,module-pages,notes,pair-up-drills,paper-picker,plan-the-problem,quiz-prep-cards,short-answer-graphs,stopwatch,study-controls,terms-variables,theme,worksheets-ink,wrong-number-diagnosis chromium	1	/tmp/port-integration-3/logs/ci-all-patched.log
+01:53:18	/tmp/port-integration-3/ci/all-patched/kit-ci-zdccOP/course/src	[patched] node scripts/keys_test.js on all-patched	0	/tmp/port-integration-3/logs/keys-all-patched.log
+01:53:23	/tmp/port-integration-3/ci/all-patched/kit-ci-zdccOP/course/src	[patched] node scripts/contrast_test.js on all-patched	0	/tmp/port-integration-3/logs/contrast-all-patched.log
+01:15-01:24	/tmp/port-integration-3/dry (deleted)	[diagnostic] build-only dry runs of the everything-on course on kitpatch: each module's ci/oncourse.js in ci_course.sh's order, then build.py; repeated after each patch (6 refusals found, see INDEX.md)	-	-
+01:55:10	ci/all-patched course	[diagnostic] node scripts/theme_probe.js on all-patched: #nav first holds a button while document.readyState is loading, before any script ran (data-theme null; Dark stored)	0	-
