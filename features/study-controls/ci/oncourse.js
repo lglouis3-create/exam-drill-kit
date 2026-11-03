@@ -5,12 +5,13 @@
  * The course data is the fixture of the module's own test.js, read from that file as it
  * stands: its `const FIX` (Intro to Pharmacology's Day 1 topic, its lecture, 6 of its
  * questions and the professor's 10/21 answer on going back to a question, verbatim from
- * Intro-Pharmacology- exam1-drill/src at 929cd62, with `prof` set to the template's
- * "Professor"), written by that file's `const WRITE`, the same writer the test's scratch
+ * Intro-Pharmacology- exam1-drill/src at 929cd62, every `prof` the source's own, and the
+ * professors added to COURSE.professors), written by that file's `const WRITE`, the same writer the test's scratch
  * copies use (its comment lists how: one question per line in the kit's form, a topic of
  * its own after the course's topics, the lecture under the first id from L91 on that the
  * course's lectures do not use). The question ids are the course's own (L01-002 and so on);
- * the test finds them in the course and uses the course's copy.
+ * the test finds them in the course and uses the course's copy. The script stops when the
+ * course already holds one of them or the topic id (CIDATA rule 2).
  * Lecture id: the source's L01 (Intro to Pharmacology course.js) is written as L91, or, when
  * the course already has L91 (other modules' scripts write L91 and L92), as the next id from
  * L92 on that is free (CIDATA rule 2). The output names the id used.
@@ -52,8 +53,11 @@ if(text.includes(TAG)) fail(`course.js already switches ${NAME} on (this script 
 if(fs.existsSync(data)) fail(data + ' already exists (this script runs once per course)');
 let COURSE;
 try { COURSE = new Function(text + '\n;return COURSE;')(); } catch(e){ fail('course.js cannot be read: ' + e.message); }
-const own = {prof: (COURSE.professors || [])[0], skills: (COURSE.skills || []).map(s => s.id), lectures: COURSE.lectures || []};
-if(typeof own.prof !== 'string' || !own.prof) fail('course.js has no first professor');
+const own = {skills: (COURSE.skills || []).map(s => s.id), lectures: COURSE.lectures || []};
+// the question and topic ids are the source's own (L01-002, L01): the course must not hold them yet (CIDATA rule 2)
+const held = (COURSE.files || ['atlas.js', 'diagrams.js', 'q1_topics.js']).map(f => { try { return fs.readFileSync(path.join(src, f), 'utf8'); } catch(e){ return ''; } }).join('\n');
+const taken = [FIX.topic.id].concat(FIX.qs.map(q => q.id)).filter(id => new RegExp(`(^|[{,\\s])["']?id["']?\\s*:\\s*["']${id}["']`).test(held));
+if(taken.length) fail('the course already holds the id(s) ' + taken.join(', '));
 if(!own.skills.length) fail('course.js lists no skills');
 let w;
 try { w = WRITE(FIX, own, {base: true}); } catch(e){ fail('the fixture cannot be written: ' + e.message); }
