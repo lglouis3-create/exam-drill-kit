@@ -1675,6 +1675,58 @@ let nfile = 0;
     await d.ctx.close();
   }
 
+  console.log('\n=== One writer per profile: ChatGPT\'s follow-up at f53ac75 ===');
+  {
+    // a never-saved profile whose only change is a setting: it counts as unsaved work, so taking
+    // the profile back keeps it as a copy, and Reload asks first
+    const d = await device(undefined, true); const di = await info(d.page);
+    const t2 = await secondTab(d);
+    await t2.waitForFunction(() => WRITER === 'other', null, {timeout: 5000}).catch(() => {});
+    await holdTimer(d.page);
+    await d.page.evaluate(() => { writerChan.close(); DB.settings.goal = 99; save(); });          // waiting, never stored
+    await t2.evaluate(() => takeOver(true));
+    await d.page.waitForFunction(() => WRITER === 'other', null, {timeout: 5000}).catch(() => {});
+    const unsaved = await d.page.evaluate(() => unsavedHere());
+    const asked = await d.page.evaluate(() => atRisk());                // what Reload and Switch ask on
+    await d.page.evaluate(() => takeOver(true));
+    await d.page.waitForFunction(() => WRITER === 'held', null, {timeout: 8000}).catch(() => {});
+    const copies = JSON.parse(await stored(d.page, di.backup) || '[]');
+    const kept = copies.some(c => { try { return JSON.parse(c.data).settings.goal === 99; } catch(e){ return false; } });
+    check(unsaved && asked && kept, 'a never-saved profile with only a changed setting: Reload asks, and taking it back keeps that setting as a copy', {unsaved, asked, kept});
+    // a blank profile with no change makes no copy
+    const d2 = await device(undefined, true); const di2 = await info(d2.page);
+    const t3 = await secondTab(d2);
+    await t3.waitForFunction(() => WRITER === 'other', null, {timeout: 5000}).catch(() => {});
+    await t3.evaluate(() => takeOver(false));
+    await t3.waitForFunction(() => WRITER === 'held', null, {timeout: 8000}).catch(() => {});
+    check(await stored(t3, di2.backup) === null, 'a blank profile with no change makes no copy when it is taken over');
+    await d.ctx.close(); await d2.ctx.close();
+  }
+  {
+    // after a refused progress write, taking the profile back opens the stored progress: the other
+    // tab's answer stays active, this tab's unsaved branch is a copy, and the next save works
+    const d = await device(undefined, true); const di = await info(d.page);
+    await answer(d.page, 1, 0);
+    const t2 = await secondTab(d);
+    await t2.waitForFunction(() => WRITER === 'other', null, {timeout: 5000}).catch(() => {});
+    await refuseKey(d.page, di.data);
+    const mine = await d.page.evaluate(() => { record(QUESTIONS[2], 'correct', undefined, 1000); saveNow(); return DB.answers[DB.answers.length - 1].at; });   // refused
+    await refuseKey(d.page, null);
+    await t2.evaluate(() => takeOver(false));
+    await t2.waitForFunction(() => WRITER === 'held', null, {timeout: 8000}).catch(() => {});
+    const theirs = await answerHere(t2, 4);
+    await d.page.evaluate(() => takeOver(false));
+    await d.page.waitForFunction(() => WRITER === 'held', null, {timeout: 8000}).catch(() => {});
+    const active = await d.page.evaluate(([m, t]) => ({mine: DB.answers.some(a => a.at === m), theirs: DB.answers.some(a => a.at === t)}), [mine, theirs]);
+    const copies = JSON.parse(await stored(d.page, di.backup) || '[]');
+    const inCopy = copies.some(c => { try { return JSON.parse(c.data).answers.some(a => a.at === mine); } catch(e){ return false; } });
+    const next = await answerHere(d.page, 5);
+    const prog = JSON.parse(await stored(d.page, di.data));
+    const ok = !active.mine && active.theirs && inCopy && prog.answers.some(a => a.at === next) && prog.answers.some(a => a.at === theirs) && await wall(d.page) === null;
+    check(ok, 'after a refused write, taking the profile back opens the stored progress (the other tab\'s answer active, this tab\'s branch a copy), and the next save works', {active, inCopy, wall: await wall(d.page)});
+    await d.ctx.close();
+  }
+
   check(!A.errors.length && !B.errors.length, 'no page errors', A.errors.concat(B.errors).slice(0, 2).join('; '));
   await A.ctx.close(); await B.ctx.close();
   await browser.close();

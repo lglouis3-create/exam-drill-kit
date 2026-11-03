@@ -767,6 +767,9 @@ function takeOver(force){
           }
           KEPT_COPY = true;
         }
+        // this page's own refused write is now in a copy: what opens is what is stored, not the
+        // unsaved cache load() keeps for a reopened profile (ChatGPT's follow-up at f53ac75)
+        for(const k of [keyFor(p), NS + ':log:' + p]){ FAILED.delete(k); delete MEM[k]; KEPT[k] = storedNow(k); }
         load();
         // the exam paper this page restored when it opened may be older than the stored one:
         // drop it, so the Exam sim tab reads the paper from storage again
@@ -799,7 +802,9 @@ if(writerChan) writerChan.addEventListener('message', e => {
 function unsavedHere(){
   try {
     const dbNow = JSON.stringify(DB);
-    const dbDiff = SEEN === null ? !!(DB && DB.answers && DB.answers.length) : dbNow !== SEEN;
+    // against what is stored as this page knows it (SEEN), or, for a profile never stored, the
+    // progress as load() opened it: a changed setting with no answer counts too (ChatGPT, f53ac75)
+    const dbDiff = SEEN === null ? dbNow !== LOADED_DB : (dbNow !== SEEN && dbNow !== LOADED_DB);
     const logDiff = LOG_OK && JSON.stringify(LOG) !== (SEEN_LOG === null ? '[]' : SEEN_LOG);
     return dbDiff || logDiff;
   } catch(e){ return false; }
@@ -940,6 +945,7 @@ const ANSWERS_MAX = 4000;   // the answers a progress keeps (record); the answer
    that one answer over the saved progress (startup_test.js shows it on the
    core of that date). */
 let LOADED = '';        // the profile whose saved progress load() read in this visit; '' for none
+let LOADED_DB = null;   // the progress as load() opened it (unsavedHere)
 const canSave = () => !!PROFILE && LOADED === PROFILE;
 
 /* Saved progress from an earlier core. The scheduler work of 2026-11-01 only
@@ -979,7 +985,7 @@ function load(){
       if(!v || typeof v !== 'object' || Array.isArray(v)) throw new Error('the stored value is not a progress object');
       db = upgradeDB(v);
     }
-    DB = db; LOADED = PROFILE;
+    DB = db; LOADED = PROFILE; LOADED_DB = JSON.stringify(db);
   }catch(e){
     DB = BLANK();
     console.error('The saved progress could not be loaded; nothing is saved during this visit.', e);
