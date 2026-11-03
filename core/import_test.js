@@ -144,6 +144,18 @@ let nfile = 0;
     return {plan, offered, result};
   };
   const reload = async p => { await p.reload(); await p.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000}); };
+  // One tab's save reaches another tab's localStorage a moment later, not at once: the HTML
+  // Standard leaves storage between processes undefined, with no locking. On GitHub (run
+  // 41593067385) a tab read null right after the other tab's save, then the same 913 characters
+  // one step later. So before one tab acts on, or is checked against, another tab's save, it
+  // first reads exactly what the writing tab holds under those keys. Returns those values.
+  const synced = async (reader, writer, keys, what) => {
+    const want = await writer.evaluate(ks => ks.map(k => localStorage.getItem(k)), keys);
+    const ok = await reader.waitForFunction(([ks, w]) => ks.every((k, i) => localStorage.getItem(k) === w[i]), [keys, want], {timeout: 5000, polling: 10})
+      .then(() => true, () => false);
+    check(ok, `${what}: this tab reads the other tab's save within 5 s`, keys);
+    return want;
+  };
   const nAns = p => p.evaluate(() => DB.answers.length);
 
   // ---- device A: three answers ----
@@ -572,11 +584,11 @@ let nfile = 0;
     await tab2.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
     // this tab opened the profile with no progress; the other tab answers 3 and saves
     await answer(tab2, 3, 0);
-    const theirs = await stored(d.page, di.data);
+    const [theirs] = await synced(d.page, tab2, [di.data, di.log], 'the other tab answered');
     let rr = await choose(d.page, fileA, true);
     // what is stored after, with what the other tab wrote and saved, for a failure's report
     const after = async (was) => { const now = await stored(d.page, di.data), n = v => JSON.parse(v || '{"answers":[]}').answers.length;
-      return {same: now === was, wasN: n(was), nowN: n(now), backup: !!(await stored(d.page, di.backup)), stale1: await d.page.evaluate(() => STALE), stale2: await tab2.evaluate(() => STALE),
+      return {same: now === was, wasN: n(was), nowN: n(now), backup: !!(await stored(d.page, di.backup)), stale1: await d.page.evaluate(() => typeof STALE === 'undefined' ? 'no STALE' : STALE), stale2: await tab2.evaluate(() => typeof STALE === 'undefined' ? 'no STALE' : STALE),
               pending2: await tab2.evaluate(() => !!saveTimer), lenWas: (was || '').length, lenNow: (now || '').length}; };
     const a1 = await after(theirs);
     check(!rr.offered && /saved by another tab or window/.test(rr.plan) && a1.same && !a1.backup,
@@ -587,7 +599,7 @@ let nfile = 0;
     rr = await choose(d.page, g, false);
     check(rr.offered && /continues this profile's record/.test(rr.plan), 'reloaded, the tab plans a file that continues its record', rr.plan.slice(0, 200));
     await answer(tab2, 1, 3);
-    const theirs2 = await stored(d.page, di.data);
+    const [theirs2] = await synced(d.page, tab2, [di.data, di.log], 'the other tab answered again');
     await d.page.click('#importGo');
     await d.page.waitForSelector('#importResult', {timeout: 5000}).catch(() => {});
     const res = (await d.page.evaluate(() => document.getElementById('importPlan').textContent)).replace(/\s+/g, ' ');
@@ -608,11 +620,14 @@ let nfile = 0;
     const rr = await choose(d.page, g, true);
     const imported = await stored(d.page, di.data), importedLog = await stored(d.page, di.log);
     check(/Imported/.test(rr.result) && JSON.parse(imported).answers.length === 4, 'this tab imports a file that continues its record (4 answers)', rr.result.slice(0, 200));
-    // the other tab, still holding the 2-answer progress, answers once
+    // the other tab, still holding the 2-answer progress, answers once (once it can read the import)
+    await synced(tab2, d.page, [di.data, di.log], 'this tab imported');
     await tab2.evaluate(() => record(QUESTIONS[4], 'correct', undefined, 1000));
     await tab2.waitForTimeout(400);
     const warned = await tab2.evaluate(() => !!document.getElementById('stalewarn'));
-    check(await stored(d.page, di.data) === imported && await stored(d.page, di.log) === importedLog && warned,
+    // read in the tab that might have written, and in this one
+    check(await stored(tab2, di.data) === imported && await stored(tab2, di.log) === importedLog &&
+          await stored(d.page, di.data) === imported && await stored(d.page, di.log) === importedLog && warned,
       'the other tab\'s next save writes neither its progress nor its history over the import, and it says why and offers a reload',
       {warned, n: JSON.parse(await stored(d.page, di.data) || '{"answers":[]}').answers.length});
     await tab2.reload();
@@ -643,6 +658,7 @@ let nfile = 0;
     await tab2.goto(d.page.url());
     await tab2.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
     await answer(tab2, 3, 2);                                       // the other tab: 5 answers stored
+    await synced(d.page, tab2, [di.data, di.log], 'the other tab answered');
     await d.page.evaluate(() => record(QUESTIONS[0], 'correct', undefined, 1000));
     await d.page.waitForTimeout(400);                                // this tab is stopped
     await d.page.evaluate(() => localStorage.clear());
@@ -675,7 +691,7 @@ let nfile = 0;
     const G = JSON.parse(JSON.stringify(base)); G.log.push([G.log[2][0] + 13, 'bbbbbbbb', 1, 'quiz']);
     let rr = await choose(tab2, H, true);
     check(/1 history entry added|adds 1 history entry/.test(rr.plan + rr.result), 'the other tab imports a file that adds one history entry', rr.result.slice(0, 160));
-    const data0 = await stored(d.page, di.data), log0 = await stored(d.page, di.log);
+    const [data0, log0] = await synced(d.page, tab2, [di.data, di.log], 'the other tab imported history');
     rr = await choose(d.page, G, true);
     check(!rr.offered && /saved by another tab or window/.test(rr.plan) && await stored(d.page, di.log) === log0 && log0.includes('aaaaaaaa'),
       'this tab, whose history the other tab has saved since, imports nothing: the other tab\'s entry stays in the history', rr.plan.slice(0, 260));
@@ -697,11 +713,13 @@ let nfile = 0;
     await tab2.goto(d.page.url());
     await tab2.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
     const rr = await choose(d.page, later(await exportOf(d.page), 2), true);   // this tab replaces; a copy is kept
-    const data1 = await stored(d.page, di.data), copies1 = await stored(d.page, di.backup);
+    const [data1, copies1] = await synced(tab2, d.page, [di.data, di.backup, di.log], 'this tab imported');
     await tab2.evaluate(() => { show('settings'); });
     await tab2.evaluate(() => restoreBackup());
     await tab2.waitForTimeout(300);
-    check(/Imported/.test(rr.result) && said2.some(m => /nothing was put back/.test(m)) && await stored(d.page, di.data) === data1 && await stored(d.page, di.backup) === copies1,
+    // read in the tab that might have put back, and in this one
+    check(/Imported/.test(rr.result) && said2.some(m => /nothing was put back/.test(m)) && await stored(tab2, di.data) === data1 && await stored(tab2, di.backup) === copies1 &&
+          await stored(d.page, di.data) === data1 && await stored(d.page, di.backup) === copies1,
       'Put back in a tab another tab has saved over puts nothing back and says so', said2.join(' | ').slice(0, 200));
     await d.ctx.close();
   }
