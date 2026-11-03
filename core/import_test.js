@@ -44,7 +44,9 @@
  *                      settings, an answer count, concept records and scheduler
  *                      records of the wrong kind are refused
  *   tabs and refused   a profile another tab saved since, or progress the browser
- *   saves              refused to save in this visit: Import plans and writes nothing
+ *   saves              refused to save in this visit: Import plans and writes nothing;
+ *                      a tab opened before an import does not save over it, and says
+ *                      so; a waiting save refused at Import stays on the page, flagged
  *   history            an empty profile with another record's history is not
  *                      replaced; a file whose progress is all in a profile here adds
  *                      its new history entries to that profile
@@ -161,6 +163,9 @@ let nfile = 0;
       ['a concept record with a count that is not a number', withConcept(c => Object.assign({}, c, {seen: 'many'})), /"seen" is not a number/],
       ['a concept record whose questions asked are not a list', withConcept(c => Object.assign({}, c, {asked: 7})), /"asked" is not a list/],
       ['a scheduler record that is not a list of entries', withDb({arms: []}), /"arms" is not a list of entries/],
+      ['a comparison record with an arm that does not exist', withDb({arms: {[Object.keys(fileA.db.concepts)[0]]: 42}}), /an arm that does not exist/],
+      ['an FSRS record with an entry that is not a card', withDb({fsrsQ: {[I.ids[0]]: 'x'}}), /that is not a card/],
+      ['a setting of the wrong kind', withDb({settings: {mode: 7}}), /setting "mode" is not a setting/],
       ['a file labelled with another course', Object.assign({}, fileA, {course: 'OTHER101', ns: 'other101-drill'}), /another course \(OTHER101\)/],
       ['a file labelled with this course\'s name and another storage name', Object.assign({}, fileA, {ns: 'someone-else'}), /another course/],
       ['a file that names no course, every question it answers this drill\'s', {profile: 'x', db: fileA.db, log: fileA.log}, /names no course/],
@@ -582,6 +587,30 @@ let nfile = 0;
       'the other tab saving after the plan was shown: Import refuses at the click, and nothing is written', res.slice(0, 300));
     await d.ctx.close();
   }
+  {
+    // a tab opened before an import does not write its older progress over the import
+    const d = await device(); const di = await info(d.page);
+    await answer(d.page, 2, 0);
+    const tab2 = await d.ctx.newPage();
+    tab2.on('dialog', x => x.accept());
+    await tab2.goto(d.page.url());
+    await tab2.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+    const g = later(await exportOf(d.page), 2);
+    const rr = await choose(d.page, g, true);
+    const imported = await stored(d.page, di.data), importedLog = await stored(d.page, di.log);
+    check(/Imported/.test(rr.result) && JSON.parse(imported).answers.length === 4, 'this tab imports a file that continues its record (4 answers)', rr.result.slice(0, 200));
+    // the other tab, still holding the 2-answer progress, answers once
+    await tab2.evaluate(() => record(QUESTIONS[4], 'correct', undefined, 1000));
+    await tab2.waitForTimeout(400);
+    const warned = await tab2.evaluate(() => !!document.getElementById('stalewarn'));
+    check(await stored(d.page, di.data) === imported && await stored(d.page, di.log) === importedLog && warned,
+      'the other tab\'s next save writes neither its progress nor its history over the import, and it says why and offers a reload',
+      {warned, n: JSON.parse(await stored(d.page, di.data) || '{"answers":[]}').answers.length});
+    await tab2.reload();
+    await tab2.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+    check(await tab2.evaluate(() => DB.answers.length) === 4, 'reloaded, the other tab shows the imported progress (4 answers)');
+    await d.ctx.close();
+  }
 
   console.log('\n=== Progress the browser refused to save in this visit ===');
   {
@@ -594,6 +623,27 @@ let nfile = 0;
     const rr = await choose(o.d.page, o.file, true);
     check(!rr.offered && /could not be saved in this visit/.test(rr.plan) && await stored(o.d.page, o.di.data) === o.data,
       'progress the browser refused to save: Import plans nothing and says what is stored is not what is shown', rr.plan.slice(0, 300));
+    await o.d.ctx.close();
+  }
+  {
+    // an answer still waiting to be saved when Import is tapped, and the browser refuses that save
+    const o = await own(3);
+    const g = later(o.file, 2);
+    let rr = await choose(o.d.page, g, false);
+    await o.d.page.evaluate(() => {
+      DB.answers.push(Object.assign({}, DB.answers[2], {at: DB.answers[2].at + 1, qn: 4})); DB.qn = 4;
+      saveTimer = setTimeout(() => {}, 1e6);   // the save waits, as for 150 ms after an answer
+      const real = Storage.prototype.setItem, key = keyFor(PROFILE);
+      Storage.prototype.setItem = function(k, v){ if(k === key) throw new DOMException('The quota has been exceeded.', 'QuotaExceededError'); return real.call(this, k, v); };
+    });
+    await o.d.page.click('#importGo');
+    await o.d.page.waitForSelector('#importResult', {timeout: 5000}).catch(() => {});
+    const res = (await o.d.page.evaluate(() => document.getElementById('importPlan').textContent)).replace(/\s+/g, ' ');
+    const kept = await o.d.page.evaluate(() => ({n: DB.answers.length, failed: FAILED.has(keyFor(PROFILE))}));
+    check(/refused to save/.test(res) && /kept on this page/.test(res) && kept.n === 4 && kept.failed && await stored(o.d.page, o.di.data) === o.data,
+      'the waiting save refused: nothing is imported, the answer stays on the page, flagged as not saved', {res: res.slice(0, 200), kept});
+    rr = await choose(o.d.page, g, false);
+    check(!rr.offered && /could not be saved in this visit/.test(rr.plan), 'and Import plans nothing while it is not saved', rr.plan.slice(0, 200));
     await o.d.ctx.close();
   }
 

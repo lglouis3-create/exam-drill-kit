@@ -394,17 +394,26 @@ scheduler reads the history; the progress (`DB`) holds what they schedule from.
   - the same answer twice.
 
   The page says which of these it is.
-- **Refused as damaged** also: settings that are not a record, an answer count or a
-  concept record's count that is not a number, a concept record's `asked` that is not a
-  list or `last` or `check` that is not a record, and FSRS or comparison records that
-  are not lists of entries.
+- **Refused as damaged** also: settings that are not a record, or a mode or pace that
+  is not text; an answer count or a concept record's count that is not a number; a
+  concept record's `asked` that is not a list, or `last` or `check` that is not a
+  record; FSRS records that are not lists of cards; a comparison record whose arm is
+  neither `concept` nor `concept-fsrs`. A module's own part is not checked by the core.
 - **Converted:** an older progress, in a file that names the course, as on load
   (`upgradeDB`).
 
 Import plans and writes nothing while the progress on this page is not what is stored:
 when another tab or window saved the profile after this page read it (`SEEN`, the
 stored value as this page last read or wrote it), or when the browser refused this
-visit's last save of it. The page says which, and to reload.
+visit's last save of it. The page says which, and to reload. An answer still waiting
+to be saved when Import is tapped is saved first; if the browser refuses that save, it
+stays on the page, flagged as not saved, and nothing is imported.
+
+The same check guards every ordinary save, not only Import's: a page whose profile
+another tab or window has saved since (its progress or its answer history, `SEEN` and
+`SEEN_LOG`, kept by every write through `store` and by `saveLog`) stops saving both and
+shows a notice with a Reload button (`staleWarn`). Before 2026-11-03 the older page's
+next save wrote its copy over the newer one, which could undo an import.
 
 An answer is found by its question id and its time to the millisecond. Two copies are
 the same answer only when every field agrees (result, choices picked, confidence, count

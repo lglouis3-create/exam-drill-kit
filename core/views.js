@@ -503,9 +503,12 @@ function exportProgress(){
    new progress with the history not yet merged; importing the file again merges it.
    Import plans and writes nothing while this page's progress is not what is stored:
    when another tab or window saved the profile after this page read it, or when the
-   browser refused this visit's last save of it. The file's other parts are checked
-   whole as well as its answers: settings, the answer count, each concept record's
-   counts and lists, and the scheduler's records. */
+   browser refused this visit's last save of it (an answer still waiting to be saved
+   is saved first, and kept on the page, flagged, if the browser refuses it). The
+   file's other parts are checked whole as well as its answers: settings, the answer
+   count, each concept record's counts and lists, and the scheduler's cards and arms.
+   Every ordinary save has the same guard (shell.html profileSavedElsewhere): a page
+   another tab has saved over stops saving instead of writing its older copy. */
 const IMPORT_DEVICE = ['eqPick'];          // DB.settings fields that stay with this device
 const RESULTS = ['correct', 'wrong', 'guessed'];
 const backupKey = p => NS + ':backup:' + p;
@@ -561,6 +564,9 @@ function readProgressFile(text){
   if(db.qn !== undefined && !(Number.isFinite(db.qn) && db.qn >= 0)) return damaged('its answer count is not a number');
   if(db.created !== undefined && !Number.isFinite(db.created)) return damaged('its start time is not a time');
   for(const m of ['fsrsQ', 'fsrsC', 'arms']) if(db[m] !== undefined && db[m] !== null && !isObj(db[m])) return damaged(`its scheduler record "${m}" is not a list of entries`);
+  for(const m of ['fsrsQ', 'fsrsC']) for(const [k, card] of Object.entries(db[m] || {})) if(!isObj(card)) return damaged(`its scheduler record "${m}" has an entry for ${k} that is not a card`);
+  for(const [k, arm] of Object.entries(db.arms || {})) if(arm !== 'concept' && arm !== 'concept-fsrs') return damaged(`its comparison record gives concept ${k} an arm that does not exist`);
+  for(const k of ['mode', 'pace']) if(isObj(db.settings) && db.settings[k] !== undefined && db.settings[k] !== null && typeof db.settings[k] !== 'string') return damaged(`its setting "${k}" is not a setting`);
   for(const [c, s] of Object.entries(db.concepts)){
     const k = CONCEPT_COUNTS.find(k => s[k] !== undefined && !Number.isFinite(s[k]));
     if(k) return damaged(`in the record of concept ${c}, "${k}" is not a number`);
@@ -818,9 +824,8 @@ function runImport(plan){
   // an answer given in the last 150 ms is saved first, so the copy kept below holds it
   if(saveTimer){
     clearTimeout(saveTimer); saveTimer = null;
-    const s = JSON.stringify(DB);
-    if(!store.trySet(keyFor(PROFILE), s)) return {text: `${refused}, so nothing was imported. Your progress is held on this page until you leave it; export it now.`};
-    SEEN = s;
+    // store.set keeps the refused change on this page and flags it, as any save does
+    if(!store.set(keyFor(PROFILE), JSON.stringify(DB))) return {text: `${refused}, so nothing was imported. Your progress is kept on this page until you leave it; export it now.`};
   }
   if(plan.action === 'separate'){
     const name = plan.name, db = JSON.parse(JSON.stringify(f.db));
@@ -853,7 +858,8 @@ function runImport(plan){
     }
     clearTimeout(saveTimer); saveTimer = null;
     SEEN = dbText;
-    DB = db; fsFromHistory();
+    DB = db;
+    try { fsFromHistory(); } catch(e){ FS_ERROR = String(e && e.message || e); }
     text = `Imported: "${esc(PROFILE)}" now has the file's progress (${nAnswers(db.answers.length)}). The progress it replaced is kept; Settings can put it back.`;
   }
   if((plan.newLog || plan.fill) && plan.logTo){
@@ -914,7 +920,8 @@ function restoreBackup(){
   }
   clearTimeout(saveTimer); saveTimer = null;
   SEEN = b.data;
-  DB = db; fsFromHistory();
+  DB = db;
+  try { fsFromHistory(); } catch(e){ FS_ERROR = String(e && e.message || e); }
   const kept = withNow.filter(c => c !== b);
   const listed = store.trySet(backupKey(PROFILE), JSON.stringify(kept));                                          // (3)
   alert('The progress from ' + dateOf(b.at) + ' is back. The progress that was on screen is kept as a copy' +

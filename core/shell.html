@@ -581,19 +581,31 @@ const store = {
   },
   // true when the browser kept it; false when storage is full or blocked (it is then kept for this visit only)
   set(k, v){
-    MEM[k] = v;
+    MEM[k] = v; seenAs(k, v);
     try { localStorage.setItem(k, v); FAILED.delete(k); return true; }
     catch(e){ FAILED.add(k); saveWarn(); return false; }
   },
-  del(k){ delete MEM[k]; FAILED.delete(k); try { localStorage.removeItem(k); } catch(e){ /* nothing to remove */ } },
+  del(k){ delete MEM[k]; FAILED.delete(k); seenAs(k, null); try { localStorage.removeItem(k); } catch(e){ /* nothing to remove */ } },
   // Import's writes: true when the browser kept it; false when it refused, and then
   // nothing changes, not even the copy kept for this visit, so a refused import
   // leaves the progress on screen and in storage exactly as it was
   trySet(k, v){
-    try { localStorage.setItem(k, v); MEM[k] = v; FAILED.delete(k); return true; }
+    try { localStorage.setItem(k, v); MEM[k] = v; FAILED.delete(k); seenAs(k, v); return true; }
     catch(e){ return false; }
   },
 };
+/* What this page last read or wrote under the profile's own progress and history keys
+   (SEEN, SEEN_LOG, below), kept by every write through `store` and by saveLog. A save
+   finds another value stored when another tab or window of this site saved the profile
+   since; it then writes nothing (staleWarn). Called before the profile is known, it does
+   nothing. */
+function seenAs(k, v){
+  try {
+    if(!PROFILE) return;
+    if(k === keyFor(PROFILE)) SEEN = v;
+    else if(k === logKey()) SEEN_LOG = v;
+  } catch(e){ /* during start-up, before these are defined */ }
+}
 /* The first time a preview opens in a browser, it copies the live drill's saved
    keys into its own namespace, so the preview shows the student's real progress.
    It only reads the live keys; it never writes or removes one. */
@@ -622,6 +634,24 @@ function saveWarn(){
   d.querySelector('button').onclick = () => d.remove();
   document.body.appendChild(d);
 }
+/* Another tab or window saved this profile after this page read it: this page stops
+   saving, so it never writes its older copy over that progress, and says so once. */
+let STALE_WARNED = false;
+function staleWarn(){
+  if(STALE_WARNED) return;
+  if(!document.body){ document.addEventListener('DOMContentLoaded', staleWarn, {once: true}); return; }
+  STALE_WARNED = true;
+  const d = document.createElement('div');
+  d.id = 'stalewarn'; d.setAttribute('role', 'alert');
+  d.innerHTML = 'This profile was saved in another tab or window after this page opened it, so this page has stopped saving, to keep that progress. Reload this page to continue from what is saved; answers given here since that save are not kept. <button type="button" class="btn">Reload</button>';
+  d.querySelector('button').onclick = () => location.reload();
+  document.body.appendChild(d);
+}
+/* The stored value under `k` is not what this page last read or wrote there. */
+const savedElsewhere = (k, seen) => { let now; try { now = localStorage.getItem(k); } catch(e){ return false; } return now !== seen && !FAILED.has(k); };
+/* Another tab or window saved this profile, its progress or its history, since this
+   page read them: both belong to one record, so neither is written then. */
+const profileSavedElsewhere = () => savedElsewhere(keyFor(PROFILE), SEEN) || savedElsewhere(logKey(), SEEN_LOG);
 /* The saved progress could not be read (load, below): say so once, in plain
    words, and that nothing is saved during this visit. loadWarn(false) takes
    the notice away again when a later load works (another profile). */
@@ -665,7 +695,7 @@ let DB = BLANK();
 /* The stored progress of the profile on screen as this tab last read or wrote it.
    Import compares it with what is stored now, so it never plans or writes over a
    change another tab or window saved (views.js changedElsewhere). */
-let SEEN = null;
+let SEEN = null, SEEN_LOG = null;
 const ANSWERS_MAX = 4000;   // the answers a progress keeps (record); the answer history keeps LOG_MAX
 /* Whether the saved progress of the profile on screen was read in this visit.
    Every write of the progress, the answer history and the exam paper asks
@@ -775,15 +805,18 @@ let LOG_OK = true;
 function loadLog(){
   LOG = []; LOG_OK = true;
   let raw = null;
+  SEEN_LOG = null;
   try { raw = localStorage.getItem(logKey()); } catch(e){ return; }   // storage unreadable: nothing stored to keep
+  SEEN_LOG = raw;
   if(!raw) return;
   try { const v = JSON.parse(raw); if(!Array.isArray(v)) throw new Error('the stored history is not a list'); LOG = v; }
   catch(e){ LOG_OK = false; console.error('The saved answer history could not be loaded; it is not written during this visit.', e); }
 }
 function saveLog(){
   if(!canSave() || !LOG_OK) return;
+  if(profileSavedElsewhere()){ staleWarn(); return; }
   for(;;){
-    try { localStorage.setItem(logKey(), JSON.stringify(LOG)); return; }
+    try { const s = JSON.stringify(LOG); localStorage.setItem(logKey(), s); SEEN_LOG = s; return; }
     catch(e){ if(LOG.length < 100) return; LOG.splice(0, Math.ceil(LOG.length / 2)); }
   }
 }
@@ -832,7 +865,9 @@ function save(){
   clearTimeout(saveTimer);
   saveTimer=setTimeout(()=>{
     saveTimer=null;
-    if(canSave()){ const s = JSON.stringify(DB); store.set(keyFor(PROFILE), s); SEEN = s; }
+    if(!canSave()) return;
+    if(profileSavedElsewhere()){ staleWarn(); return; }
+    store.set(keyFor(PROFILE), JSON.stringify(DB));
   },150);
 }
 /* Which profile opens when no choice is stored: the one with saved progress used
@@ -861,7 +896,7 @@ function askProfile(force){
   // A save still waiting on its timer belongs to the profile on screen now. It
   // is written before the switch; left to fire later, it would write the next
   // profile's progress and drop this one's last answer.
-  if(saveTimer && PROFILE){ clearTimeout(saveTimer); saveTimer = null; if(canSave()){ const s = JSON.stringify(DB); store.set(keyFor(PROFILE), s); SEEN = s; } }
+  if(saveTimer && PROFILE){ clearTimeout(saveTimer); saveTimer = null; if(canSave()){ if(profileSavedElsewhere()) staleWarn(); else store.set(keyFor(PROFILE), JSON.stringify(DB)); } }
   let n = PROFILE;
   if(!force && !n) n = pickProfile();
   if(force){
@@ -875,7 +910,7 @@ function askProfile(force){
 }
 /* Open profile n: the profile chosen with Switch, or the one Import put a file in. */
 function useProfile(n){
-  if(saveTimer && PROFILE){ clearTimeout(saveTimer); saveTimer = null; if(canSave()){ const s = JSON.stringify(DB); store.set(keyFor(PROFILE), s); SEEN = s; } }
+  if(saveTimer && PROFILE){ clearTimeout(saveTimer); saveTimer = null; if(canSave()){ if(profileSavedElsewhere()) staleWarn(); else store.set(keyFor(PROFILE), JSON.stringify(DB)); } }
   PROFILE = n;
   store.set(NS+':profile', PROFILE);
   load();
