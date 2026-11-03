@@ -26,11 +26,9 @@
  *     resolves to no lecture (fault C3 in kit PR #30); three of them (hw2-2a, hw2-2b, hw2-2d)
  *     have one worked step, which core test.js also refuses (it wants two; the course's own
  *     test wants one);
- *   - the two second wordings that cite the deck (m2-mod-2, m2-vd-2, topic bolus1): with them
- *     core test.js section 7 ("Different wording when a missed concept returns") takes the
- *     concept onecpt-assumptions, and in bolus1, which then holds 4 concepts, a missed concept
- *     comes back only after GAP = 4 other questions (core/shell.html), so it never returns
- *     (fault C1 in kit PR #30). Set WITH_SECOND to true to write them once C1 is fixed.
+ *   (The two second wordings that cite the deck, m2-mod-2 and m2-vd-2 in topic bolus1, were left
+ *   out until core test.js section 7 was fixed: fault C1 in kit PR #30, fixed by kit PRs #38 and #40.
+ *   They are written now; with them, section 7 takes mpc-m2-mod-1 -> mpc-m2-mod-2 in mpc-bolus1.)
  * So the course holds: the questions citing 2IVBolusAdministration.pdf, the topics they are in,
  * every objective whose subtopics hold them, every kind of problem whose worked example is among
  * them, the skills they use that the course lacks, and the two lectures as literals in
@@ -58,7 +56,7 @@
 const fs = require('fs'), path = require('path'), vm = require('vm');
 const NAME = 'module-pages', TAG = '/* module-pages ci */', PRE = 'mpc-', pre = id => PRE + id;
 const QFILE = 'q90_mpc_fixture.js', DFILE = 'mpc_data.js';
-const WITH_SECOND = false;   // core fault C1 (kit PR #30): see the header
+const WITH_SECOND = true;    // C1 fixed on main by kit PRs #38 and #40
 function fail(msg){ console.error(`${NAME} ci/oncourse.js: ${msg}`); process.exit(1); }
 const [kit, src] = process.argv.slice(2);
 if(!kit || !src) fail(`usage: node features/${NAME}/ci/oncourse.js <kitDir> <courseSrcDir>`);
