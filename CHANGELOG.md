@@ -83,6 +83,27 @@ Dated kit changes, newest first.
   every later save failed and the answers given after it were lost on reload); the test now has 157
   checks (persistence, chained-problem-sets on and off) on 8 Pharmacokinetics documents taken
   verbatim, and `ci/oncourse.js` builds the module's own course from 4 of them.
+- New feature module `terms-variables` v1 (`features/terms-variables/`), from
+  Basic-Pharmacokinetics `ac2eb73` (`src/views.js` 1029-1260, its Terms tab, and 4173-4175):
+  a Terms tab with Flashcards over the course's `TERMS` (a situation with the term blanked,
+  then the term, marked and recorded) and Quiz me (up to three questions per term, drilled by
+  the scheduler), and the variables quiz over the course's `ASKS`: which symbol one of the
+  professor's own calculation stems asks for, what each symbol means and which symbol a
+  meaning belongs to, also offered on the Equations tab when equation-drill is on. It reads
+  `TERMS` in the shape glossary-tap (pull request #13) reads and `ASKS` in the shape
+  plan-the-problem (pull request #11) reads; PK's Glossary mode is left to glossary-tap, and
+  its tab id (`terms`) differs from glossary-tap's (`glossary`). PK's symbol families, usual
+  names and twins are the options `families`, `names` and `twins`; the sentence split has no
+  regex lookbehind. The questions stay out of the bank and off exam papers, and Weak spots
+  does not list them. On PK's whole bank the module makes the same 282 term and 301 variable
+  questions, with the same keyed answers, as PK's own code. Its test (PK `src/test.js`
+  943-972 and `src/var_test.py` ported, with checks of the wrong options, the flashcard
+  marks and the saved answers): 57 checks pass on the module's own course, written by
+  `features/terms-variables/ci/oncourse.js` from PK's own data; with the module's code left
+  out, 1 of 1 fails; with PK's lookbehind split in its place, `device_lint.js` fails 2 of 3.
+  `features/ci-combinations.txt`: terms-variables with equation-drill.
+  FEATURES.md: PK added to the `glossary` entry; new entry `terms-variables`. Port queue
+  item 3 is partial: Weak spots and a reload during a drill need a core change.
 
 ## 2026-11-01
 - `core/`: an exam with `questions: null` or a pool with `marks: null` no longer breaks the page (`nullexam.js`).

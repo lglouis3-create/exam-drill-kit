@@ -1,0 +1,10 @@
+/* the Terms tab of terms-variables (Basic-Pharmacokinetics shell.html, its
+   Terms rules, at ac2eb73, reduced to what the module draws) */
+#v-terms .tvx-modes{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}
+#v-terms .filters label{min-width:58px}
+#v-terms h3{margin:20px 0 6px}
+.tvx-flash .tvx-front{font-size:15px;line-height:1.5}
+.tvx-flash .tvx-term{font-size:18px;font-weight:600;margin:12px 0 4px}
+.tvx-flash .tvx-def{color:var(--text-dim);font-size:13.5px;margin:6px 0}
+.tvx-flash .tvx-cite{color:var(--text-dim);font-size:12px;margin:8px 0 0}
+.tvx-flash .qfoot{display:flex;gap:8px;flex-wrap:wrap}
