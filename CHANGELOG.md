@@ -2,7 +2,14 @@
 
 Dated kit changes, newest first.
 
+## 2026-11-03
+- Kit checks on GitHub: the WebKit job now blocks a merge, as the Chromium jobs do.
+- `FEATURES.md`: the focus-switch "Use when" line no longer quotes a professor by name; its source reference is kept.
+- `core/test.js`: two lectures with the same id in `course.js` fail the check.
+- `core/offline_test.js`: "server down" refuses connections; dropped ones broke WebKit's network session at random.
+
 ## 2026-11-02
+- `core/style_check.js`: "given as" in a dose or a problem (given as an IV infusion) is no longer flagged.
 - `core/home_test.js`: answers a select-all question it picks, with its right boxes, so it no longer fails at random.
 - New feature module `glossary-tap` v1 (`features/glossary-tap/`), from Intro-Pharmacology
   `929cd62` (`exam1-drill/src/app.js` 1771-1922, port queue item 18): a Glossary tab over the
