@@ -284,8 +284,8 @@ pharmacology) to delete or replace.
 ## 12. Design changes approved after Phase 1 (2026-10-31 to 2026-11-03)
 
 Each item was approved by Louis (decisions 9 and 10 after the Phase 1 session, on the
-dates they give); the evidence and options behind them are in `review/`. Where an item changes an earlier section, this
-section is current.
+dates they give); the evidence and options behind them are in `review/`. Where an item
+changes an earlier section, this section is current.
 
 1. **Every course session attaches the kit first** (Louis, 2026-10-31). Before
    doing anything, a course session attaches `exam-drill-kit` alongside the course
