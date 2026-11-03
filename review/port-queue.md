@@ -22,7 +22,7 @@ item's status to `done`.
 | 4 | concept-statuses | `views.js` 2506-2725 | FEATURES.md line 36 wrongly said the core has them (corrected) | partial (left: names and statuses of term and extra-practice concepts, after the Terms and extra-practice ports) |
 | 5 | theme (light and dark) | `views.js` 6323-6383 | none | partial (left: module colours, `views.js` 6334-6383, Tier 3; PK dark rules for classes the core lacks, each with the module that brings the class; WebKit run) |
 | 6 | paper-picker (choose a practice paper, paper history) | `shell.html` 1099-1217; `views.js` 3083-3170 | added | partial (left: the Progress view's list of practice papers; the line saying when the bank holds fewer select-all items than the exam asks; Topics, Weak spots and the weighted pass following the chosen exam, and papers of another length or clock, which need several exams on one site in the core) |
-| 7 | quiz-prep-cards | `views.js` 466-546 | none | pending |
+| 7 | quiz-prep-cards | `views.js` 466-546 | none | partial (left: the timed practice quiz, the "Set-up only" row, quizzes over several days, matching items counted as calculations) |
 | 8 | module-pages (Concepts, Calculations by type, Worksheets) | `views.js` 722-854 | none | pending |
 | 9 | stopwatch | `views.js` 1467-1482 | listed | pending |
 | 10 | notes (Notes tab and flags) | `views.js` 5564-5654 | listed | pending |
