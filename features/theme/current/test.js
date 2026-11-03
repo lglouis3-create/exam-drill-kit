@@ -12,11 +12,13 @@
  * On a scratch copy of this course built with the module on and the fixture below added
  * (four Basic-Pharmacokinetics questions in a topic of their own), in Chromium:
  *   - the fixture's questions are in the copy, after the course's topics;
- *   - a stored Dark is on <html> in the first frame that shows the tabs, in 3 reloads of a
- *     page under 1.5 MB; on a page of 1.5 MB or more (the course's copy, or a copy padded
- *     with the fixture's records as inert data), measured over 5 reloads: all dark passes, a
- *     light first frame is reported as a known limit (fault T1: a module cannot put a script
- *     in <head>) unless the page holds a script in <head>, when it fails;
+ *   - a stored Dark on a light device, and a stored Light on a dark device, are on the page
+ *     from its first frame (the first frame with the tabs, and in Chromium every frame painted
+ *     until 600 ms after the tabs, read from tracing screenshots), in 3 reloads of a page
+ *     under 1.5 MB; on a page of 1.5 MB or more (the course's copy, or a copy padded with the
+ *     fixture's records as inert data), measured over 12 reloads each: none wrong passes; a
+ *     wrong frame is a skip labelled "KNOWN LIMIT T1" with its count (fault T1: a module
+ *     cannot put a script in <head>), and a failure once the page holds a script in <head>;
  *   - Match device (nothing stored): a device set to light shows the core's light
  *     colours, a device set to dark the dark ones, with no data-theme on <html>;
  *   - the header holds the choice with Match device, Light and Dark; Dark on a light
@@ -53,37 +55,38 @@ delete process.env.DRILL_PAGE;
 
 /* The fixture: four questions of Basic-Pharmacokinetics, their topic and their deck, from
  * src/q15_module7b.js (pd-c01, pd-c02, pd-c04 and pd-c05, lines 109-188), the TOPICS entry
- * `pkpd` that file pushes (line 34) and src/course.js `lectures` entry L11, at ac2eb73, verbatim. The one
- * change to the data: `prof` is the template's "Professor" in the topic, the lecture and each
- * question (the kit's fixtures carry no personal names). The scratch copy holds them with
- * every question and topic id prefixed `thm-`, as a question file in the kit's form (one
+ * `pkpd` that file pushes (line 34) and src/course.js `lectures` entry L11, at ac2eb73, verbatim, every field
+ * as the course has it, `prof` included (the scratch copy adds the course's professor to
+ * COURSE.professors, where core test.js reads each `prof`). The scratch copy holds them with
+ * every question, topic, subtopic and lecture id prefixed `thm-` (the course's id kept inside it), as a question file in the kit's form (one
  * question per line, opening {id:'...'), in a topic of its own after the course's topics, and
  * the deck in COURSE.lectures, so the colour and contrast checks below run on real course
  * pages as well as on the course's own. */
 const FIX = {
-  topic: {"id":"pkpd","name":"PK-PD relationship","prof":"Professor","cite":"7b---Pharmacokinetics-and-Pharmacodynamics.pdf, slide 2 \"Objectives\"","subs":[{"id":"pd","name":"Pharmacodynamics and the exposure–response relationship","cite":"7b---Pharmacokinetics-and-Pharmacodynamics.pdf, slide 3 \"Pharmacodynamics\""},{"id":"doseresp","name":"Response rising with dose and concentration up to a maximum","cite":"7b---Pharmacokinetics-and-Pharmacodynamics.pdf, slides 4 \"Relationship of Dose to Pharmacologic Effect\", 5 \"Typical Log Dose-versus-Pharmacologic Response Curves\" and 11 \"Summary\""},{"id":"teff","name":"Dose and the duration of activity, teff","cite":"7b---Pharmacokinetics-and-Pharmacodynamics.pdf, slides 6 to 9 and 12"},{"id":"dosefor","name":"The dose for a target duration of activity","cite":"7b---Pharmacokinetics-and-Pharmacodynamics.pdf, slide 8 and the In-Class Activity on slide 13"},{"id":"thalf","name":"Elimination half-life and the duration of activity","cite":"7b---Pharmacokinetics-and-Pharmacodynamics.pdf, slides 9 \"Effect of Dose and Elimination Half-life on Duration of Activity\" and 10 \"Effect of Elimination Half-life on Duration of Activity\""}]},
-  lecture: {"id":"L11","deck":"7b---Pharmacokinetics-and-Pharmacodynamics.pdf","label":"Module 7b: PK-PD relationship (12 Oct)","prof":"Professor","exam":3,"module":9},
+  topic: {"id":"pkpd","name":"PK-PD relationship","prof":"Mosley","cite":"7b---Pharmacokinetics-and-Pharmacodynamics.pdf, slide 2 \"Objectives\"","subs":[{"id":"pd","name":"Pharmacodynamics and the exposure–response relationship","cite":"7b---Pharmacokinetics-and-Pharmacodynamics.pdf, slide 3 \"Pharmacodynamics\""},{"id":"doseresp","name":"Response rising with dose and concentration up to a maximum","cite":"7b---Pharmacokinetics-and-Pharmacodynamics.pdf, slides 4 \"Relationship of Dose to Pharmacologic Effect\", 5 \"Typical Log Dose-versus-Pharmacologic Response Curves\" and 11 \"Summary\""},{"id":"teff","name":"Dose and the duration of activity, teff","cite":"7b---Pharmacokinetics-and-Pharmacodynamics.pdf, slides 6 to 9 and 12"},{"id":"dosefor","name":"The dose for a target duration of activity","cite":"7b---Pharmacokinetics-and-Pharmacodynamics.pdf, slide 8 and the In-Class Activity on slide 13"},{"id":"thalf","name":"Elimination half-life and the duration of activity","cite":"7b---Pharmacokinetics-and-Pharmacodynamics.pdf, slides 9 \"Effect of Dose and Elimination Half-life on Duration of Activity\" and 10 \"Effect of Elimination Half-life on Duration of Activity\""}]},
+  lecture: {"id":"L11","deck":"7b---Pharmacokinetics-and-Pharmacodynamics.pdf","label":"Module 7b: PK-PD relationship (12 Oct)","prof":"Mosley","exam":3,"module":9},
   qs: [
-    {"id":"pd-c01","prof":"Professor","tier":"new","exam":3,"module":9,"lecture":"L11","topic":"pkpd","sub":"pd","concept":"pd-definition","skill":"recall","source":"slide","stem":"Which term describes the relationship between drug concentration at the site of action (receptor) and the observed pharmacologic response?","options":[{"t":"Pharmacodynamics","correct":true,"why":"Pharmacodynamics starts where pharmacokinetics stops: it takes the concentration at the receptor and links it to the response that concentration produces, which is what the drug does to the body once it arrives."},{"t":"Pharmacokinetics","why":"Choosing this takes the half of the relationship that comes first. Pharmacokinetics describes how the dose becomes a concentration over time; the response that concentration produces at the receptor is pharmacodynamics."},{"t":"Bioavailability","why":"Choosing this takes the arrival of the drug for its effect. Bioavailability is the rate and extent to which the active ingredient is absorbed and becomes available at the site of action; it ends where the receptor response begins."},{"t":"Duration of activity","why":"Choosing this takes one measure of the response for the whole relationship. Duration of activity, teff, is the time the plasma level stays at or above the minimum effective concentration; pharmacodynamics is the concentration–response link itself."}],"teach":[{"h":"Pharmacodynamics and exposure–response","list":["Pharmacodynamics (PD): the relationship between drug concentration at the site of action, the receptor, and the observed pharmacologic response.","Pharmacokinetics (PK) turns the dose into a concentration over time; PD turns that concentration into a response.","The PK–PD relationship is also called the exposure–response, concentration–response or concentration–effect relationship.","Exposure–response information is used to determine safety and efficacy in drug approval, to understand benefit–risk, and to derive dosing information."]}],"cite":"7b---Pharmacokinetics-and-Pharmacodynamics.pdf, slide 3 \"Pharmacodynamics\""},
-    {"id":"pd-c02","prof":"Professor","tier":"new","exam":3,"module":9,"lecture":"L11","multi":true,"topic":"pkpd","sub":"pd","concept":"exposure-response-names","skill":"recall","source":"slide","stem":"The relationship between pharmacokinetics (PK) and pharmacodynamics (PD) is also referred to as which of the following? (Select all that apply)","options":[{"t":"exposure–response relationship","correct":true,"why":"Exposure is the pharmacokinetic side and response the pharmacologic observation. Joining them is the PK–PD relationship under its most common name."},{"t":"concentration–response relationship","correct":true,"why":"This names the same link with the plasma concentration as the measure of exposure: as the concentration at the receptor rises, the response rises toward its maximum."},{"t":"concentration–effect relationship","correct":true,"why":"Effect is the change in response that the concentration produces, so this third name again joins a PK quantity, the concentration, to a PD one, the effect."},{"t":"concentration–time relationship","why":"Choosing this takes the pharmacokinetic curve alone for the PK–PD link. Concentration against time, C = C0e^(−kt) after an IV bolus, has no response in it; PK–PD joins that concentration to an effect."},{"t":"rate–extent relationship","why":"Choosing this carries over the two parts of bioavailability, rate (read from tmax) and extent (read from AUC). Both describe how drug reaches the circulation, not the response it then produces."}],"teach":[{"h":"Pharmacodynamics and exposure–response","list":["Pharmacodynamics (PD): the relationship between drug concentration at the site of action, the receptor, and the observed pharmacologic response.","Pharmacokinetics (PK) turns the dose into a concentration over time; PD turns that concentration into a response.","The PK–PD relationship is also called the exposure–response, concentration–response or concentration–effect relationship.","Exposure–response information is used to determine safety and efficacy in drug approval, to understand benefit–risk, and to derive dosing information."]}],"cite":"7b---Pharmacokinetics-and-Pharmacodynamics.pdf, slide 3 \"Pharmacodynamics\""},
-    {"id":"pd-c04","prof":"Professor","tier":"new","exam":3,"module":9,"lecture":"L11","topic":"pkpd","sub":"doseresp","concept":"response-up-to-max","skill":"recall","source":"slide","stem":"Which of the following is true regarding the relationship of dose to pharmacologic effect?","options":[{"t":"Response rises with dose up to a maximum effect","correct":true,"why":"More dose puts more drug at the receptor, so more receptors are occupied and the response grows; once all are occupied the response cannot rise further, which sets the maximum effect."},{"t":"The response increases in direct proportion to the dose at every dose.","why":"Choosing this extends the steep low-dose part of the curve to every dose. Near the top a further dose change gives only a small increase, and the response levels off at its maximum."},{"t":"The onset, intensity, and duration of the effect depend on the dose alone, not on the pharmacokinetics.","why":"Choosing this drops half of the statement: onset, intensity and duration depend on the dose and the pharmacokinetics. The same dose acts longer when elimination is slower, because the level stays above the MEC longer."},{"t":"The response falls once the dose passes the dose that gives the maximum response.","why":"Choosing this reads the plateau as a peak. The curve rises to the maximum response and stays there; added dose finds no free receptors, so it adds no response, but it does not take response away."}],"teach":[{"h":"Dose, concentration and response","list":["As the dose increases, the concentration at the receptor site increases, and the response increases up to a maximum effect.","Response against dose on a linear scale rises steeply, then flattens: the same dose change gives a large increase at low doses and a small one near the maximum.","Response against log dose is a sigmoid (S-shaped) curve; the maximum is reached when all receptors become saturated.","Its middle portion is close to a straight line: effect against log concentration, with slope m.","Onset, intensity and duration of the effect depend on the dose and on the pharmacokinetics of the drug."]}],"cite":"7b---Pharmacokinetics-and-Pharmacodynamics.pdf, slide 4 \"Relationship of Dose to Pharmacologic Effect\""},
-    {"id":"pd-c05","prof":"Professor","tier":"new","exam":3,"module":9,"lecture":"L11","topic":"pkpd","sub":"doseresp","concept":"dose-response-linear-plot","skill":"read","source":"slide","stem":"On a plot of pharmacologic response against drug dose on a linear scale, where does a given change in dose produce the smallest increase in response?","options":[{"t":"Near the maximum response","correct":true,"why":"Near the top most receptors are already saturated, so extra drug finds few receptors left to act on and the curve flattens; the dose change that gave a large rise early gives a small one here."},{"t":"At the lowest doses","why":"Choosing this reverses the two regions of the curve. At low doses the curve is steep, so a given dose change gives a large increase in response; the small increase comes near the top, where the curve flattens."},{"t":"Equally at every dose","why":"Choosing this treats the curve as a straight line. A straight line gives the same rise for the same dose step everywhere; this curve is steep early and then plateaus, so the same step does less and less."},{"t":"At the dose giving half of the maximum response","why":"Choosing this picks the middle of the curve, where it is still rising. The smallest gain per dose step is where the curve is flattest, at the top near the maximum response."}],"teach":[{"h":"Dose, concentration and response","list":["As the dose increases, the concentration at the receptor site increases, and the response increases up to a maximum effect.","Response against dose on a linear scale rises steeply, then flattens: the same dose change gives a large increase at low doses and a small one near the maximum.","Response against log dose is a sigmoid (S-shaped) curve; the maximum is reached when all receptors become saturated.","Its middle portion is close to a straight line: effect against log concentration, with slope m.","Onset, intensity and duration of the effect depend on the dose and on the pharmacokinetics of the drug."]}],"cite":"7b---Pharmacokinetics-and-Pharmacodynamics.pdf, slide 4 \"Relationship of Dose to Pharmacologic Effect\" (left figure)"},
+    {"id":"pd-c01","prof":"Mosley","tier":"new","exam":3,"module":9,"lecture":"L11","topic":"pkpd","sub":"pd","concept":"pd-definition","skill":"recall","source":"slide","stem":"Which term describes the relationship between drug concentration at the site of action (receptor) and the observed pharmacologic response?","options":[{"t":"Pharmacodynamics","correct":true,"why":"Pharmacodynamics starts where pharmacokinetics stops: it takes the concentration at the receptor and links it to the response that concentration produces, which is what the drug does to the body once it arrives."},{"t":"Pharmacokinetics","why":"Choosing this takes the half of the relationship that comes first. Pharmacokinetics describes how the dose becomes a concentration over time; the response that concentration produces at the receptor is pharmacodynamics."},{"t":"Bioavailability","why":"Choosing this takes the arrival of the drug for its effect. Bioavailability is the rate and extent to which the active ingredient is absorbed and becomes available at the site of action; it ends where the receptor response begins."},{"t":"Duration of activity","why":"Choosing this takes one measure of the response for the whole relationship. Duration of activity, teff, is the time the plasma level stays at or above the minimum effective concentration; pharmacodynamics is the concentration–response link itself."}],"teach":[{"h":"Pharmacodynamics and exposure–response","list":["Pharmacodynamics (PD): the relationship between drug concentration at the site of action, the receptor, and the observed pharmacologic response.","Pharmacokinetics (PK) turns the dose into a concentration over time; PD turns that concentration into a response.","The PK–PD relationship is also called the exposure–response, concentration–response or concentration–effect relationship.","Exposure–response information is used to determine safety and efficacy in drug approval, to understand benefit–risk, and to derive dosing information."]}],"cite":"7b---Pharmacokinetics-and-Pharmacodynamics.pdf, slide 3 \"Pharmacodynamics\""},
+    {"id":"pd-c02","prof":"Mosley","tier":"new","exam":3,"module":9,"lecture":"L11","multi":true,"topic":"pkpd","sub":"pd","concept":"exposure-response-names","skill":"recall","source":"slide","stem":"The relationship between pharmacokinetics (PK) and pharmacodynamics (PD) is also referred to as which of the following? (Select all that apply)","options":[{"t":"exposure–response relationship","correct":true,"why":"Exposure is the pharmacokinetic side and response the pharmacologic observation. Joining them is the PK–PD relationship under its most common name."},{"t":"concentration–response relationship","correct":true,"why":"This names the same link with the plasma concentration as the measure of exposure: as the concentration at the receptor rises, the response rises toward its maximum."},{"t":"concentration–effect relationship","correct":true,"why":"Effect is the change in response that the concentration produces, so this third name again joins a PK quantity, the concentration, to a PD one, the effect."},{"t":"concentration–time relationship","why":"Choosing this takes the pharmacokinetic curve alone for the PK–PD link. Concentration against time, C = C0e^(−kt) after an IV bolus, has no response in it; PK–PD joins that concentration to an effect."},{"t":"rate–extent relationship","why":"Choosing this carries over the two parts of bioavailability, rate (read from tmax) and extent (read from AUC). Both describe how drug reaches the circulation, not the response it then produces."}],"teach":[{"h":"Pharmacodynamics and exposure–response","list":["Pharmacodynamics (PD): the relationship between drug concentration at the site of action, the receptor, and the observed pharmacologic response.","Pharmacokinetics (PK) turns the dose into a concentration over time; PD turns that concentration into a response.","The PK–PD relationship is also called the exposure–response, concentration–response or concentration–effect relationship.","Exposure–response information is used to determine safety and efficacy in drug approval, to understand benefit–risk, and to derive dosing information."]}],"cite":"7b---Pharmacokinetics-and-Pharmacodynamics.pdf, slide 3 \"Pharmacodynamics\""},
+    {"id":"pd-c04","prof":"Mosley","tier":"new","exam":3,"module":9,"lecture":"L11","topic":"pkpd","sub":"doseresp","concept":"response-up-to-max","skill":"recall","source":"slide","stem":"Which of the following is true regarding the relationship of dose to pharmacologic effect?","options":[{"t":"Response rises with dose up to a maximum effect","correct":true,"why":"More dose puts more drug at the receptor, so more receptors are occupied and the response grows; once all are occupied the response cannot rise further, which sets the maximum effect."},{"t":"The response increases in direct proportion to the dose at every dose.","why":"Choosing this extends the steep low-dose part of the curve to every dose. Near the top a further dose change gives only a small increase, and the response levels off at its maximum."},{"t":"The onset, intensity, and duration of the effect depend on the dose alone, not on the pharmacokinetics.","why":"Choosing this drops half of the statement: onset, intensity and duration depend on the dose and the pharmacokinetics. The same dose acts longer when elimination is slower, because the level stays above the MEC longer."},{"t":"The response falls once the dose passes the dose that gives the maximum response.","why":"Choosing this reads the plateau as a peak. The curve rises to the maximum response and stays there; added dose finds no free receptors, so it adds no response, but it does not take response away."}],"teach":[{"h":"Dose, concentration and response","list":["As the dose increases, the concentration at the receptor site increases, and the response increases up to a maximum effect.","Response against dose on a linear scale rises steeply, then flattens: the same dose change gives a large increase at low doses and a small one near the maximum.","Response against log dose is a sigmoid (S-shaped) curve; the maximum is reached when all receptors become saturated.","Its middle portion is close to a straight line: effect against log concentration, with slope m.","Onset, intensity and duration of the effect depend on the dose and on the pharmacokinetics of the drug."]}],"cite":"7b---Pharmacokinetics-and-Pharmacodynamics.pdf, slide 4 \"Relationship of Dose to Pharmacologic Effect\""},
+    {"id":"pd-c05","prof":"Mosley","tier":"new","exam":3,"module":9,"lecture":"L11","topic":"pkpd","sub":"doseresp","concept":"dose-response-linear-plot","skill":"read","source":"slide","stem":"On a plot of pharmacologic response against drug dose on a linear scale, where does a given change in dose produce the smallest increase in response?","options":[{"t":"Near the maximum response","correct":true,"why":"Near the top most receptors are already saturated, so extra drug finds few receptors left to act on and the curve flattens; the dose change that gave a large rise early gives a small one here."},{"t":"At the lowest doses","why":"Choosing this reverses the two regions of the curve. At low doses the curve is steep, so a given dose change gives a large increase in response; the small increase comes near the top, where the curve flattens."},{"t":"Equally at every dose","why":"Choosing this treats the curve as a straight line. A straight line gives the same rise for the same dose step everywhere; this curve is steep early and then plateaus, so the same step does less and less."},{"t":"At the dose giving half of the maximum response","why":"Choosing this picks the middle of the curve, where it is still rising. The smallest gain per dose step is where the curve is flattest, at the top near the maximum response."}],"teach":[{"h":"Dose, concentration and response","list":["As the dose increases, the concentration at the receptor site increases, and the response increases up to a maximum effect.","Response against dose on a linear scale rises steeply, then flattens: the same dose change gives a large increase at low doses and a small one near the maximum.","Response against log dose is a sigmoid (S-shaped) curve; the maximum is reached when all receptors become saturated.","Its middle portion is close to a straight line: effect against log concentration, with slope m.","Onset, intensity and duration of the effect depend on the dose and on the pharmacokinetics of the drug."]}],"cite":"7b---Pharmacokinetics-and-Pharmacodynamics.pdf, slide 4 \"Relationship of Dose to Pharmacologic Effect\" (left figure)"},
   ],
 };
 const PRE = 'thm-', FIXFILE = 'q90_theme_fixture.js';
 const fixtureFile = () => {
   const lit = s => `'${s}'`;
   const qs = FIX.qs.map(q => {
-    const rest = Object.assign({}, q, {topic: PRE + q.topic}); delete rest.id; delete rest.prof;
+    const rest = Object.assign({}, q, {topic: PRE + q.topic, sub: PRE + q.sub}); delete rest.id; delete rest.prof;
     return `{id:${lit(PRE + q.id)}, prof:${lit(q.prof)}, ${JSON.stringify(rest).slice(1)},`;
   });
-  return `/* theme test fixture: Basic-Pharmacokinetics (ac2eb73) questions, topic and deck, prof set to "Professor", ids prefixed ${PRE} */\n` +
-    `TOPICS.push(${JSON.stringify(Object.assign({}, FIX.topic, {id: PRE + FIX.topic.id}))});\nQUESTIONS.push(\n${qs.join('\n')}\n);\n`;
+  return `/* theme test fixture: Basic-Pharmacokinetics (ac2eb73) questions, topic and deck, every field as the course has it, ids prefixed ${PRE} */\n` +
+    `TOPICS.push(${JSON.stringify(Object.assign({}, FIX.topic, {id: PRE + FIX.topic.id, subs: FIX.topic.subs.map(x => Object.assign({}, x, {id: PRE + x.id}))}))});\nQUESTIONS.push(\n${qs.join('\n')}\n);\n`;
 };
 const lectureLine = () => {
   const l = FIX.lecture, lit = s => `'${s}'`;
-  return `if(!(COURSE.lectures || []).some(l => l.deck === ${lit(l.deck)})) COURSE.lectures = (COURSE.lectures || []).concat([` +
-    `{id:${lit(l.id)}, deck:${lit(l.deck)}, label:${lit(l.label)}, prof:${lit(l.prof)}, exam:${l.exam}, module:${l.module}}]);`;
+  return `if(!(COURSE.professors || []).includes(${lit(l.prof)})) COURSE.professors = (COURSE.professors || []).concat([${lit(l.prof)}]); ` +
+    `if(!(COURSE.lectures || []).some(l => l.deck === ${lit(l.deck)})) COURSE.lectures = (COURSE.lectures || []).concat([` +
+    `{id:${lit(PRE + l.id)}, deck:${lit(l.deck)}, label:${lit(l.label)}, prof:${lit(l.prof)}, exam:${l.exam}, module:${l.module}}]);`;
 };
 
 const css = fs.readFileSync(path.join(__dirname, 'theme.css'), 'utf8');
@@ -197,41 +200,81 @@ const LOW = function(){
     allErrors.push(...errors); await ctx.close();
   }
 
-  /* no light page first: a stored Dark is on <html> in the first frame that shows the tabs.
-     The measure: in each animation frame until #nav holds a button, data-theme on <html>; its value in
-     the first frame that holds one is what that frame paints. theme.js sets data-theme when its script
-     runs, at the end of the page's one script block; the nav buttons are markup before it. On a large
-     page the browser paints the nav before that script has run (fault T1, evidence/integration-3), so
-     on a page of BIG bytes or more the result is measured over RUNS reloads. A module cannot put a
-     script in <head> (module.json has `js` and `css` only; build.py allows one script block), so a
-     light first frame there is reported as a known limit, with its measurement, and not as a failure;
-     once the page holds a script in <head> it is a failure like any other. */
+  /* no wrong-coloured page first: a stored Dark on a light device, and a stored Light on a dark device, are on the page
+     from its first painted frame. Two measures per reload:
+       - the first frame that shows the tabs: in each animation frame until #nav holds a button, data-theme on <html>;
+       - every frame Chromium paints from the reload's start to 600 ms after the tabs exist (tracing screenshots), each
+         read as light or dark by the mean brightness of its lower 70% (light above 128 of 255), so a blank frame
+         painted before the tabs is counted too (the coordinator's independent evaluation, B5, 2026-11-03).
+     A reload is wrong when either measure shows the colour not chosen. WebKit has no tracing screenshots, so there
+     only the first measure runs, and the label says so.
+     theme.js sets data-theme when its script runs, at the end of the page's one script block. On a large page the
+     browser paints before that script has run (fault T1, evidence/integration-3; kit PR #30 B5), so on a page of BIG
+     bytes or more a wrong frame is reported as a known limit, with its count, as a skip and never as a pass: a module
+     cannot put a script in <head> (module.json has `js` and `css` only; build.py allows one script block). Once the
+     page holds a script in <head> it is a failure like any other. On a smaller page any wrong frame fails. */
   {
-    const BIG = 1500000, RUNS = 5;
+    const BIG = 1500000, RUNS = 12, SMALL_RUNS = 3, SHOTS = L.BROWSER === 'chromium';
     const watch = () => { window.__ff = null;
       const tick = () => { const n = document.getElementById('nav');
         if(n && n.querySelector('button')){ window.__ff = {theme: document.documentElement.getAttribute('data-theme'),
           at: Math.round(performance.now()), rs: document.readyState}; return; }
         requestAnimationFrame(tick); };
       requestAnimationFrame(tick); };
-    const frames = async (file, runs) => {
-      const {ctx, page, errors} = await L.openPage(browser, file, {colorScheme: 'light'}, watch);
-      await page.selectOption('#themeSel', 'dark'); await page.waitForTimeout(100);
+    // the brightness of each screenshot, read in a page of its own (canvas), so no image library is needed
+    const lumOf = async (shots) => {
+      if(!shots.length) return [];
+      const p = await browser.newPage();
+      const out = await p.evaluate(async list => {
+        const res = [];
+        for(const b64 of list){
+          const img = new Image(); img.src = 'data:image/jpeg;base64,' + b64; await img.decode();
+          const c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight;
+          const g = c.getContext('2d'); g.drawImage(img, 0, 0);
+          const y0 = Math.floor(c.height * 0.3), d = g.getImageData(0, y0, c.width, c.height - y0).data;
+          let sum = 0; for(let i = 0; i < d.length; i += 4) sum += 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+          res.push(Math.round(sum / (d.length / 4)));
+        }
+        return res;
+      }, shots);
+      await p.close();
+      return out;
+    };
+    const frames = async (file, runs, choice) => {
+      const scheme = choice === 'dark' ? 'light' : 'dark';
+      const {ctx, page, errors} = await L.openPage(browser, file, {colorScheme: scheme, viewport: {width: 412, height: 800}}, watch);
+      await page.selectOption('#themeSel', choice); await page.waitForTimeout(150);
       const out = [];
       for(let i = 0; i < runs; i++){
-        await page.reload(); await navUp(page); await page.waitForTimeout(100);
-        out.push(await page.evaluate(() => window.__ff));
+        if(SHOTS) await browser.startTracing(page, {screenshots: true, categories: ['devtools.timeline', 'disabled-by-default-devtools.screenshot', 'blink.user_timing']});
+        await page.reload(); await navUp(page); await page.waitForTimeout(SHOTS ? 600 : 100);
+        const f = await page.evaluate(() => window.__ff);
+        let lum = null;
+        if(SHOTS){
+          const t = JSON.parse((await browser.stopTracing()).toString()), ev = t.traceEvents || t;
+          const nav = ev.filter(e => e.name === 'navigationStart').map(e => e.ts).sort((a, b) => a - b).pop();
+          if(nav === undefined) throw new Error('the trace holds no navigationStart, so its frames cannot be read');
+          lum = await lumOf(ev.filter(e => e.name === 'Screenshot' && e.ts >= nav).sort((a, b) => a.ts - b.ts).map(e => e.args.snapshot));
+        }
+        const rafWrong = !f || f.theme !== choice, shotWrong = !!lum && lum.some(v => choice === 'dark' ? v > 128 : v <= 128);
+        out.push({f, lum, wrong: rafWrong || shotWrong, rafWrong, shotWrong});
       }
       allErrors.push(...errors); await ctx.close();
       return out;
     };
     const headScript = file => { const t = fs.readFileSync(file, 'utf8'); return /<script/i.test(t.slice(0, Math.max(0, t.indexOf('</head>')))); };
-    const mb = b => (b / 1e6).toFixed(2) + ' MB';
-    const said = r => r.map(f => !f ? 'not found' : f.theme === 'dark' ? 'dark' : `light (tabs at ${f.at} ms, page ${f.rs})`).join(', ');
+    const mb = b => (b / 1e6).toFixed(1) + ' MB';
+    const other = c => c === 'dark' ? 'light' : 'dark';
+    const said = r => r.map(x => !x.f ? 'tabs not found' : `tabs ${x.f.theme === null ? 'no theme' : x.f.theme} at ${x.f.at} ms` +
+      (x.lum ? `, ${x.lum.length} frames${x.shotWrong ? ', a wrong frame (brightness ' + x.lum.join('/') + ')' : ''}` : '')).join('; ');
+    const how = SHOTS ? 'first frames' : 'first frames with the tabs (WebKit: no frame screenshots)';
+    const CASES = [['dark', 'a stored Dark on a light device'], ['light', 'a stored Light on a dark device']];
     const bytes = fs.statSync(sb.page).size;
     if(bytes < BIG){
-      const r = await frames(sb.page, 3);
-      check(r.every(f => f && f.theme === 'dark'), `a stored Dark is on the page in the first frame that shows the tabs, 3 reloads of the ${mb(bytes)} page (no light page first)`, said(r));
+      for(const [choice, what] of CASES){
+        const r = await frames(sb.page, SMALL_RUNS, choice), n = r.filter(x => x.wrong).length;
+        check(!n, `${what} is on the page from its first frame, ${SMALL_RUNS} reloads of the ${mb(bytes)} page (${n} of ${SMALL_RUNS} ${how} ${other(choice)})`, said(r));
+      }
     }
     // a page of BIG bytes or more: the course's copy when it is that large, else a copy that also
     // carries the fixture's question records as inert data (never read; not questions) until it is
@@ -249,13 +292,16 @@ const LOW = function(){
     if(big){
       const bb = fs.statSync(big).size;
       check(bb >= BIG, `the large page is ${BIG} bytes or more (${bb})`, bb);
-      const r = await frames(big, RUNS), light = r.filter(f => !f || f.theme !== 'dark').length;
-      check(r.length === RUNS && r.every(f => f && typeof f.at === 'number'), `the first frame that shows the tabs is found in each of ${RUNS} reloads of the ${mb(bb)} page`, r);
-      const label = `a stored Dark is on the page in the first frame that shows the tabs, ${RUNS} reloads of the ${mb(bb)} page`;
-      const measured = `${light} of ${RUNS} first frames light: ${said(r)}`;
-      console.log(`  measure  ${label}: ${measured}`);
-      if(!light || headScript(big)) check(!light, label, measured);
-      else L.skip(label, `KNOWN LIMIT (fault T1): ${measured}; theme.js sets data-theme at the end of the page's script and a module cannot put a script in <head>, so this needs a core change`);
+      for(const [choice, what] of CASES){
+        const r = await frames(big, RUNS, choice), n = r.filter(x => x.wrong).length;
+        check(r.length === RUNS && r.every(x => x.f && typeof x.f.at === 'number' && (!SHOTS || (x.lum && x.lum.length))),
+          `the first frames are measured in each of ${RUNS} reloads of the ${mb(bb)} page (${what})`, said(r));
+        const measured = `${n} of ${RUNS} ${how} ${other(choice)} on a ${mb(bb)} page, ${what}`;
+        console.log(`  measure  ${measured}: ${said(r)}`);
+        if(!n) check(true, `${what} is on the page from its first frame, ${RUNS} reloads of the ${mb(bb)} page (0 of ${RUNS} ${how} ${other(choice)})`);
+        else if(headScript(big)) check(false, `${what} is on the page from its first frame, ${RUNS} reloads of the ${mb(bb)} page (the page holds a script in <head>)`, measured + ': ' + said(r));
+        else L.skip(`KNOWN LIMIT T1: ${measured}`, 'theme.js sets data-theme at the end of the page\'s script and a module cannot put a script in <head>, so this needs a core change (kit PR #30 B5)');
+      }
     }
     if(sbBig) sbBig.rm();
   }
