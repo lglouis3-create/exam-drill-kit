@@ -1,0 +1,22 @@
+== modules switched on, in this order: notes
+-- notes: node features/notes/ci/oncourse.js
+wrote: /tmp/kit-ci-lNlPUq/course/src/q90_notes_fixture.js (topics nts-pkpd, nts-nonlin and 16 questions from FIX in test.js)
+wrote: appended to /tmp/kit-ci-lNlPUq/course/src/course.js: the file in COURSE.files, lectures nts-L11, nts-L12 in COURSE.lectures, skills pkpd, nonlin in COURSE.skills, and notes v1 on
+left out: 3 setup line(s) (nts-pd-ex-b, nts-nl-ex1, nts-nl-ex2a) naming an equation the course's EQUATIONS lacks, 3 asks key(s) (nts-pd-ex-b, nts-nl-ex1, nts-nl-ex2a) the course's ASKS lacks
+== module:notes, chromium, kit f54c420
+PASS     build.py          wrote index.html  (0.30 MB)
+PASS     test.js           23 questions checked
+PASS     style_check.js    23 stems and 23 explanations clean
+PASS     render_test.js    every view rendered clean
+REPORT   explain_check.js  5 of 23 questions carry at least one explanation issue
+PASS     stepper_test.js   1 step-through(s) settle at every step
+NOT RUN  cite_check.py     no lecture PDFs found under decks/ or src/
+PASS     device_lint.js    3 checks passed
+PASS     output_test.js    16 checks passed
+PASS     files_test.js     13 checks passed
+PASS     tables_test.js    20 checks passed
+PASS     checks_test.js    32 checks passed
+PASS     draw_test.js      9 checks passed
+PASS     browser_test.js   98 checks passed (5 skipped: concept-block figures render after answering; drawn structures; stems that promise a figure show one …)
+PASS     storage_test.js   24 checks passed
+PASS     startup_test.js   77 checks passed

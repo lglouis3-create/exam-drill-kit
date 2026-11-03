@@ -1,0 +1,21 @@
+notes ci data: ids prefixed nts-, setup and asks only when the course has their data
+
+The integration run (evidence/integration-3) found four faults in this module's CI data and
+test: C4, lectures L11 and L12 written unprefixed, which quiz-prep-cards' L10-L12 then clashed
+with; C5, plan-the-problem setup lines naming equations no module provides; D1, 16
+Basic-Pharmacokinetics question ids written unprefixed, duplicating other modules' copies; N1,
+the test's scratch copy carried those setup lines, so with plan-the-problem on it did not build
+and the test was NOT RUN.
+
+test.js gets PFX: every question, topic, subtopic and lecture id of FIX, and every reference to
+one (dupOf, topic, sub, lecture), is the course's own id with the prefix nts- (the mapping is in
+ci/oncourse.js's header). WRITE adds a lecture when the course lacks its id (no longer skipping
+one whose deck another module's lecture already names), keeps a setup only when the course's
+EQUATIONS has every equation it names and an asks only when ASKS has the key, and reports what
+it left out; this holds for the test's copies too. ci/oncourse.js reads PFX, reads the course's
+data files after course.js, stops if any prefixed id is taken, and prints what it left out. The
+page checks use the prefixed ids. The data is otherwise verbatim.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01LVkWFDVVDwgsL5WF7yWqcV
+
