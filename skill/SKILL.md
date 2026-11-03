@@ -169,11 +169,14 @@ decision 10 of `KIT_DESIGN.md` §12 (Louis, 2026-11-03). In short:
 - **Claude may merge on its own** documentation, catalog and bookkeeping changes;
   test-only fixes that keep or strengthen meaningful coverage; and isolated optional
   features that stay off by default and change no existing course behaviour, storage
-  or scheduling. Each needs an independent review (a separate reviewer agent or an
-  external reviewer; passing CI alone is not one), every required check passing on
-  the final revision (with the affected module combinations and WebKit where they
-  apply), no unresolved finding and no unrelated change.
-- **Every other pull request waits for Louis's yes**, among them progress storage,
+  or scheduling (a module that saves new data in a student's progress is progress
+  storage). Each needs an independent review (a separate reviewer agent or an external
+  reviewer, its result posted on the pull request; passing CI alone is not one), every
+  job of `.github/workflows/checks.yml` concluded "success" on the final head commit
+  (with the affected module combinations and WebKit where they apply; a job that did not
+  run blocks the merge), no unresolved finding and no unrelated change.
+- **Every other pull request waits for Louis's yes**, and so does any such action
+  outside a pull request: among them progress storage,
   import and recovery, and scheduling behaviour; course migrations and live-course
   updates; destructive actions, permission changes and unresolved consequential design
   choices; and weakening, skipping or exempting a required check. For each, tell Louis
@@ -183,11 +186,11 @@ decision 10 of `KIT_DESIGN.md` §12 (Louis, 2026-11-03). In short:
   recorded in the pull request.
 
 Before finalizing or merging a pull request, read its comments and reviews, weigh each
-suggestion on its merits, and reply on GitHub with the reasoning and validation for
-each one accepted or rejected. A fix is `small-fix` only if it meets every condition in
+suggestion on its merits, address the valid findings, and reply on GitHub with the
+reasoning and validation for each one accepted or rejected. A fix is `small-fix` only if it meets every condition in
 §12.9, and the pull request states each one; when in doubt, it is a core change.
 Courses get kit changes only through Mode 7, and no course update goes live without
-Louis's reply.
+Louis's reply. Louis's own words: `review/standing-autonomy-2026-11-03.md`.
 
 ## Checks
 
@@ -195,7 +198,9 @@ Run `core/run_checks.sh` in the course's `src/` after every change. It runs each
 separately and prints PASS, FAIL, NOT RUN or REPORT with the reason. Report every line
 as printed: a check that did not run is NOT RUN, never passed; list skipped steps as
 well as skipped checks (§7.6). The cloud container has Chromium only, so a WebKit or
-Safari run is NOT RUN there; the device lint (regex lookbehind and similar) always runs.
+Safari run is NOT RUN there; the kit's GitHub job "WebKit · template" runs the template
+course's checks in WebKit, and no check runs the Safari app on an iPhone or iPad. The
+device lint (regex lookbehind and similar) always runs.
 
 The checks prove structure, not subject matter. Wrong chemistry or pharmacology passes
 every automated check; only an adversarial review against the sources (Mode 4) finds it.
@@ -205,8 +210,13 @@ every automated check; only an adversarial review against the sources (Mode 4) f
 - Commit every script that produced content, including one-off helpers (§7.7).
 - Before every commit and package, grep the tree for tokens; a token lives only in
   `.git/config` (§7.10).
-- Push to the course repo following its own rule in `CLAUDE.md` (course repos merge
-  automatically, decision 1). Confirm the deploy from the Pages workflow run for the
+- A push that changes a live course's site needs Louis's approval of that change: his
+  request for it in this session, or his yes to a summary of it (`KIT_DESIGN.md` §12
+  decision 10, 2026-11-03; that reading waits for his confirmation). Until then the work
+  waits at `/preview/` or on a branch. An unattended run (a scheduled task) never
+  changes a live site without his reply. With that approval, push to the course repo
+  following its own rule in `CLAUDE.md` (course repos merge automatically, decision 1).
+  Confirm the deploy from the Pages workflow run for the
   pushed commit: `gh api 'repos/<owner>/<repo>/actions/runs?head_sha=<sha>'` and the run
   named "pages build and deployment" (works through the session's proxy without any
   connector, once the repo is attached), or `mcp__github__actions_list` where present.
@@ -291,8 +301,10 @@ finding: id, severity, exact quote, source quote, fix. Skip clean questions.
 Create one scheduled task per course with the scheduled-task tools, **with write access
 to the course repo and the kit attached**, at a time Louis chooses. Its prompt is
 standalone: load this skill, follow "Before anything else", do the ingest or the
-review, and append one entry to `reviews/LOG.md`. Each run confirms that it wrote and
-pushed its log entry; a run that wrote nothing, or could not push, reports failure and
+review, and append one entry to `reviews/LOG.md`. What an ingest adds to the site waits
+at `/preview/` for Louis's reply: an unattended run never changes a live site
+(`KIT_DESIGN.md` §12 decision 10). Each run confirms that it wrote and pushed its log
+entry; a run that wrote nothing, or could not push, reports failure and
 never ends as succeeded. A run that finds the push refused reports that the task needs
 write access. Never create one for a course that has ended.
 

@@ -3,7 +3,7 @@
 Read `KIT_DESIGN.md` first, in full; its section 12 lists the changes Louis approved
 after Phase 1 and overrides earlier sections where they differ.
 
-## Where the work stands (2026-11-01)
+## Where the work stands (2026-11-01; additions to 2026-11-03)
 
 - **Phase 1 (evaluate): done.** `review/` holds the findings, the proposed core, the
   scheduler proposal, the Phase 1 drafts of the catalog and registry, and research
@@ -23,8 +23,15 @@ after Phase 1 and overrides earlier sections where they differ.
   - fitting FSRS parameters to Louis's own answers (`review/scheduler-proposal.md`
     4.2.3; findings in `core/README.md`: `@open-spaced-repetition/binding` needs Node 24
     and this container has Node 22; `fsrs-browser` does not confirm FSRS-7);
-  - a WebKit (Safari) run of the browser checks: NOT RUN so far; the FSRS page contains
-    BigInt syntax;
+  - WebKit: the GitHub job "WebKit · template" runs the template course's checks in
+    WebKit and blocks a merge (#29); WebKit on the other courses and the Safari app on
+    an iPhone or iPad: NOT RUN so far; the FSRS page contains BigInt syntax;
+  - the stored instructions of the scheduled task "Kit update run" still say a
+    bookkeeping or `small-fix` update goes live without Louis's reply (read 2026-11-03).
+    They defer to `skill/SKILL.md` on `main`, which no longer allows it once #37
+    merges; changing the stored text waits for Louis (decision 10: a scheduled task's
+    instructions). It cannot fire now: no merged pull request is labelled `small-fix`,
+    and Medicinal-chemistry's pin `ff7bd51` is behind core changes;
   - from `core/README.md` "Not in core yet": Intro-Pharmacology's exam-result page after
     a reload and its generator step; `coverage_check.py`, `step_check.js`,
     `sources_check.js`;
@@ -54,10 +61,9 @@ after Phase 1 and overrides earlier sections where they differ.
   start with the porter's next nightly run. Start-up safety fix merged in #5. Louis
   approved on 2026-11-01 adding BDK's and Intro to Pharmacology's features after
   Pharmacokinetics' Tier 2 (`review/port-queue.md` items 11-21, merged in #6); no work on Intro to Pharmacology's files before 2026-11-02 11:00
-  CT (after its Exam 4). The "Kit feature port" task's instructions still name only
-  Pharmacokinetics; they can be changed only from the "Kit feature porter" session
-  (an `update_trigger` from this session was refused on 2026-11-01), so that change
-  waits for a message from Louis there.
+  CT (after its Exam 4). The "Kit feature port" task's instructions were updated on
+  2026-11-03 at 04:45 UTC: they follow `review/porter-policy.md` and take Intro to
+  Pharmacology's items 18-21 first (read with `get_trigger` on 2026-11-03).
   Louis's decision on 2026-11-01 ("Lets do what you recommend that will result in the
   least mistakes", after Claude recommended option B of the Intro to Pharmacology
   assessment): Intro to Pharmacology is not moved; its site stays as it is and its
@@ -74,48 +80,67 @@ after Phase 1 and overrides earlier sections where they differ.
   course move in progress. The plan, the pre-move decisions and the order of its pull
   requests: `review/bdk-move-plan.md`; the three move assessments are kept in
   `review/assessments/`.
-- **Kit pull requests merged 2026-11-02 to 2026-11-03** (merge commit, from the GitHub
-  pull request list read 2026-11-03): #9 `2bbe395` (BDK move 1/32), #10 `ac5c644`
+- **Kit pull requests merged 2026-11-02 to 2026-11-03 (UTC)** (merge commit, from the
+  GitHub pull request list read 2026-11-03): #9 `2bbe395` (BDK move 1/32), #10 `ac5c644`
   (`render_test`), #12 `98e7b5b` (checks on GitHub), #27 `366caf6` (pages over HTTP;
   module courses), #28 `6432c36` (`home_test`), #31 `da6ea21` (style rule "given as"),
   #33 `7286854` (offline test: refused connections), #34 `c1efa19` (lecture ids), #35
   `e3433d2` (catalog wording), #29 `4e0fae4` (the WebKit job blocks a merge). The
   WebKit diagnosis and every run's log: branch `claude/elegant-ptolemy-pqxb8y-webkit-diag`,
-  `review/webkit-offline/` (never merged). Open: #32 (Import, waiting for Louis), the
+  `review/webkit-offline/` (never merged). Open: #32 (Import, waiting for Louis), #36
+  (the porter's policy, `review/porter-policy.md`), #37 (this policy record), the
   proposals #23 and #30, and the porter's draft ports.
+- **GitHub Actions stopped starting jobs on 2026-11-03** between 04:13 UTC (run
+  41576828141, the last that ran and passed) and 04:35 UTC (main's run 41579030257 for
+  4e0fae4, the first refused). Every run since then (22 by 05:05 UTC) failed with no
+  steps, with GitHub's message "The job was not started because recent account
+  payments have failed or your spending limit needs to be increased" (check-run
+  annotations). Only Louis can change the account's billing. Until checks run
+  again, no pull request meets decision 10's merge conditions. The kit repository's own
+  job time from 2026-11-01 to that stop: 2,376 job-minutes, each job rounded up to a
+  minute (Kit checks 2,105, WebKit offline diagnosis 271; from the Actions runs and jobs
+  API, 122 runs and 631 jobs that ran); the account's total is not readable from a kit
+  session.
 - **Phase 3 (test) and Phase 4 (install): not started.**
 
 ## Rules for kit sessions
 
-- **Standing autonomy** (Louis, 2026-11-03; in full in `KIT_DESIGN.md` §12, decision
-  10, which replaces the self-merging of §12.9). Every change reaches `main` by pull
-  request.
+- **Standing autonomy** (Louis, 2026-11-03). His own words are in
+  `review/standing-autonomy-2026-11-03.md` and govern; `KIT_DESIGN.md` §12 decision 10
+  summarises them and replaces the self-merging of §12.9. In short:
   - Claude proceeds on its own with inspection, implementation, testing, separate topic
     branches and worktrees, opening pull requests, addressing reviews, and refreshing
     pending branches.
   - Claude may merge on its own only documentation, catalog and bookkeeping changes;
     test-only fixes that keep or strengthen meaningful coverage; and isolated optional
     features that stay off by default and change no existing course behaviour, storage
-    or scheduling. Each needs an independent review (a separate reviewer agent or an
-    external reviewer; passing CI alone is not one), every required check passing on
-    the final revision (with the affected module combinations and WebKit where they
-    apply), no unresolved finding and no unrelated change. Record each one.
-  - Everything else waits for Louis's yes to that pull request, after a plain-terms
-    summary of what merging it provides and changes: among it progress storage, import
-    and recovery, scheduling; course migrations and live-course updates; destructive
-    actions, permission changes, unresolved consequential design choices; weakening,
-    skipping or exempting a required check. #32 (Import) waits for him.
-  - Live courses stay unchanged unless Louis approves their update separately; the
-    nightly kit-update run leaves every update at `/preview/` for his reply.
+    or scheduling (a module that saves new data in a student's progress is progress
+    storage). Each needs an independent review (a separate reviewer agent or an external
+    reviewer, its result posted on the pull request; passing CI alone is not one), every
+    job of `checks.yml` concluded "success" on the final head commit (with the affected
+    module combinations and WebKit where they apply; a job that did not run blocks the
+    merge), no unresolved finding and no unrelated change. Record each one on the pull
+    request and in the next consolidated update.
+  - Everything else waits for Louis's yes, inside or outside a pull request, after a
+    plain-terms summary of what it provides and changes: among them progress storage,
+    import and recovery, scheduling; course migrations and live-course updates;
+    destructive actions, permission changes, unresolved consequential design choices;
+    weakening, skipping or exempting a required check. #32 (Import) waits for him.
+  - Live courses stay unchanged unless Louis approves their update separately. An
+    unattended run never changes a live site without his reply; the nightly kit-update
+    run leaves every update at `/preview/`. A course session changes a live site only
+    with his approval of that change in the session (open question 3).
   - Investigate a failed check and keep its evidence; rerun for diagnosis, never
     until green.
   - Put explanations, test results, uncertainties and review requests on the pull
     request. Read its comments and reviews before finalizing or merging, weigh each
-    suggestion on its merits, and reply on GitHub with the reasoning and validation.
-    ChatGPT reviews about 5:00 AM, 10:00 AM, 3:00 PM and 8:00 PM America/Chicago; to ask
-    for earlier feedback, post the commit, the questions, the evidence and the decision
-    on the pull request, and name it in the update ("Review #X—Claude requested
-    feedback"). Do not wait for it when another qualified independent review suffices.
+    suggestion on its merits, address the valid findings, and reply on GitHub with the
+    reasoning and validation. ChatGPT reviews about 5:00 AM, 10:00 AM, 3:00 PM and 8:00 PM
+    America/Chicago. To ask for earlier feedback, post the commit, the questions, the
+    evidence and the decision on the pull request and name it in the update; Louis can
+    then tell ChatGPT "Review #X—Claude requested feedback". A comment alone does not
+    start a review; keep working meanwhile, and do not wait for it when another
+    qualified independent review suffices.
   - Batch ready approval requests into one short summary (recommendation, commits,
     evidence, limitations); do not ask again about unchanged pull requests. Tell Louis
     promptly of a confirmed progress-loss risk, a live-site problem, or a blocking
@@ -145,7 +170,7 @@ after Phase 1 and overrides earlier sections where they differ.
 | Session "Kit updater" (`session_01LVkWFDAbAtw7kDGwqd43Qg`, started with the kit as its repository) | kit fetch and push dry run work; Python, Node and Chromium work; `mcp__github__*` tools present; `add_repo` for a course repo from a seeded message was blocked by the permission system; after Louis's own message there, all four course repos were attached with push access, and fetch, `git push --dry-run` and `gh api …/actions/runs` worked in each (the session's stored sources list the kit and the four course repos) | 2026-11-01 |
 | Scheduled task "Kit update run" (`trig_01QduqhookGDD8HxANEbLq4w`, daily 2:47 AM America/Chicago, fires into "Kit updater") | first run 2026-11-01 08:48 UTC ended "Nothing to update: the kit's main has no core yet" (correct: PR #1 merged at about 12:10 UTC), changed nothing and sent no notification; not yet checked whether a run after the container is replaced still has the repos | 2026-11-01 |
 | Session "Kit feature porter" (`session_01LVkWFDVVDwgsL5WF7yWqcV`, started with the kit) and scheduled task "Kit feature port" (`trig_017nw2kiZvgqCKkgWcKuvA8V`, daily 12:45 AM America/Chicago) | setup test 2026-11-01: kit fetch and push dry run, a read-only clone of Pharmacokinetics, `mcp__github__create_pull_request`, Python, Node and Chromium all work; a real push and pull request not yet tried | 2026-11-01 |
-| WebKit / Safari browser engine | not installed in the cloud container; Chromium only | 2026-10-31 |
+| WebKit / Safari browser engine | not installed in the cloud container; Chromium only (GitHub's runners run WebKit: kit job "WebKit · template") | 2026-10-31; 2026-11-03 |
 
 ## Open questions for Louis
 
@@ -157,6 +182,16 @@ after Phase 1 and overrides earlier sections where they differ.
 2. `review/recommendation-proposal.md` (written 2026-11-01) waits for Louis's approval
    and the nine answers in its §6. `skill/SKILL.md` already describes the method and
    says that its in-course comparison starts nowhere until then.
+3. "Keep live courses unchanged unless I separately approve their updates" (2026-11-03):
+   which course changes count as separately approved? Claude's reading, followed until
+   Louis answers: an unattended run never changes a live site without his reply, and a
+   course session changes a live site only with his approval of that change given in
+   the session (his request for it, or his yes to a summary of it). Affected:
+   - the course repos' own rules: Medicinal-chemistry's `CLAUDE.md` ("Merge it
+     automatically always") and BDK's ("push to `main`");
+   - the scheduled task "BDK daily review" (daily 5:45 AM America/Chicago, a fresh
+     session each time), which pushes its fixes to BDK's `main`; Louis set it up on
+     2026-10-27 and it is unchanged.
 
 ## Known issues in course drills found by the kit work
 
