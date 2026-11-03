@@ -1,0 +1,11 @@
+{
+ "name": "quiz-prep-cards",
+ "version": "v1",
+ "does": "A card at the top of Topics for each quiz in course.js `quizzes` ({id, name, when, minutes, topics or modules, covers, quote, said, src}) until the quiz is over or the student hides it: the day and time, the days left, what it covers, the professor's words and what the professor said to prepare, and drills over the quiz's questions (concepts, calculations, everything, adaptive; a straight pass). Settings puts a hidden card back. It does not change the exam the page prepares for and has no timed practice quiz.",
+ "source": "Basic-Pharmacokinetics src/views.js lines 466-512 (quizCards), 699-709 (its buttons), 2409-2417 (examCountdown for a quiz), 3734-3738 and 3785 (Settings), src/shell.html lines 433-438, and src/review_test.py lines 76-108, at ac2eb73",
+ "js": ["quiz-prep-cards.js"],
+ "css": ["quiz-prep-cards.css"],
+ "step": "step.js",
+ "options": {},
+ "test": "test.js"
+}
