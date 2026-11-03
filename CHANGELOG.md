@@ -53,6 +53,18 @@ Dated kit changes, newest first.
   the course's own); `ci/oncourse.js` writes the same data into the kit's CI course.
 - New feature module `quiz-prep-cards` v1 (`features/quiz-prep-cards/`), from Basic-Pharmacokinetics `ac2eb73` (`src/views.js` 466-512): a card at the top of Topics for each quiz in course.js `quizzes` until the quiz is over or is hidden, with its day, the days left, what it covers, what the professor said to prepare, and drills over its questions; Settings puts a hidden card back. It does not change the exam handling and has no timed practice quiz. No course switches it on yet.
 - New feature module `module-pages` v1 (`features/module-pages/`), from Basic-Pharmacokinetics `ac2eb73` (`src/views.js` 722-854): a card per module above the topic list on Topics, each opening the module's Concepts (by the professor's objectives), Calculations (by kind of problem, each with a worked example) and, with worksheets-ink on, Worksheets; with chained-problem-sets on, In parts; with concept-statuses on, a status line per objective. Course data `OBJECTIVES` and `CALC_TYPES` (both optional), checked by its build step. Test: 30 checks on its own course (PK's Module 2 written by `ci/oncourse.js`), 42 with chained-problem-sets, worksheets-ink and concept-statuses also in the course. `core/` and `template/` unchanged.
+- New feature module `stopwatch` v1 (`features/stopwatch/`), from Basic-Pharmacokinetics
+  `ac2eb73` (`src/views.js` 1463-1482 and the places that use it): a running clock on each
+  calculation in the quiz and on a paper that draws calculations; after the answer it shows
+  the time taken, which is the `ms` the engine records; with `paceSeconds` (PK: 120) a time
+  past the pace is red and says "over 2:00". On a paper the time on each question is added
+  up while it is shown and kept with its answer as `ms`. The core already recorded the time
+  of quiz answers and lists "Right, but slow"; PK's time per kind of calculation on Weak
+  spots is not ported. Test `features/stopwatch/current/test.js` (29 checks), on the
+  module's own course (`features/stopwatch/ci/oncourse.js`): PK's Exam 3, the 5 calculations
+  of the professor's Quiz 4 and 55 of PK's questions for Exam 3's pools, from
+  `features/stopwatch/current/test_fixture.js`. No course switches it on; `core/` and
+  `template/` unchanged.
 - `core/render_test.js`: answers calculation and matching items with their own controls; no more random failures.
 - New feature module `plan-the-problem` v1 (`features/plan-the-problem/`), from
   Basic-Pharmacokinetics `ac2eb73` (`src/views.js` 4754-5120, the set-up drill): on the
