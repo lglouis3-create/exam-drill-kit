@@ -447,9 +447,10 @@ changes an earlier section, this section is current.
       daily review" prepares its work on a branch with a pull request, and the "Kit
       update run" promotes a preview to live only after his reply. The part on course
       sessions was Claude's reading 7 (below), which Louis accepted on 2026-11-03. Until
-      the "Kit update run"'s stored instructions are corrected in the "Kit updater"
-      session, every course update stays at preview and nothing is published
-      automatically (Louis, 2026-11-03).
+      the "Kit update run"'s stored instructions were corrected in the "Kit updater"
+      session, every course update was to stay at preview and nothing be published
+      automatically (Louis, 2026-11-03); they were corrected at 12:41:35 UTC that day
+      (`CLAUDE.md`, "Where the work stands").
     - **Failed checks** are investigated and their evidence kept. Repeated runs for
       diagnosis are allowed; discarding failures and rerunning until green is not.
     - **Reviews on GitHub.** ChatGPT's review automation runs about four times a day
@@ -498,8 +499,8 @@ changes an earlier section, this section is current.
       5. A run that GitHub refused to start may be started again; that is not rerunning a
          failure, and the refused attempt stays in the record. (This one allows a step
          his first text did not name; it applies only to jobs that never started. Louis,
-         accepting it: it "does not permit rerunning actual failures until green or
-         weakening checks.")
+         accepting the readings: "This does not permit rerunning actual failures until
+         green or weakening checks.")
       6. "WebKit where applicable": `checks.yml` runs WebKit on the template course only,
          and module courses in Chromium only. For an optional feature module, or a
          test-only change to a module's tests, merged on Claude's decision, a WebKit run

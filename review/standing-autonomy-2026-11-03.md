@@ -1,14 +1,14 @@
 # Standing autonomy: Louis's words (2026-11-03)
 
 Louis's standing policy for kit sessions, as he wrote it in the main kit session on
-2026-11-03 (message of 04:33:10 UTC), and the parts of his message of 06:35:38 UTC that
-add to it (below the policy). `KIT_DESIGN.md` §12 decision 10, `CLAUDE.md` and
-`skill/SKILL.md` summarise them; where a summary differs from the text below, this text
-governs. Readings Claude added where the text leaves a case open are listed in decision
-10 ("Claude's readings"); Louis accepted them on 2026-11-03 (his message of 12:50:53
-UTC, at the end of this file). The words are his; curly
-quotation marks and apostrophes are written here as straight ones, and the headings of
-the first message are set in bold.
+2026-11-03 (message of 04:33:10 UTC), and the parts of his messages of 06:35:38 UTC and
+12:50:53 UTC that add to it (below the policy). `KIT_DESIGN.md` §12 decision 10,
+`CLAUDE.md` and `skill/SKILL.md` summarise them; where a summary differs from the text
+below, this text governs. Readings Claude added where the text leaves a case open are
+listed in decision 10 ("Claude's readings"); Louis accepted them on 2026-11-03 (his
+message of 12:50:53 UTC, at the end of this file). The words are his; curly quotation
+marks and apostrophes are written here as straight ones, and the headings of the first
+message are set in bold.
 
 > **Standing autonomy**
 >
@@ -121,6 +121,8 @@ are left out):
 From Louis's message of 12:50:53 UTC (the paragraphs on the readings, scheduled tasks and
 continuing; the paragraphs on single pull requests are left out):
 
+> [...]
+>
 > Your seven policy readings — I accept them as currently summarized, including retrying a
 > job GitHub never started, while keeping the refused attempt recorded. This does not permit
 > rerunning actual failures until green or weakening checks.

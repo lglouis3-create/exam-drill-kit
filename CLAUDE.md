@@ -26,18 +26,15 @@ after Phase 1 and overrides earlier sections where they differ.
   - WebKit: the GitHub job "WebKit · template" runs the template course's checks in
     WebKit and blocks a merge (#29); WebKit on the other courses and the Safari app on
     an iPhone or iPad: NOT RUN so far; the FSRS page contains BigInt syntax;
-  - the stored instructions of the scheduled task "Kit update run" still say a
-    bookkeeping or `small-fix` update goes live without Louis's reply (read 2026-11-03).
-    Louis authorized changing them on 2026-11-03 so that no preview is promoted to live
-    without his approval; an `update_trigger` from the main kit session was refused ("a
-    routine's instructions (its prompt) can be changed only from the conversation or
-    thread the routine posts into, and this is not that one"), so the change is to be
-    made in the "Kit updater" session (`session_01LVkWFDAbAtw7kDGwqd43Qg`) with the
-    message in `review/kit-update-run-message-2026-11-03.md`, which Louis pastes there.
-    Until then the instructions defer to `skill/SKILL.md` on `main`, which no longer
-    allows it once #37 merges, and the old rule cannot fire: no merged kit pull request
-    is labelled `small-fix`, and the kit changes since Medicinal-chemistry's pin
-    `2bbe395` include core files that are not catalog bookkeeping;
+  - (done 2026-11-03) the stored instructions of the scheduled task "Kit update run" no
+    longer let any update go live without Louis's reply. An `update_trigger` from the
+    main kit session was refused ("a routine's instructions (its prompt) can be changed
+    only from the conversation or thread the routine posts into, and this is not that
+    one"), so Louis pasted the message in `review/kit-update-run-message-2026-11-03.md`
+    into the "Kit updater" session (`session_01LVkWFDAbAtw7kDGwqd43Qg`) at 12:41 UTC.
+    That session updated the task; its stored instructions date from 12:41:35 UTC and
+    equal the message's text exactly (2,937 characters; read with `get_trigger` and
+    compared by the main kit session, 2026-11-03);
   - from `core/README.md` "Not in core yet": Intro-Pharmacology's exam-result page after
     a reload and its generator step; `coverage_check.py`, `step_check.js`,
     `sources_check.js`;
@@ -56,7 +53,11 @@ after Phase 1 and overrides earlier sections where they differ.
   requests #2, #3 and #4 and Louis's approval of its preview. The kit-update run moved
   its pin to `2bbe395` on 2026-11-02 (Medicinal-chemistry commit `e954e08`, deploy run
   41424293314), after Louis approved the preview in the "Kit updater" session ("Yrs do
-  it"; Medicinal-chemistry `reviews/LOG.md`, 2026-11-02 09:54 UTC).
+  it"; Medicinal-chemistry `reviews/LOG.md`, 2026-11-02 09:54 UTC). It moved the pin to
+  `e827671` on 2026-11-03 (Medicinal-chemistry commit `39edc49`, deploy run 41639659320,
+  logged in `37c5daf`), after Louis's reply in that session at 12:48 UTC ("The preview
+  appears to work correctly on my device. [...] Then approve of the updates and continue
+  forward"); that update changed only checks and tests, not the page students use.
   Read-only assessments (2026-11-01) of a move for the other three: Pharmacokinetics
   about 35 kit pull requests (a straight move broke start-up and lost most features),
   BDK about 33 (quizzes still on 11/17-11/19 and 11/30), Intro to Pharmacology about
@@ -163,12 +164,13 @@ after Phase 1 and overrides earlier sections where they differ.
     import and recovery, scheduling; course migrations and live-course updates;
     destructive actions, permission changes, unresolved consequential design choices;
     weakening, skipping or exempting a required check. #32 (Import) is never merged
-    under this authority; Louis keeps it unmerged until its two intermittent two-tab
-    failures are explained and resolved, and then decides on it.
+    under this authority; Louis keeps it unmerged (2026-11-03: after ChatGPT's review of
+    7dbc054 found three defects, until they are fixed, reviewed and brought back for his
+    approval).
   - Live courses stay unchanged unless Louis approves their update separately. An
     unattended run never changes a live site without his reply; the nightly kit-update
     run leaves every update at `/preview/`. A course session changes a live site only
-    with his approval of that change in the session (open question 3).
+    with his approval of that change in the session (decision 10, reading 7).
   - Investigate a failed check and keep its evidence; rerun for diagnosis, never
     until green.
   - Put explanations, test results, uncertainties and review requests on the pull
@@ -229,9 +231,9 @@ after Phase 1 and overrides earlier sections where they differ.
    change given in the session (his request for it, or his yes to a summary of it), also
    where the course repo's own rule says to merge or push automatically
    (Medicinal-chemistry's `CLAUDE.md`: "Merge it automatically always"; BDK's: "push to
-   `main`"). Until the "Kit update run"'s stored instructions are corrected in the "Kit
-   updater" session, every course update stays at preview and nothing is published
-   automatically (Louis, 2026-11-03). Done on 2026-11-03 at Louis's instruction: the scheduled
+   `main`"). Until the "Kit update run"'s stored instructions were corrected in the "Kit
+   updater" session, every course update was to stay at preview (Louis, 2026-11-03);
+   they were corrected at 12:41:35 UTC that day (above). Done on 2026-11-03 at Louis's instruction: the scheduled
    task "BDK daily review" (daily 5:45 AM America/Chicago, a fresh session each time) now
    prepares its fixes and log entry on a branch `daily-review/<date>` with a pull request
    for Louis, and never pushes to BDK's `main` (its stored instructions, updated from the
