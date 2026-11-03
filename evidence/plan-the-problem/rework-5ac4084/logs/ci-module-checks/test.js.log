@@ -1,0 +1,94 @@
+
+=== 1. Question bank integrity ===
+  17 questions, 8 topics, 0 images
+  ok    the build's question count equals QUESTIONS.length (17)
+
+=== 2. Exam blueprint coverage ===
+  Lectures 1–4: 11 questions (paper takes 4)
+
+=== 3. Concept spread per topic ===
+  topic1       3 q /   3 concepts  (Professor)
+  topic2       4 q /   4 concepts  (Professor)
+  orders       1 q /   1 concepts  (Mosley)
+  warn  subtopic "orders/zero" (Zero-order reactions) has no questions
+  warn  subtopic "orders/first" (First-order reactions) has no questions
+  warn  subtopic "orders/plots" (Linear and semi-logarithmic plots) has no questions
+  warn  subtopic "orders/decide" (Deciding the order from a data set) has no questions
+  bolus1       1 q /   1 concepts  (Mosley)
+  warn  subtopic "bolus1/model" (The one-compartment model after an IV bolus injection) has no questions
+  warn  subtopic "bolus1/vd" (Volume of distribution) has no questions
+  warn  subtopic "bolus1/cl" (Clearance) has no questions
+  infusion     2 q /   2 concepts  (Mosley)
+  warn  subtopic "infusion/basics" (What an infusion does, and why the input is zero order) has no questions
+  warn  subtopic "infusion/pre" (Concentration before steady state is reached) has no questions
+  warn  subtopic "infusion/time" (Time to reach a stated fraction of steady state) has no questions
+  warn  subtopic "infusion/stop" (Concentration after the infusion is stopped) has no questions
+  warn  subtopic "infusion/load" (Loading dose, alone and with a continuous infusion) has no questions
+  clearance    2 q /   2 concepts  (Mosley)
+  warn  subtopic "clearance/routes" (The main routes of elimination, renal and hepatic) has no questions
+  warn  subtopic "clearance/renalmech" (Glomerular filtration, tubular secretion and reabsorption) has no questions
+  warn  subtopic "clearance/ionization" (Degree of ionization and renal excretion) has no questions
+  oral         2 q /   2 concepts  (Mosley)
+  warn  subtopic "oral/extravasc" (Kinetics after extravascular administration) has no questions
+  warn  subtopic "oral/conc" (Plasma concentration after a single oral dose) has no questions
+  warn  subtopic "oral/changes" (Effects of changing ka, k and dose) has no questions
+  multi        2 q /   2 concepts  (Mosley)
+  warn  subtopic "multi/accum" (Drug accumulation and steady state) has no questions
+  warn  subtopic "multi/superpos" (The principle of superposition) has no questions
+  warn  subtopic "multi/ndose" (Concentration after n doses and after the last dose) has no questions
+
+=== 4. Spaced repetition rules ===
+feature module equation-drill (tab): TypeError: nav.querySelector is not a function
+    at evalmachine.<anonymous>:1616:17
+    at run (evalmachine.<anonymous>:1577:18)
+    at dom (evalmachine.<anonymous>:1609:7)
+    at startUp (evalmachine.<anonymous>:1630:11)
+    at evalmachine.<anonymous>:1691:5
+    at Object.askProfile (evalmachine.<anonymous>:915:3)
+    at Object.<anonymous> (/tmp/port-rework/plan-the-problem/ci/kit-ci-E02hmr/course/src/test.js:118:3)
+    at Module._compile (node:internal/modules/cjs/loader:1781:14)
+    at Object..js (node:internal/modules/cjs/loader:1913:10)
+    at Module.load (node:internal/modules/cjs/loader:1505:32)
+  ok    missed concept is held back rather than repeated at once
+  (resurfacing test needs a topic with 6+ concepts; skipped on this bank)
+  ok    box advanced 0 -> 3 with repeated correct answers
+  ok    a later miss resets the concept to active review
+  ok    a guess resets the concept to unresolved and outranks never-seen material
+  ok    "I guessed that one" rewrites the log, resets the box, keeps picked and ms
+  note  every concept currently has a single question
+
+=== 5. Exam simulation draw ===
+  blueprint: Exam 1 — Lectures 1–4 4 (4 of 4)
+  drew 4
+  ok    no duplicate questions on a single paper
+  ok    dupOf partners never share a paper (0 marked; 0 lowYield kept off the paper)
+  ok    20 repeated draws all kept the paper shape
+  select-all on the paper: 0 of 4 (target 0)
+  ok    the paper carries the intended number of select-all items
+  ok    the 9 lectures in the manifest have distinct ids
+  ok    every question resolves to a lecture, exam and module
+  ok    every question carries a skill from the course taxonomy (recall, tell, apply, read, calc, krate, clearance, infusion, crcl, oral, multidose)
+  ok    numeric grading accepts the answer within tolerance and rejects the rest
+
+=== 6. Storage isolation ===
+  ok    progress written under namespaced key: course-id-drill:data:me
+  ok    the page opened without asking for a name
+=== 7. Different wording when a missed concept returns ===
+  skip  no multi-question concept
+=== 8. Small pools end instead of looping ===
+  ok    pool of 2 served 2 (2 distinct) then stopped
+  ok    "Ask everything" still serves (10 more)
+
+=== 9. Figures, read links, change log, blueprint ===
+  ok    every DIAGRAMS key is in DIA
+  ok    1 step-through figure(s), each with a dot per step
+  ok    2 read link(s), every one naming guide, tell or ref
+  7 of 17 questions resolve to a reading section (the rest group by topic in the review plan)
+  ok    a session is the run with no half-hour gap (2 of 4 answers)
+  ok    a correct answer marked "not sure" does not count as solid
+  skip  blueprint draw (this course draws by pool marks, not announced counts)
+  ok    1 change log entry embedded, each with bullets
+
+All checks passed  (warnings: 21)
+
+PASS: test.js: 17 questions checked, 21 warning(s)

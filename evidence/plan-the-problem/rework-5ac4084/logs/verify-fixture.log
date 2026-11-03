@@ -1,0 +1,66 @@
+PK: 829 questions, 74 equations, 55 ASKS, files 25
+  note: PLAN.also is the course code planModels() written as data: [[["kin","clearance"],"bolus","bolus1"],[["kin","clearance"],"infus","infusion"],[["kin","clearance"],"\\boral|tablet|capsule","oral"],[["pkpd"],"bolus","bolus1"]] ; PLAN.same []
+fixture: 10 questions, 9 equations named (thalf-first, cl-k-vd, css, crcl, ibw-female, tmax, oral-cp, cmax-ss, cavg-ss), equation-drill fixture 14
+  DIFF q m1-ord-n03.exam: fixture undefined | PK 1
+  DIFF q m1-ord-n03.lecture: fixture undefined | PK "L01"
+  DIFF q m1-ord-n03.source: fixture undefined | PK "slide"
+  DIFF q m1-ord-n03.teach: fixture undefined | PK [{"h":"The idea","list":["Half-life (t½) and the rate constant k are two ways of stating the same first-order decline: t½ = {{frac:0.693|k}}.","The relation has no concentration term, so the half-life does not change as the solution decomposes, and one half-life describes the drug at all doses.","A half-life is a time; reciprocal time belongs to k."]},{"h":"Where to read more","t":"Introduction.pdf, slide 19."}]
+  DIFF q m1-ord-n03.teachImg: fixture undefined | PK "slide_Introduction_p22"
+  DIFF q m1-ord-n03.quote: fixture undefined | PK "this is one that I want you to know. So that will not be on your equation sheet. This is the one that you take to your grave with you, OK? 0.693 over K."
+  DIFF q m2-n-cl2.exam: fixture undefined | PK 1
+  DIFF q m2-n-cl2.lecture: fixture undefined | PK "L02"
+  DIFF q m2-n-cl2.source: fixture undefined | PK "slide"
+  DIFF q m2-n-cl2.dupOf: fixture undefined | PK "m2-n-cl1"
+  DIFF q m2-n-cl2.teach: fixture undefined | PK [{"h":"The idea","list":["With the weight in pounds, a clearance question has three steps before the final product.","First, convert the weight to kilograms by dividing by 2.2.","Second, turn the percent-of-body-weight volume into an absolute volume in litres, taking 1 kg as 1 L.","Third, convert the half-life into a rate constant: k = {{frac:0.693|t½}}.","Only then does Cl = k·VD apply. Skipping any one step changes the answer by a whole factor, not by a rounding."]}]
+  DIFF q m2-n-cl2.quote: fixture undefined | PK "Cl_T = (17 L)(0.1733 hr⁻¹) = 2.95 L/hr"
+  DIFF q inf-n1.exam: fixture undefined | PK 1
+  DIFF q inf-n1.lecture: fixture undefined | PK "L04"
+  DIFF q inf-n1.source: fixture undefined | PK "both"
+  DIFF q inf-n1.teach: fixture undefined | PK [{"h":"The idea","list":["Steady state is where first-order removal matches the fixed input, so Css (steady-state concentration) = {{frac:R|Cl}}, with R the infusion rate.","When clearance is not given, it is built from the half-life and the volume of distribution: Cl = k × VD, with k = {{frac:0.693|t½}}.","Once those two constants are found, the calculation is one division."]},{"h":"Where to read more","t":"3IntravenousInfusions.pdf, slide \"Example 1\"."}]
+  DIFF q inf-n1.teachImg: fixture undefined | PK "slide_3IntravenousInfusi_p7"
+  DIFF q inf-n1.quote: fixture undefined | PK "What is the expected steady-state concentration of theophylline in a patient?"
+  DIFF q inf-n2.exam: fixture undefined | PK 1
+  DIFF q inf-n2.lecture: fixture undefined | PK "L04"
+  DIFF q inf-n2.source: fixture undefined | PK "both"
+  DIFF q inf-n2.teach: fixture undefined | PK [{"h":"The idea","list":["Choosing an infusion rate uses the steady-state relation in reverse: R = Css × Cl = Css × k × VD.","Target concentration times clearance gives the amount that must be delivered each hour to replace exactly what is removed each hour.","Clearance is constant for that patient, so rate and plateau are strictly proportional: doubling the target doubles the rate.","Changing R moves the plateau only; the time to reach it is unchanged."]}]
+  DIFF q inf-n2.teachImg: fixture undefined | PK "slide_3IntravenousInfusi_p8"
+  DIFF q inf-n2.quote: fixture undefined | PK "How would we alter the infusion rate to achieve a steady-state concentration of 20 mg/L?"
+  DIFF q m4-n-clt.exam: fixture undefined | PK 2
+  DIFF q m4-n-clt.lecture: fixture undefined | PK "L05"
+  DIFF q m4-n-clt.source: fixture undefined | PK "both"
+  DIFF q m4-n-clt.teach: fixture undefined | PK [{"h":"The idea","list":["Total body clearance (ClT) can be built from either of two pairs: k and VD (apparent volume of distribution), as here, or the dose and the AUC (area under the curve).","ClT = k x VD, because the amount leaving per hour is k times the amount in the body, VD x Cp; dividing that rate by Cp leaves k x VD.","ClT does not say which organ did the clearing; splitting it into organ contributions is the next step, and it needs fe, the fraction excreted unchanged.","Her slide \"Clearance, Elimination Half-Life, and Volume of Distribution\" carries ClT = k x VD."]}]
+  DIFF q m4-n-clt.teachImg: fixture undefined | PK "slide_4ClearanceandElimi_p12"
+  DIFF q m4-n-clt.quote: fixture undefined | PK "15 L. N R K You get 1.3 L, something like that."
+  DIFF q m4-n-crcl.exam: fixture undefined | PK 2
+  DIFF q m4-n-crcl.lecture: fixture undefined | PK "L05"
+  DIFF q m4-n-crcl.source: fixture undefined | PK "both"
+  DIFF q m4-n-crcl.teach: fixture undefined | PK [{"h":"The order of steps","list":["Convert the height to inches, then compute the ideal body weight (IBW) from sex and height.","Substitute age, IBW and SCr (serum creatinine) into CrCl = {{frac:(140 - age)(IBW)|72 x SCr}}, and apply the 0.85 factor only if the patient is female.","A higher IBW raises the estimate; a higher age or a higher SCr lowers it.","The result is compared with 120 to 130 mL/min, and 58 mL/min is well below that."]}]
+  DIFF q m4-n-crcl.teachImg: fixture undefined | PK "slide_4ClearanceandElimi_p19"
+  DIFF q m4-n-crcl.quote: fixture undefined | PK "Estimate (using the ideal body weight) the CrCl of a 45-year-old female who weighs 61 kg, SCr =1.1 mg/dL, and is 165 cm tall."
+  DIFF q m5-n07.exam: fixture undefined | PK 2
+  DIFF q m5-n07.lecture: fixture undefined | PK "L06"
+  DIFF q m5-n07.source: fixture undefined | PK "both"
+  DIFF q m5-n07.dupOf: fixture undefined | PK "m5-n03"
+  DIFF q m5-n07.teach: fixture undefined | PK [{"h":"The idea","list":["When an oral problem is given as an equation, tmax (the time to peak) = {{frac:ln(ka/k)|ka - k}} needs nothing but the two exponents.","The larger constant, ka, goes on top of the ratio, and the difference goes underneath.","The logarithm of the ratio grows only slowly, while the difference grows quickly, so a drug absorbed far faster than it is eliminated peaks early, which is the ordinary case."]}]
+  DIFF q m5-n07.teachImg: fixture undefined | PK "slide_5Pharmacokineticso_p15"
+  DIFF q m5-n07.quote: fixture undefined | PK "it looks like the max is going to occur. One hour after the dose was administered."
+  DIFF q m5-n08.exam: fixture undefined | PK 2
+  DIFF q m5-n08.lecture: fixture undefined | PK "L06"
+  DIFF q m5-n08.source: fixture undefined | PK "both"
+  DIFF q m5-n08.dupOf: fixture undefined | PK "m5-n04"
+  DIFF q m5-n08.teach: fixture undefined | PK [{"h":"The idea","list":["With the prefactor already collected into one number, a peak calculation is two exponentials and a subtraction, once tmax (the time to peak) is known.","The result must always be smaller than the leading number, because the bracket cannot reach one."]}]
+  DIFF q m5-n08.teachImg: fixture undefined | PK "slide_5Pharmacokineticso_p15"
+  DIFF q m5-n08.quote: fixture undefined | PK "75. E -0.22 times 1. E to -2.75 times 1 … 55.4. Milligrams per liter."
+  DIFF q m5-n08.audit: fixture undefined | PK "The printed stem gives units of mcg/mL for the concentration; she states the answer aloud in mg/L, which is numerically the same. Her spoken value is 55.4 and an independent evaluation of her own equation at one hour gives 55.39. The handwritten annotation on this copy of the slide reads 53.4, which does not follow from the equation and is not used."
+  DIFF q m6-p1d.exam: fixture undefined | PK 2
+  DIFF q m6-p1d.lecture: fixture undefined | PK "L07"
+  DIFF q m6-p1d.source: fixture undefined | PK "slide"
+  DIFF q m6-p1d.teach: fixture undefined | PK [{"t":"The interval is two half-lives here too, so the accumulation factor is again 1.33: 58.72 × 1.33 = 78.3."},{"h":"Where the equation comes from","list":["Cmax∞ = {{frac:C0|1 - e^(-kτ)}} because at the plateau the peak P is the new dose, C0, plus what is left of the previous peak: P = C0 + Pe^(-kτ)."]}]
+  DIFF q m6-p1d.quote: fixture undefined | PK "C∞max = 58.72mg/L / (1 − e^−(8)(0.1732)) = 78.31mg/L"
+  DIFF q m6-n05.exam: fixture undefined | PK 2
+  DIFF q m6-n05.lecture: fixture undefined | PK "L07"
+  DIFF q m6-n05.source: fixture undefined | PK "both"
+  DIFF q m6-n05.teach: fixture undefined | PK [{"t":"The average needs no accumulation factor and no exponential: only the dose, the clearance and the interval. It is not the midpoint of peak and trough."},{"h":"Where the average comes from","list":["At steady state the amount eliminated in one interval equals the amount absorbed, FD0, and ClT × τ is the volume cleared in that interval, so the average is that amount over that volume."]},{"h":"Her Example 1 regimen drawn out","fig":"md_bolus","list":["10 mg/kg every 8 hours, with a half-life of 4 hours and VD (apparent volume of distribution) 0.25 L/kg. Each dose adds C0 = 40 mg/L.","The peaks climb from 40 to 53.3 mg/L and the troughs from 10 to 13.3 mg/L. The climb is over within 3 to 5 half-lives, 12 to 20 hours."]}]
+  DIFF q m6-n05.teachImg: fixture undefined | PK "slide_6RepetitiveIVBolus_p13"
+  DIFF q m6-n05.quote: fixture undefined | PK "I'm getting 28.9 mg per liter."
+exit 1

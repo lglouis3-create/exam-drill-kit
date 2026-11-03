@@ -1,0 +1,6 @@
+run1 exit 0: PASS: features/plan-the-problem/test.js: 54 checks passed
+run2 exit 0: PASS: features/plan-the-problem/test.js: 54 checks passed
+run3 exit 0: PASS: features/plan-the-problem/test.js: 54 checks passed
+absent build exit 0
+absent test exit 1: FAIL: features/plan-the-problem/test.js: 1 of 1 checks failed: the page carries plan-the-problem, working
+DONE
