@@ -12,10 +12,12 @@ Dated kit changes, newest first.
   (`src/views.js` 6323-6333 and `src/shell.html` 979-1042): dark colours for the whole page
   (the core has light colours only) and the student's choice of Match device, Light or Dark
   in the header and in Settings. The choice is kept in the browser under `<ns>:theme` for
-  every profile, not in the progress, so Export does not carry it. Its test has 41 checks,
+  every profile, not in the progress, so Export does not carry it. Its test has 44 checks,
   run on Basic-Pharmacokinetics questions as well as the course's own (first frame, reload
   timing, Export and Import, storage denied and full, contrast); run on a copy with the
-  module's code emptied it fails. `features/theme/ci/oncourse.js` switches it on in the kit's
+  module's code emptied it fails. Known limit: on a page of 1.5 MB or more a stored Dark can
+  show light for a moment when the page opens (3 of 5 reloads on a 1.88 MB course); the test
+  reports it with its measurement, and the fix needs a core change (a script in `<head>`). `features/theme/ci/oncourse.js` switches it on in the kit's
   CI courses. No course switches it on yet.
 
 ## 2026-11-01
