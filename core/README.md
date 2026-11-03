@@ -404,8 +404,9 @@ scheduler reads the history; the progress (`DB`) holds what they schedule from.
 
 Import plans and writes nothing while the progress on this page is not what is stored:
 when another tab or window saved the profile after this page read it (`SEEN`, the
-stored value as this page last read or wrote it), or when the browser refused this
-visit's last save of it. The page says which, and to reload. An answer still waiting
+stored value as this page last read it or had the browser keep it; a write the browser
+refuses does not change it, and a profile opened again after a refused write keeps the
+value last kept, `KEPT`), or when the browser refused this visit's last save of it. The page says which, and to reload. An answer still waiting
 to be saved when Import is tapped is saved first; if the browser refuses that save, it
 stays on the page, flagged as not saved, and nothing is imported.
 
@@ -480,7 +481,11 @@ Import would do and why. It saves only on Import; Cancel leaves everything as it
 
 A replace first adds the progress it replaces to the copies Import keeps (a list under
 `<ns>:backup:<profile>`, newest last). Import and Put back never delete a copy; "Delete
-the copies kept by Import" in Settings does, only when asked and confirmed.
+the copies kept by Import" in Settings does, only when asked and confirmed. The copies
+are read from what the browser holds at that moment, not from this page's own copy of
+the key, so copies another tab or window deleted are neither offered nor written back
+here; Put back and "Delete the copies" also do nothing when the copies changed while
+their question was open.
 
 "Put back the progress from <date>" makes the newest copy the progress again, in three
 writes ordered so that both records are in storage at every point:

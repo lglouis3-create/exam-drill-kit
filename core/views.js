@@ -855,7 +855,7 @@ function runImport(plan){
   }
   let text = '';
   if(plan.action === 'replace'){
-    const now = store.get(keyFor(PROFILE)), before = readCopies(), beforeRaw = store.get(backupKey(PROFILE));
+    const now = store.get(keyFor(PROFILE)), before = readCopies(), beforeRaw = storedRaw(backupKey(PROFILE));
     if(before === null) return {text: 'The copies Import kept before cannot be read, so nothing was imported. Your progress is unchanged.'};
     const copies = now === null ? before : before.concat([{at: Date.now(), data: now, why: 'import'}]);
     if(now !== null && !store.trySet(backupKey(PROFILE), JSON.stringify(copies)))
@@ -896,9 +896,10 @@ function runImport(plan){
   return {text};
 }
 /* The copies Import keeps, newest last: [{at, data, why}], [] for none, or null when
-   what is stored there cannot be read (then nothing writes over it). */
+   what is stored there cannot be read (then nothing writes over it). Read from what the
+   browser holds: copies another tab or window deleted are not shown or written back here. */
 function readCopies(){
-  const raw = store.get(backupKey(PROFILE));
+  const raw = storedRaw(backupKey(PROFILE));
   if(raw === null) return [];
   try {
     const v = JSON.parse(raw);

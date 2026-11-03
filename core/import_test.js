@@ -1243,6 +1243,56 @@ let nfile = 0;
     await d.ctx.close();
   }
 
+  console.log('\n=== Review of 1e6c1d1: copies another tab deleted; a write Import or Put back had kept, then a refused save ===');
+  {
+    // O1: this tab imported, so it wrote the copies itself; another tab then deletes them. This
+    // tab neither offers nor puts back the deleted copy, and a later import does not write it back
+    const o = await own(3);
+    await choose(o.d.page, later(o.file, 2), true);                     // one copy kept, written by this tab
+    const P5 = await stored(o.d.page, o.di.data);
+    const tab2 = await secondTab(o.d);
+    await tab2.evaluate(() => localStorage.removeItem(backupKey(PROFILE)));
+    await synced(o.d.page, tab2, [o.di.backup], 'the other tab deleted the copies');
+    const shown = await o.d.page.evaluate(() => { show('settings'); return !!document.getElementById('btnRestore'); });
+    const n0 = o.d.dialogs.length;
+    await o.d.page.evaluate(() => restoreBackup());
+    const said = o.d.dialogs.slice(n0).join(' | ');
+    check(!shown && await stored(o.d.page, o.di.data) === P5 && await stored(o.d.page, o.di.backup) === null && /no copy to put back/.test(said),
+      'copies another tab deleted: Settings offers no Put back, and Put back puts nothing back and writes no copy', {shown, said: said.slice(0, 120)});
+    // the progress write of a later import refused: the copy written for it is taken off again,
+    // and the list is left as the other tab left it (deleted), not as this page last wrote it
+    const f5 = await exportOf(o.d.page);
+    await refuseKey(o.d.page, o.di.data);
+    const r = await choose(o.d.page, later(f5, 2), true);
+    await refuseKey(o.d.page, null);
+    check(/nothing was imported/.test(r.result) && await stored(o.d.page, o.di.data) === P5 && await stored(o.d.page, o.di.backup) === null,
+      'then an import whose progress write is refused: nothing is imported, and the deleted copies are not written back', r.result.slice(0, 160));
+    // a later import that is kept: one copy, of the progress it replaced
+    const r2 = await choose(o.d.page, later(f5, 2), true);
+    const list = JSON.parse(await stored(o.d.page, o.di.backup) || '[]');
+    check(/Imported:/.test(r2.result) && list.length === 1 && list[0].data === P5,
+      'then an import that is kept: one copy, of the progress it replaced; the deleted copy is not written back', {n: list.length, result: r2.result.slice(0, 120)});
+    await o.d.ctx.close();
+  }
+  for(const how of ['an Import', 'a Put back']){
+    // O2: what Import or Put back had the browser keep (trySet) is what is stored; a refused save
+    // after it, the profile opened again, storage working again: the next save writes, no notice
+    const o = await own(3);
+    await choose(o.d.page, later(o.file, 2), true);
+    if(how === 'a Put back') await o.d.page.evaluate(() => { show('settings'); restoreBackup(); });
+    await refuseKey(o.d.page, o.di.data);
+    await o.d.page.evaluate(() => { DB.settings.goal = 10; save(); saveNow(); });             // refused
+    const failed = await o.d.page.evaluate(k => FAILED.has(k), o.di.data);
+    await o.d.page.evaluate(() => useProfile(PROFILE));                                       // opened again
+    await refuseKey(o.d.page, null);
+    await o.d.page.evaluate(() => { DB.settings.goal = 11; save(); saveNow(); });
+    const got = JSON.parse(await stored(o.d.page, o.di.data)), warned = await o.d.page.evaluate(() => !!document.getElementById('stalewarn'));
+    check(failed && got.settings.goal === 11 && !warned,
+      `after ${how}, a refused save, the profile opened again, storage working again: the next save writes, with no "another tab" notice`,
+      {failed, goal: got.settings.goal, warned});
+    await o.d.ctx.close();
+  }
+
   check(!A.errors.length && !B.errors.length, 'no page errors', A.errors.concat(B.errors).slice(0, 2).join('; '));
   await A.ctx.close(); await B.ctx.close();
   await browser.close();
