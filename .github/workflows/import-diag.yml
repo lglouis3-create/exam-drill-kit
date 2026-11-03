@@ -3,7 +3,8 @@
 # two-tab checks failed once in run 41586812579 (b32ba2e), keeping every run's output
 # (.github/diag/import_runs.sh). Louis, 2026-11-03: explain and resolve those failures.
 # Second round (after run 41591795620): times one tab's read of another tab's save (xtab.js) and
-# reports that read inside import_test.js (instrument.py).
+# reports that read inside import_test.js (instrument.py). Round 3 (after run 41593067385):
+# the corrected import_test.js of e0d7b9b, repeated.
 name: Import two-tab diagnosis
 on:
   push:
@@ -21,16 +22,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # xtab.js: one tab's read right after another tab's save, timed (trials in "runs")
-          - {mode: xtab, course: medicinal-chemistry, runs: 150, set: 1, load: '', instrument: ''}
-          - {mode: xtab, course: medicinal-chemistry, runs: 150, set: 2, load: '', instrument: ''}
-          - {mode: xtab, course: medicinal-chemistry, runs: 150, set: 3, load: '', instrument: ''}
-          - {mode: xtab, course: 'module:equation-drill', runs: 150, set: 1, load: '', instrument: ''}
-          - {mode: xtab, course: template, runs: 150, set: 1, load: '', instrument: ''}
-          # import_test.js with instrument.py's report lines, in turn
-          - {mode: import, course: medicinal-chemistry, runs: 8, set: 1, load: '', instrument: '1'}
-          - {mode: import, course: medicinal-chemistry, runs: 8, set: 2, load: '', instrument: '1'}
-          - {mode: import, course: medicinal-chemistry, runs: 8, set: 3, load: '', instrument: '1'}
+          # round 3: import_test.js as corrected in e0d7b9b (synced), 8 runs per job, no report lines
+          - {mode: import, course: medicinal-chemistry, runs: 8, set: 1, load: '', instrument: ''}
+          - {mode: import, course: medicinal-chemistry, runs: 8, set: 2, load: '', instrument: ''}
+          - {mode: import, course: medicinal-chemistry, runs: 8, set: 3, load: '', instrument: ''}
+          - {mode: import, course: medicinal-chemistry, runs: 8, set: 4, load: load, instrument: ''}
+          - {mode: import, course: 'module:equation-drill', runs: 8, set: 1, load: '', instrument: ''}
+          - {mode: import, course: 'module:equation-drill', runs: 8, set: 2, load: '', instrument: ''}
+          - {mode: import, course: template, runs: 8, set: 1, load: '', instrument: ''}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
