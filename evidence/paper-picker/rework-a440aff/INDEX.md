@@ -65,4 +65,5 @@ exams have no `typed` and lowYield never reaches a paper; 54 image questions not
 | `theme,*` combination | — | NOT RUN: theme is not in this tree | — |
 | Template course, Medicinal-chemistry | — | NOT RUN in this rework: core and template trees unchanged and the module is off there | — |
 | WebKit | — | NOT RUN locally: no WebKit in this container | — |
-| GitHub "Kit checks" run 41583029776 on a440aff | — | NOT RUN: every job failed to start; annotation: "The job was not started because recent account payments have failed or your spending limit needs to be increased. Please check the 'Billing & plans' section in your settings" | `logs/github-run.txt` |
+| GitHub "Kit checks" run 41583029776, attempt 1 on a440aff | — | NOT RUN: every job failed to start; annotation: "The job was not started because recent account payments have failed or your spending limit needs to be increased. Please check the 'Billing & plans' section in your settings" | `logs/github-run.txt` |
+| GitHub "Kit checks" run 41583029776, attempt 2 (not started by this session: its own rerun request was refused with "This workflow is already running") | — | completed, success: every job passed, WebKit · template included (jobs listed in `logs/github-run.txt`) | `logs/github-run.txt` |

@@ -5,3 +5,10 @@ run 41583029776 on a440aff: completed failure
 125741983859 Chromium · template :: The job was not started because recent account payments have failed or your spending limit needs to be increased. Please check the 'Billing & plans' section in your settings
 125741983883 Modules to check :: The job was not started because recent account payments have failed or your spending limit needs to be increased. Please check the 'Billing & plans' section in your settings
 125742050623 Chromium · ${{ matrix.course }} :: 
+attempt 2: 41583029776	a440aff	2	completed	success
+attempt 2:    Modules to check  success
+attempt 2:    Chromium · template  success
+attempt 2:    Chromium · medicinal-chemistry  success
+attempt 2:    WebKit · template  success
+attempt 2:    Chromium · template-unset  success
+attempt 2:    Chromium · module:paper-picker  success
