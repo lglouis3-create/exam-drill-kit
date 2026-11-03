@@ -1,0 +1,7 @@
+head 320b8514800881ad955955ce130cca63392e5636
+ci_course.sh module:pair-up-drills exit 0
+module course: /tmp/kit-ci-cliOpR
+features/pair-up-drills/test.js run 1 exit 0
+features/pair-up-drills/test.js run 2 exit 0
+features/pair-up-drills/test.js run 3 exit 0
+DONE
