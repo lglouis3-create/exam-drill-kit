@@ -50,4 +50,5 @@ checks_test.js failed only because they run test.js. The records, verbatim with 
 | combinations of `features/ci-combinations.txt` with stopwatch | — | none: no line names stopwatch, and `theme,*` needs theme, which is not in this tree (`.github/ci_plan.js push`) | — |
 | Template course, Medicinal-chemistry | — | NOT RUN in this rework: core and template trees unchanged; the module is off there | — |
 | WebKit | — | NOT RUN locally: no WebKit in this container | — |
-| GitHub "Kit checks" run 41584112774 on ab19ea6 | — | NOT RUN: no job started; annotation "The job was not started because recent account payments have failed or your spending limit needs to be increased. Please check the 'Billing & plans' section in your settings" | `logs/github-run.txt` |
+| GitHub "Kit checks" run 41584112774, attempt 1 on ab19ea6 | — | NOT RUN: no job started; annotation "The job was not started because recent account payments have failed or your spending limit needs to be increased. Please check the 'Billing & plans' section in your settings" | `logs/github-run.txt` |
+| GitHub "Kit checks" run 41584112774, attempt 2 (not started by this session: its own rerun request was refused with "This workflow is already running") | — | completed, success: every job passed, WebKit · template included (jobs listed in `logs/github-run.txt`) | `logs/github-run.txt` |
