@@ -1,0 +1,48 @@
+# DIAGNOSIS ONLY, on branch claude/elegant-ptolemy-pqxb8y-pendingsave-diag; never merged.
+# storage_test.js failed two checks once in WebKit on #39's merge commit cf9096b (run
+# 41593159353): an answer made just before the tab closed was missing in a tab opened at once.
+# This times that case in WebKit and Chromium and repeats storage_test.js, keeping every result.
+name: Pending-save close diagnosis
+on:
+  push:
+    branches: [claude/elegant-ptolemy-pqxb8y-pendingsave-diag]
+    paths: ['.github/diag/**', '.github/workflows/pendingsave-diag.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  diag:
+    name: ${{ matrix.browser }} · ${{ matrix.mode }} · set ${{ matrix.set }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {browser: webkit, mode: close, n: 150, set: 1}
+          - {browser: webkit, mode: close, n: 150, set: 2}
+          - {browser: chromium, mode: close, n: 150, set: 1}
+          - {browser: webkit, mode: storage, n: 12, set: 1}
+          - {browser: webkit, mode: storage, n: 12, set: 2}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
+        with:
+          python-version: '3.13'
+      - name: Playwright 1.63.0 and the browser (as the kit's checks jobs)
+        env:
+          BROWSER: ${{ matrix.browser }}
+        run: |
+          npm install -g playwright@1.63.0
+          npx --yes playwright@1.63.0 install --with-deps "$BROWSER"
+      - name: Run the diagnosis
+        env:
+          BROWSER: ${{ matrix.browser }}
+          MODE: ${{ matrix.mode }}
+          N: ${{ matrix.n }}
+        run: |
+          export NODE_PATH="$(npm root -g)"
+          bash .github/diag/close_runs.sh "$BROWSER" "$MODE" "$N"
