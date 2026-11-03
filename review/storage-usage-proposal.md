@@ -64,7 +64,7 @@ What happens when the limit is reached, on `main` today:
 - one more profile of the largest size this browser holds now (its progress plus its history): a new profile from Import, or a copy, can need that much;
 - the live keys of a course on the core whose preview has not yet copied them: a preview's first opening copies all of them, every profile with its history and exam paper, in many writes.
 
-With one course holding one profile at both caps, the warning starts at 5,242,880 − 2,271,973 = 2,970,907 stored characters (57%). With smaller profiles it starts at 5,242,880 minus the larger need, so later. Only drills on the core can be split into profiles and courses. The other drills' keys (BDK's `bdk2:*`, Pharmacokinetics, Intro to Pharmacology) count in the site's total but not in either need. The warning:
+With one course holding one profile at both caps, the warning starts just below 5,242,880 − 2,271,973 = 2,970,907 stored characters (57%): the preview need also counts that course's smaller keys, such as its exam paper. With smaller profiles it starts at 5,242,880 minus the larger need, so later. Only drills on the core can be split into profiles and courses. The other drills' keys (BDK's `bdk2:*`, Pharmacokinetics, Intro to Pharmacology) count in the site's total but not in either need. The warning:
 - names the largest items;
 - offers Export progress;
 - with #32, offers "Delete the copies kept by Import", which deletes only after Louis confirms it.
