@@ -18,6 +18,24 @@ Dated kit changes, newest first.
 - Checks open built pages over HTTP from 127.0.0.1, not from disk, so WebKit no longer refuses the manifest.
 - Kit checks on GitHub: each changed feature module, and each module that needs it, is checked on a course of its own.
 - `core/render_test.js`: answers calculation and matching items with their own controls; no more random failures.
+- New feature module `plan-the-problem` v1 (`features/plan-the-problem/`), from
+  Basic-Pharmacokinetics `ac2eb73` (`src/views.js` 4754-5120, the set-up drill): on the
+  Equations tab, a calculation stem with no arithmetic, where the student picks the line
+  that solves what is asked from four and then reads why, the lines used on the way and
+  how to reach a line the sheet does not print; "Plan the problem" asks first what is
+  asked and its unit (with `ASKS`) and the dosing model (with `PLAN`), then the line,
+  whether the sheet prints it and which givens it uses, and writes the plan out. It
+  needs `formulas-in-text` and `equation-drill`. PK's dosing models, unit lures and calculation routine are the
+  course's `PLAN` data in the kit, not code; the sentence split has no regex lookbehind;
+  the lines missed are kept in the progress as `DB.setup`. Not ported: the whole-sheet
+  choice, ten stems to a page, the quiz and exam scopes, and the buttons into the quiz and
+  the typing drill. Its test (PK `src/test.js` 788-795 and 997-1068, `src/review_test.py`
+  255-268 and 396-438 ported, and checks added in review: the wrong choices, the models
+  against PK's own code, the saved tally through Export, Import, profiles and blocked or
+  full storage): 54 checks pass on the module's own course of PK data, which
+  `features/plan-the-problem/ci/oncourse.js` writes (its lectures with ids prefixed `plc-`,
+  so it no longer refuses a course where another module took L91). Port queue item 1 is
+  partial.
 
 ## 2026-11-01
 - `core/`: an exam with `questions: null` or a pool with `marks: null` no longer breaks the page (`nullexam.js`).
