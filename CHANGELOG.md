@@ -8,6 +8,7 @@ Dated kit changes, newest first.
 - Import compares every part of a file's progress, not only its answers: a file whose concept progress, settings or scheduling state differ goes into a new profile.
 - A page whose profile another tab or window saved since stops saving and offers a reload, instead of writing its older progress over the newer one.
 - Import keeps a copy of the progress it replaces; Put back never loses either record.
+- `core/test.js`: the check that a missed concept returns as a different wording takes its two questions from one topic, so a concept with wordings in two topics no longer fails it falsely.
 - Kit checks on GitHub: the WebKit job now blocks a merge, as the Chromium jobs do.
 - `FEATURES.md`: the focus-switch "Use when" line no longer quotes a professor by name; its source reference is kept.
 - `core/test.js`: two lectures with the same id in `course.js` fail the check.
