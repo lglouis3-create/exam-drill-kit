@@ -28,6 +28,7 @@ export DRILL_BROWSER="$br"
 echo "== kit $(git -C "$kit" rev-parse --short HEAD), template, $br, $mode, $n"
 cd "$course/src"
 if [ "$mode" = close ]; then cp "$kit/.github/diag/close_diag.js" .; exec timeout 5400 node close_diag.js "$n"; fi
+if [ "$mode" = close2 ]; then cp "$kit/.github/diag/close_diag2.js" .; exec timeout 3000 node close_diag2.js "$n"; fi
 pass=0
 for i in $(seq 1 "$n"); do
   timeout 900 node storage_test.js > "run-$i.log" 2>&1; code=$?

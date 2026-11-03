@@ -22,12 +22,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # round 3: the corrected storage_test.js of ab7df8b (close awaited, save timer unable to
-          # fire), 12 runs per job
-          - {browser: webkit, mode: storage, n: 12, set: 1}
-          - {browser: webkit, mode: storage, n: 12, set: 2}
-          - {browser: webkit, mode: storage, n: 12, set: 3}
-          - {browser: webkit, mode: storage, n: 12, set: 4}
+          # round 4: four ways of leaving the page (close_diag2.js), 10 trials each
+          - {browser: webkit, mode: close2, n: 10, set: 1}
+          - {browser: chromium, mode: close2, n: 10, set: 1}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
