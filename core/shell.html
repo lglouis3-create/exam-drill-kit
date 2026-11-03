@@ -662,6 +662,10 @@ const BLANK = () => ({
   created:Date.now()
 });
 let DB = BLANK();
+/* The stored progress of the profile on screen as this tab last read or wrote it.
+   Import compares it with what is stored now, so it never plans or writes over a
+   change another tab or window saved (views.js changedElsewhere). */
+let SEEN = null;
 const ANSWERS_MAX = 4000;   // the answers a progress keeps (record); the answer history keeps LOG_MAX
 /* Whether the saved progress of the profile on screen was read in this visit.
    Every write of the progress, the answer history and the exam paper asks
@@ -702,6 +706,7 @@ function load(){
   if(!PROFILE) return;
   try{
     const raw = store.get(keyFor(PROFILE));
+    SEEN = raw;
     let db = BLANK();
     if(raw){
       const v = JSON.parse(raw);
@@ -827,7 +832,7 @@ function save(){
   clearTimeout(saveTimer);
   saveTimer=setTimeout(()=>{
     saveTimer=null;
-    if(canSave()) store.set(keyFor(PROFILE), JSON.stringify(DB));
+    if(canSave()){ const s = JSON.stringify(DB); store.set(keyFor(PROFILE), s); SEEN = s; }
   },150);
 }
 /* Which profile opens when no choice is stored: the one with saved progress used
@@ -856,7 +861,7 @@ function askProfile(force){
   // A save still waiting on its timer belongs to the profile on screen now. It
   // is written before the switch; left to fire later, it would write the next
   // profile's progress and drop this one's last answer.
-  if(saveTimer && PROFILE){ clearTimeout(saveTimer); saveTimer = null; if(canSave()) store.set(keyFor(PROFILE), JSON.stringify(DB)); }
+  if(saveTimer && PROFILE){ clearTimeout(saveTimer); saveTimer = null; if(canSave()){ const s = JSON.stringify(DB); store.set(keyFor(PROFILE), s); SEEN = s; } }
   let n = PROFILE;
   if(!force && !n) n = pickProfile();
   if(force){
@@ -870,7 +875,7 @@ function askProfile(force){
 }
 /* Open profile n: the profile chosen with Switch, or the one Import put a file in. */
 function useProfile(n){
-  if(saveTimer && PROFILE){ clearTimeout(saveTimer); saveTimer = null; if(canSave()) store.set(keyFor(PROFILE), JSON.stringify(DB)); }
+  if(saveTimer && PROFILE){ clearTimeout(saveTimer); saveTimer = null; if(canSave()){ const s = JSON.stringify(DB); store.set(keyFor(PROFILE), s); SEEN = s; } }
   PROFILE = n;
   store.set(NS+':profile', PROFILE);
   load();

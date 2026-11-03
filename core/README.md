@@ -394,8 +394,17 @@ scheduler reads the history; the progress (`DB`) holds what they schedule from.
   - the same answer twice.
 
   The page says which of these it is.
+- **Refused as damaged** also: settings that are not a record, an answer count or a
+  concept record's count that is not a number, a concept record's `asked` that is not a
+  list or `last` or `check` that is not a record, and FSRS or comparison records that
+  are not lists of entries.
 - **Converted:** an older progress, in a file that names the course, as on load
   (`upgradeDB`).
+
+Import plans and writes nothing while the progress on this page is not what is stored:
+when another tab or window saved the profile after this page read it (`SEEN`, the
+stored value as this page last read or wrote it), or when the browser refused this
+visit's last save of it. The page says which, and to reload.
 
 An answer is found by its question id and its time to the millisecond. Two copies are
 the same answer only when every field agrees (result, choices picked, confidence, count
@@ -416,19 +425,25 @@ below), and the FSRS step "I guessed" can undo and the flag that the cards were 
 (`fsUndo`, `fsHistory`). Against the profile on screen, Import then does one of four
 things:
 - **nothing:** every part of the file's progress is here, field for field, and every
-  history entry; or every part of it is in another profile here (a file imported before
-  into a profile of its own). An older file of this record changes nothing only in that
+  history entry; or every part of it and every history entry is in another profile
+  here (a file imported before into a profile of its own). When that profile's history
+  lacks some of the file's entries, the plan is to add them there, and nothing else
+  changes. An older file of this record changes nothing only in that
   case: when a concept it holds was answered again here, or its pace differs, its
   answers cannot show that it adds nothing, and it goes into a new profile;
 - **history:** the same, but the file adds history entries; they are merged in, and the
   progress is unchanged;
 - **replace:** this profile holds no progress (no answers, answer count, concept
-  records, scheduler state or module part; settings alone are not progress), or the
-  file continues this profile's record: it has answers this device lacks, and all of
-  these hold:
+  records, scheduler state or module part; settings alone are not progress) and its
+  answer history holds nothing the file's lacks, or the file continues this profile's
+  record: it has answers this device lacks, and all of these hold:
   - the file's record has the same origin (`created`) as this one;
   - this device's answer list is complete (its first answer is answer 1);
   - this device's answers are the file's first answers, field for field, in order;
+  - every other part of this profile is in the file as it is here, except the concept
+    records, FSRS cards and questions the file's further answers changed, and the
+    settings, which come with the file. A part changed here without an answer (a
+    module's record, such as equation-drill's) is not in a file made elsewhere;
 - **separate:** anything else, for example:
   - answers on each side the other lacks;
   - a conflict;
@@ -436,7 +451,10 @@ things:
   - an answer list here that the 4,000-answer limit has cut;
   - answers here that are not the file's first answers in order;
   - matching (or empty) answer lists with other concept progress, settings, scheduling
-    state or module part.
+    state or module part;
+  - a part of this profile changed without an answer that the file lacks;
+  - a profile with no progress whose answer history holds entries the file lacks (as a
+    put-back leaves), which would otherwise mix two records' histories.
 
   The file's progress goes into a new profile, named after the file's profile and the
   date, and this profile is unchanged.

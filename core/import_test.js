@@ -39,6 +39,15 @@
  *                      profile was opened, and with no answers, makes no second
  *                      profile; a file with the same answers as a profile but other
  *                      concept progress is not taken for it
+ *   other parts        a part this profile changed without an answer (a module's record)
+ *                      sends a file whose answers continue it into a new profile;
+ *                      settings, an answer count, concept records and scheduler
+ *                      records of the wrong kind are refused
+ *   tabs and refused   a profile another tab saved since, or progress the browser
+ *   saves              refused to save in this visit: Import plans and writes nothing
+ *   history            an empty profile with another record's history is not
+ *                      replaced; a file whose progress is all in a profile here adds
+ *                      its new history entries to that profile
  *   put back           a refused write at each of its three steps, and at step 2
  *                      with its undo refused too: both records are in storage after
  *                      each, the page says what happened, a reload shows the same;
@@ -143,7 +152,15 @@ let nfile = 0;
   console.log('\n=== Files of another course, of another app, or damaged ===');
   {
     const before = await allKeys(A.page);
+    // fileA with its first concept record changed
+    const withConcept = fn => { const g = JSON.parse(JSON.stringify(fileA)), c = Object.keys(g.db.concepts)[0]; g.db.concepts[c] = fn(g.db.concepts[c]); return g; };
+    const withDb = part => Object.assign({}, fileA, {db: Object.assign({}, fileA.db, part)});
     const bad = [
+      ['settings that are not a settings record', withDb({settings: null}), /settings are not a settings record/],
+      ['an answer count that is not a number', withDb({qn: 'x'}), /answer count is not a number/],
+      ['a concept record with a count that is not a number', withConcept(c => Object.assign({}, c, {seen: 'many'})), /"seen" is not a number/],
+      ['a concept record whose questions asked are not a list', withConcept(c => Object.assign({}, c, {asked: 7})), /"asked" is not a list/],
+      ['a scheduler record that is not a list of entries', withDb({arms: []}), /"arms" is not a list of entries/],
       ['a file labelled with another course', Object.assign({}, fileA, {course: 'OTHER101', ns: 'other101-drill'}), /another course \(OTHER101\)/],
       ['a file labelled with this course\'s name and another storage name', Object.assign({}, fileA, {ns: 'someone-else'}), /another course/],
       ['a file that names no course, every question it answers this drill\'s', {profile: 'x', db: fileA.db, log: fileA.log}, /names no course/],
@@ -520,6 +537,114 @@ let nfile = 0;
     await o.d.ctx.close();
   }
 
+
+  console.log('\n=== Continuation: a part this profile changed without an answer ===');
+  {
+    // a module keeps a record that changes without an answer (as equation-drill's DB.eq does)
+    const o = await own(3);
+    await o.d.page.evaluate(() => { DB.eq = {'eq-cl': {seen: 5, right: 4, wrong: 1, streak: 3, at: 1793700000000}}; clearTimeout(saveTimer); saveTimer = null; store.set(keyFor(PROFILE), JSON.stringify(DB)); });
+    o.data = await stored(o.d.page, o.di.data);
+    const f = later(o.file, 2);   // the answers continue, from a device that never had that record
+    let rr = await choose(o.d.page, f, false);
+    check(rr.offered && /this profile's other saved progress is not in the file as it is here/i.test(rr.plan) && /new profile/.test(rr.plan) && !/continues this profile's record/.test(rr.plan),
+      'a file whose answers continue this profile but which lacks a part changed here without an answer: a new profile, not a replace', rr.plan.slice(0, 420));
+    rr = await choose(o.d.page, f, true);
+    await keptApart(o, rr, f, 'a part changed here without an answer');
+    const mine = JSON.parse(await stored(o.d.page, o.di.data));
+    check(!!mine.eq && mine.eq['eq-cl'].seen === 5 && !(await stored(o.d.page, o.di.backup)), 'this profile keeps that part, and no copy was needed', mine.eq);
+    await o.d.ctx.close();
+  }
+
+  console.log('\n=== Another tab of the same browser ===');
+  {
+    const d = await device(); const di = await info(d.page);
+    const tab2 = await d.ctx.newPage();
+    tab2.on('dialog', x => x.accept());
+    await tab2.goto(d.page.url());
+    await tab2.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+    // this tab opened the profile with no progress; the other tab answers 3 and saves
+    await answer(tab2, 3, 0);
+    const theirs = await stored(d.page, di.data);
+    let rr = await choose(d.page, fileA, true);
+    check(!rr.offered && /saved by another tab or window/.test(rr.plan) && await stored(d.page, di.data) === theirs && !(await stored(d.page, di.backup)),
+      'a tab whose profile another tab has saved since: Import plans nothing and says so, and the other tab\'s progress is stored as it was', rr.plan.slice(0, 300));
+    // after a reload: the plan is shown, then the other tab saves again before the click
+    await reload(d.page);
+    const g = later(await exportOf(d.page), 1);
+    rr = await choose(d.page, g, false);
+    check(rr.offered && /continues this profile's record/.test(rr.plan), 'reloaded, the tab plans a file that continues its record', rr.plan.slice(0, 200));
+    await answer(tab2, 1, 3);
+    const theirs2 = await stored(d.page, di.data);
+    await d.page.click('#importGo');
+    await d.page.waitForSelector('#importResult', {timeout: 5000}).catch(() => {});
+    const res = (await d.page.evaluate(() => document.getElementById('importPlan').textContent)).replace(/\s+/g, ' ');
+    check(/saved by another tab or window/.test(res) && await stored(d.page, di.data) === theirs2 && !(await stored(d.page, di.backup)),
+      'the other tab saving after the plan was shown: Import refuses at the click, and nothing is written', res.slice(0, 300));
+    await d.ctx.close();
+  }
+
+  console.log('\n=== Progress the browser refused to save in this visit ===');
+  {
+    const o = await own(3);
+    await o.d.page.evaluate(() => {
+      const real = Storage.prototype.setItem, key = keyFor(PROFILE);
+      Storage.prototype.setItem = function(k, v){ if(k === key) throw new DOMException('The quota has been exceeded.', 'QuotaExceededError'); return real.call(this, k, v); };
+    });
+    await answer(o.d.page, 1, 3);     // held on the page only
+    const rr = await choose(o.d.page, o.file, true);
+    check(!rr.offered && /could not be saved in this visit/.test(rr.plan) && await stored(o.d.page, o.di.data) === o.data,
+      'progress the browser refused to save: Import plans nothing and says what is stored is not what is shown', rr.plan.slice(0, 300));
+    await o.d.ctx.close();
+  }
+
+  console.log('\n=== Empty profiles with history, and history for a profile that holds the file ===');
+  {
+    // a profile with no progress whose answer history holds another record's entries (as a put-back leaves)
+    const D = await device({[I.ns + ':profile']: 'TestUser', [I.ns + ':log:TestUser']: JSON.stringify(fileA.log)});
+    const di = await info(D.page);
+    const hereBefore = await stored(D.page, di.data), logBefore = await stored(D.page, di.log);
+    const oc = await own(2); const fc = oc.file; await oc.d.ctx.close();
+    let rr = await choose(D.page, fc, false);
+    check(rr.offered && /no progress, but its answer history holds 3 history entries the file does not have/i.test(rr.plan) && /new profile/.test(rr.plan),
+      'a profile with no progress but another record\'s history: the file goes into a new profile, so the two are not mixed', rr.plan.slice(0, 400));
+    rr = await choose(D.page, fc, true);
+    check(/now the profile/.test(rr.result) && await stored(D.page, di.log) === logBefore && await stored(D.page, di.data) === hereBefore,
+      'confirmed, this profile and its history are as they were', rr.result.slice(0, 200));
+    rr = await choose(D.page, fileA, false);
+    check(rr.offered && /this profile has no progress yet/.test(rr.plan), 'the record those entries belong to replaces the empty profile', rr.plan.slice(0, 260));
+    await D.ctx.close();
+  }
+  {
+    // a profile with concept progress and no answers, of the file's own origin: the plan names the reason
+    const here = blankDb(); here.created = fileA.db.created; here.concepts[C0] = rec(3, 1);
+    const D = await device({[I.ns + ':profile']: 'TestUser', [I.ns + ':data:TestUser']: JSON.stringify(here)});
+    const rr = await choose(D.page, fileA, false);
+    check(rr.offered && /this profile has no answers but other progress/.test(rr.plan) && !/4,000/.test(rr.plan) && /new profile/.test(rr.plan),
+      'no answers here but other progress, the same origin: a new profile, with that reason (not the 4,000-answer limit)', rr.plan.slice(0, 400));
+    await D.ctx.close();
+  }
+  {
+    // the file's progress is all in a profile made from it before; the file adds history entries to that profile
+    const o = await own(3); const f1 = o.file;
+    await answer(o.d.page, 1, 0);
+    const dataNow = await stored(o.d.page, o.di.data);
+    let rr = await choose(o.d.page, f1, true);
+    const name = (rr.plan.match(/new profile, "([^"]+)"/) || [])[1];
+    const f2 = JSON.parse(JSON.stringify(f1));
+    f2.log.push([f2.log[2][0] + 7, f2.log[0][1], 1, 'quiz']);
+    const n0 = await profilesOn(o.d.page), x0 = JSON.parse(await stored(o.d.page, I.ns + ':log:' + name) || '[]').length;
+    rr = await choose(o.d.page, f2, false);
+    check(rr.offered && rr.plan.includes(`already in the profile "${name}"`) && /adds 1 history entry to that profile's answer history/.test(rr.plan),
+      'a file whose progress is all in a profile here but which has one more history entry: the plan adds the entry to that profile', rr.plan.slice(0, 400));
+    rr = await choose(o.d.page, f2, true);
+    const x1 = JSON.parse(await stored(o.d.page, I.ns + ':log:' + name) || '[]');
+    check(x1.length === x0 + 1 && await profilesOn(o.d.page) === n0 && await stored(o.d.page, o.di.data) === dataNow,
+      'confirmed, that profile\'s history gains the entry; no profile is made, and this profile is as it was', rr.result.slice(0, 200));
+    rr = await choose(o.d.page, f2, true);
+    check(!rr.offered && rr.plan.includes(`already in the profile "${name}"`) && await profilesOn(o.d.page) === n0, 'that file again changes nothing', rr.plan.slice(0, 200));
+    await o.d.ctx.close();
+  }
+
   console.log('\n=== Put back, with a write refused at each step ===');
   {
     const o = await own(3);
@@ -644,10 +769,9 @@ let nfile = 0;
       await refuse(F.page, null);
       check(/refused to save/.test(r.result) && /nothing was imported/.test(r.result), `${label} write refused: Import says nothing was imported`, r.result.slice(0, 220));
       const after = await allKeys(F.page);
-      // a refused progress write leaves the backup written just before it, holding the progress as it is
-      const changed = Object.keys(after).filter(k => after[k] !== before[k]);
-      check(changed.every(k => k === fi.backup && JSON.parse(after[k]).slice(-1)[0].data === before[fi.data]) && Object.keys(before).every(k => k in after),
-        'the stored progress and history are as they were', changed.join(', '));
+      // a refused progress write takes back the copy written just before it
+      const changed = Object.keys(after).filter(k => after[k] !== before[k]).concat(Object.keys(before).filter(k => !(k in after)));
+      check(!changed.length, 'the stored progress, history and copies are as they were (no copy left behind)', changed.join(', '));
       check(await nAns(F.page) === n && (await F.page.evaluate(() => LOG.length)) === logN, 'the progress and history on screen are as they were');
       // the refused write left no copy for this visit: a profile switch and back loads what is stored
       await F.page.evaluate(p => { useProfile('someone else'); useProfile(p); }, fi.profile);
