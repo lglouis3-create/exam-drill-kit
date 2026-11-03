@@ -4,6 +4,7 @@ Dated kit changes, newest first.
 
 ## 2026-11-03
 - `core/test.js` section 7 runs its miss-and-return trial 20 times instead of once, and passes the cool-down by adding to the answer count, so a scheduler that always ignores the different-wording rule is caught in every run, and a topic with few concepts no longer fails it falsely.
+- Standing autonomy (Louis): `KIT_DESIGN.md` §12 decision 10 says which pull requests Claude merges on its own after an independent review, which checks must pass (every applicable `checks.yml` job, with "success", on the final head commit), and Claude's readings; `review/porter-policy.md` follows it; no course update goes live without Louis's reply.
 - `core/test.js`: the check that a missed concept returns as a different wording takes its two questions from one topic, so a concept with wordings in two topics no longer fails it falsely.
 - Kit checks on GitHub: the WebKit job now blocks a merge, as the Chromium jobs do.
 - `FEATURES.md`: the focus-switch "Use when" line no longer quotes a professor by name; its source reference is kept.
