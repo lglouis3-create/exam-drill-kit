@@ -19,8 +19,9 @@ other rule in `CLAUDE.md` and `KIT_DESIGN.md` §12 stays as it is.
 
 ## 2. Source fidelity
 
-- Keep real course data, including professors' names and worked explanations. Generic interface
-  wording written for the kit may say "the professor".
+- Under the existing source-fidelity requirement (real course data, nothing invented: `review/port-queue.md`
+  and Louis's rule 4 of 2026-11-02), keep real course data, including professors' names and worked
+  explanations. Generic interface wording written for the kit may say "the professor".
 - Document every adaptation of the data that a port needs, and why.
 - Do not rewrite branch history only to remove a professor's surname. Do no unrelated name
   clean-up on `main`.
@@ -52,15 +53,15 @@ other rule in `CLAUDE.md` and `KIT_DESIGN.md` §12 stays as it is.
 - Make test setups deterministic: when a case needs a particular question (for example a real
   calculation on an exam paper), set it up, rather than waiting for random selection.
 - Desktop WebKit and simulated input do not replace real Safari, iPhone, iPad or Apple Pencil
-  testing. Real-device testing is kept for before BDK goes live.
+  testing. Real-device testing remains required before BDK goes live.
 
 ## 5. Reporting
 
 - Keep module tests apart from core tests (such as `home_test.js`).
 - Keep PASS, FAIL, SKIPPED, NOT RUN and REPORT apart.
 - Keep results run by implementing agents apart from results the coordinator ran independently.
-- Describe a dark-mode or contrast result as the measured result across the views tested, not as
-  proof of every visual state or of real devices.
+- Describe the dark-mode result as the measured result across the views tested, without implying
+  that every visual state or a real device was verified.
 
 ## 6. Merging
 
@@ -96,8 +97,8 @@ under this routine authority.
 
 ## 8. Review
 
-- The existing exam-drill-kit ChatGPT review automation covers port pull requests too; the porter
-  creates no separate review automation. Its review windows are about 5:00, 10:00, 15:00 and 20:00
+- The existing exam-drill-kit review automation (ChatGPT) covers both main-kit work and port pull
+  requests; do not create a separate porter automation. Its review windows are about 5:00, 10:00, 15:00 and 20:00
   America/Chicago; they are windows, not guaranteed completion times.
 - Put explanations, evidence, uncertainties and review requests on the relevant pull request. Check
   its comments and reviews before finalizing or merging, evaluate each point independently, and reply
@@ -109,5 +110,6 @@ under this routine authority.
 ## 9. Updates
 
 - Give Louis one consolidated update, recording automatic merges and naming each pull request.
-- Notify him promptly only about confirmed progress-loss risks, live-site problems, or decisions that
-  block progress. Do not ask again about unchanged pull requests.
+- Notify him promptly about confirmed progress-loss risks, live-site problems, or decisions that
+  genuinely block progress. The approval requests of section 6 are asked as before. Do not ask
+  again about unchanged pull requests.

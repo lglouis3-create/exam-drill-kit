@@ -83,11 +83,15 @@ after Phase 1 and overrides earlier sections where they differ.
   required check passes.
 - Port pull requests (`port/<name>` branches), the "Kit feature porter" session and its
   scheduled task "Kit feature port" follow `review/porter-policy.md` (Louis, 2026-11-03).
-  For them it replaces the rule above that each merge needs Louis's yes: documentation,
-  bookkeeping, test-only fixes and isolated off-by-default features may merge after an
-  independent review and passing checks, while progress storage, import or recovery,
-  scheduling, migrations, live courses, destructive or permission changes, and any
-  weakening of a required check still need his yes. PR #32 is excluded from that authority.
+  For them it replaces the rule above that each merge needs Louis's yes. Documentation,
+  catalog and bookkeeping changes, test-only fixes that keep or strengthen coverage, and
+  isolated off-by-default features may merge after an independent review, with passing
+  required checks on the final revision, no unresolved findings and no unrelated changes.
+  Still needing his yes: progress storage, import or recovery and scheduling (including new
+  persistence in an optional module); migrations and live-course updates; destructive
+  actions, permission changes and unresolved consequential design choices; and weakening,
+  skipping or exempting a required check. PR #32 is excluded from that authority. The full
+  lists and conditions are in `review/porter-policy.md` §6.
 - Only Louis's own data informs recommendations and evidence (§12.4).
 - Citations in kit documents: AMA 11th edition, with a DOI or link on each reference
   (§12.5). Every number in a kit document comes from a named source checked in the
