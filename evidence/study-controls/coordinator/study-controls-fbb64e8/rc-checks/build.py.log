@@ -1,0 +1,13 @@
+checking sources...
+  13 sources and sw.js parse cleanly
+  scheduler: concept (no library)
+  13 questions in 3 topics, from 2 question files: q1_topics.js, q90_sc_fixture.js
+  feature study-controls v1 in the page (options {"flags": true, "layout": true, "keys": true, "strict": true, "strictNote": "10/21 (asked whether you can go back to a question): \"No, there will not, yeah, no backwards nav, OK, yes.\""})
+  change log: 1 entries, newest "2026-10-02 (set up from the template)"
+  assembled script parses cleanly
+wrote index.html  (0.29 MB)
+wrote COURSE0000_Drill.html  (redirect to index.html)
+wrote version.json  (built 2026-11-03T03:12:18Z)
+  note: placeholder icons (a plain square) for icon-192.png, icon-512.png, icon-maskable-512.png, apple-touch-icon.png; put the course's own PNGs under src/icons/ to replace them
+wrote manifest.json and the icons
+wrote sw.js  (caches named course-id-drill-v<n>; 7 files saved at install)
