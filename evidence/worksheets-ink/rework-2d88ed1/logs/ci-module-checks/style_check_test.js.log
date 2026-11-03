@@ -1,0 +1,34 @@
+
+=== The stem rule on examples ===
+  ok    not flagged: "A drug is given as a series of 2-hour intravenous (IV) infusions. Whic..."
+  ok      (the rule before 2026-11-02 flagged it)
+  ok    not flagged: "Gentamicin is given as a 30-minute IV infusion every 8 hours. Which co..."
+  ok      (the rule before 2026-11-02 flagged it)
+  ok    not flagged: "A dose is given as two tablets of the same strength. How does the amou..."
+  ok      (the rule before 2026-11-02 flagged it)
+  ok    not flagged: "The elimination rate constant is given as 0.173 h⁻¹. What is the half-..."
+  ok      (the rule before 2026-11-02 flagged it)
+  ok    not flagged: "Morphine is given as a 2.5 mg IV dose every 4 hours. What is the hourl..."
+  ok      (the rule before 2026-11-02 flagged it)
+  ok    not flagged: "The drug is given as an oral solution to a patient who cannot swallow ..."
+  ok      (the rule before 2026-11-02 flagged it)
+  ok    not flagged: "Ceftriaxone is given as IV push over 5 minutes. Which model describes ..."
+  ok      (the rule before 2026-11-02 flagged it)
+  ok    not flagged: "A loading dose is given as a single bolus. Which equation gives the in..."
+  ok      (the rule before 2026-11-02 flagged it)
+  ok    flagged [given as]: "Which drug is given as the example of a prodrug?"
+  ok    flagged [given as]: "Which drug is given as the example of an oral prodrug?"
+  ok    flagged [given as]: "Which mechanism is given as the cause of serotonin syndrome?"
+  ok    flagged [given as]: "Which half-life value is given as correct?"
+  ok    flagged [given as]: "A drug is given as an IV bolus. Which drug is given as the example of "
+  ok    flagged [According to]: "According to the slide, which isoform metabolizes most drugs?"
+  ok    flagged [described as]: "Which property is described as the key to oral absorption?"
+  ok    flagged [the lecture]: "What does the lecture give as the first-line agent?"
+  ok    flagged [named as]: "Which enzyme is named as the main route of warfarin metabolism?"
+  ok    a stem that asks the subject is not flagged
+
+=== style_check.js on a scratch build with one question of each kind ===
+  ok    style_check.js names the question that asks what is "given as" the example
+  ok    and not the question whose "given as" is a dose
+  ok    it fails on the flagged question
+PASS: style_check_test.js: 29 checks passed

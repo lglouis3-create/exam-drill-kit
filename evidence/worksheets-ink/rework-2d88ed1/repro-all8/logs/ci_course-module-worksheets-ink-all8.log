@@ -1,0 +1,162 @@
+== modules switched on, in this order: worksheets-ink
+-- worksheets-ink: node features/worksheets-ink/ci/oncourse.js
+wrote: /tmp/port-rework/worksheets-ink/trial/kit-ci-YS3KOK/course/src/q90_wsc_fixture.js (156007 characters)
+wrote: /tmp/port-rework/worksheets-ink/trial/kit-ci-YS3KOK/course/src/wsc_data.js (9311 characters)
+wrote: appended to /tmp/port-rework/worksheets-ink/trial/kit-ci-YS3KOK/course/src/course.js:
+;/* worksheets-ink ci */ COURSE.files = (COURSE.files || []).concat(['q90_wsc_fixture.js', 'wsc_data.js']); COURSE.lectures = (COURSE.lectures || []).concat([{id:'wsc-L01', deck:'Introduction.pdf', label:'Module 1: Introduction, kinetic orders and AUC (17 & 19 Aug)', prof:'Mosley', exam:1, module:1}, {id:'wsc-L09', deck:'6a---Multiple-Oral-Doses.pdf', label:'Module 6a: Multiple oral doses (28 Sep)', prof:'Mosley', exam:2, module:6}, {id:'wsc-L10', deck:'7a---Bioavailability-and-Bioequivalence.pdf', label:'Module 7a: Bioavailability and bioequivalence (30 Sep)', prof:'Mosley', exam:2, module:7}, {id:'wsc-L11', deck:'7b---Pharmacokinetics-and-Pharmacodynamics.pdf', label:'Module 7b: PK-PD relationship (12 Oct)', prof:'Mosley', exam:3, module:9}, {id:'wsc-L12', deck:'8 - Nonlinear PK.pdf', label:'Module 8: Nonlinear pharmacokinetics (14 Oct)', prof:'Mosley', exam:3, module:8}]); COURSE.professors = (COURSE.professors || []).concat(["Mosley"]); COURSE.features = Object.assign({}, COURSE.features, {"worksheets-ink": {"version":"v1","modules":[[1,"1","Module 1 - Introduction & Math Review"],[2,"2","Module 2 - IV Bolus Administration"],[3,"3","Module 3 - Intravenous Infusions"],[4,"4","Module 4 - Drug Elimination and Clearance"],[5,"5","Module 5 - Single Oral Administration"],[6,"6","Module 6 - Multiple Dosings"],[7,"7a","Module 7a - Bioavailability and Bioequivalence"],[9,"7b","Module 7b - PK-PD Relationship"],[8,"8","Module 8 - Nonlinear Pharmacokinetics"]],"originalIds":"^wsc-(hwo|hw7o-|nl-hwo-)","changedIds":"^wsc-(hw\\d|hw7-|nl-hw-)","drillWorked":"no worked answer|without a worked answer|does not record|stated no final value|did not state|ends before she states|not one she asks|computed here|chosen here|recording stops|does not work|applied to that example|her spoken values","spokenOnly":"recording|aloud|spoken","writtenWorking":"written working|her key|her sheet|worked on the|worked answers"}});
+data: 8 documents (quiz-1, hw-2, dp-m1-2, dp-m1-3, ex-m6a, ic-m7, ic-m7b, ex-m8), 61 questions, 12 problem sets, 7 topics, 11 skills, 5 lectures, 1 professor(s) added (Mosley); 55 setup lines left out (equations the course does not have)
+== module:worksheets-ink, chromium, kit 4c97f6f
+PASS     build.py          wrote index.html  (0.48 MB)
+FAIL     test.js           14 failure(s)
+PASS     style_check.js    68 stems and 68 explanations clean
+PASS     style_check_test.js 29 checks passed
+PASS     render_test.js    every view rendered clean
+REPORT   explain_check.js  9 of 68 questions carry at least one explanation issue
+PASS     stepper_test.js   1 step-through(s) settle at every step
+NOT RUN  cite_check.py     no lecture PDFs found under decks/ or src/
+PASS     device_lint.js    3 checks passed
+FAIL     output_test.js    1 of 16 checks failed: test.js reads that page and passes
+PASS     files_test.js     13 checks passed
+PASS     tables_test.js    20 checks passed
+FAIL     checks_test.js    5 of 32 checks failed: test.js passes with exit 0 and a PASS line; run_checks.sh exits 0 when nothing fails (a NOT RUN is listed, not failed); a passing check is one PASS line with its summary …
+PASS     draw_test.js      9 checks passed
+FAIL     browser_test.js   the test stopped: page.evaluate: TypeError: Cannot read properties of undefined (reading 'map')
+PASS     storage_test.js   24 checks passed
+PASS     startup_test.js   77 checks passed
+PASS     update_test.js    38 checks passed
+PASS     offline_test.js   30 checks passed
+PASS     home_test.js      36 checks passed
+PASS     history_test.js   28 checks passed
+PASS     scheduler_test.js 110 checks passed
+PASS     preview_test.js   14 checks passed
+PASS     state_check.js    2 checks passed
+PASS     state_check_test.js 8 checks passed
+PASS     oldcache_test.js  12 checks passed
+PASS     nullexam_test.js  76 checks passed (1 skipped: the Weighting chips)
+PASS     features_test.js  40 checks passed
+PASS     features/worksheets-ink/test.js 157 checks passed (2 skipped: Practice in the drill with chained-problem-sets on; Apple Pencil, iPad and Safari)
+23 PASS, 4 FAIL, 1 NOT RUN, 1 REPORT; logs in /tmp/port-rework/worksheets-ink/trial/drill-checks-CRGZU5
+
+---- test.js (failing lines, then the end of its log) ----
+  FAIL  wsc-m1-ord-c04: references missing teachImg "slide_Introduction_p24"
+  FAIL  wsc-m1-ord-c01: references missing teachImg "slide_Introduction_p20"
+  FAIL  wsc-hw2-1e: numeric item needs worked steps
+  FAIL  wsc-hw2-1f: numeric item needs worked steps
+  FAIL  wsc-hwo2-1e: numeric item needs worked steps
+  FAIL  wsc-hwo2-1f: numeric item needs worked steps
+  FAIL  wsc-hw2-2a: numeric item needs worked steps
+  FAIL  wsc-hw2-2b: numeric item needs worked steps
+  FAIL  wsc-hw2-2d: numeric item needs worked steps
+  FAIL  wsc-hwo2-2a: numeric item needs worked steps
+  FAIL  wsc-hwo2-2b: numeric item needs worked steps
+  FAIL  wsc-hwo2-2d: numeric item needs worked steps
+  FAIL  wsc-m1-ord-c07: references missing teachImg "slide_Introduction_p20"
+feature module worksheets-ink (tab): TypeError: nav.querySelector is not a function
+  FAIL  31 questions cite no deck in the manifest: wsc-cq1-3a, wsc-cq1-3b, wsc-cq1-3c, wsc-hw2-1a, wsc-hw2-1b, wsc-hw2-1c
+  ok    every question carries a skill from the course taxonomy (recall, tell, apply, read, calc, order, krate, conctime, vddose, multicpt, clearance, oral, multidose, bioavail, pkpd, nonlin)
+  ok    numeric grading accepts the answer within tolerance and rejects the rest
+
+=== 6. Storage isolation ===
+  ok    progress written under namespaced key: course-id-drill:data:me
+  ok    the page opened without asking for a name
+=== 7. Different wording when a missed concept returns ===
+  ok    returned as a different question (wsc-cq1-1 -> wsc-m1-ord-c04)
+=== 8. Small pools end instead of looping ===
+  ok    pool of 2 served 2 (2 distinct) then stopped
+  ok    "Ask everything" still serves (10 more)
+
+=== 9. Figures, read links, change log, blueprint ===
+  ok    every DIAGRAMS key is in DIA
+  ok    1 step-through figure(s), each with a dot per step
+  ok    2 read link(s), every one naming guide, tell or ref
+  7 of 68 questions resolve to a reading section (the rest group by topic in the review plan)
+  ok    a session is the run with no half-hour gap (2 of 4 answers)
+  ok    a correct answer marked "not sure" does not count as solid
+  skip  blueprint draw (this course draws by pool marks, not announced counts)
+  ok    1 change log entry embedded, each with bullets
+
+FAILURES: 14  (warnings: 17)
+
+FAIL: test.js: 14 failure(s)
+
+---- output_test.js (failing lines, then the end of its log) ----
+  FAIL  test.js reads that page and passes  — FAIL: test.js: 14 failure(s)
+
+=== Where the build writes and the checks read ===
+  ok    no file in the source tree names /mnt/user-data (61 files read)
+  ok    every check that reads the built page gets its location from built_page.js (7 checks)
+  ok    no check works out the page name from course.js itself
+  ok    the build runs in a fresh copy
+  ok    the app is written to the repository root as index.html
+  ok    .nojekyll is written beside it
+  ok    the course.js output name (COURSE0000_Drill.html) is a redirect to index.html
+  ok    no temporary file is left behind
+  ok    nothing built is written into src/
+  ok    built_page.js names the repository root index.html
+  FAIL  test.js reads that page and passes  — FAIL: test.js: 14 failure(s)
+  ok    DRILL_PAGE points every check at another page
+  ok    without course.js `manifest`, manifest.json has no description and no orientation
+  ok    course.js `manifest` gives manifest.json its description and orientation
+  ok    course.js `manifest` with an orientation the web manifest does not name stops the build before it writes
+  ok    course.js `manifest` with a field other than description and orientation stops the build before it writes
+FAIL: output_test.js: 1 of 16 checks failed: test.js reads that page and passes
+
+---- checks_test.js (failing lines, then the end of its log) ----
+  FAIL  test.js passes with exit 0 and a PASS line  — exit 1: FAIL: test.js: 14 failure(s)
+  FAIL  run_checks.sh exits 0 when nothing fails (a NOT RUN is listed, not failed)  — exit 1
+  FAIL  a passing check is one PASS line with its summary
+  FAIL  run_checks.sh ends with the counts
+  FAIL  test.js passes on a course whose diagrams.js declares no DIAGRAMS list  — exit 1: FAIL: test.js: 14 failure(s)
+  ok    explain_check.js with no built page exits 2 and says NOT RUN
+  ok    stepper_test.js with no built page exits 2 and says NOT RUN
+  ok    browser_test.js with no built page exits 2 and says NOT RUN
+  ok    cite_check.py with no built page exits 2 and says NOT RUN
+  ok    the build runs in the copy
+  ok    explain_check.js is a report: exit 0, last line REPORT
+  ok    cite_check.py with no decks exits 2 and says NOT RUN
+  FAIL  test.js passes with exit 0 and a PASS line  — exit 1: FAIL: test.js: 14 failure(s)
+  ok    browser_test.js without Playwright exits 2 and says NOT RUN
+  ok    stepper_test.js without Playwright exits 2 and says NOT RUN
+  ok    device_lint.js passes on the clean copy
+  ok    device_lint.js fails on a lookbehind in a shipped source and names the line
+  ok    run_checks.sh prints FAIL for it and exits 1
+  ok    device_lint.js fails on a lookbehind that reaches only the built page
+  FAIL  run_checks.sh exits 0 when nothing fails (a NOT RUN is listed, not failed)  — exit 1
+  ok    run_checks.sh builds first and reports the build
+  FAIL  a passing check is one PASS line with its summary
+  ok    a report is one REPORT line
+  ok    a check that could not run is one NOT RUN line with the reason
+  ok    the device lint is one PASS line on the clean copy
+  FAIL  run_checks.sh ends with the counts
+  ok    every check run_checks.sh lists is in the source tree (26)
+  FAIL  test.js passes on a course whose diagrams.js declares no DIAGRAMS list  — exit 1: FAIL: test.js: 14 failure(s)
+  ok    render_test.js passes on a course whose diagrams.js declares no DIAGRAMS list
+FAIL: checks_test.js: 5 of 32 checks failed: test.js passes with exit 0 and a PASS line; run_checks.sh exits 0 when nothing fails (a NOT RUN is listed, not failed); a passing check is one PASS line with its summary …
+
+---- browser_test.js (failing lines, then the end of its log) ----
+  ok    page loads with no uncaught JavaScript error
+  ok    no console errors on load
+page.evaluate: TypeError: Cannot read properties of undefined (reading 'map')
+FAIL: browser_test.js: the test stopped: page.evaluate: TypeError: Cannot read properties of undefined (reading 'map')
+
+=== Browser smoke test ===
+  ok    page loads with no uncaught JavaScript error
+  ok    no console errors on load
+  ok    the page is opened over HTTP from 127.0.0.1
+  ok    its manifest is served beside it
+  ok    no service worker is registered in the check's browser
+  ok    a file outside the page's folder is refused
+  ok    page renders visible text
+  ok    question bank present in the page (68 of 68 in the sources)
+  ok    image bank present in the page (0 of 0 in images.json)
+  ok    all 0 embedded images decode
+  ok    a quiz starts
+  ok    question options render (4 found)
+  ok    answering reveals the explanation
+page.evaluate: TypeError: Cannot read properties of undefined (reading 'map')
+    at eval (eval at evaluate (:311:30), <anonymous>:9:42)
+    at UtilityScript.evaluate (<anonymous>:313:16)
+    at UtilityScript.<anonymous> (<anonymous>:1:44)
+    at /tmp/port-rework/worksheets-ink/trial/kit-ci-YS3KOK/course/src/browser_test.js:149:26
+FAIL: browser_test.js: the test stopped: page.evaluate: TypeError: Cannot read properties of undefined (reading 'map')
+exit 1

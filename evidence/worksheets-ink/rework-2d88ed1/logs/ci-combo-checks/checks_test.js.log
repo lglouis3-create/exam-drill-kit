@@ -1,0 +1,35 @@
+
+=== The checks: exit codes, device lint, run_checks.sh ===
+  ok    run_checks.sh is in the source tree
+  ok    device_lint.js is in the source tree
+  ok    check_lib.js is in the source tree
+  ok    built_page.js is in the source tree
+  ok    browser_test.js is in the source tree
+  ok    test.js with no built page exits 2 and says NOT RUN
+  ok    style_check.js with no built page exits 2 and says NOT RUN
+  ok    render_test.js with no built page exits 2 and says NOT RUN
+  ok    explain_check.js with no built page exits 2 and says NOT RUN
+  ok    stepper_test.js with no built page exits 2 and says NOT RUN
+  ok    browser_test.js with no built page exits 2 and says NOT RUN
+  ok    cite_check.py with no built page exits 2 and says NOT RUN
+  ok    the build runs in the copy
+  ok    explain_check.js is a report: exit 0, last line REPORT
+  ok    cite_check.py with no decks exits 2 and says NOT RUN
+  ok    test.js passes with exit 0 and a PASS line
+  ok    browser_test.js without Playwright exits 2 and says NOT RUN
+  ok    stepper_test.js without Playwright exits 2 and says NOT RUN
+  ok    device_lint.js passes on the clean copy
+  ok    device_lint.js fails on a lookbehind in a shipped source and names the line
+  ok    run_checks.sh prints FAIL for it and exits 1
+  ok    device_lint.js fails on a lookbehind that reaches only the built page
+  ok    run_checks.sh exits 0 when nothing fails (a NOT RUN is listed, not failed)
+  ok    run_checks.sh builds first and reports the build
+  ok    a passing check is one PASS line with its summary
+  ok    a report is one REPORT line
+  ok    a check that could not run is one NOT RUN line with the reason
+  ok    the device lint is one PASS line on the clean copy
+  ok    run_checks.sh ends with the counts
+  ok    every check run_checks.sh lists is in the source tree (26)
+  ok    test.js passes on a course whose diagrams.js declares no DIAGRAMS list
+  ok    render_test.js passes on a course whose diagrams.js declares no DIAGRAMS list
+PASS: checks_test.js: 32 checks passed

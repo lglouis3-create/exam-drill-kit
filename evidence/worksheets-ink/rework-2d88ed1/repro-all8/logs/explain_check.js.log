@@ -1,0 +1,33 @@
+
+=== Explanation quality ===
+  9 of 68 questions carry at least one issue
+
+     5  thin option why
+     4  no diagnosis of the error
+
+  by pool:
+     8  all (supplies 4 of the 4)
+     1  none (supplies ? of the 4)
+
+  worst 9, ranked by severity x exam weight:
+
+  s2-1        topic2    all             rank 20.0
+      - thin option why: A (48), B (42), C (39), D (49), E (55)
+  s1-1        topic1    all             rank 16.0
+      - thin option why: A (69), B (67), C (77), D (65)
+  s1-2        topic1    all             rank 16.0
+      - thin option why: A (52), B (40), C (28), D (29)
+  s1-3        topic1    all             rank 16.0
+      - thin option why: A (91), B (45), C (31), D (46)
+  s2-2        topic2    all             rank 16.0
+      - thin option why: A (25), B (42), C (51), D (50)
+  wsc-cq1-2   orders    all             rank 6.0
+      - no diagnosis of the error: A, B, D
+  wsc-cq1-1   orders    all             rank 4.0
+      - no diagnosis of the error: A, D
+  wsc-m1-ord-c01 orders    all             rank 4.0
+      - no diagnosis of the error: C, D
+  wsc-ws1-3-1a orders    none            rank 1.0
+      - no diagnosis of the error: B, C
+
+REPORT: explain_check.js: 9 of 68 questions carry at least one explanation issue

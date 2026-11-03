@@ -1,0 +1,125 @@
+
+=== 1a. Exam-date spacing ===
+  ok    exam in course.js 10 days away: next review after 3.729 days, not 60
+  ok    a concept outside every dated exam keeps its box interval (60 days); the exam without a date is ignored
+  ok    a box interval shorter than the exam gap stays (1 day)
+  ok    exam 3 days away: next review after 1.200 days (fraction 0.4000)
+  ok    exam 7 days away: next review after 2.800 days (fraction 0.4000)
+  ok    exam 30 days away: next review after 8.687 days (fraction 0.2896)
+  ok    exam 100 days away: next review after 19.823 days (fraction 0.1982)
+  ok    exam 365 days away: next review after 36.500 days (fraction 0.1000)
+  ok    exam 500 days away: next review after 50.000 days (fraction 0.1000)
+  ok    with two exams covering a concept the nearer one sets the gap
+  ok    a concept covered only by the farther exam gets that exam's gap
+  ok    after the exam date the box interval applies again and the box is kept
+  ok    cram pace: the question clock still gives box 6 its 260 questions
+  ok    cram pace: the day clock is capped by the exam (5 days away)
+  ok    no page errors
+
+=== 1b. Confident-error check ===
+  ok    after a right answer there is no "I was sure of that" button
+  ok    after a miss the screen offers "I was sure of that"
+  ok    it is styled like the "Not sure" and "I guessed" buttons (btn amber)
+  ok    after a miss there is no "Not sure" or "I guessed"
+  ok    the miss is logged with confidence "sure"
+  ok    the concept carries the check, dated the day of the error
+  ok    the line under the button says a different question on the concept comes next
+  ok    the next question is a different question on the same concept
+  ok    for a concept with one question the line says only that it comes back on a later day
+  ok    a concept with no other question does not come straight back (the GAP rule)
+  ok    a miss without the button does not bring its concept straight back
+  ok    right answers on the day of the error raise the box and leave the check in place
+  ok    the next day the concept is due although its box (2: 3 days) is not
+  ok    the same history without the check is not due the next day
+  ok    the check ranks with missed concepts (tier 4)
+  ok    a right answer on a later calendar day clears the check
+  ok    "I guessed" on that answer puts the check back
+  ok    a miss on a later day does not clear the check
+  ok    once cleared, the concept follows its box again (box 1 not yet due)
+  ok    a typed (numeric) question offers "I was sure of that" after a miss
+  ok    in a one-pass sweep the other question on the concept moves up to come next
+  ok    no page errors
+
+=== 1c. Calculation preset ===
+  ok    without the preset, a seeded session (seed 1) serves the same 40 turns as the 5014f27 core
+  ok    without the preset, a seeded session (seed 2) serves the same 40 turns as the 5014f27 core
+  ok    without the preset, a seeded session (seed 3) serves the same 40 turns as the 5014f27 core
+  ok    with the preset (cram pace), no two questions in a row share a skill when another skill was eligible (0 of 151 turns)
+  ok    without the preset the same sessions do put two questions of one skill in a row (48 of 146 turns), so the rule is the preset's
+  ok    with the preset (Ask everything), no two questions in a row share a skill when another skill was eligible (0 of 760 turns)
+  ok    without the preset the same sessions do put two questions of one skill in a row (315 of 760 turns), so the rule is the preset's
+  ok    with the preset, a due concept from an earlier lecture is served in a quiz on a later lecture (40 of 40 sessions)
+  ok    it is mixed in while the later lecture still has new material (33 of 40 sessions), not held back until that runs out
+  ok    nothing from an earlier lecture that is not due (never seen, or not yet due) is drawn in
+  ok    without the preset the quiz stays on its own pool (0 of 40 sessions served the earlier concept)
+  ok    with the preset, the question after a confident error on a recall item is the concept's calculation item (z1b, 20 of 20)
+  ok    without the preset it is either of the concept's other questions
+  ok    no page errors
+
+=== 1d. No "I know this, skip it" control (on this course's own page) ===
+  ok    the detector finds a skip control in a test label and passes the existing labels
+  ok    no control offers to skip a question or mark it known, on 24 screens
+  ok    no page errors
+
+=== 2. FSRS option (scheduler.model 'fsrs') ===
+  ok    the FSRS course's page carries the vendored ts-fsrs bundle unchanged, with the licence texts above it
+  ok    a concept-scheduler page carries no library (pages 492 KB and 691 KB)
+  ok    the build says which scheduler it built and whether it inlined the library
+  ok    the page's scheduler is ready as soon as the page has loaded, and it is FSRS-7
+  ok    its settings are exactly what DefaultScheduler() with no options gives (default parameters and target retention)
+  ok    after each of 7 answers (right, wrong, same day, next day, "I guessed", "Not sure", "I was sure of that") the stored card equals the library's own review of the same sequence
+  ok    a second answer an hour later, the same day, changes the memory state (stability 3.9221 -> 6.46084171)
+  ok    each answer logs the library's predicted recall before that answer (null for the first)
+  ok    each answer logs scheduler "fsrs" and no comparison arm
+  ok    the confidence buttons are logged as before
+  ok    under FSRS "I was sure of that" records the confidence only: no later-day check, no forced retry, no line about one
+  ok    a question whose card is not due is not served (30 picks), and a pool of only that question has nothing to serve
+  ok    "Ask everything" serves it anyway
+  ok    once its card is due it comes before questions never answered
+  ok    among due cards the one with the lowest predicted recall comes first (z3a 0.804, z4a 0.797, z5a 0.801)
+  ok    a missed question comes back when its card falls due (10.0 minutes later, the library's step), not before
+  ok    the quiz header counts the concepts that have a question never answered or due (3 of 3 here)
+  ok    no page errors
+
+=== 3. Combination (scheduler.model 'concept-fsrs') and the comparison ===
+  ok    the combination course runs concept-fsrs with the library ready
+  ok    one card per concept: after answers to three different questions of c1 it equals the library's review of the same sequence (Knew it = Good, Not sure = Good, I guessed = Again, wrong = Again, same-day right = Good)
+  ok    no per-question cards are kept under the combination
+  ok    after "Not sure" the explanation stays on screen
+  ok    each answer logs scheduler "concept-fsrs", no arm (no comparison) and the library's predicted recall for the concept
+  ok    within a due concept the question seen least recently is shown (z1c)
+  ok    after "Not sure" the concept comes back as a different question
+  ok    the due concept with the lowest predicted recall goes next (c3 0.797, c4 0.799, c5 0.803), as its question not yet shown
+  ok    no page errors
+  ok    each concept's arm is the top bit of FNV-1a("<concept>|course-id-drill") (c1 concept-fsrs, c2 concept, c3 concept-fsrs, c4 concept-fsrs, c5 concept-fsrs)
+  ok    the five test concepts, whose ids differ only in the last character, are not all on one arm
+  ok    over 2000 concept ids, 1010 go to the combination and 990 to the concept scheduler
+  ok    neighbouring ids (concept-0, concept-1, ...) change arm 981 times in 1999, about half, so the arm does not follow the numbering
+  ok    the first answer stores the concept's arm with the progress
+  ok    after a reload every concept keeps its arm; a stored one wins over the hash
+  ok    in the preview (namespace course-id-drill-preview) every concept is in the arm the live page gives it (2005 of 2005 the same)
+  ok    with both arms able to ask, a 30-question session shares its questions evenly (15 concept, 15 combination; never more than 1 apart)
+  ok    every answer logs its concept's arm, and the scheduler named is that arm
+  ok    the concept arm logs no predicted recall; the combination logs the library's
+  ok    when one arm has nothing to ask the other arm takes the turn, so the session goes on
+  ok    under the comparison, "I was sure of that" on a concept-arm concept sets its check and retry
+  ok    on a combination concept it records the confidence only
+  ok    no page errors
+
+=== 4. Saved progress from the 5014f27 core ===
+  ok    every field the 5014f27 core saved is read back unchanged (concepts, answers, question count, settings)
+  ok    the progress is marked as the new shape (v 2)
+  ok    each concept's `last` is rebuilt from the saved answers
+  ok    every saved question id is in the bank and the progress is read under the same ns (course-id-drill)
+  ok    the scheduler ranks every test question as the 5014f27 core did from the same save
+  ok    the saved seven-field history is read back unchanged
+  ok    the next save writes the new shape with every earlier answer kept
+  ok    no page errors
+  ok    Import progress of a 5014f27 export gives the same converted progress
+  ok    under 'fsrs' each of the 9 answered questions gets the card the library builds from its saved answers
+  ok    and the saved fields themselves are unchanged
+  ok    no page errors
+  ok    when the saved answers are not the whole history, no card is built and the questions start as new under FSRS
+  ok    under the comparison only the combination's concepts get a card, the library's from their saved answers (c1, c3, c4, c5)
+  ok    no page errors
+PASS: scheduler_test.js: 110 checks passed

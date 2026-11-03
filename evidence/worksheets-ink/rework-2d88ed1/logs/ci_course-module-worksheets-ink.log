@@ -1,0 +1,38 @@
+== modules switched on, in this order: worksheets-ink
+-- worksheets-ink: node features/worksheets-ink/ci/oncourse.js
+wrote: /tmp/port-rework/worksheets-ink/final/ci/kit-ci-xmp9TH/course/src/q90_wsc_fixture.js (57174 characters)
+wrote: /tmp/port-rework/worksheets-ink/final/ci/kit-ci-xmp9TH/course/src/wsc_data.js (4710 characters)
+wrote: appended to /tmp/port-rework/worksheets-ink/final/ci/kit-ci-xmp9TH/course/src/course.js:
+;/* worksheets-ink ci */ COURSE.files = (COURSE.files || []).concat(['q90_wsc_fixture.js', 'wsc_data.js']); COURSE.lectures = (COURSE.lectures || []).concat([{id:'wsc-L09', deck:'6a---Multiple-Oral-Doses.pdf', label:'Module 6a: Multiple oral doses (28 Sep)', prof:'Mosley', exam:2, module:6}, {id:'wsc-L10', deck:'7a---Bioavailability-and-Bioequivalence.pdf', label:'Module 7a: Bioavailability and bioequivalence (30 Sep)', prof:'Mosley', exam:2, module:7}, {id:'wsc-L11', deck:'7b---Pharmacokinetics-and-Pharmacodynamics.pdf', label:'Module 7b: PK-PD relationship (12 Oct)', prof:'Mosley', exam:3, module:9}, {id:'wsc-L12', deck:'8 - Nonlinear PK.pdf', label:'Module 8: Nonlinear pharmacokinetics (14 Oct)', prof:'Mosley', exam:3, module:8}]); COURSE.professors = (COURSE.professors || []).concat(["Mosley"]); COURSE.features = Object.assign({}, COURSE.features, {"worksheets-ink": {"version":"v1","modules":[[1,"1","Module 1 - Introduction & Math Review"],[2,"2","Module 2 - IV Bolus Administration"],[3,"3","Module 3 - Intravenous Infusions"],[4,"4","Module 4 - Drug Elimination and Clearance"],[5,"5","Module 5 - Single Oral Administration"],[6,"6","Module 6 - Multiple Dosings"],[7,"7a","Module 7a - Bioavailability and Bioequivalence"],[9,"7b","Module 7b - PK-PD Relationship"],[8,"8","Module 8 - Nonlinear Pharmacokinetics"]],"originalIds":"^wsc-(hwo|hw7o-|nl-hwo-)","changedIds":"^wsc-(hw\\d|hw7-|nl-hw-)","drillWorked":"no worked answer|without a worked answer|does not record|stated no final value|did not state|ends before she states|not one she asks|computed here|chosen here|recording stops|does not work|applied to that example|her spoken values","spokenOnly":"recording|aloud|spoken","writtenWorking":"written working|her key|her sheet|worked on the|worked answers"}});
+data: 4 documents (ex-m6a, ic-m7, ic-m7b, ex-m8), 19 questions, 6 problem sets, 4 topics, 5 skills, 4 lectures, 1 professor(s) added (Mosley); 19 setup lines left out (equations the course does not have)
+== module:worksheets-ink, chromium, kit 2d88ed1
+PASS     build.py          wrote index.html  (0.38 MB)
+PASS     test.js           26 questions checked, 11 warning(s)
+PASS     style_check.js    26 stems and 26 explanations clean
+PASS     style_check_test.js 29 checks passed
+PASS     render_test.js    every view rendered clean
+REPORT   explain_check.js  5 of 26 questions carry at least one explanation issue
+PASS     stepper_test.js   1 step-through(s) settle at every step
+NOT RUN  cite_check.py     no lecture PDFs found under decks/ or src/
+PASS     device_lint.js    3 checks passed
+PASS     output_test.js    16 checks passed
+PASS     files_test.js     13 checks passed
+PASS     tables_test.js    20 checks passed
+PASS     checks_test.js    32 checks passed
+PASS     draw_test.js      8 checks passed (1 skipped: no two wordings of one fact on a paper drawn from this bank)
+PASS     browser_test.js   98 checks passed (5 skipped: concept-block figures render after answering; drawn structures; stems that promise a figure show one …)
+PASS     storage_test.js   24 checks passed
+PASS     startup_test.js   77 checks passed
+PASS     update_test.js    38 checks passed
+PASS     offline_test.js   30 checks passed
+PASS     home_test.js      36 checks passed
+PASS     history_test.js   28 checks passed
+PASS     scheduler_test.js 110 checks passed
+PASS     preview_test.js   14 checks passed
+PASS     state_check.js    2 checks passed
+PASS     state_check_test.js 8 checks passed
+PASS     oldcache_test.js  12 checks passed
+PASS     nullexam_test.js  76 checks passed (1 skipped: the Weighting chips)
+PASS     features_test.js  40 checks passed
+PASS     features/worksheets-ink/test.js 157 checks passed (2 skipped: Practice in the drill with chained-problem-sets on; Apple Pencil, iPad and Safari)
+27 PASS, 0 FAIL, 1 NOT RUN, 1 REPORT; logs in /tmp/port-rework/worksheets-ink/final/ci/drill-checks-3zYDfH

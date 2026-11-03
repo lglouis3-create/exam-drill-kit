@@ -1,0 +1,6 @@
+run1 exit 0: PASS: features/worksheets-ink/test.js: 157 checks passed (2 skipped: Practice in the drill with chained-problem-sets on; Apple Pencil, iPad and Safari)
+run2 exit 0: PASS: features/worksheets-ink/test.js: 157 checks passed (2 skipped: Practice in the drill with chained-problem-sets on; Apple Pencil, iPad and Safari)
+run3 exit 0: PASS: features/worksheets-ink/test.js: 157 checks passed (2 skipped: Practice in the drill with chained-problem-sets on; Apple Pencil, iPad and Safari)
+absent build exit 0
+absent test exit 1: FAIL: features/worksheets-ink/test.js: 1 of 1 checks failed: the page carries worksheets-ink, working
+DONE
