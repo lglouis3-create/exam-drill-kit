@@ -574,8 +574,13 @@ let nfile = 0;
     await answer(tab2, 3, 0);
     const theirs = await stored(d.page, di.data);
     let rr = await choose(d.page, fileA, true);
-    check(!rr.offered && /saved by another tab or window/.test(rr.plan) && await stored(d.page, di.data) === theirs && !(await stored(d.page, di.backup)),
-      'a tab whose profile another tab has saved since: Import plans nothing and says so, and the other tab\'s progress is stored as it was', rr.plan.slice(0, 300));
+    // what is stored after, with what the other tab wrote and saved, for a failure's report
+    const after = async (was) => { const now = await stored(d.page, di.data), n = v => JSON.parse(v || '{"answers":[]}').answers.length;
+      return {same: now === was, wasN: n(was), nowN: n(now), backup: !!(await stored(d.page, di.backup)), stale1: await d.page.evaluate(() => STALE), stale2: await tab2.evaluate(() => STALE),
+              pending2: await tab2.evaluate(() => !!saveTimer), lenWas: (was || '').length, lenNow: (now || '').length}; };
+    const a1 = await after(theirs);
+    check(!rr.offered && /saved by another tab or window/.test(rr.plan) && a1.same && !a1.backup,
+      'a tab whose profile another tab has saved since: Import plans nothing and says so, and the other tab\'s progress is stored as it was', Object.assign({offered: rr.offered, plan: rr.plan.slice(0, 90)}, a1));
     // after a reload: the plan is shown, then the other tab saves again before the click
     await reload(d.page);
     const g = later(await exportOf(d.page), 1);
@@ -586,8 +591,9 @@ let nfile = 0;
     await d.page.click('#importGo');
     await d.page.waitForSelector('#importResult', {timeout: 5000}).catch(() => {});
     const res = (await d.page.evaluate(() => document.getElementById('importPlan').textContent)).replace(/\s+/g, ' ');
-    check(/saved by another tab or window/.test(res) && await stored(d.page, di.data) === theirs2 && !(await stored(d.page, di.backup)),
-      'the other tab saving after the plan was shown: Import refuses at the click, and nothing is written', res.slice(0, 300));
+    const a2 = await after(theirs2);
+    check(/saved by another tab or window/.test(res) && a2.same && !a2.backup,
+      'the other tab saving after the plan was shown: Import refuses at the click, and nothing is written', Object.assign({res: res.slice(0, 90)}, a2));
     await d.ctx.close();
   }
   {
