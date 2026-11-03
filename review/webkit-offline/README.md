@@ -98,3 +98,53 @@ contexts keep site data in memory. If WebKit's network process (which holds it) 
 and restarts, that data is lost and requests in flight fail. This is not yet confirmed;
 the next run records WebKit's own log and whether localStorage is wiped too, and tries
 "server down" as an HTTP 503 answer instead of a dropped connection.
+
+## Run 41565485378 (commit ed8656d), 2026-11-03
+
+**Mode `load`**, WebKit. Three sets with "server down" as in `core/check_lib.js` (the
+connection dropped), with WebKit's own output (`DEBUG=pw:browser*`). Three sets with
+"server down" as an HTTP 503 answer.
+
+| "Server down" as | Set 1 | Set 2 | Set 3 | Total |
+|---|---|---|---|---|
+| dropped connection | 14 of 15 PASS | 14 of 15 PASS | 15 of 15 PASS | 43 of 45 PASS |
+| HTTP 503 | 15 of 15 PASS | 15 of 15 PASS | 15 of 15 PASS | 45 of 45 PASS |
+
+**WebKit's own log.** Both failed runs (run 2.1 of set 1, run 2.2 of set 2) logged the
+following, and none of the 43 passing runs logged any of it:
+- Just after the server-down phase, libsoup assertion failures in the network process:
+  - 6 in one run and 18 in the other;
+  - `libsoup-CRITICAL **: soup_session_feature_request_queued: assertion
+    'SOUP_IS_SESSION_FEATURE (feature)' failed`;
+  - `GLib-GObject-CRITICAL **: g_object_ref: assertion 'G_IS_OBJECT (object)' failed`.
+- About 10 s later, the failing navigation:
+  `ERROR: WebKit encountered an internal error. This is a WebKit bug.
+  .../WebProcess/Network/WebLoaderStrategy.cpp(704) : void
+  WebKit::WebLoaderStrategy::internallyFailedLoadTimerFired()`.
+
+**Site data at that moment** (both failed runs):
+- 0 worker registrations;
+- the localStorage marker set on the first visit gone;
+- no caches at all, including the four other sites' caches the test creates.
+
+So the whole network session's data was lost, not only the worker.
+
+Totals with "server down" as a dropped connection, under load, in this and the earlier
+runs: 15 failed of 180 (3 of 45, 7 of 45, 3 of 45, 2 of 45). As a 503 answer: 0 of 45.
+Without load, as a dropped connection: 0 of 40 (run 41562178755).
+
+Reading:
+- **Cause.** WebKit's Linux network stack (libsoup, the GTK/WPE port Playwright runs)
+  breaks its network session after connections are dropped, more often under load.
+  WebKit labels the result "This is a WebKit bug". With the session go the test
+  browser's site data (kept in memory by Playwright's contexts), the requests in flight
+  ("internal error", "due to access control checks") and the saved copy. Without a saved
+  copy the slow reload must wait for the network.
+- **What it is not.** It is not the drill's code: the worker and the page did what they
+  should whenever the session held.
+- **Students.** The Safari app on iPhone, iPad and Mac does not use libsoup. That is
+  reasoning, not a test; a check on a real iPhone and iPad stays before BDK goes live.
+
+Next: "server down" as refused connections (the server stops listening, as a stopped
+server or a phone with no connection would appear). Is the network-error path still
+tested in WebKit without triggering the bug?

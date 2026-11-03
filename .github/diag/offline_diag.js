@@ -28,7 +28,10 @@
  *     that navigation, to tell a race from a lasting state (offline_test.js has none);
  *   - DIAG_DOWN=503: in mode down the server answers 503 at once instead of dropping
  *     the connection (core/check_lib.js serve() drops it), to tell whether the dropped
- *     connections are the trigger;
+ *     connections are the trigger; DIAG_DOWN=refuse: in mode down the server stops
+ *     listening (its idle connections closed), so a connection is refused, as for a
+ *     stopped server or a phone with no connection; it listens again on the same port
+ *     when the mode goes back to ok;
  *   - when that navigation fails, also the number of worker registrations and whether a
  *     localStorage key set earlier in the run is still there (site data kept or wiped).
  * The worker's and the page's logs are read at the end of every run, also one that stops.
@@ -45,21 +48,35 @@ L.PAGE.need(NAME);
 const FILE = path.basename(L.PAGE.PAGE);
 const SLOW = 8000;
 const T0 = Date.now(), now = () => Date.now() - T0;
-const WAIT_UP = Number(process.env.DIAG_WAIT_AFTER_UP || 0), DOWN503 = process.env.DIAG_DOWN === '503';
-const D = {browser: L.BROWSER, waitAfterUp: WAIT_UP, down: DOWN503 ? '503' : 'drop', server: [], phases: [], pageErrors: [], beforeSlow: null, afterSlow: null, swLog: [], pageLog: [], checks: [],
+const WAIT_UP = Number(process.env.DIAG_WAIT_AFTER_UP || 0), DOWN503 = process.env.DIAG_DOWN === '503', REFUSE = process.env.DIAG_DOWN === 'refuse';
+const D = {browser: L.BROWSER, waitAfterUp: WAIT_UP, down: DOWN503 ? '503' : REFUSE ? 'refuse' : 'drop', downStragglers: 0, server: [], phases: [], pageErrors: [], beforeSlow: null, afterSlow: null, swLog: [], pageLog: [], checks: [],
            requestsFailed: [], navigations: [], consoleErrors: [], crashes: [], afterUpGoto: null};
 const phase = p => { D.phases.push({t: now(), phase: p}); console.log(`  [${now()} ms] phase: ${p}`); };
 
 // every request the test server answers, with the server's mode at that moment
-let S = null;
+let S = null, SERVER = null;
 const realCreate = http.createServer;
 http.createServer = function(handler){
-  return realCreate.call(http, (req, res) => {
+  SERVER = realCreate.call(http, (req, res) => {
     D.server.push({t: now(), mode: S ? S.mode : '?', path: req.url, fm: req.headers['sec-fetch-mode'] || '', fd: req.headers['sec-fetch-dest'] || ''});
     if(DOWN503 && S && S.mode === 'down'){ res.writeHead(503, {'Content-Type': 'text/plain'}); res.end('down'); return; }
+    // refuse: a request on a connection that was busy when listening stopped is answered 503 and counted
+    if(REFUSE && S && S.mode === 'down'){ D.downStragglers++; res.writeHead(503, {'Connection': 'close'}); res.end('down'); return; }
     handler(req, res);
   });
+  return SERVER;
 };
+// mode down and back; with DIAG_DOWN=refuse the server also stops listening and starts again
+async function goDown(){
+  S.mode = 'down';
+  if(!REFUSE) return;
+  await new Promise(r => { const t = setTimeout(r, 2000); SERVER.close(() => { clearTimeout(t); r(); }); SERVER.closeIdleConnections(); });
+  D.phases.push({t: now(), phase: 'refusing connections'});
+}
+async function goUp(){
+  if(REFUSE && !SERVER.listening) await new Promise(r => SERVER.listen(S.port, '127.0.0.1', r));
+  S.mode = 'ok';
+}
 const origCheck = check;
 const chk = (ok, label, detail) => { D.checks.push({t: now(), ok: !!ok, label, detail: detail === undefined ? '' : String(detail).slice(0, 300)}); return origCheck(ok, label, detail); };
 
@@ -127,12 +144,12 @@ const chk = (ok, label, detail) => { D.checks.push({t: now(), ok: !!ok, label, d
     await page.waitForTimeout(1500);
 
     phase('server down');
-    S.mode = 'down';
+    await goDown();
     await page.reload().catch(() => {});
     chk(await waitApp(10000) && await appShown(), 'the site opens from the saved copy with the server down');
     const served = await page.evaluate(() => { startQuiz(TOPICS[0].id); return document.querySelectorAll('#v-quiz button[data-o], #numIn, #v-quiz select[data-row]').length; }).catch(() => 0);
     chk(served >= 1, 'a quiz starts and serves a question offline');
-    S.mode = 'ok';
+    await goUp();
     phase('server ok');
 
     if(WAIT_UP) await page.waitForTimeout(WAIT_UP);
