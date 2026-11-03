@@ -1,0 +1,12 @@
+{
+ "name": "stopwatch",
+ "version": "v1",
+ "does": "A running clock on each calculation (a question with type 'numeric'), in the quiz and on an exam paper that draws calculations (exams[].typed). In the quiz it starts when the question is drawn and stops at the answer, then shows the time taken, which is the time the engine records with the answer (`ms`). With `paceSeconds` set, the clock compares the time with the professor's time per calculation: past it the clock is red and says \"over 2:00\" (the pace) in words, and an answer within it is shown in green. On an exam paper the time on each question is added up while that question is on screen, the clock of a calculation shows that total, and each answer of the paper keeps its total as `ms` (the engine records no time for paper answers). Reads no course data.",
+ "source": "Basic-Pharmacokinetics src/views.js lines 1463-1482 (PACE_MS, fmtClock, timerHTML, tickTimers), 1794 (the clock on the quiz card), 1890-1892 (the time taken), 3226, 3290-3297, 3310 and 3371 (time per paper question), 5762 (the tick), and src/shell.html lines 246-251 (its styles), at ac2eb73",
+ "js": ["stopwatch.js"],
+ "css": ["stopwatch.css"],
+ "options": {
+  "paceSeconds": {"default": 0, "about": "the professor's time per calculation, in seconds (Basic-Pharmacokinetics: 120, from its course.js line 264, 'A few calculations, each meant to take 2 minutes or less'); 0 shows the clock without a pace"}
+ },
+ "test": "test.js"
+}

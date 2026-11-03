@@ -533,15 +533,17 @@ Test: `features/module-pages/current/test.js` (PK `src/review_test.py` 32-38 and
 
 ## calc-stopwatch
 Does: a stopwatch on each calculation and time per kind of item on Weak spots.
+## stopwatch
+Does: a running clock on each calculation, in the quiz and on an exam paper that draws calculations; after the answer it shows the time taken (the time the engine records with the answer), and with a pace set, a time past the professor's pace is red and says "over 2:00" in words. On a paper, the time on each question is added up while it is on screen and kept with each of the paper's answers. (Listed as `calc-stopwatch` before the port; `COURSES.md` still names PK's copy that way.)
 Use when: the professor sets a time per calculation (PK: "A few calculations, each meant to take 2 minutes or less", `src/course.js` line 264).
 Do not use when: no timed calculations.
-Enable: course.js → features.calc-stopwatch = { version: 'v1', targetSeconds: 120 }
+Enable: course.js → features.stopwatch = { version: 'v1', paceSeconds: 120 } (`paceSeconds: 0`, the default, shows the clock without a pace; the clock on a paper needs the exam's `typed: true`)
 Versions:
-  v1  2026-10-07  from PK (`5326a60`)   best for: timed calculation exams   weaker at: not evaluated   current/
+  v1  2026-10-07  from PK (`5326a60`)   best for: timed calculation exams   weaker at: not evaluated   current/ (ported 2026-11-02 from PK `ac2eb73` `src/views.js` 1463-1482 and the places that use it)
 Evidence: the professor's statement quoted above.
-Used by: PK (v1)
-Known issues: none recorded.
-Test: none specific.
+Used by: PK (v1, its own copy); the kit module: none yet.
+Known issues: the core already records the time of each quiz answer (`ms`) and lists "Right, but slow" on Weak spots; the module adds the clock, the pace and the time of paper answers, and reads no course data. Not ported: PK's time per kind of calculation on Weak spots (`src/views.js` 2160-2200, grouped by PK's `CALC_TYPES`, which the kit does not have yet), the one-page layout's "Start timer" button (the core has no one-page layout) and "took m:ss" in the list of misses (`src/views.js` 2354). The time on a paper question is kept in the page only: after a reload in the middle of a paper it is counted again from the reload (keeping it needs a core change).
+Test: `features/stopwatch/current/test.js` (PK `src/review_test.py` lines 517-541 ported: 29 checks). Its course data is PK's own (`ac2eb73`, in `current/test_fixture.js`): PK's Exam 3 (final), the 5 calculations of the professor's Canvas Quiz 4 and 63 single-answer and select-all questions for Exam 3's pools, every field as the course has it (since the rework of 2026-11-03: `prof` and the professor's name kept, the course's professor added to `COURSE.professors`; 8 questions a core check refuses stay out with their reproduction, `evidence/stopwatch` folder `rework-*`: 5 true/false items, kit PR #30 C2; 1 cite naming no deck, C3; 1 with the word "undefined", C9; 2 stems the stem rule flags, C10; and 5 more through their `dupOf` target). `features/stopwatch/ci/oncourse.js` writes that course for the kit's CI, with `paceSeconds: 120`. PK's exams have no `typed` (PK's own engine draws calculations onto every paper), so the module's own course keeps Exam 3 without it; the test checks the clock on a paper calculation on a scratch copy that sets the core option `typed: true`. Since 2026-11-03 the course data's subtopic ids carry the prefix `sw-` too (questions, topics and lectures already did), and a calculation's `setup` line (plan-the-problem equations) and `asks` (an ASKS key) are written only when the course already has those equations and that key; otherwise they are left out and the script says so (the module reads neither).
 
 ## variables-quiz
 Does: which symbol a worded question asks for, and what each symbol means.
