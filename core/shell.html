@@ -709,7 +709,11 @@ function claimWriter(p, how){
     } catch(e){ WRITER = 'none'; flushWaiting(); done(false); }
   });
 }
-function flushWaiting(){ if(WRITE_WAITING && mayWrite()){ WRITE_WAITING = false; save(); saveLog(); } }
+function flushWaiting(){
+  if(WRITE_WAITING && mayWrite()){ WRITE_WAITING = false; save(); saveLog(); }
+  // a paper submitted while the lock was being asked for is cleared now (#32's review of 4311133)
+  if(EXAM_CLEAR_WAITING && mayWrite()){ EXAM_CLEAR_WAITING = false; try { clearExam(); } catch(e){} }
+}
 /* The profile on screen (just opened by useProfile) gets its writer decided. */
 function claimProfile(p){
   if(!HAS_LOCKS || WRITER === 'none') return;
@@ -729,6 +733,7 @@ function takeOver(force){
   if(!HAS_LOCKS || STALE) return;
   // progress this page holds but has not stored: kept as a copy before the stored one is read
   const keepMine = unsavedHere() ? JSON.stringify(DB) : null;
+  const keepLog = keepMine !== null && LOG_OK && JSON.stringify(LOG) !== (storedNow(logKey()) || '[]') ? JSON.stringify(LOG) : null;
   let gave = null, granted = false, done = false;
   const onMsg = e => { const m = e.data || {}; if(m.type === 'gave' && m.p === p && m.to === TAB_ID) gave = m.vals; };
   if(writerChan) writerChan.addEventListener('message', onMsg);
@@ -754,7 +759,7 @@ function takeOver(force){
           // (Settings, Put back), then the stored one is opened; refused, nothing is taken over
           let list = [];
           try { const raw = storedNow(NS + ':backup:' + p); const v = raw ? JSON.parse(raw) : []; list = Array.isArray(v) ? v : [v]; } catch(e){ list = null; }
-          if(list === null || !store.trySet(NS + ':backup:' + p, JSON.stringify(list.concat([{at: Date.now(), data: keepMine, why: 'unsaved in a stopped tab'}])))){
+          if(list === null || !store.trySet(NS + ':backup:' + p, JSON.stringify(list.concat([Object.assign({at: Date.now(), data: keepMine, why: 'unsaved in a stopped tab'}, keepLog !== null ? {log: keepLog} : {})])))){
             if(writerRelease) writerRelease();
             WRITER = 'other'; WRITER_WHY = 'nocopy'; WRITER_FOR = '';
             stopWall('nocopy');
@@ -799,7 +804,12 @@ function unsavedHere(){
     return dbDiff || logDiff;
   } catch(e){ return false; }
 }
-let EXPORTED_STOPPED = false, KEPT_COPY = false;
+let EXPORTED_SNAP = null, KEPT_COPY = false, EXAM_CLEAR_WAITING = false;
+/* the page's progress and history as they were when they were last exported from the wall */
+const snapHere = () => { try { return JSON.stringify(DB) + '\n' + JSON.stringify(LOG); } catch(e){ return ''; } };
+const exportedHere = () => EXPORTED_SNAP !== null && EXPORTED_SNAP === snapHere();
+/* unsaved work that has not been exported since it last changed: asked about before it is dropped */
+const atRisk = () => unsavedHere() && !exportedHere();
 const STOP_TEXT = {
   stale: 'This profile was saved in another tab or window after this page opened it, so this page has stopped saving and takes no more answers, to keep that progress. Reload to continue from what is saved.',
   other: 'This profile is open in another tab or window of this browser, and that tab saves it. So that the two never write over each other, this page takes no answers and saves nothing while that tab has it.',
@@ -831,16 +841,16 @@ function stopWall(why){
   }
   const row = document.createElement('div'); row.className = 'stoprow';
   const btn = (label, cls, fn, id) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn' + (cls ? ' ' + cls : ''); b.textContent = label; if(id) b.id = id; b.onclick = fn; row.appendChild(b); return b; };
-  if(unsaved) btn('Export this page\'s progress', '', () => { try { exportProgress(); EXPORTED_STOPPED = true; } catch(e){ alert('The export did not work: ' + (e && e.message || e)); } }, 'stopExport');
+  if(unsaved) btn('Export this page\'s progress', '', () => { try { exportProgress(); EXPORTED_SNAP = snapHere(); } catch(e){ alert('The export did not work: ' + (e && e.message || e)); } }, 'stopExport');
   // taking the profile here keeps this page's unsaved progress as a copy (takeOver), then reads the stored one
   if(why === 'other' || why === 'gave' || why === 'taken' || why === 'late' || why === 'nocopy') btn('Use it here', '', () => takeOver(false), 'stopTake');
   if(why === 'other' || why === 'gave' || why === 'taken' || why === 'late' || why === 'nocopy') btn('Switch profile', 'ghost', () => {
-    if(unsavedHere() && !EXPORTED_STOPPED && !confirm('The answers and settings this page has not saved are lost when it opens another profile, unless you export them first. Switch anyway?')) return;
+    if(atRisk() && !confirm('The answers and settings this page has not saved are lost when it opens another profile, unless you export them first. Switch anyway?')) return;
     try { askProfile(true); if(typeof show === 'function') show(typeof VIEW !== 'undefined' ? VIEW : 'quiz'); } catch(e){}
   }, 'stopSwitch');
   if(why === 'slow') btn('Take it over anyway', '', () => takeOver(true), 'stopSteal');
   if(why !== 'asking') btn('Reload', 'ghost', () => {
-    if(unsavedHere() && !EXPORTED_STOPPED && !confirm('The answers and settings this page has not saved are lost on reload unless you export them first. Reload anyway?')) return;
+    if(atRisk() && !confirm('The answers and settings this page has not saved are lost on reload unless you export them first. Reload anyway?')) return;
     location.reload();
   }, 'stopReload');
   c.appendChild(row);

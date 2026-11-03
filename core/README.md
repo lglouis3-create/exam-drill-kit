@@ -447,10 +447,14 @@ What this does not cover (the independent review of 4b3b94c; Chromium only):
 - A tab still running a core from before this change writes without the lock until it is
   reloaded.
 - After a take-over, what the old tab had not saved exists only in that tab. It offers the
-  export; "Use it here" there keeps that progress as one more copy Import keeps (Put back)
-  before it opens the stored progress, and refuses to take the profile if the browser refuses
-  that copy; Switch and Reload ask first. A tab the system closes while asleep loses it, as
-  any unsaved answer. A truly suspended tab was not
+  export; "Use it here" there keeps that progress, with the history entries it had not stored,
+  as one more copy Import keeps (Put back restores the progress, not those entries) before it
+  opens the stored progress, and refuses to take the profile if the browser refuses that copy.
+  Switch, Reload and the new-version bar's Reload ask first while that work has changed since
+  its last export. A tab the system closes while asleep loses it, as any unsaved answer.
+- "Take it over anyway" reads the copies list at once to add that copy, so an Import the
+  other tab made just before may not be in the list it writes: the same interval as the first
+  item. A truly suspended tab was not
   tested: NOT RUN.
 - The check of `<ns>:writer:<profile>` before each write reads localStorage too, so it is
   subject to the same delay between tabs it guards against.

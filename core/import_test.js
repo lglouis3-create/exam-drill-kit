@@ -1357,7 +1357,7 @@ let nfile = 0;
       const at = await answerHere(other, 7);                                   // the other tab's answer
       const otherSaved = at !== null && await keptSomewhere(other, di, at);
       // whichever of the two tabs is read-only takes no answer at all
-      const ro = await other.evaluate(() => WRITER) === 'other';
+      const ro = await other.evaluate(() => typeof WRITER !== 'undefined' && WRITER === 'other');   // code before the lock: no WRITER
       check(ro ? at === null : otherSaved, `${order}, ${act}: the other tab ${ro ? 'is read-only and takes no answer' : 'is the writer and its answer is stored'}`, {ro, at, otherSaved});
       if(act === 'Import') await chooseJS(actor, later(file, 2));
       else if(act === 'an ordinary save') await answerHere(actor, 9);
@@ -1601,6 +1601,71 @@ let nfile = 0;
     const copies = JSON.parse(await stored(d.page, di.backup) || '[]');
     const inCopy = copies.some(c => { try { return JSON.parse(c.data).answers.some(a => a.at === mine); } catch(e){ return false; } });
     check(why === 'gave' && offered && inCopy, 'a hand-over whose waiting save is refused: the old tab offers the export, and taking the profile back keeps that answer as a copy', {why, offered, inCopy});
+    await d.ctx.close();
+  }
+
+  console.log('\n=== One writer per profile: the review of 4311133 ===');
+  {
+    // a stopped page with unsaved work: the new-version bar's Reload asks too; and after one export,
+    // a later unsaved answer is asked about again
+    const d = await device(undefined, true); const di = await info(d.page);
+    await answer(d.page, 2, 0);
+    const t2 = await secondTab(d);
+    await holdTimer(d.page);
+    await d.page.evaluate(() => { writerChan.close(); record(QUESTIONS[6], 'correct', undefined, 1000); });
+    await t2.evaluate(() => takeOver(true));
+    await d.page.waitForFunction(() => WRITER === 'other', null, {timeout: 5000}).catch(() => {});
+    const msgs = [];
+    d.page.removeAllListeners('dialog'); d.page.on('dialog', x => { msgs.push(x.message()); x.dismiss(); });
+    await d.page.evaluate(() => { offerReload('A new version is ready.'); const b = document.querySelector('#swbar button'); if(b) b.click(); });
+    const asked1 = /lost on reload/.test(msgs.join(' ')) && await d.page.evaluate(() => DB.answers.length) === 3;
+    // export, then one more unsaved change: Reload asks again
+    await Promise.all([d.page.waitForEvent('download', {timeout: 5000}).catch(() => null), d.page.evaluate(() => { const b = document.getElementById('stopExport'); if(b) b.click(); })]);
+    const n0 = msgs.length;
+    await d.page.evaluate(() => { DB.settings.goal = 31; const b = document.getElementById('stopReload'); if(b) b.click(); });
+    const asked2 = /lost on reload/.test(msgs.slice(n0).join(' '));
+    check(asked1 && asked2, 'a stopped page with unsaved work: the new-version bar\'s Reload asks first, and after an export a later unsaved change is asked about again', {asked1, asked2});
+    await d.ctx.close();
+  }
+  {
+    // one tab alone, a paper whose clock ran out: opened again, it is submitted once and cleared,
+    // not submitted again on every reload (the lock is still being asked for at that moment)
+    const d = await device(undefined, true); const di = await info(d.page);
+    await answer(d.page, 2, 0);
+    const ids = await d.page.evaluate(() => QUESTIONS.slice(0, 3).map(q => q.id));
+    await d.page.evaluate(([ids, k]) => localStorage.setItem(k, JSON.stringify({ids, picks: [0, 0, 0], orders: ids.map(() => [0, 1, 2, 3]), i: 2, ends: Date.now() - 1000})), [ids, di.ns + ':exam:' + di.profile]);
+    const counts = [];
+    for(let i = 0; i < 2; i++){
+      await reload(d.page);
+      await d.page.waitForFunction(() => WRITER === 'held', null, {timeout: 5000}).catch(() => {});
+      await d.page.evaluate(() => { try { show('exam'); } catch(e){} });
+      await d.page.waitForTimeout(400);
+      await d.page.evaluate(() => saveNow());
+      counts.push(JSON.parse(await stored(d.page, di.data)).answers.length);
+    }
+    check(counts[0] === counts[1] && await stored(d.page, di.ns + ':exam:' + di.profile) === null, 'a paper whose clock ran out is submitted once and cleared, not again on the next reload', counts);
+    await d.ctx.close();
+  }
+  {
+    // Use it here keeps the history entries this page had not stored with its copy
+    const d = await device(undefined, true); const di = await info(d.page);
+    await answer(d.page, 2, 0);
+    const t2 = await secondTab(d);
+    await t2.waitForFunction(() => WRITER === 'other', null, {timeout: 5000}).catch(() => {});
+    await refuseKey(d.page, di.log);
+    await holdTimer(d.page);
+    await d.page.evaluate(() => { record(QUESTIONS[5], 'correct', undefined, 1000); });   // its history write refused
+    await refuseKey(d.page, null);
+    await d.page.evaluate(() => writerChan.close());
+    await t2.evaluate(() => takeOver(true));
+    await d.page.waitForFunction(() => WRITER === 'other', null, {timeout: 5000}).catch(() => {});
+    const held = await d.page.evaluate(() => LOG.length);
+    await d.page.evaluate(() => takeOver(true));                                   // its channel is closed: taken back by force
+    await d.page.waitForFunction(() => WRITER === 'held', null, {timeout: 8000}).catch(() => {});
+    const copies = JSON.parse(await stored(d.page, di.backup) || '[]');
+    const last = copies[copies.length - 1] || {};
+    const logLen = last.log ? JSON.parse(last.log).length : 0;
+    check(logLen === held && held > 0, 'Use it here keeps the history entries this page had not stored with its copy', {held, logLen});
     await d.ctx.close();
   }
 

@@ -2118,7 +2118,11 @@ function saveExam(){
   if(untimedPaper()) paper.started = EX.started;
   store.set(EXAM_KEY(), JSON.stringify(paper));
 }
-function clearExam(){ if(canSave() && !profileSavedElsewhere()) store.del(EXAM_KEY()); }
+function clearExam(){
+  if(!canSave()) return;
+  if(WRITER === 'pending'){ EXAM_CLEAR_WAITING = true; return; }   // cleared once the lock is this page's (flushWaiting)
+  if(!profileSavedElsewhere()) store.del(EXAM_KEY());
+}
 /* A paper saved by an earlier visit is brought back if its clock has not run
    out; otherwise it is submitted as it stands. */
 function restoreExam(){
@@ -2891,6 +2895,8 @@ function bar(text, action, onAction, hideAfter){
    paper is saved, but its clock keeps running through the reload. */
 function offerReload(text){
   bar(text, 'Reload', () => {
+    // a stopped page: what it has not saved is lost on reload, unless exported (#32's review of 4311133)
+    if((STALE || WRITER === 'other') && atRisk() && !confirm('The answers and settings this page has not saved are lost on reload unless you export them first (the button on the notice). Reload anyway?')) return;
     if(EX && EX.running && !confirm('A paper is running. It is saved and its clock keeps running. Reload now?')) return;
     placeSave();
     location.reload();
