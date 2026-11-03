@@ -10,7 +10,7 @@
 # A job fails on any FAIL and on any NOT RUN that is not a documented exclusion
 # (listed at the top of core/ci_course.sh), so a missing Playwright, browser or
 # pdfplumber fails it; a module course's job also fails unless each module's own test
-# passed at least one check in that job's browser. Every job blocks a merge, the WebKit job too (Louis, 2026-11-02; held
+# passed at least one check printed after that job's browser started. Every job blocks a merge, the WebKit job too (Louis, 2026-11-02; held
 # on 2026-11-03 until the WebKit failures of offline_test.js were diagnosed and fixed in pull
 # request #33, then 21 of 21 repeated WebKit runs of the whole suite on main passed, run
 # 41574234473). WebKit on this Linux runner is not the Safari app: an iPhone and an iPad are
@@ -125,9 +125,9 @@ jobs:
         run: bash core/ci_course.sh "$COURSE" chromium
 
   # Each module course the plan selects, in WebKit too (Louis, 2026-11-03: "Yes, build the
-  # additional job"; KIT_DESIGN.md §12 decision 10, Claude's reading 6, which Louis accepted).
-  # ci_course.sh fails the job unless each module's own test passes at least one check after
-  # WebKit started.
+  # additional job"; KIT_DESIGN.md §12 decision 10, Claude's reading 6). ci_course.sh fails
+  # the job unless each module's own test passes at least one check printed after WebKit
+  # started.
   modules-webkit:
     name: WebKit · ${{ matrix.course }}
     needs: plan

@@ -56,15 +56,17 @@ function browserType(name){
   if(!pw[BROWSER] || typeof pw[BROWSER].launch !== 'function') notRun(name, `DRILL_BROWSER=${BROWSER} is not a Playwright browser`);
   return pw[BROWSER];
 }
-/* The line "  browser  <name> started" marks the checks that ran after the browser started;
-   ci_course.sh counts them for each module's own test (a module course must run at least
-   one in the browser the job names). */
+/* The line "  browser  <name> started" (the engine Playwright launched) marks the checks
+   printed after the browser started; ci_course.sh counts them for each module's own test
+   (a module course must pass at least one in the browser the job names). */
 async function launch(name, opts){
   const pw = playwright(name), type = browserType(name);
   let browser;
   try { browser = await type.launch(opts || {}); }
   catch(e) { notRun(name, `${BROWSER_NAME} did not start: ` + String(e.message).split('\n')[0]); }
-  console.log(`  browser  ${BROWSER_NAME} started`);
+  // named from the browser actually launched, not from DRILL_BROWSER
+  const got = browser.browserType().name();
+  console.log(`  browser  ${({chromium: 'Chromium', webkit: 'WebKit', firefox: 'Firefox'})[got] || got} started`);
   return {pw, browser};
 }
 /* Built pages are opened over HTTP from 127.0.0.1, as a student opens the hosted

@@ -27,6 +27,9 @@
 # check is NOT RUN that is not one of the documented exclusions below, with the reason
 # given there: a missing Playwright, a browser that did not start, a missing pdfplumber
 # or any other unplanned NOT RUN fails the run instead of passing on NOT RUN lines.
+# On a module course, also 1 when a module's own test (features/<name>/test.js) did not
+# PASS with at least one passed check printed after the browser it started (check_lib.js
+# launch) was the run's browser.
 #
 # Documented exclusions (check, the reason it must give, which courses, why):
 #   cite_check.py    "no lecture PDFs found"     every course   the lecture decks are kept
@@ -36,7 +39,8 @@
 #                                                chemistry      step-through figures
 set -euo pipefail
 kind="${1:?usage: core/ci_course.sh <template|template-unset|medicinal-chemistry|module:<name>|modules:<a>,<b>> [chromium|webkit]}"
-browser="${2:-chromium}"
+browser="${2:-chromium}"; browser="${browser,,}"
+order=""   # the modules switched on (module courses only), never taken from the environment
 kit="$(cd "$(dirname "$0")/.." && pwd)"
 work="$(mktemp -d "${TMPDIR:-/tmp}/kit-ci-XXXXXX")"
 course="$work/course"
@@ -144,9 +148,11 @@ if [ $unexpected -gt 0 ]; then
   exit 1
 fi
 # A module course: each module switched on must have its own test (features/<name>/test.js)
-# PASS, with at least one passed check after its browser started, in the browser this run
-# names (the line check_lib.js's launch prints). A test that passed on checks outside the
-# browser alone, or whose browser checks were all skipped, does not count as run there.
+# PASS, with at least one passed check printed after the line check_lib.js's launch prints
+# when the run's browser has started. A test that finished before starting its browser,
+# started none through launch, or passed nothing after it, does not count as run there.
+# (A check printed after that line is counted whether or not it used the page; the kit's
+# module tests do use it.)
 if [ -n "${order:-}" ]; then
   want="$(case "$browser" in webkit) echo WebKit;; firefox) echo Firefox;; *) echo Chromium;; esac)"
   short=0
