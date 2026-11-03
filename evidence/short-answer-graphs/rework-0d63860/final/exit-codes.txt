@@ -1,0 +1,7 @@
+head 0d6386064c6672a3fac470cc4dbcd46fd49f7dd9
+ci_course.sh module:short-answer-graphs exit 0
+module course: /tmp/kit-ci-Up6XAT
+features/short-answer-graphs/test.js run 1 exit 0
+features/short-answer-graphs/test.js run 2 exit 0
+features/short-answer-graphs/test.js run 3 exit 0
+DONE

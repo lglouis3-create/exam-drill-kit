@@ -1,0 +1,25 @@
+// compare short-answer-graphs IP fixture with Intro to Pharmacology sources, field by field
+const fs=require('fs'),vm=require('vm'),path=require('path');const SRC='/tmp/ip-readonly/exam1-drill/src';
+const t=fs.readFileSync(process.argv[2],'utf8');const l=t.split('\n').find(l=>l.startsWith('const IP = '));const IP=JSON.parse(l.slice(11,-1));
+const sb={TOPICS:[],QUESTIONS:[],console};vm.createContext(sb);
+const run=(code,f)=>vm.runInContext(code,sb,{filename:f});
+run(fs.readFileSync(SRC+'/course.js','utf8')+'\n;globalThis.C=COURSE;','course.js');
+for(const f of ['q_FIGS.js','q_L06.js','q_PE2.js']) run(fs.readFileSync(SRC+'/'+f,'utf8'),f);
+run(fs.readFileSync(SRC+'/graphs.js','utf8').replace(/^const (\w+) =/m,'globalThis.$1 ='),'graphs.js');
+for(const f of ['sa4.js','sa3.js']) run(fs.readFileSync(SRC+'/'+f,'utf8').replace(/^const (\w+) =/m,'globalThis.$1 ='),f);
+const app=fs.readFileSync(SRC+'/app.js','utf8');
+const grabObj=n=>{const a=app.indexOf('const '+n+' = {');let d=0,i=app.indexOf('{',a);for(let j=i;;j++){if(app[j]==='{')d++;if(app[j]==='}'){d--;if(!d) return vm.runInNewContext('('+app.slice(i,j+1)+')');}}};
+const MISS=grabObj('MISS'),MISS2=grabObj('MISS2');
+const IMG=JSON.parse(fs.readFileSync(SRC+'/images.json','utf8'));
+const GR=Object.values(sb).find(v=>Array.isArray(v)&&v[0]&&v[0].key&&v[0].read)||[];
+const SA=[].concat(...Object.keys(sb).filter(k=>/^SHORT/.test(k)).map(k=>sb[k]));
+let n=0;const cmp=(a,b,p)=>{ if(JSON.stringify(a)!==JSON.stringify(b)){ n++; if(typeof a==='object'&&a&&b&&typeof b==='object'){ for(const k of new Set([...Object.keys(a),...Object.keys(b)])) if(JSON.stringify(a[k])!==JSON.stringify(b[k])) console.log('diff',p+'.'+k, k in a?'':'(left out)'); } else console.log('diff',p); } };
+IP.qs.forEach(q=>cmp(q,sb.QUESTIONS.find(x=>x.id===q.id),'q '+q.id));
+IP.topics.forEach(x=>cmp(x,sb.TOPICS.find(y=>y.id===x.id),'topic '+x.id));
+IP.lectures.forEach(x=>cmp(x,sb.C.lectures.find(y=>y.id===x.id),'lecture '+x.id));
+IP.skills.forEach(x=>cmp(x,sb.C.skills.find(y=>y.id===x.id),'skill '+x.id));
+IP.graphs.forEach(x=>cmp(x,GR.find(y=>y.key===x.key),'graph '+x.key));
+IP.sa.forEach(x=>cmp(x,SA.find(y=>y.id===x.id),'sa '+x.id));
+cmp(IP.miss,MISS,'MISS');cmp(IP.miss2,MISS2,'MISS2');
+Object.keys(IP.images).forEach(k=>{ if(IP.images[k]!==IMG[k]) {n++;console.log('diff image',k);} });
+console.log('differences',n,'graphs found',GR.length,'sa found',SA.length);
