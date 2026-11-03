@@ -712,7 +712,7 @@ function claimWriter(p, how){
 function flushWaiting(){
   if(WRITE_WAITING && mayWrite()){ WRITE_WAITING = false; save(); saveLog(); }
   // a paper submitted while the lock was being asked for is cleared now (#32's review of 4311133)
-  if(EXAM_CLEAR_WAITING && mayWrite()){ EXAM_CLEAR_WAITING = false; try { clearExam(); } catch(e){} }
+  if(EXAM_CLEAR_WAITING && EXAM_CLEAR_WAITING === PROFILE && mayWrite()){ EXAM_CLEAR_WAITING = ''; try { clearExam(); } catch(e){} }
 }
 /* The profile on screen (just opened by useProfile) gets its writer decided. */
 function claimProfile(p){
@@ -724,7 +724,7 @@ function claimProfile(p){
   claimWriter(p, 'try').then(ok => {
     if(PROFILE !== p) return;
     if(ok){ WRITER = 'held'; flushWaiting(); }
-    else if(WRITER === 'pending'){ WRITER = 'other'; WRITER_WHY = 'other'; stopWall('other'); }
+    else if(WRITER === 'pending'){ WRITER = 'other'; WRITER_WHY = 'other'; EXAM_CLEAR_WAITING = ''; stopWall('other'); }
   });
 }
 /* "Use it here": the tab that has the profile saves, stops and frees it. */
@@ -804,7 +804,7 @@ function unsavedHere(){
     return dbDiff || logDiff;
   } catch(e){ return false; }
 }
-let EXPORTED_SNAP = null, KEPT_COPY = false, EXAM_CLEAR_WAITING = false;
+let EXPORTED_SNAP = null, KEPT_COPY = false, EXAM_CLEAR_WAITING = '';   // the profile whose paper waits to be cleared
 /* the page's progress and history as they were when they were last exported from the wall */
 const snapHere = () => { try { return JSON.stringify(DB) + '\n' + JSON.stringify(LOG); } catch(e){ return ''; } };
 const exportedHere = () => EXPORTED_SNAP !== null && EXPORTED_SNAP === snapHere();

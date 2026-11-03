@@ -448,7 +448,8 @@ What this does not cover (the independent review of 4b3b94c; Chromium only):
   reloaded.
 - After a take-over, what the old tab had not saved exists only in that tab. It offers the
   export; "Use it here" there keeps that progress, with the history entries it had not stored,
-  as one more copy Import keeps (Put back restores the progress, not those entries) before it
+  as one more copy Import keeps (Put back restores the progress and adds those entries to the
+  history; if that history write is refused, the copy stays on the list) before it
   opens the stored progress, and refuses to take the profile if the browser refuses that copy.
   Switch, Reload and the new-version bar's Reload ask first while that work has changed since
   its last export. A tab the system closes while asleep loses it, as any unsaved answer.

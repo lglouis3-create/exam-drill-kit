@@ -1666,6 +1666,10 @@ let nfile = 0;
     const last = copies[copies.length - 1] || {};
     const logLen = last.log ? JSON.parse(last.log).length : 0;
     check(logLen === held && held > 0, 'Use it here keeps the history entries this page had not stored with its copy', {held, logLen});
+    // Put back of that copy adds those entries to the stored history before the copy leaves the list
+    await d.page.evaluate(() => { show('settings'); restoreBackup(); });
+    const hist = JSON.parse(await stored(d.page, di.log) || '[]').length;
+    check(hist >= held, 'Put back of that copy adds its history entries to the stored history', {hist, held});
     await d.ctx.close();
   }
 

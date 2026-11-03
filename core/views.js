@@ -974,10 +974,25 @@ function restoreBackup(){
   SEEN = b.data;
   DB = db;
   try { fsFromHistory(); } catch(e){ FS_ERROR = String(e && e.message || e); }
-  const kept = withNow.filter(c => c !== b);
+  // a copy kept by "Use it here" may hold history entries that were never stored: they go into the
+  // history before the copy leaves the list; refused, the copy stays on the list (#32's review of 1b9d5a6)
+  let logIn = true;
+  if(typeof b.log === 'string'){
+    try {
+      const extra = JSON.parse(b.log);
+      if(!LOG_OK) logIn = false;
+      else if(Array.isArray(extra) && extra.length){
+        const merged = mergedLog(LOG, extra);
+        if(store.trySet(logKey(), JSON.stringify(merged))){ LOG = merged; SEEN_LOG = JSON.stringify(merged); }
+        else logIn = false;
+      }
+    } catch(e){ logIn = false; }
+  }
+  const kept = logIn ? withNow.filter(c => c !== b) : withNow;
   const listed = store.trySet(backupKey(PROFILE), JSON.stringify(kept));                                          // (3)
   alert('The progress from ' + dateOf(b.at) + ' is back. The progress that was on screen is kept as a copy' +
-        (listed ? '.' : '; the copy just put back is also still on the list (the browser refused to update it).'));
+        (!logIn ? '; the copy just put back stays on the list too, because its answer history could not be added to this profile\'s history.' :
+         listed ? '.' : '; the copy just put back is also still on the list (the browser refused to update it).'));
   renderSettings();
 }
 /* Settings' "Delete the copies": only when the student asks, after a confirm. */
@@ -2120,7 +2135,7 @@ function saveExam(){
 }
 function clearExam(){
   if(!canSave()) return;
-  if(WRITER === 'pending'){ EXAM_CLEAR_WAITING = true; return; }   // cleared once the lock is this page's (flushWaiting)
+  if(WRITER === 'pending'){ EXAM_CLEAR_WAITING = PROFILE; return; }   // cleared once the lock is this page's (flushWaiting)
   if(!profileSavedElsewhere()) store.del(EXAM_KEY());
 }
 /* A paper saved by an earlier visit is brought back if its clock has not run
