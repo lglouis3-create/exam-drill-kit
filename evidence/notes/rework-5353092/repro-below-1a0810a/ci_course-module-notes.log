@@ -1,0 +1,72 @@
+== modules switched on, in this order: notes
+-- notes: node features/notes/ci/oncourse.js
+wrote: /tmp/port-rework/notes/final/ci/kit-ci-brXLJG/course/src/q90_notes_fixture.js (topics nts-pkpd, nts-nonlin and 58 questions from FIX in test.js)
+wrote: appended to /tmp/port-rework/notes/final/ci/kit-ci-brXLJG/course/src/course.js: the file in COURSE.files, lectures nts-L11, nts-L12 in COURSE.lectures, skills pkpd, nonlin in COURSE.skills, and notes v1 on
+left out: 40 setup line(s) (nts-pd-ex-b, nts-nl-ex1, nts-nl-ex2a, nts-cq5-3, nts-cq5-4, nts-cq5-7, nts-cq5-8, nts-pd-ex-a, nts-pd-ex-c, nts-pd-ex-d, nts-pd-ic1a, nts-pd-ic1b, nts-pd-ic2a, nts-pd-ic2b, nts-pd-ic2c, nts-nl-ex2c, nts-nl-ic4a, nts-nl-ic4b, nts-nl-ic4c, nts-nl-ic4d-t, nts-nl-ic4d-cl, nts-nl-ic4e, nts-nl-p1c-t, nts-nl-p1c-cl, nts-nl-p2c-t15, nts-nl-p2c-t21, nts-nl-p2c-cl15, nts-nl-p2c-cl21, nts-nl-p3c-t, nts-nl-p3c-cl, nts-nl-p3d-t, nts-nl-p3d-cl, nts-nl-p4c-t, nts-nl-p4c-cl, nts-nl-p4d-t, nts-nl-p4d-cl, nts-nl-hw-d-t, nts-nl-hw-d-cl, nts-nl-hwo-d-t, nts-nl-hwo-d-cl) naming an equation the course's EQUATIONS lacks, 40 asks key(s) (nts-pd-ex-b, nts-nl-ex1, nts-nl-ex2a, nts-cq5-3, nts-cq5-4, nts-cq5-7, nts-cq5-8, nts-pd-ex-a, nts-pd-ex-c, nts-pd-ex-d, nts-pd-ic1a, nts-pd-ic1b, nts-pd-ic2a, nts-pd-ic2b, nts-pd-ic2c, nts-nl-ex2c, nts-nl-ic4a, nts-nl-ic4b, nts-nl-ic4c, nts-nl-ic4d-t, nts-nl-ic4d-cl, nts-nl-ic4e, nts-nl-p1c-t, nts-nl-p1c-cl, nts-nl-p2c-t15, nts-nl-p2c-t21, nts-nl-p2c-cl15, nts-nl-p2c-cl21, nts-nl-p3c-t, nts-nl-p3c-cl, nts-nl-p3d-t, nts-nl-p3d-cl, nts-nl-p4c-t, nts-nl-p4c-cl, nts-nl-p4d-t, nts-nl-p4d-cl, nts-nl-hw-d-t, nts-nl-hw-d-cl, nts-nl-hwo-d-t, nts-nl-hwo-d-cl) the course's ASKS lacks
+== module:notes, chromium, kit 1a0810a
+PASS     build.py          wrote index.html  (0.40 MB)
+PASS     test.js           65 questions checked
+PASS     style_check.js    65 stems and 65 explanations clean
+PASS     style_check_test.js 29 checks passed
+PASS     render_test.js    every view rendered clean
+REPORT   explain_check.js  5 of 65 questions carry at least one explanation issue
+PASS     stepper_test.js   1 step-through(s) settle at every step
+NOT RUN  cite_check.py     no lecture PDFs found under decks/ or src/
+PASS     device_lint.js    3 checks passed
+PASS     output_test.js    16 checks passed
+PASS     files_test.js     13 checks passed
+PASS     tables_test.js    20 checks passed
+PASS     checks_test.js    32 checks passed
+PASS     draw_test.js      9 checks passed
+FAIL     browser_test.js   1 of 99 checks failed: every stem that promises a figure shows one before the answer
+PASS     storage_test.js   24 checks passed
+PASS     startup_test.js   77 checks passed
+PASS     update_test.js    38 checks passed
+PASS     offline_test.js   30 checks passed
+PASS     home_test.js      36 checks passed
+PASS     history_test.js   28 checks passed
+PASS     scheduler_test.js 110 checks passed
+PASS     preview_test.js   14 checks passed
+PASS     state_check.js    2 checks passed
+PASS     state_check_test.js 8 checks passed
+PASS     oldcache_test.js  12 checks passed
+PASS     nullexam_test.js  76 checks passed (1 skipped: the Weighting chips)
+PASS     features_test.js  40 checks passed
+PASS     features/notes/test.js 88 checks passed
+26 PASS, 1 FAIL, 1 NOT RUN, 1 REPORT; logs in /tmp/port-rework/notes/final/ci/drill-checks-pdvexf
+
+---- browser_test.js (failing lines, then the end of its log) ----
+  ok    page loads with no uncaught JavaScript error
+  ok    no console errors on load
+  ok    no uncaught error with storage denied
+  FAIL  every stem that promises a figure shows one before the answer  — 8 bare: nts-nl-ic4a, nts-nl-ic4b, nts-nl-ic4c, nts-nl-ic4d-t, nts-nl-ic4d-cl, nts-nl-ic4e, nts-nl-p1c-t, nts-nl-p1c-cl
+  ok    no uncaught error after interaction
+  ok    no page error on phone (light)
+  ok    no page error on phone (dark)
+  ok    no page error on desktop (light)
+  ok    no page error on desktop (dark)
+  ok    view 'gaps' renders
+  ok    view 'exam' renders
+  ok    view 'diagrams' renders
+  ok    view 'guide' renders
+  ok    view 'tell' renders
+  ok    view 'ref' renders
+  ok    view 'settings' renders
+  ok    no uncaught error after interaction
+  ok    no sideways scroll on phone (light)
+  ok    no undefined or NaN on screen on phone (light)
+  ok    a table wider than the screen scrolls inside its own box and the page does not (2588 px table, 353 px wide around it)
+  skip  the course's own tables wider than the screen  — none in this bank at 375 px
+  ok    every jump-list chip in the reading tabs fits on the phone screen
+  ok    no page error on phone (light)
+  ok    no sideways scroll on phone (dark)
+  ok    no undefined or NaN on screen on phone (dark)
+  ok    no page error on phone (dark)
+  ok    no sideways scroll on desktop (light)
+  ok    no undefined or NaN on screen on desktop (light)
+  ok    no page error on desktop (light)
+  ok    no sideways scroll on desktop (dark)
+  ok    no undefined or NaN on screen on desktop (dark)
+  ok    no page error on desktop (dark)
+
+FAIL: browser_test.js: 1 of 99 checks failed: every stem that promises a figure shows one before the answer

@@ -1,0 +1,72 @@
+
+=== 1. Question bank integrity ===
+  108 questions, 4 topics, 0 images
+  ok    the build's question count equals QUESTIONS.length (108)
+  FAIL  nts-pd-c13: only 2 options
+  FAIL  nts-nl-c01: only 2 options
+  FAIL  nts-nl-c18: only 2 options
+
+=== 2. Exam blueprint coverage ===
+  Lectures 1–4: 7 questions (paper takes 4)
+
+=== 3. Concept spread per topic ===
+  topic1       3 q /   3 concepts  (Professor)
+  topic2       4 q /   4 concepts  (Professor)
+  nts-pkpd    36 q /  13 concepts  (Mosley)
+  nts-nonlin  65 q /  19 concepts  (Mosley)
+
+=== 4. Spaced repetition rules ===
+feature module notes (tab): TypeError: nav.querySelector is not a function
+    at evalmachine.<anonymous>:1687:17
+    at run (evalmachine.<anonymous>:1648:18)
+    at dom (evalmachine.<anonymous>:1680:7)
+    at startUp (evalmachine.<anonymous>:1701:11)
+    at evalmachine.<anonymous>:1762:5
+    at Object.askProfile (evalmachine.<anonymous>:986:3)
+    at Object.<anonymous> (/tmp/port-rework/notes/repro-trial/course/src/test.js:118:3)
+    at Module._compile (node:internal/modules/cjs/loader:1781:14)
+    at Object..js (node:internal/modules/cjs/loader:1913:10)
+    at Module.load (node:internal/modules/cjs/loader:1505:32)
+  ok    missed concept is held back rather than repeated at once
+  ok    missed concept resurfaces after other questions
+  ok    box advanced 0 -> 3 with repeated correct answers
+  ok    a later miss resets the concept to active review
+  ok    a guess resets the concept to unresolved and outranks never-seen material
+  ok    "I guessed that one" rewrites the log, resets the box, keeps picked and ms
+  ok    15 concepts have more than one wording available
+
+=== 5. Exam simulation draw ===
+  blueprint: Exam 1 — Lectures 1–4 4 (4 of 4)
+  drew 4
+  ok    no duplicate questions on a single paper
+  ok    dupOf partners never share a paper (17 marked; 0 lowYield kept off the paper)
+  ok    20 repeated draws all kept the paper shape
+  select-all on the paper: 0 of 4 (target 0)
+  ok    the paper carries the intended number of select-all items
+  ok    the 3 lectures in the manifest have distinct ids
+  FAIL  35 questions cite no deck in the manifest: nts-pd-p1a, nts-pd-p1b, nts-pd-p2a, nts-pd-p2b, nts-pd-p3a, nts-pd-p3b
+  FAIL  2 questions without a taxonomy skill: nts-hw7-1a, nts-hw7o-1a
+  ok    numeric grading accepts the answer within tolerance and rejects the rest
+
+=== 6. Storage isolation ===
+  ok    progress written under namespaced key: course-id-drill:data:me
+  ok    the page opened without asking for a name
+=== 7. Different wording when a missed concept returns ===
+  ok    returned as a different question (nts-cq5-1 -> nts-pd-c20)
+=== 8. Small pools end instead of looping ===
+  ok    pool of 2 served 2 (2 distinct) then stopped
+  ok    "Ask everything" still serves (10 more)
+
+=== 9. Figures, read links, change log, blueprint ===
+  ok    every DIAGRAMS key is in DIA
+  ok    1 step-through figure(s), each with a dot per step
+  ok    2 read link(s), every one naming guide, tell or ref
+  7 of 108 questions resolve to a reading section (the rest group by topic in the review plan)
+  ok    a session is the run with no half-hour gap (2 of 4 answers)
+  ok    a correct answer marked "not sure" does not count as solid
+  skip  blueprint draw (this course draws by pool marks, not announced counts)
+  ok    1 change log entry embedded, each with bullets
+
+FAILURES: 5
+
+FAIL: test.js: 5 failure(s)

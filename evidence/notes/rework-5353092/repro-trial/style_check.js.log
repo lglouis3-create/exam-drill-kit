@@ -1,0 +1,18 @@
+
+=== Stem check (every stem asks the subject, not "what does the deck say") ===
+  all 108 stems clean
+
+=== Style check (rebuilt questions only) ===
+
+  scanned 108 rebuilt questions
+  no flagged phrasing found
+
+=== Change log ===
+  1 entries, 1 bullets, all within one line
+
+  rebuilt questions whose citation names a slide: 72 of 108
+     by slide number: 72
+     by slide title:  0
+  citations naming neither a slide number nor a slide title: nts-pd-p1a, nts-pd-p1b, nts-pd-p2a, nts-pd-p2b, nts-pd-p3a, nts-pd-p3b …
+  rebuilt questions with a diagram: 0
+PASS: style_check.js: 108 stems and 108 explanations clean

@@ -1,0 +1,8 @@
+ci_course module:notes exit 1: 26 PASS, 1 FAIL, 1 NOT RUN, 1 REPORT; logs in /tmp/port-rework/notes/final/ci/drill-checks-pdvexf
+run1 exit 0: PASS: features/notes/test.js: 88 checks passed
+run2 exit 0: PASS: features/notes/test.js: 88 checks passed
+run3 exit 0: PASS: features/notes/test.js: 88 checks passed
+absent build exit 0
+absent test exit 1: FAIL: features/notes/test.js: 1 of 1 checks failed: the test ran to its end
+DONE
+ALLDONE

@@ -1,0 +1,19 @@
+
+=== the copied text on the course's own bank (node) ===
+  FAIL  the test stopped: evalmachine.<anonymous>:3777
+globalThis.__X=({FX, QUESTIONS, COURSE, db: () => DB, upgradeDB: r => upgradeDB(r), EQ: typeof EQUATIONS !== "undefined" && Array.isArray(EQUATIONS) ? EQUATIONS.map(e => e && e.id) : [], ASKS: typeof ASKS !== "undefined" && ASKS && typeof ASKS === "object" ? Object.keys(ASKS) : []});
+                 ^
+
+ReferenceError: FX is not defined
+    at evalmachine.<anonymous>:3777:18
+    at Script.runInContext (node:vm:149:12)
+    at Object.runInContext (node:vm:301:6)
+    at Object.engine (/tmp/port-rework/notes/final/own/absent/src/check_lib.js:220:6)
+    at /tmp/port-rework/notes/final/own/absent/src/features/notes/test.js:214:15
+    at Object.<anonymous> (/tmp/port-rework/notes/final/own/absent/src/features/notes/test.js:489:3)
+    at Module._compile (node:internal/modules/cjs/loader:1781:14)
+    at Object..js (node:internal/modules/cjs/loader:1913:10)
+    at Module.load (node:internal/modules/cjs/loader:1505:32)
+    at Function._load (node:internal/modules/cjs/loader:1309:12)
+  FAIL  the test ran to its end  — FX is not defined
+FAIL: features/notes/test.js: 1 of 1 checks failed: the test ran to its end

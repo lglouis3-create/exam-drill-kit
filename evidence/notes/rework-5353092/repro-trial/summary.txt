@@ -1,0 +1,4 @@
+oncourse exit 0
+build exit 0
+core test.js exit 1: FAIL: test.js: 5 failure(s)
+style_check.js exit 0: PASS: style_check.js: 108 stems and 108 explanations clean

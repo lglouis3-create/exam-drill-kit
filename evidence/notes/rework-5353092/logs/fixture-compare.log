@@ -1,0 +1,4 @@
+questions 16 -> 50 ; the earlier 16 the same but prof: true
+prof before [ 'Professor' ] after [ 'Mosley' ]
+topic subs [ 5, 4 ] -> [ 5, 4 ] lectures same but prof: true
+put back: cq5-3 cq5-4 cq5-7 cq5-8 pd-c24 pd-ex-a pd-ex-c pd-ex-d pd-ic1a pd-ic1b pd-ic2a pd-ic2b pd-ic2c nl-ex2c nl-p2c-t15 nl-p2c-t21 nl-p2c-cl15 nl-p2c-cl21 nl-p3c-t nl-p3c-cl nl-p3d-t nl-p3d-cl nl-p4c-t nl-p4c-cl nl-p4d-t nl-p4d-cl nl-hw-d-t nl-hw-d-cl nl-hwo-d-t nl-hwo-d-cl nl-c07 nl-c10 nl-c17 nl-c19
