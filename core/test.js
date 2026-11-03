@@ -280,11 +280,15 @@ else console.log('  ok    the page opened without asking for a name');
 // --- extra: rule 2 requires a DIFFERENT wording on retry when one exists ---
 console.log('=== 7. Different wording when a missed concept returns ===');
 (function(){
-  // find a concept that has more than one question
-  const byC = {};
-  QUESTIONS.forEach(q => (byC[q.concept] ||= []).push(q));
-  const pair = Object.values(byC).find(a => a.length > 1);
-  if (!pair) { console.log('  skip  no multi-question concept'); return; }
+  // a concept with more than one question in one topic: the check draws only from that
+  // topic, so the other wording must be in it too. (A concept whose other wordings are all
+  // in other topics cannot come back as a new wording from this topic's questions; taking
+  // such a concept made the check fail on a course with feature modules whose test data
+  // put one concept in two topics, porter's integration run 5, 2026-11-03.)
+  const byTC = new Map();
+  QUESTIONS.forEach(q => { const k = q.topic + '\u0000' + q.concept; if (!byTC.has(k)) byTC.set(k, []); byTC.get(k).push(q); });
+  const pair = [...byTC.values()].find(a => a.length > 1);
+  if (!pair) { console.log('  skip  no concept with two questions in one topic'); return; }
   const topic = pair[0].topic;
   const pool  = QUESTIONS.filter(q => q.topic === topic);
   // reset state
@@ -303,7 +307,7 @@ console.log('=== 7. Different wording when a missed concept returns ===');
   // process.exit(fails ? 1 : 0) at the end, so these two failures exited 0
   if (!got) { console.log('  FAIL  missed concept never returned'); fails++; }
   else if (got.id === pair[0].id) { console.log('  FAIL  returned the identical question, not a new wording'); fails++; }
-  else console.log(`  ok    returned as a different question (${pair[0].id} -> ${got.id})`);
+  else console.log(`  ok    returned as a different question (${pair[0].id} -> ${got.id}, topic ${topic})`);
 })();
 
 

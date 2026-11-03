@@ -171,26 +171,33 @@ decision 10 of `KIT_DESIGN.md` §12 (Louis, 2026-11-03). In short:
   features that stay off by default and change no existing course behaviour, storage
   or scheduling (a module that saves new data in a student's progress is progress
   storage). Each needs an independent review (a separate reviewer agent or an external
-  reviewer, its result posted on the pull request; passing CI alone is not one), every
-  applicable job of `.github/workflows/checks.yml` concluded "success" on the final head
-  commit (the Chromium and WebKit jobs, the plan job and each module job the plan
-  selects; a module job it does not select is not applicable; an applicable job that
-  failed, was cancelled or never started blocks the merge), no unresolved finding and no
-  unrelated change.
+  reviewer, its result posted on the pull request before the merge; passing CI alone is
+  not one), every applicable job of `.github/workflows/checks.yml` concluded "success"
+  on the final head commit, no unresolved finding and no unrelated change. Applicable:
+  the Chromium jobs (template, template-unset, Medicinal-chemistry), the WebKit template
+  job, the "Modules to check" plan job, and each module job a successful plan selects;
+  a module job a successful plan intentionally did not select is not applicable. Any
+  other conclusion of an applicable job, or no run for the final head commit, blocks the
+  merge: FAIL if it ran and failed, NOT RUN if it was cancelled, timed out or never
+  started. For an optional module or a change to a module's tests, a WebKit run of that
+  module's course is also required (decision 10, Claude's readings). After the merge, a
+  comment on the pull request names the review and the check run.
 - **Every other pull request waits for Louis's yes**, and so does any such action
-  outside a pull request: among them progress storage,
-  import and recovery, and scheduling behaviour; course migrations and live-course
-  updates; destructive actions, permission changes and unresolved consequential design
-  choices; and weakening, skipping or exempting a required check. For each, tell Louis
-  in plain terms what merging it provides, what it changes on his sites and when, what
-  it does not change, the check results, and any risk; merge it (`merge_pull_request`)
-  only after he answers yes to that pull request. A no leaves it open, with his reason
-  recorded in the pull request.
+  outside a pull request: among them progress storage, import and recovery, and
+  scheduling behaviour; course migrations and live-course updates; destructive actions,
+  permission changes and unresolved consequential design choices; weakening, skipping
+  or exempting a required check; and a change to this file that changes what a session
+  does (Claude's reading in decision 10). For each, tell Louis in plain terms what
+  merging it provides, what it changes on his sites and when, what it does not change,
+  the check results, and any risk; merge it (`merge_pull_request`) only after he answers
+  yes to that pull request. A no leaves it open, with his reason recorded in the pull
+  request.
 
 Before finalizing or merging a pull request, read its comments and reviews, weigh each
 suggestion on its merits, address the valid findings, and reply on GitHub with the
-reasoning and validation for each one accepted or rejected. A fix is `small-fix` only if it meets every condition in
-§12.9, and the pull request states each one; when in doubt, it is a core change.
+reasoning and validation for each one accepted or rejected. A fix is `small-fix` only if
+it meets every condition in §12.9, and the pull request states each one; when in doubt,
+it is a core change.
 Courses get kit changes only through Mode 7, and no course update goes live without
 Louis's reply. Louis's own words: `review/standing-autonomy-2026-11-03.md`.
 
@@ -200,9 +207,7 @@ Run `core/run_checks.sh` in the course's `src/` after every change. It runs each
 separately and prints PASS, FAIL, NOT RUN or REPORT with the reason. Report every line
 as printed: a check that did not run is NOT RUN, never passed; list skipped steps as
 well as skipped checks (§7.6). The cloud container has Chromium only, so a WebKit or
-Safari run is NOT RUN there; the kit's GitHub job "WebKit · template" runs the template
-course's checks in WebKit, and no check runs the Safari app on an iPhone or iPad. The
-device lint (regex lookbehind and similar) always runs.
+Safari run is NOT RUN there; the device lint (regex lookbehind and similar) always runs.
 
 The checks prove structure, not subject matter. Wrong chemistry or pharmacology passes
 every automated check; only an adversarial review against the sources (Mode 4) finds it.
@@ -303,10 +308,12 @@ finding: id, severity, exact quote, source quote, fix. Skip clean questions.
 Create one scheduled task per course with the scheduled-task tools, **with write access
 to the course repo and the kit attached**, at a time Louis chooses. Its prompt is
 standalone: load this skill, follow "Before anything else", do the ingest or the
-review, and append one entry to `reviews/LOG.md`. What an ingest adds to the site waits
-at `/preview/` for Louis's reply: an unattended run never changes a live site
-(`KIT_DESIGN.md` §12 decision 10). Each run confirms that it wrote and pushed its log
-entry; a run that wrote nothing, or could not push, reports failure and
+review, and append one entry to `reviews/LOG.md`. What an ingest adds to the site, and a
+review's fixes with its log entry, wait at `/preview/` or on a branch with a pull request
+for Louis's reply (as the scheduled task "BDK daily review" does since 2026-11-03: branch
+`daily-review/<date>`): an unattended run never changes a live site (`KIT_DESIGN.md` §12
+decision 10). Each run confirms that it wrote and pushed its log entry (to that branch
+when it works on one); a run that wrote nothing, or could not push, reports failure and
 never ends as succeeded. A run that finds the push refused reports that the task needs
 write access. Never create one for a course that has ended.
 
@@ -351,7 +358,7 @@ course that is behind:
 2. Leave the preview waiting and send Louis a summary: what changed in plain words,
    the check results, the preview address, and whether an exam is today. No update
    goes live without his reply (`KIT_DESIGN.md` §12, decision 10, 2026-11-03; before
-   that date a bookkeeping or `small-fix` update went live without one).
+   that date a bookkeeping or `small-fix` update could go live without one).
 3. His reply "approve updates for <course>" makes it live: one commit "kit update:
    <old pins> → <new pins>", `preview/` deleted, pushed. Then wait for that commit's
    "pages build and deployment" run to complete, for up to 10 minutes (a design

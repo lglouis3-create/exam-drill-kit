@@ -332,12 +332,12 @@ section is current.
    for small fixes, and for courses already on the core it replaces §7.5.
    - **New features, upgrades, core changes and `SKILL.md` changes** (amended by
      decision 10: the kinds of change it lists may merge on Claude's own decision under
-     its conditions): for each other kit pull request, Claude tells Louis in plain terms what merging it provides and
-     changes, and merges it only after he answers yes to that pull request (Louis,
-     2026-11-01; this replaces Louis merging on GitHub himself in decision 1). A
-     scheduled kit-update run then builds each
-     affected course's update at `/preview/`, runs every check, and sends Louis a
-     summary; his reply "approve updates for <course>" makes that preview live.
+     its conditions): for each other kit pull request, Claude tells Louis in plain
+     terms what merging it provides and changes, and merges it only after he answers
+     yes to that pull request (Louis, 2026-11-01; this replaces Louis merging on GitHub
+     himself in decision 1). A scheduled kit-update run then builds each affected
+     course's update at `/preview/`, runs every check, and sends Louis a summary; his
+     reply "approve updates for <course>" makes that preview live.
    - **Catalog bookkeeping and small bug fixes** (amended by decision 10 on
      2026-11-03): a kit pull request merges on Claude's own decision only under
      decision 10's conditions, and no course update goes live without Louis's reply.
@@ -359,9 +359,9 @@ section is current.
    - Moving a course onto the core for the first time stays manual (Mode 7).
    - **When the run happens** (Louis left it to Claude, 2026-11-01): once a day at
      2:47 AM Central, as the scheduled task "Kit update run". Kit changes are merged a
-     few at a time, so a daily run brings a merged fix to every course's preview within a day;
-     at night it never replaces a page during study; and a run with nothing behind
-     changes nothing.
+     few at a time, so a daily run brings a merged fix to every course's preview
+     within a day; at night it never replaces a page during study; and a run with
+     nothing behind changes nothing.
    - **Where it runs** (Louis asked for the gap to be fixed, 2026-11-01): in one
      dedicated session, "Kit updater", which started with the kit as its repository
      and keeps every course repository attached with push access. A test on
@@ -382,11 +382,11 @@ section is current.
     a reply, and the rule of decision 1 that course repos merge automatically wherever
     that rule would change a live site; the rest of decisions 1 and 9 stands except where
     this decision differs.
-    - **The porter.** The "Kit feature porter" session, its scheduled task "Kit feature
-      port" and its pull requests follow `review/porter-policy.md` (pull request #36),
-      which applies this decision to porting and adds rules of its own (source fidelity,
-      completeness, integration evidence). Where the two differ, the stricter rule
-      applies.
+    - **The porter.** This decision applies to the "Kit feature porter" session, its
+      scheduled task "Kit feature port" and its pull requests too. They also follow
+      `review/porter-policy.md` (pull request #36), which adds rules for porting (source
+      fidelity, completeness, integration evidence). Where the two differ, the stricter
+      rule applies.
     - **Claude proceeds on its own** with inspection, implementation, testing, separate
       topic branches and worktrees, opening pull requests, addressing reviews, and
       refreshing pending branches.
@@ -400,21 +400,34 @@ section is current.
 
       Each such merge needs all of these: an independent review by a separate reviewer
       agent or an external reviewer, with its result posted on the pull request before
-      the merge (passing CI alone is not an independent review); every required check
-      passing on the final revision, including the affected module combinations and
-      WebKit where they apply; no unresolved finding; no unrelated change. Each one is
-      recorded on the pull request (a comment naming the review and the check run) and
-      in the next consolidated update to Louis.
+      the merge (passing CI alone is not an independent review); every applicable
+      required check concluded "success" on the final head commit (below), including the
+      affected module combinations and WebKit where they apply; no unresolved finding; no
+      unrelated change. Each one is recorded on the pull request (a comment naming the
+      review and the check run) and in the next consolidated update to Louis.
     - **Required checks** are the jobs of `.github/workflows/checks.yml` that apply to
-      the pull request's final head commit: the Chromium jobs (template, template-unset,
-      Medicinal-chemistry), the WebKit template job, the "Modules to check" plan job, and
-      each module job that plan selects. Every applicable job must conclude "success".
-      A module job the plan does not select, because the pull request touches no module
-      (GitHub shows the module matrix as skipped), is not applicable. An applicable job
-      that did not conclude "success" blocks the merge, whether it failed, was cancelled,
-      timed out or never started (GitHub stopped starting jobs on 2026-11-03 for a billing
-      reason, for example): it counts as NOT RUN, never as passed. Using a local
-      `run_checks.sh` in its place is an exemption, which waits for Louis's yes.
+      the pull request's final head commit:
+      - always: the Chromium jobs (template, template-unset, Medicinal-chemistry), the
+        WebKit template job, and the "Modules to check" plan job;
+      - each module job the plan selects. The plan selects a module only when the plan
+        job concluded "success" and lists that module in its `courses` output. A pull
+        request that changes `core/`, `template/` or `.github/` selects every module
+        (`.github/ci_plan.js`). When a plan that concluded "success" lists no module (its
+        log says "changed modules: none"), GitHub shows the module job as skipped, and
+        that intentionally unselected job is not applicable.
+
+      Every applicable job must conclude "success"; anything else blocks the merge. A job
+      that ran and failed is FAIL. These are NOT RUN, never passed:
+      - a job that was cancelled, timed out or never started;
+      - a module job shown as skipped after a plan job that did not conclude "success";
+      - every job, when GitHub has no run of the workflow for the final head commit (for
+        example while the branch conflicts with `main`).
+
+      A job GitHub refused to start shows "failure" with no steps and the annotation
+      "The job was not started because recent account payments have failed or your
+      spending limit needs to be increased" (2026-11-03); it is NOT RUN, not a failed
+      check. Using a local `run_checks.sh` in place of a GitHub job is an exemption, which
+      waits for Louis's yes.
     - **Louis's approval stays required**, inside or outside a pull request, for:
       - progress storage, import and recovery, and scheduling behaviour;
       - course migrations and live-course updates;
@@ -423,10 +436,8 @@ section is current.
       - weakening, skipping or exempting a required check.
 
       Every other pull request also waits for his yes, for example a core change outside
-      the list above. A change to an instruction file (`CLAUDE.md`, this file,
-      `skill/SKILL.md`, the porter's policy or a scheduled task's instructions) that gives
-      Claude more autonomy than Louis's own words is a permission change. #32 (Import)
-      is not merged under this decision (Louis, 2026-11-03).
+      the list above. #32 (Import) is not merged under this decision (Louis,
+      2026-11-03).
     - **Live courses** stay unchanged unless Louis approves their update separately. An
       unattended run (the kit-update run, a Mode 5 scheduled ingest, any scheduled task)
       never changes a live site without his reply; its work waits at `/preview/` or on a
@@ -464,6 +475,32 @@ section is current.
       authorizes, is not asked about again. Louis is told promptly of a confirmed risk
       of lost progress, a problem on a live site, or a decision that blocks further
       work.
+    - **Claude's readings.** Louis's text leaves the cases below open. Claude follows
+      these readings until Louis confirms or changes them; each is at least as strict as
+      his text, except the fifth, which is marked:
+      1. A small fix (decision 9) merges on Claude's decision only when it changes tests
+         alone; any other small fix waits for Louis.
+      2. A change to an instruction file (`CLAUDE.md`, this file, `skill/SKILL.md`,
+         `review/porter-policy.md` or a scheduled task's instructions) that gives Claude
+         more autonomy than Louis's own words is a permission change. A `SKILL.md` change
+         that changes what a session does waits for Louis; only one that corrects wording
+         or facts without changing what a session does counts as documentation.
+      3. The required checks are the `checks.yml` jobs defined above, and a local run in
+         place of one is an exemption.
+      4. The independent review's result is posted on the pull request before the merge,
+         and a comment after it names the review and the check run.
+      5. A run that GitHub refused to start may be started again; that is not rerunning a
+         failure, and the refused attempt stays in the record. (This one allows a step
+         his text does not name; it applies only to jobs that never started.)
+      6. "WebKit where applicable": `checks.yml` runs WebKit on the template course only,
+         and module courses in Chromium only. For an optional feature module, or a
+         test-only change to a module's tests, merged on Claude's decision, a WebKit run
+         of that module's course (`core/ci_course.sh module:<name> webkit`) concluded
+         "success" on GitHub on the final head commit is also required; until a GitHub
+         job runs it, the merge waits.
+      7. A course session changes a live site only with Louis's approval of that change
+         given in the session (the part of "Live courses" above that Louis has not
+         confirmed; `CLAUDE.md`, open question 3).
 
 Facts from Phase 1 that correct §2 and §10: BDK has no `course.js`; v2 was written
 before PK's first engine commit, not after it; `exam-drill-template/` was never on

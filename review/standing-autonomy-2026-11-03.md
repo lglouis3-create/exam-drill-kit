@@ -1,10 +1,13 @@
 # Standing autonomy: Louis's words (2026-11-03)
 
 Louis's standing policy for kit sessions, as he wrote it in the main kit session on
-2026-11-03. `KIT_DESIGN.md` §12 decision 10, `CLAUDE.md` and `skill/SKILL.md` summarise
-it; where a summary differs from the text below, this text governs. Readings Claude
-added where the text leaves a case open are listed in decision 10 and wait for Louis's
-confirmation.
+2026-11-03 (message of 04:33:10 UTC), and the parts of his message of 06:35:38 UTC that
+add to it (below the policy). `KIT_DESIGN.md` §12 decision 10, `CLAUDE.md` and
+`skill/SKILL.md` summarise them; where a summary differs from the text below, this text
+governs. Readings Claude added where the text leaves a case open are listed in decision
+10 ("Claude's readings") and wait for Louis's confirmation. The words are his; curly
+quotation marks and apostrophes are written here as straight ones, and the headings of
+the first message are set in bold.
 
 > **Standing autonomy**
 >
@@ -91,4 +94,28 @@ confirmation.
 >
 > Keep live courses unchanged unless I separately approve their updates.
 
-In this text "you" is Claude, the kit session.
+From Louis's message of 06:35:38 UTC (its first line and the paragraphs on the policy
+record, scheduled course work and live courses; the paragraphs on single pull requests
+are left out):
+
+> Please continue under my standing autonomy policy rather than waiting on unrelated
+> approvals.
+>
+> [...]
+>
+> #37: I agree with recording the standing policy. Clarify that every applicable required
+> check must pass; an intentionally unselected module job is different from a required job
+> that failed to start. Reconcile #36 and #37 so the instructions agree. Complete
+> independent review and required checks before merging.
+>
+> Scheduled course work: Keep the BDK daily review running, but have it prepare findings
+> and fixes on a branch or preview rather than publish automatically. Update the Kit
+> update run's stored instructions to require approval before promoting a preview to live.
+> I authorize these task-instruction changes to enforce that boundary. If only another
+> session can make them, identify that session and provide its exact update message.
+>
+> Keep live courses unchanged. Batch remaining approval requests, and continue independent
+> work while waiting.
+
+In this text "you" is Claude, the kit session; #36 is the porter's policy
+(`review/porter-policy.md`) and #37 the pull request that added this file.
