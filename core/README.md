@@ -453,6 +453,8 @@ What this does not cover (the independent review of 4b3b94c; Chromium only):
   opens the stored progress, and refuses to take the profile if the browser refuses that copy.
   Switch, Reload and the new-version bar's Reload ask first while that work has changed since
   its last export. A tab the system closes while asleep loses it, as any unsaved answer.
+- An exam-paper pick whose write the browser refused before a take-over is not in that copy
+  (the copy holds progress and history); "Use it here" opens the stored paper.
 - "Take it over anyway" reads the copies list at once to add that copy, so an Import the
   other tab made just before may not be in the list it writes: the same interval as the first
   item. A truly suspended tab was not
