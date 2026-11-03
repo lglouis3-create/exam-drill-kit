@@ -112,6 +112,9 @@ On a branch, then at `/BDK/preview/`:
 
 ## Not run so far
 
-WebKit/Safari (not installed in the cloud container); a converter on Louis's real
-progress (it exists only in his browsers); Safari's storage quota (assessment, NOT
-DETERMINED).
+The Safari app on an iPhone or iPad. The kit's GitHub checks run WebKit, Safari's engine,
+on a Linux runner and on the template course only; that job blocks a merge once kit pull
+request #29 is merged. Louis, 2026-11-02: "Keep real iPhone/iPad testing before BDK goes
+live" (step 7 above: the preview in Safari and in the Home Screen copy). Also not run: a
+converter on Louis's real progress (it exists only in his browsers); Safari's storage
+quota (assessment, NOT DETERMINED).
