@@ -1,0 +1,69 @@
+ features/glossary-tap/ci/oncourse.js  | 15 +++++++++------
+ features/glossary-tap/current/test.js |  9 +++++----
+ 2 files changed, 14 insertions(+), 10 deletions(-)
+
+diff --git a/features/glossary-tap/ci/oncourse.js b/features/glossary-tap/ci/oncourse.js
+index 91f82ad..a3f8a17 100644
+--- a/features/glossary-tap/ci/oncourse.js
++++ b/features/glossary-tap/ci/oncourse.js
+@@ -4,9 +4,9 @@
+  *
+  * The course is Intro to Pharmacology's own data at 929cd62, read from the fixtures
+  * in the kit's features/glossary-tap/current/test.js (`const FIX` and `const
+- * FIXCOURSE`, copied as they are). The one change: every `prof` is set to the
+- * template's "Professor", so no personal name is in the kit's course. Nothing is
+- * invented. It writes only inside <courseSrcDir>:
++ * FIXCOURSE`, copied as they are). Every `prof` there is already "Professor", and
++ * the script writes "Professor" for each, so no personal name is in the kit's course.
++ * Nothing is invented. It writes only inside <courseSrcDir>:
+  *   - terms_gtap.js: `const TERMS = [...]`, FIX.terms (glossary.js; lecture and fig
+  *     left out);
+  *   - q1_topics.js, replacing the template's sample questions: topics L04 and L10
+@@ -15,7 +15,9 @@
+  *     1 and 4, opening lines);
+  *   - course.js: its `lectures` list given the course's lectures L04 and L10
+  *     in place of the template's sample entry, and one line appended: the course's
+- *     skills, terms_gtap.js added to `files`, and the module switched on at the
++ *     skills added to COURSE.skills (only the ids it does not hold yet; the course's
++ *     own skills and those other modules' scripts added are kept, CIDATA rule 1),
++ *     terms_gtap.js added to `files`, and the module switched on at the
+  *     version in its module.json, kept beside any module already on (for example
+  *     formulas-in-text, whose own script may run first).
+  * Prints what it wrote. Stops with a non-zero exit on any failure, including a
+@@ -62,7 +64,8 @@ if(/`|\$\{/.test(FIX.guide)) fail('the guide fixture holds a backtick or ${, whi
+ const LEC_RE = /(\n  lectures: \[\n)([\s\S]*?)(\n  \],)/;
+ if(!LEC_RE.test(text)) fail('course.js has no `  lectures: [` list in the template\'s form');
+ const course2 = text.replace(LEC_RE, (m, a, b, c) => a + FC.lectures.map(l => '    ' + lLine(l) + ',').join('\n') + c);
+-const line = `\n;/* glossary-tap ci */ COURSE.skills = ${JSON.stringify(FC.skills)}; ` +
++// add the skills the course does not hold yet; never replace the list (CIDATA rule 1)
++const line = `\n;/* glossary-tap ci */ COURSE.skills = (COURSE.skills || []).concat(${JSON.stringify(FC.skills)}.filter(k => !(COURSE.skills || []).some(s => s.id === k.id))); ` +
+   `COURSE.files = (COURSE.files || ['atlas.js', 'diagrams.js', 'q1_topics.js']).concat(['terms_gtap.js']); ` +
+   `COURSE.features = Object.assign({}, COURSE.features, {"glossary-tap": ${JSON.stringify({version: meta.version})}});\n`;
+ try {
+@@ -74,4 +77,4 @@ try {
+ console.log('wrote: ' + data + ' (' + FIX.terms.length + ' terms)');
+ console.log('wrote: ' + path.join(src, 'q1_topics.js') + ' (' + FC.topics.length + ' topics, ' + FC.qs.length + ' questions; replaces the template sample)');
+ console.log('wrote: ' + path.join(src, 'guide.js') + ' (Intro to Pharmacology guide.js sections 1 and 4, opening lines; replaces the template sample)');
+-console.log('wrote: ' + course + ': lectures ' + FC.lectures.map(l => l.id).join(', ') + ' in its list; appended ' + FC.skills.length + ' skills, terms_gtap.js in files, glossary-tap ' + meta.version + ' on');
++console.log('wrote: ' + course + ': lectures ' + FC.lectures.map(l => l.id).join(', ') + ' in its list; appended the skills it lacks of ' + FC.skills.map(k => k.id).join(', ') + ', terms_gtap.js in files, glossary-tap ' + meta.version + ' on');
+
+# features/glossary-tap/current/test.js: the FIXCOURSE line (line 77) is not shown: its old text holds the surname. Change on that line: 70 values "prof":"<surname>" became "prof":"Professor"; nothing else on the line changed (check below). The comment hunk:
+diff --git a/features/glossary-tap/current/test.js b/features/glossary-tap/current/test.js
+index fd5d718..fbc85ff 100644
+--- a/features/glossary-tap/current/test.js
++++ b/features/glossary-tap/current/test.js
+@@ -71,10 +71,11 @@ const FIX = {"terms":[{"id":"pharmacodynamics","term":"Pharmacodynamics (PD)","g
+    meta-commentary): 66 questions.
+    Lecture L02, where most of the glossary's terms are taught, is not used: the
+    core's state_check_test.js adds a lecture with the id L02 to the course and
+-   expects it to be new. ci/oncourse.js sets every prof to the template's
+-   "Professor" and changes nothing else; with FIX.terms and FIX.guide it replaces
+-   the template's sample questions and guide. */
++   expects it to be new. Every prof here is "Professor" (the course's surname is
++   not kept in the kit; CIDATA rule 6); nothing else is changed. ci/oncourse.js
++   writes prof as the template's "Professor" and changes nothing else; with
++   FIX.terms and FIX.guide it replaces the template's sample questions and guide. */
+ /* With formulas-in-text: 7 terms of Basic-Pharmacokinetics (src/glossary.js, module
+    and lecture left out) and its question ws6-i3-2c (src/q9_worksheets.js line 168),
+    at ac2eb73, with the prof, exam, module, lecture, topic, sub, skill, steps, givens
+# check (python): prof values in the old FIXCOURSE line: 70; in the new line all "Professor": True; the two lines equal once every prof value is masked: True
