@@ -61,6 +61,7 @@ Dated kit changes, newest first.
   course has it, the professor's name included); `ci/oncourse.js` writes the same data into the kit's CI course, with
   its question, topic, subtopic and lecture ids prefixed `pp-`; the test's Chromium part
   also runs on a course with one exam or with other modules' data.
+- New feature module `quiz-prep-cards` v1 (`features/quiz-prep-cards/`), from Basic-Pharmacokinetics `ac2eb73` (`src/views.js` 466-512): a card at the top of Topics for each quiz in course.js `quizzes` until the quiz is over or is hidden, with its day, the days left, what it covers, what the professor said to prepare, and drills over its questions; Settings puts a hidden card back. It does not change the exam handling and has no timed practice quiz. No course switches it on yet.
 - `core/render_test.js`: answers calculation and matching items with their own controls; no more random failures.
 - New feature module `plan-the-problem` v1 (`features/plan-the-problem/`), from
   Basic-Pharmacokinetics `ac2eb73` (`src/views.js` 4754-5120, the set-up drill): on the
