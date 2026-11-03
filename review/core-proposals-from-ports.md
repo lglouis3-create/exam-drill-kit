@@ -123,6 +123,16 @@ and agent-run (the failures).
   `core/shell.html` line 887). In a topic with 4 concepts or fewer it cannot come back, and the
   check fails.
 - The check can also pick a `dupOf` pair whose target is not in the bank.
+- The check takes the first concept with two questions anywhere in the bank, but then looks for its
+  second wording only in the topic of the first question. When the concept's other questions are in
+  another topic, the only question it can return is the one missed, and it fails "returned the
+  identical question, not a new wording". Coordinator-run, integration run 5 (all 18 modules, branch
+  `integration/ports-2026-11-03c`, never merged): concept-statuses' and paper-picker's CI data both
+  hold Pharmacokinetics' `inf-c5`, under topics `cst-infusion` and `pp-infusion`, so concept
+  `rate-vs-time-to-css` spans two topics. Each module's own course passes. In a diagnostic copy of
+  `test.js` that takes the pair from one topic, every check passed on the same course
+  (`cst-inf-c11` then `cst-cq2-4`). The fault is in the core's test; the shared CI data only exposed
+  it. Proposed change: take the pair from questions of one topic.
 - Seen in module-pages (Pharmacokinetics topic `bolus1`, 4 concepts), stopwatch,
   short-answer-graphs (Intro to Pharmacology spreads a concept's wordings over two topics) and
   worksheets-ink. In module-pages it also made `output_test.js` and `checks_test.js` fail, because
@@ -181,6 +191,8 @@ and agent-run (the failures).
 **C12. `browser_test.js` reads "below" in ordinary text as a promise of a figure.** Agent-run (notes rework, `evidence/notes` folder `rework-5353092/`, citing `core/browser_test.js` line 376).
 - Seven Pharmacokinetics questions (nl-ic4a to nl-ic4e, nl-p1c-t, nl-p1c-cl) say "well below the
   therapeutic range", and the check "every stem that promises a figure shows one" refuses them.
+- The paper-picker rework (agent-run, `evidence/paper-picker` folder `rework-a440aff/repro/`) found six
+  more: m1-ord-c07, m4-rm-6, ws1-3-1a, hw1-2a, hwo1-2a and e2r-11.
 - Proposed change: match "below" only in phrases that point at a figure ("the graph below", "shown
   below").
 
