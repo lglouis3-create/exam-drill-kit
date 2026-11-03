@@ -156,6 +156,7 @@ is off says so on its card and offers the next question.
 | `study-controls` | v1 | Intro-Pharmacology- `929cd62` | flags with Drill flagged, one question at a time or all on one page, keyboard shortcuts, a strict paper with no going back; each part an option; `FX.api('study-controls')` gives the flags to other modules |
 | `worksheets-ink` | v1 | Basic-Pharmacokinetics `ac2eb73` | a Worksheets tab of the course's source documents, each worksheet written on with a pen, a finger or a mouse, and Scratch paper beside a calculation; the writing is kept in the profile's progress |
 | `terms-variables` | v1 | Basic-Pharmacokinetics `ac2eb73` | a Terms tab: flashcards and questions over the course's `TERMS`, and the variables quiz over its `ASKS` (which symbol a stem asks for, what each symbol means) |
+| `concept-statuses` | v1 | Basic-Pharmacokinetics `ac2eb73` | a Concepts section on Weak spots: a status per concept read from its answers, the counts behind it, the spaced checks due; reads the core's state and changes none of it |
 
 `port_from_pk.py` beside a module's `current/` (equation-drill, wrong-number-diagnosis) is the
 script that wrote the module's code from Basic-Pharmacokinetics' files (`port_from_ip.js` beside
