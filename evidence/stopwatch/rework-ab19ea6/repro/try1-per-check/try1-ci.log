@@ -1,0 +1,222 @@
+== modules switched on, in this order: stopwatch
+-- stopwatch: node features/stopwatch/ci/oncourse.js
+wrote: /tmp/port-rework/stopwatch/kit-ci-Hio8o9/course/src/q90_stopwatch_pk.js (13 topics and 80 questions: the calculations sw-cq4-2, sw-cq4-4, sw-cq4-6, sw-cq4-8, sw-cq4-9 and 75 single-answer and select-all questions for Exam 3 (final); prof as the course has it)
+wrote: /tmp/port-rework/stopwatch/kit-ci-Hio8o9/course/src/images.json (the 7 images those questions show, added to the course's own)
+wrote: appended to /tmp/port-rework/stopwatch/kit-ci-Hio8o9/course/src/course.js: q90_stopwatch_pk.js in COURSE.files, the professors ["Mosley"] in COURSE.professors (beside the course's own), 11 lectures (sw-L01, sw-L02, sw-L03, sw-L04, sw-L06, sw-L07, sw-L08, sw-L09, sw-L10, sw-L11, sw-L12), the skills the course lacks, COURSE.exams = [Exam 3 (final)] (no typed, as in the course), COURSE.activeExam 3, and stopwatch v1 on with paceSeconds 120
+left out: the setup line of sw-cq4-2, sw-cq4-4, sw-cq4-6, sw-cq4-8, sw-cq4-9 (it names equations the course's EQUATIONS does not have)
+left out: asks of sw-cq4-2, sw-cq4-4, sw-cq4-6, sw-cq4-8, sw-cq4-9 (the course's ASKS does not have that key)
+== module:stopwatch, chromium, kit 0312d2b
+PASS     build.py          wrote index.html  (0.55 MB)
+FAIL     test.js           6 failure(s)
+FAIL     style_check.js    2 phrasing or change-log issue(s)
+PASS     style_check_test.js 29 checks passed
+PASS     render_test.js    every view rendered clean
+REPORT   explain_check.js  27 of 87 questions carry at least one explanation issue
+PASS     stepper_test.js   1 step-through(s) settle at every step
+NOT RUN  cite_check.py     no lecture PDFs found under decks/ or src/
+PASS     device_lint.js    3 checks passed
+FAIL     output_test.js    1 of 16 checks failed: test.js reads that page and passes
+PASS     files_test.js     13 checks passed
+PASS     tables_test.js    20 checks passed
+FAIL     checks_test.js    5 of 32 checks failed: test.js passes with exit 0 and a PASS line; run_checks.sh exits 0 when nothing fails (a NOT RUN is listed, not failed); a passing check is one PASS line with its summary …
+PASS     draw_test.js      9 checks passed
+FAIL     browser_test.js   1 of 104 checks failed: every option gets its own explanation row
+PASS     storage_test.js   24 checks passed
+PASS     startup_test.js   77 checks passed
+PASS     update_test.js    38 checks passed
+PASS     offline_test.js   30 checks passed
+PASS     home_test.js      36 checks passed
+PASS     history_test.js   28 checks passed
+PASS     scheduler_test.js 110 checks passed
+PASS     preview_test.js   14 checks passed
+PASS     state_check.js    2 checks passed
+PASS     state_check_test.js 8 checks passed
+PASS     oldcache_test.js  12 checks passed
+FAIL     nullexam_test.js  2 of 76 checks failed: no tab shows "null", "NaN" or "undefined"; no tab shows "null", "NaN" or "undefined"
+PASS     features_test.js  40 checks passed
+PASS     features/stopwatch/test.js 29 checks passed
+21 PASS, 6 FAIL, 1 NOT RUN, 1 REPORT; logs in /tmp/port-rework/stopwatch/drill-checks-sz3e7p
+
+---- test.js (failing lines, then the end of its log) ----
+  FAIL  sw-pd-c13: only 2 options
+  FAIL  sw-nl-c01: only 2 options
+  FAIL  sw-fr-10: only 2 options
+  FAIL  sw-x3-a-tf-rate: only 2 options
+  FAIL  sw-x3-a-tf-half: only 2 options
+  FAIL  1 questions cite no deck in the manifest: sw-ws2-4-1f
+  ok    every question carries a skill from the course taxonomy (recall, tell, apply, read, calc, order, infusion, multidose, bioavail)
+  ok    numeric grading accepts the answer within tolerance and rejects the rest
+
+=== 6. Storage isolation ===
+  ok    progress written under namespaced key: course-id-drill:data:me
+  ok    the page opened without asking for a name
+=== 7. Different wording when a missed concept returns ===
+  ok    returned as a different question (sw-m1-ord-c01 -> sw-x3-a-q1-zero)
+=== 8. Small pools end instead of looping ===
+  ok    pool of 2 served 2 (2 distinct) then stopped
+  ok    "Ask everything" still serves (10 more)
+
+=== 9. Figures, read links, change log, blueprint ===
+  ok    every DIAGRAMS key is in DIA
+  ok    1 step-through figure(s), each with a dot per step
+  ok    2 read link(s), every one naming guide, tell or ref
+  7 of 87 questions resolve to a reading section (the rest group by topic in the review plan)
+  ok    a session is the run with no half-hour gap (2 of 4 answers)
+  ok    a correct answer marked "not sure" does not count as solid
+  skip  blueprint draw (this course draws by pool marks, not announced counts)
+  ok    1 change log entry embedded, each with bullets
+
+FAILURES: 6  (warnings: 21)
+
+FAIL: test.js: 6 failure(s)
+
+---- style_check.js (failing lines, then the end of its log) ----
+
+=== Stem check (every stem asks the subject, not "what does the deck say") ===
+  sw-m5-c25 [described as]: "A drug is described as disposition rate limiting. What does that say about its two half-lives?"
+  sw-x3-a-p3h [According to]: "A female patient (35 years old, 65 kg) with normal renal function is to be given a drug by IV infusion. According to the literature, the elimination half-life of this drug is 7 hours and the apparent VD is 23.1% of body weight. The pharmacokinetics of this drug assumes a first-order process. The desired steady-state plasma level for this antibiotic is 10 mcg/mL. If the patient suddenly develops partial renal failure, how long would it take for a new steady-state plasma level to be established (assume that 95% of the Css is a reasonable approximation)?"
+  2 stems refer to the course material
+
+=== Style check (rebuilt questions only) ===
+
+  scanned 87 rebuilt questions
+  2 phrasing issues found
+
+=== Change log ===
+  1 entries, 1 bullets, all within one line
+
+  rebuilt questions whose citation names a slide: 84 of 87
+     by slide number: 48
+     by slide title:  36
+  citations naming neither a slide number nor a slide title: sw-inf-c16, sw-cq1-1, sw-ws2-4-1f
+  rebuilt questions with a diagram: 0
+FAIL: style_check.js: 2 phrasing or change-log issue(s)
+
+---- output_test.js (failing lines, then the end of its log) ----
+  FAIL  test.js reads that page and passes  — FAIL: test.js: 6 failure(s)
+
+=== Where the build writes and the checks read ===
+  ok    no file in the source tree names /mnt/user-data (60 files read)
+  ok    every check that reads the built page gets its location from built_page.js (7 checks)
+  ok    no check works out the page name from course.js itself
+  ok    the build runs in a fresh copy
+  ok    the app is written to the repository root as index.html
+  ok    .nojekyll is written beside it
+  ok    the course.js output name (COURSE0000_Drill.html) is a redirect to index.html
+  ok    no temporary file is left behind
+  ok    nothing built is written into src/
+  ok    built_page.js names the repository root index.html
+  FAIL  test.js reads that page and passes  — FAIL: test.js: 6 failure(s)
+  ok    DRILL_PAGE points every check at another page
+  ok    without course.js `manifest`, manifest.json has no description and no orientation
+  ok    course.js `manifest` gives manifest.json its description and orientation
+  ok    course.js `manifest` with an orientation the web manifest does not name stops the build before it writes
+  ok    course.js `manifest` with a field other than description and orientation stops the build before it writes
+FAIL: output_test.js: 1 of 16 checks failed: test.js reads that page and passes
+
+---- checks_test.js (failing lines, then the end of its log) ----
+  FAIL  test.js passes with exit 0 and a PASS line  — exit 1: FAIL: test.js: 6 failure(s)
+  FAIL  run_checks.sh exits 0 when nothing fails (a NOT RUN is listed, not failed)  — exit 1
+  FAIL  a passing check is one PASS line with its summary
+  FAIL  run_checks.sh ends with the counts
+  FAIL  test.js passes on a course whose diagrams.js declares no DIAGRAMS list  — exit 1: FAIL: test.js: 6 failure(s)
+  ok    explain_check.js with no built page exits 2 and says NOT RUN
+  ok    stepper_test.js with no built page exits 2 and says NOT RUN
+  ok    browser_test.js with no built page exits 2 and says NOT RUN
+  ok    cite_check.py with no built page exits 2 and says NOT RUN
+  ok    the build runs in the copy
+  ok    explain_check.js is a report: exit 0, last line REPORT
+  ok    cite_check.py with no decks exits 2 and says NOT RUN
+  FAIL  test.js passes with exit 0 and a PASS line  — exit 1: FAIL: test.js: 6 failure(s)
+  ok    browser_test.js without Playwright exits 2 and says NOT RUN
+  ok    stepper_test.js without Playwright exits 2 and says NOT RUN
+  ok    device_lint.js passes on the clean copy
+  ok    device_lint.js fails on a lookbehind in a shipped source and names the line
+  ok    run_checks.sh prints FAIL for it and exits 1
+  ok    device_lint.js fails on a lookbehind that reaches only the built page
+  FAIL  run_checks.sh exits 0 when nothing fails (a NOT RUN is listed, not failed)  — exit 1
+  ok    run_checks.sh builds first and reports the build
+  FAIL  a passing check is one PASS line with its summary
+  ok    a report is one REPORT line
+  ok    a check that could not run is one NOT RUN line with the reason
+  ok    the device lint is one PASS line on the clean copy
+  FAIL  run_checks.sh ends with the counts
+  ok    every check run_checks.sh lists is in the source tree (26)
+  FAIL  test.js passes on a course whose diagrams.js declares no DIAGRAMS list  — exit 1: FAIL: test.js: 6 failure(s)
+  ok    render_test.js passes on a course whose diagrams.js declares no DIAGRAMS list
+FAIL: checks_test.js: 5 of 32 checks failed: test.js passes with exit 0 and a PASS line; run_checks.sh exits 0 when nothing fails (a NOT RUN is listed, not failed); a passing check is one PASS line with its summary …
+
+---- browser_test.js (failing lines, then the end of its log) ----
+  ok    page loads with no uncaught JavaScript error
+  ok    no console errors on load
+  FAIL  every option gets its own explanation row  — sw-m5-c25 (undefined/null text reached the page)
+  ok    no uncaught error with storage denied
+  ok    no uncaught error after interaction
+  ok    no page error on phone (light)
+  ok    no page error on phone (dark)
+  ok    no page error on desktop (light)
+  ok    no page error on desktop (dark)
+  ok    view 'gaps' renders
+  ok    view 'exam' renders
+  ok    view 'diagrams' renders
+  ok    view 'guide' renders
+  ok    view 'tell' renders
+  ok    view 'ref' renders
+  ok    view 'settings' renders
+  ok    no uncaught error after interaction
+  ok    no sideways scroll on phone (light)
+  ok    no undefined or NaN on screen on phone (light)
+  ok    a table wider than the screen scrolls inside its own box and the page does not (2588 px table, 353 px wide around it)
+  skip  the course's own tables wider than the screen  — none in this bank at 375 px
+  ok    every jump-list chip in the reading tabs fits on the phone screen
+  ok    no page error on phone (light)
+  ok    no sideways scroll on phone (dark)
+  ok    no undefined or NaN on screen on phone (dark)
+  ok    no page error on phone (dark)
+  ok    no sideways scroll on desktop (light)
+  ok    no undefined or NaN on screen on desktop (light)
+  ok    no page error on desktop (light)
+  ok    no sideways scroll on desktop (dark)
+  ok    no undefined or NaN on screen on desktop (dark)
+  ok    no page error on desktop (dark)
+
+FAIL: browser_test.js: 1 of 104 checks failed: every option gets its own explanation row
+
+---- nullexam_test.js (failing lines, then the end of its log) ----
+  ok    no page errors
+  ok    no errors on the console
+  ok    no page errors
+  ok    no errors on the console
+  FAIL  no tab shows "null", "NaN" or "undefined"  — the exam result page: …d also leave the standard oral equation undefined, since ka − k in its…
+  ok    no page errors
+  ok    no errors on the console
+  FAIL  no tab shows "null", "NaN" or "undefined"  — the exam result page: …d also leave the standard oral equation undefined, since ka − k in its… ; the untimed result page: …d also leave the standard oral equation undefined, since ka − k in its…
+  ok    no page errors
+  ok    no errors on the console
+  ok    no page errors
+  ok    with every exam number set the page leaves nullexam.js out
+  ok    the reloaded page has the 10-minute limit and no nullexam.js
+  ok    after the course gains a time limit the paper in progress comes back with its answer, its place and its start time
+  ok    it stays untimed and is not submitted by itself after 2.5 seconds; the time taken goes on (00:04 taken, then 00:07 taken)
+  ok    submitting ends the paper and the result says how long it took
+  ok    only the answered item is logged, as an exam answer (1 logged)
+  ok    the saved paper is removed once it is submitted
+  ok    a reload after submitting starts no paper and offers a new one (the result is not kept after a reload, as with a timed paper)
+  ok    a paper started after the time limit is set counts down from 10 minutes (09:59)
+  ok    it is saved with the engine's fields only
+  ok    Weak spots shows a card per pool (4)
+  ok    each pool card gives the engine's marks line (every exam number is set)
+  FAIL  no tab shows "null", "NaN" or "undefined"  — the exam result page: …d also leave the standard oral equation undefined, since ka − k in its… ; the untimed result page: …d also leave the standard oral equation undefined, since ka − k in its…
+  ok    no page errors
+  ok    no errors on the console
+
+=== some pools with marks, some without ===
+  ok    the scratch copy builds
+  ok    the topic table lists Second topic (20%) before First topic (90%), by accuracy
+  ok    every row of the topic table is in order of accuracy, lowest first
+  ok    the pool cards come in the manifest's order with their concepts and no marks figure
+  ok    each of 20 papers holds questions from the two pools only (5 to 5 questions)
+  ok    every paper carries more than the first pool's 1 mark of its items (3 to 3): the pools are drawn together, unweighted
+  ok    no page errors
+FAIL: nullexam_test.js: 2 of 76 checks failed: no tab shows "null", "NaN" or "undefined"; no tab shows "null", "NaN" or "undefined"
+exit 1

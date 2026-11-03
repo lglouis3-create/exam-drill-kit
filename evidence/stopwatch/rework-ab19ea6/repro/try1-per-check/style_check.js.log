@@ -1,0 +1,20 @@
+
+=== Stem check (every stem asks the subject, not "what does the deck say") ===
+  sw-m5-c25 [described as]: "A drug is described as disposition rate limiting. What does that say about its two half-lives?"
+  sw-x3-a-p3h [According to]: "A female patient (35 years old, 65 kg) with normal renal function is to be given a drug by IV infusion. According to the literature, the elimination half-life of this drug is 7 hours and the apparent VD is 23.1% of body weight. The pharmacokinetics of this drug assumes a first-order process. The desired steady-state plasma level for this antibiotic is 10 mcg/mL. If the patient suddenly develops partial renal failure, how long would it take for a new steady-state plasma level to be established (assume that 95% of the Css is a reasonable approximation)?"
+  2 stems refer to the course material
+
+=== Style check (rebuilt questions only) ===
+
+  scanned 87 rebuilt questions
+  2 phrasing issues found
+
+=== Change log ===
+  1 entries, 1 bullets, all within one line
+
+  rebuilt questions whose citation names a slide: 84 of 87
+     by slide number: 48
+     by slide title:  36
+  citations naming neither a slide number nor a slide title: sw-inf-c16, sw-cq1-1, sw-ws2-4-1f
+  rebuilt questions with a diagram: 0
+FAIL: style_check.js: 2 phrasing or change-log issue(s)

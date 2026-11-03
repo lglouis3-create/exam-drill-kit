@@ -1,0 +1,397 @@
+[
+ {
+  "reason": "core test.js refuses a question with 2 options (true/false), kit PR #30 C2",
+  "question": {
+   "id": "pd-c13",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 3,
+   "module": 9,
+   "lecture": "L11",
+   "topic": "pkpd",
+   "sub": "teff",
+   "concept": "dose-double-teff",
+   "skill": "apply",
+   "source": "slide",
+   "stem": "Doubling the IV bolus dose of a drug that follows linear, first-order pharmacokinetics results in a 2-fold increase in the duration of activity.",
+   "options": [
+    {
+     "t": "True",
+     "why": "Choosing this treats duration as proportional to dose. The dose sits inside a logarithm, teff = 1.44 t½ ln({{frac:D0|VD × Ceff}}), so doubling it adds ln 2 over k, one half-life, to teff instead of doubling it."
+    },
+    {
+     "t": "False",
+     "correct": true,
+     "why": "Doubling D0 doubles C0, and the level needs exactly one half-life to fall from 2C0 back to C0; after that it follows the old curve. teff grows by one t½: 26.35 hr becomes 30.97 hr when 250 mg is doubled to 500 mg (VD 24 L, k 0.15 hr⁻¹)."
+    }
+   ],
+   "teach": [
+    {
+     "h": "Duration of activity, teff",
+     "list": [
+      "teff: the time one IV bolus keeps the plasma level at or above Ceff, the minimum effective concentration.",
+      "From C = C0e^(−kt) with C = Ceff: teff = {{frac:ln C0 − ln Ceff|k}}, where C0 = {{frac:D0|VD}}, the level just after the bolus.",
+      "With k = {{frac:0.693|t½}}: teff = 1.44 t½ ln({{frac:D0|VD × Ceff}}); 1.44 is {{frac:1|0.693}}.",
+      "The dose is inside the logarithm, so doubling it adds {{frac:ln 2|k}}, one half-life, to teff; it does not double teff.",
+      "Built for a single IV bolus, a one-compartment open model and first-order elimination."
+     ]
+    }
+   ],
+   "cite": "7b---Pharmacokinetics-and-Pharmacodynamics.pdf, slide 12, PollEv (keyed False)"
+  }
+ },
+ {
+  "reason": "core test.js refuses a question with 2 options (true/false), kit PR #30 C2",
+  "question": {
+   "id": "nl-c01",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 3,
+   "module": 8,
+   "lecture": "L12",
+   "topic": "nonlin",
+   "sub": "kmcp",
+   "concept": "nl-order-by-conc",
+   "skill": "recall",
+   "source": "transcript",
+   "stem": "Drugs that display Michaelis-Menten saturation kinetics will often exhibit zero-order kinetics at low concentrations and first-order kinetics at high concentrations.",
+   "options": [
+    {
+     "t": "True",
+     "why": "Choosing this reverses the two ends. Well below KM the rate is {{frac:Vmax|KM}} × Cp, proportional to concentration, which is first order; well above KM the rate equals Vmax whatever the concentration, which is zero order."
+    },
+    {
+     "t": "False",
+     "correct": true,
+     "why": "The statement has the orders the other way round. At low concentrations, Cp much less than KM, elimination looks first order; at high concentrations, Cp much greater than KM, the enzyme runs at Vmax and elimination looks zero order."
+    }
+   ],
+   "teach": [
+    {
+     "h": "KM against Cp",
+     "list": [
+      "−{{frac:dCp|dt}} = {{frac:Vmax × Cp|KM + Cp}} (Michaelis-Menten kinetics).",
+      "Cp much greater than KM: KM is negligible, the rate equals Vmax and does not depend on concentration, which is zero order.",
+      "Cp much less than KM: the rate is {{frac:Vmax|KM}} × Cp = k′Cp, proportional to concentration, which is first order."
+     ]
+    }
+   ],
+   "cite": "8 - Nonlinear PK.pdf, slide 8 \"Saturable-Enzymatic Elimination Processes\"; PollEv true/false, transcript 10-14 (keyed false)"
+  }
+ },
+ {
+  "reason": "core test.js refuses a question with 2 options (true/false), kit PR #30 C2",
+  "question": {
+   "id": "fr-10",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 1,
+   "module": 1,
+   "lecture": "L01",
+   "topic": "auc",
+   "sub": "concept",
+   "concept": "trapezoidal-auc",
+   "skill": "recall",
+   "source": "both",
+   "stem": "The trapezoidal rule provides a simple way to estimate the AUC.",
+   "options": [
+    {
+     "t": "True",
+     "correct": true,
+     "why": "The trapezoidal rule breaks the curve into segments between the measured points, finds the area of each, one half base times height summed over the two sides, and adds them. It estimates the AUC from the data alone."
+    },
+    {
+     "t": "False",
+     "why": "Picking this reads the existence of other routes as ruling the rule out. AUC can also be calculated from the dose and the clearance, AUC = {{frac:D0|Cl}}, but the trapezoidal rule remains a way to estimate it from measured points."
+    }
+   ],
+   "teach": [
+    {
+     "h": "AUC",
+     "list": [
+      "AUC tells the extent of drug available for the body to use: the extent of drug absorbed.",
+      "Trapezoidal rule, one segment: AUC = ({{frac:Cn−1 + Cn|2}})(tn − tn−1); the segments are summed.",
+      "Without data points, AUC = {{frac:D0|Cl}} for an IV dose, and {{frac:FD0|Cl}} for an oral one."
+     ]
+    }
+   ],
+   "quote": "And way back when we did the trapezoidal rule, we haven't done it since because we have some other ways to calculate AUC.",
+   "audit": "PollEv on page 21, 34 responses on the capture, no distribution shown and no key spoken. Keyed True from her Module 1 objective 5 (\"Determine the area under the curve for a provided data set using the trapezoidal rule\") and her 17 Aug description (TRANSCRIPT_CUES 1.2). She asked the same as the 30 Sep attendance poll (\"most of you guys thought, yes\").",
+   "cite": "Final-Exam-Review-10.19.pdf slide 21 (PollEv); Introduction.pdf, slide \"The Concept of Area Under The Curve (AUC)\""
+  }
+ },
+ {
+  "reason": "core test.js refuses a question with 2 options (true/false), kit PR #30 C2",
+  "question": {
+   "id": "x3-a-tf-rate",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 1,
+   "module": 1,
+   "lecture": "L01",
+   "topic": "orders",
+   "sub": "first",
+   "concept": "first-order-rate-depends",
+   "skill": "tell",
+   "source": "both",
+   "dupOf": "m1-ord-c04",
+   "stem": "The rate of a first-order process is independent of the concentration of drug present.",
+   "options": [
+    {
+     "t": "True",
+     "why": "Picking True reads \"independent\" as a first-order property. In a first-order process the rate is k times the concentration, dC/dt = −kC, so the rate is fastest where there is most drug and slows as the drug is eliminated. A rate independent of concentration is zero order, dC/dt = −k."
+    },
+    {
+     "t": "False",
+     "correct": true,
+     "why": "The first-order rate depends on the concentration present: dC/dt = −kC. On the curve the slope is steepest at the start, where there is most drug, and flattens as the drug is eliminated. What is independent of concentration in first order is the half-life, {{frac:0.693|k}}."
+    }
+   ],
+   "teach": [
+    {
+     "h": "Rate and half-life in the two orders",
+     "list": [
+      "First order: the rate depends on the concentration, {{frac:dC|dt}} = −kC; the half-life does not, t½ = {{frac:0.693|k}}.",
+      "Zero order: the rate is independent of the concentration, {{frac:dC|dt}} = −k; the half-life depends on it, t½ = {{frac:C0|2k}}.",
+      "Read which quantity the statement names, the rate or the half-life, before answering."
+     ]
+    }
+   ],
+   "quote": "If we're thinking about the rate being the slope, higher, steeper slope up here where we've got more drug in the body ... so the rate depends on the concentration that's there",
+   "audit": "PollEv on 19 Aug (transcript 08-19), printed on annotated Introduction deck page 25: \"The rate of a first-order process is independent of the concentration of drug present. True False\". Class \"fifty-fifty\"; keyed False from her debrief.",
+   "cite": "Introduction.pdf, poll slide following slide 21"
+  }
+ },
+ {
+  "reason": "core test.js refuses a question with 2 options (true/false), kit PR #30 C2",
+  "question": {
+   "id": "x3-a-tf-half",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 1,
+   "module": 1,
+   "lecture": "L01",
+   "topic": "orders",
+   "sub": "half",
+   "concept": "first-order-halflife",
+   "skill": "tell",
+   "source": "both",
+   "dupOf": "m1-ord-c03",
+   "stem": "The half-life of a first-order process is independent of the concentration of drug present.",
+   "options": [
+    {
+     "t": "True",
+     "correct": true,
+     "why": "First-order half-life is t½ = {{frac:0.693|k}}: a constant divided by a constant. No concentration appears in it, so the time to fall from 100 to 50 mg/L is the same as from 10 to 5 mg/L, whatever dose was given."
+    },
+    {
+     "t": "False",
+     "why": "Picking False reads \"independent\" as \"dependent\", or carries the zero-order half-life, t½ = {{frac:C0|2k}}, into first order. Only in zero order does the starting concentration set the half-life. In first order the rate changes with concentration and the half-life does not."
+    }
+   ],
+   "teach": [
+    {
+     "h": "Rate and half-life in the two orders",
+     "list": [
+      "First order: the rate depends on the concentration, {{frac:dC|dt}} = −kC; the half-life does not, t½ = {{frac:0.693|k}}.",
+      "Zero order: the rate is independent of the concentration, {{frac:dC|dt}} = −k; the half-life depends on it, t½ = {{frac:C0|2k}}.",
+      "t½ = {{frac:0.693|k}} is not on the equation sheet."
+     ]
+    }
+   ],
+   "quote": "So no matter how much drug you have for a first-order process, the half-life will be the half-life, 0.693 over the rate constant K",
+   "audit": "PollEv opening the 24 Aug lecture (annotated ivb deck page 1: \"The half-life of a first-order process is independent of the concentration of drug present. True False\"). \"Most of you guys said true\"; keyed True (transcript 08-24).",
+   "cite": "Introduction.pdf slide 19; 2IVBolusAdministration.pdf, opening PollEv slide"
+  }
+ },
+ {
+  "reason": "core test.js: its cite names no lecture deck, kit PR #30 C3",
+  "question": {
+   "id": "ws2-4-1f",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 1,
+   "module": 2,
+   "lecture": "L02",
+   "topic": "bolus1",
+   "sub": "vd",
+   "concept": "c0-proportional-to-dose",
+   "skill": "apply",
+   "source": "slide",
+   "stem": "1. A drug that follows one-compartment, first-order elimination has an elimination half-life of 6 hours and apparent volume of distribution VD of 400 mL/kg has been administered as a single 600-mg dose is given to an adult female patient (62 kg) by rapid IV injection. f. If the dose were doubled, what is the expected change in the initial plasma concentration? (Part a: C0 = 24.19 mg/L.)",
+   "options": [
+    {
+     "t": "It increases by a factor of 2",
+     "correct": true,
+     "why": "Expect the initial concentration to increase by a factor of 2. C0 = {{frac:D0|VD}} with VD unchanged, so 1200 mg gives 48.387 mg/L, twice 24.19 mg/L."
+    },
+    {
+     "t": "No change",
+     "why": "This applies the no-change answers for half-life and clearance to C0. Those are constants of the drug; C0 is an amount over a volume, so it scales with the dose."
+    },
+    {
+     "t": "It increases by a factor of 4",
+     "why": "Doubling only the numerator of C0 = {{frac:D0|VD}} doubles C0. A factor of 4 would need the volume to halve as well, and VD does not change with the dose."
+    },
+    {
+     "t": "It halves",
+     "why": "This puts the dose in the denominator. C0 = {{frac:D0|VD}} has the dose on top, so a larger dose gives a higher initial concentration."
+    }
+   ],
+   "teach": [
+    {
+     "h": "What a larger dose changes, first order",
+     "list": [
+      "k, t½, VD and ClT are constants of the drug in the patient: a different dose does not change them.",
+      "Amounts and concentrations are proportional to the dose: C0 = {{frac:D0|VD}}, so twice the dose gives twice C0.",
+      "The rate of elimination in mg/hr, ClT × Cp, doubles with the dose; clearance in L/hr does not."
+     ]
+    }
+   ],
+   "cite": "IV-Bolus-Practice-4---Solutions.pdf, problem 1, part f",
+   "steps": [
+    {
+     "k": "setup",
+     "t": "C0 = {{frac:D0|VD}}, with VD = (0.4 L/kg)(62 kg) = 24.8 L unchanged",
+     "why": "The initial concentration is dose over volume; the volume is a property of the drug in the patient and stays at 24.8 L."
+    },
+    {
+     "k": "algebra",
+     "t": "C0 = {{frac:1200 mg|24.8 L}} = 48.387 mg/L",
+     "why": "mg over L gives mg/L. 48.387 mg/L is twice the 24.19 mg/L of part a."
+    }
+   ],
+   "givens": [
+    [
+     "VD",
+     "400 mL/kg",
+     "24.8 L, unchanged"
+    ],
+    [
+     "D0",
+     "600-mg",
+     "doubled, the numerator of the new C0"
+    ],
+    [
+     "C0",
+     "24.19 mg/L",
+     "the value that doubles"
+    ],
+    [
+     "t½",
+     "6 hours",
+     "not needed: C0 comes before any elimination"
+    ],
+    [
+     "weight",
+     "62 kg",
+     "times 0.4 L/kg gives VD = 24.8 L"
+    ]
+   ],
+   "check": {
+    "t": "C0 is proportional to the dose when VD is fixed, so the new C0, 48.387 mg/L, is twice the 24.19 mg/L of part a."
+   }
+  }
+ },
+ {
+  "reason": "core browser_test.js and nullexam_test.js read the word \"undefined\" in its text as a page fault, kit PR #30 C9; core style_check.js stem rule flags it after kit PR #31, kit PR #30 C10 (remaining after #31)",
+  "question": {
+   "id": "m5-c25",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 2,
+   "module": 5,
+   "lecture": "L06",
+   "topic": "oral",
+   "sub": "changes",
+   "concept": "rate-limiting-defn",
+   "skill": "tell",
+   "source": "slide",
+   "stem": "A drug is described as disposition rate limiting. What does that say about its two half-lives?",
+   "options": [
+    {
+     "t": "The absorption half-life is much the shorter of the two",
+     "correct": true,
+     "why": "Disposition rate limiting means the slow step is the drug's disposition, its elimination, rather than its arrival. For elimination to be the slow step, the absorption half-life must be the shorter, so ka is much larger than k. This is the ordinary situation for an oral product."
+    },
+    {
+     "t": "The absorption half-life is much longer than the elimination half-life",
+     "correct": false,
+     "why": "That is the definition of absorption rate limiting, the other of the two terms. The name tells you which process is the slow one, and the slow process is the one with the longer half-life. Swapping the two definitions is the whole risk in this pair."
+    },
+    {
+     "t": "The two half-lives are equal",
+     "correct": false,
+     "why": "Picking this avoids choosing between the two terms. Neither describes equal half-lives: disposition rate limiting means the absorption half-life is much the shorter, absorption rate limiting that it is much the longer. Equal constants would also leave the standard oral equation undefined, since ka − k in its denominator would be zero."
+    },
+    {
+     "t": "The elimination half-life cannot be determined from the absorption one",
+     "correct": false,
+     "why": "This reads a naming convention as a claim about what can be measured. The terms only say which process is slower. The elimination half-life is 0.693 divided by k in either case, and under disposition rate limiting it is the longer one and governs the tail of the curve."
+    }
+   ],
+   "teach": [
+    {
+     "h": "The idea",
+     "list": [
+      "Each term names the process that is rate limiting, meaning the slower one, for what is seen in the plasma; the longer half-life always belongs to it.",
+      "Disposition means everything that happens to a drug after it is absorbed, distribution and elimination together, so disposition rate limiting means elimination is the slow step.",
+      "Absorption rate limiting is the reverse.",
+      "Her slide \"Absorption Kinetics Terminology\" defines both terms by comparing the two half-lives."
+     ]
+    }
+   ],
+   "cite": "5---Pharmacokinetics-of-Oral-Absorption.pdf, slide \"Absorption Kinetics Terminology\"",
+   "quote": "Disposition Rate Limiting: absorption half-life is much shorter than elimination half-life"
+  }
+ },
+ {
+  "reason": "core style_check.js stem rule flags it after kit PR #31, kit PR #30 C10 (remaining after #31)",
+  "question": {
+   "id": "x3-a-p3h",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 1,
+   "module": 3,
+   "lecture": "L04",
+   "topic": "infusion",
+   "sub": "css",
+   "concept": "time-to-percent-css",
+   "skill": "apply",
+   "source": "slide",
+   "stem": "A female patient (35 years old, 65 kg) with normal renal function is to be given a drug by IV infusion. According to the literature, the elimination half-life of this drug is 7 hours and the apparent VD is 23.1% of body weight. The pharmacokinetics of this drug assumes a first-order process. The desired steady-state plasma level for this antibiotic is 10 mcg/mL. If the patient suddenly develops partial renal failure, how long would it take for a new steady-state plasma level to be established (assume that 95% of the Css is a reasonable approximation)?",
+   "options": [
+    {
+     "t": "About 4.32 times the new half-life",
+     "correct": true,
+     "why": "95% of Css takes 4.32 half-lives: 0.95 = 1 − e^(−kt) gives t = {{frac:ln 20|k}}. Renal failure lowers clearance and so lengthens the half-life, so the new half-life has to be found first, as her key says."
+    },
+    {
+     "t": "About 30.3 hours, as before the renal failure",
+     "why": "Picking this keeps the old half-life. 30.3 hours is 4.32 half-lives of 7 hours; with less clearance k is smaller, the half-life is longer, and the new plateau is reached later."
+    },
+    {
+     "t": "About 4.32 times the original 7-hour half-life",
+     "why": "This counts the right number of half-lives with the wrong half-life. After renal failure k = {{frac:ClT|VD}} falls, so each half-life is longer than 7 hours."
+    },
+    {
+     "t": "No time: the level stays at the old steady state",
+     "why": "Picking this treats the plateau as fixed once reached. Css = {{frac:R|ClT}}; when ClT falls at the same rate R, the level rises toward a new, higher plateau, and that climb takes 4.32 of the new half-lives."
+    }
+   ],
+   "teach": [
+    {
+     "h": "A change in clearance during an infusion",
+     "list": [
+      "Css = {{frac:R|ClT}}: lower clearance at the same rate gives a higher plateau.",
+      "k = {{frac:ClT|VD}}: lower clearance gives a smaller k and a longer half-life.",
+      "The time to the new plateau is set by the new half-life: 3 to 5 half-lives, or 4.32 for 95%."
+     ]
+    }
+   ],
+   "quote": "One would have to establish the new t½ for the patient, but the time to reach Css would be 4.32 t½ (see part a)",
+   "audit": "Her key (STYLE.md M3-3 h) is prose only; options built from her part a (30.3 hr = 4.32 x 7 hr) and Practice 4 part g (k = ClT/VD falls with renal clearance).",
+   "cite": "IV-Infusions-Practice-3---Solutions.pdf, part h; IV-Infusions-Practice-4-Solutions.pdf, part g; 3IntravenousInfusions.pdf, slide \"Drug Concentration at Steady-State\""
+  }
+ }
+]

@@ -1,0 +1,195 @@
+{
+ "questions": 80,
+ "calc": [
+  "cq4-2",
+  "cq4-4",
+  "cq4-6",
+  "cq4-8",
+  "cq4-9"
+ ],
+ "calcLeftOut": [],
+ "perPool": {
+  "f-e1": {
+   "questions": 29,
+   "selectAll": 4,
+   "families": 22,
+   "marks": 15,
+   "sataShare": 0
+  },
+  "f-e2": {
+   "questions": 24,
+   "selectAll": 5,
+   "families": 22,
+   "marks": 15,
+   "sataShare": 2
+  },
+  "f-pkpd": {
+   "questions": 10,
+   "selectAll": 2,
+   "families": 7,
+   "marks": 5,
+   "sataShare": 1
+  },
+  "f-nl": {
+   "questions": 11,
+   "selectAll": 2,
+   "families": 8,
+   "marks": 5,
+   "sataShare": 1
+  },
+  "no pool": {
+   "questions": 1,
+   "selectAll": 0,
+   "families": 1
+  }
+ },
+ "added": {
+  "f-e1": [
+   "m2-mc-7",
+   "m2-mc-10",
+   "inf-c9",
+   "inf-c10",
+   "inf-c11",
+   "inf-c12",
+   "inf-c13",
+   "inf-c16",
+   "fr-10",
+   "fr-12a",
+   "x3-a-kpos",
+   "x3-a-dose2",
+   "x3-a-p3h",
+   "m1-ord-c03",
+   "m1-ord-c04",
+   "m1-ord-c05",
+   "cq1-1",
+   "cq2-4",
+   "x3-a-tf-rate",
+   "x3-a-tf-half",
+   "x3-a-q1-zero"
+  ],
+  "f-e2": [
+   "m5-c06",
+   "m5-c07",
+   "m5-c20",
+   "m5-c25",
+   "m6b-c01",
+   "m6b-c02",
+   "m6b-c03",
+   "m6b-c04",
+   "m6b-c05",
+   "m6b-c06",
+   "m6b-c20",
+   "m6b-c07",
+   "m6b-c08",
+   "m6b-c09",
+   "m6b-c10",
+   "m6b-c13",
+   "e2r-6",
+   "x3-b-dosesata",
+   "x3-b-intsata"
+  ],
+  "f-pkpd": [
+   "cq5-1",
+   "cq5-2",
+   "pd-c01",
+   "pd-c02",
+   "pd-c03",
+   "pd-c04"
+  ],
+  "f-nl": [
+   "cq5-5",
+   "cq5-6",
+   "nl-c02",
+   "nl-c03",
+   "nl-c05",
+   "nl-c06",
+   "x3-c-03"
+  ]
+ },
+ "topics": [
+  "intro",
+  "orders",
+  "auc",
+  "bolus1",
+  "bolus2",
+  "infusion",
+  "oral",
+  "multi",
+  "intermit",
+  "multoral",
+  "bioavail",
+  "pkpd",
+  "nonlin"
+ ],
+ "lectures": [
+  "L01",
+  "L02",
+  "L03",
+  "L04",
+  "L06",
+  "L07",
+  "L08",
+  "L09",
+  "L10",
+  "L11",
+  "L12"
+ ],
+ "skills": [
+  "recall",
+  "tell",
+  "read",
+  "apply",
+  "order",
+  "infusion",
+  "multidose",
+  "bioavail"
+ ],
+ "bytes": 308566,
+ "images": [
+  "ord_linear_straight",
+  "ord_semilog_curve",
+  "ord_semilog_straight",
+  "slide_Introduction_p20",
+  "slide_Introduction_p23",
+  "slide_Introduction_p24",
+  "slide_Introduction_p6"
+ ],
+ "imageBytes": 102338,
+ "withImage": [
+  "m1-int-01",
+  "m1-ord-c01",
+  "m1-ord-c03",
+  "m1-ord-c04",
+  "m1-ord-c05",
+  "fig-ord-1",
+  "fig-ord-3",
+  "fig-ord-4",
+  "fig-ord-5"
+ ],
+ "newIds": [
+  "m1-ord-c05",
+  "m2-mc-7",
+  "m2-mc-10",
+  "m5-c25",
+  "m6b-c01",
+  "m6b-c02",
+  "cq5-2",
+  "cq5-5",
+  "ws2-4-1f",
+  "pd-c13",
+  "pd-c14",
+  "nl-c01",
+  "nl-c09",
+  "fr-10",
+  "x3-a-tf-rate",
+  "x3-a-tf-half",
+  "x3-a-dose2",
+  "x3-a-p3h",
+  "x3-b-dosesata",
+  "x3-b-intsata"
+ ],
+ "stemsWithGivenAs": [
+  "m6b-c01",
+  "m6b-c02"
+ ]
+}

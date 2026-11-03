@@ -1,0 +1,26 @@
+
+=== Render smoke test ===
+  ok    topics list            25836 chars
+  ok    quiz, unanswered       1277 chars
+  ok    quiz, answered         3039 chars
+         explanations rendered: 4 option rows
+         citation present: true
+  ok    quiz, image item       10045 chars
+         image shown: true
+  ok    quiz, numeric answered 2254 chars
+  ok    quiz, match answered   2233 chars
+  ok    weak spots             5182 chars
+  ok    reference              5930 chars
+  ok    tell apart             793 chars
+  ok    guides                 1695 chars
+  ok    diagrams               3693 chars
+         figures registered: 1, step-throughs: 1
+  ok    settings               3952 chars
+  ok    settings says 87 questions; the page holds 87
+  ok    exam paper             1266 chars
+  ok    exam question count: 40 of 40
+         4 questions carry an image
+
+Render smoke test passed
+
+PASS: render_test.js: every view rendered clean

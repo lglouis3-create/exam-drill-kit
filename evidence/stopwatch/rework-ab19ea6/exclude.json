@@ -1,0 +1,10 @@
+{
+ "pd-c13": "core test.js refuses a question with 2 options (true/false), kit PR #30 C2",
+ "nl-c01": "core test.js refuses a question with 2 options (true/false), kit PR #30 C2",
+ "fr-10": "core test.js refuses a question with 2 options (true/false), kit PR #30 C2",
+ "x3-a-tf-rate": "core test.js refuses a question with 2 options (true/false), kit PR #30 C2",
+ "x3-a-tf-half": "core test.js refuses a question with 2 options (true/false), kit PR #30 C2",
+ "ws2-4-1f": "core test.js: its cite names no lecture deck, kit PR #30 C3",
+ "m5-c25": "core browser_test.js and nullexam_test.js read the word \"undefined\" in its text as a page fault, kit PR #30 C9; core style_check.js stem rule flags it after kit PR #31, kit PR #30 C10 (remaining after #31)",
+ "x3-a-p3h": "core style_check.js stem rule flags it after kit PR #31, kit PR #30 C10 (remaining after #31)"
+}
