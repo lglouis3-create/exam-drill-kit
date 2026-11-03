@@ -1,0 +1,4 @@
+/* the stopwatch on each calculation (Basic-Pharmacokinetics src/shell.html lines 246-251) */
+.qtimer{font-variant-numeric:tabular-nums;font-size:12.5px;color:var(--text-dim);border:1px solid var(--line);border-radius:999px;padding:1px 9px;white-space:nowrap}
+.qtimer.over{color:var(--bad);border-color:var(--bad)}
+.qtimer.done.under{color:var(--ok);border-color:var(--ok)}
