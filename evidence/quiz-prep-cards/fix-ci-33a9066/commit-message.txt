@@ -1,0 +1,23 @@
+quiz-prep-cards ci data: ids prefixed qpc-, setup and asks only when the course has their data
+
+The integration run (evidence/integration-3) found three faults in this module's CI data: C4,
+ci/oncourse.js refused because lecture ids L10-L12 were taken by other modules; C5,
+plan-the-problem setup lines naming equations no module provides; D1, 20 Basic-Pharmacokinetics
+question ids (and 6 topic ids) written unprefixed, duplicating other modules' copies, so the
+Quiz 4 straight pass held m7-c03 and cq4-10 twice.
+
+test.js gets PFX: every question, topic, subtopic and lecture id of FIX, and every reference to
+one (dupOf, topic, sub, lecture, a quiz's topics), is the course's own id with the prefix qpc-
+(the mapping is in ci/oncourse.js's header); the quizzes' ids and modules are unchanged.
+ci/oncourse.js reads PFX, reads the course's data files after course.js, stops if any prefixed
+id is taken, keeps a setup only when the course's EQUATIONS has every equation it names and an
+asks only when ASKS has the key, prints what it left out, and adds the quizzes to COURSE.quizzes.
+The test's scratch copy filters setup and asks the same way. Since the quizzes name modules,
+a course where other modules' questions carry the same module numbers gives a larger scope: the
+persistence checks now answer the whole straight pass (it stopped at 40) and compare with each
+quiz's scope read from the page, and check that every fixture question of the quiz's modules
+is in it. The data is otherwise verbatim.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01LVkWFDVVDwgsL5WF7yWqcV
+
