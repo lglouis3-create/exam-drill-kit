@@ -1,0 +1,6 @@
+125743517685	Modules to check	failure
+125743517817	WebKit · template	failure
+125743517854	Chromium · template-unset	failure
+125743517859	Chromium · medicinal-chemistry	failure
+125743518020	Chromium · template	failure
+125743533766	Chromium · ${{ matrix.course }}	skipped

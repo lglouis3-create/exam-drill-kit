@@ -1,0 +1,17 @@
+
+=== the course's own quizzes ===
+FAIL: features/quiz-prep-cards/test.js: crashed: evalmachine.<anonymous>:3753
+globalThis.__X=({QUESTIONS, TOPICS, COURSE, FX});
+                                            ^
+
+ReferenceError: FX is not defined
+    at evalmachine.<anonymous>:3753:45
+    at Script.runInContext (node:vm:149:12)
+    at Object.runInContext (node:vm:301:6)
+    at Object.engine (/tmp/port-rework/quiz-prep-cards/final/own/absent/src/check_lib.js:220:6)
+    at /tmp/port-rework/quiz-prep-cards/final/own/absent/src/features/quiz-prep-cards/test.js:129:15
+    at Object.<anonymous> (/tmp/port-rework/quiz-prep-cards/final/own/absent/src/features/quiz-prep-cards/test.js:386:3)
+    at Module._compile (node:internal/modules/cjs/loader:1781:14)
+    at Object..js (node:internal/modules/cjs/loader:1913:10)
+    at Module.load (node:internal/modules/cjs/loader:1505:32)
+    at Function._load (node:internal/modules/cjs/loader:1309:12)

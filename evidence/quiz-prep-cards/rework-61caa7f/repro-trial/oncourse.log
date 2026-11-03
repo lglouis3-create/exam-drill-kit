@@ -1,0 +1,3 @@
+wrote: /tmp/port-rework/quiz-prep-cards/repro-trial/course/src/q90_qpc_pk.js (6 topics, 27 questions from the fixture in test.js)
+wrote: appended to /tmp/port-rework/quiz-prep-cards/repro-trial/course/src/course.js: q90_qpc_pk.js in COURSE.files, lectures qpc-L08, qpc-L09, qpc-L10, qpc-L11, qpc-L12, 4 skills (multidose, bioavail, pkpd, nonlin), 2 quizzes (q5 2026-10-19T08:00, q4 2026-10-05T08:00), and quiz-prep-cards v1 on
+left out: 9 setup line(s) (qpc-cq4-2, qpc-cq4-4, qpc-cq4-6, qpc-cq4-8, qpc-cq4-9, qpc-cq5-3, qpc-cq5-4, qpc-cq5-7, qpc-cq5-8) naming an equation the course's EQUATIONS lacks, 9 asks key(s) (qpc-cq4-2, qpc-cq4-4, qpc-cq4-6, qpc-cq4-8, qpc-cq4-9, qpc-cq5-3, qpc-cq5-4, qpc-cq5-7, qpc-cq5-8) the course's ASKS lacks
