@@ -1,0 +1,49 @@
+# DIAGNOSIS ONLY, on branch claude/elegant-ptolemy-pqxb8y-webkit-diag; never merged.
+# Runs core/offline_test.js and the instrumented .github/diag/offline_diag.js many
+# times in WebKit (and once set in Chromium for comparison), keeping every run's output
+# in the job log (.github/diag/run.sh). Louis, 2026-11-03: diagnose the two WebKit
+# failures of offline_test.js separately, repeat runs for diagnosis and keep every result.
+name: WebKit offline diagnosis
+
+on:
+  push:
+    branches: [claude/elegant-ptolemy-pqxb8y-webkit-diag]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diag:
+    name: ${{ matrix.browser }} · set ${{ matrix.set }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {browser: webkit, set: 1}
+          - {browser: webkit, set: 2}
+          - {browser: webkit, set: 3}
+          - {browser: webkit, set: 4}
+          - {browser: chromium, set: 1}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
+        with:
+          python-version: '3.13'
+      - name: Playwright 1.63.0 and the browser
+        env:
+          BROWSER: ${{ matrix.browser }}
+        run: |
+          npm install -g playwright@1.63.0
+          npx --yes playwright@1.63.0 install --with-deps "$BROWSER"
+      - name: Run the offline checks 10 times each
+        env:
+          BROWSER: ${{ matrix.browser }}
+        run: |
+          export NODE_PATH="$(npm root -g)"
+          bash .github/diag/run.sh "$BROWSER" 10
