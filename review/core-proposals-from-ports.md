@@ -79,12 +79,36 @@ On the one-page quiz, "Not sure" and "I guessed" can be offered only on the card
 - On a page of 1,879,886 bytes with all 18 modules on, a student who picked Dark saw the light
   colours in the first frame that shows the tabs in 3 of 5 reloads (theme agent, `evidence/theme`,
   folder `fix-t1-b742f43/`). With a one-line head script added by hand to a scratch copy, it was
-  0 of 5. On small pages there is no flash.
-- Proposed change: a `head` field in `module.json`. The build puts that file in its own `<script>`
-  just before `</head>`, writes in the course's storage key (the page's `NS` does not exist yet in
-  `<head>`), syntax-checks it, and allows these head scripts beside the one body script.
-  `device_lint.js` reads them too. theme's head script would only read the stored choice and set
-  `data-theme`.
+  0 of 5.
+- An independent evaluation (a separate agent, 2026-11-03, agent-run in Chromium on `main`
+  `4e0fae4`, all-modules page of 1,886,610 bytes) recorded the frames Chrome actually drew:
+  - a light frame was drawn in 8 of 12 reloads, and in 12 of 12 with the CPU slowed 4x;
+  - with Light stored on a dark device, a dark frame was drawn in 9 of 12;
+  - on the small theme-only page (273,848 bytes), with the CPU slowed 4x, a blank light page was
+    drawn in 6 of 12.
+  - With a head script in a scratch copy, 0 of 12 in each of those cases.
+  - A CSS-only alternative (body hidden until `theme.js` runs) still drew the light blank page in 11
+    of 12.
+  - The tabs are plain markup at `core/shell.html` lines 491-502, ahead of the one script block at
+    line 517.
+- The same evaluation found a gap in the core's own checks: the "exactly one script block" rule
+  counts only a bare `<script>` (`core/build.py` line 595, `core/built_page.js` line 42,
+  `core/output_test.js` line 56). A module CSS file that closes the style element and opens
+  `<script data-head>` builds and passes with two script tags and no syntax check.
+- Proposed change, revised after that evaluation: a declarative field in `module.json`, for example
+  `"early": {"attr": "data-theme", "key": "theme", "values": ["light", "dark"]}`, rather than a
+  module JS file in `<head>`. The core writes one fixed head script from it, at most one per page.
+  That script reads `<NS>:<key>`, falls back to the live key in a preview build (the preview copy is
+  made later, in the body script, `core/shell.html` lines 590-602), sets the attribute only to a
+  listed value, and is wrapped in try/catch, so no module code runs before the core. The build:
+  - JSON-encodes the namespace;
+  - inserts before the first `</head>` only (the built page has a second `</head>` inside a
+    `views.js` string);
+  - counts script blocks with `<script\b` in all three places, allowing one body block plus at most
+    one core head block, which also closes the gap above;
+  - adds the source to `--list-sources` for `device_lint.js`.
+  `theme.js` line 39 stays as a backstop. The WebKit job should switch theme on, because desktop
+  WebKit was not measured.
 
 ## C. Core checks that refuse real course data
 
