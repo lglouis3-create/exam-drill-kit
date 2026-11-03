@@ -402,6 +402,47 @@ scheduler reads the history; the progress (`DB`) holds what they schedule from.
 - **Converted:** an older progress, in a file that names the course, as on load
   (`upgradeDB`).
 
+**One writer per profile (2026-11-03).** localStorage has no locking between tabs, and one
+tab's save reaches another tab of the same browser a moment later. In that moment no
+comparison before a write can see the other tab's save: `import_test.js` ("Two tabs at
+once", with the other tab's save held back from this tab's view and nothing synchronised
+before the action) showed an Import, an ordinary save and Put back each writing over an
+answer another tab had just saved, and Delete the copies deleting a copy another tab's
+import had just kept; that answer or copy was then in no record (7 failed checks on
+0237635). So a profile has one writer at a time: the tab holding the Web Lock
+`<ns>:writer:<profile>` (`navigator.locks`; the browser grants it to one tab at a time and
+frees it when that tab closes).
+- Another tab of the same browser opens that profile read-only. A wall over the page says
+  so; the page takes no answers (`record` returns at once) and writes nothing: no ordinary
+  save, history, Import, Put back, Delete the copies, Erase or exam paper.
+- "Use it here" moves the profile: the writer saves what is waiting, frees the lock, stops,
+  and posts the values it holds stored (BroadcastChannel). The new tab starts writing only
+  once its own view of storage shows those values, so the old writer's last save is in
+  place before the new tab's first; if they have not arrived within 5 s it does not start,
+  and says so.
+- A writer that does not answer within 4 s (asleep in the background) can be taken over
+  ("Take it over anyway", `steal`). It then stops: the browser ends its lock, and before
+  every write a writer checks that `<ns>:writer:<profile>` still names its own tab.
+- An Import that writes another profile (a new one, or the history of the profile that
+  already holds the file) holds that profile's lock while it writes, and writes nothing
+  when a tab using that profile has it.
+- A page that has stopped (read-only, handed over, taken over, or stale below) covers
+  itself with that wall: it takes no answers, offers "Export this page's progress" when it
+  holds answers or settings that are not stored, and asks before a reload would drop them.
+
+What this does not cover:
+- A browser without Web Locks (Safari and Safari on iPhone and iPad before 15.4, per
+  https://caniuse.com/mdn-api_lockmanager, read 2026-11-03; a page opened from disk) keeps the
+  comparison guards below on their own, and the interval above stays open there.
+- A tab still running a core from before this change writes without the lock until it is
+  reloaded.
+- After a take-over, what the old tab had not saved exists only in that tab (it offers the
+  export when it runs again); a tab the system closes while asleep loses it, as any unsaved
+  answer.
+- The hand-over relies on a value this tab reads from storage having been stored, which is
+  how browsers behave; the HTML Standard does not define the timing of storage between tabs.
+- Two devices never share a lock: moving progress between devices is Import's job.
+
 Import plans and writes nothing while the progress on this page is not what is stored:
 when another tab or window saved the profile after this page read it (`SEEN`, the
 stored value as this page last read it or had the browser keep it; a write the browser

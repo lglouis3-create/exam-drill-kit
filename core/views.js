@@ -591,6 +591,11 @@ const CONCEPT_COUNTS = ['seen', 'correct', 'wrong', 'guessed', 'streak', 'box', 
    it: what is stored is neither what this page last read or wrote (SEEN) nor what it
    shows (shell.html profileSavedElsewhere). Import then plans and writes nothing. */
 const changedElsewhere = () => profileSavedElsewhere();   // its progress or its history
+/* While another tab or window has this profile (the single-writer lock in shell.html),
+   the reason given is that one, not a save "since". */
+const OPEN_ELSEWHERE = 'This profile is open in another tab or window of this browser, which saves it, so this page writes nothing to it. Nothing was imported. Use "Use it here" first, or import in that tab.';
+const notTheWriter = () => WRITER !== 'none' && !(WRITER === 'held' && WRITER_FOR === PROFILE);
+const elsewhere = () => notTheWriter() ? OPEN_ELSEWHERE : ELSEWHERE;
 const ELSEWHERE = 'This profile\'s progress or answer history was saved by another tab or window after this page opened it, so this page cannot import over it. Nothing was imported. Reload this page, then import again.';
 const UNSAVED = 'This profile\'s progress could not be saved in this visit (storage is full or blocked), so what this page shows is not what is stored, and nothing was imported. Export progress first, free some space, reload, and import again.';
 const ENTRY_MAPS = {concepts: 'concepts', arms: 'scheduler', fsrsQ: 'scheduler', fsrsC: 'scheduler'};   // compared entry by entry
@@ -659,7 +664,7 @@ function importPlan(f){
   // its next save would, so the plan compares the file with what is stored
   if(storedGone() && !changedElsewhere()){ store.set(keyFor(PROFILE), JSON.stringify(DB)); saveLog(); }
   if(FAILED.has(keyFor(PROFILE))) return {block: UNSAVED};
-  if(changedElsewhere()) return {block: ELSEWHERE};
+  if(changedElsewhere()) return {block: elsewhere()};
   const here = DB.answers, there = f.db.answers;
   const H = new Map(here.map(a => [answerKey(a), a])), T = new Map(there.map(a => [answerKey(a), a]));
   const onlyThere = there.filter(a => !H.has(answerKey(a))).length, onlyHere = here.filter(a => !T.has(answerKey(a)));
@@ -798,7 +803,7 @@ function showImportPlan(plan){
     <div class="frow">${act}<button class="btn ghost" id="importCancel">${plan.action === 'nothing' ? 'OK' : 'Cancel'}</button></div></div>`;
   $('#importCancel').onclick = () => { box.innerHTML = ''; };
   const go = $('#importGo');
-  if(go) go.onclick = () => { go.disabled = true; importDone(runImport(plan)); };
+  if(go) go.onclick = () => { go.disabled = true; withOtherProfile(plan, () => runImport(plan)).then(importDone); };
 }
 function importDone(r){
   const box = $('#importPlan');
@@ -823,11 +828,21 @@ function mergedLog(base, entries){
 }
 /* Carry out a plan. Every write is one the browser either keeps or refuses
    (store.trySet), and a refused one leaves what it would have replaced as it was. */
+/* An import that writes another profile (a new one, or the history of the profile that
+   already holds the file) holds that profile's writer lock while it writes: a tab using
+   that profile has the lock, and the import then writes nothing. */
+function withOtherProfile(plan, fn){
+  const name = plan.action === 'separate' ? plan.name : (plan.logTo && plan.logTo !== PROFILE ? plan.logTo : '');
+  if(!name || WRITER === 'none') return Promise.resolve(fn());
+  return navigator.locks.request(writerName(name), {ifAvailable: true}, lock => lock ? fn() :
+    {text: `The profile "${esc(name)}" is open in another tab or window of this browser, which saves it, so nothing was imported, and that profile and "${esc(PROFILE)}" are unchanged. Import in that tab, or close it and import again.`})
+    .catch(e => ({text: 'The import could not start: ' + esc(String(e && e.message || e)) + '. Nothing was imported.'}));
+}
 function runImport(plan){
   if(!canSave()) return {text: esc(LOAD_FAIL) + ' The file was not imported.'};
   // the plan was made from what this page holds: check again that it is what is stored
   if(FAILED.has(keyFor(PROFILE))) return {text: esc(UNSAVED)};
-  if(changedElsewhere()) return {text: esc(ELSEWHERE)};
+  if(changedElsewhere()) return {text: esc(elsewhere())};
   // the new profile's name was free when the plan was shown; another tab or window may have
   // saved a profile under it since, which this import must not write over (or delete below)
   if(plan.action === 'separate' && [keyFor(plan.name), NS + ':log:' + plan.name, backupKey(plan.name)].some(k => store.get(k) !== null))
@@ -914,13 +929,14 @@ function readCopies(){
    written as the progress, (3) that copy is taken off the list. A refusal at (1) or
    (2) changes nothing; a refusal at (3) leaves that copy on the list as well, and the
    put-back stands. */
-const ELSEWHERE_SHORT = 'This profile was saved in another tab or window after this page opened it';
+const ELSEWHERE_SHORT_SAVED = 'This profile was saved in another tab or window after this page opened it';
+const elsewhereShort = () => notTheWriter() ? 'This profile is open in another tab or window, which saves it' : ELSEWHERE_SHORT_SAVED;
 const COPIES_CHANGED = 'The copies kept by Import were changed in another tab or window while this question was open, so';
 // what the browser holds under k now (store.get would fall back to this page's copy of a removed key)
 const storedRaw = k => { try { return localStorage.getItem(k); } catch(e){ return null; } };
 function restoreBackup(){
   if(!canSave()){ alert(LOAD_FAIL + ' Nothing was put back.'); return; }
-  if(changedElsewhere()){ staleWarn(); alert(ELSEWHERE_SHORT + ', so nothing was put back. Reload this page first.'); return; }
+  if(changedElsewhere()){ staleWarn(); alert(elsewhereShort() + ', so nothing was put back. Reload this page first.'); return; }
   const copies = readCopies();
   if(copies === null){ alert('The copies kept by Import cannot be read, so nothing was put back.'); return; }
   if(!copies.length){ alert('There is no copy to put back.'); return; }
@@ -932,7 +948,7 @@ function restoreBackup(){
   if(!confirm(`Put back the progress of "${PROFILE}" from ${dateOf(b.at)} (${db.answers.length} answers)? The progress now on screen is kept as a copy in its place.`)) return;
   // the question may have stayed open while another tab or window saved this profile, or
   // changed its copies (a delete there must not be undone here)
-  if(changedElsewhere()){ staleWarn(); alert(ELSEWHERE_SHORT + ', so nothing was put back. Reload this page first.'); return; }
+  if(changedElsewhere()){ staleWarn(); alert(elsewhereShort() + ', so nothing was put back. Reload this page first.'); return; }
   if(storedRaw(backupKey(PROFILE)) !== copiesRaw){ alert(COPIES_CHANGED + ' nothing was put back. Reload this page first.'); return; }
   const refused = 'The browser refused to save (storage is full or blocked), so nothing was put back. Your progress and the copies are unchanged.';
   // a change still waiting on its 150 ms timer is saved first, so the copy kept below (the
@@ -967,14 +983,14 @@ function restoreBackup(){
 /* Settings' "Delete the copies": only when the student asks, after a confirm. */
 function deleteCopies(){
   if(!canSave()){ alert(LOAD_FAIL + ' Nothing was deleted.'); return; }
-  if(changedElsewhere()){ staleWarn(); alert(ELSEWHERE_SHORT + ', so nothing was deleted. Reload this page first.'); return; }
+  if(changedElsewhere()){ staleWarn(); alert(elsewhereShort() + ', so nothing was deleted. Reload this page first.'); return; }
   const copies = readCopies();
   if(!copies || !copies.length) return;
   const copiesRaw = storedRaw(backupKey(PROFILE));
   if(!confirm(`Delete the ${copies.length} cop${copies.length === 1 ? 'y' : 'ies'} of earlier progress kept by Import for "${PROFILE}"? This cannot be undone.`)) return;
   // the question may have stayed open while another tab or window saved this profile or
   // added a copy (an import there): only the copies the question counted are deleted
-  if(changedElsewhere()){ staleWarn(); alert(ELSEWHERE_SHORT + ', so nothing was deleted. Reload this page first.'); return; }
+  if(changedElsewhere()){ staleWarn(); alert(elsewhereShort() + ', so nothing was deleted. Reload this page first.'); return; }
   if(storedRaw(backupKey(PROFILE)) !== copiesRaw){ alert(COPIES_CHANGED + ' nothing was deleted. Reload this page first.'); return; }
   store.del(backupKey(PROFILE));
   renderSettings();
@@ -2735,10 +2751,10 @@ function renderSettings(){
   if(dc) dc.onclick = deleteCopies;
   $('#btnReset').onclick = ()=>{
     if(!canSave()){ alert(LOAD_FAIL + ' Nothing was erased.'); return; }
-    if(changedElsewhere()){ staleWarn(); alert(ELSEWHERE_SHORT + ', so nothing was erased. Reload this page first.'); return; }
+    if(changedElsewhere()){ staleWarn(); alert(elsewhereShort() + ', so nothing was erased. Reload this page first.'); return; }
     if(confirm(`Erase all quiz history for "${PROFILE}"? This cannot be undone.`)){
       // the question may have stayed open while another tab or window saved this profile
-      if(changedElsewhere()){ staleWarn(); alert(ELSEWHERE_SHORT + ', so nothing was erased. Reload this page first.'); return; }
+      if(changedElsewhere()){ staleWarn(); alert(elsewhereShort() + ', so nothing was erased. Reload this page first.'); return; }
       // erasing replaces a stored history that could not be read, too
       DB = BLANK(); save(); LOG = []; LOG_OK = true; saveLog(); alert('History erased.'); renderSettings();
     }

@@ -233,6 +233,14 @@ body.swbar-on{padding-bottom:76px}
   max-width:720px;margin:0 auto;background:var(--warn-bg);color:var(--text);border:1px solid var(--warn);
   border-radius:8px;padding:10px 12px;font-size:14px;line-height:1.45;box-shadow:0 2px 10px rgba(0,0,0,.25)}
 #savewarn .btn,#loadwarn .btn{margin-left:8px;padding:4px 10px;font-size:13px}
+/* a page that has stopped saving (another tab has the profile, or saved it since): the
+   page takes no answers until it can save again, so nothing is studied unsaved */
+#stopwall,#stalewarn{position:fixed;inset:0;z-index:60;background:rgba(10,16,24,.62);display:flex;align-items:center;
+  justify-content:center;padding:16px;overflow:auto}
+#stopwall .stopcard,#stalewarn .stopcard{max-width:560px;width:100%;background:var(--paper);color:var(--text);border:1px solid var(--warn);
+  border-radius:8px;padding:16px;font-size:14.5px;line-height:1.5;box-shadow:0 4px 18px rgba(0,0,0,.35)}
+#stopwall .stopcard p,#stalewarn .stopcard p{margin:0 0 10px}
+#stopwall .stoprow,#stalewarn .stoprow{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 
 /* ---------- misc ---------- */
 .note{background:var(--warn-bg);border:1px solid #E8CFA2;color:#6B4200;border-radius:var(--r);padding:12px 14px;font-size:13.5px;margin-bottom:16px}
@@ -638,19 +646,194 @@ function saveWarn(){
   d.querySelector('button').onclick = () => d.remove();
   document.body.appendChild(d);
 }
+/* ---------- One writer per profile (Web Locks), #32, 2026-11-03 ----------------------
+   localStorage has no locking between tabs, and one tab's save reaches another tab of the
+   same browser a moment later. In that moment no comparison before a write can see the
+   other tab's save: #32's test showed an Import, an ordinary save, Put back and Delete
+   the copies each writing over an answer or a copy another tab had just saved, which was
+   then in no record. So each profile has one writer at a time: the tab that holds the
+   Web Lock `<ns>:writer:<profile>` (navigator.locks, which the browser grants to one tab
+   at a time and frees when that tab closes). Another tab opens that profile read-only:
+   it takes no answers and writes nothing, and offers "Use it here". Handing over, the
+   writer saves what is waiting, frees the lock, stops, and posts what it holds stored
+   (BroadcastChannel); the new tab starts saving only once its own view of storage shows
+   those values, so the old writer's last save is in place before the new one's first.
+   `<ns>:writer:<profile>` in localStorage names the tab that took the lock last; a writer
+   that finds another tab's name there (a take-over while it was asleep) stops too.
+   A browser without Web Locks, or a page opened from disk, keeps the comparison guards
+   below on their own (WRITER 'none'). */
+const HAS_LOCKS = (() => { try { return !!(window.isSecureContext && navigator.locks && navigator.locks.request && window.BroadcastChannel); } catch(e){ return false; } })();
+let WRITER = HAS_LOCKS ? 'pending' : 'none';   // 'held' | 'other' (another tab has it) | 'pending' (asking) | 'none' (no Web Locks)
+let WRITER_FOR = '', WRITER_WHY = 'other', WRITE_WAITING = false, writerRelease = null, writerSeq = 0;
+const TAB_ID = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+const writerName = p => NS + ':writer:' + p;
+let writerChan = null;
+try { if(HAS_LOCKS) writerChan = new BroadcastChannel(NS + ':writer'); } catch(e){ writerChan = null; }
+const storedNow = k => { try { return localStorage.getItem(k); } catch(e){ return null; } };
+function writerNamedHere(){
+  const t = storedNow(writerName(PROFILE));
+  return t === null || t === TAB_ID;
+}
+/* This page may write the profile on screen. */
+function mayWrite(){
+  if(WRITER === 'none') return true;
+  if(WRITER !== 'held' || WRITER_FOR !== PROFILE) return false;
+  if(!writerNamedHere()){ writerLost('taken'); return false; }
+  return true;
+}
+function writerLost(why){
+  WRITER = 'other'; WRITER_WHY = why; WRITER_FOR = '';
+  if(writerRelease) writerRelease();
+  stopWall(why);
+}
+/* Ask for profile p's lock: how 'try' (only if free), 'wait' (queue behind the holder) or
+   'steal'. Resolves true once this page holds it. */
+function claimWriter(p, how){
+  const seq = ++writerSeq;
+  return new Promise(done => {
+    const opts = how === 'steal' ? {steal: true} : how === 'wait' ? {} : {ifAvailable: true};
+    try {
+      navigator.locks.request(writerName(p), opts, lock => {
+        if(!lock || seq !== writerSeq || PROFILE !== p){ done(false); return; }
+        if(writerRelease) writerRelease();
+        WRITER_FOR = p;
+        try { localStorage.setItem(writerName(p), TAB_ID); } catch(e){}
+        return new Promise(res => { writerRelease = () => { writerRelease = null; res(); }; done(true); });
+      }).catch(e => {
+        if(e && e.name === 'AbortError' && WRITER_FOR === p && WRITER === 'held') writerLost('taken');   // another tab took it over
+        else if(!(e && e.name === 'AbortError') && seq === writerSeq && WRITER === 'pending'){ WRITER = 'none'; flushWaiting(); }
+        done(false);
+      });
+    } catch(e){ WRITER = 'none'; flushWaiting(); done(false); }
+  });
+}
+function flushWaiting(){ if(WRITE_WAITING && mayWrite()){ WRITE_WAITING = false; save(); saveLog(); } }
+/* The profile on screen (just opened by useProfile) gets its writer decided. */
+function claimProfile(p){
+  if(!HAS_LOCKS || WRITER === 'none') return;
+  if(WRITER === 'held' && WRITER_FOR === p) return;
+  if(writerRelease) writerRelease();
+  WRITER = 'pending'; WRITER_FOR = '';
+  stopWall(null);
+  claimWriter(p, 'try').then(ok => {
+    if(PROFILE !== p) return;
+    if(ok){ WRITER = 'held'; flushWaiting(); }
+    else if(WRITER === 'pending'){ WRITER = 'other'; WRITER_WHY = 'other'; stopWall('other'); }
+  });
+}
+/* "Use it here": the tab that has the profile saves, stops and frees it. */
+function takeOver(force){
+  const p = PROFILE;
+  if(!HAS_LOCKS || STALE) return;
+  let gave = null, granted = false, done = false;
+  const onMsg = e => { const m = e.data || {}; if(m.type === 'gave' && m.p === p && m.to === TAB_ID) gave = m.vals; };
+  if(writerChan) writerChan.addEventListener('message', onMsg);
+  const finish = (why) => { done = true; if(writerChan) writerChan.removeEventListener('message', onMsg); if(why){ if(writerRelease) writerRelease(); WRITER = 'other'; WRITER_WHY = why; stopWall(why); } };
+  stopWall('asking');
+  if(!force && writerChan) writerChan.postMessage({type: 'want', p, from: TAB_ID});
+  claimWriter(p, force ? 'steal' : 'wait').then(ok => {
+    if(done) return;
+    if(!ok){ finish('other'); return; }
+    granted = true;
+    // the old writer's last save must be in this page's view of storage before this page writes
+    const t0 = Date.now();
+    const tick = () => {
+      if(done) return;
+      // the values come just after the lock is freed; a tab that closed sends none
+      if(!gave && !force && Date.now() - t0 < 1000){ setTimeout(tick, 20); return; }
+      const keys = gave ? Object.keys(gave) : [];
+      if(keys.every(k => storedNow(k) === gave[k])){
+        finish(null);
+        WRITER = 'held'; WRITER_FOR = p; STALE_WARNED = false;
+        load();
+        stopWall(null);
+        try { if(typeof show === 'function') show(typeof VIEW !== 'undefined' ? VIEW : 'study'); } catch(e){}
+        return;
+      }
+      if(Date.now() - t0 > 5000){ finish('late'); return; }
+      setTimeout(tick, 20);
+    };
+    tick();
+  });
+  if(!force) setTimeout(() => { if(!granted && !done){ stopWall('slow'); } }, 4000);
+}
+/* The tab that has the profile, asked by another tab for it. */
+if(writerChan) writerChan.addEventListener('message', e => {
+  const m = e.data || {};
+  if(m.type !== 'want' || m.p !== PROFILE || WRITER !== 'held' || WRITER_FOR !== PROFILE) return;
+  saveNow();
+  const vals = {};
+  for(const k of [keyFor(PROFILE), logKey(), NS + ':backup:' + PROFILE, NS + ':exam:' + PROFILE]) vals[k] = storedNow(k);
+  WRITER = 'other'; WRITER_WHY = 'gave'; WRITER_FOR = '';
+  if(writerRelease) writerRelease();
+  writerChan.postMessage({type: 'gave', p: PROFILE, to: m.from, vals});
+  stopWall('gave');
+});
+/* What this page holds that is not what it last read from storage or had kept there. */
+function unsavedHere(){
+  try {
+    const dbNow = JSON.stringify(DB);
+    const dbDiff = SEEN === null ? !!(DB && DB.answers && DB.answers.length) : dbNow !== SEEN;
+    const logDiff = LOG_OK && JSON.stringify(LOG) !== (SEEN_LOG === null ? '[]' : SEEN_LOG);
+    return dbDiff || logDiff;
+  } catch(e){ return false; }
+}
+let EXPORTED_STOPPED = false;
+const STOP_TEXT = {
+  stale: 'This profile was saved in another tab or window after this page opened it, so this page has stopped saving and takes no more answers, to keep that progress. Reload to continue from what is saved.',
+  other: 'This profile is open in another tab or window of this browser, and that tab saves it. So that the two never write over each other, this page takes no answers and saves nothing while that tab has it.',
+  gave: 'This profile is now used in another tab or window. This page saved everything first and has stopped; it takes no answers while the other tab has the profile.',
+  taken: 'Another tab or window took this profile over, so this page has stopped saving and takes no more answers.',
+  asking: 'Asking the other tab to save and hand this profile over…',
+  slow: 'The other tab does not answer; it may be asleep in the background. "Take it over anyway" stops that tab from saving: anything it had not saved stays on that tab only, which then offers to export it.',
+  late: 'The other tab\'s last save has not reached this page yet, so this page has not started saving. Try again in a moment.'
+};
+let STOP_WALL = null;
+function stopWall(why){
+  if(STOP_WALL){ STOP_WALL.remove(); STOP_WALL = null; }
+  if(!why) return;
+  if(!document.body){ document.addEventListener('DOMContentLoaded', () => { if(!mayWrite() || STALE) stopWall(why); }, {once: true}); return; }
+  const w = STOP_WALL = document.createElement('div');
+  w.id = why === 'stale' ? 'stalewarn' : 'stopwall';
+  w.setAttribute('role', 'alertdialog'); w.setAttribute('aria-modal', 'true');
+  w.dataset.why = why;
+  const c = document.createElement('div'); c.className = 'stopcard';
+  const p = document.createElement('p'); p.textContent = STOP_TEXT[why] || STOP_TEXT.other; c.appendChild(p);
+  const unsaved = why !== 'asking' && unsavedHere();
+  if(unsaved){
+    const u = document.createElement('p');
+    u.innerHTML = '<b>This page has answers or settings that are not saved.</b> Export them to a file before you reload or leave; Import progress can add them back.';
+    c.appendChild(u);
+  }
+  const row = document.createElement('div'); row.className = 'stoprow';
+  const btn = (label, cls, fn, id) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn' + (cls ? ' ' + cls : ''); b.textContent = label; if(id) b.id = id; b.onclick = fn; row.appendChild(b); return b; };
+  if(unsaved) btn('Export this page\'s progress', '', () => { try { exportProgress(); EXPORTED_STOPPED = true; } catch(e){ alert('The export did not work: ' + (e && e.message || e)); } }, 'stopExport');
+  if(why === 'other' || why === 'gave' || why === 'taken' || why === 'late') btn('Use it here', '', () => takeOver(false), 'stopTake');
+  if(why === 'slow') btn('Take it over anyway', '', () => takeOver(true), 'stopSteal');
+  if(why !== 'asking') btn('Reload', 'ghost', () => {
+    if(unsavedHere() && !EXPORTED_STOPPED && !confirm('The answers and settings this page has not saved are lost on reload unless you export them first. Reload anyway?')) return;
+    location.reload();
+  }, 'stopReload');
+  c.appendChild(row);
+  w.appendChild(c);
+  document.body.appendChild(w);
+}
 /* Another tab or window saved this profile after this page read it: this page stops
-   saving, so it never writes its older copy over that progress, and says so once. */
+   saving, so it never writes its older copy over that progress, and takes no more
+   answers until it is reloaded. */
 let STALE_WARNED = false, STALE = false;   // STALE: this page stays stopped for the rest of the visit
 function staleWarn(){
+  if(WRITER !== 'none' && !(WRITER === 'held' && WRITER_FOR === PROFILE)){
+    // not this page's turn to write: a writer is being asked for, or another tab has the profile
+    if(WRITER === 'pending') WRITE_WAITING = true;
+    else stopWall(WRITER_WHY || 'other');
+    return;
+  }
   STALE = true;
   if(STALE_WARNED) return;
   if(!document.body){ document.addEventListener('DOMContentLoaded', staleWarn, {once: true}); return; }
   STALE_WARNED = true;
-  const d = document.createElement('div');
-  d.id = 'stalewarn'; d.setAttribute('role', 'alert');
-  d.innerHTML = 'This profile was saved in another tab or window after this page opened it, so this page has stopped saving, to keep that progress. Reload this page to continue from what is saved; what was done here since then (answers, settings) is not kept. To keep a copy of it first, open <b>Settings</b> and use <b>Export progress</b>. <button type="button" class="btn">Reload</button>';
-  d.querySelector('button').onclick = () => location.reload();
-  document.body.appendChild(d);
+  stopWall('stale');
 }
 /* The stored value under `k` is not what this page last read or wrote there. A key
    that is gone is not another tab's save (the core never deletes a profile's progress
@@ -661,7 +844,7 @@ function staleWarn(){
 const savedElsewhere = (k, seen) => { let now; try { now = localStorage.getItem(k); } catch(e){ return false; } return now !== seen && now !== null; };
 /* Another tab or window saved this profile, its progress or its history, since this
    page read them: both belong to one record, so neither is written then. */
-const profileSavedElsewhere = () => STALE || savedElsewhere(keyFor(PROFILE), SEEN) || savedElsewhere(logKey(), SEEN_LOG);
+const profileSavedElsewhere = () => !mayWrite() || STALE || savedElsewhere(keyFor(PROFILE), SEEN) || savedElsewhere(logKey(), SEEN_LOG);
 /* The saved progress could not be read (load, below): say so once, in plain
    words, and that nothing is saved during this visit. loadWarn(false) takes
    the notice away again when a later load works (another profile). */
@@ -943,6 +1126,7 @@ function useProfile(n){
   PROFILE = n;
   store.set(NS+':profile', PROFILE);
   load();
+  claimProfile(PROFILE);
   const who = document.getElementById('whoName');
   if(who) who.textContent = PROFILE;
 }
@@ -1241,6 +1425,8 @@ function isDue(s){
 // result: 'correct' | 'wrong' | 'guessed'; mode: 'exam' from a paper, otherwise
 // read off the quiz on screen (a fixed pass is a sweep)
 function record(q, result, picked, ms, mode){
+  // a page that has stopped saving takes no answers (it would show them as studied, unsaved)
+  if(STALE || (WRITER === 'other')){ staleWarn(); return; }
   const s = st(q.concept);
   const now = Date.now();
   // the scheduler fields of the answer history, read before this answer

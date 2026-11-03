@@ -7,6 +7,7 @@ Dated kit changes, newest first.
 - Import refuses a file of another course or of no course, and replaces progress only with a record that continues it.
 - Import compares every part of a file's progress, not only its answers: a file whose concept progress, settings or scheduling state differ goes into a new profile.
 - A page whose profile another tab or window saved since stops saving and offers a reload, instead of writing its older progress over the newer one.
+- Each profile has one writing tab at a time (Web Locks): another tab of the same browser opens it read-only, takes no answers, and offers "Use it here", which moves the profile after the other tab has saved. A stopped page covers itself, takes no answers, and offers to export what it has not saved before a reload.
 - Import keeps a copy of the progress it replaces; Put back never loses either record.
 - Put back and "Delete the copies" do nothing when another tab or window saved the profile or changed the copies while their question was open, and Erase does nothing when the profile was saved there meanwhile; copies another tab deleted are not offered or written back.
 - Kit checks on GitHub: each module course the plan selects also runs in WebKit (job "modules-webkit"), and a module course fails unless each module's own test passed at least one check in that job's browser.

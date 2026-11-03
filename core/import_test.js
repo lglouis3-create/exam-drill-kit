@@ -87,9 +87,13 @@ let nfile = 0;
     return o;
   };
   // the page with init scripts set before load (open() above seeds through an init script on the context)
-  const device = async (seed) => {
+  // locks: the browser's Web Locks as it has them. Without it the page sees a browser with no
+  // Web Locks (navigator.locks undefined), the case the comparison guards cover on their own;
+  // every section before "Two tabs at once" runs so, as it did before the single-writer lock
+  const device = async (seed, locks) => {
     const ctx = await browser.newContext(L.OPEN_CTX);
     await ctx.addInitScript(() => { window.prompt = () => 'TestUser'; });
+    if(!locks) await ctx.addInitScript(() => { try { Object.defineProperty(Navigator.prototype, 'locks', {get: () => undefined, configurable: true}); } catch(e){} });
     if(seed) await ctx.addInitScript(([s]) => {
       if(sessionStorage.getItem('__seeded')) return;
       sessionStorage.setItem('__seeded', '1');
@@ -1301,6 +1305,198 @@ let nfile = 0;
       `after ${how}, a refused save, the profile opened again, storage working again: the next save writes, with no "another tab" notice`,
       {back, failed, goal: got.settings.goal, warned});
     await o.d.ctx.close();
+  }
+
+  console.log('\n=== Two tabs at once: another tab\'s save not yet passed to this tab (no synchronising before the action) ===');
+  // The browser passes one tab's save to another tab a moment later, with no locking (the HTML
+  // Standard). lagView freezes page p's view of keys ks as they are now, so another tab's later
+  // save has not reached p while p acts; p's own writes still show in its view, as in a browser.
+  // Nothing waits for the two tabs to agree between the other tab's save and p's action.
+  const lagView = (p, ks) => p.evaluate(ks => {
+    const P = Storage.prototype, get = P.getItem, set = P.setItem, rem = P.removeItem;
+    window.__lag = new Map(ks.map(k => [k, get.call(localStorage, k)]));
+    if(window.__lagWrapped) return; window.__lagWrapped = true;
+    P.getItem = function(k){ return this === localStorage && window.__lag && window.__lag.has(k) ? window.__lag.get(k) : get.call(this, k); };
+    P.setItem = function(k, v){ const r = set.call(this, k, v); if(this === localStorage && window.__lag && window.__lag.has(k)) window.__lag.set(k, String(v)); return r; };
+    P.removeItem = function(k){ const r = rem.call(this, k); if(this === localStorage && window.__lag && window.__lag.has(k)) window.__lag.set(k, null); return r; };
+  }, ks);
+  const unlag = p => p.evaluate(() => { window.__lag = null; });
+  // choose a file and press Import from script: a stopped page covers its buttons, and the
+  // check is that its writes are refused even when the button is reached
+  const chooseJS = async (p, obj) => {
+    const f = path.join(TMP, `f${++nfile}.json`);
+    fs.writeFileSync(f, JSON.stringify(obj));
+    await p.evaluate(() => show('settings'));
+    await p.setInputFiles('#fileIn', f);
+    await p.waitForFunction(() => { const b = document.getElementById('importPlan'); return b && b.textContent.trim(); }, null, {timeout: 5000}).catch(() => {});
+    await p.evaluate(() => { const g = document.getElementById('importGo'); if(g) g.click(); });
+    await p.waitForSelector('#importResult', {timeout: 3000}).catch(() => {});
+    return (await p.evaluate(() => { const b = document.getElementById('importPlan'); return b ? b.textContent : ''; })).replace(/\s+/g, ' ').trim();
+  };
+  // a real answer through the page's own path (record, then the save the page would make)
+  const answerHere = (p, i) => p.evaluate(i => { record(QUESTIONS[i % QUESTIONS.length], 'correct', undefined, 1000); saveNow(); return DB.answers.length ? DB.answers[DB.answers.length - 1].at : null; }, i);
+  // the answer at `at` is in the stored progress or in a copy Import or Put back kept
+  const keptSomewhere = async (p, di, at) => {
+    const prog = JSON.parse(await stored(p, di.data) || '{"answers":[]}');
+    const copies = JSON.parse(await stored(p, di.backup) || '[]');
+    const has = db => (db.answers || []).some(a => a.at === at);
+    return has(prog) || copies.some(c => { try { return has(JSON.parse(c.data)); } catch(e){ return false; } });
+  };
+  for(const order of ['the importing tab opened second', 'the importing tab opened first']){
+    for(const act of ['Import', 'an ordinary save', 'Put back']){
+      // one tab answers and saves; the other tab, which has not yet received that save, acts
+      const d = await device(undefined, true); const di = await info(d.page);
+      await answer(d.page, 3, 0);
+      const file = await exportOf(d.page);
+      if(act === 'Put back') await choose(d.page, later(file, 2), true);      // a copy to put back
+      const t2 = await secondTab(d);
+      await synced(t2, d.page, [di.data, di.log, di.backup], 'starting conditions');
+      const [actor, other] = order === 'the importing tab opened second' ? [t2, d.page] : [d.page, t2];
+      await lagView(actor, [di.data, di.log, di.backup]);
+      const at = await answerHere(other, 7);                                   // the other tab's answer
+      const otherSaved = at !== null && await keptSomewhere(other, di, at);
+      if(act === 'Import') await chooseJS(actor, later(file, 2));
+      else if(act === 'an ordinary save') await answerHere(actor, 9);
+      else await actor.evaluate(() => { show('settings'); restoreBackup(); });
+      await unlag(actor);
+      await actor.waitForTimeout(300);
+      const kept = !otherSaved || await keptSomewhere(other, di, at);
+      check(kept, `${order}, ${act} there while another tab's answer has not reached it: that answer is still in the stored progress or a kept copy`,
+        {otherSaved, at});
+      await d.ctx.close();
+    }
+  }
+  {
+    // Delete the copies in a tab that has not yet received another tab's import (which kept a copy)
+    const d = await device(undefined, true); const di = await info(d.page);
+    await answer(d.page, 3, 0);
+    const file = await exportOf(d.page);
+    await choose(d.page, later(file, 2), true);                             // copy 1
+    const t2 = await secondTab(d);
+    await synced(t2, d.page, [di.data, di.log, di.backup], 'starting conditions');
+    for(const [actor, other] of [[t2, d.page], [d.page, t2]]){
+      await lagView(actor, [di.data, di.log, di.backup]);
+      const r = {result: await chooseJS(other, later(await exportOf(d.page), 2))};   // the other tab's import: one more copy, if it may
+      const before = JSON.parse(await stored(other, di.backup) || '[]').length;
+      await actor.evaluate(() => { show('settings'); deleteCopies(); });
+      await unlag(actor);
+      await actor.waitForTimeout(300);
+      const after = JSON.parse(await stored(other, di.backup) || '[]').length;
+      const imported = /Imported:/.test(r.result);
+      check(!imported || after === before, `Delete the copies in a tab another tab's import has not yet reached: a copy that import kept is not deleted`, {imported, before, after, result: r.result.slice(0, 80)});
+      await synced(actor, other, [di.data, di.log, di.backup], 'the two tabs agree again');
+    }
+    await d.ctx.close();
+  }
+
+  console.log('\n=== One writer per profile: a second tab, the hand-over, a take-over, another profile ===');
+  const wall = p => p.evaluate(() => { const w = document.getElementById('stopwall') || document.getElementById('stalewarn'); return w ? w.dataset.why : null; });
+  {
+    // a second tab of the same profile opens read-only: it says so, takes no answer, writes nothing
+    const d = await device(undefined, true); const di = await info(d.page);
+    await answer(d.page, 3, 0);
+    const t2 = await secondTab(d);
+    await t2.waitForFunction(() => WRITER !== 'pending', null, {timeout: 5000}).catch(() => {});
+    const before = await stored(d.page, di.data);
+    const n0 = await nAns(t2);
+    await t2.evaluate(() => { record(QUESTIONS[5], 'correct', undefined, 1000); saveNow(); DB.settings.goal = 42; save(); saveNow(); });
+    check(await wall(t2) === 'other' && await nAns(t2) === n0 && await stored(d.page, di.data) === before && await d.page.evaluate(() => WRITER) === 'held',
+      'a second tab of a profile another tab has: it shows why it is read-only, takes no answer and writes nothing', {why: await wall(t2), n0, n: await nAns(t2)});
+    // the stop wall covers the page, so a real tap does not reach the questions
+    const covered = await t2.evaluate(() => { const b = document.querySelector('#nav button'); if(!b) return null; const r = b.getBoundingClientRect(); const top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return !!(top && top.closest('#stopwall')); });
+    check(covered === true, 'the stop wall lies over the page, so its buttons cannot be tapped', covered);
+    // "Use it here": the first tab saves the answer still waiting on its timer, hands over and stops
+    await holdTimer(d.page);
+    const at = await d.page.evaluate(() => { record(QUESTIONS[6], 'correct', undefined, 1000); return DB.answers[DB.answers.length - 1].at; });
+    await t2.evaluate(() => takeOver(false));
+    await t2.waitForFunction(() => WRITER === 'held', null, {timeout: 8000}).catch(() => {});
+    const t2has = await t2.evaluate(at => DB.answers.some(a => a.at === at), at);
+    check(await t2.evaluate(() => WRITER) === 'held' && t2has && await wall(t2) === null && await wall(d.page) === 'gave',
+      'Use it here: the other tab saves its waiting answer and stops; this tab starts saving with that answer in its progress',
+      {t2: await t2.evaluate(() => WRITER), t2has, wall1: await wall(d.page)});
+    const at2 = await answerHere(t2, 8);
+    const prog = JSON.parse(await stored(t2, di.data));
+    check(prog.answers.some(a => a.at === at) && prog.answers.some(a => a.at === at2) && await d.page.evaluate(() => { record(QUESTIONS[2], 'correct', undefined, 1000); return WRITER; }) === 'other',
+      'after the hand-over both answers are stored, and the first tab takes no more answers', prog.answers.length);
+    await d.ctx.close();
+  }
+  {
+    // the hand-over when the old writer's last save has not reached the new tab yet: the new tab
+    // does not start writing on its older view; once the save arrives, Use it here works
+    const d = await device(undefined, true); const di = await info(d.page);
+    await answer(d.page, 3, 0);
+    const t2 = await secondTab(d);
+    await t2.waitForFunction(() => WRITER === 'other', null, {timeout: 5000}).catch(() => {});
+    await lagView(t2, [di.data, di.log]);
+    await holdTimer(d.page);
+    const at = await d.page.evaluate(() => { record(QUESTIONS[6], 'correct', undefined, 1000); return DB.answers[DB.answers.length - 1].at; });
+    await t2.evaluate(() => takeOver(false));
+    await t2.waitForFunction(() => (document.getElementById('stopwall') || {dataset: {}}).dataset.why === 'late', null, {timeout: 9000}).catch(() => {});
+    const late = await wall(t2), w1 = await t2.evaluate(() => WRITER);
+    await unlag(t2);
+    await d.page.evaluate(() => takeOver(false)).catch(() => {});      // the first tab takes it back first: it has the newest progress
+    await d.page.waitForFunction(() => WRITER === 'held', null, {timeout: 8000}).catch(() => {});
+    await t2.evaluate(() => takeOver(false));
+    await t2.waitForFunction(() => WRITER === 'held', null, {timeout: 8000}).catch(() => {});
+    const has = await t2.evaluate(at => DB.answers.some(a => a.at === at), at);
+    check(late === 'late' && w1 === 'other' && has && JSON.parse(await stored(t2, di.data)).answers.some(a => a.at === at),
+      'a hand-over whose last save has not reached this tab: it does not start writing on its older view; later, Use it here brings that answer', {late, w1, has});
+    await d.ctx.close();
+  }
+  {
+    // a writer that does not answer (asleep in the background): after the wait the page offers to
+    // take it over; the old writer then stops, and offers to export what it had not saved
+    const d = await device(undefined, true); const di = await info(d.page);
+    await answer(d.page, 3, 0);
+    const t2 = await secondTab(d);
+    await t2.waitForFunction(() => WRITER === 'other', null, {timeout: 5000}).catch(() => {});
+    await holdTimer(d.page);
+    await d.page.evaluate(() => { writerChan.close(); record(QUESTIONS[6], 'correct', undefined, 1000); });   // deaf, with an unsaved answer
+    await t2.evaluate(() => takeOver(false));
+    await t2.waitForFunction(() => (document.getElementById('stopwall') || {dataset: {}}).dataset.why === 'slow', null, {timeout: 8000}).catch(() => {});
+    const slow = await wall(t2);
+    await t2.evaluate(() => takeOver(true));
+    await t2.waitForFunction(() => WRITER === 'held', null, {timeout: 8000}).catch(() => {});
+    await d.page.waitForFunction(() => WRITER === 'other', null, {timeout: 5000}).catch(() => {});
+    const storedNowV = await stored(t2, di.data);
+    await d.page.evaluate(() => saveNow());                                         // its waiting save: refused
+    const exportOffered = await d.page.evaluate(() => !!document.getElementById('stopExport'));
+    check(slow === 'slow' && await t2.evaluate(() => WRITER) === 'held' && await wall(d.page) === 'taken' && await stored(t2, di.data) === storedNowV && exportOffered,
+      'a writer that does not answer: "Take it over anyway" works; the old writer stops, writes nothing, and offers to export its unsaved answer',
+      {slow, w1: await wall(d.page), exportOffered});
+    const [dl] = await Promise.all([d.page.waitForEvent('download', {timeout: 5000}).catch(() => null), d.page.evaluate(() => { const b = document.getElementById('stopExport'); if(b) b.click(); })]);
+    const exp = dl ? JSON.parse(fs.readFileSync(await dl.path(), 'utf8')) : null;
+    check(!!exp && exp.db.answers.length === 4, 'the export from the stop wall holds this page\'s unsaved answer', exp && exp.db.answers.length);
+    await d.ctx.close();
+  }
+  {
+    // reloading a stopped page with unsaved work asks first
+    const d = await device(undefined, true);
+    await answer(d.page, 2, 0);
+    const t2 = await secondTab(d);
+    await holdTimer(d.page);
+    await d.page.evaluate(() => { writerChan.close(); record(QUESTIONS[6], 'correct', undefined, 1000); });
+    await t2.evaluate(() => takeOver(true));
+    await d.page.waitForFunction(() => WRITER === 'other', null, {timeout: 5000}).catch(() => {});
+    const n0 = d.dialogs.length;
+    d.page.removeAllListeners('dialog'); d.page.on('dialog', x => { d.dialogs.push(x.message()); x.dismiss(); });
+    await d.page.evaluate(() => { const b = document.getElementById('stopReload'); if(b) b.click(); });
+    check(/lost on reload unless you export/.test(d.dialogs.slice(n0).join(' ')) && await d.page.evaluate(() => DB.answers.length) === 3,
+      'Reload on a stopped page with unsaved answers asks first; cancelled, the page and its answers stay', d.dialogs.slice(n0));
+    await d.ctx.close();
+  }
+  {
+    // an import that would write a profile another tab has open writes nothing
+    const d = await device(undefined, true); const di = await info(d.page);
+    await answer(d.page, 2, 0);
+    const t2 = await secondTab(d);
+    await t2.evaluate(() => useProfile('other-one'));
+    await t2.waitForFunction(() => WRITER === 'held', null, {timeout: 5000}).catch(() => {});
+    await d.page.waitForFunction(() => WRITER === 'held', null, {timeout: 5000}).catch(() => {});
+    const r = await d.page.evaluate(() => withOtherProfile({action: 'separate', name: 'other-one'}, () => ({text: 'WROTE'})));
+    const free = await d.page.evaluate(() => withOtherProfile({action: 'separate', name: 'free-one'}, () => ({text: 'WROTE'})));
+    check(/open in another tab/.test(r.text) && free.text === 'WROTE', 'Import into a profile another tab has open writes nothing and says why; a free name is written', {r: r.text.slice(0, 80), free: free.text});
+    await d.ctx.close();
   }
 
   check(!A.errors.length && !B.errors.length, 'no page errors', A.errors.concat(B.errors).slice(0, 2).join('; '));
