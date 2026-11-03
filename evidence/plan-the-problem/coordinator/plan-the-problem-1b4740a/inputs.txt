@@ -1,0 +1,5 @@
+module plan-the-problem
+commit 1b4740a14554c6a3e1636aef502e0cf772c149d2
+core a2dbf03d6ccea270f77ac440f3fd8b7a86d855cf template cbac5bd425d480944293f8e1fb5d5d703e8baba1
+extra modules: 
+2026-11-03T03:35:03Z

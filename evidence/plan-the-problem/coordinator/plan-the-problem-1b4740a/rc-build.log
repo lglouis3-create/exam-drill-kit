@@ -1,0 +1,17 @@
+checking sources...
+  17 sources and sw.js parse cleanly
+  scheduler: concept (no library)
+  17 questions in 8 topics, from 2 question files: q1_topics.js, q90_plc_fixture.js
+  feature formulas-in-text v1 in the page (options {"symbols": [["Cmax\u221e", "C<sub>max</sub><sup>\u221e</sup>"], ["Cmin\u221e", "C<sub>min</sub><sup>\u221e</sup>"], ["Cavg\u221e", "C<sub>avg</sub><sup>\u221e</sup>"], ["Cav\u221e", "C<sub>av</sub><sup>\u221e</sup>"], ["Dmax\u221e", "D<sub>max</sub><sup>\u221e</sup>"], ["Dmin\u221e", "D<sub>min</sub><sup>\u221e</sup>"], ["Davg\u221e", "D<sub>avg</sub><sup>\u221e</sup>"], ["kVD", "kV<sub>D</sub>"], ["FD0", "FD<sub>0</sub>"], ["AUCA", "AUC<sub>A</sub>"], ["AUCB", "AUC<sub>B</sub>"], ["AUCC", "AUC<sub>C</sub>"], ["Fabs", "F<sub>abs</sub>"], ["Frel", "F<sub>rel</sub>"], ["Dpo", "D<sub>po</sub>"], ["DIV", "D<sub>IV</sub>"], ["DA", "D<sub>A</sub>"], ["AUCoral", "AUC<sub>oral</sub>"], ["AUCiv", "AUC<sub>IV</sub>"], ["AUCpo", "AUC<sub>po</sub>"], ["AUCIV", "AUC<sub>IV</sub>"], ["Cpeak", "C<sub>peak</sub>"], ["Cmax", "C<sub>max</sub>"], ["Cmin", "C<sub>min</sub>"], ["tmax", "t<sub>max</sub>"], ["Css", "C<sub>ss</sub>"], ["ClT", "Cl<sub>T</sub>"], ["ClR", "Cl<sub>R</sub>"], ["ClH", "Cl<sub>H</sub>"], ["SCr", "S<sub>Cr</sub>"], ["k12", "k<sub>12</sub>"], ["k21", "k<sub>21</sub>"], ["Cp0", "C<sub>p</sub><sup>0</sup>"], ["Cp", "C<sub>p</sub>"], ["Cs", "C<sub>s</sub>"], ["C0", "C<sub>0</sub>"], ["D0", "D<sub>0</sub>"], ["k0", "k<sub>0</sub>"], ["DB", "D<sub>B</sub>"], ["DL", "D<sub>L</sub>"], ["Du", "D<sub>u</sub>"], ["VD", "V<sub>D</sub>"], ["Vp", "V<sub>p</sub>"], ["Vt", "V<sub>t</sub>"], ["Vc", "V<sub>c</sub>"], ["ka", "k<sub>a</sub>"], ["ke", "k<sub>e</sub>"], ["km", "k<sub>m</sub>"], ["fe", "f<sub>e</sub>"], ["C1", "C<sub>1</sub>"], ["C2", "C<sub>2</sub>"], ["t1", "t<sub>1</sub>"], ["t2", "t<sub>2</sub>"], ["Ct", "C<sub>t</sub>"], ["Cn", "C<sub>n</sub>"], ["tn", "t<sub>n</sub>"]], "rates": ["k0", "ka", "ke", "km"], "halfLife": true, "times": true, "minus": true, "powers": true})
+  feature equation-drill v2: build step done
+  feature equation-drill v2 in the page (options {"label": "Equations", "before": "settings", "groups": {}})
+  feature plan-the-problem v1: build step done
+  feature plan-the-problem v1 in the page (options {"groups": {}})
+  change log: 1 entries, newest "2026-10-02 (set up from the template)"
+  assembled script parses cleanly
+wrote index.html  (0.39 MB)
+wrote COURSE0000_Drill.html  (redirect to index.html)
+wrote version.json  (built 2026-11-03T03:36:01Z)
+  note: placeholder icons (a plain square) for icon-192.png, icon-512.png, icon-maskable-512.png, apple-touch-icon.png; put the course's own PNGs under src/icons/ to replace them
+wrote manifest.json and the icons
+wrote sw.js  (caches named course-id-drill-v<n>; 7 files saved at install)
