@@ -5,7 +5,8 @@ Louis's standing policy for kit sessions, as he wrote it in the main kit session
 add to it (below the policy). `KIT_DESIGN.md` §12 decision 10, `CLAUDE.md` and
 `skill/SKILL.md` summarise them; where a summary differs from the text below, this text
 governs. Readings Claude added where the text leaves a case open are listed in decision
-10 ("Claude's readings") and wait for Louis's confirmation. The words are his; curly
+10 ("Claude's readings"); Louis accepted them on 2026-11-03 (his message of 12:50:53
+UTC, at the end of this file). The words are his; curly
 quotation marks and apostrophes are written here as straight ones, and the headings of
 the first message are set in bold.
 
@@ -116,6 +117,23 @@ are left out):
 >
 > Keep live courses unchanged. Batch remaining approval requests, and continue independent
 > work while waiting.
+
+From Louis's message of 12:50:53 UTC (the paragraphs on the readings, scheduled tasks and
+continuing; the paragraphs on single pull requests are left out):
+
+> Your seven policy readings — I accept them as currently summarized, including retrying a
+> job GitHub never started, while keeping the refused attempt recorded. This does not permit
+> rerunning actual failures until green or weakening checks.
+>
+> Scheduled tasks: Keep BDK's daily review preparing changes on a branch for approval. I will
+> paste the supplied update message into the Kit updater session. Until its stored
+> instructions are corrected, leave all course updates at preview and do not publish
+> automatically.
+>
+> [...]
+>
+> Continue independent work under the standing policy and batch the next update. Keep live
+> courses unchanged.
 
 In this text "you" is Claude, the kit session; #36 is the porter's policy
 (`review/porter-policy.md`) and #37 the pull request that added this file.

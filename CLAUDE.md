@@ -100,13 +100,15 @@ after Phase 1 and overrides earlier sections where they differ.
   UTC), #38 `9f2940b` (`test.js` section 7; merged by the main kit session under Louis's
   standing policy and his go-ahead for that fix at 06:35 UTC, at 06:54 UTC), #37 `494e6d5`
   (the policy record, decision 10; merged on Louis's yes to it), #40 `751251a` (`test.js`
-  section 7, 20 trials; merged by the main kit session under decision 10). The WebKit
+  section 7, 20 trials; merged by the main kit session under decision 10), #41
+  `e827671` (bookkeeping), #39 `34ebc6c` (the waiting save written when a page is hidden
+  or closed; merged on Louis's approval of 2026-11-03 at its reviewed commit `1a0a1ee`;
+  a test in the Safari app on a real iPhone and iPad is still outstanding). The WebKit
   diagnosis and every run's log: branch `claude/elegant-ptolemy-pqxb8y-webkit-diag`,
   `review/webkit-offline/` (never merged). Open: #32 (Import; Louis keeps it unmerged
-  until its two intermittent two-tab failures are explained and resolved), #39 (the
-  waiting save when a page is hidden or closed; progress storage, waits for Louis), this
-  bookkeeping record, the proposals #23 and #30, and the porter's draft ports (#11,
-  #13-#22, #24-#26).
+  after ChatGPT's review of 7dbc054 found three defects; fixes in review), #42 (module
+  courses in WebKit; waits for Louis), the proposals #23 and #30, and the porter's draft
+  ports (#11, #13-#22, #24-#26).
 - **GitHub Actions stopped starting jobs on 2026-11-03** between 04:13 UTC (run
   41576828141, the last that ran and passed) and 04:35 UTC (main's run 41579030257 for
   4e0fae4, the first refused). Every run created since then (22 by 05:05 UTC) failed
@@ -220,13 +222,16 @@ after Phase 1 and overrides earlier sections where they differ.
    and the nine answers in its §6. `skill/SKILL.md` already describes the method and
    says that its in-course comparison starts nowhere until then.
 3. "Keep live courses unchanged unless I separately approve their updates" (2026-11-03):
-   which course changes count as separately approved? Louis settled the unattended runs
-   on 2026-11-03: they never change a live site without his reply. Still Claude's
-   reading, followed until Louis answers: a course session changes a live site only with
-   his approval of that change given in the session (his request for it, or his yes to
-   a summary of it), also where the course repo's own rule says to merge or push
-   automatically (Medicinal-chemistry's `CLAUDE.md`: "Merge it automatically always";
-   BDK's: "push to `main`"). Done on 2026-11-03 at Louis's instruction: the scheduled
+   which course changes count as separately approved? Settled on 2026-11-03. Louis
+   settled the unattended runs: they never change a live site without his reply. He then
+   accepted Claude's reading for course sessions (`KIT_DESIGN.md` §12 decision 10,
+   reading 7): a course session changes a live site only with his approval of that
+   change given in the session (his request for it, or his yes to a summary of it), also
+   where the course repo's own rule says to merge or push automatically
+   (Medicinal-chemistry's `CLAUDE.md`: "Merge it automatically always"; BDK's: "push to
+   `main`"). Until the "Kit update run"'s stored instructions are corrected in the "Kit
+   updater" session, every course update stays at preview and nothing is published
+   automatically (Louis, 2026-11-03). Done on 2026-11-03 at Louis's instruction: the scheduled
    task "BDK daily review" (daily 5:45 AM America/Chicago, a fresh session each time) now
    prepares its fixes and log entry on a branch `daily-review/<date>` with a pull request
    for Louis, and never pushes to BDK's `main` (its stored instructions, updated from the
