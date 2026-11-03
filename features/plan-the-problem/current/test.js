@@ -76,6 +76,10 @@ function fixtureFiles(own, opts){
             `TOPICS.push(...${JSON.stringify(topics)});\nQUESTIONS.push(...${JSON.stringify(qs)});\n`};
 }
 const courseLine = "COURSE.files = (COURSE.files || ['atlas.js', 'diagrams.js', 'q1_topics.js']).filter(f => f !== 'plan_test_data.js').concat(['plan_test_data.js']);";
+/* The copies without ASKS switch terms-variables off when the course has it on: its build step refuses a course
+   whose ASKS lacks the keys its `families`, `names` and `twins` options name, and these copies exist to show this
+   module without ASKS. No module needs terms-variables (module.json `needs`), so this module is unaffected. */
+const noAsksLine = " if(COURSE.features && COURSE.features['terms-variables']) delete COURSE.features['terms-variables'];";
 
 (async () => {
   console.log('\n=== the course\'s own set-up data ===');
@@ -143,7 +147,7 @@ const courseLine = "COURSE.files = (COURSE.files || ['atlas.js', 'diagrams.js', 
   // without ASKS and PLAN: a question file read last empties the course's own, when it has them
   const s2 = L.scratchBuild('plan-noplan', {files: Object.assign(fixtureFiles(own, {noAsks: true, noPlan: true}), {'q99_plan_noplan.js':
     "QUESTIONS.forEach(q => { delete q.asks; });\nif(typeof ASKS !== 'undefined') for(const k of Object.keys(ASKS)) delete ASKS[k];\n" +
-    "if(typeof PLAN !== 'undefined') for(const k of Object.keys(PLAN)) delete PLAN[k];\n"}), courseLine});
+    "if(typeof PLAN !== 'undefined') for(const k of Object.keys(PLAN)) delete PLAN[k];\n"}), courseLine: courseLine + noAsksLine});
   const {browser} = await L.launch(NAME);
   try {
     const {ctx, page, errors} = await L.openPage(browser, s.page, {viewport: {width: 1100, height: 1300}});
@@ -314,7 +318,7 @@ const courseLine = "COURSE.files = (COURSE.files || ['atlas.js', 'diagrams.js', 
     { // PLAN without ASKS: the questions keep `asks`, the course's ASKS is left with no keys (src/views.js line 4833)
       // read after plan_test_data.js, which fills ASKS
       const s3 = L.scratchBuild('plan-noasks', {files: Object.assign(fixtureFiles(own), {'plan_noasks.js': 'for(const k of Object.keys(ASKS)) delete ASKS[k];\n'}),
-        courseLine: courseLine + " COURSE.files = COURSE.files.concat(['plan_noasks.js']);"});
+        courseLine: courseLine + " COURSE.files = COURSE.files.concat(['plan_noasks.js']);" + noAsksLine});
       if(s3.code !== 0) check(false, 'the copy with PLAN and no ASKS builds', s3.out.split('\n').pop());
       else {
         const c = await L.openPage(browser, s3.page, {viewport: {width: 1100, height: 1300}});

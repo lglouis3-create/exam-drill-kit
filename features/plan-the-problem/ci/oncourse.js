@@ -17,10 +17,15 @@
  *     `{id:'...'`, then type and skill, then `prof:'Professor'`;
  *   - the topics are pushed after the course's own, a topic the course already has is
  *     not pushed again;
- *   - the lectures are Basic-Pharmacokinetics' own entries for the questions' lectures,
- *     with ids L91 onward; a question whose citation names none of their decks (a
- *     practice-solutions file) gets an entry for the file it cites, with its own
- *     lecture's label, exam and module;
+ *   - the lectures are Basic-Pharmacokinetics' own entries for the questions' lectures
+ *     (one is written only when the course has no lecture with its deck), each with its
+ *     own id prefixed `plc-` (L04 -> plc-L04); a question whose citation names none of the
+ *     course's decks (a practice-solutions file) gets an entry for the file it cites, with
+ *     its own lecture's label, exam and module, id `plc-<its lecture>-p<n>` (the n-th such
+ *     file of that lecture, from 1: IV-Bolus-Practice-3---Solutions.pdf of L02 ->
+ *     plc-L02-p1). Other modules' scripts take ids such as L91 and L92 (kit rule 2,
+ *     /tmp/port-tools/CIDATA.md); the script stops only when the course already has one of
+ *     these plc- ids (a real clash);
  *   - the skills the questions use are added to COURSE.skills when the course lacks them;
  *   - a line the course's EQUATIONS already holds in the same form (the same left side
  *     and typed form, as equation-drill's own course writes the same equations) is
@@ -105,17 +110,19 @@ ${PK.qs.map(qline).join('\n')}
 `;
 // lectures: the questions' own, then one for each practice file a question cites instead
 const decks = new Set((COURSE.lectures || []).map(l => l.deck));
-const lectures = PK.lectures.filter(l => !decks.has(l.deck)).map(l => Object.assign({}, l));
+const lectures = PK.lectures.filter(l => !decks.has(l.deck)).map(l => Object.assign({}, l, {id: PRE + l.id}));
 lectures.forEach(l => decks.add(l.deck));
+const nth = {};
 for(const q of PK.qs){
   if([...decks].some(d => String(q.cite).includes(d))) continue;
   const own = PK.lectures.find(l => l.id === PK.lectureOf[q.id]), file = (String(q.cite).match(/^([^,;]+?\.pdf)\b/) || [])[1];
   if(!own || !file) fail(`question ${q.id} cites no deck of its lectures and no file a lecture can be written for`);
-  lectures.push(Object.assign({}, own, {deck: file})); decks.add(file);
+  nth[own.id] = (nth[own.id] || 0) + 1;
+  lectures.push(Object.assign({}, own, {id: `${PRE}${own.id}-p${nth[own.id]}`, deck: file})); decks.add(file);
 }
-lectures.forEach((l, i) => { l.id = 'L' + (91 + i); });
 const used = new Set((COURSE.lectures || []).map(l => String(l.id)));
-if(lectures.some(l => used.has(l.id))) fail('course.js already has a lecture id from L91 on');
+const clash = lectures.filter(l => used.has(l.id)).map(l => l.id);
+if(clash.length) fail('course.js already has the lecture id(s) ' + clash.join(', ') + ' this script writes');
 const lecLit = l => `{id:${lit(l.id)}, deck:${lit(l.deck)}, label:${JSON.stringify(l.label)}, prof:${lit(l.prof)}, exam:${+l.exam}, module:${+l.module}}`;
 const skills = PK.skills.filter(s => !(COURSE.skills || []).some(x => x.id === s.id));
 const line = `\n;${TAG} COURSE.files = (COURSE.files || ['atlas.js', 'diagrams.js', 'q1_topics.js']).concat([${JSON.stringify(DATA)}, ${JSON.stringify(QFILE)}]); ` +

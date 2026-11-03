@@ -23,7 +23,9 @@ Dated kit changes, newest first.
   255-268 and 396-438 ported, and checks added in review: the wrong choices, the models
   against PK's own code, the saved tally through Export, Import, profiles and blocked or
   full storage): 54 checks pass on the module's own course of PK data, which
-  `features/plan-the-problem/ci/oncourse.js` writes. Port queue item 1 is partial.
+  `features/plan-the-problem/ci/oncourse.js` writes (its lectures with ids prefixed `plc-`,
+  so it no longer refuses a course where another module took L91). Port queue item 1 is
+  partial.
 
 ## 2026-11-01
 - `core/`: an exam with `questions: null` or a pool with `marks: null` no longer breaks the page (`nullexam.js`).
