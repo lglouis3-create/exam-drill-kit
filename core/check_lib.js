@@ -142,9 +142,10 @@ async function openFromDisk(browser, ctxOpts, init){ return openAt(browser, 'fil
    accepted (req.socket.destroy()). In WebKit on Linux (libsoup, the engine
    Playwright runs) that now and then broke the browser's network session: libsoup
    assertion failures, then "WebKit encountered an internal error. This is a WebKit
-   bug.", with the test browser's site data lost. Under load it broke 15 of 180 runs,
-   and 0 of 60 with refused connections (the WebKit diagnosis of 2026-11-03,
-   review/webkit-offline/README.md on branch claude/elegant-ptolemy-pqxb8y-webkit-diag).
+   bug.", with the test browser's site data lost. Under load it broke 16 of 195 runs; with
+   refused connections, 0 of 60 instrumented runs and 0 of 120 runs of this offline_test.js
+   (the WebKit diagnosis of 2026-11-03, review/webkit-offline/README.md on branch
+   claude/elegant-ptolemy-pqxb8y-webkit-diag).
    The worker takes the same path for both: its fetch fails and it serves the
    saved copy. */
 function serve(root, opts){

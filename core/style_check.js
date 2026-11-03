@@ -31,11 +31,12 @@ function scan(txt, where){
     console.log(`  ${where}\n      [vague cross-reference, no file or slide] "...${txt.slice(Math.max(0,v.index-40), v.index+v[0].length+40).trim()}..."`); hits++;
   }
 }
-const STEM_RE=/\b(the deck|the slide|the lecture|lecture (gives|asks|notes|states)|deck note|is listed|are listed|according to|as presented in lecture|given as|named as|described as)\b/i;
+// the stem rule, with "given as" allowed in dose or problem wording (style_rules.js)
+const {stemFlag}=require('./style_rules');
 console.log('\n=== Stem check (every stem asks the subject, not "what does the deck say") ===');
 let stemHits=0;
-for(const q of Q){ const m=q.stem.match(STEM_RE);
-  if(m){ console.log(`  ${q.id}: "${q.stem}"`); stemHits++; } }
+for(const q of Q){ const m=stemFlag(q.stem);
+  if(m){ console.log(`  ${q.id} [${m}]: "${q.stem}"`); stemHits++; } }
 console.log(stemHits ? `  ${stemHits} stems refer to the course material\n` : `  all ${Q.length} stems clean\n`);
 hits += stemHits;
 
