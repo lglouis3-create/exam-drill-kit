@@ -126,7 +126,7 @@ const build = (label, list) => L.scratchBuild(label, {files: {'qp_test_data.js':
 (async () => {
   console.log('\n=== the course\'s own quizzes ===');
   L.PAGE.need(NAME);
-  const X = L.engine('({QUESTIONS, TOPICS, COURSE, FX})');
+  const X = L.engine('({QUESTIONS, TOPICS, COURSE, FX: typeof FX === "undefined" ? null : FX})');   // no module on: no FX, and the check below fails
   const A = X.FX && X.FX.api('quiz-prep-cards');
   if(!check(!!A, 'the page carries quiz-prep-cards, working', JSON.stringify((X.FX && X.FX.errors) || 'no feature modules in the page'))) L.finish(NAME);
   const list = A.quizzes();
