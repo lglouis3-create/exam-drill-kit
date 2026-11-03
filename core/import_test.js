@@ -12,7 +12,8 @@
  *                      and a history of seven-field entries are read and converted
  *   newer, older,      a file that continues this device's record replaces it after
  *   diverged           the plan is confirmed, and the replaced progress is kept and
- *                      can be put back; an older file changes nothing; a file and a
+ *                      can be put back; an older file whose settings differ goes
+ *                      into a new profile; a file and a
  *                      device that each have answers the other lacks: the file goes
  *                      into a new profile and this one is unchanged; a file that keeps
  *                      only its latest 4,000 answers and lacks this device's older
@@ -24,12 +25,24 @@
  *                      record of another origin (`created`), an answer list here that
  *                      the 4,000-answer limit has cut, or answers here that are not
  *                      the file's first answers in order: a new profile, each time
+ *   besides the        matching or empty answer lists with other concept progress
+ *   answers            (both lists empty, as in review of 3edbf94), another pace,
+ *                      a scheduling state or a module's part: a new profile, never
+ *                      "nothing"; a file with no answers whose every part is here:
+ *                      nothing
+ *   empty profile      a file with concept progress and no answers, or with answers,
+ *                      replaces a profile with no progress; a profile with concept
+ *                      progress and no answers is not taken for an empty one
+ *   older files and    an older file whose every part is here changes nothing; one
+ *   repeats            whose concept was answered again here goes into a new
+ *                      profile; the same file again, also after a reload, after the
+ *                      profile was opened, and with no answers, makes no second
+ *                      profile; a file with the same answers as a profile but other
+ *                      concept progress is not taken for it
  *   put back           a refused write at each of its three steps, and at step 2
  *                      with its undo refused too: both records are in storage after
  *                      each, the page says what happened, a reload shows the same;
  *                      the copies are deleted only when asked
- *   repeated imports   the same file again changes nothing, also after it went into a
- *                      new profile
  *   settings           the pace comes with the file; the equation drill's choice and
  *                      every key outside the progress stay as they were
  *   refused reads and  a progress or history that could not be read in this visit,
@@ -223,9 +236,17 @@ let nfile = 0;
   r = await choose(A.page, fileB2, true);
   check(!r.offered && /on this device already/.test(r.plan) && await nAns(A.page) === 5 && (await A.page.evaluate(() => LOG.length)) === 5,
     'importing the same file again changes nothing', r.plan.slice(0, 200));
-  // an older file of the same record
-  r = await choose(A.page, fileA, true);
-  check(!r.offered && /on this device already/.test(r.plan) && await nAns(A.page) === 5, 'an older file of the same record changes nothing', r.plan.slice(0, 200));
+  // an older file of the same record: its answers are all here, but its other parts may
+  // be older or may have been changed elsewhere, which its answers cannot tell apart
+  {
+    const before = await stored(A.page, I.data);
+    r = await choose(A.page, fileA, false);
+    // this device's pace was set by the newer file above, so the older file's settings differ
+    check(r.offered && /this device has 2 answers that the file does not have; the file's settings differ from this profile's/i.test(r.plan) && /new profile/.test(r.plan),
+      'an older file of the same record whose settings differ: the plan offers a new profile, and says why', r.plan.slice(0, 420));
+    await A.page.click('#importCancel');
+    check(await stored(A.page, I.data) === before && await nAns(A.page) === 5, 'cancelled, nothing is saved');
+  }
   // put back, then forward again
   await A.page.click('#btnRestore');
   await A.page.waitForTimeout(300);
@@ -256,8 +277,8 @@ let nfile = 0;
   const profiles = async () => Object.keys(await allKeys(A.page)).filter(k => k.startsWith(I.ns + ':data:')).length;
   const nProf = await profiles();
   r = await choose(A.page, fileB3, true);
-  check(!r.offered && r.plan.includes(`imported before, into the profile "${newName}"`) && await profiles() === nProf,
-    'the same file again: it was imported before, and no second profile is made', r.plan.slice(0, 200));
+  check(!r.offered && r.plan.includes(`already in the profile "${newName}"`) && await profiles() === nProf,
+    'the same file again: it is in the profile it went into, and no second profile is made', r.plan.slice(0, 200));
   await reload(A.page);
   check(!!(await stored(A.page, I.ns + ':data:' + newName)) && await nAns(A.page) === 6, 'after a reload the new profile is there and this profile has its 6 answers');
   // Open it
@@ -265,6 +286,21 @@ let nfile = 0;
   await A.page.evaluate(n => { useProfile(n); show('settings'); }, newName);
   check(await A.page.evaluate(() => PROFILE) === newName && await nAns(A.page) === 7, 'the new profile opens with the file\'s 7 answers');
   await A.page.evaluate(n => { useProfile(n); show('settings'); }, I.profile);
+  r = await choose(A.page, fileB3, true);
+  check(!r.offered && r.plan.includes(`already in the profile "${newName}"`) && await profiles() === nProf,
+    'after that profile was opened, the same file again still makes no second profile', r.plan.slice(0, 200));
+  // the same answers as that profile, with other concept progress: not the file imported before
+  {
+    const g = JSON.parse(JSON.stringify(fileB3)), c = Object.keys(g.db.concepts)[0];
+    g.db.concepts[c].seen += 1; g.db.concepts[c].correct += 1;
+    r = await choose(A.page, g, true);
+    const name2 = (r.plan.match(/new profile, "([^"]+)"/) || [])[1];
+    const p2 = name2 ? JSON.parse(await stored(A.page, I.ns + ':data:' + name2) || 'null') : null;
+    check(!!p2 && !r.plan.includes('already in the profile') && JSON.stringify(p2.concepts[c]) === JSON.stringify(g.db.concepts[c]) && await profiles() === nProf + 1,
+      'a file with the same answers as a profile here but other concept progress is not taken for it: a new profile, holding the file\'s concept progress', r.plan.slice(0, 300));
+    r = await choose(A.page, g, true);
+    check(!r.offered && r.plan.includes(`already in the profile "${name2}"`) && await profiles() === nProf + 1, 'that file again makes no further profile', r.plan.slice(0, 200));
+  }
 
   console.log('\n=== The 4,000-answer limit ===');
   {
@@ -351,6 +387,136 @@ let nfile = 0;
       'a file with an answer before this device\'s first (not its continuation) goes into a new profile', rr.plan.slice(0, 300));
     rr = await choose(o.d.page, f, true);
     await keptApart(o, rr, f, 'answers out of order');
+    await o.d.ctx.close();
+  }
+
+  console.log('\n=== Progress besides the answers: concept progress, settings, scheduling state ===');
+  // Louis, 2026-11-03: matching or empty answer lists alone never show that a file adds nothing
+  const C0 = I.concepts[0];
+  const rec = (seen, box) => ({seen, correct: seen - 1, wrong: 1, guessed: 0, streak: 1, box, dueAt: 1793700000000 + 86400000 * box, dueQ: 0, lastQ: -999, asked: [], last: {}});
+  const blankDb = () => ({v: 2, concepts: {}, answers: [], qn: 0, fsrsQ: {}, fsrsC: {}, arms: {}, fsUndo: null, settings: {mode: 'cram'}, created: 1793600000000});
+  const fileOf = db => ({app: 'exam-drill', course: I.course, ns: I.ns, profile: 'other device', exported: new Date().toISOString(), db, log: []});
+  const profilesOn = async p => Object.keys(await allKeys(p)).filter(k => k.startsWith(I.ns + ':data:')).length;
+  // a file that went into a new profile: that profile is the file's progress, part for part, and this one is as it was
+  const keptWhole = async (p, di, r, f, hereBefore, label) => {
+    const name = (r.plan.match(/new profile, "([^"]+)"/) || [])[1];
+    const theirs = name ? JSON.parse(await stored(p, I.ns + ':data:' + name) || 'null') : null;
+    check(!!theirs && ['concepts', 'answers', 'settings', 'arms', 'fsrsC'].every(k => JSON.stringify(theirs[k]) === JSON.stringify(f.db[k] === undefined ? {} : f.db[k])) &&
+          await stored(p, di.data) === hereBefore,
+      `${label}: the file's progress is a new profile, part for part, and this profile's stored progress is exactly as it was`, name);
+    return name;
+  };
+  {
+    // both answer lists empty, the concept progress different (the case found in review of 3edbf94)
+    const here = blankDb(); here.concepts[C0] = rec(3, 1);
+    const D = await device({[I.ns + ':profile']: 'TestUser', [I.ns + ':data:TestUser']: JSON.stringify(here)});
+    const di = await info(D.page);
+    const hereBefore = await stored(D.page, di.data);
+    const fdb = blankDb(); fdb.concepts[C0] = rec(5, 2);
+    const f = fileOf(fdb);
+    let rr = await choose(D.page, f, false);
+    check(rr.offered && /In the file: 0 answers/.test(rr.plan) && /the file's concept progress differs from this profile's/i.test(rr.plan) && /new profile/.test(rr.plan),
+      'both answer lists empty, the concept progress different: the plan offers a new profile and says why, not "nothing"', rr.plan.slice(0, 400));
+    rr = await choose(D.page, f, true);
+    const name = await keptWhole(D.page, di, rr, f, hereBefore, 'empty answer lists, other concept progress');
+    const n0 = await profilesOn(D.page);
+    rr = await choose(D.page, f, true);
+    check(!rr.offered && rr.plan.includes(`already in the profile "${name}"`) && await profilesOn(D.page) === n0, 'that file again: no second profile', rr.plan.slice(0, 200));
+    // another file with no answers: not taken for the profile made above, since its concept progress differs
+    const g = fileOf(Object.assign(blankDb(), {concepts: {[C0]: rec(7, 3)}}));
+    rr = await choose(D.page, g, true);
+    check(!rr.plan.includes('already in the profile') && /now the profile/.test(rr.result) && await profilesOn(D.page) === n0 + 1,
+      'another file with no answers and other concept progress is not taken for it: a new profile', rr.plan.slice(0, 260));
+    // a file with no answers whose every part is this profile's
+    rr = await choose(D.page, fileOf(JSON.parse(hereBefore)), true);
+    check(!rr.offered && /on this device already/.test(rr.plan) && await profilesOn(D.page) === n0 + 1 && await stored(D.page, di.data) === hereBefore,
+      'a file with no answers whose every part is this profile\'s changes nothing', rr.plan.slice(0, 200));
+    check(!D.errors.length, 'no page errors', D.errors.slice(0, 2).join('; '));
+    await D.ctx.close();
+  }
+  for(const [label, change, want] of [
+    ['the same answers, other concept progress', f => { const c = Object.keys(f.db.concepts)[0]; f.db.concepts[c].box += 1; f.db.concepts[c].dueAt += 86400000; }, /the file's concept progress differs from this profile's/i],
+    ['the same answers and concept progress, another pace', f => { f.db.settings = Object.assign({}, f.db.settings, {mode: 'normal', pace: 'semester'}); }, /the file's settings differ from this profile's/i],
+    ['the same answers, a scheduling state this profile lacks', f => { f.db.arms = {[Object.keys(f.db.concepts)[0]]: 'concept-fsrs'}; }, /the file's scheduling state differs from this profile's/i],
+    ['the same answers, a part a feature module keeps', f => { f.db.notes = {[I.ids[0]]: 'a note'}; }, /the file's other saved progress differs from this profile's/i],
+  ]){
+    const o = await own(3);
+    const f = JSON.parse(JSON.stringify(o.file));
+    change(f);
+    let rr = await choose(o.d.page, f, false);
+    check(rr.offered && want.test(rr.plan) && /new profile/.test(rr.plan) && !/on this device already/.test(rr.plan),
+      `${label}: the plan offers a new profile and says why, not "nothing"`, rr.plan.slice(0, 400));
+    rr = await choose(o.d.page, f, true);
+    const name = await keptWhole(o.d.page, o.di, rr, f, o.data, label);
+    if(f.db.notes){
+      const theirs = JSON.parse(await stored(o.d.page, I.ns + ':data:' + name) || '{}');
+      check(JSON.stringify(theirs.notes) === JSON.stringify(f.db.notes), 'and the module\'s part is in it', theirs.notes);
+    }
+    await o.d.ctx.close();
+  }
+
+  console.log('\n=== Into an empty profile ===');
+  {
+    const E = await device(); const ei = await info(E.page);
+    const fdb = blankDb(); fdb.concepts[C0] = rec(4, 2); fdb.settings = {mode: 'normal', pace: 'semester'};
+    const f = fileOf(fdb);
+    let rr = await choose(E.page, f, false);
+    check(rr.offered && /The file holds progress with no answers, and this profile has no progress yet/.test(rr.plan),
+      'a file with concept progress and no answers, into a profile with none: the plan replaces it, not "nothing"', rr.plan.slice(0, 300));
+    rr = await choose(E.page, f, true);
+    const got = JSON.parse(await stored(E.page, ei.data) || 'null') || {concepts: null, settings: {}, answers: []};
+    check(JSON.stringify(got.concepts) === JSON.stringify(fdb.concepts) && got.settings.pace === 'semester' && got.answers.length === 0 && await profilesOn(E.page) === 1,
+      'confirmed, the profile holds the file\'s concept progress and pace, and no other profile is made', rr.result);
+    rr = await choose(E.page, f, true);
+    check(!rr.offered && /on this device already/.test(rr.plan) && await profilesOn(E.page) === 1, 'the same file again changes nothing', rr.plan.slice(0, 200));
+    await E.ctx.close();
+  }
+  {
+    const E = await device(); const ei = await info(E.page);
+    let rr = await choose(E.page, fileA, true);
+    const got = JSON.parse(await stored(E.page, ei.data) || 'null') || {concepts: null, answers: null};
+    check(/this profile has no progress yet/.test(rr.plan) && JSON.stringify(got.answers) === JSON.stringify(fileA.db.answers) && JSON.stringify(got.concepts) === JSON.stringify(fileA.db.concepts),
+      'a file with answers, into a profile with none: the profile holds the file\'s answers and concept progress', rr.plan.slice(0, 260));
+    rr = await choose(E.page, fileA, true);
+    check(!rr.offered && /on this device already/.test(rr.plan) && await profilesOn(E.page) === 1, 'the same file again changes nothing, and no second profile is made', rr.plan.slice(0, 200));
+    await E.ctx.close();
+  }
+  {
+    // a profile with concept progress and no answers is not empty: a file with answers does not replace it
+    const here = blankDb(); here.concepts[C0] = rec(3, 1);
+    const D = await device({[I.ns + ':profile']: 'TestUser', [I.ns + ':data:TestUser']: JSON.stringify(here)});
+    const di = await info(D.page);
+    const hereBefore = await stored(D.page, di.data);
+    let rr = await choose(D.page, fileA, false);
+    check(rr.offered && /new profile/.test(rr.plan) && !/no progress yet/.test(rr.plan),
+      'a profile with concept progress and no answers is not taken for an empty one: a file with answers goes into a new profile', rr.plan.slice(0, 300));
+    rr = await choose(D.page, fileA, true);
+    await keptWhole(D.page, di, rr, fileA, hereBefore, 'into a profile with concept progress and no answers');
+    await D.ctx.close();
+  }
+
+  console.log('\n=== Older files and repeated imports ===');
+  {
+    const o = await own(3);                 // q1 to q3
+    const f1 = o.file;
+    await answer(o.d.page, 2, 3);           // q4 and q5: concepts the file holds no record of
+    const data5 = await stored(o.d.page, o.di.data);
+    let rr = await choose(o.d.page, f1, true);
+    check(!rr.offered && /on this device already/.test(rr.plan) && await stored(o.d.page, o.di.data) === data5 && await profilesOn(o.d.page) === 1,
+      'an older file whose every part is here (its concepts not answered since) changes nothing', rr.plan.slice(0, 260));
+    await answer(o.d.page, 1, 0);           // q1 again: the file's record of that concept is no longer this profile's
+    const data6 = await stored(o.d.page, o.di.data);
+    rr = await choose(o.d.page, f1, false);
+    check(rr.offered && /this device has 3 answers that the file does not have; the file's concept progress differs from this profile's/i.test(rr.plan) && /new profile/.test(rr.plan),
+      'an older file whose concept was answered again here: a new profile, since its answers cannot show that it adds nothing', rr.plan.slice(0, 400));
+    rr = await choose(o.d.page, f1, true);
+    const name = await keptWhole(o.d.page, o.di, rr, f1, data6, 'an older file');
+    rr = await choose(o.d.page, f1, true);
+    check(!rr.offered && rr.plan.includes(`already in the profile "${name}"`) && await profilesOn(o.d.page) === 2, 'that file again: no second profile', rr.plan.slice(0, 200));
+    await reload(o.d.page);
+    rr = await choose(o.d.page, f1, true);
+    check(!rr.offered && rr.plan.includes(`already in the profile "${name}"`) && await profilesOn(o.d.page) === 2 && await stored(o.d.page, o.di.data) === data6,
+      'after a reload, that file again: still no second profile, and this profile as it was', rr.plan.slice(0, 200));
     await o.d.ctx.close();
   }
 

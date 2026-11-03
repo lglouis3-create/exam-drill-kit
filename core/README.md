@@ -34,7 +34,7 @@ that course's repository. Both folders come from the recovered exam-drill templa
 | `offline_test.js` | core | the offline copy: other sites' caches kept, server down (connections refused), server slow |
 | `home_test.js` | core | the Home Screen card for each kind of browser: a closed section in Settings, nothing on Topics |
 | `history_test.js` | core | the answer history: its fields, Export, Import, Erase, a refused write |
-| `import_test.js` | core | Import progress: files of another course or app, files that name no course, and damaged files refused; older files converted; a file replaces this profile only when it continues it, after a confirmed plan, with a copy to put back; conflicting copies of one answer, another origin, a cut answer list or answers out of order go into a new profile; repeats change nothing; Put back and refused reads and writes leave both records stored |
+| `import_test.js` | core | Import progress: files of another course or app, files that name no course, and damaged files refused; older files converted; a file replaces this profile only when it continues it or this profile holds no progress, after a confirmed plan, with a copy to put back; conflicting copies of one answer, another origin, a cut answer list, answers out of order, and matching or empty answer lists with other concept progress, settings, scheduling state or module part go into a new profile; repeats change nothing and make no second profile; Put back and refused reads and writes leave both records stored |
 | `preview_test.js` | core | `build.py --preview`: the live site unchanged, the preview's own namespace |
 | `state_check.js` | core | the course's root `CLAUDE.md` was updated with or after the newest lecture (§7.8) |
 | `state_check_test.js` | core | `state_check.js` on repositories with known histories |
@@ -379,9 +379,9 @@ and handles the progress as "Import progress" below says. Erase my history clear
 dropped and no notice is shown, so the history never stops progress from saving. No
 scheduler reads the history; the progress (`DB`) holds what they schedule from.
 
-**Import progress** (Louis's rules of 2026-11-02, corrected 2026-11-03; `views.js`
-`readProgressFile`, `importPlan`, `continuesHere`, `runImport`, `restoreBackup`;
-`import_test.js`). The file is read and checked whole before anything is saved:
+**Import progress** (Louis's rules of 2026-11-02, corrected twice on 2026-11-03;
+`views.js` `readProgressFile`, `addsTo`, `holdsProgress`, `importPlan`, `continuesHere`,
+`runImport`, `restoreBackup`; `import_test.js`). The file is read and checked whole before anything is saved:
 - **Refused:**
   - a file that is not JSON or not a progress export;
   - a file labelled with another course (`course` or `ns`);
@@ -399,14 +399,33 @@ scheduler reads the history; the progress (`DB`) holds what they schedule from.
 
 An answer is found by its question id and its time to the millisecond. Two copies are
 the same answer only when every field agrees (result, choices picked, confidence, count
-and the rest). Two copies under one key that differ are a **conflict**. Against the
-profile on screen, Import then does one of four things:
-- **nothing:** every answer of the file is here, field for field, and every history
-  entry; or the file was imported before into a profile of its own;
+and the rest). Two copies under one key that differ are a **conflict**.
+
+Matching or empty answer lists never show on their own that a file adds nothing (Louis,
+2026-11-03): the concept progress, the pace and the scheduler's state can differ while
+the answers agree. So Import compares every part of the file's progress with this
+profile's (`addsTo`):
+- each answer, field for field;
+- each concept record;
+- each FSRS card and comparison arm, and the answer count;
+- the settings that come with the file (all but this device's own, `IMPORT_DEVICE`);
+- any other part, such as one a feature module keeps.
+
+Not compared: the shape's version, the record's origin `created` (used for continuation
+below), and the FSRS step "I guessed" can undo and the flag that the cards were rebuilt
+(`fsUndo`, `fsHistory`). Against the profile on screen, Import then does one of four
+things:
+- **nothing:** every part of the file's progress is here, field for field, and every
+  history entry; or every part of it is in another profile here (a file imported before
+  into a profile of its own). An older file of this record changes nothing only in that
+  case: when a concept it holds was answered again here, or its pace differs, its
+  answers cannot show that it adds nothing, and it goes into a new profile;
 - **history:** the same, but the file adds history entries; they are merged in, and the
   progress is unchanged;
-- **replace:** the file continues this profile's record. Either this profile has no
-  answers and no concept records, or all of these hold:
+- **replace:** this profile holds no progress (no answers, answer count, concept
+  records, scheduler state or module part; settings alone are not progress), or the
+  file continues this profile's record: it has answers this device lacks, and all of
+  these hold:
   - the file's record has the same origin (`created`) as this one;
   - this device's answer list is complete (its first answer is answer 1);
   - this device's answers are the file's first answers, field for field, in order;
@@ -415,7 +434,9 @@ profile on screen, Import then does one of four things:
   - a conflict;
   - a record of another origin;
   - an answer list here that the 4,000-answer limit has cut;
-  - answers here that are not the file's first answers in order.
+  - answers here that are not the file's first answers in order;
+  - matching (or empty) answer lists with other concept progress, settings, scheduling
+    state or module part.
 
   The file's progress goes into a new profile, named after the file's profile and the
   date, and this profile is unchanged.

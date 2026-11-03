@@ -449,14 +449,16 @@ function exportProgress(){
 }
 
 /* ---------- Import progress ----------
-   Louis's rules (2026-11-02, corrected 2026-11-03): a file is read and checked whole
+   Louis's rules (2026-11-02, corrected twice on 2026-11-03): a file is read and checked whole
    before anything is saved; a file of another course, and a file that names no
    course, is refused; the page shows what is in the file, what this device has and
    what Import would do, and saves only when the student confirms; the progress
    Import replaces is kept, and Settings can put it back; two records are never
    mixed; whenever it is not established that the file continues this profile's
-   record, the file goes into a new profile of its own and this profile is
-   unchanged; importing the same file again changes nothing; a write the browser
+   record, or that it adds nothing to it, the file goes into a new profile of its
+   own and this profile is unchanged; matching or empty answer lists alone never
+   show that a file adds nothing; importing the same file again changes nothing,
+   and makes no second profile; a write the browser
    refuses, or a saved progress or answer history that could not be read in this
    visit, means nothing is replaced, and the page says so. This device's appearance
    and its other preferences stay as they are.
@@ -465,21 +467,29 @@ function exportProgress(){
    two copies are the same answer only when every field of the two agrees (the
    result, the choices picked, the confidence, the count and the rest). Two copies
    under one key that differ are a conflict, never treated as the same answer.
+   Every other part of the progress is compared as well (addsTo): each concept
+   record, each FSRS card and comparison arm, the answer count, the settings that
+   come with the file, and any part a feature module keeps.
    What Import does with a file of this course:
-     nothing   every answer of the file is here, field for field, and every history
-               entry; or the file was imported before into a profile of its own;
+     nothing   every part of the file's progress is here, field for field, and every
+               history entry; or every part of it is in another profile here (a file
+               imported before into a profile of its own);
      history   the same, except the file adds history entries: they are merged in,
                and the progress is unchanged;
-     replace   the file continues this profile's record: this profile has no answers
-               and no concept records, or the file's record has the same origin
+     replace   this profile holds no progress (no answers, answer count, concept
+               records, scheduler state or module part; settings alone are not
+               progress); or the file continues this profile's record: it has
+               answers this device lacks, and the file's record has the same origin
                (`created`) as this one, this device's answer list is complete (its
                first answer is answer 1), and this device's answers are the file's
                first answers, field for field, in order. The file's progress then
                replaces this profile's, which is first kept as a copy;
      separate  anything else (answers on each side the other lacks, a conflict, a
                record of another origin, an answer list here that the 4,000-answer
-               limit has cut): the file's progress goes into a new profile, and this
-               profile's progress is unchanged.
+               limit has cut, matching answers with other concept progress, settings
+               or scheduling state, an older file whose other parts differ): the
+               file's progress goes into a new profile, and this profile's progress
+               is unchanged.
    With the progress come its settings, the pace and "Ask everything", because the
    file's review dates were set with them; IMPORT_DEVICE keeps this device's own
    choice of the others. The answer history is merged, never replaced. The copies
@@ -543,10 +553,46 @@ function readProgressFile(text){
           unknown: ids.length - known, created: db.created};
 }
 
-/* Whether the file's record continues this profile's: see "replace" above. */
+/* The parts of a progress Import compares besides the answers. `v` is the shape's
+   version, `created` the record's origin (compared in continuesHere), and `fsUndo`
+   and `fsHistory` are the FSRS step "I guessed" can undo and whether the cards were
+   rebuilt from the answers: none of them is progress a file could add. */
+const NOT_COMPARED = ['v', 'created', 'fsUndo', 'fsHistory', 'answers', 'qn', 'settings'];
+const ENTRY_MAPS = {concepts: 'concepts', arms: 'scheduler', fsrsQ: 'scheduler', fsrsC: 'scheduler'};   // compared entry by entry
+const canon = v => JSON.stringify(v, (k, x) => isObj(x) ? Object.keys(x).sort().reduce((o, key) => (o[key] = x[key], o), {}) : x);
+const isEmptyPart = v => v === undefined || v === null || v === '' || v === 0 || v === false ||
+  (Array.isArray(v) && !v.length) || (isObj(v) && !Object.keys(v).length);
+/* What the file's progress holds that `db` lacks or holds otherwise, by part:
+   'answers', 'concepts', 'settings', 'scheduler' (the answer count, the FSRS cards,
+   the comparison's arms) or 'other' (a part a feature module keeps). [] when every
+   part of the file is in `db`, field for field. Matching answer lists never show
+   this on their own (Louis, 2026-11-03): the concept progress, the pace and the
+   scheduler's state can differ while the answers agree, or while both lists are
+   empty. `sigs`: db's answers, key -> answerSig. */
+function addsTo(fdb, db, sigs){
+  const parts = new Set();
+  if(fdb.answers.some(a => sigs.get(answerKey(a)) !== answerSig(a))) parts.add('answers');
+  for(const [m, part] of Object.entries(ENTRY_MAPS)){
+    const F = isObj(fdb[m]) ? fdb[m] : {}, D = isObj(db[m]) ? db[m] : {};
+    if(Object.keys(F).some(k => !(k in D) || canon(F[k]) !== canon(D[k]))) parts.add(part);
+  }
+  if((Number(fdb.qn) || 0) > (Number(db.qn) || 0)) parts.add('scheduler');
+  const FS = isObj(fdb.settings) ? fdb.settings : {}, DS = isObj(db.settings) ? db.settings : {};
+  if(Object.keys(FS).some(k => !IMPORT_DEVICE.includes(k) && canon(FS[k]) !== canon(DS[k]))) parts.add('settings');
+  for(const k of Object.keys(fdb))
+    if(!NOT_COMPARED.includes(k) && !(k in ENTRY_MAPS) && canon(fdb[k]) !== canon(db[k])) parts.add('other');
+  return [...parts];
+}
+/* Whether a progress holds anything besides settings: answers, an answer count,
+   concept records, the scheduler's state or a module's part. */
+function holdsProgress(db){
+  if(db.answers.length || Number(db.qn) > 0) return true;
+  if(Object.keys(ENTRY_MAPS).some(m => isObj(db[m]) && Object.keys(db[m]).length)) return true;
+  return Object.keys(db).some(k => !NOT_COMPARED.includes(k) && !(k in ENTRY_MAPS) && !isEmptyPart(db[k]));
+}
+/* Whether the file's record continues this profile's (which holds progress): see
+   "replace" above. */
 function continuesHere(here, there, fileCreated){
-  const fresh = !here.length && !Object.keys(DB.concepts || {}).length && !(DB.qn > 0);
-  if(fresh) return {ok: true, fresh: true};
   if(!Number.isFinite(fileCreated) || !Number.isFinite(DB.created) || fileCreated !== DB.created) return {ok: false, why: 'origin'};
   if(!here.length || here[0].qn !== 1) return {ok: false, why: 'incomplete'};
   if(there.length < here.length) return {ok: false, why: 'order'};
@@ -572,36 +618,43 @@ function importPlan(f){
   // the history here cannot be read: it is never written over, so a file that adds to it is not imported
   const noLog = {block: 'The answer history saved on this device could not be read in this visit, so nothing was imported, and the history is left as it was.'};
   const logChange = newLog || fill;
-  if(!onlyThere && !conflicts){
+  // every part of the file's progress compared, not only its answers
+  plan.adds = addsTo(f.db, DB, new Map(here.map(a => [answerKey(a), answerSig(a)])));
+  if(!plan.adds.length){
     plan.action = logChange ? 'history' : 'nothing';
     return logChange && !LOG_OK ? noLog : plan;
   }
-  if(!conflicts && !onlyHere.length){
+  if(!holdsProgress(DB)){ plan.action = 'replace'; plan.fresh = true; return logChange && !LOG_OK ? noLog : plan; }
+  if(onlyThere && !conflicts && !onlyHere.length){
     const c = continuesHere(here, there, f.created);
-    if(c.ok){ plan.action = 'replace'; plan.fresh = !!c.fresh; return logChange && !LOG_OK ? noLog : plan; }
+    if(c.ok){ plan.action = 'replace'; return logChange && !LOG_OK ? noLog : plan; }
     plan.unsure = c.why;
   }
   plan.action = 'separate';
   // the file keeps only its latest answers: say so when that is why this device's answers are missing from it
   const first = there.length ? Math.min(...there.map(a => a.at)) : 0;
   plan.trimmed = there.length >= ANSWERS_MAX && onlyHere.length > 0 && onlyHere.every(a => a.at < first);
-  // a profile here that already holds every answer of the file, field for field: this file was imported before
-  plan.already = profilesHere().find(p => p.sigs && there.every(a => p.sigs.get(answerKey(a)) === answerSig(a)));
+  // another profile here that already holds every part of the file, field for field (a file imported before is there)
+  plan.already = profilesHere(true).find(p => p.db && p.name !== PROFILE && !addsTo(f.db, p.db, p.sigs).length);
   if(plan.already) plan.action = 'nothing';
   else plan.name = newProfileName(f.profile);
   return plan;
 }
-/* The profiles saved in this browser for this course, with their answers (key ->
-   every field), or null when a profile's progress cannot be read. */
-function profilesHere(){
+/* The profiles saved in this browser for this course. With `full`, each also has its
+   progress as stored, converted as on load (db), and its answers (key -> every
+   field); both null when that progress cannot be read. */
+function profilesHere(full){
   const pre = NS + ':data:', out = [];
   try {
     for(let i = 0; i < localStorage.length; i++){
       const k = localStorage.key(i);
       if(!k || !k.startsWith(pre) || k.length === pre.length) continue;
-      let sigs = null;
-      try { const d = JSON.parse(localStorage.getItem(k)); if(isObj(d) && Array.isArray(d.answers)) sigs = new Map(d.answers.map(a => [answerKey(a), answerSig(a)])); } catch(e){}
-      out.push({name: k.slice(pre.length), sigs});
+      let db = null, sigs = null;
+      if(full) try {
+        const d = JSON.parse(localStorage.getItem(k));
+        if(isObj(d) && isObj(d.concepts) && Array.isArray(d.answers)){ db = upgradeDB(d); sigs = new Map(db.answers.map(a => [answerKey(a), answerSig(a)])); }
+      } catch(e){ db = sigs = null; }
+      out.push({name: k.slice(pre.length), db, sigs});
     }
   } catch(e){ /* storage unreadable: none */ }
   return out;
@@ -614,17 +667,24 @@ function newProfileName(from){
   return name;
 }
 
+const PART_NAMES = {concepts: 'concept progress', settings: 'settings', scheduler: 'scheduling state', other: 'other saved progress'};
+// "concept progress differs", "settings differ", "concept progress and settings differ"
+const partsText = parts => {
+  const w = parts.filter(x => x !== 'answers').map(x => PART_NAMES[x]);
+  const text = w.length > 1 ? w.slice(0, -1).join(', ') + ' and ' + w[w.length - 1] : (w[0] || 'progress');
+  return text + (w.length > 1 || w[0] === 'settings' ? ' differ' : ' differs');
+};
 /* The plan, on screen in Settings, with the buttons that carry it out. */
 function showImportPlan(plan){
   const box = $('#importPlan');
   if(!box) return;
   const f = plan.f, there = f.db.answers;
   const what = {
-    nothing: plan.already ? `This file was imported before, into the profile "${esc(plan.already.name)}". Nothing changes.`
-                          : 'Every answer and history entry in this file is on this device already. Nothing changes.',
+    nothing: plan.already ? `Everything in this file is already in the profile "${esc(plan.already.name)}" (a file imported before goes there). Nothing changes.`
+                          : 'Everything in this file (its answers, concept progress, settings and scheduling state, and its history entries) is on this device already. Nothing changes.',
     history: `The file adds ${nEntries(plan.newLog)} to the answer history` +
              (plan.fill ? ` and completes ${nEntries(plan.fill)} saved here before the scheduler fields were kept` : '') + '. Your progress is unchanged.',
-    replace: `The file has ${nAnswers(plan.onlyThere)} that this device does not have, and ` +
+    replace: (plan.onlyThere ? `The file has ${nAnswers(plan.onlyThere)} that this device does not have, and ` : 'The file holds progress with no answers, and ') +
              (plan.fresh ? 'this profile has no progress yet. ' : 'it continues this profile\'s record: every answer this device has is the file\'s, in the same order. ') +
              `Import replaces the progress of "${esc(PROFILE)}" with the file's and adds ${nEntries(plan.newLog)} to its answer history. ` +
              'The progress it replaces is kept, and Settings can put it back.',
@@ -636,6 +696,7 @@ function showImportPlan(plan){
                 plan.unsure === 'origin' ? 'the file\'s progress was not started from this profile\'s record, so it cannot be shown to continue it' : '',
                 plan.unsure === 'incomplete' ? `this device's answer list does not begin with its first answer (a list keeps only the latest ${nAnswers(ANSWERS_MAX)}), so it cannot be shown that the file continues its record` : '',
                 plan.unsure === 'order' ? 'this device\'s answers are not the file\'s first answers in order, so it cannot be shown that the file continues its record' : '',
+                !plan.onlyThere && !plan.conflicts ? `the file's ${partsText(plan.adds)} from this profile's, and the answers alone cannot show that the file adds nothing` : '',
               ].filter(Boolean).join('; ').replace(/^./, c => c.toUpperCase()) +
               `. Import puts the file's progress in a new profile, "${esc(plan.name || '')}", and leaves the progress of "${esc(PROFILE)}" as it is.`,
   }[plan.action];

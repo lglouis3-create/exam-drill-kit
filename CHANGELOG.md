@@ -5,6 +5,7 @@ Dated kit changes, newest first.
 ## 2026-11-03
 - Import progress shows what a file holds and would change, and saves only when confirmed.
 - Import refuses a file of another course or of no course, and replaces progress only with a record that continues it.
+- Import compares every part of a file's progress, not only its answers: a file whose concept progress, settings or scheduling state differ goes into a new profile.
 - Import keeps a copy of the progress it replaces; Put back never loses either record.
 - Kit checks on GitHub: the WebKit job now blocks a merge, as the Chromium jobs do.
 - `FEATURES.md`: the focus-switch "Use when" line no longer quotes a professor by name; its source reference is kept.
