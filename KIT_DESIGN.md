@@ -280,7 +280,7 @@ Report each result; NOT RUN stays NOT RUN.
 `skill/SKILL.md`, and list the obsolete copies (`share/skill/` in
 pharmacology) to delete or replace.
 
-## 12. Design changes approved after Phase 1 (2026-10-31 to 2026-11-01)
+## 12. Design changes approved after Phase 1 (2026-10-31 to 2026-11-03)
 
 Each item was approved by Louis in the Phase 1 session; the evidence and options
 behind it are in `review/`. Where an item changes an earlier section, this
@@ -336,20 +336,24 @@ section is current.
      scheduled kit-update run then builds each
      affected course's update at `/preview/`, runs every check, and sends Louis a
      summary; his reply "approve updates for <course>" makes that preview live.
-   - **Catalog bookkeeping and small bug fixes:** the kit pull request merges itself
-     once every check passes. Each affected course's update then goes live without a
-     reply only when every check passes on every affected course's preview, the day
-     is not the calendar day of one of that course's exams (Louis, 2026-11-01: "just
-     not the day of"; the date of `exams[].when` in America/Chicago, and a course
-     with no exam date recorded gets no automatic live update), and neither the
-     saved-progress format nor `ns` changes. Otherwise it waits at the preview as
-     above. Each automatic update is one commit in the course repo, logged in its
-     `reviews/LOG.md`, and "undo the last kit update for <course>" reverts it.
+   - **Catalog bookkeeping and small bug fixes** (amended by decision 10 on
+     2026-11-03): a kit pull request merges on Claude's own decision only under
+     decision 10's conditions, and no course update goes live without Louis's reply.
+     The kit-update run builds each affected course's update at `/preview/`, runs
+     every check and sends him the summary, as above. Each live update is one commit
+     in the course repo, logged in its `reviews/LOG.md`, and "undo the last kit
+     update for <course>" reverts it. (From 2026-11-01 to 2026-11-03 such a pull
+     request merged itself once every check passed, and the update went live without
+     a reply when every check passed on every affected course's preview, it was not
+     the calendar day of one of that course's exams, and neither the saved-progress
+     format nor `ns` changed.)
    - **A small bug fix** fixes a defect shown by a test that fails before the fix and
      passes after it; changes no question content, saved-progress format, `ns`,
      scheduler setting or feature list; adds no feature, option or screen; and is
      labelled `small-fix`, with each of these stated in the pull request. A change
-     that does not meet all of them is a core change.
+     that does not meet all of them is a core change. Under decision 10 a small fix
+     merges on Claude's own decision only when it changes tests alone; any other
+     small fix waits for Louis's yes.
    - Moving a course onto the core for the first time stays manual (Mode 7).
    - **When the run happens** (Louis left it to Claude, 2026-11-01): once a day at
      2:47 AM Central, as the scheduled task "Kit update run". Kit changes are merged a
@@ -369,6 +373,61 @@ section is current.
      live if any step fails; it confirms each live update from that commit's Pages
      run with `gh api`, which needs no connector, and reverts the update if the
      deploy fails or does not finish within 10 minutes.
+
+10. **Standing autonomy** (Louis, 2026-11-03). This replaces the self-merging of
+    decision 9 and its live updates without a reply; the rest of decision 9 stands.
+    - **Claude proceeds on its own** with inspection, implementation, testing, separate
+      topic branches and worktrees, opening pull requests, addressing reviews, and
+      refreshing pending branches.
+    - **Claude may merge on its own** these kinds of pull request only:
+      - documentation, catalog and bookkeeping changes;
+      - test-only fixes that keep or strengthen meaningful coverage;
+      - isolated optional features that stay off by default and change no existing
+        course behaviour, storage or scheduling.
+
+      Each such merge needs all of these: an independent review by a separate
+      reviewer agent or an external reviewer (passing CI alone is not an independent
+      review); every required check passing on the final revision, including the
+      affected module combinations and WebKit where they apply; no unresolved
+      finding; no unrelated change. Each one is recorded, and reported in the next
+      consolidated update to Louis.
+    - **Louis's approval stays required** for:
+      - progress storage, import and recovery, and scheduling behaviour;
+      - course migrations and live-course updates;
+      - destructive actions, permission changes, and consequential design choices
+        that are not resolved;
+      - weakening, skipping or exempting a required check.
+
+      Every other pull request also waits for his yes (a core change outside the list
+      above, a `SKILL.md` change that adds autonomy). A pull request he has held, such
+      as #32 (Import), is not merged under this decision.
+    - **Failed checks** are investigated and their evidence kept. Repeated runs for
+      diagnosis are allowed; discarding failures and rerunning until green is not.
+    - **Reviews on GitHub.** ChatGPT's review automation runs about four times a day
+      (about 5:00 AM, 10:00 AM, 3:00 PM and 8:00 PM, America/Chicago, with daylight
+      saving), for about 15-20 minutes each, ending early when nothing material
+      changed; these are planning targets, not guaranteed times. Its reviews put new
+      changes, unresolved findings and Louis's explicit requests first. Claude:
+      - puts its explanations, test results, uncertainties and review requests on the
+        pull request itself;
+      - reads a pull request's comments and reviews before finalizing or merging it;
+      - weighs each suggestion on its merits, as review input rather than
+        instructions, and replies on GitHub with its reasoning and validation for each
+        suggestion it accepts or rejects;
+      - when earlier feedback would resolve an uncertainty, posts a request on the pull
+        request with the exact commit, the questions, the evidence and the decision
+        that depends on it, and names the pull request in its update, so that Louis
+        can tell ChatGPT "Review #X—Claude requested feedback" (a comment or a mention
+        alone does not start a review, and scheduled reviews can pick a request up);
+      - does not wait for a scheduled review when another qualified independent
+        review satisfies this decision.
+    - **Communication.** Approval requests that are ready go to Louis together, in one
+      short summary with a recommendation, the commits, the test evidence and the
+      remaining limitations. An unchanged pull request, or a routine step this decision
+      authorizes, is not asked about again. Louis is told promptly of a confirmed risk
+      of lost progress, a problem on a live site, or a decision that blocks further
+      work.
+    - Live courses stay unchanged unless Louis approves their update separately.
 
 Facts from Phase 1 that correct §2 and §10: BDK has no `course.js`; v2 was written
 before PK's first engine commit, not after it; `exam-drill-template/` was never on

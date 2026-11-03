@@ -164,16 +164,30 @@ Open one whenever a session:
 - fixes or improves a core part (with the failing case shown before the fix);
 - adds evidence or a "Used by" line to `FEATURES.md`, or updates `COURSES.md`.
 
-For each feature, upgrade, core or `SKILL.md` pull request, tell Louis in plain terms
-what merging it provides, what it changes on his sites and when, what it does not
-change, the check results, and any risk; merge it (`merge_pull_request`) only after he
-answers yes to that pull request in the conversation (`KIT_DESIGN.md` §12.9). A no
-leaves it open, with his reason recorded in the pull request. Catalog
-bookkeeping (a "Used by" line, a dated evidence note) and pull requests labelled
-`small-fix` merge themselves once every required check passes (`KIT_DESIGN.md` §12.9);
-until the kit has required checks, they wait for Louis like the rest. A fix is
-`small-fix` only if it meets every condition in §12.9, and the pull request states each
-one; when in doubt, it is a core change. Courses get kit changes only through Mode 7.
+Which kit pull requests Claude may merge on its own, and which wait for Louis, is
+decision 10 of `KIT_DESIGN.md` §12 (Louis, 2026-11-03). In short:
+- **Claude may merge on its own** documentation, catalog and bookkeeping changes;
+  test-only fixes that keep or strengthen meaningful coverage; and isolated optional
+  features that stay off by default and change no existing course behaviour, storage
+  or scheduling. Each needs an independent review (a separate reviewer agent or an
+  external reviewer; passing CI alone is not one), every required check passing on
+  the final revision (with the affected module combinations and WebKit where they
+  apply), no unresolved finding and no unrelated change.
+- **Every other pull request waits for Louis's yes**, among them progress storage,
+  import and recovery, and scheduling behaviour; course migrations and live-course
+  updates; destructive actions, permission changes and unresolved consequential design
+  choices; and weakening, skipping or exempting a required check. For each, tell Louis
+  in plain terms what merging it provides, what it changes on his sites and when, what
+  it does not change, the check results, and any risk; merge it (`merge_pull_request`)
+  only after he answers yes to that pull request. A no leaves it open, with his reason
+  recorded in the pull request.
+
+Before finalizing or merging a pull request, read its comments and reviews, weigh each
+suggestion on its merits, and reply on GitHub with the reasoning and validation for
+each one accepted or rejected. A fix is `small-fix` only if it meets every condition in
+§12.9, and the pull request states each one; when in doubt, it is a core change.
+Courses get kit changes only through Mode 7, and no course update goes live without
+Louis's reply.
 
 ## Checks
 
@@ -320,19 +334,17 @@ Then it compares every course's `kit` pins in `course.js` with the kit's `main`.
 course that is behind:
 1. Build the update at `/preview/`, run every check, and append the result to the
    course's `reviews/LOG.md`.
-2. If every kit change since the pin is catalog bookkeeping or `small-fix`, every check
-   passes on every affected course's preview, today (America/Chicago) is not the date
-   of one of that course's exams (`exams[].when`; no recorded date means no automatic
-   update), and neither the saved-progress format nor `ns` changes: make the preview
-   live as one commit "kit update: <old pins> → <new pins>", delete `preview/`, and
-   push. Then wait for that commit's "pages build and deployment" run to complete, for
-   up to 10 minutes (a design choice: the longest of BDK's last five Pages deploys,
-   2026-10-30 to 2026-11-01, took 2 min 51 s). On success, log it. On failure, or with
-   no completed run after 10 minutes, revert the update commit, push, confirm that
-   deploy the same way, log both, and report FAILED.
-3. Otherwise leave the preview waiting and send Louis a summary: what changed in plain
-   words, the check results, the preview address, and whether an exam is today.
-   "approve updates for <course>" makes it live as in step 2.
+2. Leave the preview waiting and send Louis a summary: what changed in plain words,
+   the check results, the preview address, and whether an exam is today. No update
+   goes live without his reply (`KIT_DESIGN.md` §12, decision 10, 2026-11-03; before
+   that date a bookkeeping or `small-fix` update went live without one).
+3. His reply "approve updates for <course>" makes it live: one commit "kit update:
+   <old pins> → <new pins>", `preview/` deleted, pushed. Then wait for that commit's
+   "pages build and deployment" run to complete, for up to 10 minutes (a design
+   choice: the longest of BDK's last five Pages deploys, 2026-10-30 to 2026-11-01, took
+   2 min 51 s). On success, log it. On failure, or with no completed run after 10
+   minutes, revert the update commit, push, confirm that deploy the same way, log
+   both, and report FAILED.
 A run that could not build, check, push or confirm the deploy reports failure and never
 ends as succeeded. The run sends Louis a push notification only when a new course needs
 attaching, a preview waits for his reply, an update went live or was reverted, or the

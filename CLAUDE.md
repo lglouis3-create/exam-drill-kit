@@ -31,8 +31,10 @@ after Phase 1 and overrides earlier sections where they differ.
   - after Louis approves `review/recommendation-proposal.md` and sets its §6 values:
     `RULES.md` from its §4, rule names on the "Use when" lines of `FEATURES.md`, the
     experiment-file format, and `core/profile.py` (the material-profile script);
-  - for §12.9: a kit workflow that runs the core checks on every pull request and is
-    required before a `small-fix` or bookkeeping pull request merges itself.
+  - for §12.9 and decision 10: the kit workflow `checks.yml` runs the core checks on
+    every pull request (kit pull request #12) and its WebKit job blocks a merge (#29,
+    merged 2026-11-03 as 4e0fae4); GitHub does not enforce required checks on this
+    private repository, so kit sessions read the results before any merge.
   Each of these goes to `main` in its own pull request, with a plain-terms summary for
   Louis's yes or no.
 - **Moving the courses onto the core** (Louis's order, 2026-11-01: Medicinal-chemistry,
@@ -72,15 +74,52 @@ after Phase 1 and overrides earlier sections where they differ.
   course move in progress. The plan, the pre-move decisions and the order of its pull
   requests: `review/bdk-move-plan.md`; the three move assessments are kept in
   `review/assessments/`.
+- **Kit pull requests merged 2026-11-02 to 2026-11-03** (merge commit, from the GitHub
+  pull request list read 2026-11-03): #9 `2bbe395` (BDK move 1/32), #10 `ac5c644`
+  (`render_test`), #12 `98e7b5b` (checks on GitHub), #27 `366caf6` (pages over HTTP;
+  module courses), #28 `6432c36` (`home_test`), #31 `da6ea21` (style rule "given as"),
+  #33 `7286854` (offline test: refused connections), #34 `c1efa19` (lecture ids), #35
+  `e3433d2` (catalog wording), #29 `4e0fae4` (the WebKit job blocks a merge). The
+  WebKit diagnosis and every run's log: branch `claude/elegant-ptolemy-pqxb8y-webkit-diag`,
+  `review/webkit-offline/` (never merged). Open: #32 (Import, waiting for Louis), the
+  proposals #23 and #30, and the porter's draft ports.
 - **Phase 3 (test) and Phase 4 (install): not started.**
 
 ## Rules for kit sessions
 
-- Feature, upgrade, core and `SKILL.md` changes reach `main` only by pull request.
-  For each one, tell Louis in plain terms what merging it provides and changes, and
-  merge it only after he says yes to that pull request (`KIT_DESIGN.md` §12.9).
-  Catalog bookkeeping and `small-fix` pull requests merge themselves once every
-  required check passes.
+- **Standing autonomy** (Louis, 2026-11-03; in full in `KIT_DESIGN.md` §12, decision
+  10, which replaces the self-merging of §12.9). Every change reaches `main` by pull
+  request.
+  - Claude proceeds on its own with inspection, implementation, testing, separate topic
+    branches and worktrees, opening pull requests, addressing reviews, and refreshing
+    pending branches.
+  - Claude may merge on its own only documentation, catalog and bookkeeping changes;
+    test-only fixes that keep or strengthen meaningful coverage; and isolated optional
+    features that stay off by default and change no existing course behaviour, storage
+    or scheduling. Each needs an independent review (a separate reviewer agent or an
+    external reviewer; passing CI alone is not one), every required check passing on
+    the final revision (with the affected module combinations and WebKit where they
+    apply), no unresolved finding and no unrelated change. Record each one.
+  - Everything else waits for Louis's yes to that pull request, after a plain-terms
+    summary of what merging it provides and changes: among it progress storage, import
+    and recovery, scheduling; course migrations and live-course updates; destructive
+    actions, permission changes, unresolved consequential design choices; weakening,
+    skipping or exempting a required check. #32 (Import) waits for him.
+  - Live courses stay unchanged unless Louis approves their update separately; the
+    nightly kit-update run leaves every update at `/preview/` for his reply.
+  - Investigate a failed check and keep its evidence; rerun for diagnosis, never
+    until green.
+  - Put explanations, test results, uncertainties and review requests on the pull
+    request. Read its comments and reviews before finalizing or merging, weigh each
+    suggestion on its merits, and reply on GitHub with the reasoning and validation.
+    ChatGPT reviews about 5:00 AM, 10:00 AM, 3:00 PM and 8:00 PM America/Chicago; to ask
+    for earlier feedback, post the commit, the questions, the evidence and the decision
+    on the pull request, and name it in the update ("Review #X—Claude requested
+    feedback"). Do not wait for it when another qualified independent review suffices.
+  - Batch ready approval requests into one short summary (recommendation, commits,
+    evidence, limitations); do not ask again about unchanged pull requests. Tell Louis
+    promptly of a confirmed progress-loss risk, a live-site problem, or a blocking
+    decision.
 - Only Louis's own data informs recommendations and evidence (§12.4).
 - Citations in kit documents: AMA 11th edition, with a DOI or link on each reference
   (§12.5). Every number in a kit document comes from a named source checked in the
@@ -100,7 +139,7 @@ after Phase 1 and overrides earlier sections where they differ.
 | Google Drive: search, metadata, download | works | 2026-11-01 |
 | Claude Projects | not reachable from a cloud session | 2026-10-31 |
 | Create a new repository (Mode 1, decision 8) | not tested yet | — |
-| A kit pull request merging itself after required checks (§12.9) | not tested yet | — |
+| A kit pull request merging itself after required checks (§12.9; since 2026-11-03 decision 10 instead: Claude merges a listed kind of change after an independent review) | not used | — |
 | Scheduled task that starts a fresh session each time (first "Kit update run", now deleted) | does not work for this: the fired session started with no repository, `gh` and `git` were refused, and it reported FAILED by push notification | 2026-11-01 |
 | `gh api 'repos/<owner>/<repo>/actions/runs?head_sha=<sha>'` for Pages deploys | works through the session proxy without any connector, for repos attached to the session; `gh api …/pages/builds/latest` is refused by the proxy | 2026-11-01 |
 | Session "Kit updater" (`session_01LVkWFDAbAtw7kDGwqd43Qg`, started with the kit as its repository) | kit fetch and push dry run work; Python, Node and Chromium work; `mcp__github__*` tools present; `add_repo` for a course repo from a seeded message was blocked by the permission system; after Louis's own message there, all four course repos were attached with push access, and fetch, `git push --dry-run` and `gh api …/actions/runs` worked in each (the session's stored sources list the kit and the four course repos) | 2026-11-01 |
