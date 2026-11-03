@@ -30,8 +30,9 @@ after Phase 1 and overrides earlier sections where they differ.
     bookkeeping or `small-fix` update goes live without Louis's reply (read 2026-11-03).
     They defer to `skill/SKILL.md` on `main`, which no longer allows it once #37
     merges; changing the stored text waits for Louis (decision 10: a scheduled task's
-    instructions). It cannot fire now: no merged pull request is labelled `small-fix`,
-    and Medicinal-chemistry's pin `ff7bd51` is behind core changes;
+    instructions). It cannot fire now: no merged kit pull request is labelled
+    `small-fix`, and the kit changes since Medicinal-chemistry's pin `2bbe395` include
+    core files that are not catalog bookkeeping;
   - from `core/README.md` "Not in core yet": Intro-Pharmacology's exam-result page after
     a reload and its generator step; `coverage_check.py`, `step_check.js`,
     `sources_check.js`;
@@ -47,7 +48,10 @@ after Phase 1 and overrides earlier sections where they differ.
 - **Moving the courses onto the core** (Louis's order, 2026-11-01: Medicinal-chemistry,
   Pharmacokinetics, BDK, Intro to Pharmacology). Medicinal-chemistry: live on the core
   since 2026-11-01 (commit `d7331be` in its repo, kit pin `ff7bd51`), after kit pull
-  requests #2, #3 and #4 and Louis's approval of its preview.
+  requests #2, #3 and #4 and Louis's approval of its preview. The kit-update run moved
+  its pin to `2bbe395` on 2026-11-02 (Medicinal-chemistry commit `e954e08`, deploy run
+  41424293314), after Louis approved the preview in the "Kit updater" session ("Yrs do
+  it"; Medicinal-chemistry `reviews/LOG.md`, 2026-11-02 09:54 UTC).
   Read-only assessments (2026-11-01) of a move for the other three: Pharmacokinetics
   about 35 kit pull requests (a straight move broke start-up and lost most features),
   BDK about 33 (quizzes still on 11/17-11/19 and 11/30), Intro to Pharmacology about
