@@ -1,0 +1,18 @@
+/* study-controls v1: flags, the layout chips, the one-page quiz and paper, the strict-paper box */
+.scflag{padding:3px 10px;font-size:12.5px}
+.scflag.on{color:var(--warn);border-color:var(--warn);font-weight:600}
+.sclayout{display:inline-flex;gap:4px;flex-wrap:wrap;vertical-align:middle}
+.sclayout .chip{padding:2px 9px;font-size:12px}
+.scbar{display:flex;gap:8px 12px;align-items:center;flex-wrap:wrap;margin:0 0 10px}
+.scrow{display:flex;gap:10px 22px;align-items:center;flex-wrap:wrap;background:var(--paper);border:1px solid var(--line);
+  border-radius:var(--r);padding:10px 14px;margin:0 0 14px}
+.scpart{display:inline-flex;gap:8px;align-items:center;flex-wrap:wrap}
+.scsmall{padding:5px 11px;font-size:13px}
+.sckbd{margin:10px 0 0}
+.scq,.scxq{margin-bottom:14px}
+.scxhead{position:sticky;z-index:30}
+.scxflags button{background:transparent;color:inherit;border:1px solid var(--warn);border-radius:6px;padding:1px 7px;margin-left:4px;font-size:12px}
+.scstart{margin:4px 0 12px}
+.scstrict{display:flex;gap:8px;align-items:flex-start;margin-top:8px;font-size:14px}
+.scnoback{margin:0 0 10px}
+@media (pointer:coarse){.sckbd{display:none}.sclayout .chip{padding:7px 12px}}
