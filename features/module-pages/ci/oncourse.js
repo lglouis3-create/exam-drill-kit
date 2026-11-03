@@ -6,27 +6,36 @@
  *
  * The course data is taken from the module test's own fixture, read from
  * features/module-pages/current/test.js as it stands: its `const PK` (Basic-Pharmacokinetics'
- * Module 2, src/q1_module1.js and src/q2_module2.js at ac2eb73) and its `const PK_LECTURES`
- * (that course's two Module 2 lectures, src/course.js lines 55-61). Of the fixture it writes
- * the part the kit core's checks accept as it is:
- *   - the questions whose citation names a deck of those lectures (2IVBolusAdministration.pdf),
- *     except a second wording of a concept (a question with `dupOf`); the other questions
- *     cite practice sheets, a homework sheet and a lecture transcript, which are not lectures
- *     of the course. The second wordings are left out because with them the core's test.js
- *     check 7 ("Different wording when a missed concept returns") fails on this data: it
- *     takes the first concept with two wordings (topic bolus1), and bolus1 then holds 4
- *     concepts, while a missed concept returns only after GAP = 4 other questions
- *     (core/shell.html), so within bolus1 it cannot return. That is a limit of the core
- *     check on a small topic, reported for a core proposal; the data is not changed for it;
- *   - the topics those questions are in, after the course's own topics (TOPICS.push);
- *   - every objective (OBJECTIVES) whose subtopics hold those questions;
- *   - every kind of problem (CALC_TYPES) whose worked example is among them;
- *   - the skills those questions use that the course does not have;
- *   - the two lectures, as literals in course.js.
- * No problem set is written: the fixture's set (Homework 2, problem 2) cites the homework
- * sheet. Ids of questions, kinds and lectures are prefixed `mpc-` (the test's own scratch
- * copies use `mpt-`). The one change to the data: `prof` is the course's own
- * (COURSE.professors[0], the template's "Professor") on the questions, topics and lectures.
+ * Module 2, src/q1_module1.js and src/q2_module2.js at ac2eb73, 23 questions, verbatim) and its
+ * `const PK_LECTURES` (that course's two Module 2 lectures, src/course.js lines 55-61, verbatim).
+ * Each question, topic and lecture is written as the course has it, its professor's name
+ * included (added to COURSE.professors when the course lacks it), apart from:
+ *   - ids (the kit's CI data rule 2): question, topic, kind-of-problem and lecture ids, and every
+ *     reference to one (dupOf, topic, lecture, an objective's subtopics, a kind's match and
+ *     example), get the prefix `mpc-` (the test's own scratch copies use `mpt-`); the module
+ *     number is FM (below);
+ *   - rule 4: a plan-the-problem `setup` whose equations the course's EQUATIONS lacks, and an
+ *     `asks` key its ASKS lacks, are left out, and printed;
+ *   - a calculation's teachImg (m2-n-koverall) is left out: the core's browser_test.js stops with
+ *     a TypeError on a calculation that carries one (fault C7 in kit PR #30). The concept
+ *     questions' slide images are added to images.json from current/fixture-images/.
+ * Questions left out, each because a core check fails with it (reproductions in
+ * evidence/module-pages, rework-* folder):
+ *   - the 13 questions whose citation names no deck of those lectures (practice-sheet
+ *     solutions, a homework sheet, a lecture transcript): core test.js refuses a question that
+ *     resolves to no lecture (fault C3 in kit PR #30); three of them (hw2-2a, hw2-2b, hw2-2d)
+ *     have one worked step, which core test.js also refuses (it wants two; the course's own
+ *     test wants one);
+ *   - the two second wordings that cite the deck (m2-mod-2, m2-vd-2, topic bolus1): with them
+ *     core test.js section 7 ("Different wording when a missed concept returns") takes the
+ *     concept onecpt-assumptions, and in bolus1, which then holds 4 concepts, a missed concept
+ *     comes back only after GAP = 4 other questions (core/shell.html), so it never returns
+ *     (fault C1 in kit PR #30). Set WITH_SECOND to true to write them once C1 is fixed.
+ * So the course holds: the questions citing 2IVBolusAdministration.pdf, the topics they are in,
+ * every objective whose subtopics hold them, every kind of problem whose worked example is among
+ * them, the skills they use that the course lacks, and the two lectures as literals in
+ * course.js. No problem set is written: the fixture's set (Homework 2, problem 2) cites the
+ * homework sheet.
  * The module is switched on with the `modules` option: the course's own modules in the
  * order its lectures name them, then the fixture's module under its Basic-Pharmacokinetics
  * name. That module is number 2 when the course does not use 2; when the course's lectures
@@ -39,7 +48,9 @@
  *                        ({id:'...', prof:'...', ...})
  *   mpc_data.js          OBJECTIVES and CALC_TYPES (pushed when the course already has them)
  *                        and the skills, pushed onto COURSE.skills
- * and one line appended to course.js: both files in COURSE.files, the lectures in
+ *   images.json          the concept questions' slide images the course lacks
+ * and one line appended to course.js: the professor's name in COURSE.professors when the
+ * course lacks it, both files in COURSE.files, the lectures in
  * COURSE.lectures, and module-pages on at the version in its module.json, kept beside any
  * module already on. Writes only inside <courseSrcDir>; exits non-zero on any failure,
  * including a course that already has this data (run it once per fresh course).
@@ -47,6 +58,7 @@
 const fs = require('fs'), path = require('path'), vm = require('vm');
 const NAME = 'module-pages', TAG = '/* module-pages ci */', PRE = 'mpc-', pre = id => PRE + id;
 const QFILE = 'q90_mpc_fixture.js', DFILE = 'mpc_data.js';
+const WITH_SECOND = false;   // core fault C1 (kit PR #30): see the header
 function fail(msg){ console.error(`${NAME} ci/oncourse.js: ${msg}`); process.exit(1); }
 const [kit, src] = process.argv.slice(2);
 if(!kit || !src) fail(`usage: node features/${NAME}/ci/oncourse.js <kitDir> <courseSrcDir>`);
@@ -81,8 +93,6 @@ try {
   own = vm.runInNewContext(courseText + '\n;\n' + code + '\n;({COURSE, TOPICS: typeof TOPICS === "undefined" ? [] : TOPICS,' +
     ' QUESTIONS: typeof QUESTIONS === "undefined" ? [] : QUESTIONS, OBJECTIVES: typeof OBJECTIVES !== "undefined", CALC_TYPES: typeof CALC_TYPES !== "undefined"})', {});
 } catch(e){ fail('the course could not be read: ' + e.message); }
-const prof = (own.COURSE.professors || [])[0];
-if(typeof prof !== 'string' || !prof || /['\\\n]/.test(prof)) fail('course.js has no first professor that can be written as a literal');
 // the module number the fixture goes on: its own (2) when free, else the first free one from 92, as test.js does
 const usedMods = new Set((own.COURSE.lectures || []).map(l => l.module).concat(own.QUESTIONS.map(q => q.module))
   .filter(m => m !== undefined && m !== null).map(String));
@@ -94,26 +104,53 @@ if(FM !== PK.module.module) console.log(`the course already uses module ${PK.mod
 const decks = [...new Set(LECS.map(l => l.deck))];
 const byQ = Object.fromEntries(PK.qs.map(q => [q.id, q])), want = [];
 const add = id => { const q = byQ[id]; if(!q) fail('the fixture has no question ' + id); if(want.includes(id)) return; want.push(id); if(q.dupOf) add(q.dupOf); };
-PK.qs.filter(q => !q.dupOf && decks.some(d => String(q.cite || '').includes(d))).forEach(q => add(q.id));
-const qs = PK.qs.filter(q => want.includes(q.id)).map(q => Object.assign({}, q, {module: FM}));
+PK.qs.filter(q => (WITH_SECOND || !q.dupOf) && decks.some(d => String(q.cite || '').includes(d))).forEach(q => add(q.id));
+const qs = PK.qs.filter(q => want.includes(q.id)).map(q => Object.assign({}, q, {module: FM, topic: pre(q.topic)}));
+// what the course's other modules declare, for the kit's CI data rule 4
+let eqIds = [], askKeys = [], images;
+try {
+  const files = vm.runInNewContext(courseText + '\n;COURSE.files', {}) || [];
+  const code = files.map(f => fs.readFileSync(path.join(src, f), 'utf8')).join('\n;\n');
+  const r = vm.runInNewContext(courseText + '\n;\n' + code + '\n;({eq: typeof EQUATIONS !== "undefined" && Array.isArray(EQUATIONS) ? EQUATIONS.map(e => e && e.id) : [],' +
+    ' asks: typeof ASKS !== "undefined" && ASKS && typeof ASKS === "object" ? Object.keys(ASKS) : []})', {});
+  eqIds = r.eq; askKeys = r.asks;
+  images = JSON.parse(fs.readFileSync(path.join(src, 'images.json'), 'utf8'));
+} catch(e){ fail('the course\'s EQUATIONS, ASKS or images.json could not be read: ' + e.message); }
+const dropped = {setup: [], asks: [], teachImg: []};
+qs.forEach(q => {
+  if(q.setup && !((q.setup.eq === 'none' || eqIds.includes(q.setup.eq)) && (q.setup.pre || []).every(x => eqIds.includes(x)))){ delete q.setup; dropped.setup.push(pre(q.id)); }
+  if(q.asks !== undefined && !askKeys.includes(q.asks)){ delete q.asks; dropped.asks.push(pre(q.id)); }
+  if(q.teachImg !== undefined && q.type === 'numeric'){ delete q.teachImg; dropped.teachImg.push(pre(q.id)); }   // core fault C7
+  if(q.lecture) q.lecture = pre(q.lecture);
+});
+const imgDir = path.join(cur, 'fixture-images'), newImages = [];
+for(const k of [...new Set(qs.filter(q => q.teachImg).map(q => q.teachImg))]){
+  if(images[k]) continue;
+  const n = (fs.existsSync(imgDir) ? fs.readdirSync(imgDir) : []).find(x => x.startsWith(k + '.'));
+  if(!n) fail(`features/${NAME}/current/fixture-images has no image ${k}`);
+  images[k] = `data:image/${path.extname(n).slice(1)};base64,` + fs.readFileSync(path.join(imgDir, n)).toString('base64'); newImages.push(k);
+}
 if(!qs.length) fail('no question of the fixture cites ' + decks.join(', '));
-const subs = new Set(qs.map(q => q.topic + '/' + q.sub));
+const subs = new Set(qs.map(q => q.topic + '/' + q.sub));   // topic ids already prefixed
 const ownTopics = own.TOPICS.map(t => t.id), ownSkills = (own.COURSE.skills || []).map(k => k.id);
-const clash = PK.topics.filter(t => qs.some(q => q.topic === t.id) && ownTopics.includes(t.id)).map(t => t.id);
+const clash = PK.topics.filter(t => qs.some(q => q.topic === pre(t.id)) && ownTopics.includes(pre(t.id))).map(t => pre(t.id));
 if(clash.length) fail('the course already has the topic(s) ' + clash.join(', '));
-const topics = PK.topics.filter(t => qs.some(q => q.topic === t.id)).map(t => Object.assign({}, t, {prof}));
-const objectives = PK.objectives.filter(o => o.subs.some(s => subs.has(s))).map(o => Object.assign({}, o, {module: FM}));
-const types = PK.types.filter(t => t.example && want.includes(t.example)).map(t => Object.assign({}, t, {id: pre(t.id), example: pre(t.example), module: FM}));
+const topics = PK.topics.filter(t => qs.some(q => q.topic === pre(t.id))).map(t => Object.assign({}, t, {id: pre(t.id)}));
+const objectives = PK.objectives.filter(o => o.subs.some(s => subs.has(pre(s)))).map(o => Object.assign({}, o, {module: FM, subs: o.subs.map(pre)}));
+const types = PK.types.filter(t => t.example && want.includes(t.example)).map(t => Object.assign({}, t, {id: pre(t.id), example: pre(t.example), module: FM, match: t.match.map(pre)}));
 const skills = PK.skills.filter(k => qs.some(q => q.skill === k.id) && !ownSkills.includes(k.id));
 const missingSkill = [...new Set(qs.map(q => q.skill))].filter(k => !ownSkills.includes(k) && !skills.some(s => s.id === k));
 if(missingSkill.length) fail('the questions use skills neither the course nor the fixture has: ' + missingSkill.join(', '));
-const lectures = LECS.map(l => Object.assign({}, l, {id: pre(l.id), prof, module: FM}));
+const lectures = LECS.map(l => Object.assign({}, l, {id: pre(l.id), module: FM}));
+const ownProfs = own.COURSE.professors || [];
+const profs = [...new Set(qs.map(q => q.prof).concat(topics.map(t => t.prof), lectures.map(l => l.prof)))].filter(p => p && !ownProfs.includes(p));
 
 // one question per line, in the template's form: id and prof first, as literals
 const qLine = q => { const rest = Object.assign({}, q); delete rest.id; delete rest.prof;
   if(rest.dupOf) rest.dupOf = pre(rest.dupOf);
   if(!/^[A-Za-z0-9_-]+$/.test(q.id)) fail(`question ${q.id} has an id that cannot be written as a literal`);
-  return `{id:'${pre(q.id)}', prof:'${prof}', ${JSON.stringify(rest).slice(1, -1)}},`; };
+  if(!/^[^'\\\n]+$/.test(q.prof || '')) fail(`question ${q.id} has a prof that cannot be written as a literal`);
+  return `{id:'${pre(q.id)}', prof:'${q.prof}', ${JSON.stringify(rest).slice(1, -1)}},`; };
 const decl = (n, v, has) => has ? `${n}.push(...${JSON.stringify(v)});` : `const ${n} = ${JSON.stringify(v)};`;
 const out = {
   [QFILE]: `/* module-pages ci: ${qs.length} of the module test's Basic-Pharmacokinetics Module 2 questions (ac2eb73), those citing ${decks.join(', ')}, ids prefixed ${PRE} */\n` +
@@ -128,14 +165,18 @@ const ownMods = [];
 (own.COURSE.lectures || []).forEach(l => { if(l.module !== undefined && l.module !== null && !ownMods.includes(l.module)) ownMods.push(l.module); });
 if(ownMods.some(m => String(m) === String(FM))) fail(`the course already has a module ${FM}`);   // cannot happen: FM is free
 const modules = ownMods.map(m => [m, typeof m === 'string' && /\D/.test(m) ? m : 'Module ' + m]).concat([[FM, PK.module.name]]);
-try { for(const [f, t] of Object.entries(out)){ fs.writeFileSync(path.join(src, f), t); console.log(`wrote: ${path.join(src, f)} (${t.length} characters)`); } }
+try { for(const [f, t] of Object.entries(out)){ fs.writeFileSync(path.join(src, f), t); console.log(`wrote: ${path.join(src, f)} (${t.length} characters)`); }
+      if(newImages.length){ fs.writeFileSync(path.join(src, 'images.json'), JSON.stringify(images)); console.log(`wrote: ${newImages.length} slide image(s) into images.json (${newImages.join(', ')})`); } }
 catch(e){ fail('cannot write the data files: ' + e.message); }
-const line = `\n;${TAG} COURSE.files = (COURSE.files || ['atlas.js', 'diagrams.js', 'q1_topics.js']).concat([${JSON.stringify(QFILE)}, ${JSON.stringify(DFILE)}]); ` +
+const line = `\n;${TAG} ` + (profs.length ? `COURSE.professors = (COURSE.professors || []).concat(${JSON.stringify(profs)}); ` : '') + `COURSE.files = (COURSE.files || ['atlas.js', 'diagrams.js', 'q1_topics.js']).concat([${JSON.stringify(QFILE)}, ${JSON.stringify(DFILE)}]); ` +
   `COURSE.lectures = (COURSE.lectures || []).concat([${lectures.map(lectureLit).join(', ')}]); ` +
   `COURSE.features = Object.assign({}, COURSE.features, {${JSON.stringify(NAME)}: ${JSON.stringify({version: meta.version, modules})}});\n`;
 try { fs.appendFileSync(course, line); } catch(e){ fail('cannot write ' + course + ': ' + e.message); }
 console.log('wrote: appended to ' + course + ':' + line.trimEnd());
-const second = PK.qs.filter(q => q.dupOf && decks.some(d => String(q.cite || '').includes(d))).length;
+const second = WITH_SECOND ? 0 : PK.qs.filter(q => q.dupOf && decks.some(d => String(q.cite || '').includes(d))).length;
 console.log(`data: ${qs.length} questions (calculations: ${qs.filter(q => q.type === 'numeric').length}), ${topics.length} topics, ${objectives.length} objectives, ` +
   `${types.length} kinds of problem, ${skills.length} skills, ${lectures.length} lectures; left out: ${PK.qs.length - qs.length - second} questions citing no lecture deck and ${second} second wordings, ` +
   `${PK.types.length - types.length} kinds whose worked example is not among the questions written, ${PK.chains.length} problem sets`);
+console.log(`left out (rule 4): ${dropped.setup.length} setup line(s) naming an equation the course's EQUATIONS lacks (${dropped.setup.join(', ') || 'none'}), ` +
+  `${dropped.asks.length} asks key(s) the course's ASKS lacks (${dropped.asks.join(', ') || 'none'}); ` +
+  `left out (core fault C7, kit PR #30): ${dropped.teachImg.length} teachImg on a calculation (${dropped.teachImg.join(', ') || 'none'})`);
