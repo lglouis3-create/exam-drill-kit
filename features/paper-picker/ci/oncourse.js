@@ -7,6 +7,13 @@
  * three exams, its activeExam, its twelve lectures, the skills, topics and questions
  * that file names (ac2eb73), with the course's own first professor as each `prof`
  * (the one change to the data; the file's header says which questions and why).
+ * Ids (kit rule 2, /tmp/port-tools/CIDATA.md): other modules' scripts write some of the
+ * same Basic-Pharmacokinetics questions and topics, so every question, topic, subtopic and
+ * lecture id this script writes carries the prefix `pp-` with the course's own id kept
+ * inside it (m7-c03 -> pp-m7-c03, pkpd -> pp-pkpd, L01 -> pp-L01; each `dupOf`, `topic` and
+ * `sub` rewritten the same way); test_fixture.js's header has the full mapping. The exams
+ * are written as the course has them: their pools filter by exam and module, not by an id.
+ * A course that already has one of these prefixed ids stops the script.
  * Files written in <courseSrcDir>:
  *   q90_paper_picker_pk.js   the topics (TOPICS.push, after the course's own) and the
  *                            questions, one per line in the kit's question-file form
@@ -40,6 +47,18 @@ if(fs.existsSync(data)) fail(data + ' already exists (this script runs once per 
 let COURSE;
 try { COURSE = new Function(text + '\n;return COURSE;')(); } catch(e){ fail('course.js cannot be read: ' + e.message); }
 const prof = (COURSE.professors || [])[0];
+// a real clash: one of this script's own (prefixed) ids already in the course
+const mine = new Set([...FX.PK.qs.map(q => FX.PRE + q.id), ...FX.PK.topics.map(t => FX.PRE + t.id)]);
+const taken = (COURSE.lectures || []).filter(l => FX.PK.lectures.some(x => FX.PRE + x.id === l.id)).map(l => l.id);
+for(const f of fs.readdirSync(src).filter(f => /\.js$/.test(f) && f !== 'course.js')){
+  const t = fs.readFileSync(path.join(src, f), 'utf8');
+  for(const m of t.matchAll(/["']?id["']?\s*:\s*["']([^"']+)["']/g)) if(mine.has(m[1])) taken.push(m[1] + ' (' + f + ')');
+}
+if(taken.length) fail('the course already has the id(s) ' + [...new Set(taken)].slice(0, 8).join(', ') + ' this script writes');
+// the core reads a question's exam and module from the first lecture naming the deck its cite names: an earlier
+// lecture with one of these decks and another exam or module gives those questions that lecture's exam and module
+const ahead = FX.PK.lectures.map(l => [l, (COURSE.lectures || []).find(x => x.deck === l.deck)])
+  .filter(([l, f]) => f && (f.exam !== l.exam || f.module !== l.module)).map(([l, f]) => `${l.deck} (${f.id}: exam ${f.exam}, module ${f.module}; here exam ${l.exam}, module ${l.module})`);
 let out;
 try { out = FX.courseData(prof); } catch(e){ fail(e.message); }
 const line = `\n;${TAG} COURSE.files = (COURSE.files || ['atlas.js', 'diagrams.js', 'q1_topics.js']).concat([${JSON.stringify(FX.FILE)}]); ` +
@@ -50,7 +69,8 @@ try { images = FX.withImages(fs.existsSync(imagesFile) ? fs.readFileSync(imagesF
 try { fs.writeFileSync(data, out.files[FX.FILE]); } catch(e){ fail('cannot write ' + data + ': ' + e.message); }
 try { fs.writeFileSync(imagesFile, images); } catch(e){ fail('cannot write ' + imagesFile + ': ' + e.message); }
 try { fs.appendFileSync(course, line); } catch(e){ fail('cannot write ' + course + ': ' + e.message); }
-console.log(`wrote: ${data} (${FX.PK.topics.length} topics and ${FX.PK.qs.length} questions from features/${NAME}/current/test_fixture.js, prof ${JSON.stringify(prof)})`);
+console.log(`wrote: ${data} (${FX.PK.topics.length} topics and ${FX.PK.qs.length} questions from features/${NAME}/current/test_fixture.js, prof ${JSON.stringify(prof)}; ids with the prefix ${FX.PRE})`);
 console.log(`wrote: ${imagesFile} (the ${Object.keys(FX.PK.images).length} images those questions show, added to the course's own)`);
 console.log(`wrote: appended to ${course}: the file in COURSE.files, ${FX.PK.lectures.length} lectures in COURSE.lectures, ` +
   `the skills the course lacks, COURSE.exams (${FX.PK.exams.map(e => e.name).join(', ')}), COURSE.activeExam ${JSON.stringify(FX.PK.activeExam)}, and ${NAME} ${meta.version} on`);
+if(ahead.length) console.log(`note: the course already has a lecture with the deck of ${[...new Set(ahead)].join('; ')}; the core reads the exam and module of the questions citing it from that earlier lecture, so the exams' module pools count them there (the module's test moves its own lectures first in its scratch copy)`);

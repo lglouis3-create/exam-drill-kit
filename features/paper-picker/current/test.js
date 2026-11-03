@@ -168,19 +168,36 @@ const sameIds = (a, b) => a.length === b.length && a.every((x, i) => x === b[i])
   }
 
   console.log('\n=== on a scratch copy with Basic-Pharmacokinetics\' own data (Chromium) ===');
-  // the course's own copy of the fixture (the CI course), or the fixture added to a scratch copy
-  const ids = new Set(X.QUESTIONS.map(q => q.id));
-  const have = FIX.PK.qs.filter(q => ids.has(q.id)).length;
+  // The fixture's questions (ids with the prefix FIX.PRE): the course's own copy of them (the CI course), or the
+  // fixture added to a scratch copy. Either way the scratch copy is set to the fixture's own exams and current exam
+  // (a course may hold the questions with other exams: a 1-exam course, or a course where another module's script
+  // set COURSE.exams after this one). Exam 1's pools take only the fixture's topics in the copy, so the check that
+  // its Module 2 pool cannot be filled reads the fixture's own bank, whatever other modules add; Exam 2's and
+  // Exam 3's pools take every question, as in a course. Where another lecture with one of the fixture's decks and
+  // another exam or module comes before the fixture's own lectures (the core reads a question's exam and module
+  // from the first lecture naming its deck), the fixture's lectures are moved ahead in the copy, all lectures kept.
+  const pre = FIX.PRE, ids = new Set(X.QUESTIONS.map(q => q.id));
+  const have = FIX.PK.qs.filter(q => ids.has(pre + q.id)).length;
+  if(have && have < FIX.PK.qs.length){ check(false, `the course holds ${have} of the ${FIX.PK.qs.length} questions of test_fixture.js (ids ${pre}...), so neither its own copy nor a new one can be used`); L.finish(NAME); }
+  const ppTopics = FIX.PK.topics.map(t => pre + t.id), ppLecs = FIX.PK.lectures.map(l => pre + l.id);
+  const ahead = FIX.PK.lectures.filter(l => { const f = X.COURSE.lectures.find(x => x.deck === l.deck); return f && !ppLecs.includes(f.id) && (f.exam !== l.exam || f.module !== l.module); }).map(l => l.deck);
+  const setUp = `COURSE.exams = ${JSON.stringify(FIX.PK.exams)}; COURSE.activeExam = ${JSON.stringify(FIX.PK.activeExam)}; ` +
+    `COURSE.exams.find(e => e.id === 1).pools.forEach(p => { p.filter = Object.assign({}, p.filter, {topic: ${JSON.stringify(ppTopics)}}); });` +
+    (ahead.length ? ` { const pp = COURSE.lectures.filter(l => ${JSON.stringify(ppLecs)}.includes(l.id)); COURSE.lectures = pp.concat(COURSE.lectures.filter(l => !pp.includes(l))); }` : '');
   let opts;
-  if(have === FIX.PK.qs.length && X.COURSE.exams.map(e => e.id).join() === FIX.PK.exams.map(e => e.id).join()) opts = {};
-  else if(!have){
+  if(have) opts = {courseLine: setUp};
+  else {
     const d = FIX.courseData(own.prof);
-    opts = {files: d.files, courseLine: d.courseLine, edit: src => {
+    opts = {files: d.files, courseLine: d.courseLine + ' ' + setUp, edit: src => {
       const f = path.join(src, 'images.json');
       fs.writeFileSync(f, FIX.withImages(fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '{}'));
     }};
-  } else { check(false, `the course holds ${have} of the ${FIX.PK.qs.length} questions of test_fixture.js, so neither its own copy nor a new one can be used`); L.finish(NAME); }
-  console.log(`  (${opts.files ? 'the fixture added to a scratch copy' : 'the course\'s own copy of the fixture'}: ${FIX.PK.qs.length} questions, ${FIX.PK.exams.length} exams)`);
+  }
+  const sameExams = JSON.stringify(X.COURSE.exams) === JSON.stringify(FIX.PK.exams) && X.COURSE.activeExam === FIX.PK.activeExam;
+  console.log(`  (${have ? 'the course\'s own copy of the fixture' : 'the fixture added to a scratch copy'}: ${FIX.PK.qs.length} questions; ` +
+    `${sameExams ? 'the course has the fixture\'s ' + FIX.PK.exams.length + ' exams' : 'the course has ' + X.COURSE.exams.length + ' exam(s), set to the fixture\'s ' + FIX.PK.exams.length + ' in the copy'}; ` +
+    `${X.QUESTIONS.length - have} other question(s) in the course, kept out of Exam 1's pools by topic` +
+    `${ahead.length ? '; the fixture\'s lectures moved ahead of the earlier lectures of ' + [...new Set(ahead)].join(', ') : ''})`);
   const s = L.scratchBuild('pp', opts);
   if(s.code !== 0) L.notRun(NAME, 'the scratch copy with the test questions does not build: ' + s.out.split('\n').slice(-3).join(' '));
   const [E1, E2, E3] = [1, 2, 3].map(id => FIX.PK.exams.find(e => e.id === id));
