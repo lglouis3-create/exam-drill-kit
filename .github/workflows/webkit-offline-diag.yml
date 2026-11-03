@@ -16,19 +16,19 @@ permissions:
 
 jobs:
   diag:
-    name: ${{ matrix.browser }} · ${{ matrix.mode }} · wait ${{ matrix.wait }} · set ${{ matrix.set }}
+    name: ${{ matrix.browser }} · ${{ matrix.mode }} · down ${{ matrix.down }} · set ${{ matrix.set }}
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
         include:
-          - {browser: webkit, mode: load, runs: 5, set: 1, wait: 0}
-          - {browser: webkit, mode: load, runs: 5, set: 2, wait: 0}
-          - {browser: webkit, mode: load, runs: 5, set: 3, wait: 0}
-          - {browser: webkit, mode: load, runs: 5, set: 1, wait: 1000}
-          - {browser: webkit, mode: load, runs: 5, set: 2, wait: 1000}
-          - {browser: webkit, mode: load, runs: 5, set: 3, wait: 1000}
+          - {browser: webkit, mode: load, runs: 5, set: 1, wait: 0, down: drop, debug: 'pw:browser*'}
+          - {browser: webkit, mode: load, runs: 5, set: 2, wait: 0, down: drop, debug: 'pw:browser*'}
+          - {browser: webkit, mode: load, runs: 5, set: 3, wait: 0, down: drop, debug: 'pw:browser*'}
+          - {browser: webkit, mode: load, runs: 5, set: 1, wait: 0, down: '503', debug: ''}
+          - {browser: webkit, mode: load, runs: 5, set: 2, wait: 0, down: '503', debug: ''}
+          - {browser: webkit, mode: load, runs: 5, set: 3, wait: 0, down: '503', debug: ''}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
@@ -49,6 +49,8 @@ jobs:
           MODE: ${{ matrix.mode }}
           RUNS: ${{ matrix.runs }}
           WAIT_UP: ${{ matrix.wait }}
+          DOWN: ${{ matrix.down }}
+          PW_DEBUG: ${{ matrix.debug }}
         run: |
           export NODE_PATH="$(npm root -g)"
           bash .github/diag/run.sh "$BROWSER" "$RUNS" "$MODE"

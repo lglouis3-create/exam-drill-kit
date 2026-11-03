@@ -25,7 +25,12 @@
  *     worker's state and the saved copy at that moment; then, for the diagnosis only, one
  *     more navigation (recorded as such), so the rest of the run is still observed;
  *   - DIAG_WAIT_AFTER_UP (ms, default 0): a pause between the server coming back up and
- *     that navigation, to tell a race from a lasting state (offline_test.js has none).
+ *     that navigation, to tell a race from a lasting state (offline_test.js has none);
+ *   - DIAG_DOWN=503: in mode down the server answers 503 at once instead of dropping
+ *     the connection (core/check_lib.js serve() drops it), to tell whether the dropped
+ *     connections are the trigger;
+ *   - when that navigation fails, also the number of worker registrations and whether a
+ *     localStorage key set earlier in the run is still there (site data kept or wiped).
  * The worker's and the page's logs are read at the end of every run, also one that stops.
  * The checks are offline_test.js's own for these phases; the run's last line is its
  * PASS or FAIL. One difference: before its last check (no page errors) it waits 6 s
@@ -40,8 +45,8 @@ L.PAGE.need(NAME);
 const FILE = path.basename(L.PAGE.PAGE);
 const SLOW = 8000;
 const T0 = Date.now(), now = () => Date.now() - T0;
-const WAIT_UP = Number(process.env.DIAG_WAIT_AFTER_UP || 0);
-const D = {browser: L.BROWSER, waitAfterUp: WAIT_UP, server: [], phases: [], pageErrors: [], beforeSlow: null, afterSlow: null, swLog: [], pageLog: [], checks: [],
+const WAIT_UP = Number(process.env.DIAG_WAIT_AFTER_UP || 0), DOWN503 = process.env.DIAG_DOWN === '503';
+const D = {browser: L.BROWSER, waitAfterUp: WAIT_UP, down: DOWN503 ? '503' : 'drop', server: [], phases: [], pageErrors: [], beforeSlow: null, afterSlow: null, swLog: [], pageLog: [], checks: [],
            requestsFailed: [], navigations: [], consoleErrors: [], crashes: [], afterUpGoto: null};
 const phase = p => { D.phases.push({t: now(), phase: p}); console.log(`  [${now()} ms] phase: ${p}`); };
 
@@ -51,6 +56,7 @@ const realCreate = http.createServer;
 http.createServer = function(handler){
   return realCreate.call(http, (req, res) => {
     D.server.push({t: now(), mode: S ? S.mode : '?', path: req.url, fm: req.headers['sec-fetch-mode'] || '', fd: req.headers['sec-fetch-dest'] || ''});
+    if(DOWN503 && S && S.mode === 'down'){ res.writeHead(503, {'Content-Type': 'text/plain'}); res.end('down'); return; }
     handler(req, res);
   });
 };
@@ -113,6 +119,7 @@ const chk = (ok, label, detail) => { D.checks.push({t: now(), ok: !!ok, label, d
     await page.goto(URL_);
     const controlled = await page.waitForFunction(() => navigator.serviceWorker && navigator.serviceWorker.controller, null, {timeout: 20000}).then(() => true, () => false);
     chk(controlled, 'the worker installs and controls the page on the first visit');
+    await page.evaluate(() => localStorage.setItem('__diag-marker', String(Date.now())));
     if(controlled){ try { await page.waitForSelector('#swbar', {timeout: 8000}); } catch(e){} }
     phase('reload');
     await page.reload(); await waitApp(10000);
@@ -131,7 +138,9 @@ const chk = (ok, label, detail) => { D.checks.push({t: now(), ok: !!ok, label, d
     if(WAIT_UP) await page.waitForTimeout(WAIT_UP);
     try { await page.goto(URL_); D.afterUpGoto = {t: now(), ok: true}; }
     catch(e){
-      D.afterUpGoto = Object.assign({t: now(), ok: false, error: String(e.message || e).split('\n')[0]}, await workerState());
+      D.afterUpGoto = Object.assign({t: now(), ok: false, error: String(e.message || e).split('\n')[0]}, await workerState(),
+        await page.evaluate(async () => ({registrations: navigator.serviceWorker ? (await navigator.serviceWorker.getRegistrations()).length : null,
+          marker: localStorage.getItem('__diag-marker'), cacheNames: await caches.keys()})).catch(e => ({stateError: String(e.message || e)})));
       chk(false, 'the navigation after the server comes back up works', D.afterUpGoto.error);
       phase('diagnosis only: one more navigation');
       try { await page.goto(URL_); D.afterUpGoto.second = {t: now(), ok: true}; }
