@@ -13,6 +13,9 @@ glossary-tap,formulas-in-text
 study-controls,paper-picker
 notes,study-controls
 theme,*
-# Not one Louis named: terms-variables with its optional partner equation-drill (the
-# Equations tab offers its variables quiz), added by the port of queue item 3, 2026-11-02.
+# terms-variables with equation-drill: the Equations tab offers terms-variables' variables quiz.
+# Purpose: run terms-variables' test with equation-drill on, the only course where its checks
+# "the Equations tab offers the variables quiz" and "its Start drills the variables quiz" run
+# (with equation-drill off they are SKIPPED). Not one Louis named; added by the port of queue
+# item 3, 2026-11-02.
 terms-variables,equation-drill
