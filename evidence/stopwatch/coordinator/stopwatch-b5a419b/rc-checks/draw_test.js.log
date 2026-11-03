@@ -1,0 +1,14 @@
+
+=== The course bank ===
+  ok    400 papers from this bank carry no two members of one dupOf family
+
+=== A fixed bank with every kind of family ===
+  ok    drawn by pool marks: every paper has 8 different questions, 4 from each pool
+  ok    drawn by pool marks: every family is drawn on some paper, so the check is not empty
+  ok    drawn by pool marks: no paper carries two members of one dupOf family (pairs, chains, siblings)
+  ok    drawn by pool marks: including families whose members sit in different pools
+  ok    drawn by announced counts: every paper has 8 different questions, 4 from each pool
+  ok    drawn by announced counts: every family is drawn on some paper, so the check is not empty
+  ok    drawn by announced counts: no paper carries two members of one dupOf family (pairs, chains, siblings)
+  ok    drawn by announced counts: including families whose members sit in different pools
+PASS: draw_test.js: 9 checks passed

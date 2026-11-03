@@ -1,0 +1,86 @@
+
+=== 1. Question bank integrity ===
+  67 questions, 12 topics, 7 images
+  ok    the build's question count equals QUESTIONS.length (67)
+
+=== 2. Exam blueprint coverage ===
+  Exam 1 material (Modules 1–3): 28 questions (paper takes 15)
+  Exam 2 material (Modules 4–7a): 24 questions (paper takes 15)
+  Module 7b — PK-PD relationship: 7 questions (paper takes 5)
+  Module 8 — Nonlinear pharmacokinetics: 8 questions (paper takes 5)
+
+=== 3. Concept spread per topic ===
+  topic1       3 q /   3 concepts  (Professor)
+  topic2       4 q /   4 concepts  (Professor)
+  sw-intro     1 q /   1 concepts  (Professor)
+  warn  subtopic "sw-intro/terms" (ADME and the fundamental terms) has no questions
+  warn  subtopic "sw-intro/matrix" (Whole blood, serum and plasma) has no questions
+  warn  subtopic "sw-intro/models" (Pharmacokinetic models) has no questions
+  warn  subtopic "sw-intro/curve" (The concentration versus time curve) has no questions
+  sw-orders   12 q /   7 concepts  (Professor)
+  warn  subtopic "sw-orders/half" (Half-life, both orders) has no questions
+  sw-infusion   8 q /   7 concepts  (Professor)
+  warn  subtopic "sw-infusion/css" (Steady state and continuous dosing) has no questions
+  warn  subtopic "sw-infusion/rate" (Infusion rate for a target steady-state concentration) has no questions
+  warn  subtopic "sw-infusion/time" (Time to reach a stated fraction of steady state) has no questions
+  sw-oral      4 q /   4 concepts  (Professor)
+  warn  subtopic "sw-oral/changes" (Effects of changing ka, k and dose) has no questions
+  sw-multi     1 q /   1 concepts  (Professor)
+  warn  subtopic "sw-multi/accum" (Drug accumulation and steady state) has no questions
+  warn  subtopic "sw-multi/superpos" (The principle of superposition) has no questions
+  warn  subtopic "sw-multi/ndose" (Concentration after n doses and after the last dose) has no questions
+  sw-intermit   6 q /   6 concepts  (Professor)
+  sw-multoral  10 q /  10 concepts  (Professor)
+  sw-bioavail   2 q /   2 concepts  (Professor)
+  warn  subtopic "sw-bioavail/defs" (Drug product performance, bioavailability, absolute and relative, bioequivalence) has no questions
+  warn  subtopic "sw-bioavail/frel" (Relative bioavailability) has no questions
+  warn  subtopic "sw-bioavail/figure" (Reading the bioequivalence example) has no questions
+  sw-pkpd      8 q /   7 concepts  (Professor)
+  warn  subtopic "sw-pkpd/dosefor" (The dose for a target duration of activity) has no questions
+  sw-nonlin    8 q /   6 concepts  (Professor)
+  warn  subtopic "sw-nonlin/kmvmax" (Vmax and KM from two dose rates in a patient) has no questions
+  warn  subtopic "sw-nonlin/dose" (Dose rate and steady state for a nonlinear drug such as phenytoin) has no questions
+
+=== 4. Spaced repetition rules ===
+  ok    missed concept is held back rather than repeated at once
+  ok    missed concept resurfaces after other questions
+  ok    box advanced 0 -> 3 with repeated correct answers
+  ok    a later miss resets the concept to active review
+  ok    a guess resets the concept to unresolved and outranks never-seen material
+  ok    "I guessed that one" rewrites the log, resets the box, keeps picked and ms
+  ok    7 concepts have more than one wording available
+
+=== 5. Exam simulation draw ===
+  blueprint: Exam 3 (final) — Exam 1 material (Modules 1–3) 15, Exam 2 material (Modules 4–7a) 15, Module 7b — PK-PD relationship 5, Module 8 — Nonlinear pharmacokinetics 5 (40 of 40)
+  drew 40
+  ok    no duplicate questions on a single paper
+  ok    dupOf partners never share a paper (7 marked; 0 lowYield kept off the paper)
+  ok    20 repeated draws all kept the paper shape
+  select-all on the paper: 4 of 40 (target 4)
+  ok    the paper carries the intended number of select-all items
+  ok    every question resolves to a lecture, exam and module
+  ok    every question carries a skill from the course taxonomy (recall, tell, apply, read, calc, order, infusion, multidose, bioavail)
+  ok    numeric grading accepts the answer within tolerance and rejects the rest
+
+=== 6. Storage isolation ===
+  ok    progress written under namespaced key: course-id-drill:data:me
+  ok    the page opened without asking for a name
+=== 7. Different wording when a missed concept returns ===
+  ok    returned as a different question (sw-m1-ord-c01 -> sw-cq1-2)
+=== 8. Small pools end instead of looping ===
+  ok    pool of 2 served 2 (2 distinct) then stopped
+  ok    "Ask everything" still serves (10 more)
+
+=== 9. Figures, read links, change log, blueprint ===
+  ok    every DIAGRAMS key is in DIA
+  ok    1 step-through figure(s), each with a dot per step
+  ok    2 read link(s), every one naming guide, tell or ref
+  7 of 67 questions resolve to a reading section (the rest group by topic in the review plan)
+  ok    a session is the run with no half-hour gap (2 of 4 answers)
+  ok    a correct answer marked "not sure" does not count as solid
+  skip  blueprint draw (this course draws by pool marks, not announced counts)
+  ok    1 change log entry embedded, each with bullets
+
+All checks passed  (warnings: 18)
+
+PASS: test.js: 67 questions checked, 18 warning(s)

@@ -1,0 +1,4 @@
+$ node features/stopwatch/ci/oncourse.js
+wrote: /tmp/port-coord/vc-stopwatch/src/q90_stopwatch_pk.js (10 topics and 60 questions: the calculations sw-cq4-2, sw-cq4-4, sw-cq4-6, sw-cq4-8, sw-cq4-9 and 55 single-answer and select-all questions for Exam 3 (final); prof "Professor")
+wrote: /tmp/port-coord/vc-stopwatch/src/images.json (the 7 images those questions show, added to the course's own)
+wrote: appended to /tmp/port-coord/vc-stopwatch/src/course.js: q90_stopwatch_pk.js in COURSE.files, 9 lectures (sw-L01, sw-L04, sw-L06, sw-L07, sw-L08, sw-L09, sw-L10, sw-L11, sw-L12), the skills the course lacks, COURSE.exams = [Exam 3 (final)] (no typed, as in the course), COURSE.activeExam 3, and stopwatch v1 on with paceSeconds 120
