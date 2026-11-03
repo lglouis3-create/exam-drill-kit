@@ -22,14 +22,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # round 3: import_test.js as corrected in e0d7b9b (synced), 8 runs per job, no report lines
-          - {mode: import, course: medicinal-chemistry, runs: 8, set: 1, load: '', instrument: ''}
-          - {mode: import, course: medicinal-chemistry, runs: 8, set: 2, load: '', instrument: ''}
-          - {mode: import, course: medicinal-chemistry, runs: 8, set: 3, load: '', instrument: ''}
-          - {mode: import, course: medicinal-chemistry, runs: 8, set: 4, load: load, instrument: ''}
-          - {mode: import, course: 'module:equation-drill', runs: 8, set: 1, load: '', instrument: ''}
-          - {mode: import, course: 'module:equation-drill', runs: 8, set: 2, load: '', instrument: ''}
-          - {mode: import, course: template, runs: 8, set: 1, load: '', instrument: ''}
+          # round 4: as round 3 (run 41596947438: 56 of 56 passed), Medicinal-chemistry only, 48 more runs
+          - {mode: import, course: medicinal-chemistry, runs: 8, set: 5, load: '', instrument: ''}
+          - {mode: import, course: medicinal-chemistry, runs: 8, set: 6, load: '', instrument: ''}
+          - {mode: import, course: medicinal-chemistry, runs: 8, set: 7, load: '', instrument: ''}
+          - {mode: import, course: medicinal-chemistry, runs: 8, set: 8, load: '', instrument: ''}
+          - {mode: import, course: medicinal-chemistry, runs: 8, set: 9, load: load, instrument: ''}
+          - {mode: import, course: medicinal-chemistry, runs: 8, set: 10, load: load, instrument: ''}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
