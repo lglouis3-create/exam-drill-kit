@@ -580,9 +580,11 @@ const store = {
     catch(e){ return MEM[k] === undefined ? null : MEM[k]; }
   },
   // true when the browser kept it; false when storage is full or blocked (it is then kept for this visit only)
+  // SEEN (seenAs) follows only a write the browser kept: a refused write leaves it at what is
+  // stored, so a later save by another tab still shows as one
   set(k, v){
-    MEM[k] = v; seenAs(k, v);
-    try { localStorage.setItem(k, v); FAILED.delete(k); return true; }
+    MEM[k] = v;
+    try { localStorage.setItem(k, v); FAILED.delete(k); seenAs(k, v); return true; }
     catch(e){ FAILED.add(k); saveWarn(); return false; }
   },
   del(k){ delete MEM[k]; FAILED.delete(k); seenAs(k, null); try { localStorage.removeItem(k); } catch(e){ /* nothing to remove */ } },
@@ -594,8 +596,9 @@ const store = {
     catch(e){ return false; }
   },
 };
-/* What this page last read or wrote under the profile's own progress and history keys
-   (SEEN, SEEN_LOG, below), kept by every write through `store` and by saveLog. A save
+/* What this page last read under the profile's own progress and history keys, or wrote
+   there with the browser keeping it (SEEN, SEEN_LOG, below); kept by every write through
+   `store` that succeeds and by saveLog. A refused write does not change it. A save
    finds another value stored when another tab or window of this site saved the profile
    since; it then writes nothing (staleWarn). Called before the profile is known, it does
    nothing. */
@@ -651,8 +654,10 @@ function staleWarn(){
 /* The stored value under `k` is not what this page last read or wrote there. A key
    that is gone is not another tab's save (the core never deletes a profile's progress
    or history): the browser's site data was cleared while this page was open, and the
-   page's next save writes its copy back. */
-const savedElsewhere = (k, seen) => { let now; try { now = localStorage.getItem(k); } catch(e){ return false; } return now !== seen && now !== null && !FAILED.has(k); };
+   page's next save writes its copy back. After a refused write, `seen` is still what is
+   stored, so the page's own retry is not taken for another tab's save, and another tab's
+   later save still is (ChatGPT's review of 7dbc054, finding 3). */
+const savedElsewhere = (k, seen) => { let now; try { now = localStorage.getItem(k); } catch(e){ return false; } return now !== seen && now !== null; };
 /* Another tab or window saved this profile, its progress or its history, since this
    page read them: both belong to one record, so neither is written then. */
 const profileSavedElsewhere = () => STALE || savedElsewhere(keyFor(PROFILE), SEEN) || savedElsewhere(logKey(), SEEN_LOG);

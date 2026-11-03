@@ -825,6 +825,10 @@ function runImport(plan){
   // the plan was made from what this page holds: check again that it is what is stored
   if(FAILED.has(keyFor(PROFILE))) return {text: esc(UNSAVED)};
   if(changedElsewhere()) return {text: esc(ELSEWHERE)};
+  // the new profile's name was free when the plan was shown; another tab or window may have
+  // saved a profile under it since, which this import must not write over (or delete below)
+  if(plan.action === 'separate' && [keyFor(plan.name), NS + ':log:' + plan.name, backupKey(plan.name)].some(k => store.get(k) !== null))
+    return {text: `Another tab or window saved a profile named "${esc(plan.name)}" after this plan was shown, so nothing was imported, and that profile and yours are unchanged. Choose the file again for a new plan.`};
   const f = plan.f;
   const refused = 'The browser refused to save (storage is full or blocked)';
   // an answer given in the last 150 ms is saved first, so the copy kept below holds it
@@ -918,7 +922,18 @@ function restoreBackup(){
   try { const v = JSON.parse(b.data); if(!isObj(v)) throw new Error('not a progress object'); db = upgradeDB(v); }
   catch(e){ alert('The copy kept by Import cannot be read, so nothing was put back.'); return; }
   if(!confirm(`Put back the progress of "${PROFILE}" from ${dateOf(b.at)} (${db.answers.length} answers)? The progress now on screen is kept as a copy in its place.`)) return;
+  // the question may have stayed open while another tab or window saved this profile
+  if(changedElsewhere()){ staleWarn(); alert(ELSEWHERE_SHORT + ', so nothing was put back. Reload this page first.'); return; }
   const refused = 'The browser refused to save (storage is full or blocked), so nothing was put back. Your progress and the copies are unchanged.';
+  // a change still waiting on its 150 ms timer is saved first, so the copy kept below (the
+  // progress on screen) holds it; refused, it stays on this page, flagged, and nothing is put back
+  if(saveTimer){
+    clearTimeout(saveTimer); saveTimer = null;
+    if(!store.set(keyFor(PROFILE), JSON.stringify(DB))){
+      alert('The browser refused to save (storage is full or blocked), so nothing was put back. Your latest change is kept on this page until you leave it; export your progress now.');
+      return;
+    }
+  }
   const now = store.get(keyFor(PROFILE));
   const withNow = now === null ? copies : copies.concat([{at: Date.now(), data: now, why: 'put back'}]);
   if(now !== null && !store.trySet(backupKey(PROFILE), JSON.stringify(withNow))){ alert(refused); return; }       // (1)

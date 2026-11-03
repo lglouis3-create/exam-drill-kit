@@ -975,6 +975,163 @@ let nfile = 0;
     await H.ctx.close();
   }
 
+  // a second tab of d's browser, on the drill
+  const secondTab = async d => {
+    const t = await d.ctx.newPage();
+    t.on('dialog', x => x.accept());
+    await t.goto(d.page.url());
+    await t.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+    return t;
+  };
+  // in page p, the browser refuses every write of the key k (null: none), as a full storage does
+  const refuseKey = (p, k) => p.evaluate(k => {
+    window.__refuseKey = k;
+    if(window.__refuseWrapped) return; window.__refuseWrapped = true;
+    const real = Storage.prototype.setItem;
+    Storage.prototype.setItem = function(key, v){
+      if(window.__refuseKey !== null && key === window.__refuseKey) throw new DOMException('The quota has been exceeded.', 'QuotaExceededError');
+      return real.call(this, key, v);
+    };
+  }, k);
+  // in page p, save()'s 150 ms timer never fires on its own (its delay made an hour, as in
+  // storage_test.js), so a waiting save reaches storage only through the code under test
+  const holdTimer = p => p.evaluate(() => {
+    const real = window.setTimeout; window.__held = 0;
+    window.setTimeout = function(f, d, ...a){ if(d === 150) window.__held++; return real.call(this, f, d === 150 ? 3600000 : d, ...a); };
+  });
+
+  console.log('\n=== A save waiting when the page goes, with another tab (with #39\'s saveNow) ===');
+  for(const how of ['hidden', 'pagehide']){
+    // #39 writes a save still waiting on its timer when the page is hidden or closed (saveNow);
+    // here that write must not put this page's older copy over another tab's newer save
+    const d = await device(); const di = await info(d.page);
+    await answer(d.page, 2, 0);
+    const tab2 = await secondTab(d);
+    await synced(tab2, d.page, [di.data, di.log], 'this tab answered');
+    // the other tab changes a setting and saves it (no answer, so the history is unchanged)
+    await tab2.evaluate(() => { DB.settings.goal = 99; save(); saveNow(); });
+    const [theirs] = await synced(d.page, tab2, [di.data, di.log], 'the other tab saved a setting');
+    await holdTimer(d.page);
+    // this tab: an answer, its save waiting on the timer, then the page goes, in one task
+    const r = await d.page.evaluate(how => {
+      record(QUESTIONS[3], 'correct', undefined, 1000);
+      const waiting = !!saveTimer && window.__held > 0;
+      if(how === 'hidden'){
+        Object.defineProperty(document, 'visibilityState', {configurable: true, get: () => 'hidden'});
+        document.dispatchEvent(new Event('visibilitychange'));
+      } else window.dispatchEvent(new Event('pagehide'));
+      return {waiting, timer: !!saveTimer, warned: !!document.getElementById('stalewarn')};
+    }, how);
+    check(r.waiting && !r.timer && r.warned && await stored(d.page, di.data) === theirs && await stored(tab2, di.data) === theirs,
+      `the page ${how === 'hidden' ? 'hidden' : 'closed (pagehide)'} within 150 ms of an answer, after another tab saved: the other tab's save stays, and this page says why`,
+      Object.assign({same: await stored(d.page, di.data) === theirs}, r));
+    await d.ctx.close();
+  }
+
+  console.log('\n=== Review of 7dbc054: a new profile\'s name, Put back with a waiting save, a refused save ===');
+  // 1. A plan shown here names a new profile; another tab saves a profile of that name before
+  //    the click. Confirming must not write over it, also when the history write is refused.
+  for(const refuseLog of [false, true]){
+    const d = await device(); const di = await info(d.page);
+    await answer(d.page, 3, 0);                   // this device's own answers: fileA goes into a new profile
+    const rr = await choose(d.page, fileA, false);
+    const name = (rr.plan.match(/new profile, "([^"]+)"/) || [])[1];
+    const dk = di.ns + ':data:' + name, lk = di.ns + ':log:' + name;
+    const tab2 = await secondTab(d);
+    await tab2.evaluate(n => useProfile(n), name);
+    await answer(tab2, 2, 5);                     // the other tab's own progress and history under that name
+    const [hisData, hisLog] = await synced(d.page, tab2, [dk, lk], 'the other tab saved a profile of that name');
+    const mine = await stored(d.page, di.data), myLog = await stored(d.page, di.log), nProf = await profilesOn(d.page);
+    if(refuseLog) await refuseKey(d.page, lk);
+    await d.page.click('#importGo');
+    await d.page.waitForSelector('#importResult', {timeout: 5000}).catch(() => {});
+    const res = (await d.page.evaluate(() => (document.getElementById('importPlan') || {}).textContent || '')).replace(/\s+/g, ' ');
+    if(refuseLog) await refuseKey(d.page, null);
+    check(rr.offered && !!name && !!hisData && await stored(d.page, dk) === hisData && await stored(d.page, lk) === hisLog &&
+          await stored(tab2, dk) === hisData && await stored(tab2, lk) === hisLog &&
+          await stored(d.page, di.data) === mine && await stored(d.page, di.log) === myLog && await profilesOn(d.page) === nProf && /nothing was imported/.test(res),
+      `a new profile's name taken by another tab after the plan was shown${refuseLog ? ', and the history write refused' : ''}: confirming writes nothing, that profile and this one are as they were, and the page says why`,
+      {name, res: res.slice(0, 200), dataSame: await stored(d.page, dk) === hisData, logSame: await stored(d.page, lk) === hisLog});
+    await d.ctx.close();
+  }
+  // 2. Put back while an answer waits on its timer: the copy of the progress on screen holds it.
+  for(const refuseFlush of [false, true]){
+    const o = await own(3);
+    await choose(o.d.page, later(o.file, 2), true);          // replaces: a copy of the 3-answer progress is kept
+    const P5 = await stored(o.d.page, o.di.data), copies0 = await stored(o.d.page, o.di.backup);
+    await holdTimer(o.d.page);
+    if(refuseFlush) await refuseKey(o.d.page, o.di.data);
+    const r = await o.d.page.evaluate(() => {
+      record(QUESTIONS[5], 'correct', undefined, 1000);
+      const a = DB.answers[DB.answers.length - 1];
+      const waiting = !!saveTimer && window.__held > 0, n = DB.answers.length;
+      show('settings'); restoreBackup();
+      return {waiting, n, key: a.qid + '|' + a.at, nowN: DB.answers.length};
+    });
+    if(refuseFlush) await refuseKey(o.d.page, null);
+    const list = asList(JSON.parse(await stored(o.d.page, o.di.backup) || '[]'));
+    const inCopies = list.some(c => { try { return JSON.parse(c.data).answers.some(a => a.qid + '|' + a.at === r.key); } catch(e){ return false; } });
+    if(!refuseFlush)
+      check(r.waiting && r.n === 6 && inCopies && JSON.parse(await stored(o.d.page, o.di.data)).answers.length === 3,
+        'Put back while an answer waits on its 150 ms timer: the 3-answer progress is back, and the kept copy of the progress that was on screen holds the waiting answer (6 answers)',
+        {waiting: r.waiting, n: r.n, inCopies, copies: list.map(c => { try { return JSON.parse(c.data).answers.length; } catch(e){ return '?'; } })});
+    else
+      check(r.waiting && r.nowN === 6 && await stored(o.d.page, o.di.data) === P5 && await stored(o.d.page, o.di.backup) === copies0 &&
+            await o.d.page.evaluate(k => FAILED.has(k), o.di.data),
+        'Put back while an answer waits and its save is refused: nothing is put back, the stored progress and copies are as they were, and the answer stays on the page, flagged as unsaved',
+        {nowN: r.nowN, sameData: await stored(o.d.page, o.di.data) === P5, sameCopies: await stored(o.d.page, o.di.backup) === copies0});
+    await o.d.ctx.close();
+  }
+  {
+    // 2b. another tab saves while Put back's question is on screen: nothing is put back
+    const o = await own(3);
+    await choose(o.d.page, later(o.file, 2), true);
+    const copies0 = await stored(o.d.page, o.di.backup);
+    const r = await o.d.page.evaluate(() => {
+      // the other tab's save, made while the question is open (written past this page's store)
+      const other = JSON.stringify(Object.assign({}, DB, {settings: Object.assign({}, DB.settings, {goal: 77})}));
+      window.confirm = () => { localStorage.setItem(keyFor(PROFILE), other); return true; };
+      show('settings'); restoreBackup();
+      return other;
+    });
+    check(await stored(o.d.page, o.di.data) === r && await stored(o.d.page, o.di.backup) === copies0,
+      'another tab saves while Put back asks for confirmation: nothing is put back, and that tab\'s progress and the copies are as they were');
+    await o.d.ctx.close();
+  }
+  // 3. A refused save must not hide a later save by another tab.
+  {
+    const d = await device(); const di = await info(d.page);
+    await answer(d.page, 2, 0);
+    const tab2 = await secondTab(d);
+    await synced(tab2, d.page, [di.data, di.log], 'this tab answered');
+    await refuseKey(d.page, di.data);
+    await d.page.evaluate(() => { DB.settings.goal = 10; save(); saveNow(); });      // this tab's write refused
+    const failed = await d.page.evaluate(k => FAILED.has(k), di.data);
+    await tab2.evaluate(() => { DB.settings.goal = 99; save(); saveNow(); });        // the other tab saves a setting
+    const [theirs] = await synced(d.page, tab2, [di.data, di.log], 'the other tab saved a setting');
+    await refuseKey(d.page, null);                                                    // storage writable again here
+    await d.page.evaluate(() => { DB.settings.goal = 11; save(); saveNow(); });      // this tab saves again
+    check(failed && await stored(d.page, di.data) === theirs && await stored(tab2, di.data) === theirs &&
+          JSON.parse(theirs).settings.goal === 99 && await d.page.evaluate(() => !!document.getElementById('stalewarn')),
+      'a save refused in this tab, then another tab saves: this tab\'s next save writes nothing over it, and says why',
+      {failed, goal: JSON.parse(await stored(d.page, di.data) || '{}').settings});
+    await d.ctx.close();
+  }
+  {
+    // 3b. one tab alone: its refused save is written by the next save, with no "another tab" notice
+    const d = await device(); const di = await info(d.page);
+    await answer(d.page, 2, 0);
+    await refuseKey(d.page, di.data);
+    await d.page.evaluate(() => { DB.settings.goal = 10; save(); saveNow(); });
+    const failed = await d.page.evaluate(k => FAILED.has(k), di.data);
+    await refuseKey(d.page, null);
+    await d.page.evaluate(() => { DB.settings.goal = 11; save(); saveNow(); });
+    const got = JSON.parse(await stored(d.page, di.data));
+    check(failed && got.settings.goal === 11 && got.answers.length === 2 && !(await d.page.evaluate(() => !!document.getElementById('stalewarn') || FAILED.size > 0)),
+      'one tab alone: after a refused save, its next save writes the progress, with no "another tab" notice', {failed, goal: got.settings.goal});
+    await d.ctx.close();
+  }
+
   check(!A.errors.length && !B.errors.length, 'no page errors', A.errors.concat(B.errors).slice(0, 2).join('; '));
   await A.ctx.close(); await B.ctx.close();
   await browser.close();
