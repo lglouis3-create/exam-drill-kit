@@ -1,0 +1,5 @@
+module paper-picker
+commit 3aebd5fb797fa0edc2e18f4d9c629309d8620f73
+core a2dbf03d6ccea270f77ac440f3fd8b7a86d855cf template cbac5bd425d480944293f8e1fb5d5d703e8baba1
+extra modules: 
+2026-11-03T03:27:13Z
