@@ -24,8 +24,9 @@ after Phase 1 and overrides earlier sections where they differ.
     4.2.3; findings in `core/README.md`: `@open-spaced-repetition/binding` needs Node 24
     and this container has Node 22; `fsrs-browser` does not confirm FSRS-7);
   - WebKit: the GitHub job "WebKit · template" runs the template course's checks in
-    WebKit and blocks a merge (#29); WebKit on the other courses and the Safari app on
-    an iPhone or iPad: NOT RUN so far; the FSRS page contains BigInt syntax;
+    WebKit and blocks a merge (#29), and since #42 the job "modules-webkit" runs each
+    module course the plan selects in WebKit; Medicinal-chemistry in WebKit and the Safari
+    app on an iPhone or iPad: NOT RUN so far; the FSRS page contains BigInt syntax;
   - (done 2026-11-03) the stored instructions of the scheduled task "Kit update run" no
     longer let any update go live without Louis's reply. An `update_trigger` from the
     main kit session was refused ("a routine's instructions (its prompt) can be changed
