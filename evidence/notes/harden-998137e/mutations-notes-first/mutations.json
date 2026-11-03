@@ -1,0 +1,11 @@
+[
+ {
+  "mutation": "M14 no second look after the pass (one-page cards miss the button)",
+  "exit": 1,
+  "failed": [
+   "study-controls' one-page paper cards each carry ✎ Note",
+   "study-controls' one-page quiz cards each carry ✎ Note"
+  ],
+  "summary": "FAIL: features/notes/test.js: 4 of 106 checks failed: study-controls' one-page quiz cards each carry ✎ Note; study-controls' one-page paper cards each carry ✎ Note; study-controls' one-page quiz cards each carry ✎ Note …"
+ }
+]

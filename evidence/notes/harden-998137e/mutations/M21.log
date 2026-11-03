@@ -1,0 +1,33 @@
+
+=== the copied text on the course's own bank (node) ===
+  ok    the page carries notes, working
+  ok    the text has one section per question (29 questions)
+  ok    a key for every multiple-choice, numeric and matching question (29)
+  ok    no "undefined" or "[object Object]" in the text
+  ok    noted() lists every note, newest first
+  ok    the converter keeps each note {t, at} and drops anything else
+  ok    a saved `notes` that is not an object is dropped
+
+=== on a scratch copy with Basic-Pharmacokinetics' question (Chromium) ===
+  the course has FIX's 16 questions; the scratch copy adds 3 copies of them
+
+--- 390 px ---
+  ok    the quiz card carries ✎ Note
+  ok    a note on a drill question is saved as it is typed
+  ok    the button then reads My note
+  FAIL  typing A-J, 1-9, Enter and the arrows in a note on the quiz picks, checks and records nothing, and the keys go into the note (study-controls keys)  — {"revealed":false,"picked":null,"t":"Why is Vmax not compared with Cp?","n":2}
+  FAIL  the test stopped: page.evaluate: TypeError: Cannot read properties of null (reading 'options')
+    at eval (eval at evaluate (:311:30), <anonymous>:1:54)
+    at Array.findIndex (<anonymous>)
+    at eval (eval at evaluate (:311:30), <anonymous>:1:28)
+    at UtilityScript.evaluate (<anonymous>:313:16)
+    at UtilityScript.<anonymous> (<anonymous>:1:44)
+    at ev (/tmp/port-notes-h/c-mut/src/features/notes/test.js:175:33)
+    at /tmp/port-notes-h/c-mut/src/features/notes/test.js:200:29
+  FAIL  the test ran to its end  — page.evaluate: TypeError: Cannot read properties of null (reading 'options')
+    at eval (eval at evaluate (:311:30), <anonymous>:1:54)
+    at Array.findIndex (<anonymous>)
+    at eval (eval at evaluate (:311:30), <anonymous>:1:28)
+    at UtilityScript.evaluate (<anonymous>:313:16)
+    at UtilityScript.<anonymous> (<anonymous>:1:44)
+FAIL: features/notes/test.js: 2 of 12 checks failed: typing A-J, 1-9, Enter and the arrows in a note on the quiz picks, checks and records nothing, and the keys go into the note (study-controls keys); the test ran to its end

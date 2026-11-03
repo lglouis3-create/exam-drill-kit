@@ -1,0 +1,8 @@
+port/notes tested commit: 998137e0a7531eaaf1537bdef96123050bf68be5
+origin/main: 6432c36709ad3dc3ab78d8558239971b18234aec
+core tree: a2dbf03d6ccea270f77ac440f3fd8b7a86d855cf  (origin/main: a2dbf03d6ccea270f77ac440f3fd8b7a86d855cf)
+template tree: cbac5bd425d480944293f8e1fb5d5d703e8baba1  (origin/main: cbac5bd425d480944293f8e1fb5d5d703e8baba1)
+git diff origin/main -- core template: 0 lines
+Basic-Pharmacokinetics read: ac2eb73a030e1d0f3cf8bc13cc682da6b3150275
+study-controls (scratch copies only): 1c1d590932c2dc48122e43c965dc44c70f7226d7
+node: v22.23.4  python: Python 3.13.18  date: 2026-11-03T00:25:02Z

@@ -1,0 +1,204 @@
+[
+ {
+  "mutation": "M1 a typed note is not saved",
+  "exit": 1,
+  "failed": [
+   "Delete note removes it",
+   "Open Notes opens the Notes tab with a card for each note",
+   "Weak spots counts the 2 notes",
+   "after Submit the text carries both notes with their keys",
+   "after a reload the paper and its note are both there",
+   "the newest note is first",
+   "the note is still there after a reload",
+   "the result card of the noted question reads My note",
+   "the test ran to its end",
+   "the test stopped: page.fill: Timeout 30000ms exceeded."
+  ],
+  "summary": "FAIL: features/notes/test.js: 9 of 41 checks failed: the note is still there after a reload; after a reload the paper and its note are both there; the result card of the noted question reads My note …"
+ },
+ {
+  "mutation": "M2 a running paper never hides the key",
+  "exit": 1,
+  "failed": [
+   "a note on a running paper leaves its key and the reason out of the text",
+   "the Notes tab hides that question's key while the paper runs"
+  ],
+  "summary": "FAIL: features/notes/test.js: 4 of 106 checks failed: a note on a running paper leaves its key and the reason out of the text; the Notes tab hides that question's key while the paper runs; a note on a running paper leaves its key and the reason out of the text …"
+ },
+ {
+  "mutation": "M3 the converter keeps bad notes",
+  "exit": 1,
+  "failed": [
+   "a saved note in a bad shape is dropped on load, the others load",
+   "the converter keeps each note {t, at} and drops anything else"
+  ],
+  "summary": "FAIL: features/notes/test.js: 2 of 106 checks failed: the converter keeps each note {t, at} and drops anything else; a saved note in a bad shape is dropped on load, the others load"
+ },
+ {
+  "mutation": "M4 no button on the result cards",
+  "exit": 1,
+  "failed": [
+   "after Submit every result card carries ✎ Note",
+   "the test ran to its end",
+   "the test stopped: page.evaluate: TypeError: Cannot read properties of null (reading 'textContent')"
+  ],
+  "summary": "FAIL: features/notes/test.js: 2 of 24 checks failed: after Submit every result card carries ✎ Note; the test ran to its end"
+ },
+ {
+  "mutation": "M5 the flag mark never shows",
+  "exit": 1,
+  "failed": [
+   "with study-controls on, the flagged question's card says ⚑ flagged"
+  ],
+  "summary": "FAIL: features/notes/test.js: 2 of 106 checks failed: with study-controls on, the flagged question's card says ⚑ flagged; with study-controls on, the flagged question's card says ⚑ flagged"
+ },
+ {
+  "mutation": "M6 the flag mark always shows",
+  "exit": 1,
+  "failed": [
+   "the mark goes when the flag does",
+   "with study-controls on, the flagged question's card says ⚑ flagged"
+  ],
+  "summary": "FAIL: features/notes/test.js: 4 of 106 checks failed: with study-controls on, the flagged question's card says ⚑ flagged; the mark goes when the flag does; with study-controls on, the flagged question's card says ⚑ flagged …"
+ },
+ {
+  "mutation": "M7 notes listed oldest first",
+  "exit": 1,
+  "failed": [
+   "noted() lists every note, newest first",
+   "the newest note is first"
+  ],
+  "summary": "FAIL: features/notes/test.js: 3 of 106 checks failed: noted() lists every note, newest first; the newest note is first; the newest note is first"
+ },
+ {
+  "mutation": "M8 {{frac}} left as written in the text",
+  "exit": 1,
+  "failed": [
+   "the course's {{frac:a|b}} is written (a)/(b) in the text ((0.693)/(Vmax))"
+  ],
+  "summary": "FAIL: features/notes/test.js: 2 of 106 checks failed: the course's {{frac:a|b}} is written (a)/(b) in the text ((0.693)/(Vmax)); the course's {{frac:a|b}} is written (a)/(b) in the text ((0.693)/(Vmax))"
+ },
+ {
+  "mutation": "M9 Weak spots miscounts",
+  "exit": 1,
+  "failed": [
+   "Weak spots counts the 2 notes"
+  ],
+  "summary": "FAIL: features/notes/test.js: 2 of 106 checks failed: Weak spots counts the 2 notes; Weak spots counts the 2 notes"
+ },
+ {
+  "mutation": "M10 the button label is not updated as the note is typed",
+  "exit": 1,
+  "failed": [
+   "the button then reads My note"
+  ],
+  "summary": "FAIL: features/notes/test.js: 2 of 106 checks failed: the button then reads My note; the button then reads My note"
+ },
+ {
+  "mutation": "M11 Delete note deletes nothing",
+  "exit": 1,
+  "failed": [
+   "Delete note removes it",
+   "Drill these drills the noted questions"
+  ],
+  "summary": "FAIL: features/notes/test.js: 4 of 106 checks failed: Delete note removes it; Drill these drills the noted questions; Delete note removes it …"
+ },
+ {
+  "mutation": "M12 Drill these ignores the topic filter",
+  "exit": 1,
+  "failed": [
+   "Drill these drills only that topic's noted questions"
+  ],
+  "summary": "FAIL: features/notes/test.js: 1 of 106 checks failed: Drill these drills only that topic's noted questions"
+ },
+ {
+  "mutation": "M13 an emptied note is kept",
+  "exit": 1,
+  "failed": [
+   "Delete note removes it",
+   "an emptied note is removed from the progress"
+  ],
+  "summary": "FAIL: features/notes/test.js: 4 of 106 checks failed: Delete note removes it; an emptied note is removed from the progress; Delete note removes it …"
+ },
+ {
+  "mutation": "M14 no second look after the pass (one-page cards miss the button)",
+  "exit": 0,
+  "failed": [],
+  "summary": "PASS: features/notes/test.js: 106 checks passed"
+ },
+ {
+  "mutation": "M15 the Notes tab shows the key of a running paper",
+  "exit": 1,
+  "failed": [
+   "the Notes tab hides that question's key while the paper runs"
+  ],
+  "summary": "FAIL: features/notes/test.js: 2 of 106 checks failed: the Notes tab hides that question's key while the paper runs; the Notes tab hides that question's key while the paper runs"
+ },
+ {
+  "mutation": "M16 the key left out of the text",
+  "exit": 1,
+  "failed": [
+   "a key for every multiple-choice, numeric and matching question (29)",
+   "after Submit the text carries both notes with their keys"
+  ],
+  "summary": "FAIL: features/notes/test.js: 3 of 106 checks failed: a key for every multiple-choice, numeric and matching question (29); after Submit the text carries both notes with their keys; after Submit the text carries both notes with their keys"
+ },
+ {
+  "mutation": "M17 no button on the quiz card",
+  "exit": 1,
+  "failed": [
+   "the quiz card carries ✎ Note",
+   "the test ran to its end",
+   "the test stopped: page.click: Timeout 30000ms exceeded."
+  ],
+  "summary": "FAIL: features/notes/test.js: 2 of 9 checks failed: the quiz card carries ✎ Note; the test ran to its end"
+ },
+ {
+  "mutation": "M18 the box does not open",
+  "exit": 1,
+  "failed": [
+   "the test ran to its end",
+   "the test stopped: page.fill: Timeout 30000ms exceeded."
+  ],
+  "summary": "FAIL: features/notes/test.js: 1 of 9 checks failed: the test ran to its end"
+ },
+ {
+  "mutation": "M19 a saved progress loses its notes on load",
+  "exit": 1,
+  "failed": [
+   "the converter keeps each note {t, at} and drops anything else",
+   "the note is still there after a reload",
+   "the test ran to its end",
+   "the test stopped: page.evaluate: TypeError: Cannot read properties of undefined (reading 'nl-c05-c3')"
+  ],
+  "summary": "FAIL: features/notes/test.js: 3 of 22 checks failed: the converter keeps each note {t, at} and drops anything else; the note is still there after a reload; the test ran to its end"
+ },
+ {
+  "mutation": "M20 Download names the file wrongly",
+  "exit": 1,
+  "failed": [
+   "Download saves <course id>-my-questions.md"
+  ],
+  "summary": "FAIL: features/notes/test.js: 2 of 106 checks failed: Download saves <course id>-my-questions.md; Download saves <course id>-my-questions.md"
+ },
+ {
+  "mutation": "M21 [study-controls] a key typed in a textarea is a shortcut",
+  "exit": 1,
+  "failed": [
+   "the test ran to its end",
+   "the test stopped: page.evaluate: TypeError: Cannot read properties of null (reading 'options')",
+   "typing A-J, 1-9, Enter and the arrows in a note on the quiz picks, checks and records nothing, and the keys go into the note (study-controls keys)"
+  ],
+  "summary": "FAIL: features/notes/test.js: 2 of 12 checks failed: typing A-J, 1-9, Enter and the arrows in a note on the quiz picks, checks and records nothing, and the keys go into the note (study-controls keys); the test ran to its end"
+ },
+ {
+  "mutation": "M22 [study-controls] no key guard at all (every field)",
+  "exit": 1,
+  "failed": [
+   "the test ran to its end",
+   "the test stopped: page.evaluate: TypeError: Cannot read properties of null (reading 'options')",
+   "typing A-J, 1-9, Enter and the arrows in a note on the quiz picks, checks and records nothing, and the keys go into the note (study-controls keys)"
+  ],
+  "summary": "FAIL: features/notes/test.js: 2 of 12 checks failed: typing A-J, 1-9, Enter and the arrows in a note on the quiz picks, checks and records nothing, and the keys go into the note (study-controls keys); the test ran to its end"
+ }
+]

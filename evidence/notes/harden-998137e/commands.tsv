@@ -1,0 +1,20 @@
+step	command	exit	log
+off-mkcourse	bash /tmp/port-tools/mkcourse.sh /home/user/exam-drill-kit/.claude/worktrees/agent-a242fd253449b7ee7 /tmp/port-notes-h/c-off	0	logs/off-mkcourse.log
+off-build	bash -c cd /tmp/port-notes-h/c-off/src && python3 build.py	0	logs/off-build.log
+off-moduletest	bash -c cd /tmp/port-notes-h/c-off/src && mkdir -p features/notes && cp /home/user/exam-drill-kit/.claude/worktrees/agent-a242fd253449b7ee7/features/notes/current/test.js features/notes/test.js && node features/notes/test.js	1	logs/off-moduletest.log
+ci-mkcourse	bash /tmp/port-tools/mkcourse.sh /home/user/exam-drill-kit/.claude/worktrees/agent-a242fd253449b7ee7 /tmp/port-notes-h/c-ci notes	0	logs/ci-mkcourse.log
+ci-oncourse	node /home/user/exam-drill-kit/.claude/worktrees/agent-a242fd253449b7ee7/features/notes/ci/oncourse.js /home/user/exam-drill-kit/.claude/worktrees/agent-a242fd253449b7ee7 /tmp/port-notes-h/c-ci/src	0	logs/ci-oncourse.log
+ci-oncourse-again	node /home/user/exam-drill-kit/.claude/worktrees/agent-a242fd253449b7ee7/features/notes/ci/oncourse.js /home/user/exam-drill-kit/.claude/worktrees/agent-a242fd253449b7ee7 /tmp/port-notes-h/c-ci/src	1	logs/ci-oncourse-again.log
+ci-commit	bash -c cd /tmp/port-notes-h/c-ci && git add -A && git -c user.email=t@t -c user.name=t commit -qm 'notes on, by ci/oncourse.js'	0	logs/ci-commit.log
+ci-build	bash -c cd /tmp/port-notes-h/c-ci/src && python3 build.py	0	logs/ci-build.log
+ci-moduletest-1	bash -c cd /tmp/port-notes-h/c-ci/src && NOTES_SHOTS=/tmp/port-notes-h/evidence/screenshots node features/notes/test.js	0	logs/ci-moduletest-1.log
+ci-moduletest-2	bash -c cd /tmp/port-notes-h/c-ci/src && node features/notes/test.js	0	logs/ci-moduletest-2.log
+ci-moduletest-3	bash -c cd /tmp/port-notes-h/c-ci/src && node features/notes/test.js	0	logs/ci-moduletest-3.log
+nodata-mkcourse	bash /tmp/port-tools/mkcourse.sh /home/user/exam-drill-kit/.claude/worktrees/agent-a242fd253449b7ee7 /tmp/port-notes-h/c-nodata notes	0	logs/nodata-mkcourse.log
+nodata-on	bash -c cd /tmp/port-notes-h/c-nodata/src && printf '\n;COURSE.features = Object.assign({}, COURSE.features, {"notes": {"version": "v1"}});\n' >> course.js && cd .. && git add -A && git -c user.email=t@t -c user.name=t commit -qm 'notes on, no course data' && cd src && python3 build.py	0	logs/nodata-on.log
+nodata-moduletest	bash -c cd /tmp/port-notes-h/c-nodata/src && node features/notes/test.js	0	logs/nodata-moduletest.log
+ci_course-module	bash -c cd /home/user/exam-drill-kit/.claude/worktrees/agent-a242fd253449b7ee7 && bash core/ci_course.sh module:notes	0	logs/ci_course-module-notes.log
+kitsc	bash /tmp/port-notes-h/kitsc.sh	0	logs/kitsc.log
+ci_course-modules	bash -c cd /tmp/port-notes-h/kitsc && bash core/ci_course.sh modules:notes,study-controls	0	logs/ci_course-modules-notes-study-controls.log
+lookbehind	bash -c cd /home/user/exam-drill-kit/.claude/worktrees/agent-a242fd253449b7ee7 && ! grep -nE '\(\?<[=!]' features/notes/current/*.js features/notes/ci/*.js	0	logs/lookbehind.log
+tokens	bash -c cd /home/user/exam-drill-kit/.claude/worktrees/agent-a242fd253449b7ee7 && ! git grep -nE 'ghp_|github_pat_' -- features/notes FEATURES.md review/port-queue.md	0	logs/tokens.log

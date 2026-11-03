@@ -1,5 +1,9 @@
 # Evidence: port queue item 10, `notes` (agent-run)
 
+**Later run:** the hardening for Louis's rule 4 (the module's own course built from
+Basic-Pharmacokinetics data, stronger key checks), tested commit `998137e`, is in
+`harden-998137e/INDEX.md`. The text below is the first run's (tested commit `9757062`).
+
 Every result here is **agent-run**, by the porting agent in session
 `session_01LVkWFDVVDwgsL5WF7yWqcV`, on 2026-11-02, in the cloud container (Chromium only).
 The coordinator adds its own re-runs, labelled coordinator-verified, in `coordinator/`.
