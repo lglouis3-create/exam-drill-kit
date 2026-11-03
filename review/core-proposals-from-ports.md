@@ -172,6 +172,12 @@ and agent-run (the failures).
 - 10 Pharmacokinetics choice stems contain "given as", "described as" or "according to". The main
   kit session has named narrowing the "given as" rule as its own pull request.
 
+**C11. Core `test.js` requires two worked steps on every calculation.** Coordinator-checked: `core/test.js` line 64.
+- Pharmacokinetics' own test asks for one, and Homework 2's hw2-2a, hw2-2b and hw2-2d have one, so
+  they are refused (module-pages rework, agent-run, `evidence/module-pages` folder
+  `rework-3e0a3fe/`).
+- Proposed change, for discussion: accept one worked step, or report fewer than two as a warning.
+
 ## D. Display
 
 **D1. The concept block drops sections written as `{h, list}`.** Coordinator-checked: `teachParts`, `core/views.js` lines 137-139, keeps only parts with a `t` field.
@@ -186,6 +192,11 @@ and agent-run (the failures).
 **D3. The Weak spots table "Which kind of question is failing" is wider than a phone screen.** Agent-run (concept-statuses).
 - It measured 454 px at a 390 px screen, the same on `main` without any module, so the page
   scrolls sideways. `render_test.js` does not catch it.
+
+**D4. The core page does not show a calculation's slide picture.** Agent-run (concept-statuses rework,
+`evidence/concept-statuses` folder `rework-8e2d634/`, citing `core/views.js` near line 902). The
+course's own page shows it after an answer.
+- Together with C7, this is why the calculations' `teachImg` stays out of the ports' test data.
 
 ## E. Ports waiting on a change here or in the queued list
 
