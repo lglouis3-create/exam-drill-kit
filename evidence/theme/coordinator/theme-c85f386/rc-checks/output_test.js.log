@@ -1,0 +1,19 @@
+
+=== Where the build writes and the checks read ===
+  ok    no file in the source tree names /mnt/user-data (58 files read)
+  ok    every check that reads the built page gets its location from built_page.js (7 checks)
+  ok    no check works out the page name from course.js itself
+  ok    the build runs in a fresh copy
+  ok    the app is written to the repository root as index.html
+  ok    .nojekyll is written beside it
+  ok    the course.js output name (COURSE0000_Drill.html) is a redirect to index.html
+  ok    no temporary file is left behind
+  ok    nothing built is written into src/
+  ok    built_page.js names the repository root index.html
+  ok    test.js reads that page and passes
+  ok    DRILL_PAGE points every check at another page
+  ok    without course.js `manifest`, manifest.json has no description and no orientation
+  ok    course.js `manifest` gives manifest.json its description and orientation
+  ok    course.js `manifest` with an orientation the web manifest does not name stops the build before it writes
+  ok    course.js `manifest` with a field other than description and orientation stops the build before it writes
+PASS: output_test.js: 16 checks passed
