@@ -5,7 +5,7 @@
  *
  * The course data is the fixture of the module's own test.js, read from that file as it
  * stands: its `const FIX` (Basic-Pharmacokinetics' topics pkpd and nonlin, their lectures
- * L11 and L12, their skills pkpd and nonlin, and 58 of their questions, from src/ at
+ * L11 and L12, their skills pkpd and nonlin, and 50 of their questions, from src/ at
  * ac2eb73, every value verbatim, `prof` included: rework 2026-11-03, Louis's policy; the
  * professor is added to COURSE.professors when the course lacks it), written by that file's
  * `const WRITE`, the same writer the test's scratch copies use (its comment says how: one
@@ -27,7 +27,7 @@
  * script prints which. The module reads no course data of its own, so no module data
  * file is written.
  * Files written in <courseSrcDir>:
- *   q90_notes_fixture.js   the two topics and the 58 questions
+ *   q90_notes_fixture.js   the two topics and the 50 questions
  * and one line appended to course.js: the file in COURSE.files, the two lectures in
  * COURSE.lectures and the two skills in COURSE.skills (a skill only when the course
  * lacks it), and notes on at the version in its module.json, kept beside any module already on.
