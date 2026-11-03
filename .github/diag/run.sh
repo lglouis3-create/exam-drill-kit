@@ -12,6 +12,10 @@
 #                         PW_DEBUG in the environment are passed on as DIAG_WAIT_AFTER_UP,
 #                         DIAG_DOWN and DEBUG (Playwright's own log, e.g. pw:browser*)
 #   repro                 repro_versionjson.js <runs> times
+#   load-plain            <runs> rounds of three core/offline_test.js (as the kit has it)
+#                         at once while two busy loops keep the CPU occupied
+#   mutate                core/offline_test.js on each deliberately broken copy in
+#                         mutations.py, <runs> times each (each must FAIL)
 # Every run's whole output is printed, then one line per run:
 #   RUN <n> <test> <exit code> <its last line>
 # Nothing is retried and no run is left out. Exit status 0: the counts are the result.
@@ -46,6 +50,34 @@ if [ "$mode" = repro ]; then
     show "$i" repro_versionjson.js $? "$log"
   done
   echo; echo "######## summary ########"; printf '%s\n' "${summary[@]}"; exit 0
+fi
+if [ "$mode" = load-plain ]; then
+  for i in $(seq 1 "$runs"); do
+    node -e 'const e = Date.now() + 120000; while(Date.now() < e){}' & b1=$!
+    node -e 'const e = Date.now() + 120000; while(Date.now() < e){}' & b2=$!
+    pids=(); for k in 1 2 3; do
+      (cd "$work/plain/src" && DRILL_BROWSER="$browser" DEBUG="${PW_DEBUG:-}" timeout 300 node offline_test.js) > "$work/lp-$i-$k.log" 2>&1 & pids+=($!)
+    done
+    codes=(); for p in "${pids[@]}"; do wait "$p"; codes+=($?); done
+    kill "$b1" "$b2" 2>/dev/null; wait "$b1" "$b2" 2>/dev/null
+    for k in 1 2 3; do show "$i.$k" offline_test.js "${codes[$((k-1))]}" "$work/lp-$i-$k.log"; done
+  done
+  echo; echo "######## summary ########"; printf '%s\n' "${summary[@]}"
+  echo "offline_test.js under load: $(printf '%s\n' "${summary[@]}" | grep -c ' offline_test.js 0 PASS') of $((runs * 3)) runs PASS"
+  exit 0
+fi
+if [ "$mode" = mutate ]; then
+  for m in no-offline-fallback no-timeout no-update-offer down-does-nothing; do
+    for i in $(seq 1 "$runs"); do
+      d="$work/mut-$m-$i"; cp -r "$work/plain" "$d"
+      python3 -I "$kit/.github/diag/mutations.py" "$d" "$m" || { echo "mutation $m did not apply"; exit 1; }
+      (cd "$d/src" && DRILL_BROWSER="$browser" timeout 300 node offline_test.js) > "$d.log" 2>&1
+      show "$m.$i" offline_test.js $? "$d.log"
+    done
+  done
+  echo; echo "######## summary ########"; printf '%s\n' "${summary[@]}"
+  echo "broken copies: $(printf '%s\n' "${summary[@]}" | grep -c ' offline_test.js 1 FAIL') of $((runs * 4)) runs FAIL"
+  exit 0
 fi
 if [ "$mode" = load ]; then
   for i in $(seq 1 "$runs"); do
