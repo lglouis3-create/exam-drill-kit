@@ -530,7 +530,7 @@ Enable: course.js → features.source-registry = { version: 'v1' }
 Versions:
   v1  2026-10-21  from PK (`4ce505d`, `src/sources.js`)   best for: problem-set courses   weaker at: not evaluated   current/
 Evidence: Louis: "Connect each drill question to its matching source document and problem number" (2026-10-21, PK notes §1).
-Used by: PK (v1)
+Used by: PK (v1, its own copy); the kit module `worksheets-ink` v1 reads the same `SOURCES` and writes the question-to-document map in its build step: none yet.
 Known issues: a student's name was in four source comments (removed in `4ce505d`).
 Test: `src/sources_check.js` (PK).
 
@@ -543,7 +543,7 @@ Versions:
   v1  2026-10-21  from PK (`e839844`)   best for: module-organised handouts   weaker at: layout was redone twice (PK notes §2)   archive/v1/
   v2  2026-10-26  from PK (`e6ea184`, `2759b31`, Louis's folder layout of 2026-10-26)   best for: module-organised handouts   weaker at: not evaluated   current/
 Evidence: Louis's answers of 2026-10-21 and 2026-10-26 (PK notes §4).
-Used by: PK (v2)
+Used by: PK (v2, its own copy); the kit module `worksheets-ink` v1 holds the tab, without the PDF files: none yet.
 Known issues: PDFs went stale after style changes until `f013ced` limited the style hash.
 Test: `src/sheets_test.py` (PK).
 
@@ -556,9 +556,21 @@ Versions:
   v1  2026-10-26  from PK (`c981545`)   best for: freehand working   weaker at: text selection while writing; eraser missed snapped lines; lifting hand ended a stroke (PK notes §2)   archive/v1/
   v2  2026-10-27  from PK (`041274d`)   best for: GoodNotes-like writing   weaker at: not tested on a physical iPad; Pencil pressure unused   current/
 Evidence: Louis asked for writing that "can follow how it writes on Goodnotes" (PK notes §4).
-Used by: PK (v2)
+Used by: PK (v2, its own copy); the kit module `worksheets-ink` v1 holds the writing layer and the scratch paper: none yet.
 Known issues: checked with synthetic pointer events only (`notes/WRITE_ON_WORKSHEETS.md` line 23).
 Test: `src/ink_test.py` (PK).
+
+## worksheets-ink
+Does: a Worksheets tab with each document the course's questions come from, under its module (homework, quizzes and reviews after the last module they cover, each problem tagged by its module), with the original's Drive links where the course has them, Write on it and Practice in the drill (the document's problems in the sheet's order, as one pass; a whole problem set starts as that set when chained-problem-sets is on). Write on it opens the worksheet over the page: the professor's problems with a grid to work on (480 px for a calculation, 200 px for a short answer, More room adds 240 px), a drawing layer on the name line and on each problem, pen, highlighter and eraser, three colours and three sizes, undo and redo, Pencil only, Hold to snap, two fingers tapped together undo, Show solutions (the answer, who solved it: the professor's key or the drill, and the working), Save as PDF (the browser's print, with the writing on it) and Clear page. Scratch paper beside a calculation's answer box in the quiz and on an exam paper (the stem over 720 px; a paper's scratch paper is cleared when the next paper's is opened). A Settings section says how much writing is kept and erases it.
+Use when: the course hands out worksheets and has calculations worked on paper (PK).
+Do not use when: the course lists no source documents for its questions.
+Enable: course.js → features['worksheets-ink'] = { version: 'v1' }, with `const SOURCES = [{id, title, type, module, modules?, date?, key?, note?, drive?: {id}, missing?, chains?, items: [{q, label}]}]` in a data file listed in `files` (the shape of PK's `src/sources.js`); options `modules` ([[value, short name, heading], ...] in teaching order), `originalIds` and `changedIds` (which problem sets are in the professor's numbers and which are the drill's re-numbered copies), `drillWorked`, `spokenOnly` and `writtenWorking` (which audits say the drill worked the answer), `tab`, `label`, `before`
+Versions:
+  v1  2026-11-02  from PK (`ac2eb73`, `src/views.js` 5122-5434 and 6040-6322, the Scratch paper button of `numericInput` 970-981, styles `src/shell.html` 787-808, 813-856, 902-934)   best for: worksheet and calculation courses   weaker at: not tested on a physical iPad or in Safari; no PDF files   current/
+Evidence: as worksheets-tab and ink-layer above (PK notes §2 and §4).
+Used by: none yet.
+Known issues: the writing is kept in the profile's progress (`DB.ink`, one entry per page: the strokes of each problem as fractions of its width, 4 decimals, and the extra room), so Export progress copies it, Import progress brings it back, Erase my history removes it and each profile has its own; PK kept it in localStorage keys of its own (`<ns>:ink:<id>:<variant>`), which the module does not read. A stroke of 13 points drawn with the mouse took 221 bytes in the test; the progress is written whole at every save, and every drill on one site shares one storage quota (in the test, Chromium's localStorage for a file page took 5242634 characters of keys and values, 10.00 MiB as UTF-16). The module writes the progress when the pen lifts, not 150 ms later, so a reload at once keeps the stroke. When the browser refuses that write (storage full), the page goes back to its last saved writing in the progress, the progress is written again without the change, and a notice at the foot of the screen says the change was not saved; the answers and the writing saved before are kept. When storage is denied altogether, the notice says the browser is not saving, and the core's own notice shows. Two profiles each holding much writing share the one quota: an Import that does not fit is kept for the visit only, with the core's notice (a core matter). The pen's colour, size, Pencil only and Hold to snap are this device's choice, under `<ns>:ink-prefs`. PK's tables that were code are options (the module headings, the id patterns of the original and changed numbers, the audit phrases that mark the drill's working). Not ported: the printable PDF files and their links (PK built them with `gen/sheets.py`), the "From: <document>, <number> · Worksheet · Original" line under an answer, the ★ marks of the most likely paper (Tier 3), the "missed on this sheet" marks of PK's weak-spot view, the Worksheets section of the module pages (port queue item 8); when a sheet of several problem sets is practised, each part's vignette line (PK's `setupOf`); a matching item whose pairs are quantities gets the short work area (PK gave it the tall one, from its calc skill kind).
+Test: `features/worksheets-ink/current/test.js` (PK `src/ink_test.py` ported to Node Playwright, its scratch copies holding 8 PK documents verbatim (61 questions with the questions their dupOf names, 12 problem sets, 7 topics, 13 skills, 5 lectures; the professor as the course wrote it): 157 checks pass on the module's own course, 161 with chained-problem-sets on as well; they include Practice in the drill with chained-problem-sets off and on, much writing (61 pages, 1801 strokes) through Export, Import into a fresh profile, a profile switch and reloads, storage denied, and storage full at Chromium's own quota, and 27 of 27 deliberate breaks of the module are caught (evidence branch `evidence/worksheets-ink`); pen and touch input are synthetic PointerEvents and mouse strokes in Chromium; Apple Pencil, iPad and Safari NOT RUN). `features/worksheets-ink/ci/oncourse.js` builds the module's own course for the kit's CI: the template with 4 of those PK documents (the worked examples of Module 6, the in-class activities of Modules 7a and 7b, the worked examples of Module 8: 19 questions), the ones whose questions meet the core's checks; `run_checks.sh` on it: 26 PASS, 0 FAIL, 1 NOT RUN (`cite_check.py`, no PDFs), 1 REPORT (`explain_check.js`).
 
 ## readings-page
 Does: one card per assigned reading, grouped by exam: summary, status, links into Drive, a Drill button over questions tagged `readingId`, where the lecture used it with verbatim quotes, terms it defines, what lies beyond the lecture.
