@@ -5,8 +5,9 @@ ported now (feature modules, formulas in text, number grading, calculations on e
 papers, problem sets in parts, the equations sheet, wrong-number reading); the Tier 2
 features below are ported one per night by the scheduled task "Kit feature port"
 (session "Kit feature porter"), each as one kit pull request titled "Port: <feature>"
-for Louis's yes. Tier 3 (walkthroughs with audio, Hear why, the most-likely paper,
-origin tags, the sheet map, the clip after a paper, textbook reading cards, module
+for Louis's yes (since 2026-11-03 merged under `review/porter-policy.md` §7 and
+`KIT_DESIGN.md` §12 decision 10 instead). Tier 3 (walkthroughs with audio, Hear why,
+the most-likely paper, origin tags, the sheet map, the clip after a paper, textbook reading cards, module
 colours) waits until Pharmacokinetics itself moves.
 
 Source lines are in lglouis3-create/Basic-Pharmacokinetics- `src/` at ac2eb73, from the
