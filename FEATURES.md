@@ -203,13 +203,13 @@ Test: none found.
 Does: practice of written short-answer items.
 Use when: the exam format includes short answer (PH Exam 3: "2 short answer", PH notes §1).
 Do not use when: the exam is all multiple choice.
-Enable: course.js → features.short-answer-page = { version: 'v1' }
+Enable: course.js → features['short-answer-graphs'] (the kit module, below; this entry's name is not a module name)
 Versions:
-  v1  2026-10-22  from PH (`f2090d7`, `src/sa3.js`)   best for: partial-credit short answers   weaker at: not evaluated   current/
+  v1  2026-10-22  from PH (`f2090d7`, `src/sa3.js`)   best for: partial-credit short answers   weaker at: not evaluated   current/ (ported 2026-11-02 from PH `929cd62` into the kit module `short-answer-graphs` v1, below)
 Evidence: none recorded.
-Used by: PH (v1)
+Used by: PH (v1, its own copy); the kit module: none yet.
 Known issues: none recorded.
-Test: none found.
+Test: PH has none for this page; `features/short-answer-graphs/current/test.js` checks it in Chromium.
 
 ## learn-mode
 Does: successive relearning in a session: a new card must be answered right three times, a known card once; list answers take one checkbox per item and name the items missed.
@@ -359,13 +359,25 @@ Test: `exam1-drill/src/test.js` checks scene scripts for length and misread form
 Does: per-figure question drills with feedback on skipped questions.
 Use when: the course tests curves (PH dose–response).
 Do not use when: no graph content.
-Enable: course.js → features.graphs-drill = { version: 'v1' }
+Enable: course.js → features['short-answer-graphs'] (the kit module, below; this entry's name is not a module name)
 Versions:
-  v1  2026-10-01  from PH (`a12b931`, `vGraphs()`)   best for: curve interpretation   weaker at: not evaluated   current/
+  v1  2026-10-01  from PH (`a12b931`, `vGraphs()`)   best for: curve interpretation   weaker at: not evaluated   current/ (ported 2026-11-02 from PH `929cd62` into the kit module `short-answer-graphs` v1, below)
 Evidence: none recorded.
-Used by: PH (v1)
+Used by: PH (v1, its own copy); the kit module: none yet.
 Known issues: none recorded.
-Test: none found.
+Test: PH `exam1-drill/src/browser_test.js` lines 114-123 and check C8 (line 325), and its `test.js` lines 60-84 (the graph registry); ported in `features/short-answer-graphs/current/test.js`.
+
+## short-answer-graphs
+Does: the kit module that holds short-answer-page and graphs-drill, as two pages, each shown only when its data is in the page. Short answer: one prompt at a time with its lecture and form; the student writes an answer, then "Check my answer" shows the model answer, the key points to tick (counted, "2 of 4 key points"), the note, the quote and the source; Previous, Next, Shuffle and Clear. It is self-check, as in PH: nothing grades the typed text. Graphs: one card per figure of the professor's (its image, its questions' counts unseen, right and wrong, the forms the professor asks, the reading questions the student skips most), in a fold per exam; "Drill this figure" asks every question on that figure as a fixed pass of the quiz, a wrong pick names the reading question skipped (the miss tag of the option picked), every answer shows how to read the figure in the professor's order, and the end of the pass gives the right count and what was skipped; "Redo wrong" asks the questions last answered wrong.
+Use when: the exam has short-answer items graded on key points, or the professor's figures carry several questions each (PH: dose–response curves and Exam 2 tissue tracings).
+Do not use when: neither: the build stops when the course has no short-answer prompt and no figure.
+Enable: course.js → features['short-answer-graphs'] = { version: 'v1', saAbout: '<the course's line on its short answers>' } (options also `saLabel`, `graphsLabel`, `before`); in a data file listed in `files`: `SHORT_ANSWERS = [{id, q, model, points, lecture, form, quote, cite, note}]` (form `her`, `key` or `objective`, PH's `SHORT4` and `SHORT3`), `GRAPHS = [{key, alts, title, group, source, read, method, asks, exam}]` (PH's `graphs.js`), `GRAPH_MISS = {tag: [label, question]}` (PH's `MISS`) and, if wanted, `GRAPH_EXAMS = {exam number: {intro, noun, other, miss}}` (PH's Exam 2 tracing wording, `MISS2`); a figure's questions carry `img` set to its key or an alt, and `miss` on wrong options.
+Versions:
+  v1  2026-11-02  from PH (`929cd62`, `exam1-drill/src/app.js` lines 2402-2444, 3704-3778, 3821-3854, 850 and 911; the queue's lines 2308-2351 and 3518-3580 were taken at `d0d3d2d`)   best for: partial-credit short answers; figure reading   weaker at: not evaluated   current/
+Evidence: none recorded.
+Used by: none yet (PH keeps its own copy).
+Known issues: none recorded. In the kit the draft, the ticks and "checked" are kept in the progress as `DB.sa` (PH keeps them per browser in its own storage key), cleaned when a saved progress is read in, so an entry of another shape cannot stop the page; right, wrong and the skipped tally are read from the core's answers, where an answer marked "guessed" counts as not right; the figure's image gets the question's `imgAlt` as its alt text (the core labels every question image "Reaction scheme"). The professor is named "the professor" ("Read this figure the professor's way", "The professor asks:"). Not ported: PH's `tidySpeech` clean-up of transcript quotes (the quote is shown as written), its page cache (`memoHTML`) and its one-exam focus mode; PH's own content rules for the registry (fixed group names, 3-6 reading lines, 2-4 asks, at least 5 questions a figure) are not build refusals.
+Test: `features/short-answer-graphs/current/test.js` (PH `browser_test.js` 114-123 and C8 and `test.js` 60-84 ported, and more): on the module's own course, which `ci/oncourse.js` writes from PH's own data at `929cd62` (4 figures, their 21 questions, 3 topics, 4 images, 5 prompts, `MISS` and `MISS2`, the lectures and skills those questions use; `prof` set to "Professor"), 69 checks pass (1 skipped: no Graphs tab without figures), 7 of them build refusals, 22 of them persistence checks with 210 saved short answers and 300 answers (reload, Export and Import, profiles, a reload under and over 150 ms, storage denied and full, a saved entry in a bad shape); on the same course with short answers only, 67 pass; with the module's code left out, 1 of 1 fails.
 
 ## structure-atlas
 Does: an atlas tab of drawn skeletal structures (11 boards, 84 groups on 86 tiles) and generated "name the group" questions with distractors from the same board; question figures use a neutral `aria-label` (`FGQ`) so the figure does not name its answer.
