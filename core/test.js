@@ -248,6 +248,12 @@ if (!COUNT_SET) {
   if (nSata !== SATA_TARGET) bad(`paper carries ${nSata} select-all items, expected ${SATA_TARGET}`);
   else console.log('  ok    the paper carries the intended number of select-all items');
 }
+// the manifest: no two lectures share an id (a question, a citation and state_check.js
+// find a lecture by its id, so a second one with the same id is never reached)
+{ const seen = {}, dup = [];
+  for (const l of COURSE.lectures || []) { const id = String(l.id); if (seen[id]) dup.push(id); seen[id] = true; }
+  if (dup.length) bad(`${dup.length} lecture id(s) used twice in course.js lectures: ${[...new Set(dup)].join(', ')}`);
+  else console.log(`  ok    the ${(COURSE.lectures || []).length} lectures in the manifest have distinct ids`); }
 // labels: every question resolves to a lecture in the manifest
 { const unl = QUESTIONS.filter(q => !X.lecOf(q));
   if (unl.length) bad(`${unl.length} questions cite no deck in the manifest: ${unl.slice(0,6).map(q=>q.id).join(', ')}`);
