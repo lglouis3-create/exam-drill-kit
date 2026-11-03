@@ -7,8 +7,9 @@
  * Exam 3 (the course's activeExam, every field), the 5 numeric questions of the
  * professor's Canvas Quiz 4 and the single-answer and select-all questions that fill
  * Exam 3's pools, their topics, lectures, skills and images. That file's header says
- * which questions and why. The one change to the data: every `prof` is the course's own
- * first professor (the template's "Professor"), so the kit holds no personal name.
+ * which questions and why. Every field is written as the course has it, `prof` included;
+ * the course's professors are added to COURSE.professors (core test.js reads each `prof`
+ * there).
  * Every question, topic, subtopic and lecture id carries the prefix sw- with the course's
  * id kept inside it (cq4-2 -> sw-cq4-2; dupOf, topic, sub and lecture rewritten the same
  * way; test_fixture.js's header has the mapping), and a course that already has one of
@@ -50,8 +51,6 @@ if(text.includes(TAG)) fail(`course.js already switches ${NAME} on (this script 
 if(fs.existsSync(data)) fail(data + ' already exists (this script runs once per course)');
 let COURSE;
 try { COURSE = new Function(text + '\n;return COURSE;')(); } catch(e){ fail('course.js cannot be read: ' + e.message); }
-const prof = (COURSE.professors || [])[0];
-if(prof !== 'Professor') fail(`the course's first professor is ${JSON.stringify(prof)}, not the template's "Professor"`);
 const F0 = FX.FIX;
 const clash = (COURSE.lectures || []).filter(l => FX.FIX.lectures.some(x => FX.pre(x.id) === l.id)).map(l => l.id);
 if(clash.length) fail('course.js already has lecture ' + clash.join(', '));
@@ -67,7 +66,7 @@ try {
 const taken = [...F0.qs.map(q => FX.pre(q.id)).filter(id => own.Q.includes(id)), ...F0.topics.map(t => FX.pre(t.id)).filter(id => own.T.includes(id))];
 if(taken.length) fail('the course already has the id(s) ' + taken.slice(0, 8).join(', ') + ' this script writes');
 let out;
-try { out = FX.courseData(prof, {eq: own.eq, asks: own.asks}); } catch(e){ fail(e.message); }
+try { out = FX.courseData({eq: own.eq, asks: own.asks}); } catch(e){ fail(e.message); }
 const imagesFile = path.join(src, 'images.json');
 let images;
 try { images = FX.withImages(fs.existsSync(imagesFile) ? fs.readFileSync(imagesFile, 'utf8') : '{}'); } catch(e){ fail('images.json: ' + e.message); }
@@ -78,9 +77,9 @@ try { fs.writeFileSync(imagesFile, images); } catch(e){ fail('cannot write ' + i
 try { fs.appendFileSync(course, line); } catch(e){ fail('cannot write ' + course + ': ' + e.message); }
 const F = FX.FIX;
 console.log(`wrote: ${data} (${F.topics.length} topics and ${F.qs.length} questions: the calculations ${F.calc.map(FX.pre).join(', ')} and ` +
-  `${F.qs.length - F.calc.length} single-answer and select-all questions for ${F.exam.name}; prof ${JSON.stringify(prof)})`);
+  `${F.qs.length - F.calc.length} single-answer and select-all questions for ${F.exam.name}; prof as the course has it)`);
 console.log(`wrote: ${imagesFile} (the ${Object.keys(F.images).length} images those questions show, added to the course's own)`);
-console.log(`wrote: appended to ${course}: ${FX.FILE} in COURSE.files, ${F.lectures.length} lectures (${F.lectures.map(l => FX.pre(l.id)).join(', ')}), ` +
+console.log(`wrote: appended to ${course}: ${FX.FILE} in COURSE.files, the professors ${JSON.stringify(F.professors)} in COURSE.professors (beside the course's own), ${F.lectures.length} lectures (${F.lectures.map(l => FX.pre(l.id)).join(', ')}), ` +
   `the skills the course lacks, COURSE.exams = [${F.exam.name}] (no typed, as in the course), COURSE.activeExam ${JSON.stringify(F.activeExam)}, ` +
   `and ${NAME} ${meta.version} on with paceSeconds ${PACE}`);
 if(out.left.setup.length) console.log(`left out: the setup line of ${out.left.setup.join(', ')} (it names equations the course's EQUATIONS does not have)`);

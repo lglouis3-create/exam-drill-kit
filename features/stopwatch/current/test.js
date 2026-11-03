@@ -90,7 +90,7 @@ const clockInit = () => { window.__off = 0; const real = Date.now.bind(Date); Da
   /* a scratch copy of this course, with Basic-Pharmacokinetics' data added when the course does not hold it
      (a setup line or asks key is written only when the course has that equation or ASKS key, as ci/oncourse.js does) */
   const copy = (label, line) => {
-    const data = holds ? null : FX.courseData(X.COURSE.professors[0], {eq: X.EQ, asks: X.ASK});
+    const data = holds ? null : FX.courseData({eq: X.EQ, asks: X.ASK});
     return L.scratchBuild(label, {files: data ? data.files : {}, courseLine: (data ? data.courseLine : '') + line,
       edit: src => { if(data){ const f = path.join(src, 'images.json'); fs.writeFileSync(f, FX.withImages(fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '{}')); } }});
   };
