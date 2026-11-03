@@ -97,12 +97,18 @@ check(/<link rel="manifest" href="\.\/manifest\.json">/.test(L.PAGE.read()), 'th
     console.log('\n=== Server down ===');
     const hits = () => Object.values(S.hits).reduce((a, b) => a + b, 0), hitsBefore = hits();
     await S.down();
-    await page.reload().catch(() => {});
-    check(await waitApp(10000) && await appShown(), 'the site opens from the saved copy with the server down');
-    if(site && site.aliases && site.aliases.length){
-      await page.goto(S.url + site.aliases[0]).catch(() => {});
-      check(await waitApp(10000) && await appShown(), `the old file name ${site.aliases[0]} opens it too`);
-    }
+    // A navigation that fails leaves the page from before on screen in WebKit (shown on
+    // 2026-11-03 with the worker's offline fallback removed: "Load failed", and the drill
+    // still on screen), so each check also asks that the page was loaded again: a mark
+    // set on the page before the navigation is gone after it.
+    const loadedAgain = async (nav) => {
+      await page.evaluate(() => { window.__before = true; }).catch(() => {});
+      await nav().catch(() => {});
+      return await waitApp(10000) && await appShown() && await page.evaluate(() => !window.__before).catch(() => false);
+    };
+    check(await loadedAgain(() => page.reload()), 'the site opens from the saved copy with the server down (loaded again, not the page from before)');
+    if(site && site.aliases && site.aliases.length)
+      check(await loadedAgain(() => page.goto(S.url + site.aliases[0])), `the old file name ${site.aliases[0]} opens it too`);
     const served = await page.evaluate(() => { startQuiz(TOPICS[0].id); return document.querySelectorAll('#v-quiz button[data-o], #numIn, #v-quiz select[data-row]').length; }).catch(() => 0);
     check(served >= 1, 'a quiz starts and serves a question offline');
     check(hits() === hitsBefore, 'no request reaches the server while it is down (it refuses connections)',
