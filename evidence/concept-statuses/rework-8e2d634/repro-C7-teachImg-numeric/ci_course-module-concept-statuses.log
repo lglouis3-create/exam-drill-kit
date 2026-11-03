@@ -1,0 +1,65 @@
+== modules switched on, in this order: concept-statuses
+-- concept-statuses: node features/concept-statuses/ci/oncourse.js
+wrote: /tmp/kit-ci-3UL3ST/course/src/q90_cst_fixture.js (1 topics and 10 questions from FIX in test.js)
+wrote: 4 slide image(s) added to images.json (slide_3IntravenousInfusi_p4, slide_3IntravenousInfusi_p7, slide_3IntravenousInfusi_p8, slide_3IntravenousInfusi_p11)
+wrote: appended to /tmp/kit-ci-3UL3ST/course/src/course.js: the file in COURSE.files, the professor(s) Mosley in COURSE.professors, the lecture 3IntravenousInfusions.pdf (id cst-L04) in COURSE.lectures, 1 skill(s) in COURSE.skills, and concept-statuses v1 on with words (61 entries)
+left out: 3 setup line(s) (cst-inf-n1, cst-inf-n2, cst-inf-n4) naming an equation the course's EQUATIONS lacks, 3 asks key(s) (cst-inf-n1, cst-inf-n2, cst-inf-n4) the course's ASKS lacks
+== module:concept-statuses, chromium, kit 5c8a549
+PASS     build.py          wrote index.html  (0.39 MB)
+PASS     test.js           17 questions checked, 2 warning(s)
+PASS     style_check.js    17 stems and 17 explanations clean
+PASS     style_check_test.js 29 checks passed
+PASS     render_test.js    every view rendered clean
+REPORT   explain_check.js  6 of 17 questions carry at least one explanation issue
+PASS     stepper_test.js   1 step-through(s) settle at every step
+NOT RUN  cite_check.py     no lecture PDFs found under decks/ or src/
+PASS     device_lint.js    3 checks passed
+PASS     output_test.js    16 checks passed
+PASS     files_test.js     13 checks passed
+PASS     tables_test.js    20 checks passed
+PASS     checks_test.js    32 checks passed
+PASS     draw_test.js      9 checks passed
+FAIL     browser_test.js   the test stopped: page.evaluate: TypeError: Cannot read properties of undefined (reading 'map')
+PASS     storage_test.js   24 checks passed
+PASS     startup_test.js   77 checks passed
+PASS     update_test.js    38 checks passed
+PASS     offline_test.js   30 checks passed
+PASS     home_test.js      36 checks passed
+PASS     history_test.js   28 checks passed
+PASS     scheduler_test.js 110 checks passed
+PASS     preview_test.js   14 checks passed
+PASS     state_check.js    2 checks passed
+PASS     state_check_test.js 8 checks passed
+PASS     oldcache_test.js  12 checks passed
+PASS     nullexam_test.js  76 checks passed (1 skipped: the Weighting chips)
+PASS     features_test.js  40 checks passed
+PASS     features/concept-statuses/test.js 90 checks passed
+26 PASS, 1 FAIL, 1 NOT RUN, 1 REPORT; logs in /tmp/drill-checks-35y6lt
+
+---- browser_test.js (failing lines, then the end of its log) ----
+  ok    page loads with no uncaught JavaScript error
+  ok    no console errors on load
+page.evaluate: TypeError: Cannot read properties of undefined (reading 'map')
+FAIL: browser_test.js: the test stopped: page.evaluate: TypeError: Cannot read properties of undefined (reading 'map')
+
+=== Browser smoke test ===
+  ok    page loads with no uncaught JavaScript error
+  ok    no console errors on load
+  ok    the page is opened over HTTP from 127.0.0.1
+  ok    its manifest is served beside it
+  ok    no service worker is registered in the check's browser
+  ok    a file outside the page's folder is refused
+  ok    page renders visible text
+  ok    question bank present in the page (17 of 17 in the sources)
+  ok    image bank present in the page (4 of 4 in images.json)
+  ok    all 4 embedded images decode
+  ok    a quiz starts
+  ok    question options render (4 found)
+  ok    answering reveals the explanation
+page.evaluate: TypeError: Cannot read properties of undefined (reading 'map')
+    at eval (eval at evaluate (:311:30), <anonymous>:9:42)
+    at UtilityScript.evaluate (<anonymous>:313:16)
+    at UtilityScript.<anonymous> (<anonymous>:1:44)
+    at /tmp/kit-ci-3UL3ST/course/src/browser_test.js:149:26
+FAIL: browser_test.js: the test stopped: page.evaluate: TypeError: Cannot read properties of undefined (reading 'map')
+exit 1

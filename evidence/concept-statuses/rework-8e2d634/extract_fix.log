@@ -1,0 +1,11 @@
+image slide_3IntravenousInfusi_p4 webp 27187 chars, round-trips
+image slide_3IntravenousInfusi_p7 webp 22447 chars, round-trips
+image slide_3IntravenousInfusi_p8 webp 17363 chars, round-trips
+image slide_3IntravenousInfusi_p11 webp 25855 chars, round-trips
+questions inf-c4 (q3_module3.js, time-to-css, mcq, prof Mosley, teachImg slide_3IntravenousInfusi_p4); inf-c5 (q3_module3.js, rate-vs-time-to-css, mcq, prof Mosley, teachImg slide_3IntravenousInfusi_p4); inf-c11 (q3_module3.js, loading-purpose, mcq, prof Mosley); cq2-4 (q13_quizzes.js, loading-purpose, mcq, prof Mosley); inf-n1 (q3_module3.js, css-from-rate, numeric, prof Mosley, teachImg slide_3IntravenousInfusi_p7); inf-n2 (q3_module3.js, rate-for-target-css, numeric, prof Mosley, teachImg slide_3IntravenousInfusi_p8); inf-n4 (q3_module3.js, time-to-percent-css, numeric, prof Mosley, teachImg slide_3IntravenousInfusi_p11); inf-c12 (q3_module3.js, loading-dose-properties, select-all, prof Mosley); inf-c13 (q3_module3.js, loading-dose-mismatch, mcq, prof Mosley); inf-c16 (q3_module3.js, bolus-dose-dependence, mcq, prof Mosley)
+topics infusion (7 subs, prof Mosley)
+lecture {"id":"L04","deck":"3IntravenousInfusions.pdf","label":"Module 3: Intravenous infusion (2 Sep)","prof":"Mosley","exam":1,"module":3}
+skills recall, apply, infusion
+CONCEPT_WORDS entries 61
+findings: none
+exit 0

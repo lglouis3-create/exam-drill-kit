@@ -1,0 +1,110 @@
+inf-c1  basics  why-infuse  mcq  L04  img slide_3IntravenousInfusi_p3
+inf-c2  basics  zero-in-first-out  mcq  L04  img slide_3IntravenousInfusi_p3
+inf-c3  css  steady-state-defn  mcq  L04  img slide_3IntravenousInfusi_p4
+inf-c4  css  time-to-css  mcq  L04  img slide_3IntravenousInfusi_p4
+inf-c5  css  rate-vs-time-to-css  mcq  L04  img slide_3IntravenousInfusi_p4
+inf-c6  pre  fraction-term  mcq  L04  img slide_3IntravenousInfusi_p9
+inf-c7  pre  halflife-table  match  L04  img slide_3IntravenousInfusi_p9
+inf-c8  css  time-to-css  mcq  L04  dupOf inf-c4
+inf-c9  stop  post-cessation-model  mcq  L04
+inf-c10  stop  peak-vs-css  mcq  L04
+inf-c11  load  loading-purpose  mcq  L04
+inf-c12  load  loading-dose-properties  mcq  L04  NAMES:Her,her
+inf-c13  load  loading-dose-mismatch  mcq  L04  NAMES:her,she,she,her
+inf-c14  basics  units-of-R  mcq  L04
+inf-c15  basics  infusion-curve-shape  mcq  L04  img slide_3IntravenousInfusi_p3
+inf-c16  basics  bolus-dose-dependence  mcq  L04  NAMES:she
+inf-n1  css  css-from-rate  numeric  L04  img slide_3IntravenousInfusi_p7
+inf-n2  rate  rate-for-target-css  numeric  L04  img slide_3IntravenousInfusi_p8
+inf-n3  pre  cp-before-steady-state  numeric  L04  NAMES:she,her,her  img slide_3IntravenousInfusi_p10
+inf-n4  time  time-to-percent-css  numeric  L04  img slide_3IntravenousInfusi_p11
+inf-n5  stop  post-cessation-decay  numeric  L04  NAMES:she,she,she,her,she  img slide_3IntravenousInfusi_p13
+inf-n6  pre  cp-before-steady-state  numeric  L04  NAMES:she,Her  dupOf inf-n3  img slide_3IntravenousInfusi_p14
+inf-n7  stop  post-cessation-decay  numeric  L04  NAMES:she,her  dupOf inf-n5  img slide_3IntravenousInfusi_p14
+inf-n8  load  loading-dose-calc  numeric  L04  NAMES:she,she,she,her  img slide_3IntravenousInfusi_p17
+inf-n9  load  loading-plus-infusion  numeric  L04  NAMES:she,She,her  img slide_3IntravenousInfusi_p18
+inf-n10  rate  rate-for-target-css  numeric  L04  NAMES:she,Dr.,Mosley,her,her  dupOf inf-n2
+inf-n11  pre  cp-before-steady-state  numeric  L04  NAMES:she,she,she,She,she
+inf-n12  load  loading-dose-calc  numeric  L04  NAMES:She,she  dupOf inf-n8
+inf-n13  stop  post-cessation-decay  numeric  L04  NAMES:She,her  dupOf inf-n5
+inf-n14  rate  rate-for-target-css  numeric  L04  NAMES:Her,her,she  dupOf inf-n2
+inf-n15  stop  post-cessation-decay  numeric  L04  NAMES:Her,her,she  dupOf inf-n5
+inf-n16  time  time-to-percent-css  numeric  L04  NAMES:she,Her,her,Her  dupOf inf-n4
+inf-n17  rate  rate-with-weight  numeric  L04  NAMES:Dr.,Mosley,she,Her
+inf-n18  load  loading-dose-calc  numeric  L04  NAMES:Her  dupOf inf-n8
+inf-n19  load  loading-dose-for-css  numeric  L04  NAMES:Her,Her,her  dupOf inf-n12
+inf-n20  load  loading-plus-infusion-at-t  numeric  L04  NAMES:Her  dupOf inf-n9
+inf-n21  pre  cp-before-steady-state  numeric  L04  NAMES:Her,her  dupOf inf-n3
+inf-n22  css  css-from-rate  numeric  L04  NAMES:Her,her,her,Her  dupOf inf-n1
+inf-n23  load  loading-dose-does-not-move-css  numeric  L04  NAMES:Her
+inf-n24  load  loading-dose-for-css  numeric  L04  NAMES:Her,Her  dupOf inf-n19
+inf-n25  time  time-to-fraction-of-css  numeric  L04  NAMES:Her,her,her  dupOf inf-n4
+inf-n26  css  css-proportional-to-rate  numeric  L04  NAMES:her,her,Her  dupOf inf-n22
+cq2-4  load  loading-purpose  mcq  L04  dupOf inf-c11
+cq2-5  stop  post-infusion-decay  numeric  L04  NAMES:Her
+cq2-6  css  rate-vs-time-to-css  mcq  L04  dupOf inf-c5
+cq2-7  rate  rate-for-target-css  numeric  L04  NAMES:Her
+cq2-8  css  css-from-rate  numeric  L04  NAMES:Her,her
+fig-inf-1  basics  shape-of-infusion-curve  mcq  L04  FIG  img slide_3IntravenousInfusi_p3
+fig-inf-2  css  rate-change-css-not-time  mcq  L04  NAMES:she,she  FIG  img slide_3IntravenousInfusi_p3
+ws3-1a  rate  rate-from-dose-time  numeric  L04
+ws3-1b  pre  cp-before-steady-state  numeric  L04
+ws3-1c  pre  amount-during-infusion  numeric  L04  NAMES:her
+ws3-1d  css  css-from-rate  numeric  L04
+ws3-1e  rate  rate-in-ml-per-min  numeric  L04
+ws3-1f  load  loading-dose-calc  numeric  L04  NAMES:her
+ws3-1g  stop  post-cessation-decay  numeric  L04  NAMES:Her,Her
+ws3-2a  rate  rate-for-target-css  numeric  L04
+ws3-2b  load  loading-dose-calc  numeric  L04  NAMES:Her,her,her
+ws3-2c  load  loading-dose-volume  numeric  L04
+ws3-2d  pre  cp-before-steady-state  numeric  L04
+ws3-2e  stop  post-cessation-decay  numeric  L04
+ws3-2f  stop  time-after-stop  numeric  L04  NAMES:Her
+ws3-4a1  rate  rate-for-target-css  numeric  L04
+ws3-4a2  load  loading-dose-calc  numeric  L04  dupOf inf-n18
+ws3-4b1  rate  infusion-volume  numeric  L04
+ws3-4b2  rate  infusion-concentration  numeric  L04
+ws3-4c  css  vd-from-cl-k  numeric  L04
+ws3-4d  time  time-to-fraction-of-css  numeric  L04
+ws3-4e  time  time-to-percent-css  numeric  L04
+ws3-4f1  stop  post-cessation-decay  numeric  L04
+ws3-4f2  stop  post-cessation-decay  numeric  L04
+ws3-4f3  stop  post-cessation-decay  numeric  L04
+ws3-4g1  rate  rate-in-renal-failure  numeric  L04
+ws3-4g2  load  loading-dose-renal-failure  numeric  L04
+hw3-a  rate  rate-for-css  numeric  L04  NAMES:her,Her
+hw3-b  time  thalf-from-cl-vd  numeric  L04  NAMES:her,Her
+hw3-c  pre  c-during-infusion  numeric  L04  NAMES:her,Her
+hw3-d  time  time-to-css-fraction  numeric  L04  NAMES:her,Her
+hw3-e  load  loading-dose  numeric  L04  NAMES:her,Her
+hw3-f  stop  c-after-stop  numeric  L04  NAMES:her,Her
+hw3-g  css  css-proportional-to-rate  numeric  L04  NAMES:her,Her
+hw3-h  time  time-to-css-fraction  numeric  L04  NAMES:her,Her
+hw3-i  stop  c-after-stop  numeric  L04  NAMES:her,Her
+hw3-j  rate  rate-for-css  numeric  L04  NAMES:her,Her
+hwo3-a  rate  rate-for-css  numeric  L04  NAMES:her,Her,her,She,her  dupOf hw3-a
+hwo3-b  time  thalf-from-cl-vd  numeric  L04  NAMES:her,Her,her,She,her  dupOf hw3-b
+hwo3-c  pre  c-during-infusion  numeric  L04  NAMES:her,Her,her,She,her  dupOf hw3-c
+hwo3-d  time  time-to-css-fraction  numeric  L04  NAMES:her,Her,her,She,her  dupOf hw3-d
+hwo3-e  load  loading-dose  numeric  L04  NAMES:her,Her,her,She,her  dupOf hw3-e
+hwo3-f  stop  c-after-stop  numeric  L04  NAMES:her,Her,her,She,her  dupOf hw3-f
+hwo3-g  css  css-proportional-to-rate  numeric  L04  NAMES:her,Her,her,She,her  dupOf hw3-g
+hwo3-h  time  time-to-css-fraction  numeric  L04  NAMES:her,Her,her,She,her  dupOf hw3-h
+hwo3-i  stop  c-after-stop  numeric  L04  NAMES:her,Her,her,She,her  dupOf hw3-i
+hwo3-j  rate  rate-for-css  numeric  L04  NAMES:her,Her,her,She,her  dupOf hw3-j
+fr-7  basics  shape-of-infusion-curve  mcq  L04  NAMES:Her  FIG  dupOf fig-inf-1
+fr-12a  pre  cp-before-steady-state  mcq  L04  NAMES:her
+fr-12b  stop  post-cessation-decay  numeric  L04  NAMES:her
+fr-12d  css  css-from-rate  numeric  L04  NAMES:she
+fr-12e  css  css-from-rate  numeric  L04  NAMES:her
+fr-12f  css  rate-vs-time-to-css  mcq  L04  dupOf inf-c5
+x3-a-rate2  css  rate-vs-time-to-css  mcq  L04  NAMES:her,Her  dupOf cq2-6
+x3-a-half-ss  pre  cp-before-steady-state  numeric  L04  NAMES:Her
+x3-a-ld-4h  load  loading-plus-infusion  numeric  L04  dupOf inf-n9
+x3-a-p3c  load  loading-dose-for-css  numeric  L04  NAMES:Her,Her,She,Her
+x3-a-p3e  pre  cp-before-steady-state  numeric  L04  NAMES:Her,Her
+x3-a-p3f  stop  post-cessation-decay  numeric  L04  NAMES:Her,Her
+x3-a-p3g  stop  post-cessation-decay  numeric  L04  NAMES:Her,Her
+x3-a-p3h  css  time-to-percent-css  mcq  L04  NAMES:her,Her,her
+x3-a-p3i-r  rate  rate-for-target-css  numeric  L04  NAMES:Her,Her
+x3-a-p3i-l  load  loading-dose-for-css  numeric  L04  NAMES:Her,She,Her
