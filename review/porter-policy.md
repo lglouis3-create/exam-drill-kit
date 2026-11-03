@@ -4,13 +4,16 @@ This policy governs the "Kit feature porter" session, its scheduled task "Kit fe
 every pull request that session opens (port pull requests on `port/<name>` branches, and its
 documentation, catalog and proposal pull requests). Correctness takes priority over finishing quickly.
 
-For the porter session's pull requests it replaces two merge rules: the rule in `CLAUDE.md` "Rules for
-kit sessions" that each merge needs Louis's yes, and the merge rules of `KIT_DESIGN.md` §12.9 (a
-feature merges only after Louis's yes; catalog bookkeeping and `small-fix` pull requests merge
-themselves once every check passes). Section 7 below holds the merge rules for these pull requests;
-in particular a bookkeeping pull request of the porter no longer merges on passing checks alone.
-Louis: "This replaces the blanket approval requirement for routine port merges while preserving
-explicit holds." Every other rule in `CLAUDE.md` and `KIT_DESIGN.md` §12 stays as it is.
+`KIT_DESIGN.md` §12 decision 10 (Louis's standing autonomy policy of 2026-11-03, whose own words
+are in `review/standing-autonomy-2026-11-03.md`) applies to the porter session and its pull requests
+as to every kit session; it replaced the merge rules of §12.9 (a feature merges only after Louis's
+yes; catalog bookkeeping and `small-fix` pull requests merge themselves once every check passes).
+This policy adds rules for porting. Where this policy and decision 10 differ, the stricter rule
+applies: for example, an automatic merge also needs the independent review's result posted on the
+pull request before the merge and a comment after it naming the review and the check run (decision
+10). Section 7 below holds the merge rules for these pull requests; in particular a bookkeeping pull
+request of the porter does not merge on passing checks alone. Louis: "This replaces the blanket
+approval requirement for routine port merges while preserving explicit holds."
 
 Four rules below are written as standing rules from directives Louis gave for one case: the image
 rule in §3 (pull request #19), the pairing rule in §5 (#18), the deterministic-setup rule in §5 (the
@@ -70,7 +73,8 @@ heads).
 - Keep `features/<name>/ci/oncourse.js`, real source-course data, the module-absent failure and the
   module-enabled pass, template output unchanged apart from build stamps, and the required template,
   module-course and Medicinal-chemistry checks. Include the affected module combinations, and WebKit
-  where it applies. The final revision of a pull request needs passing GitHub checks.
+  where it applies: for a module, its course in WebKit on GitHub (section 7). The final revision of a
+  pull request needs passing GitHub checks.
 - A pairing in `features/ci-combinations.txt` stays in a port pull request when it directly verifies
   an interaction the feature affects. It carries a clear name and a line on its purpose, in the agreed
   format of that file.
@@ -108,8 +112,14 @@ The porter may merge automatically only:
 
 Each automatic merge needs, on its final revision: an independent review by a separate reviewer
 agent or an external reviewer (the implementing agent's own checks and passing CI do not count);
-passing required checks; no unresolved findings; and no unrelated changes. Eligibility is decided per
-pull request; being optional does not by itself make a pull request eligible.
+passing required checks, as `KIT_DESIGN.md` §12 decision 10 defines them (every applicable job
+concluded "success" on the final head commit; a module job the plan intentionally did not select is
+not applicable, and a job that failed, was cancelled, timed out or never started, or no run for the
+final head commit, blocks the merge); for a module, also a WebKit run of its course that concluded
+"success" on GitHub on the final head commit (`core/ci_course.sh module:<name> webkit`; decision 10,
+Claude's reading 6; until a GitHub job runs it, the merge waits); no unresolved findings; and no
+unrelated changes. Eligibility is decided per pull request; being
+optional does not by itself make a pull request eligible.
 
 Louis's approval is still needed for:
 
