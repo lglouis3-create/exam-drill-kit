@@ -2,6 +2,9 @@
 
 Dated kit changes, newest first.
 
+## 2026-11-03
+- `core/offline_test.js`: "server down" refuses connections; dropped ones broke WebKit's network session at random.
+
 ## 2026-11-02
 - `core/home_test.js`: answers a select-all question it picks, with its right boxes, so it no longer fails at random.
 - Kit checks on GitHub: every pull request runs the checks in Chromium and, as information, in WebKit.
