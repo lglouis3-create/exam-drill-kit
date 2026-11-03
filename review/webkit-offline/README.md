@@ -219,14 +219,24 @@ Each broken copy fails on its own check in both browsers:
 
 ## All runs on this branch
 
-- **WebKit, with "server down" as a dropped connection**, the kit's test server before
-  the fix:
-  - in turn: 0 failed of 40;
-  - under load: 15 failed of 180.
-- **WebKit, with "server down" as an HTTP 503 answer:** 0 failed of 45 under load.
-- **WebKit, with refused connections (the fix):**
-  - the instrumented test: 0 failed of 60 under load, and 0 of 40 in turn (20 in run
-    41567099983, 20 in this run);
-  - the unmodified test: 0 failed of 40 in turn and 0 of 120 under load (runs 41567099983
-    and 41568079994).
-- **Chromium:** no failure in any set.
+Counted from the `RUN` lines of the job logs kept here. Each run is one test run.
+
+- **WebKit, "server down" as a dropped connection** (the kit's test server before the
+  fix):
+  - in turn: 0 failed of 80 (40 of `offline_test.js` and 40 of `offline_diag.js`, run
+    41562178755);
+  - under load: 16 failed of 195 (3 of 45 in run 41563325561; 10 of 90 in run
+    41564741186; 2 of 45 in run 41565485378; 1 of the 15 control runs in run 41566211850).
+- **WebKit, "server down" as an HTTP 503 answer:**
+  - 0 failed of 45 under load (run 41565485378);
+  - 0 of 40 instrumented runs in turn (runs 41567099983 and 41568079994). There
+    `offline_diag.js`, given no DIAG_DOWN, set the old mode "down", which the fixed test
+    server answers with 503.
+- **WebKit, refused connections (the fix):**
+  - instrumented: 0 failed of 60 under load (run 41566211850);
+  - the unmodified fixed `offline_test.js`: 0 failed of 40 in turn and 0 of 120 under load
+    (runs 41567099983 and 41568079994).
+- **Broken copies** (runs 41567099983 and 41568079994): 20 of 20 failed in WebKit and 8 of
+  8 in Chromium.
+- **Chromium:** no failure in any set that should pass (20 in turn, 18 under load, 2
+  forced update-check runs).
