@@ -382,6 +382,11 @@ section is current.
     a reply, and the rule of decision 1 that course repos merge automatically wherever
     that rule would change a live site; the rest of decisions 1 and 9 stands except where
     this decision differs.
+    - **The porter.** The "Kit feature porter" session, its scheduled task "Kit feature
+      port" and its pull requests follow `review/porter-policy.md` (pull request #36),
+      which applies this decision to porting and adds rules of its own (source fidelity,
+      completeness, integration evidence). Where the two differ, the stricter rule
+      applies.
     - **Claude proceeds on its own** with inspection, implementation, testing, separate
       topic branches and worktrees, opening pull requests, addressing reviews, and
       refreshing pending branches.
@@ -391,7 +396,7 @@ section is current.
       - isolated optional features that stay off by default and change no existing
         course behaviour, storage or scheduling. An optional module that saves new data
         in a student's progress is progress storage, and waits for Louis (as in
-        `review/porter-policy.md` §6).
+        `review/porter-policy.md` §7).
 
       Each such merge needs all of these: an independent review by a separate reviewer
       agent or an external reviewer, with its result posted on the pull request before
@@ -400,11 +405,16 @@ section is current.
       WebKit where they apply; no unresolved finding; no unrelated change. Each one is
       recorded on the pull request (a comment naming the review and the check run) and
       in the next consolidated update to Louis.
-    - **Required checks** are every job of `.github/workflows/checks.yml` on the pull
-      request's final head commit, each concluded "success". A job that did not run
-      (GitHub stopped starting jobs on 2026-11-03 for a billing reason, for example) is
-      NOT RUN and blocks such a merge. Using a local `run_checks.sh` in its place is an
-      exemption, which waits for Louis's yes.
+    - **Required checks** are the jobs of `.github/workflows/checks.yml` that apply to
+      the pull request's final head commit: the Chromium jobs (template, template-unset,
+      Medicinal-chemistry), the WebKit template job, the "Modules to check" plan job, and
+      each module job that plan selects. Every applicable job must conclude "success".
+      A module job the plan does not select, because the pull request touches no module
+      (GitHub shows the module matrix as skipped), is not applicable. An applicable job
+      that did not conclude "success" blocks the merge, whether it failed, was cancelled,
+      timed out or never started (GitHub stopped starting jobs on 2026-11-03 for a billing
+      reason, for example): it counts as NOT RUN, never as passed. Using a local
+      `run_checks.sh` in its place is an exemption, which waits for Louis's yes.
     - **Louis's approval stays required**, inside or outside a pull request, for:
       - progress storage, import and recovery, and scheduling behaviour;
       - course migrations and live-course updates;
@@ -422,9 +432,11 @@ section is current.
       never changes a live site without his reply; its work waits at `/preview/` or on a
       branch. A course session changes a live site only with Louis's approval of that
       change given in the session (his request for it, or his yes to a summary of it).
-      This reading of "separately approve" is Claude's and waits for his confirmation
-      (`CLAUDE.md`, open question 3), as does the scheduled task "BDK daily review",
-      which pushes its fixes to BDK's `main` each day.
+      Louis confirmed the part on unattended runs on 2026-11-03: the scheduled task "BDK
+      daily review" prepares its work on a branch with a pull request, and the "Kit
+      update run" promotes a preview to live only after his reply. The part on course
+      sessions is Claude's reading and waits for his confirmation (`CLAUDE.md`, open
+      question 3).
     - **Failed checks** are investigated and their evidence kept. Repeated runs for
       diagnosis are allowed; discarding failures and rerunning until green is not.
     - **Reviews on GitHub.** ChatGPT's review automation runs about four times a day

@@ -28,11 +28,15 @@ after Phase 1 and overrides earlier sections where they differ.
     an iPhone or iPad: NOT RUN so far; the FSRS page contains BigInt syntax;
   - the stored instructions of the scheduled task "Kit update run" still say a
     bookkeeping or `small-fix` update goes live without Louis's reply (read 2026-11-03).
-    They defer to `skill/SKILL.md` on `main`, which no longer allows it once #37
-    merges; changing the stored text waits for Louis (decision 10: a scheduled task's
-    instructions). It cannot fire now: no merged kit pull request is labelled
-    `small-fix`, and the kit changes since Medicinal-chemistry's pin `2bbe395` include
-    core files that are not catalog bookkeeping;
+    Louis authorized changing them on 2026-11-03 so that no preview is promoted to live
+    without his approval; an `update_trigger` from the main kit session was refused
+    ("a routine's instructions can be changed only from the conversation or thread the
+    routine posts into"), so the change is to be made in the "Kit updater" session
+    (`session_01LVkWFDAbAtw7kDGwqd43Qg`), with the message Claude gave Louis. Until
+    then the instructions defer to `skill/SKILL.md` on `main`, which no longer allows it
+    once #37 merges, and the old rule cannot fire: no merged kit pull request is
+    labelled `small-fix`, and the kit changes since Medicinal-chemistry's pin `2bbe395`
+    include core files that are not catalog bookkeeping;
   - from `core/README.md` "Not in core yet": Intro-Pharmacology's exam-result page after
     a reload and its generator step; `coverage_check.py`, `step_check.js`,
     `sources_check.js`;
@@ -127,10 +131,13 @@ after Phase 1 and overrides earlier sections where they differ.
     or scheduling (a module that saves new data in a student's progress is progress
     storage). Each needs an independent review (a separate reviewer agent or an external
     reviewer, its result posted on the pull request; passing CI alone is not one), every
-    job of `checks.yml` concluded "success" on the final head commit (with the affected
-    module combinations and WebKit where they apply; a job that did not run blocks the
-    merge), no unresolved finding and no unrelated change. Record each one on the pull
-    request and in the next consolidated update.
+    applicable job of `checks.yml` concluded "success" on the final head commit (the
+    Chromium and WebKit jobs, the plan job and each module job the plan selects; a module
+    job the plan does not select is not applicable; an applicable job that failed, was
+    cancelled or never started blocks the merge), no unresolved finding and no unrelated
+    change. Record each one on the pull request and in the next consolidated update. The
+    porter session follows `review/porter-policy.md` (#36), which applies the same rules
+    to porting; the stricter of the two applies.
   - Everything else waits for Louis's yes, inside or outside a pull request, after a
     plain-terms summary of what it provides and changes: among them progress storage,
     import and recovery, scheduling; course migrations and live-course updates;
@@ -193,15 +200,17 @@ after Phase 1 and overrides earlier sections where they differ.
    and the nine answers in its §6. `skill/SKILL.md` already describes the method and
    says that its in-course comparison starts nowhere until then.
 3. "Keep live courses unchanged unless I separately approve their updates" (2026-11-03):
-   which course changes count as separately approved? Claude's reading, followed until
-   Louis answers: an unattended run never changes a live site without his reply, and a
-   course session changes a live site only with his approval of that change given in
-   the session (his request for it, or his yes to a summary of it). Affected:
-   - the course repos' own rules: Medicinal-chemistry's `CLAUDE.md` ("Merge it
-     automatically always") and BDK's ("push to `main`");
-   - the scheduled task "BDK daily review" (daily 5:45 AM America/Chicago, a fresh
-     session each time), which pushes its fixes to BDK's `main`; Louis set it up on
-     2026-10-27 and it is unchanged.
+   which course changes count as separately approved? Louis settled the unattended runs
+   on 2026-11-03: they never change a live site without his reply. Still Claude's
+   reading, followed until Louis answers: a course session changes a live site only with
+   his approval of that change given in the session (his request for it, or his yes to
+   a summary of it), also where the course repo's own rule says to merge or push
+   automatically (Medicinal-chemistry's `CLAUDE.md`: "Merge it automatically always";
+   BDK's: "push to `main`"). Done on 2026-11-03 at Louis's instruction: the scheduled
+   task "BDK daily review" (daily 5:45 AM America/Chicago, a fresh session each time) now
+   prepares its fixes and log entry on a branch `daily-review/<date>` with a pull request
+   for Louis, and never pushes to BDK's `main` (its stored instructions, updated from the
+   main kit session).
 
 ## Known issues in course drills found by the kit work
 

@@ -172,9 +172,11 @@ decision 10 of `KIT_DESIGN.md` §12 (Louis, 2026-11-03). In short:
   or scheduling (a module that saves new data in a student's progress is progress
   storage). Each needs an independent review (a separate reviewer agent or an external
   reviewer, its result posted on the pull request; passing CI alone is not one), every
-  job of `.github/workflows/checks.yml` concluded "success" on the final head commit
-  (with the affected module combinations and WebKit where they apply; a job that did not
-  run blocks the merge), no unresolved finding and no unrelated change.
+  applicable job of `.github/workflows/checks.yml` concluded "success" on the final head
+  commit (the Chromium and WebKit jobs, the plan job and each module job the plan
+  selects; a module job it does not select is not applicable; an applicable job that
+  failed, was cancelled or never started blocks the merge), no unresolved finding and no
+  unrelated change.
 - **Every other pull request waits for Louis's yes**, and so does any such action
   outside a pull request: among them progress storage,
   import and recovery, and scheduling behaviour; course migrations and live-course
