@@ -118,6 +118,12 @@ some of that data, so the ports left those questions out and said so in their pu
 
 **C1. Core `test.js` section 7 fails on a topic with few concepts.** Coordinator-checked (the gap)
 and agent-run (the failures).
+- **Resolved on `main`** by kit PR #38 (`9f2940b`: the two wordings come from one topic) and kit PR #40
+  (`751251a`: 20 trials, and the cool-down by the answer count). Coordinator-run on module-pages
+  with m2-mod-2 and m2-vd-2 put back (`port/module-pages` `76d0cef`, which includes `main` `e827671`):
+  `core/ci_course.sh module:module-pages` 3 times, 27 PASS, 0 FAIL, 1 NOT RUN, 1 REPORT each; section 7
+  took mpc-m2-mod-1 -> mpc-m2-mod-2 in mpc-bolus1, 20 of 20 trials. The main kit session reports the
+  all-18-module course of integration run 5 passing `test.js` with #38. The text below is kept as found.
 - The check takes the first concept with two wordings and expects the second wording within that
   topic after a miss. A missed concept comes back only after 4 other questions (`GAP = 4`,
   `core/shell.html` line 887). In a topic with 4 concepts or fewer it cannot come back, and the
