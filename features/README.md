@@ -158,6 +158,7 @@ is off says so on its card and offers the next question.
 | `terms-variables` | v1 | Basic-Pharmacokinetics `ac2eb73` | a Terms tab: flashcards and questions over the course's `TERMS`, and the variables quiz over its `ASKS` (which symbol a stem asks for, what each symbol means) |
 | `concept-statuses` | v1 | Basic-Pharmacokinetics `ac2eb73` | a Concepts section on Weak spots: a status per concept read from its answers, the counts behind it, the spaced checks due; reads the core's state and changes none of it |
 | `theme` | v1 | Basic-Pharmacokinetics `ac2eb73` | dark colours, and the student's choice of Match device, Light or Dark (header and Settings), kept per device under `<ns>:theme`, not in the progress |
+| `paper-picker` | v1 | Basic-Pharmacokinetics `ac2eb73` | choose which exam's paper to practise (drawn from that exam's pools at the current exam's length and clock); the papers submitted so far |
 
 `port_from_pk.py` beside a module's `current/` (equation-drill, wrong-number-diagnosis) is the
 script that wrote the module's code from Basic-Pharmacokinetics' files (`port_from_ip.js` beside

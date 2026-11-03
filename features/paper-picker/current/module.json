@@ -1,0 +1,10 @@
+{
+ "name": "paper-picker",
+ "version": "v1",
+ "does": "On the Exam view and in Settings, one chip per exam in course.js `exams` that a paper can be drawn for: a paper started while an earlier exam is chosen is drawn from that exam's pools (by marks, with its select-all count, by the engine's own draw), at the current exam's length and clock; the choice is kept with the progress (DB.paperPicker) and gives way to the current exam once the chosen exam is over, unless it was chosen after that exam (to review it). Under the start button, \"Your papers so far\": each paper submitted on a page with the module on, newest first, with its exam, day, score and blank items. Reads course.js `exams` only; the build step leaves off the chips (and the page names, with the reason) an exam that differs from the current one in question count, time limit or `typed`, has a `blueprint`, or has a pool without marks, and stops the build when an exam has no id or two exams share one.",
+ "source": "Basic-Pharmacokinetics src/shell.html lines 1108-1128 and 1174-1186, src/views.js lines 3108-3136 and 3146-3168, at ac2eb73",
+ "js": ["paper-picker.js"],
+ "step": "step.js",
+ "options": {},
+ "test": "test.js"
+}
