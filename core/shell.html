@@ -573,6 +573,7 @@ const NS = COURSE.ns + (BUILD.preview ? '-preview' : '');
    from memory until a write succeeds, so nothing is lost within the visit, and
    the first failure shows one notice that points to Export progress. */
 const MEM = {}, FAILED = new Set();   // FAILED: keys whose last write the browser refused; their value lives in MEM
+const KEPT = {};   // per key, what this page last read from storage or had the browser keep there (load)
 const store = {
   get(k){
     if(FAILED.has(k)) return MEM[k] === undefined ? null : MEM[k];
@@ -584,15 +585,15 @@ const store = {
   // stored, so a later save by another tab still shows as one
   set(k, v){
     MEM[k] = v;
-    try { localStorage.setItem(k, v); FAILED.delete(k); seenAs(k, v); return true; }
+    try { localStorage.setItem(k, v); FAILED.delete(k); KEPT[k] = v; seenAs(k, v); return true; }
     catch(e){ FAILED.add(k); saveWarn(); return false; }
   },
-  del(k){ delete MEM[k]; FAILED.delete(k); seenAs(k, null); try { localStorage.removeItem(k); } catch(e){ /* nothing to remove */ } },
+  del(k){ delete MEM[k]; FAILED.delete(k); KEPT[k] = null; seenAs(k, null); try { localStorage.removeItem(k); } catch(e){ /* nothing to remove */ } },
   // Import's writes: true when the browser kept it; false when it refused, and then
   // nothing changes, not even the copy kept for this visit, so a refused import
   // leaves the progress on screen and in storage exactly as it was
   trySet(k, v){
-    try { localStorage.setItem(k, v); MEM[k] = v; FAILED.delete(k); seenAs(k, v); return true; }
+    try { localStorage.setItem(k, v); MEM[k] = v; FAILED.delete(k); KEPT[k] = v; seenAs(k, v); return true; }
     catch(e){ return false; }
   },
 };
@@ -744,8 +745,12 @@ function load(){
   LOADED = '';
   if(!PROFILE) return;
   try{
-    const raw = store.get(keyFor(PROFILE));
-    SEEN = raw;
+    const k = keyFor(PROFILE), raw = store.get(k);   // after a refused write: this visit's unsaved copy
+    // SEEN is what is stored as this page last knew it, not the unsaved copy: after a refused
+    // write, the value from before it (KEPT), so the page's own next save is not taken for
+    // another tab's, and another tab's later save still is (#32's review of 2bc1e07, M1)
+    if(FAILED.has(k) && k in KEPT) SEEN = KEPT[k];
+    else { let st = null; try { st = localStorage.getItem(k); } catch(e){ st = null; } SEEN = st; KEPT[k] = st; }
     let db = BLANK();
     if(raw){
       const v = JSON.parse(raw);

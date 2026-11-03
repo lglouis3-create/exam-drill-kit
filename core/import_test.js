@@ -983,16 +983,20 @@ let nfile = 0;
     await t.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
     return t;
   };
-  // in page p, the browser refuses every write of the key k (null: none), as a full storage does
-  const refuseKey = (p, k) => p.evaluate(k => {
-    window.__refuseKey = k;
+  // in page p, the browser refuses every write of the key k (null: none), as a full storage does;
+  // with once, only the next write of k
+  const refuseKey = (p, k, once) => p.evaluate(([k, once]) => {
+    window.__refuseKey = k; window.__refuseOnce = !!once;
     if(window.__refuseWrapped) return; window.__refuseWrapped = true;
     const real = Storage.prototype.setItem;
     Storage.prototype.setItem = function(key, v){
-      if(window.__refuseKey !== null && key === window.__refuseKey) throw new DOMException('The quota has been exceeded.', 'QuotaExceededError');
+      if(window.__refuseKey !== null && key === window.__refuseKey){
+        if(window.__refuseOnce) window.__refuseKey = null;
+        throw new DOMException('The quota has been exceeded.', 'QuotaExceededError');
+      }
       return real.call(this, key, v);
     };
-  }, k);
+  }, [k, once]);
   // in page p, save()'s 150 ms timer never fires on its own (its delay made an hour, as in
   // storage_test.js), so a waiting save reaches storage only through the code under test
   const holdTimer = p => p.evaluate(() => {
@@ -1060,7 +1064,9 @@ let nfile = 0;
     await choose(o.d.page, later(o.file, 2), true);          // replaces: a copy of the 3-answer progress is kept
     const P5 = await stored(o.d.page, o.di.data), copies0 = await stored(o.d.page, o.di.backup);
     await holdTimer(o.d.page);
-    if(refuseFlush) await refuseKey(o.d.page, o.di.data);
+    // only the waiting change's save is refused, so a Put back that carried on after it would
+    // succeed at step (2) and be seen below
+    if(refuseFlush) await refuseKey(o.d.page, o.di.data, true);
     const r = await o.d.page.evaluate(() => {
       record(QUESTIONS[5], 'correct', undefined, 1000);
       const a = DB.answers[DB.answers.length - 1];
@@ -1129,6 +1135,111 @@ let nfile = 0;
     const got = JSON.parse(await stored(d.page, di.data));
     check(failed && got.settings.goal === 11 && got.answers.length === 2 && !(await d.page.evaluate(() => !!document.getElementById('stalewarn') || FAILED.size > 0)),
       'one tab alone: after a refused save, its next save writes the progress, with no "another tab" notice', {failed, goal: got.settings.goal});
+    await d.ctx.close();
+  }
+
+  console.log('\n=== Review of 2bc1e07: a refused save and the profile opened again; questions left open ===');
+  for(const other of [false, true]){
+    // M1: a refused save, then the profile opened again (Switch to the same name), then storage
+    // works: one tab alone writes its progress with no notice; with another tab's save in
+    // between, that save stays
+    const d = await device(); const di = await info(d.page);
+    await answer(d.page, 3, 0);
+    const tab2 = other ? await secondTab(d) : null;
+    if(tab2) await synced(tab2, d.page, [di.data, di.log], 'this tab answered');
+    await refuseKey(d.page, di.data);
+    await d.page.evaluate(() => { DB.settings.goal = 10; save(); saveNow(); });             // refused
+    const failed = await d.page.evaluate(k => FAILED.has(k), di.data);
+    let theirs = null;
+    if(tab2){ await tab2.evaluate(() => { DB.settings.goal = 99; save(); saveNow(); }); [theirs] = await synced(d.page, tab2, [di.data, di.log], 'the other tab saved a setting'); }
+    await d.page.evaluate(() => useProfile(PROFILE));                                       // opened again
+    await refuseKey(d.page, null);
+    await d.page.evaluate(() => { DB.settings.goal = 11; save(); saveNow(); });
+    const got = JSON.parse(await stored(d.page, di.data)), warned = await d.page.evaluate(() => !!document.getElementById('stalewarn'));
+    if(!other)
+      check(failed && got.settings.goal === 11 && got.answers.length === 3 && !warned,
+        'one tab alone: a refused save, the profile opened again, storage working again: the next save writes the progress, with no "another tab" notice',
+        {failed, goal: got.settings.goal, warned});
+    else
+      check(failed && await stored(d.page, di.data) === theirs && got.settings.goal === 99 && warned,
+        'a refused save, another tab saves, the profile opened again here: this tab\'s next save writes nothing over the other tab\'s, and says why',
+        {failed, goal: got.settings.goal, warned});
+    await d.ctx.close();
+  }
+  {
+    // M2: another tab replaces the progress (an import, adding a copy) while "Delete the copies"
+    // asks here: nothing is deleted
+    const o = await own(3);
+    await choose(o.d.page, later(o.file, 2), true);                     // one copy kept
+    const r = await o.d.page.evaluate(() => {
+      const list = JSON.parse(localStorage.getItem(backupKey(PROFILE)));
+      const other = JSON.stringify(Object.assign({}, DB, {settings: Object.assign({}, DB.settings, {goal: 55})}));
+      const more = JSON.stringify(list.concat([{at: Date.now(), data: localStorage.getItem(keyFor(PROFILE)), why: 'import'}]));
+      window.confirm = () => { localStorage.setItem(backupKey(PROFILE), more); localStorage.setItem(keyFor(PROFILE), other); return true; };
+      show('settings'); deleteCopies();
+      return {other, more};
+    });
+    check(await stored(o.d.page, o.di.backup) === r.more && await stored(o.d.page, o.di.data) === r.other,
+      '"Delete the copies" while another tab imports (a second copy added): nothing is deleted, and both copies are kept');
+    await o.d.ctx.close();
+  }
+  {
+    // another tab only deletes the copies while Put back asks here: nothing is put back, and the
+    // other tab's delete stands
+    const o = await own(3);
+    await choose(o.d.page, later(o.file, 2), true);
+    const P5 = await stored(o.d.page, o.di.data);
+    await o.d.page.evaluate(() => {
+      window.confirm = () => { localStorage.removeItem(backupKey(PROFILE)); return true; };
+      show('settings'); restoreBackup();
+    });
+    check(await stored(o.d.page, o.di.data) === P5 && await stored(o.d.page, o.di.backup) === null,
+      'Put back while another tab deletes the copies: nothing is put back, and the copies stay deleted');
+    await o.d.ctx.close();
+  }
+  {
+    // Erase while another tab saves: nothing is erased, and the page does not say it was
+    const o = await own(3);
+    const n0 = o.d.dialogs.length;
+    const other = await o.d.page.evaluate(() => {
+      const other = JSON.stringify(Object.assign({}, DB, {settings: Object.assign({}, DB.settings, {goal: 66})}));
+      window.confirm = () => { localStorage.setItem(keyFor(PROFILE), other); return true; };
+      show('settings'); document.getElementById('btnReset').click();
+      return other;
+    });
+    await o.d.page.waitForTimeout(400);
+    const said = o.d.dialogs.slice(n0).join(' | ');
+    check(await stored(o.d.page, o.di.data) === other && /nothing was erased/.test(said) && !/History erased/.test(said) && await nAns(o.d.page) === 3,
+      'Erase while another tab saves during its question: nothing is erased, the page says so, and the progress on screen stays', said.slice(0, 200));
+    await o.d.ctx.close();
+  }
+  {
+    // a new profile's name whose history (not its progress) another tab saved: the plan names a
+    // free name, and at the click a name with only a history counts as taken too
+    const d = await device(); const di = await info(d.page);
+    await answer(d.page, 3, 0);
+    let rr = await choose(d.page, fileA, false);
+    const name = (rr.plan.match(/new profile, "([^"]+)"/) || [])[1];
+    const lk = di.ns + ':log:' + name, dk = di.ns + ':data:' + name;
+    await d.page.evaluate(([lk]) => localStorage.setItem(lk, JSON.stringify([[1, 'abcdef01', 1, 'quiz']])), [lk]);
+    rr = await choose(d.page, fileA, false);
+    const name2 = (rr.plan.match(/new profile, "([^"]+)"/) || [])[1];
+    check(!!name2 && name2 !== name && await stored(d.page, dk) === null, 'a name with only a saved history is taken: the plan names another', {name, name2});
+    // the other way round: the plan shown first, then another tab writes that name's history
+    // only (its progress waits on its timer); the click imports nothing
+    await d.page.evaluate(([lk]) => localStorage.removeItem(lk), [lk]);
+    rr = await choose(d.page, fileA, false);
+    const name3 = (rr.plan.match(/new profile, "([^"]+)"/) || [])[1];
+    const tab2 = await secondTab(d);
+    await holdTimer(tab2);
+    await tab2.evaluate(n => { useProfile(n); record(QUESTIONS[2], 'correct', undefined, 1000); }, name3);
+    const lk3 = di.ns + ':log:' + name3, dk3 = di.ns + ':data:' + name3;
+    const [hisLog] = await synced(d.page, tab2, [lk3], 'the other tab saved that name\'s history');
+    await d.page.click('#importGo');
+    await d.page.waitForSelector('#importResult', {timeout: 5000}).catch(() => {});
+    const res = (await d.page.evaluate(() => (document.getElementById('importPlan') || {}).textContent || '')).replace(/\s+/g, ' ');
+    check(name3 === name && !!hisLog && await stored(d.page, lk3) === hisLog && await stored(d.page, dk3) === null && /nothing was imported/.test(res),
+      'a new profile\'s name whose history another tab saved after the plan was shown: confirming writes nothing, and that history is as it was', {name3, res: res.slice(0, 160)});
     await d.ctx.close();
   }
 
