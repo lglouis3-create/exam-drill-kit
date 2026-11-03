@@ -81,6 +81,13 @@ after Phase 1 and overrides earlier sections where they differ.
   merge it only after he says yes to that pull request (`KIT_DESIGN.md` §12.9).
   Catalog bookkeeping and `small-fix` pull requests merge themselves once every
   required check passes.
+- Port pull requests (`port/<name>` branches), the "Kit feature porter" session and its
+  scheduled task "Kit feature port" follow `review/porter-policy.md` (Louis, 2026-11-03).
+  For them it replaces the rule above that each merge needs Louis's yes: documentation,
+  bookkeeping, test-only fixes and isolated off-by-default features may merge after an
+  independent review and passing checks, while progress storage, import or recovery,
+  scheduling, migrations, live courses, destructive or permission changes, and any
+  weakening of a required check still need his yes. PR #32 is excluded from that authority.
 - Only Louis's own data informs recommendations and evidence (§12.4).
 - Citations in kit documents: AMA 11th edition, with a DOI or link on each reference
   (§12.5). Every number in a kit document comes from a named source checked in the
