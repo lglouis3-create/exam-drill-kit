@@ -446,9 +446,11 @@ What this does not cover (the independent review of 4b3b94c; Chromium only):
   Web Locks in Chromium; in Safari that is NOT RUN.
 - A tab still running a core from before this change writes without the lock until it is
   reloaded.
-- After a take-over, what the old tab had not saved exists only in that tab (it offers the
-  export, and asks before Use it here, Switch or Reload would drop it); a tab the system
-  closes while asleep loses it, as any unsaved answer. A truly suspended tab was not
+- After a take-over, what the old tab had not saved exists only in that tab. It offers the
+  export; "Use it here" there keeps that progress as one more copy Import keeps (Put back)
+  before it opens the stored progress, and refuses to take the profile if the browser refuses
+  that copy; Switch and Reload ask first. A tab the system closes while asleep loses it, as
+  any unsaved answer. A truly suspended tab was not
   tested: NOT RUN.
 - The check of `<ns>:writer:<profile>` before each write reads localStorage too, so it is
   subject to the same delay between tabs it guards against.

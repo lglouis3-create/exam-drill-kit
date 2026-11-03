@@ -1560,20 +1560,47 @@ let nfile = 0;
     await t2.evaluate(() => takeOver(false));
     await t2.waitForFunction(() => WRITER === 'held', null, {timeout: 8000}).catch(() => {});
     check(await t2.evaluate(() => EX === null), 'after Use it here the page drops the exam paper it restored earlier, so the stored one is read again');
-    // Use it here on a page with unsaved answers asks first; cancelled, nothing changes
+    // Use it here on a page with an unsaved answer (the review of 4b3b94c, M2, and ChatGPT's
+    // review of 4b3b94c): that page's progress is kept as a copy, not dropped and not mixed in
     await holdTimer(t2);
-    await t2.evaluate(() => { record(QUESTIONS[3], 'correct', undefined, 1000); });
+    const mine = await t2.evaluate(() => { record(QUESTIONS[3], 'correct', undefined, 1000); return DB.answers[DB.answers.length - 1].at; });
     await d.page.evaluate(() => takeOver(true));
     await t2.waitForFunction(() => WRITER === 'other', null, {timeout: 5000}).catch(() => {});
-    const msgs = [];
-    t2.removeAllListeners('dialog'); t2.on('dialog', x => { msgs.push(x.message()); x.dismiss(); });
-    const n = await t2.evaluate(() => DB.answers.length);
     await t2.evaluate(() => { const b = document.getElementById('stopTake'); if(b) b.click(); });
-    await t2.waitForTimeout(300);
-    check(/replaced by what is stored/.test(msgs.join(' ')) && await t2.evaluate(() => DB.answers.length) === n && await t2.evaluate(() => WRITER) === 'other',
-      'Use it here on a page with unsaved answers asks first; cancelled, the page and its answers stay', msgs);
+    await t2.waitForFunction(() => WRITER === 'held', null, {timeout: 8000}).catch(() => {});
+    const di2 = await info(t2);
+    const copies = JSON.parse(await stored(t2, di2.backup) || '[]');
+    const inCopy = copies.some(c => { try { return JSON.parse(c.data).answers.some(a => a.at === mine); } catch(e){ return false; } });
+    const inProg = JSON.parse(await stored(t2, di2.data)).answers.some(a => a.at === mine);
+    check(inCopy && !inProg && await t2.evaluate(() => WRITER) === 'held',
+      'Use it here on a page with an unsaved answer: that page\'s progress is kept as a copy (Put back), and the stored progress opens unmixed', {inCopy, inProg});
     // the page behind the wall cannot be reached by the keyboard
-    check(await t2.evaluate(() => [...document.body.children].filter(e => e.id !== 'stopwall' && e.id !== 'stalewarn').every(e => e.inert)), 'the page behind the stop wall is inert (no keyboard access)');
+    // the first tab, which handed the profile back, shows the wall: the page behind it is inert
+    await d.page.waitForFunction(() => !!document.getElementById('stopwall'), null, {timeout: 5000}).catch(() => {});
+    check(await d.page.evaluate(() => !!document.getElementById('stopwall') && [...document.body.children].filter(e => e.id !== 'stopwall' && e.id !== 'stalewarn').every(e => e.inert)), 'the page behind the stop wall is inert (no keyboard access)');
+    await d.ctx.close();
+  }
+
+  {
+    // a hand-over whose waiting save the browser refuses: the old writer keeps that answer on the
+    // page and offers the export; taking the profile back keeps it as a copy
+    const d = await device(undefined, true); const di = await info(d.page);
+    await answer(d.page, 2, 0);
+    const t2 = await secondTab(d);
+    await t2.waitForFunction(() => WRITER === 'other', null, {timeout: 5000}).catch(() => {});
+    await holdTimer(d.page);
+    const mine = await d.page.evaluate(() => { record(QUESTIONS[4], 'correct', undefined, 1000); return DB.answers[DB.answers.length - 1].at; });
+    await refuseKey(d.page, di.data);
+    await t2.evaluate(() => takeOver(false));
+    await t2.waitForFunction(() => WRITER === 'held', null, {timeout: 8000}).catch(() => {});
+    await refuseKey(d.page, null);
+    const offered = await d.page.evaluate(() => !!document.getElementById('stopExport'));
+    const why = await wall(d.page);
+    await d.page.evaluate(() => { const b = document.getElementById('stopTake'); if(b) b.click(); });
+    await d.page.waitForFunction(() => WRITER === 'held', null, {timeout: 8000}).catch(() => {});
+    const copies = JSON.parse(await stored(d.page, di.backup) || '[]');
+    const inCopy = copies.some(c => { try { return JSON.parse(c.data).answers.some(a => a.at === mine); } catch(e){ return false; } });
+    check(why === 'gave' && offered && inCopy, 'a hand-over whose waiting save is refused: the old tab offers the export, and taking the profile back keeps that answer as a copy', {why, offered, inCopy});
     await d.ctx.close();
   }
 
