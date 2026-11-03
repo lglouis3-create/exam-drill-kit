@@ -5,6 +5,8 @@
 # turn (with "load": while two busy loops keep the CPU occupied), printing every run's
 # whole output and then one line per run: RUN <n> <exit code> <its last line>.
 # Nothing is retried and no run is left out. Exit status 0: the counts are the result.
+# MODE=xtab: runs .github/diag/xtab.js <runs> trials instead. INSTRUMENT=1: adds instrument.py's
+# report lines to the course copy of import_test.js first.
 set -uo pipefail
 kind="$1"; runs="$2"; load="${3:-}"
 kit="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -22,6 +24,8 @@ case "$kind" in
 esac
 (cd "$course" && git init -q 2>/dev/null; git add -A && git -c user.email=ci@example.invalid -c user.name=diag commit -qm diag) > /dev/null
 (cd "$course/src" && python3 build.py > /dev/null) || { echo "build failed"; exit 1; }
+[ "${MODE:-import}" = xtab ] && { cp "$kit/.github/diag/xtab.js" "$course/src/"; cd "$course/src" && exec timeout 5400 node xtab.js "$runs"; }
+[ -n "${INSTRUMENT:-}" ] && python3 -I "$kit/.github/diag/instrument.py" "$course/src/import_test.js"
 echo "== kit $(git -C "$kit" rev-parse --short HEAD), $kind, $runs runs${load:+, under load}"
 summary=()
 for i in $(seq 1 "$runs"); do

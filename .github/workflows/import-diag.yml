@@ -2,6 +2,8 @@
 # Runs core/import_test.js many times on GitHub's runners, on the two courses where two
 # two-tab checks failed once in run 41586812579 (b32ba2e), keeping every run's output
 # (.github/diag/import_runs.sh). Louis, 2026-11-03: explain and resolve those failures.
+# Second round (after run 41591795620): times one tab's read of another tab's save (xtab.js) and
+# reports that read inside import_test.js (instrument.py).
 name: Import two-tab diagnosis
 on:
   push:
@@ -12,21 +14,23 @@ permissions:
   contents: read
 jobs:
   diag:
-    name: ${{ matrix.course }} · ${{ matrix.load || 'in turn' }} · set ${{ matrix.set }}
+    name: ${{ matrix.mode }} · ${{ matrix.course }} · ${{ matrix.load || 'in turn' }} · set ${{ matrix.set }}
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     strategy:
       fail-fast: false
       matrix:
         include:
-          - {course: medicinal-chemistry, runs: 8, set: 1, load: ''}
-          - {course: medicinal-chemistry, runs: 8, set: 2, load: ''}
-          - {course: medicinal-chemistry, runs: 8, set: 3, load: load}
-          - {course: 'module:equation-drill', runs: 8, set: 1, load: ''}
-          - {course: 'module:equation-drill', runs: 8, set: 2, load: ''}
-          - {course: 'module:equation-drill', runs: 8, set: 3, load: load}
-          - {course: template, runs: 8, set: 1, load: ''}
-          - {course: template, runs: 8, set: 2, load: load}
+          # xtab.js: one tab's read right after another tab's save, timed (trials in "runs")
+          - {mode: xtab, course: medicinal-chemistry, runs: 150, set: 1, load: '', instrument: ''}
+          - {mode: xtab, course: medicinal-chemistry, runs: 150, set: 2, load: '', instrument: ''}
+          - {mode: xtab, course: medicinal-chemistry, runs: 150, set: 3, load: '', instrument: ''}
+          - {mode: xtab, course: 'module:equation-drill', runs: 150, set: 1, load: '', instrument: ''}
+          - {mode: xtab, course: template, runs: 150, set: 1, load: '', instrument: ''}
+          # import_test.js with instrument.py's report lines, in turn
+          - {mode: import, course: medicinal-chemistry, runs: 8, set: 1, load: '', instrument: '1'}
+          - {mode: import, course: medicinal-chemistry, runs: 8, set: 2, load: '', instrument: '1'}
+          - {mode: import, course: medicinal-chemistry, runs: 8, set: 3, load: '', instrument: '1'}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
@@ -44,6 +48,8 @@ jobs:
           COURSE: ${{ matrix.course }}
           RUNS: ${{ matrix.runs }}
           LOAD: ${{ matrix.load }}
+          MODE: ${{ matrix.mode }}
+          INSTRUMENT: ${{ matrix.instrument }}
         run: |
           export NODE_PATH="$(npm root -g)"
           bash .github/diag/import_runs.sh "$COURSE" "$RUNS" "$LOAD"
