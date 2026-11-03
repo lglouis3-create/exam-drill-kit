@@ -61,7 +61,7 @@ Test: none specific; `exam1-drill/src/test.js` checks anchors.
 
 ## focus-switch
 Does: one switch that hides the exams and pages a professor does not test, says what it hides, and offers "Show all exams".
-Use when: two professors teach in sequence and a later exam is one professor's only (PH: "Doctor Gottlieb will not have questions on the, the last exam." (T) 10/26, `exam1-drill/src/course.js:108`).
+Use when: a later exam covers only one of several instructors (source: PH (T) 10/26, `exam1-drill/src/course.js:108`).
 Do not use when: every exam draws on every lecturer.
 Enable: course.js → features.focus-switch = { version: 'v1', prof: '<name>' }
 Versions:

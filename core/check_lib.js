@@ -132,15 +132,29 @@ async function openFromDisk(browser, ctxOpts, init){ return openAt(browser, 'fil
 
 /* The site folder served over HTTP the way GitHub Pages serves it: under a
    repository path, with ETags and max-age=600. mode 'slow' answers after
-   slowMs, 'down' drops every connection; override(path, body) replaces what
-   one file serves, which is how a test publishes a new build. */
+   slowMs; override(path, body) replaces what one file serves, which is how a
+   test publishes a new build.
+   S.down() takes the server down the way a stopped server, or a phone with no
+   connection, meets the browser: it stops listening, so a connection is refused,
+   and S.up() listens again on the same port. A request already on a connection
+   that was busy when listening stopped is answered 503 and counted in
+   S.downAnswered. Until 2026-11-03 "down" dropped each connection after it was
+   accepted (req.socket.destroy()). In WebKit on Linux (libsoup, the engine
+   Playwright runs) that now and then broke the browser's network session: libsoup
+   assertion failures, then "WebKit encountered an internal error. This is a WebKit
+   bug.", with the test browser's site data lost. Under load it broke 16 of 195 runs; with
+   refused connections, 0 of 60 instrumented runs and 0 of 120 runs of this offline_test.js
+   (the WebKit diagnosis of 2026-11-03, review/webkit-offline/README.md on branch
+   claude/elegant-ptolemy-pqxb8y-webkit-diag).
+   The worker takes the same path for both: its fetch fails and it serves the
+   saved copy. */
 function serve(root, opts){
   opts = Object.assign({base: '/course-drill/', slowMs: 8000}, opts || {});
-  const S = {mode: 'ok', overrides: {}, hits: {}};
+  const S = {mode: 'ok', overrides: {}, hits: {}, downAnswered: 0};
   const TYPES = {'.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.json': 'application/json',
                  '.png': 'image/png', '.svg': 'image/svg+xml', '.md': 'text/markdown; charset=utf-8'};
   const server = http.createServer((req, res) => {
-    if(S.mode === 'down'){ req.socket.destroy(); return; }
+    if(S.mode === 'down'){ S.downAnswered++; res.writeHead(503, {'Connection': 'close'}); res.end(); return; }
     const send = () => {
       const p = decodeURIComponent(new URL(req.url, 'http://x').pathname);
       S.hits[p] = (S.hits[p] || 0) + 1;
@@ -173,6 +187,16 @@ function serve(root, opts){
     S.origin = `http://localhost:${S.port}`;
     S.url = S.origin + opts.base;
     S.close = () => new Promise(done => { server.closeAllConnections(); server.close(() => done()); });
+    S.down = () => new Promise(done => {
+      S.mode = 'down';
+      const t = setTimeout(done, 2000);     // busy connections do not hold it up: listening has stopped
+      server.close(() => { clearTimeout(t); done(); });
+      server.closeIdleConnections();
+    });
+    S.up = () => new Promise(done => {
+      if(server.listening){ S.mode = 'ok'; done(); return; }
+      server.listen(S.port, '127.0.0.1', () => { S.mode = 'ok'; done(); });
+    });
     r(S);
   }));
 }
