@@ -26,7 +26,7 @@ that course's repository. Both folders come from the recovered exam-drill templa
 | `run_checks.sh` | core | builds, then runs every check on its own, one line per check |
 | `ci_course.sh` | core | builds a scratch course from the kit (template, template with no count or marks, Medicinal-chemistry, or the template with feature modules switched on) and runs `run_checks.sh` on it in Chromium or WebKit; the GitHub workflow's step |
 | `checks_test.js` | core | the checks' own exit codes, the device lint, `run_checks.sh`, and `test.js` and `render_test.js` on a course with no `DIAGRAMS` list |
-| `storage_test.js` | core | progress when the browser refuses to save |
+| `storage_test.js` | core | progress when the browser refuses to save; the last answer before a reload, a closed tab or a hidden page is kept |
 | `startup_test.js` | core | saved progress when a start-up step or the load itself fails: nothing is written over it, and the rest of start-up runs |
 | `draw_test.js` | core | no exam paper carries two wordings of one fact, across pools too |
 | `update_test.js` | core | a newer version is offered; a reload comes back to the same place |

@@ -14,6 +14,9 @@
  *      clears the key's failure
  *   2. storage works: no notice
  *   3. storage denied outright: the drill runs, answers count, the notice shows
+ *   4. the last change before the page goes: an answer followed at once by a reload,
+ *      and by closing the tab, is kept (saveNow on pagehide), and so is an answer
+ *      when the page is hidden (visibilitychange)
  *
  *     node storage_test.js
  */
@@ -28,6 +31,16 @@ const QUOTA = () => {
   Storage.prototype.setItem = function(k, v){
     if(window.__quota) throw new DOMException('The quota has been exceeded.', 'QuotaExceededError');
     return real.call(this, k, v);
+  };
+};
+// one answer in the page, by clicking as a student does (window.answerNow, for use inside an evaluate)
+const ANSWER_NOW = () => {
+  window.answerNow = () => {
+    startQuiz(TOPICS[0].id);
+    const q = Q.current;
+    if(isMulti(q)){ for(const i of correctSet(q)) document.querySelector(`#v-quiz button[data-o="${i}"]`).click(); document.getElementById('btnCheck').click(); }
+    else document.querySelector('#v-quiz button[data-o]').click();
+    return DB.answers.length;
   };
 };
 const answerOne = page => page.evaluate(() => {
@@ -110,6 +123,35 @@ const answerOne = page => page.evaluate(() => {
     const t = await page.$('#savewarn');
     check(!!t && /Export progress/.test(await t.textContent()), 'the notice is shown');
     check(!errors.length, 'no page errors with storage denied', errors.slice(0, 2).join('; '));
+    await ctx.close();
+  }
+
+  console.log('\n=== The last change before the page goes ===');
+  {
+    // an answer, then a reload in the same task: the 150 ms save timer never fires
+    const {ctx, page, errors} = await L.openFile(browser, {}, ANSWER_NOW);
+    // the reload starts in the next task, well inside the 150 ms the save waits
+    const waiting = await page.evaluate(() => { answerNow(); const w = !!saveTimer; setTimeout(() => location.reload(), 0); return w; });
+    await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+    const n = await page.evaluate(() => DB.answers.length);
+    check(waiting && n === 1, 'an answer followed at once by a reload is kept (it was still waiting to be saved)', {waiting, n});
+    // an answer, then the tab closed at once
+    await page.evaluate(() => { answerNow(); });
+    await page.close({runBeforeUnload: true});
+    const p2 = await ctx.newPage();
+    p2.on('pageerror', e => errors.push(e.message));
+    await p2.goto(await L.pageUrl(L.PAGE.PAGE));
+    await p2.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+    check(await p2.evaluate(() => DB.answers.length) === 2, 'an answer followed at once by closing the tab is kept', await p2.evaluate(() => DB.answers.length));
+    // an answer, then the page hidden (a phone switching apps): written at once
+    const hidden = await p2.evaluate(() => {
+      answerNow();
+      Object.defineProperty(document, 'visibilityState', {configurable: true, get: () => 'hidden'});
+      document.dispatchEvent(new Event('visibilitychange'));
+      return {timer: !!saveTimer, stored: (JSON.parse(localStorage.getItem(NS + ':data:' + PROFILE) || '{}').answers || []).length};
+    });
+    check(!hidden.timer && hidden.stored === 3, 'an answer followed by the page being hidden is written at once', hidden);
+    check(!errors.length, 'no page errors', errors.slice(0, 2).join('; '));
     await ctx.close();
   }
 

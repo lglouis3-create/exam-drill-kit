@@ -2467,8 +2467,9 @@ bootStep('keeping the place across a reload', () => {
   document.addEventListener('toggle', placeSoon, true);
   document.addEventListener('click', placeSoon);
   ['wheel', 'touchstart', 'keydown', 'mousedown'].forEach(t => window.addEventListener(t, () => { PLACE_MOVED = true; }, {passive: true, capture: true}));
-  document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'hidden') placeSave(); });
-  window.addEventListener('pagehide', placeSave);
+  // the progress first (saveNow, shell.html), then the place on the page
+  document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'hidden'){ saveNow(); placeSave(); } });
+  window.addEventListener('pagehide', () => { saveNow(); placeSave(); });
 });
 
 /* A running paper comes back first (restoreExam); otherwise the place saved

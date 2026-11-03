@@ -822,6 +822,16 @@ function save(){
     if(canSave()) store.set(keyFor(PROFILE), JSON.stringify(DB));
   },150);
 }
+/* The save still waiting on its 150 ms timer, written now. When the page is hidden or
+   closed (a reload, a closed tab, a phone switching apps) that timer may never fire,
+   and the last answer, flag or choice was lost (porter's finding A1, 2026-11-03; the
+   stopwatch port lost 2 of 2 answers to a reload 20 ms after a paper was submitted).
+   views.js calls it on pagehide and when the page becomes hidden. */
+function saveNow(){
+  if(!saveTimer) return;
+  clearTimeout(saveTimer); saveTimer = null;
+  if(canSave()) store.set(keyFor(PROFILE), JSON.stringify(DB));
+}
 /* Which profile opens when no choice is stored: the one with saved progress used
    most recently (by its last answer, else when it was created), else 'me'. The
    site opens straight to the drill and never asks for a name on its own (Louis,
