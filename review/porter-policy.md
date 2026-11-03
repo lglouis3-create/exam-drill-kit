@@ -73,7 +73,8 @@ heads).
 - Keep `features/<name>/ci/oncourse.js`, real source-course data, the module-absent failure and the
   module-enabled pass, template output unchanged apart from build stamps, and the required template,
   module-course and Medicinal-chemistry checks. Include the affected module combinations, and WebKit
-  where it applies. The final revision of a pull request needs passing GitHub checks.
+  where it applies: for a module, its course in WebKit on GitHub (section 7). The final revision of a
+  pull request needs passing GitHub checks.
 - A pairing in `features/ci-combinations.txt` stays in a port pull request when it directly verifies
   an interaction the feature affects. It carries a clear name and a line on its purpose, in the agreed
   format of that file.
@@ -113,8 +114,11 @@ Each automatic merge needs, on its final revision: an independent review by a se
 agent or an external reviewer (the implementing agent's own checks and passing CI do not count);
 passing required checks, as `KIT_DESIGN.md` §12 decision 10 defines them (every applicable job
 concluded "success" on the final head commit; a module job the plan intentionally did not select is
-not applicable, and a job that failed, was cancelled, timed out or never started blocks the merge);
-no unresolved findings; and no unrelated changes. Eligibility is decided per pull request; being
+not applicable, and a job that failed, was cancelled, timed out or never started, or no run for the
+final head commit, blocks the merge); for a module, also a WebKit run of its course that concluded
+"success" on GitHub on the final head commit (`core/ci_course.sh module:<name> webkit`; decision 10,
+Claude's reading 6; until a GitHub job runs it, the merge waits); no unresolved findings; and no
+unrelated changes. Eligibility is decided per pull request; being
 optional does not by itself make a pull request eligible.
 
 Louis's approval is still needed for:
