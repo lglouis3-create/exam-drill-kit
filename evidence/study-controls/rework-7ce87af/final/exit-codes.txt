@@ -1,0 +1,7 @@
+head 7ce87af469ce389867b57214503fac154486ef96
+ci_course.sh module:study-controls exit 0
+module course: /tmp/kit-ci-2v5LjX
+features/study-controls/test.js run 1 exit 0
+features/study-controls/test.js run 2 exit 0
+features/study-controls/test.js run 3 exit 0
+DONE
