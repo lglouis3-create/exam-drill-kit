@@ -8,6 +8,7 @@ name: WebKit offline diagnosis
 on:
   push:
     branches: [claude/elegant-ptolemy-pqxb8y-webkit-diag]
+    paths: ['.github/diag/**', '.github/workflows/webkit-offline-diag.yml']
   workflow_dispatch:
 
 permissions:
@@ -15,18 +16,19 @@ permissions:
 
 jobs:
   diag:
-    name: ${{ matrix.browser }} · set ${{ matrix.set }}
+    name: ${{ matrix.browser }} · ${{ matrix.mode }} · set ${{ matrix.set }}
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
         include:
-          - {browser: webkit, set: 1}
-          - {browser: webkit, set: 2}
-          - {browser: webkit, set: 3}
-          - {browser: webkit, set: 4}
-          - {browser: chromium, set: 1}
+          - {browser: webkit, mode: repro, runs: 3, set: 1}
+          - {browser: chromium, mode: repro, runs: 2, set: 1}
+          - {browser: webkit, mode: load, runs: 5, set: 1}
+          - {browser: webkit, mode: load, runs: 5, set: 2}
+          - {browser: webkit, mode: load, runs: 5, set: 3}
+          - {browser: chromium, mode: load, runs: 3, set: 1}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
@@ -41,9 +43,11 @@ jobs:
         run: |
           npm install -g playwright@1.63.0
           npx --yes playwright@1.63.0 install --with-deps "$BROWSER"
-      - name: Run the offline checks 10 times each
+      - name: Run the diagnosis
         env:
           BROWSER: ${{ matrix.browser }}
+          MODE: ${{ matrix.mode }}
+          RUNS: ${{ matrix.runs }}
         run: |
           export NODE_PATH="$(npm root -g)"
-          bash .github/diag/run.sh "$BROWSER" 10
+          bash .github/diag/run.sh "$BROWSER" "$RUNS" "$MODE"
