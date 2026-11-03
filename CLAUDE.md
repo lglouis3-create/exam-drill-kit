@@ -81,17 +81,19 @@ after Phase 1 and overrides earlier sections where they differ.
   merge it only after he says yes to that pull request (`KIT_DESIGN.md` §12.9).
   Catalog bookkeeping and `small-fix` pull requests merge themselves once every
   required check passes.
-- Port pull requests (`port/<name>` branches), the "Kit feature porter" session and its
-  scheduled task "Kit feature port" follow `review/porter-policy.md` (Louis, 2026-11-03).
-  For them it replaces the rule above that each merge needs Louis's yes. Documentation,
-  catalog and bookkeeping changes, test-only fixes that keep or strengthen coverage, and
-  isolated off-by-default features may merge after an independent review, with passing
-  required checks on the final revision, no unresolved findings and no unrelated changes.
+- The "Kit feature porter" session, its scheduled task "Kit feature port" and every pull
+  request that session opens follow `review/porter-policy.md` (Louis, 2026-11-03). For those
+  pull requests it replaces both parts of the rule above (each merge needs Louis's yes;
+  bookkeeping and `small-fix` pull requests merge themselves on passing checks) and the same
+  merge rules in `KIT_DESIGN.md` §12.9. Documentation, catalog and bookkeeping changes,
+  test-only fixes that keep or strengthen coverage, and isolated off-by-default features may
+  merge only after an independent review, with passing required checks on the final revision,
+  no unresolved findings and no unrelated changes.
   Still needing his yes: progress storage, import or recovery and scheduling (including new
   persistence in an optional module); migrations and live-course updates; destructive
   actions, permission changes and unresolved consequential design choices; and weakening,
   skipping or exempting a required check. PR #32 is excluded from that authority. The full
-  lists and conditions are in `review/porter-policy.md` §6.
+  lists and conditions are in `review/porter-policy.md` §7.
 - Only Louis's own data informs recommendations and evidence (§12.4).
 - Citations in kit documents: AMA 11th edition, with a DOI or link on each reference
   (§12.5). Every number in a kit document comes from a named source checked in the
