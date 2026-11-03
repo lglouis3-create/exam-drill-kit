@@ -667,6 +667,8 @@ let nfile = 0;
     await d.page.waitForTimeout(400);                                // this tab is stopped
     await d.page.evaluate(() => localStorage.clear());
     await d.page.evaluate(() => record(QUESTIONS[1], 'correct', undefined, 1000));
+    // a setting changed there too: the stopped page takes no answer, and writes no setting either
+    await d.page.evaluate(() => { DB.settings.goal = 21; save(); saveNow(); });
     await d.page.waitForTimeout(400);
     check(await stored(d.page, di.data) === null && await d.page.evaluate(() => !!document.getElementById('stalewarn')),
       'a tab stopped as stale writes nothing after the site data is cleared either: its older copy is not written', await stored(d.page, di.data));
