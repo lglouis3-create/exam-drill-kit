@@ -1,0 +1,17 @@
+/* concept-statuses: the Concepts section of Weak spots (Basic-Pharmacokinetics src/shell.html lines 636-649, ac2eb73) */
+#cstatuses h4{margin:14px 0 6px}
+.ccard{background:var(--paper);border:1px solid var(--line-soft);border-left:4px solid var(--line);border-radius:var(--r);padding:10px 14px;margin:0 0 10px;font-size:14px;overflow-wrap:anywhere}
+.ccard.s-struggling,.ccard.s-returning{border-left-color:var(--bad)} .ccard.s-unfamiliar{border-left-color:var(--warn)} .ccard.s-improving{border-left-color:var(--accent)}
+.chead{display:flex;justify-content:space-between;align-items:baseline;gap:4px 10px;flex-wrap:wrap}
+.cstat{font-size:12px;font-weight:600;border-radius:999px;padding:1px 9px;white-space:nowrap;background:var(--surface);color:var(--text-dim)}
+.cstat.s-struggling,.cstat.s-returning{background:var(--bad-bg);color:var(--bad)} .cstat.s-unfamiliar{background:var(--warn-bg);color:var(--warn)}
+.cstat.s-improving{background:var(--accent-bg);color:var(--accent)} .cstat.s-mastered{background:var(--ok-bg);color:var(--ok)}
+.cwhere{font-size:12.5px;color:var(--text-dim);margin:2px 0 4px}
+.cwhy{margin:2px 0 4px}
+.ccard .cpw{color:var(--bad);margin:4px 0 2px} .ccard .cpwhy{display:block;color:var(--text-dim);font-size:13px;margin-top:2px}
+.cbtns{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;align-items:center}
+.crow{display:flex;justify-content:space-between;align-items:center;gap:6px 12px;padding:6px 0;border-bottom:1px solid var(--line-soft);font-size:14px;overflow-wrap:anywhere}
+.crow:last-of-type{border-bottom:0} .crow>span{min-width:0} .crow small{display:block;font-size:12.5px;color:var(--text-dim)}
+.crow .btn{flex:0 0 auto}
+.clegend,.cmore{margin:0 0 12px;font-size:13.5px} .clegend summary,.cmore summary{cursor:pointer;color:var(--text-dim);margin-bottom:6px}
+.clegend ul{margin:4px 0 0;padding-left:20px} .clegend li{margin:2px 0}
