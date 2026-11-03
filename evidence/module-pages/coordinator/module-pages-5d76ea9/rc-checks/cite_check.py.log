@@ -1,0 +1,5 @@
+
+=== Citation check ===
+  The decks are the course's own files and are not in the repository,
+  so this check only means something where they are present.
+NOT RUN: cite_check.py: no lecture PDFs found under decks/ or src/
