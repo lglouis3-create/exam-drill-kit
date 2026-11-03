@@ -7,14 +7,14 @@
  * their set-up data, ASKS, the topics, skills and lectures they belong to, and the plan
  * tables, src/ at ac2eb73), and the equations those questions name, from
  * equation-drill's test.js `const FIX` (Basic-Pharmacokinetics' equations, ac2eb73).
- * Nothing is written for the test: the one change made to the data is the professor's
- * name, "Professor" in `prof` and "the professor" in the text of three worked steps
- * (done in the fixture itself). Scaffolding, named here and kept to what the core
- * checks need:
+ * Nothing is written for the test, and the data is kept verbatim, `prof` and the worked
+ * steps included (rework 2026-11-03, Louis's policy: real course data, names included).
+ * Scaffolding, named here and kept to what the core checks need:
  *   - question and equation ids are prefixed `plc-` (the test's own scratch copies use
  *     `plt-` and `eqt-`, equation-drill's course `eqc-`, so no two share an id);
  *   - the questions are written one per line in the kit's question-file format, opening
- *     `{id:'...'`, then type and skill, then `prof:'Professor'`;
+ *     `{id:'...'`, then type and skill, then the question's own `prof`;
+ *   - the fixture's professor is added to COURSE.professors when the course lacks it;
  *   - the topics are pushed after the course's own, a topic the course already has is
  *     not pushed again;
  *   - the lectures are Basic-Pharmacokinetics' own entries for the questions' lectures
@@ -44,7 +44,6 @@
  */
 const fs = require('fs'), path = require('path'), vm = require('vm');
 const NAME = 'plan-the-problem', TAG = '/* plan-the-problem ci */', DATA = 'plc_plan_data.js', QFILE = 'q90_plc_fixture.js', PRE = 'plc-';
-const PROF = 'Professor';
 function fail(msg){ console.error(`${NAME} ci/oncourse.js: ${msg}`); process.exit(1); }
 const [kit, src] = process.argv.slice(2);
 if(!kit || !src) fail(`usage: node features/${NAME}/ci/oncourse.js <kitDir> <courseSrcDir>`);
@@ -76,7 +75,9 @@ try { COURSE = new Function(text + '\n;return COURSE;')(); } catch(e){ fail('cou
 const on = Object.keys(COURSE.features || {});
 const off = (meta.needs || []).filter(n => !on.includes(n));
 if(off.length) fail(`${off.join(' and ')} must be switched on first, by ${off.map(n => `features/${n}/ci/oncourse.js`).join(' and ')}`);
-if(!(COURSE.professors || []).includes(PROF)) fail(`course.js professors does not list "${PROF}", the name the fixture's questions carry`);
+const PROFS = [...new Set(PK.qs.concat(PK.topics, PK.lectures).map(x => x.prof))];
+if(PROFS.some(p => typeof p !== 'string' || !p)) fail('a question, topic or lecture of the fixture has no prof');
+const addProfs = PROFS.filter(p => !(COURSE.professors || []).includes(p));
 const declares = name => (COURSE.files || []).some(f => { try { return new RegExp(`^\\s*(const|let|var)\\s+${name}\\b`, 'm').test(fs.readFileSync(path.join(src, f), 'utf8')); } catch(e){ return false; } });
 
 // the equations the questions name, verbatim from equation-drill's fixture
@@ -98,8 +99,7 @@ PLAN.same = (PLAN.same || []).concat(PLC_EQUATIONS.map(e => [e.id, ...EQUATIONS.
 const qline = q => {
   const rest = Object.assign({}, q, {setup: Object.assign({}, q.setup, {eq: q.setup.eq === 'none' ? 'none' : PRE + q.setup.eq, pre: (q.setup.pre || []).map(id => PRE + id)})});
   for(const k of ['id', 'type', 'skill', 'prof']) delete rest[k];
-  if(q.prof !== PROF) fail(`question ${q.id} carries prof "${q.prof}", not "${PROF}"`);
-  return `{id:${lit(PRE + q.id)}, type:${lit(q.type)}, skill:${lit(q.skill)}, prof:${lit(PROF)}, ${JSON.stringify(rest).slice(1)},`;
+  return `{id:${lit(PRE + q.id)}, type:${lit(q.type)}, skill:${lit(q.skill)}, prof:${lit(q.prof)}, ${JSON.stringify(rest).slice(1)},`;
 };
 const qfile = `/* plan-the-problem ci: 10 of Basic-Pharmacokinetics' calculation questions (ac2eb73) from the module
    test's fixture, ids prefixed ${PRE}, and the topics they belong to, after the course's own */
@@ -128,6 +128,7 @@ const skills = PK.skills.filter(s => !(COURSE.skills || []).some(x => x.id === s
 const line = `\n;${TAG} COURSE.files = (COURSE.files || ['atlas.js', 'diagrams.js', 'q1_topics.js']).concat([${JSON.stringify(DATA)}, ${JSON.stringify(QFILE)}]); ` +
   `COURSE.lectures = (COURSE.lectures || []).concat([${lectures.map(lecLit).join(', ')}]); ` +
   `COURSE.skills = (COURSE.skills || []).concat(${JSON.stringify(skills)}); ` +
+  `COURSE.professors = (COURSE.professors || []).concat(${JSON.stringify(addProfs)}); ` +
   `COURSE.features = Object.assign({}, COURSE.features, {${JSON.stringify(NAME)}: ${JSON.stringify({version: meta.version})}});\n`;
 try { fs.writeFileSync(path.join(src, DATA), data); } catch(e){ fail(`cannot write ${DATA}: ${e.message}`); }
 try { fs.writeFileSync(path.join(src, QFILE), qfile); } catch(e){ fail(`cannot write ${QFILE}: ${e.message}`); }
@@ -136,4 +137,4 @@ console.log(`wrote: ${path.join(src, DATA)} (${eqs.length} equations${declares('
   `${Object.keys(PK.asks).length} ASKS, PLAN with ${plan.models.length} models)`);
 console.log(`wrote: ${path.join(src, QFILE)} (${PK.topics.length} topics, ${PK.qs.length} questions from the fixture in test.js)`);
 console.log(`wrote: appended to ${course}: both files in COURSE.files, ${lectures.length} lecture(s) (${lectures.map(l => l.id + ' ' + l.deck).join(', ')}), ` +
-  `${skills.length} skill(s), and ${NAME} ${meta.version} on`);
+  `${skills.length} skill(s), ${addProfs.length} professor(s) (${addProfs.join(', ')}), and ${NAME} ${meta.version} on`);
