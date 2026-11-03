@@ -8,7 +8,7 @@ Dated kit changes, newest first.
 - Import compares every part of a file's progress, not only its answers: a file whose concept progress, settings or scheduling state differ goes into a new profile.
 - A page whose profile another tab or window saved since stops saving and offers a reload, instead of writing its older progress over the newer one.
 - Import keeps a copy of the progress it replaces; Put back never loses either record.
-- Put back, "Delete the copies" and Erase do nothing when another tab or window saved the profile or changed the copies while their question was open, and copies another tab deleted are not offered or written back.
+- Put back and "Delete the copies" do nothing when another tab or window saved the profile or changed the copies while their question was open, and Erase does nothing when the profile was saved there meanwhile; copies another tab deleted are not offered or written back.
 - An answer or a setting changed just before the page is reloaded, closed or hidden is saved at once; it was lost when the 150 ms save had not yet run.
 - `core/test.js` section 7 runs its miss-and-return trial 20 times instead of once, and passes the cool-down by adding to the answer count, so a scheduler that always ignores the different-wording rule is caught in every run, and a topic with few concepts no longer fails it falsely.
 - Standing autonomy (Louis): `KIT_DESIGN.md` §12 decision 10 says which pull requests Claude merges on its own after an independent review, which checks must pass (every applicable `checks.yml` job, with "success", on the final head commit), and Claude's readings; `review/porter-policy.md` follows it; no course update goes live without Louis's reply.
