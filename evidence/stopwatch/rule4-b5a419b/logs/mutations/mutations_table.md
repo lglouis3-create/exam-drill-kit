@@ -1,0 +1,14 @@
+| Mutation | What it breaks | Exit code | Checks that FAILed |
+|---|---|---|---|
+| M1 | no clock on a quiz calculation | 1 | a calculation (sw-cq4-2, the professor's Quiz 4) shows one running clock in its card head; its title gives the professor's pace; it counts in place (the same element, the text moved on); past 2 minutes it is red and says over 2:00; the clock runs with no pace and no "over" |
+| M2 | the clock does not count (the tick shows 0:00) | 1 | it counts in place (the same element, the text moved on); past 2 minutes it is red and says over 2:00; the clock runs with no pace and no "over" |
+| M3 | the pace is never passed (over at ten times the pace) | 1 | past 2 minutes it is red and says over 2:00; after the answer it stops on the time taken, over the pace |
+| M4 | the time taken shown is not the recorded ms (one minute added) | 1 | after the answer it stops on the time taken, over the pace; the time shown is the ms the engine recorded with the answer (the professor's key 151.1, graded right); an answer within the pace is shown in green, with no "over"; it stops on the time taken, with no pace colour |
+| M5 | an answer within the pace is not shown green | 1 | an answer within the pace is shown in green, with no "over" |
+| M6 | multiple-choice questions get a clock too | 1 | a multiple-choice question (sw-m1-int-01) has no clock; a paper of Exam 3 (final) as the course has it: 40 questions, 0 calculations, no clock; the multiple-choice question of the paper has no clock |
+| M7 | time on a paper question is replaced, not added up (Back loses the earlier time) | 1 | the 2 answers of the submitted paper keep their question's time as ms (Back added to the first one's); each answer of the submitted paper keeps its question's time as ms, the calculation's too |
+| M8 | paper answers do not keep their time | 1 | the 2 answers of the submitted paper keep their question's time as ms (Back added to the first one's); each answer of the submitted paper keeps its question's time as ms, the calculation's too |
+| M9 | with paceSeconds 0 every time counts as over the pace | 1 | the clock runs with no pace and no "over"; it stops on the time taken, with no pace colour |
+| M10 | no clock on a paper calculation | 1 | an exam calculation (sw-cq4-2) shows its own clock; back on the calculation its clock reads its time so far: undefined |
+| M11 | the course's paceSeconds is not read (the pace is always 2:00) | 1 | the clock runs with no pace and no "over"; it stops on the time taken, with no pace colour |
+| M12 | the time on the question shown at Submit is not added before the answers are kept | 1 | the 2 answers of the submitted paper keep their question's time as ms (Back added to the first one's); each answer of the submitted paper keeps its question's time as ms, the calculation's too |

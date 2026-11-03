@@ -1,0 +1,54 @@
+checking sources...
+  13 sources and sw.js parse cleanly
+  scheduler: concept (no library)
+  67 questions in 12 topics, from 2 question files: q1_topics.js, q90_stopwatch_pk.js
+  feature stopwatch v1 in the page (options {"paceSeconds": 120})
+  change log: 1 entries, newest "2026-10-02 (set up from the template)"
+  assembled script parses cleanly
+wrote index.html  (0.51 MB)
+wrote COURSE0000_Drill.html  (redirect to index.html)
+wrote version.json  (built 2026-11-03T00:22:47Z)
+  note: placeholder icons (a plain square) for icon-192.png, icon-512.png, icon-maskable-512.png, apple-touch-icon.png; put the course's own PNGs under src/icons/ to replace them
+wrote manifest.json and the icons
+wrote sw.js  (caches named course-id-drill-v<n>; 7 files saved at install)
+
+
+=== the course's own page (node) ===
+  ok    the page carries stopwatch, working
+  ok    the clock reads as Basic-Pharmacokinetics' fmtClock on 7 control times (0:00, 0:00, 0:59, 1:00, 2:05, 60:00, 0:00)
+  ok    the pace is the course's paceSeconds (120 s)
+  ok    the course holds the 5 calculations of the professor's Quiz 4 as typed questions (sw-cq4-2, sw-cq4-4, sw-cq4-6, sw-cq4-8, sw-cq4-9)
+  ok    its exam is Basic-Pharmacokinetics' Exam 3 (final): 40 questions, 120 minutes, no typed (as the course has it)
+
+=== the build stops on a bad option ===
+  ok    paceSeconds given as text stops the build and says so
+  ok    an option the module does not take (targetSeconds) stops the build and says so
+
+=== the module's own course, pace 2:00 (Chromium) ===
+  ok    a calculation (sw-cq4-2, the professor's Quiz 4) shows one running clock in its card head
+  ok    its title gives the professor's pace
+  ok    it counts in place (the same element, the text moved on)
+  ok    past 2 minutes it is red and says over 2:00
+  FAIL  after the answer it stops on the time taken, over the pace  — {"n":1,"text":"⏱ took 3:05 · over 2:00","cls":"qtimer done over","title":"The professor's pace: 2:00 or less per calculation","running":false,"inHead":true}
+  FAIL  the time shown is the ms the engine recorded with the answer (the professor's key 151.1, graded right)  — {"ms":125219,"result":"correct","text":"⏱ took 3:05 · over 2:00"}
+  FAIL  an answer within the pace is shown in green, with no "over"  — {"n":1,"text":"⏱ took 1:30","cls":"qtimer done under","title":"The professor's pace: 2:00 or less per calculation","running":false,"inHead":true}
+  ok    a multiple-choice question (sw-m1-int-01) has no clock
+  ok    a paper of Exam 3 (final) as the course has it: 40 questions, 0 calculations, no clock
+  ok    the time on each paper question is added up while it is shown: 40, 20 s
+  ok    the 2 answers of the submitted paper keep their question's time as ms (Back added to the first one's)
+  ok    the result page shows no clock
+  ok    after a reload the paper's answers come back with their times
+  ok    no page error
+
+=== a copy with typed: true on the exam: a calculation on the paper (Chromium) ===
+  ok    an exam calculation (sw-cq4-2) shows its own clock
+  ok    the multiple-choice question of the paper has no clock
+  ok    back on the calculation its clock reads its time so far: ⏱ 0:40
+  ok    each answer of the submitted paper keeps its question's time as ms, the calculation's too
+  ok    no page error on the copy with typed: true
+
+=== on a copy with paceSeconds 0 (Chromium) ===
+  ok    the clock runs with no pace and no "over"
+  FAIL  it stops on the time taken, with no pace colour  — {"text":"⏱ took 3:10","cls":"qtimer done"}
+  ok    no page error with paceSeconds 0
+FAIL: features/stopwatch/test.js: 4 of 29 checks failed: after the answer it stops on the time taken, over the pace; the time shown is the ms the engine recorded with the answer (the professor's key 151.1, graded right); an answer within the pace is shown in green, with no "over" …

@@ -1,5 +1,9 @@
 # Evidence: port queue item 9, `stopwatch`
 
+**Newer evidence (2026-11-03, agent-run):** `rule4-b5a419b/INDEX.md`, for the final tested commit
+`b5a419b` (the module's own course from Basic-Pharmacokinetics' data, Louis's rule 4). The results below
+are the first version's (commit `591426f`, a template sample course) and are kept as they were.
+
 All results in this folder are **agent-run** (the porting agent, 2026-11-02). The coordinator's
 own re-runs go in `coordinator/`, labelled coordinator-verified.
 

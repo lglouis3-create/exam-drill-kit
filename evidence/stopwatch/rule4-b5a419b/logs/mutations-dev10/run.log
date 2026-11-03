@@ -1,0 +1,11 @@
+M1	exit 1	5 failed	a calculation (sw-cq4-2, the professor's Quiz 4) shows one running clock in its card head; its title gives the professor's pace; it counts in place (the same element, the text moved on); past 2 minutes it is red and says over 2:00; the clock runs with no pace and no "over"
+M2	exit 1	3 failed	it counts in place (the same element, the text moved on); past 2 minutes it is red and says over 2:00; the clock runs with no pace and no "over"
+M3	exit 1	2 failed	past 2 minutes it is red and says over 2:00; after the answer it stops on the time taken, over the pace
+M4	exit 1	4 failed	after the answer it stops on the time taken, over the pace; the time shown is the ms the engine recorded with the answer (the professor's key 151.1, graded right); an answer within the pace is shown in green, with no "over"; it stops on the time taken, with no pace colour
+M5	exit 1	1 failed	an answer within the pace is shown in green, with no "over"
+M6	exit 1	3 failed	a multiple-choice question (sw-m1-int-01) has no clock; a paper of Exam 3 (final) as the course has it: 40 questions, 0 calculations, no clock; the multiple-choice question of the paper has no clock
+M7	exit 1	2 failed	the 2 answers of the submitted paper keep their question's time as ms (Back added to the first one's); each answer of the submitted paper keeps its question's time as ms, the calculation's too
+M8	exit 1	2 failed	the 2 answers of the submitted paper keep their question's time as ms (Back added to the first one's); each answer of the submitted paper keeps its question's time as ms, the calculation's too
+M9	exit 1	2 failed	the clock runs with no pace and no "over"; it stops on the time taken, with no pace colour
+M10	exit 1	2 failed	an exam calculation (sw-cq4-2) shows its own clock; back on the calculation its clock reads its time so far: undefined
+caught 10 of 10

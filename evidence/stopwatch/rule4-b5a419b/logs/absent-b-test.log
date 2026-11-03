@@ -1,0 +1,40 @@
+
+=== the course's own page (node) ===
+  ok    the page carries stopwatch, working
+  ok    the clock reads as Basic-Pharmacokinetics' fmtClock on 7 control times (0:00, 0:00, 0:59, 1:00, 2:05, 60:00, 0:00)
+  ok    the pace is the course's paceSeconds (120 s)
+  ok    the course holds the 5 calculations of the professor's Quiz 4 as typed questions (sw-cq4-2, sw-cq4-4, sw-cq4-6, sw-cq4-8, sw-cq4-9)
+  ok    its exam is Basic-Pharmacokinetics' Exam 3 (final): 40 questions, 120 minutes, no typed (as the course has it)
+
+=== the build stops on a bad option ===
+  ok    paceSeconds given as text stops the build and says so
+  ok    an option the module does not take (targetSeconds) stops the build and says so
+
+=== the module's own course, pace 2:00 (Chromium) ===
+  FAIL  a calculation (sw-cq4-2, the professor's Quiz 4) shows one running clock in its card head  — null
+  FAIL  its title gives the professor's pace  — null
+  FAIL  it counts in place (the same element, the text moved on)  — null
+  FAIL  past 2 minutes it is red and says over 2:00  — null
+  FAIL  after the answer it stops on the time taken, over the pace  — null
+  FAIL  the time shown is the ms the engine recorded with the answer (the professor's key 151.1, graded right)  — {"ms":125223,"result":"correct","text":null}
+  FAIL  an answer within the pace is shown in green, with no "over"  — null
+  ok    a multiple-choice question (sw-m1-int-01) has no clock
+  ok    a paper of Exam 3 (final) as the course has it: 40 questions, 0 calculations, no clock
+  FAIL  the time on each paper question is added up while it is shown:  s  — []
+  FAIL  the 2 answers of the submitted paper keep their question's time as ms (Back added to the first one's)  — [{"qid":"sw-e2r-6"},{"qid":"sw-m6b-c03"}]
+  ok    the result page shows no clock
+  ok    after a reload the paper's answers come back with their times
+  ok    no page error
+
+=== a copy with typed: true on the exam: a calculation on the paper (Chromium) ===
+  FAIL  an exam calculation (sw-cq4-2) shows its own clock  — null
+  ok    the multiple-choice question of the paper has no clock
+  FAIL  back on the calculation its clock reads its time so far: undefined  — {"spent":[]}
+  FAIL  each answer of the submitted paper keeps its question's time as ms, the calculation's too  — [{"qid":"sw-cq4-2","result":"correct"},{"qid":"sw-m1-int-01","result":"wrong"}]
+  ok    no page error on the copy with typed: true
+
+=== on a copy with paceSeconds 0 (Chromium) ===
+  FAIL  the clock runs with no pace and no "over"  — null
+  FAIL  it stops on the time taken, with no pace colour  — null
+  ok    no page error with paceSeconds 0
+FAIL: features/stopwatch/test.js: 14 of 29 checks failed: a calculation (sw-cq4-2, the professor's Quiz 4) shows one running clock in its card head; its title gives the professor's pace; it counts in place (the same element, the text moved on) …

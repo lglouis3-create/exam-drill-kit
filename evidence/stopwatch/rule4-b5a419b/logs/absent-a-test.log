@@ -1,0 +1,4 @@
+
+=== the course's own page (node) ===
+  FAIL  the page carries stopwatch, working  — "no feature modules in the page"
+FAIL: features/stopwatch/test.js: 1 of 1 checks failed: the page carries stopwatch, working

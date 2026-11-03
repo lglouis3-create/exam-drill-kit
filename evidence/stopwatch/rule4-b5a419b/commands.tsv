@@ -1,0 +1,15 @@
+2026-11-03T00:13:06Z	0	node features/stopwatch/test.js	/tmp/port-stopwatch-h/evidence/logs/dev-module-test-1.log
+2026-11-03T00:15:59Z	0	bash ./run_checks.sh	/tmp/port-stopwatch-h/evidence/logs/dev-run_checks-1.log
+2026-11-03T00:17:21Z	0	python3 /tmp/port-stopwatch-h/scripts/mutations.py /tmp/port-stopwatch-h/cm/src /tmp/port-stopwatch-h/evidence/logs/mutations	/tmp/port-stopwatch-h/evidence/logs/mutations/run.log
+2026-11-03T00:21:00Z	0	bash core/ci_course.sh module:stopwatch	/tmp/port-stopwatch-h/evidence/logs/ci_course-module-stopwatch.log
+2026-11-03T00:21:16Z	0	bash /tmp/port-stopwatch-h/scripts/mkc.sh /tmp/port-stopwatch-h/c1	/tmp/port-stopwatch-h/evidence/logs/final-mkc.log
+2026-11-03T00:21:33Z	0	node features/stopwatch/test.js	/tmp/port-stopwatch-h/evidence/logs/final-module-test-run1.log
+2026-11-03T00:21:39Z	0	node features/stopwatch/test.js	/tmp/port-stopwatch-h/evidence/logs/final-module-test-run2.log
+2026-11-03T00:21:45Z	0	node features/stopwatch/test.js	/tmp/port-stopwatch-h/evidence/logs/final-module-test-run3.log
+2026-11-03T00:21:53Z	1	node /home/user/exam-drill-kit/.claude/worktrees/agent-a19b17cd73b0be458/features/stopwatch/ci/oncourse.js /home/user/exam-drill-kit/.claude/worktrees/agent-a19b17cd73b0be458 /tmp/port-stopwatch-h/c1/src	/tmp/port-stopwatch-h/evidence/logs/final-oncourse-second-run.log
+2026-11-03T00:21:58Z	0	node /tmp/port-stopwatch-h/scripts/persistence_test.js /tmp/port-stopwatch-h/c1/src	/tmp/port-stopwatch-h/evidence/logs/final-persistence.log
+2026-11-03T00:22:05Z	1	absent-a: node features/stopwatch/test.js	/tmp/port-stopwatch-h/evidence/logs/absent-a-test.log
+2026-11-03T00:22:12Z	1	absent-b: node features/stopwatch/test.js	/tmp/port-stopwatch-h/evidence/logs/absent-b-test.log
+2026-11-03T00:22:17Z	0	node /tmp/port-stopwatch-h/scripts/screenshots.js /tmp/port-stopwatch-h/c1/src /tmp/port-stopwatch-h/evidence/screenshots	/tmp/port-stopwatch-h/evidence/logs/final-screenshots.log
+2026-11-03T00:23:49Z	0	python3 /tmp/port-stopwatch-h/scripts/mutations.py /tmp/port-stopwatch-h/cm/src /tmp/port-stopwatch-h/evidence/logs/mutations	/tmp/port-stopwatch-h/evidence/logs/mutations/run.log
+2026-11-03T00:25:00Z	0	node scripts/mkfixture.js + node scripts/writefixture.js, then cmp with features/stopwatch/current/test_fixture.js at b5a419b: identical	(no log; the summary is fixture-summary.json)
