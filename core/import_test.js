@@ -1727,6 +1727,31 @@ let nfile = 0;
     await d.ctx.close();
   }
 
+  {
+    // a refused save, the profile opened again, then taken over: the answer still counts as unsaved,
+    // and taking the profile back keeps it as a copy (#32's review of 9557366)
+    const d = await device(undefined, true); const di = await info(d.page);
+    await answer(d.page, 1, 0);
+    const t2 = await secondTab(d);
+    await t2.waitForFunction(() => WRITER === 'other', null, {timeout: 5000}).catch(() => {});
+    await refuseKey(d.page, di.data);
+    const mine = await d.page.evaluate(() => { record(QUESTIONS[2], 'correct', undefined, 1000); saveNow(); return DB.answers[DB.answers.length - 1].at; });
+    await d.page.evaluate(() => { useProfile('away'); useProfile('me'); });
+    await d.page.waitForFunction(() => WRITER === 'held', null, {timeout: 5000}).catch(() => {});
+    await refuseKey(d.page, null);
+    const unsaved = await d.page.evaluate(() => unsavedHere());
+    await d.page.evaluate(() => writerChan.close());
+    await t2.evaluate(() => takeOver(true));
+    await d.page.waitForFunction(() => WRITER === 'other', null, {timeout: 5000}).catch(() => {});
+    const offered = await d.page.evaluate(() => !!document.getElementById('stopExport'));
+    await d.page.evaluate(() => takeOver(true));
+    await d.page.waitForFunction(() => WRITER === 'held', null, {timeout: 8000}).catch(() => {});
+    const copies = JSON.parse(await stored(d.page, di.backup) || '[]');
+    const inCopy = copies.some(c => { try { return JSON.parse(c.data).answers.some(a => a.at === mine); } catch(e){ return false; } });
+    check(unsaved && offered && inCopy, 'a refused save, the profile opened again, then taken over: it still counts as unsaved, and taking it back keeps the answer as a copy', {unsaved, offered, inCopy});
+    await d.ctx.close();
+  }
+
   check(!A.errors.length && !B.errors.length, 'no page errors', A.errors.concat(B.errors).slice(0, 2).join('; '));
   await A.ctx.close(); await B.ctx.close();
   await browser.close();

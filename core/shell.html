@@ -769,7 +769,7 @@ function takeOver(force){
         }
         // this page's own refused write is now in a copy: what opens is what is stored, not the
         // unsaved cache load() keeps for a reopened profile (ChatGPT's follow-up at f53ac75)
-        for(const k of [keyFor(p), NS + ':log:' + p]){ FAILED.delete(k); delete MEM[k]; KEPT[k] = storedNow(k); }
+        for(const k of [keyFor(p), NS + ':log:' + p, NS + ':exam:' + p]){ FAILED.delete(k); delete MEM[k]; KEPT[k] = storedNow(k); }
         load();
         // the exam paper this page restored when it opened may be older than the stored one:
         // drop it, so the Exam sim tab reads the paper from storage again
@@ -804,6 +804,9 @@ function unsavedHere(){
     const dbNow = JSON.stringify(DB);
     // against what is stored as this page knows it (SEEN), or, for a profile never stored, the
     // progress as load() opened it: a changed setting with no answer counts too (ChatGPT, f53ac75)
+    // a write the browser refused is unsaved whatever load() opened since (a reopened profile opens
+    // this page's own unsaved copy; #32's review of 9557366)
+    if(FAILED.has(keyFor(PROFILE)) || FAILED.has(logKey())) return true;
     const dbDiff = SEEN === null ? dbNow !== LOADED_DB : (dbNow !== SEEN && dbNow !== LOADED_DB);
     const logDiff = LOG_OK && JSON.stringify(LOG) !== (SEEN_LOG === null ? '[]' : SEEN_LOG);
     return dbDiff || logDiff;
