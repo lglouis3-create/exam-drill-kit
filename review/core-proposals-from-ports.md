@@ -72,6 +72,20 @@ page open under Topics comes back as the list of module cards.
 On the one-page quiz, "Not sure" and "I guessed" can be offered only on the card answered last.
 - Proposed change: `markShaky`, `markGuessed` and `markSure` take the answer to change.
 
+**B5. A module cannot run a script in `<head>`.** Coordinator-checked (the build rules); agent-run (the measurement).
+- `core/build.py` line 215 (`META_FIELDS`) allows `js` and `css` as a module's page files, and
+  lines 595-597 refuse a page with more than one script block. Module JavaScript runs at the end of
+  `<body>`, after the page's tabs are already drawn.
+- On a page of 1,879,886 bytes with all 18 modules on, a student who picked Dark saw the light
+  colours in the first frame that shows the tabs in 3 of 5 reloads (theme agent, `evidence/theme`,
+  folder `fix-t1-b742f43/`). With a one-line head script added by hand to a scratch copy, it was
+  0 of 5. On small pages there is no flash.
+- Proposed change: a `head` field in `module.json`. The build puts that file in its own `<script>`
+  just before `</head>`, writes in the course's storage key (the page's `NS` does not exist yet in
+  `<head>`), syntax-checks it, and allows these head scripts beside the one body script.
+  `device_lint.js` reads them too. theme's head script would only read the stored choice and set
+  `data-theme`.
+
 ## C. Core checks that refuse real course data
 
 The ports' own courses were built from Pharmacokinetics (`ac2eb73`) and Intro to Pharmacology
@@ -160,6 +174,7 @@ and agent-run (the failures).
 | paper-picker #21 | Topics, Weak spots and the pass following the chosen exam; papers of another length | several exams on one site (queued) |
 | glossary-tap #13 | the term list per exam | several exams on one site (queued) |
 | quiz-prep-cards #22 | the timed practice quiz; quizzes over several days | several exams on one site (queued) |
+| theme #20 | no light flash on a large page for a student who picked Dark | B5 |
 | every port | the last change before a reload | A1 |
 
 ## Order proposed
