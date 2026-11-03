@@ -97,13 +97,14 @@ after Phase 1 and overrides earlier sections where they differ.
   #33 `7286854` (offline test: refused connections), #34 `c1efa19` (lecture ids), #35
   `e3433d2` (catalog wording), #29 `4e0fae4` (the WebKit job blocks a merge), #36
   `8b5ffdb` (the porter's policy; merged by the porter session under its §7 at 06:35
-  UTC), #38 `9f2940b` (`test.js` section 7; merged by the main kit session under decision
-  10 at 06:54 UTC). The WebKit diagnosis and every run's log: branch
+  UTC), #38 `9f2940b` (`test.js` section 7; merged by the main kit session under Louis's
+  standing policy at 06:54 UTC), #37 `494e6d5` (the policy record, decision 10; merged on
+  Louis's yes to it). The WebKit diagnosis and every run's log: branch
   `claude/elegant-ptolemy-pqxb8y-webkit-diag`, `review/webkit-offline/` (never merged).
   Open: #32 (Import; Louis keeps it unmerged until its two intermittent two-tab failures
-  are explained and resolved), #37 (the policy record), #39 (the waiting save when a page
-  is hidden or closed; progress storage, waits for Louis), #40 (`test.js` section 7, 20
-  trials), the proposals #23 and #30, and the porter's draft ports.
+  are explained and resolved), #39 (the waiting save when a page is hidden or closed;
+  progress storage, waits for Louis), #40 (`test.js` section 7, 20 trials), this
+  bookkeeping record, the proposals #23 and #30, and the porter's draft ports.
 - **GitHub Actions stopped starting jobs on 2026-11-03** between 04:13 UTC (run
   41576828141, the last that ran and passed) and 04:35 UTC (main's run 41579030257 for
   4e0fae4, the first refused). Every run since then (22 by 05:05 UTC) failed with no
