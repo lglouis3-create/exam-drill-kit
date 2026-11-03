@@ -148,3 +148,23 @@ Reading:
 Next: "server down" as refused connections (the server stops listening, as a stopped
 server or a phone with no connection would appear). Is the network-error path still
 tested in WebKit without triggering the bug?
+
+## Run 41566211850 (commit e9155f4), 2026-11-03
+
+**Mode `load`**, "server down" as refused connections: the server stops listening, its
+idle connections closed, and listens again on the same port after.
+
+| Set | Result | libsoup assertions | "This is a WebKit bug" |
+|---|---|---|---|
+| webkit refuse 1 | 15 of 15 PASS | 0 | 0 |
+| webkit refuse 2 | 15 of 15 PASS | 0 | 0 |
+| webkit refuse 3 | 15 of 15 PASS | 0 | 0 |
+| webkit refuse 4 | 15 of 15 PASS | 0 | 0 |
+| webkit drop 1 (control) | 14 of 15 PASS | 11 | 1 (the failed run) |
+| chromium refuse 1 | 9 of 9 PASS | 0 | 0 |
+
+In the 60 refused-connection WebKit runs:
+- no request reached the server while it was down;
+- no request was left on a busy connection to answer;
+- the drill opened from its saved copy each time, so the worker's network-error path ran
+  in every run.
