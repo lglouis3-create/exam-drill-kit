@@ -446,8 +446,11 @@ changes an earlier section, this section is current.
       Louis confirmed the part on unattended runs on 2026-11-03: the scheduled task "BDK
       daily review" prepares its work on a branch with a pull request, and the "Kit
       update run" promotes a preview to live only after his reply. The part on course
-      sessions is Claude's reading and waits for his confirmation (`CLAUDE.md`, open
-      question 3).
+      sessions was Claude's reading 7 (below), which Louis accepted on 2026-11-03. Until
+      the "Kit update run"'s stored instructions were corrected in the "Kit updater"
+      session, every course update was to stay at preview and nothing be published
+      automatically (Louis, 2026-11-03); they were corrected at 12:41:35 UTC that day
+      (`CLAUDE.md`, "Where the work stands").
     - **Failed checks** are investigated and their evidence kept. Repeated runs for
       diagnosis are allowed; discarding failures and rerunning until green is not.
     - **Reviews on GitHub.** ChatGPT's review automation runs about four times a day
@@ -475,9 +478,13 @@ changes an earlier section, this section is current.
       authorizes, is not asked about again. Louis is told promptly of a confirmed risk
       of lost progress, a problem on a live site, or a decision that blocks further
       work.
-    - **Claude's readings.** Louis's text leaves the cases below open. Claude follows
-      these readings until Louis confirms or changes them; each is at least as strict as
-      his text, except the fifth, which is marked:
+    - **Claude's readings.** Louis's text left the cases below open. Claude proposed
+      these readings, and Louis accepted them on 2026-11-03: "Your seven policy readings —
+      I accept them as currently summarized, including retrying a job GitHub never
+      started, while keeping the refused attempt recorded. This does not permit rerunning
+      actual failures until green or weakening checks." They now stand as rules until he
+      changes them. Each is at least as strict as his first text, except the fifth, which
+      is marked:
       1. A small fix (decision 9) merges on Claude's decision only when it changes tests
          alone; any other small fix waits for Louis.
       2. A change to an instruction file (`CLAUDE.md`, this file, `skill/SKILL.md`,
@@ -491,7 +498,9 @@ changes an earlier section, this section is current.
          and a comment after it names the review and the check run.
       5. A run that GitHub refused to start may be started again; that is not rerunning a
          failure, and the refused attempt stays in the record. (This one allows a step
-         his text does not name; it applies only to jobs that never started.)
+         his first text did not name; it applies only to jobs that never started. Louis,
+         accepting the readings: "This does not permit rerunning actual failures until
+         green or weakening checks.")
       6. "WebKit where applicable": `checks.yml` runs WebKit on the template course only,
          and module courses in Chromium only. For an optional feature module, or a
          test-only change to a module's tests, merged on Claude's decision, a WebKit run
@@ -499,8 +508,8 @@ changes an earlier section, this section is current.
          "success" on GitHub on the final head commit is also required; until a GitHub
          job runs it, the merge waits.
       7. A course session changes a live site only with Louis's approval of that change
-         given in the session (the part of "Live courses" above that Louis has not
-         confirmed; `CLAUDE.md`, open question 3).
+         given in the session (the part of "Live courses" above that his first text left
+         open; `CLAUDE.md`, open question 3, settled by his acceptance).
 
 Facts from Phase 1 that correct §2 and §10: BDK has no `course.js`; v2 was written
 before PK's first engine commit, not after it; `exam-drill-template/` was never on
