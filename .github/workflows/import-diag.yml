@@ -1,0 +1,49 @@
+# DIAGNOSIS ONLY, on branch claude/elegant-ptolemy-pqxb8y-import-diag; never merged.
+# Runs core/import_test.js many times on GitHub's runners, on the two courses where two
+# two-tab checks failed once in run 41586812579 (b32ba2e), keeping every run's output
+# (.github/diag/import_runs.sh). Louis, 2026-11-03: explain and resolve those failures.
+name: Import two-tab diagnosis
+on:
+  push:
+    branches: [claude/elegant-ptolemy-pqxb8y-import-diag]
+    paths: ['.github/diag/**', '.github/workflows/import-diag.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  diag:
+    name: ${{ matrix.course }} · ${{ matrix.load || 'in turn' }} · set ${{ matrix.set }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {course: medicinal-chemistry, runs: 8, set: 1, load: ''}
+          - {course: medicinal-chemistry, runs: 8, set: 2, load: ''}
+          - {course: medicinal-chemistry, runs: 8, set: 3, load: load}
+          - {course: 'module:equation-drill', runs: 8, set: 1, load: ''}
+          - {course: 'module:equation-drill', runs: 8, set: 2, load: ''}
+          - {course: 'module:equation-drill', runs: 8, set: 3, load: load}
+          - {course: template, runs: 8, set: 1, load: ''}
+          - {course: template, runs: 8, set: 2, load: load}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
+        with:
+          python-version: '3.13'
+      - name: Playwright 1.63.0 and Chromium (as the kit's checks job)
+        run: |
+          npm install -g playwright@1.63.0
+          npx --yes playwright@1.63.0 install --with-deps chromium
+      - name: Run the diagnosis
+        env:
+          COURSE: ${{ matrix.course }}
+          RUNS: ${{ matrix.runs }}
+          LOAD: ${{ matrix.load }}
+        run: |
+          export NODE_PATH="$(npm root -g)"
+          bash .github/diag/import_runs.sh "$COURSE" "$RUNS" "$LOAD"
