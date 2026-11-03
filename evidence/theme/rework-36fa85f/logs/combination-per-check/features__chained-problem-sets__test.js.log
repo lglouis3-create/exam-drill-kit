@@ -1,0 +1,24 @@
+
+=== the course's own problem sets ===
+  ok    1 problem sets: every part resolves and appears once, each set has two or more parts, a name and a vignette
+  ok    every part knows which set it belongs to and its place in it
+  ok    every earlier result a part's working uses is stated in that part's stem
+  ok    the stated-results check passes m1-first as written
+  ok    and finds the result a part uses when its stem does not state it
+
+=== a set naming a question the bank does not have ===
+  ok    stops the build, naming the set and the question
+
+=== worked in the browser (scratch copy) ===
+  ok    all 2 sets have a Start button on Topics (2 shown)
+  ok    the set ran in her order (4 parts)
+  ok    the progress line counts parts
+  ok    the vignette is printed above each part's stem
+  ok    the closing card names the set
+  ok    a part answered alone says which set it belongs to
+  ok    and offers to work the set
+  ok    that button starts the set at part 1
+  ok    a paper puts the parts of one set together, in her order, where the first was drawn
+  skip  parts on drawn papers  — no part reached a paper (the papers draw no calculations: exams[].typed is off)
+  ok    no page error
+PASS: features/chained-problem-sets/test.js: 16 checks passed (1 skipped: parts on drawn papers)

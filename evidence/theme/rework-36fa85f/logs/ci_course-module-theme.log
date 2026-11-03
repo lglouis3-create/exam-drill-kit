@@ -1,0 +1,36 @@
+== modules switched on, in this order: theme
+-- theme: node features/theme/ci/oncourse.js
+wrote: appended to /tmp/port-rework/theme/final/tmp/kit-ci-hvvsfc/course/src/course.js:
+;/* theme ci */ COURSE.features = Object.assign({}, COURSE.features, {"theme": {"version":"v1"}});
+wrote: no data files (the module reads no course data)
+== module:theme, chromium, kit 13ce2a9
+PASS     build.py          wrote index.html  (0.26 MB)
+PASS     test.js           7 questions checked
+PASS     style_check.js    7 stems and 7 explanations clean
+PASS     style_check_test.js 29 checks passed
+PASS     render_test.js    every view rendered clean
+REPORT   explain_check.js  5 of 7 questions carry at least one explanation issue
+PASS     stepper_test.js   1 step-through(s) settle at every step
+NOT RUN  cite_check.py     no lecture PDFs found under decks/ or src/
+PASS     device_lint.js    3 checks passed
+PASS     output_test.js    16 checks passed
+PASS     files_test.js     13 checks passed
+PASS     tables_test.js    20 checks passed
+PASS     checks_test.js    32 checks passed
+PASS     draw_test.js      8 checks passed (1 skipped: no two wordings of one fact on a paper drawn from this bank)
+PASS     browser_test.js   98 checks passed (5 skipped: concept-block figures render after answering; drawn structures; stems that promise a figure show one …)
+PASS     storage_test.js   24 checks passed
+PASS     startup_test.js   77 checks passed
+PASS     update_test.js    38 checks passed
+PASS     offline_test.js   30 checks passed
+PASS     home_test.js      36 checks passed
+PASS     history_test.js   28 checks passed
+PASS     scheduler_test.js 110 checks passed
+PASS     preview_test.js   14 checks passed
+PASS     state_check.js    2 checks passed
+PASS     state_check_test.js 8 checks passed
+PASS     oldcache_test.js  12 checks passed
+PASS     nullexam_test.js  76 checks passed (1 skipped: the Weighting chips)
+PASS     features_test.js  40 checks passed
+PASS     features/theme/test.js 46 checks passed (2 skipped: KNOWN LIMIT T1: 10 of 12 first frames light on a 1.6 MB page, a stored Dark on a light device; KNOWN LIMIT T1: 8 of 12 first frames dark on a 1.6 MB page, a stored Light o
+27 PASS, 0 FAIL, 1 NOT RUN, 1 REPORT; logs in /tmp/port-rework/theme/final/tmp/drill-checks-MisiEk

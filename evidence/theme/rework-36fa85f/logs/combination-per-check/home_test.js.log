@@ -1,0 +1,45 @@
+
+=== iPhone in Safari ===
+  ok    iPhone: Topics shows no Home Screen card
+  ok    iPhone: Settings has the card as a closed section
+  ok    iPhone: its one line reads "Keep your progress: add COURSE 0000 to your Home Screen"
+  ok    closed, the steps and the Export button are not shown
+  ok    tapping the line opens the section
+  ok    opened, it shows the steps: Export, Add to Home Screen, Import
+  ok    the section names the 7-day rule with its source
+  ok    Export progress in the section saves a progress file
+  ok    the file holds the progress and the answer history
+  ok    no sideways scroll with the section open
+  ok    there is no Not now button
+  ok    after the old "Not now" and a reload: Topics shows no Home Screen card
+  ok    after a reload: Settings has the card as a closed section
+  ok    after a reload: its one line reads "Keep your progress: add COURSE 0000 to your Home Screen"
+  ok    no page errors
+
+=== iPhone, opened from the Home Screen, nothing answered yet ===
+  ok    Home Screen copy: Topics shows no Home Screen card
+  ok    Home Screen copy: Settings has the card as a closed section
+  ok    Home Screen copy: its one line reads "Progress from Safari"
+  ok    opened, it says how to bring progress from Safari
+  ok    one tap on the select-all question s2-1 records no answer (the step the old check took)
+  ok    so the card is still in Settings: the old check failed whenever the quiz drew a select-all question
+  ok    answering the select-all question s2-1 with its right boxes and Check records one answer in this copy
+  ok    once this copy has progress of its own, the card is gone from Settings
+  ok    with progress: Topics shows no Home Screen card
+  ok    no page errors
+
+=== Desktop, no install prompt ===
+  ok    desktop: Topics shows no Home Screen card
+  ok    no card in Settings
+  ok    no page errors
+
+=== A browser that offers an install prompt ===
+  ok    install prompt: Topics shows no Home Screen card
+  ok    install prompt: Settings has the card as a closed section
+  ok    install prompt: its one line reads "Install COURSE 0000"
+  ok    closed, the Install button is not shown
+  ok    opened, it shows the Install button
+  ok    Install calls the browser prompt
+  ok    the card is gone after the prompt
+  ok    no page errors
+PASS: home_test.js: 36 checks passed

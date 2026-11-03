@@ -1,0 +1,7 @@
+checking sources...
+  12 sources and sw.js parse cleanly
+  scheduler: concept (no library)
+  7 questions in 2 topics, from 1 question file: q1_topics.js
+  feature theme v1 in the page
+  change log: 1 entries, newest "2026-10-02 (set up from the template)"
+ERROR: expected exactly 1 script block in the output, got 2

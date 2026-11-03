@@ -1,0 +1,52 @@
+== modules switched on, in this order: theme chained-problem-sets formulas-in-text equation-drill wrong-number-diagnosis
+-- theme: node features/theme/ci/oncourse.js
+wrote: appended to /tmp/port-rework/theme/final/tmp/kit-ci-iNTKzA/course/src/course.js:
+;/* theme ci */ COURSE.features = Object.assign({}, COURSE.features, {"theme": {"version":"v1"}});
+wrote: no data files (the module reads no course data)
+-- chained-problem-sets: node features/chained-problem-sets/ci/oncourse.js
+wrote: /tmp/port-rework/theme/final/tmp/kit-ci-iNTKzA/course/src/q90_cpc_fixture.js (topic cpc, 4 parts and the problem set cpc-m1-first from the fixture in test.js)
+wrote: appended to /tmp/port-rework/theme/final/tmp/kit-ci-iNTKzA/course/src/course.js: the file in COURSE.files, 2 deck(s) in COURSE.lectures (L91 IntroductionandMathReviewSolutions.pdf, L92 Introduction.pdf), and chained-problem-sets v2 on
+-- formulas-in-text: node features/formulas-in-text/ci/oncourse.js
+wrote: appended to /tmp/port-rework/theme/final/tmp/kit-ci-iNTKzA/course/src/course.js: formulas-in-text v1 on with 56 symbols, 4 rates, halfLife, times, minus and powers (the options of its test.js)
+wrote: no data files (the module reads no course data file)
+-- equation-drill: node features/equation-drill/ci/oncourse.js
+wrote: /tmp/port-rework/theme/final/tmp/kit-ci-iNTKzA/course/src/eqc_equations.js (14 equations from the fixture in test.js)
+wrote: appended to /tmp/port-rework/theme/final/tmp/kit-ci-iNTKzA/course/src/course.js: the file in COURSE.files and equation-drill v2 on
+-- wrong-number-diagnosis: node features/wrong-number-diagnosis/ci/oncourse.js
+wrote: appended to /tmp/port-rework/theme/final/tmp/kit-ci-iNTKzA/course/src/course.js: wrong-number-diagnosis v1 on
+wrote: no data files (the module reads the course's own calculations)
+== modules:theme,chained-problem-sets,equation-drill,formulas-in-text,wrong-number-diagnosis, chromium, kit 13ce2a9
+PASS     build.py          wrote index.html  (0.35 MB)
+PASS     test.js           11 questions checked
+PASS     style_check.js    11 stems and 8 explanations clean
+PASS     style_check_test.js 29 checks passed
+PASS     render_test.js    every view rendered clean
+REPORT   explain_check.js  5 of 11 questions carry at least one explanation issue
+PASS     stepper_test.js   1 step-through(s) settle at every step
+NOT RUN  cite_check.py     no lecture PDFs found under decks/ or src/
+PASS     device_lint.js    3 checks passed
+PASS     output_test.js    16 checks passed
+PASS     files_test.js     13 checks passed
+PASS     tables_test.js    20 checks passed
+PASS     checks_test.js    32 checks passed
+PASS     draw_test.js      8 checks passed (1 skipped: no two wordings of one fact on a paper drawn from this bank)
+PASS     browser_test.js   98 checks passed (5 skipped: concept-block figures render after answering; drawn structures; stems that promise a figure show one …)
+PASS     storage_test.js   24 checks passed
+PASS     startup_test.js   77 checks passed
+PASS     update_test.js    38 checks passed
+PASS     offline_test.js   30 checks passed
+PASS     home_test.js      36 checks passed
+PASS     history_test.js   28 checks passed
+PASS     scheduler_test.js 110 checks passed
+PASS     preview_test.js   14 checks passed
+PASS     state_check.js    2 checks passed
+PASS     state_check_test.js 8 checks passed
+PASS     oldcache_test.js  12 checks passed
+PASS     nullexam_test.js  76 checks passed (1 skipped: the Weighting chips)
+PASS     features_test.js  40 checks passed
+PASS     features/theme/test.js 46 checks passed (2 skipped: KNOWN LIMIT T1: 6 of 12 first frames light on a 1.6 MB page, a stored Dark on a light device; KNOWN LIMIT T1: 6 of 12 first frames dark on a 1.6 MB page, a stored Light on
+PASS     features/chained-problem-sets/test.js 16 checks passed (1 skipped: parts on drawn papers)
+PASS     features/formulas-in-text/test.js 12 checks passed
+PASS     features/equation-drill/test.js 30 checks passed
+PASS     features/wrong-number-diagnosis/test.js 14 checks passed (1 skipped: a paper's result page)
+31 PASS, 0 FAIL, 1 NOT RUN, 1 REPORT; logs in /tmp/port-rework/theme/final/tmp/drill-checks-z353H7

@@ -1,0 +1,18 @@
+
+=== theme.css and the core's colours ===
+  FAIL  theme.css holds the same 0 dark rules for Match device on a dark device and for Dark picked  — no @media (prefers-color-scheme: dark) block
+  FAIL  each of the 24 colours the core's :root sets has a dark value  — ink, ink-2, paper, surface, line, line-soft, text, text-dim, ok, ok-bg, bad, bad-bg, warn, warn-bg, accent, accent-bg, sik, yen, at-o, at-n, at-s, at-p, at-x, wash
+
+=== in node, as the course's checks run the engine ===
+  ok    the module loads with no page around it (explain_check.js and test.js run the engine so)
+
+=== in Chromium, on a scratch copy built with the module on ===
+  ok    the core's light page colour (rgb(242, 244, 247)) and the dark one (rgb(0, 0, 0)) differ
+  ok    the scratch copy holds the fixture's 4 Basic-Pharmacokinetics questions in a topic of their own, after the course's topics
+page.selectOption: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for locator('#themeSel')[22m
+
+    at frames (/tmp/port-rework/theme/final/absent/src/features/theme/test.js:246:18)
+    at async /tmp/port-rework/theme/final/absent/src/features/theme/test.js:275:19
+FAIL: features/theme/test.js: the test stopped: page.selectOption: Timeout 30000ms exceeded.

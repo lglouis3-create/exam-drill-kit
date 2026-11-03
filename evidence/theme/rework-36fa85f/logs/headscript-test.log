@@ -1,0 +1,12 @@
+
+=== theme.css and the core's colours ===
+  ok    theme.css holds the same 18 dark rules for Match device on a dark device and for Dark picked
+  ok    each of the 24 colours the core's :root sets has a dark value
+  FAIL  the scratch copy builds with the module on and the fixture added  — checking sources...
+  13 sources and sw.js parse cleanly
+  scheduler: concept (no library)
+  11 questions in 3 topics, from 2 question files: q1_topics.js, q90_theme_fixture.js
+  feature theme v1 in the page
+  change log: 1 entries, newest "2026-10-02 (set up from the template)"
+ERROR: expected exactly 1 script block in the output, got 2
+FAIL: features/theme/test.js: 1 of 3 checks failed: the scratch copy builds with the module on and the fixture added
