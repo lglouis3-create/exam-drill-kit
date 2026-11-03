@@ -1,0 +1,4 @@
+
+=== the course's own quizzes ===
+  FAIL  the page carries quiz-prep-cards, working  — "no feature modules in the page"
+FAIL: features/quiz-prep-cards/test.js: 1 of 1 checks failed: the page carries quiz-prep-cards, working
