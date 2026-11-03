@@ -51,7 +51,7 @@ What a profile can take:
 
 What happens when the limit is reached, on `main` today:
 - **Progress:** a save the browser refuses keeps the change on the page and shows the "did not save" notice, which points to Export progress (`saveWarn`).
-- **History:** a refused history write deletes the oldest half of the history and tries again, repeatedly, with no notice (`saveLog`, `core/shell.html` on `main`). The history is written at once with each answer, while progress waits on a 150 ms timer. So near the limit, history entries can be deleted before any progress save is refused and the notice appears. The history is what fitting the memory model to Louis's own answers will use, and this deletion goes against "keep every backup".
+- **History:** a refused history write deletes the oldest half of the history and tries again, repeatedly, with no notice (`saveLog`, `core/shell.html:770-776` on `main`). The history is written at once with each answer, while progress waits on a 150 ms timer. So near the limit, history entries can be deleted before any progress save is refused and the notice appears. The history is what fitting the memory model to Louis's own answers will use, and this deletion goes against "keep every backup".
 
 ## 3. Recommendation
 
@@ -60,14 +60,18 @@ What happens when the limit is reached, on `main` today:
 - this drill's share, split into progress, history, preview copies and (with #32) the copies Import keeps, with their number;
 - this profile's answers: kept (at most 4,000) and recorded in all (`DB.qn`, which keeps counting past 4,000).
 
-**2. A warning,** in the Quiz tab and in Settings, worked out from what is stored rather than from a fixed percentage. It appears when the space left (5,242,880 minus what the site stores) is less than one more full profile of the largest size this browser holds now (its progress plus its history). Any one write can need that much: a preview's first copy, a new profile from Import, or a copy. With one profile at both caps the warning starts at 5,242,880 − 2,271,973 = 2,970,907 stored characters (57%). With smaller profiles it starts later, in proportion. The warning:
+**2. A warning,** in the Quiz tab and in Settings, worked out from what is stored rather than from a fixed percentage. It appears when the space left (5,242,880 minus what the site stores) is less than the larger of two needs:
+- one more profile of the largest size this browser holds now (its progress plus its history): a new profile from Import, or a copy, can need that much;
+- the live keys of a course on the core whose preview has not yet copied them: a preview's first opening copies all of them, every profile with its history and exam paper, in many writes.
+
+With one course holding one profile at both caps, the warning starts at 5,242,880 − 2,271,973 = 2,970,907 stored characters (57%). With smaller profiles it starts at 5,242,880 minus the larger need, so later. Only drills on the core can be split into profiles and courses. The other drills' keys (BDK's `bdk2:*`, Pharmacokinetics, Intro to Pharmacology) count in the site's total but not in either need. The warning:
 - names the largest items;
 - offers Export progress;
 - with #32, offers "Delete the copies kept by Import", which deletes only after Louis confirms it.
 
-**3. The history stops deleting entries on its own.** A refused history write keeps the entry on the page and shows the "did not save" notice, as progress does, instead of cutting the oldest half. This is a change to progress storage, so it is its own pull request, for Louis's yes.
+**3. The history stops deleting entries when a write is refused.** A refused history write keeps the entry on the page and shows the "did not save" notice, as progress does, instead of cutting the oldest half. This is a change to progress storage, so it is its own pull request, for Louis's yes. Two deletions stay by design unless Louis decides otherwise: answers past the 4,000 kept (`core/shell.html:1210`) and history entries past 20,000 (`LOG_MAX`, the cuts at `:784` and `:813`).
 
-**4. Preview copies are deleted only when Louis asks:** a "Delete this preview's copy of my progress" button on the preview page, after a confirmation. The live keys are never touched.
+**4. Preview copies are deleted only when Louis asks:** a "Delete this preview's copy of my progress" button on the preview page, after a confirmation. The live keys are never touched. The next time a preview opens, it copies the live keys again (`core/shell.html:599`), so the space is used again with each preview visit.
 
 **What this needs from Louis:** a yes or no on 1-4, and the wording.
 
