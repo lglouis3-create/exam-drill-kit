@@ -1,0 +1,7 @@
+head 0110c61
+a oncourse.js exit 0
+a build.py exit 0
+test run 1 exit 0: PASS: features/concept-statuses/test.js: 89 checks passed
+test run 2 exit 0: PASS: features/concept-statuses/test.js: 89 checks passed
+test run 3 exit 0: PASS: features/concept-statuses/test.js: 89 checks passed
+ci_course.sh module:concept-statuses exit 0: 26 PASS, 0 FAIL, 1 NOT RUN, 1 REPORT; logs in /tmp/drill-checks-r2TOiG

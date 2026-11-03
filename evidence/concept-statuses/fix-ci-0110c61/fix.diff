@@ -1,0 +1,292 @@
+diff --git a/FEATURES.md b/FEATURES.md
+index 68eca85..9933bfb 100644
+--- a/FEATURES.md
++++ b/FEATURES.md
+@@ -631,7 +631,7 @@ Versions:
+ Evidence: none recorded.
+ Used by: PK (v1, its own copy); Intro to Pharmacology has its own form (`exam1-drill/src/app.js` `conceptRecord`, line 1174 at `929cd62`, with "Returned" and "On track" as two of its words); the kit module: none yet.
+ Known issues: what the core already shows about a concept, without the module: "N of M concepts mastered" on Weak spots and per topic on Topics (box 3 or higher), per exam pool "not yet seen", "missed or guessed, still open" and "mastered", and on each missed question "now mastered" or "still in review". The module's Mastered (3 correct on 2 questions in 2 sessions) is read from the answers and can differ from that count; the section says so. A correct answer marked "Not sure" counts as a miss, as in the core's own "solid"; PK records "Not sure" on a flashcard as a guess (`src/views.js` line 2513). The spaced check's due line uses the concept's review steps in the core (`DB.concepts`), which the core keeps under every scheduler setting; under an FSRS setting the questions the scheduler asks next come from its own cards, not from this list. Not ported: PK's names for term and extra-practice concepts (`term:` and `x-` ids; the kit has no Terms tab or extra practice yet) and its fixed table of words for concept ids (now the `words` option). The core keeps the last 4000 answers (`record()`, `DB.answers.splice`), so the statuses are read from those 4000 and a concept answered only earlier is no longer listed. Kit pull request #23 (`review/concept-signals-proposal.md`) recommends how the student tells this status apart from the scheduler's mastery count and the FSRS due state; until Louis decides, the module says the counts can differ only inside the fold "What each status means".
+-Test: `features/concept-statuses/current/test.js` (PK `src/test.js` section 4c and `src/sweep_test.py` `concept_check` ported, on 7 PK questions of the topic "infusion" with that topic, its lecture and the skill `infusion`, taken verbatim from PK `ac2eb73`, `prof` set to "Professor"; with persistence checks on a history of 4100 answers: 89 checks). `ci/oncourse.js` writes that course for the kit's CI.
++Test: `features/concept-statuses/current/test.js` (PK `src/test.js` section 4c and `src/sweep_test.py` `concept_check` ported, on 7 PK questions of the topic "infusion" with that topic, its lecture and the skill `infusion`, taken verbatim from PK `ac2eb73`, `prof` set to "Professor"; with persistence checks on a history of 4100 answers: 89 checks). `ci/oncourse.js` writes that course for the kit's CI. Every question, topic, subtopic and lecture id that `ci/oncourse.js` and the test's scratch copies write carries the prefix `cst-` with the course's own id inside it, so the module shares a course with other modules' copies of the same questions; a plan-the-problem `setup` or an `asks` key is written only when the course has the equations or the ASKS key it names.
+ 
+ ## weak-spot-marks
+ Does: marks weak concepts where they are studied (guides, reference), with a switch in Weak spots; marks go away once the concept is understood.
+diff --git a/features/concept-statuses/ci/oncourse.js b/features/concept-statuses/ci/oncourse.js
+index 563600b..dea5548 100644
+--- a/features/concept-statuses/ci/oncourse.js
++++ b/features/concept-statuses/ci/oncourse.js
+@@ -9,10 +9,19 @@
+  * apply and infusion from src/course.js, at ac2eb73; `prof` set to the template's
+  * "Professor", `teachImg` left out) and its `const WORDS`
+  * (Basic-Pharmacokinetics' CONCEPT_WORDS, src/views.js line 2634), written by that file's
+- * `const WRITE`, the same writer the test's scratch copies use: one question per line in
+- * the kit's form, with the course's own ids; the topics pushed after the course's topics;
+- * the lecture under id L91 when the course has no entry for its deck; the skills the
+- * course lacks.
++ * `const WRITE`, the same writer the test's scratch copies use, after that file's `const PFX`:
++ * one question per line in the kit's form; the topic pushed after the course's topics; the
++ * lecture in COURSE.lectures; the skills the course lacks.
++ * Ids (the kit's CI data rule 2): every question, topic, subtopic and lecture id, and every
++ * reference to one (dupOf, topic, sub, lecture), is the course's own with the prefix cst-,
++ * so another module's copy of the same Basic-Pharmacokinetics question never shares an id:
++ *   questions  inf-c4 -> cst-inf-c4   inf-c5 -> cst-inf-c5   inf-c11 -> cst-inf-c11
++ *              cq2-4 -> cst-cq2-4 (dupOf inf-c11 -> cst-inf-c11)
++ *              inf-n1 -> cst-inf-n1  inf-n2 -> cst-inf-n2  inf-n4 -> cst-inf-n4
++ *   topic      infusion -> cst-infusion; subtopics basics, css, pre, rate, time, stop, load
++ *              -> cst-basics, cst-css, cst-pre, cst-rate, cst-time, cst-stop, cst-load
++ *   lecture    L04 -> cst-L04 (the script stops if the course already has that id)
++ * Concepts, skills and every other field are the course's own.
+  * Files written in <courseSrcDir>:
+  *   q90_cst_fixture.js   the topic and the 7 questions
+  * and one line appended to course.js: the file in COURSE.files, the lecture in
+@@ -20,10 +29,11 @@
+  * module.json with `words` set to WORDS, kept beside any module already on. Writes only
+  * inside <courseSrcDir>; stops with a non-zero exit on any failure, including a course
+  * that already has this data (it runs once per course).
+- * Known limit: inf-n1, inf-n2 and inf-n4 keep their `setup` lines, which name the equations
+- * "css" and "cp-infusing". A course that also has plan-the-problem on, without those in its
+- * EQUATIONS, does not build (plan-the-problem's build step stops it). The module's own test switches
+- * plan-the-problem off in its scratch copies for that reason.
++ * Data that names another module's data (rule 4): inf-n1, inf-n2 and inf-n4 carry
++ * plan-the-problem `setup` lines (equations "css", "cp-infusing", "thalf-first", "cl-k-vd")
++ * and `asks` keys. A `setup` is written only when the course's EQUATIONS (from the data
++ * files the course lists) has every equation it names, and an `asks` only when the course's
++ * ASKS has the key; otherwise it is left out and the script prints which.
+  */
+ const fs = require('fs'), path = require('path'), vm = require('vm');
+ const NAME = 'concept-statuses', TAG = '/* concept-statuses ci */', FILE = 'q90_cst_fixture.js';
+@@ -45,7 +55,10 @@ function grab(name){
+   try { return vm.runInNewContext(lines.slice(at, end).join('\n') + `\n;${name}`, {}); }
+   catch(e){ fail(`test.js's ${name} cannot be read: ${e.message}`); }
+ }
+-const FIX = grab('FIX'), WORDS = grab('WORDS'), WRITE = grab('WRITE');
++const RAW = grab('FIX'), PFX = grab('PFX'), WORDS = grab('WORDS'), WRITE = grab('WRITE');
++if(typeof PFX !== 'function') fail('test.js has no PFX');
++let FIX;
++try { FIX = PFX(RAW); } catch(e){ fail('test.js\'s FIX cannot be prefixed: ' + e.message); }
+ if(!FIX || !Array.isArray(FIX.qs) || !FIX.qs.length || !Array.isArray(FIX.topics) || !FIX.lecture || !Array.isArray(FIX.skills) ||
+    !WORDS || typeof WORDS !== 'object' || typeof WRITE !== 'function') fail('test.js has no FIX with questions, topics, a lecture and skills, no WORDS, or no WRITE');
+ const course = path.join(src, 'course.js'), data = path.join(src, FILE);
+@@ -59,14 +72,22 @@ try { COURSE = new Function(text + '\n;return COURSE;')(); } catch(e){ fail('cou
+ const prof = (COURSE.professors || [])[0];
+ if(typeof prof !== 'string' || !prof) fail('course.js has no first professor');
+ // the course's own questions and topics, read from its data files, so nothing is written twice
++// course.js first, as the build runs it, since a data file may read or add to COURSE
+ const sb = {}; vm.createContext(sb);
++try { vm.runInContext(text, sb, {filename: 'course.js'}); } catch(e){ fail('course.js cannot be run: ' + e.message); }
+ for(const f of (COURSE.files || ['atlas.js', 'diagrams.js', 'q1_topics.js'])){
+   try { vm.runInContext(fs.readFileSync(path.join(src, f), 'utf8'), sb, {filename: f}); }
+   catch(e){ fail(`cannot read the course's ${f}: ${e.message}`); }
+ }
+ let bank;
+-try { bank = vm.runInContext('({q: QUESTIONS.map(q => q.id), t: TOPICS.map(t => t.id)})', sb); } catch(e){ fail('the course has no QUESTIONS or TOPICS: ' + e.message); }
+-const own = {prof, qids: bank.q, topics: bank.t, skills: (COURSE.skills || []).map(s => s.id), decks: (COURSE.lectures || []).map(l => l.deck)};
++try { bank = vm.runInContext('({q: QUESTIONS.map(q => q.id), t: TOPICS.map(t => t.id),' +
++  ' eq: typeof EQUATIONS !== "undefined" && Array.isArray(EQUATIONS) ? EQUATIONS.map(e => e && e.id) : [],' +
++  ' asks: typeof ASKS !== "undefined" && ASKS && typeof ASKS === "object" ? Object.keys(ASKS) : []})', sb); }
++catch(e){ fail('the course has no QUESTIONS or TOPICS: ' + e.message); }
++const lids = (COURSE.lectures || []).map(l => l.id);
++const taken = FIX.qs.map(q => q.id).filter(id => bank.q.includes(id)).concat(FIX.topics.map(t => t.id).filter(id => bank.t.includes(id)), lids.includes(FIX.lecture.id) ? [FIX.lecture.id] : []);
++if(taken.length) fail('the course already has the id(s) ' + taken.join(', ') + ' (this script runs once per course)');
++const own = {prof, qids: bank.q, topics: bank.t, skills: (COURSE.skills || []).map(s => s.id), lids, eq: bank.eq, asks: bank.asks};
+ let w;
+ try { w = WRITE(FIX, own); } catch(e){ fail('the fixture cannot be written: ' + e.message); }
+ if(!w.rows) fail('the course already has every question of the fixture');
+@@ -76,5 +97,7 @@ const line = `\n;${TAG} COURSE.files = (COURSE.files || ['atlas.js', 'diagrams.j
+ try { fs.writeFileSync(data, w.body); } catch(e){ fail('cannot write ' + data + ': ' + e.message); }
+ try { fs.appendFileSync(course, line); } catch(e){ fail('cannot write ' + course + ': ' + e.message); }
+ console.log(`wrote: ${data} (${w.topics} topics and ${w.rows} questions from FIX in test.js)`);
+-console.log(`wrote: appended to ${course}: the file in COURSE.files, ${w.lecture ? `the lecture ${FIX.lecture.deck} (id L91) in COURSE.lectures` : 'no lecture (the course has the deck)'}, ` +
++console.log(`wrote: appended to ${course}: the file in COURSE.files, ${w.lecture ? `the lecture ${FIX.lecture.deck} (id ${FIX.lecture.id}) in COURSE.lectures` : 'no lecture'}, ` +
+   `${w.skills} skill(s) in COURSE.skills, and ${NAME} ${meta.version} on with words (${Object.keys(WORDS).length} entries)`);
++console.log(`left out: ${w.dropped.setup.length} setup line(s)${w.dropped.setup.length ? ' (' + w.dropped.setup.join(', ') + ')' : ''} naming an equation the course's EQUATIONS lacks, ` +
++  `${w.dropped.asks.length} asks key(s)${w.dropped.asks.length ? ' (' + w.dropped.asks.join(', ') + ')' : ''} the course's ASKS lacks`);
+diff --git a/features/concept-statuses/current/test.js b/features/concept-statuses/current/test.js
+index a86f7bc..3375571 100644
+--- a/features/concept-statuses/current/test.js
++++ b/features/concept-statuses/current/test.js
+@@ -7,15 +7,17 @@
+  * On a scratch copy of the course that holds FIX (below): 7 of Basic-Pharmacokinetics'
+  * questions of the topic "infusion", that topic, the lecture they cite and the skill the
+  * course lacks, from src/q3_module3.js, src/q13_quizzes.js, src/q1_module1.js and
+- * src/course.js at ac2eb73. The ids, the wording and every
+- * field are the course's own; `prof` is the course's first professor ("Professor" in
++ * src/course.js at ac2eb73. The wording and every field are the course's own, and
++ * each id is the course's own with the prefix cst- (PFX below), so another module's
++ * copy of the same question never shares an id with this one; `prof` is the course's first professor ("Professor" in
+  * FIX), and `teachImg` is left out (the kit has none of the course's slide images, and
+  * the core's test.js stops on a teachImg missing from images.json). A course made by
+  * ci/oncourse.js already holds FIX, and the test then uses the course's copy.
+- * plan-the-problem is switched off in the scratch copy: inf-n1, inf-n2 and inf-n4 keep
+- * their `setup` lines, which name the equations "css" and "cp-infusing", and
+- * plan-the-problem's build step stops a
+- * build whose EQUATIONS lack it. In Chromium:
++ * inf-n1, inf-n2 and inf-n4 carry plan-the-problem `setup` lines, which name the
++ * equations "css" and "cp-infusing", and `asks` keys: WRITE keeps a `setup` only when
++ * the course's EQUATIONS has every equation it names, and an `asks` only when the
++ * course's ASKS has the key, so the scratch copy builds whatever other modules the
++ * course has on. In Chromium:
+  *   - Basic-Pharmacokinetics' src/test.js section 4c ported: the 13 synthetic logs
+  *     give the statuses, mastery starts the spaced check at the mastery box at the
+  *     pace's intervals and each further solid answer moves it up one, a concept
+@@ -70,27 +72,47 @@ const FIX = {"qs":[{"id":"inf-c4","prof":"Professor","tier":"new","exam":1,"modu
+ /* Basic-Pharmacokinetics src/views.js CONCEPT_WORDS (line 2634, ac2eb73), verbatim, as the
+    course's `words` option. */
+ const WORDS = {"999":"99.9%","vd":"VD","cl":"Cl","clr":"ClR","crcl":"CrCl","gfr":"GFR","ibw":"IBW","bw":"body weight","cmax":"Cmax","cmin":"Cmin","tmax":"tmax","c0":"C0","cp":"Cp","css":"Css","cavg":"Cavg","cav":"Cav","auc":"AUC","aucs":"AUCs","k":"k","ka":"ka","ke":"ke","kvd":"k × VD","thalf":"t½","tau":"τ","f":"F","fe":"fe","frel":"Frel","fabs":"Fabs","alpha":"α","beta":"β","vp":"Vp","db":"DB","d0":"D0","davg":"Davg","r":"R","mec":"MEC","pk":"PK","pd":"PD","adme":"ADME","iv":"IV","ph":"pH","ss":"steady state","halflife":"half-life","halflives":"half-lives","onecpt":"one-compartment","multicpt":"multicompartment","cpt":"compartment","defn":"definition","def":"definition","conc":"concentration","bioavail":"bioavailability","biexp":"biexponential","equiv":"equivalent","rel":"relative","params":"parameters","calc":"calculation","diffeq":"differential equation","cockcroft":"Cockcroft","gault":"Gault","henderson":"Henderson","hasselbalch":"Hasselbalch"};
+-/* The course data file for FIX, in the kit's question-file form: one question per line,
+-   opening {id:'...', the type, the skill, then prof as a literal (browser_test.js counts
+-   the bank that way); the topics pushed after the course's own; the lecture as L91 when
+-   the course has no entry for its deck; the skills the course lacks. Questions, topics
+-   and skills the course already has are not written again. */
++/* Ids that cannot clash with another module's (rule 2 of the kit's CI data rules): every
++   question, topic, subtopic and lecture id of FIX, and every reference to one (dupOf,
++   topic, sub, lecture), gets the prefix cst-, with the course's own id kept inside it:
++   questions inf-c4 -> cst-inf-c4, inf-c5 -> cst-inf-c5, inf-c11 -> cst-inf-c11,
++   cq2-4 -> cst-cq2-4 (dupOf cst-inf-c11), inf-n1 -> cst-inf-n1, inf-n2 -> cst-inf-n2,
++   inf-n4 -> cst-inf-n4; topic infusion -> cst-infusion; its subtopics basics, css, pre,
++   rate, time, stop, load -> cst-basics ... cst-load; lecture L04 -> cst-L04. Concepts,
++   skills and every other field are the course's own. ../ci/oncourse.js reads PFX too. */
++const PFX = fix => {
++  const p = id => 'cst-' + id, ref = (o, ks) => { const r = Object.assign({}, o); ks.forEach(k => { if(r[k] !== undefined) r[k] = p(r[k]); }); return r; };
++  return {qs: fix.qs.map(q => ref(q, ['id', 'dupOf', 'topic', 'sub', 'lecture'])),
++          topics: fix.topics.map(t => Object.assign(ref(t, ['id']), t.subs ? {subs: t.subs.map(x => ref(x, ['id']))} : {})),
++          lecture: ref(fix.lecture, ['id']), skills: fix.skills};
++  };
++/* The course data file for FIX (written through PFX), in the kit's question-file form: one
++   question per line, opening {id:'...', the type, the skill, then prof as a literal
++   (browser_test.js counts the bank that way); the topics pushed after the course's own; the
++   lecture under its own prefixed id (cst-L04) unless the course already has that id; the
++   skills the course lacks. Questions, topics and skills the course already has are not
++   written again. A `setup` (plan-the-problem's) is written only when own.eq, the course's
++   EQUATIONS ids, has its equation and every one before it; an `asks` only when own.asks, the
++   course's ASKS keys, has it; otherwise it is left out and listed in `dropped`. */
+ const WRITE = (fix, own) => {
+   const lit = v => { if(!/^[^'\\\n]*$/.test(String(v))) throw new Error('cannot be written as a literal: ' + v); return `'${v}'`; };
++  const eq = new Set(own.eq || []), asks = new Set(own.asks || []), dropped = {setup: [], asks: []};
+   const rows = fix.qs.filter(q => !own.qids.includes(q.id)).map(q => {
+     const r = Object.assign({}, q); ['id', 'type', 'skill', 'prof'].forEach(k => delete r[k]);
++    if(r.setup !== undefined && !(r.setup && (r.setup.eq === 'none' || eq.has(r.setup.eq)) && (r.setup.pre || []).every(x => eq.has(x)))){ delete r.setup; dropped.setup.push(q.id); }
++    if(r.asks !== undefined && !asks.has(r.asks)){ delete r.asks; dropped.asks.push(q.id); }
+     return `{id:${lit(q.id)},` + (q.type ? ` type:${lit(q.type)},` : '') + ` skill:${lit(q.skill)}, prof:${lit(own.prof)}, ${JSON.stringify(r).slice(1)},`; });
+   const topics = fix.topics.filter(t => !own.topics.includes(t.id)).map(t => Object.assign({}, t, {prof: own.prof}));
+   let body = '';
+   if(topics.length) body += `TOPICS.push(\n${topics.map(t => JSON.stringify(t)).join(',\n')}\n);\n`;
+   if(rows.length) body += `QUESTIONS.push(\n${rows.join('\n')}\n);\n`;
+-  if(body) body = `/* concept-statuses: 7 of Basic-Pharmacokinetics' questions and their topic (ac2eb73),\n   written from FIX in features/concept-statuses/current/test.js */\n` + body;
++  if(body) body = `/* concept-statuses: 7 of Basic-Pharmacokinetics' questions and their topic (ac2eb73), ids prefixed cst-,\n   written from FIX in features/concept-statuses/current/test.js */\n` + body;
+   const skills = fix.skills.filter(s => !own.skills.includes(s.id));
+-  const l = fix.lecture, lecture = own.decks.includes(l.deck) ? '' :
+-    `{id:'L91', deck:${lit(l.deck)}, label:${lit(l.label)}, prof:${lit(own.prof)}, exam:${JSON.stringify(l.exam)}, module:${JSON.stringify(l.module)}}`;
++  const l = fix.lecture, lecture = (own.lids || []).includes(l.id) ? '' :
++    `{id:${lit(l.id)}, deck:${lit(l.deck)}, label:${lit(l.label)}, prof:${lit(own.prof)}, exam:${JSON.stringify(l.exam)}, module:${JSON.stringify(l.module)}}`;
+   const line = (lecture ? `COURSE.lectures = (COURSE.lectures || []).concat([${lecture}]); ` : '') +
+     (skills.length ? `COURSE.skills = (COURSE.skills || []).concat(${JSON.stringify(skills)}); ` : '');
+-  return {body, line, rows: rows.length, topics: topics.length, skills: skills.length, lecture: !!lecture};
++  return {body, line, rows: rows.length, topics: topics.length, skills: skills.length, lecture: !!lecture, dropped};
+   };
+ 
+ /* The 13 logs of Basic-Pharmacokinetics src/test.js section 4c: [question index,
+@@ -118,7 +140,7 @@ const CASES = [
+    times across two sessions ten days ago (mastered, its spaced check due). */
+ const SEED = () => {
+   DB.answers = []; DB.concepts = {}; DB.qn = 0; DB.settings.pace = 'semester';
+-  const two = [byId('inf-c11'), byId('cq2-4')], mcq = byId('inf-c5'), num = byId('inf-n1');
++  const two = [byId('cst-inf-c11'), byId('cst-cq2-4')], mcq = byId('cst-inf-c5'), num = byId('cst-inf-n1');
+   const now = Date.now(), MIN = 60000, old = now - 10 * 86400000;
+   const add = (q, result, at, picked, miss) => { DB.qn++; const a = {qid: q.id, concept: q.concept, result, at, qn: DB.qn};
+     if(picked !== undefined) a.picked = picked; if(miss) a.miss = miss; DB.answers.push(a); };
+@@ -173,7 +195,9 @@ const SECTION = async page => {
+ (async () => {
+   console.log('\n=== the course\'s own data ===');
+   L.PAGE.need(NAME);
+-  const X = L.engine('({QUESTIONS, TOPICS, COURSE, FX: typeof FX === "undefined" ? null : FX})');
++  const X = L.engine('({QUESTIONS, TOPICS, COURSE, FX: typeof FX === "undefined" ? null : FX,' +
++    ' EQ: typeof EQUATIONS !== "undefined" && Array.isArray(EQUATIONS) ? EQUATIONS.map(e => e && e.id) : [],' +
++    ' ASKS: typeof ASKS !== "undefined" && ASKS && typeof ASKS === "object" ? Object.keys(ASKS) : []})');
+   const S = X.FX && X.FX.api('concept-statuses');
+   if(!check(!!S, 'the page carries concept-statuses, working', JSON.stringify((X.FX && X.FX.errors) || 'no feature modules in the page'))) L.finish(NAME);
+   const concepts = [...new Set(X.QUESTIONS.map(q => q.concept))];
+@@ -183,14 +207,15 @@ const SECTION = async page => {
+   check(!Object.keys(ghost).length, 'an answer to a question no longer in the bank reaches no concept');
+   const prof = X.COURSE.professors[0];
+   const own = {prof, qids: X.QUESTIONS.map(q => q.id), topics: X.TOPICS.map(t => t.id), skills: (X.COURSE.skills || []).map(s => s.id),
+-               decks: (X.COURSE.lectures || []).map(l => l.deck)};
+-  const w = WRITE(FIX, own);
++               lids: (X.COURSE.lectures || []).map(l => l.id), eq: X.EQ, asks: X.ASKS};
++  const w = WRITE(PFX(FIX), own);
+   console.log(`  the course ${w.rows ? `lacks ${w.rows} of the ${FIX.qs.length} questions of FIX: the scratch copy adds them` : 'holds the questions of FIX: the scratch copy uses its copy'}` +
+-              ` (${w.topics} topics, ${w.skills} skills, ${w.lecture ? 'the lecture as L91' : 'no lecture'} added)`);
++              ` (${w.topics} topics, ${w.skills} skills, ${w.lecture ? 'the lecture as cst-L04' : 'no lecture'} added;` +
++              ` left out: ${w.dropped.setup.length} setup and ${w.dropped.asks.length} asks lines naming an equation or ASKS key the course lacks)`);
+ 
+   console.log('\n=== on a scratch copy with 7 of Basic-Pharmacokinetics\' questions (Chromium) ===');
+   const s = L.scratchBuild('cstat', {files: w.body ? {'q91_cst_fixture.js': w.body} : {},
+-    courseLine: w.line + L.featureOn(__dirname, {words: WORDS}) + "if(COURSE.features) delete COURSE.features['plan-the-problem'];"});
++    courseLine: w.line + L.featureOn(__dirname, {words: WORDS})});
+   if(s.code !== 0) L.notRun(NAME, 'the scratch copy with the test questions does not build: ' + s.out.split('\n').pop());
+   const {browser} = await L.launch(NAME);
+   const dl = fs.mkdtempSync(path.join(os.tmpdir(), 'cstat-dl-'));
+@@ -200,7 +225,7 @@ const SECTION = async page => {
+       const fm = await ev(() => !!FX.api('formulas-in-text'));
+       console.log(`  formulas-in-text is ${fm ? 'on' : 'off'} in this copy`);
+       const r = await ev(([CASES]) => {
+-        const A = FX.api('concept-statuses'), two = [byId('inf-c11'), byId('cq2-4')];
++        const A = FX.api('concept-statuses'), two = [byId('cst-inf-c11'), byId('cst-cq2-4')];
+         const MIN = 60000, DAYMS = 86400000, t0 = Date.now() - 2 * DAYMS;
+         const log = (rows, start) => rows.map(([i, result, m, conf], k) => Object.assign({qid: two[i].id, concept: two[i].concept, result, at: (start === undefined ? t0 : start) + m * MIN, qn: k + 1}, conf ? {conf} : {}));
+         const recOf = (rows, start) => A.conceptRecord(A.conceptLog(log(rows, start))[two[0].concept]);
+@@ -229,9 +254,9 @@ const SECTION = async page => {
+         out.line = line([[0, 'wrong', 0], [1, 'correct', 1], [0, 'wrong', 2], [1, 'guessed', 3], [0, 'correct', 4]]);
+         out.shaky = recOf([[0, 'correct', 0], [1, 'correct', 5], [0, 'correct', 120, 'shaky']]).s;
+         out.shakyLine = line([[0, 'wrong', 0], [1, 'correct', 1, 'shaky']]);
+-        out.title = A.conceptTitle(byId('inf-c4').concept);
++        out.title = A.conceptTitle(byId('cst-inf-c4').concept);
+         // wrong options: a select-all answer counts only the wrong options it picked
+-        const mcq = byId('inf-c5'), ri = mcq.options.findIndex(o => o.correct), wi = mcq.options.map((o, i) => o.correct ? -1 : i).filter(i => i >= 0);
++        const mcq = byId('cst-inf-c5'), ri = mcq.options.findIndex(o => o.correct), wi = mcq.options.map((o, i) => o.correct ? -1 : i).filter(i => i >= 0);
+         out.multi = A.wrongPicks(mcq, {result: 'wrong', picked: [ri, wi[0]]}).map(x => x.t);
+         out.multiWant = [mcq.options[wi[0]].t];
+         // repeated wrong options: each chosen twice are both listed; one chosen once is not
+@@ -264,8 +289,8 @@ const SECTION = async page => {
+       else L.skip('a matching answer names the wrong pairs', 'the bank has no matching question');
+ 
+       // a card's option text and its why: no {{frac:...}} markup (inf-c5's wrong options hold the ratio {{frac:R|Cl}})
+-      const want = await ev(() => { const o = byId('inf-c5').options.find(o => !o.correct && /\{\{frac:/.test(o.why || '')), m = o.why.match(/\{\{frac:([^|}]*)\|([^}]*)\}\}/); return `(${m[1]})/(${m[2]})`; });
+-      await ev(() => { DB.answers = []; DB.concepts = {}; DB.qn = 0; const q = byId('inf-c5'), wi = q.options.findIndex(o => !o.correct && /\{\{frac:/.test(o.why || ''));
++      const want = await ev(() => { const o = byId('cst-inf-c5').options.find(o => !o.correct && /\{\{frac:/.test(o.why || '')), m = o.why.match(/\{\{frac:([^|}]*)\|([^}]*)\}\}/); return `(${m[1]})/(${m[2]})`; });
++      await ev(() => { DB.answers = []; DB.concepts = {}; DB.qn = 0; const q = byId('cst-inf-c5'), wi = q.options.findIndex(o => !o.correct && /\{\{frac:/.test(o.why || ''));
+         [0, 1].forEach(k => { DB.qn++; DB.answers.push({qid: q.id, concept: q.concept, result: 'wrong', picked: wi, at: Date.now() - (5 - k) * 60000, qn: DB.qn}); });
+         save(); show('gaps'); });
+       await page.waitForTimeout(250);
+@@ -422,7 +447,7 @@ const SECTION = async page => {
+       // a profile switch: each profile keeps its own statuses
+       const p1 = await ev(() => PROFILE);
+       const sw = await ev(() => { window.__name = 'Second'; askProfile(true); const n0 = DB.answers.length;
+-        const q = byId('inf-c5'), wi = q.options.findIndex(o => !o.correct); for(let k = 0; k < 3; k++) record(q, 'wrong', wi);
++        const q = byId('cst-inf-c5'), wi = q.options.findIndex(o => !o.correct); for(let k = 0; k < 3; k++) record(q, 'wrong', wi);
+         return {n0, prof: PROFILE}; });
+       await page.waitForTimeout(400);
+       const sum2 = await ev(SUMMARY), sec2 = await SECTION(page);
+@@ -440,11 +465,11 @@ const SECTION = async page => {
+       await page.waitForTimeout(300);
+ 
+       // a reload soon after an answer: 50 ms (before the core's 150 ms save) and 400 ms
+-      const mark = async ms => { const e = await ev(ms => { const q = byId('inf-c5'), wi = q.options.findIndex(o => !o.correct); record(q, 'wrong', wi);
++      const mark = async ms => { const e = await ev(ms => { const q = byId('cst-inf-c5'), wi = q.options.findIndex(o => !o.correct); record(q, 'wrong', wi);
+           const a = DB.answers[DB.answers.length - 1]; setTimeout(() => location.reload(), ms); return {at: a.at, qn: a.qn}; }, ms);
+         await page.waitForTimeout(ms + 300);
+         await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+-        return ev(e => ({kept: DB.answers.some(a => a.at === e.at && a.qn === e.qn && a.qid === 'inf-c5'), qn: DB.qn, n: DB.answers.length}), e); };
++        return ev(e => ({kept: DB.answers.some(a => a.at === e.at && a.qn === e.qn && a.qid === 'cst-inf-c5'), qn: DB.qn, n: DB.answers.length}), e); };
+       const q0 = await ev(() => DB.qn);
+       const fast = await mark(50);
+       console.log(`  report: a reload 50 ms after an answer: the answer was ${fast.kept ? 'kept' : 'lost'} (DB.qn ${q0} before, ${fast.qn} after); the core writes the progress 150 ms after the last change`);
+@@ -460,7 +485,7 @@ const SECTION = async page => {
+         const res = await ev(([err]) => {
+           window.__set = Storage.prototype.setItem;
+           Storage.prototype.setItem = function(){ throw new DOMException('the test refuses this write', err); };
+-          const q = byId('inf-c4'); record(q, 'correct', q.options.findIndex(o => o.correct));
++          const q = byId('cst-inf-c4'); record(q, 'correct', q.options.findIndex(o => o.correct));
+           return {qn: DB.qn}; }, [err]);
+         await page.waitForTimeout(400);
+         const sec = await SECTION(page);

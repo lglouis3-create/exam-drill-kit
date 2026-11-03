@@ -1,0 +1,20 @@
+concept-statuses ci data: ids prefixed cst-, no L91, setup and asks only when the course has their data
+
+The integration run (evidence/integration-3) found three faults in this module's CI data:
+C3, the lecture written as L91 without checking the id is free; C5, plan-the-problem setup
+lines naming equations no module provides, so the course did not build with plan-the-problem
+on; D1, Basic-Pharmacokinetics question ids written unprefixed, so other modules' copies of
+inf-c11 and cq2-4 gave duplicate ids.
+
+test.js gets PFX: every question, topic, subtopic and lecture id of FIX, and every reference
+to one (dupOf, topic, sub, lecture), is the course's own id with the prefix cst- (the mapping
+is in ci/oncourse.js's header). WRITE writes the lecture as cst-L04 unless the course has that
+id, keeps a setup only when the course's EQUATIONS has every equation it names and an asks
+only when ASKS has the key, and reports what it left out. The scratch copy no longer switches
+plan-the-problem off. ci/oncourse.js reads PFX, runs course.js before the course's data files
+(a data file may read COURSE), stops if any prefixed id is taken, and prints what it left out.
+The page checks use the prefixed ids. The data is otherwise verbatim.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01LVkWFDVVDwgsL5WF7yWqcV
+

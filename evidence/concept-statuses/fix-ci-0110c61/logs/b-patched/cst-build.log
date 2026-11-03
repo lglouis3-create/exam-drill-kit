@@ -1,0 +1,75 @@
+== modules switched on, in this order: chained-problem-sets concept-statuses formulas-in-text equation-drill glossary-tap module-pages notes pair-up-drills paper-picker plan-the-problem quiz-prep-cards short-answer-graphs stopwatch study-controls terms-variables theme worksheets-ink wrong-number-diagnosis
+-- chained-problem-sets: node features/chained-problem-sets/ci/oncourse.js
+wrote: /tmp/port-fix-b/b2-cst/src/q90_cpc_fixture.js (topic cpc, 4 parts and the problem set cpc-m1-first from the fixture in test.js)
+wrote: appended to /tmp/port-fix-b/b2-cst/src/course.js: the file in COURSE.files, 2 deck(s) in COURSE.lectures (IntroductionandMathReviewSolutions.pdf, Introduction.pdf), and chained-problem-sets v2 on
+-- concept-statuses: node features/concept-statuses/ci/oncourse.js
+wrote: /tmp/port-fix-b/b2-cst/src/q90_cst_fixture.js (1 topics and 7 questions from FIX in test.js)
+wrote: appended to /tmp/port-fix-b/b2-cst/src/course.js: the file in COURSE.files, the lecture 3IntravenousInfusions.pdf (id cst-L04) in COURSE.lectures, 1 skill(s) in COURSE.skills, and concept-statuses v1 on with words (61 entries)
+left out: 3 setup line(s) (cst-inf-n1, cst-inf-n2, cst-inf-n4) naming an equation the course's EQUATIONS lacks, 3 asks key(s) (cst-inf-n1, cst-inf-n2, cst-inf-n4) the course's ASKS lacks
+-- formulas-in-text: node features/formulas-in-text/ci/oncourse.js
+wrote: appended to /tmp/port-fix-b/b2-cst/src/course.js: formulas-in-text v1 on with 56 symbols, 4 rates, halfLife, times, minus and powers (the options of its test.js)
+wrote: no data files (the module reads no course data file)
+-- equation-drill: node features/equation-drill/ci/oncourse.js
+wrote: /tmp/port-fix-b/b2-cst/src/eqc_equations.js (14 equations from the fixture in test.js)
+wrote: appended to /tmp/port-fix-b/b2-cst/src/course.js: the file in COURSE.files and equation-drill v2 on
+-- glossary-tap: node features/glossary-tap/ci/oncourse.js
+wrote: /tmp/port-fix-b/b2-cst/src/terms_gtap.js (10 terms)
+wrote: /tmp/port-fix-b/b2-cst/src/q1_topics.js (2 topics, 66 questions; replaces the template sample)
+wrote: /tmp/port-fix-b/b2-cst/src/guide.js (Intro to Pharmacology guide.js sections 1 and 4, opening lines; replaces the template sample)
+wrote: /tmp/port-fix-b/b2-cst/src/course.js: lectures L04, L10 in its list; appended 7 skills, terms_gtap.js in files, glossary-tap v1 on
+-- module-pages: node features/module-pages/ci/oncourse.js
+wrote: /tmp/port-fix-b/b2-cst/src/q90_mpc_fixture.js (21909 characters)
+wrote: /tmp/port-fix-b/b2-cst/src/mpc_data.js (1083 characters)
+wrote: appended to /tmp/port-fix-b/b2-cst/src/course.js:
+;/* module-pages ci */ COURSE.files = (COURSE.files || ['atlas.js', 'diagrams.js', 'q1_topics.js']).concat(["q90_mpc_fixture.js", "mpc_data.js"]); COURSE.lectures = (COURSE.lectures || []).concat([{id:'mpc-L02', deck:'2IVBolusAdministration.pdf', label:'Module 2: One-compartment IV bolus (24 Aug)', prof:'Professor', exam:1, module:92}, {id:'mpc-L03', deck:'2IVBolusAdministration.pdf', label:'Module 2: Multicompartment IV bolus (26 Aug)', prof:'Professor', exam:1, module:92}]); COURSE.features = Object.assign({}, COURSE.features, {"module-pages": {"version":"v1","modules":[[1,"Module 1"],[2,"Module 2"],["Module 1","Module 1"],[3,"Module 3"],[92,"Module 2 - IV Bolus Administration"]]}});
+data: 8 questions (calculations: 1), 2 topics, 5 objectives, 1 kinds of problem, 1 skills, 2 lectures; left out: 12 questions citing no lecture deck and 2 second wordings, 3 kinds whose worked example is not among the questions written, 1 problem sets
+-- notes: node features/notes/ci/oncourse.js
+wrote: /tmp/port-fix-b/b2-cst/src/q90_notes_fixture.js (topics pkpd, nonlin and 16 questions from FIX in test.js)
+wrote: appended to /tmp/port-fix-b/b2-cst/src/course.js: the file in COURSE.files, lectures L11, L12 in COURSE.lectures, skills pkpd, nonlin in COURSE.skills, and notes v1 on
+-- pair-up-drills: node features/pair-up-drills/ci/oncourse.js
+wrote: /tmp/port-fix-b/b2-cst/src/pud_ci_data.js (5 pair sets with 14, 9, 8, 12, 32 pairs; 2 tables with 39, 12 rows, from the fixture in test.js)
+wrote: appended to /tmp/port-fix-b/b2-cst/src/course.js: the file in COURSE.files and pair-up-drills v1 on
+-- paper-picker: node features/paper-picker/ci/oncourse.js
+wrote: /tmp/port-fix-b/b2-cst/src/q90_paper_picker_pk.js (11 topics and 118 questions from features/paper-picker/current/test_fixture.js, prof "Professor")
+wrote: /tmp/port-fix-b/b2-cst/src/images.json (the 9 images those questions show, added to the course's own)
+wrote: appended to /tmp/port-fix-b/b2-cst/src/course.js: the file in COURSE.files, 12 lectures in COURSE.lectures, the skills the course lacks, COURSE.exams (Exam 1, Exam 2, Exam 3 (final)), COURSE.activeExam 3, and paper-picker v1 on
+-- plan-the-problem: node features/plan-the-problem/ci/oncourse.js
+wrote: /tmp/port-fix-b/b2-cst/src/plc_plan_data.js (9 equations, added to the course's EQUATIONS, 55 ASKS, PLAN with 12 models)
+wrote: /tmp/port-fix-b/b2-cst/src/q90_plc_fixture.js (6 topics, 10 questions from the fixture in test.js)
+wrote: appended to /tmp/port-fix-b/b2-cst/src/course.js: both files in COURSE.files, 2 lecture(s) (L93 IV-Bolus-Practice-3---Solutions.pdf, L94 Multiple-IV-Bolus-Practice-1---Solutions.pdf), 4 skill(s), and plan-the-problem v1 on
+-- quiz-prep-cards: node features/quiz-prep-cards/ci/oncourse.js
+wrote: /tmp/port-fix-b/b2-cst/src/q90_qpc_pk.js (6 topics, 20 questions from the fixture in test.js)
+wrote: appended to /tmp/port-fix-b/b2-cst/src/course.js: q90_qpc_pk.js in COURSE.files, lectures qpc-L08, qpc-L09, qpc-L10, qpc-L11, qpc-L12, 0 skills (none new), 2 quizzes (q5 2026-10-19T08:00, q4 2026-10-05T08:00), and quiz-prep-cards v1 on
+-- short-answer-graphs: node features/short-answer-graphs/ci/oncourse.js
+wrote: /tmp/port-fix-b/b2-cst/src/q90_sgc_fixture.js (topics FG, L06, PE2; 21 questions from the fixture in test.js)
+wrote: /tmp/port-fix-b/b2-cst/src/sgc_data.js (5 prompts, 4 figures, GRAPH_MISS 12 tags, GRAPH_EXAMS Exam 2 with 4 tags)
+wrote: /tmp/port-fix-b/b2-cst/src/images.json (4 images added: sgc-rev-rt-figure, sgc-rev-allo-ant, sgc-rev-pindolol, sgc-pe2-gi-tracing)
+wrote: appended to /tmp/port-fix-b/b2-cst/src/course.js: the two files in COURSE.files, 5 lecture(s) in COURSE.lectures (L06, L07, L08, L09, PE2), 0 skill(s) in COURSE.skills (none new), and short-answer-graphs v1 on
+-- stopwatch: node features/stopwatch/ci/oncourse.js
+wrote: /tmp/port-fix-b/b2-cst/src/q90_stopwatch_pk.js (10 topics and 60 questions: the calculations sw-cq4-2, sw-cq4-4, sw-cq4-6, sw-cq4-8, sw-cq4-9 and 55 single-answer and select-all questions for Exam 3 (final); prof "Professor")
+wrote: /tmp/port-fix-b/b2-cst/src/images.json (the 7 images those questions show, added to the course's own)
+wrote: appended to /tmp/port-fix-b/b2-cst/src/course.js: q90_stopwatch_pk.js in COURSE.files, 9 lectures (sw-L01, sw-L04, sw-L06, sw-L07, sw-L08, sw-L09, sw-L10, sw-L11, sw-L12), the skills the course lacks, COURSE.exams = [Exam 3 (final)] (no typed, as in the course), COURSE.activeExam 3, and stopwatch v1 on with paceSeconds 120
+-- study-controls: node features/study-controls/ci/oncourse.js
+wrote: /tmp/port-fix-b/b2-cst/src/q90_sc_fixture.js (topic L01 and 6 questions from FIX in test.js)
+wrote: appended to /tmp/port-fix-b/b2-cst/src/course.js: the file in COURSE.files, the lecture Pharmacodynamics-Day-1-2026s.pdf (id L91) in COURSE.lectures, and study-controls v1 on with strict: true and the strict note
+-- terms-variables: node features/terms-variables/ci/oncourse.js
+wrote: /tmp/port-fix-b/b2-cst/src/tvc_course_data.js (7 terms, 55 ASKS entries, added to the course's own)
+wrote: /tmp/port-fix-b/b2-cst/src/q90_tvc_course.js (4 of 5 topics, 9 of 10 questions)
+left out: terms pharmacodynamics (the course's TERMS has a term of that name); questions m2-n-d3a (their cite names no deck of COURSE.lectures); 9 setup lines (equations the course does not have); 8 teachImg (crops the course's images.json does not have)
+wrote: appended to /tmp/port-fix-b/b2-cst/src/course.js: the 2 files in COURSE.files, 5 lectures, 1 skills, and terms-variables v1 on
+-- theme: node features/theme/ci/oncourse.js
+wrote: appended to /tmp/port-fix-b/b2-cst/src/course.js:
+;/* theme ci */ COURSE.features = Object.assign({}, COURSE.features, {"theme": {"version":"v1"}});
+wrote: no data files (the module reads no course data)
+-- worksheets-ink: node features/worksheets-ink/ci/oncourse.js
+wrote: /tmp/port-fix-b/b2-cst/src/q90_wsc_fixture.js (53345 characters)
+wrote: /tmp/port-fix-b/b2-cst/src/wsc_data.js (4196 characters)
+wrote: appended to /tmp/port-fix-b/b2-cst/src/course.js:
+;/* worksheets-ink ci */ COURSE.files = (COURSE.files || []).concat(['q90_wsc_fixture.js', 'wsc_data.js']); COURSE.lectures = (COURSE.lectures || []).concat([{id:'wsc-L09', deck:'6a---Multiple-Oral-Doses.pdf', label:'Module 6a: Multiple oral doses (28 Sep)', exam:2, module:6, prof:'Professor'}, {id:'wsc-L10', deck:'7a---Bioavailability-and-Bioequivalence.pdf', label:'Module 7a: Bioavailability and bioequivalence (30 Sep)', exam:2, module:7, prof:'Professor'}, {id:'wsc-L11', deck:'7b---Pharmacokinetics-and-Pharmacodynamics.pdf', label:'Module 7b: PK-PD relationship (12 Oct)', exam:3, module:9, prof:'Professor'}, {id:'wsc-L12', deck:'8 - Nonlinear PK.pdf', label:'Module 8: Nonlinear pharmacokinetics (14 Oct)', exam:3, module:8, prof:'Professor'}]); COURSE.features = Object.assign({}, COURSE.features, {"worksheets-ink": {"version":"v1","modules":[[1,"1","Module 1 - Introduction & Math Review"],[2,"2","Module 2 - IV Bolus Administration"],[3,"3","Module 3 - Intravenous Infusions"],[4,"4","Module 4 - Drug Elimination and Clearance"],[5,"5","Module 5 - Single Oral Administration"],[6,"6","Module 6 - Multiple Dosings"],[7,"7a","Module 7a - Bioavailability and Bioequivalence"],[9,"7b","Module 7b - PK-PD Relationship"],[8,"8","Module 8 - Nonlinear Pharmacokinetics"]],"originalIds":"^wsc-(hwo|hw7o-|nl-hwo-)","changedIds":"^wsc-(hw\\d|hw7-|nl-hw-)","drillWorked":"no worked answer|without a worked answer|does not record|stated no final value|did not state|ends before she states|not one she asks|computed here|chosen here|recording stops|does not work|applied to that example|her spoken values","spokenOnly":"recording|aloud|spoken","writtenWorking":"written working|her key|her sheet|worked on the|worked answers"}});
+data: 4 documents (ex-m6a, ic-m7, ic-m7b, ex-m8), 19 questions, 6 problem sets, 0 topics, 0 skills, 4 lectures; 19 setup lines left out (equations the course does not have)
+-- wrong-number-diagnosis: node features/wrong-number-diagnosis/ci/oncourse.js
+wrote: appended to /tmp/port-fix-b/b2-cst/src/course.js: wrong-number-diagnosis v1 on
+wrote: no data files (the module reads the course's own calculations)
+  feature worksheets-ink v1 in the page (options {"tab": "sheets", "label": "Worksheets", "before": "settings", "modules": [[1, "1", "Module 1 - Introduction & Math Review"], [2, "2", "Module 2 - IV Bolus Administration"], [3, "3", "Module 3 - Intravenous Infusions"], [4, "4", "Module 4 - Drug Elimination and Clearance"], [5, "5", "Module 5 - Single Oral Administration"], [6, "6", "Module 6 - Multiple Dosings"], [7, "7a", "Module 7a - Bioavailability and Bioequivalence"], [9, "7b", "Module 7b - PK-PD Relationship"], [8, "8", "Module 8 - Nonlinear Pharmacokinetics"]], "originalIds": "^wsc-(hwo|hw7o-|nl-hwo-)", "changedIds": "^wsc-(hw\\d|hw7-|nl-hw-)", "drillWorked": "no worked answer|without a worked answer|does not record|stated no final value|did not state|ends before she states|not one she asks|computed here|chosen here|recording stops|does not work|applied to that example|her spoken values", "spokenOnly": "recording|aloud|spoken", "writtenWorking": "written working|her key|her sheet|worked on the|worked answers"})
+wrote index.html  (1.79 MB)
+wrote COURSE0000_Drill.html  (redirect to index.html)
