@@ -21,8 +21,8 @@
  * no chips; an exam without an id and two exams with one id stop the build.
  * In Chromium, on a scratch copy with Basic-Pharmacokinetics' own data
  * (test_fixture.js: its three exams, activeExam, lectures, and the questions,
- * topics, skills and images that file names, from ac2eb73, with the course's own
- * professor as the one change; on a course that already holds that data, such as
+ * topics, skills and images that file names, from ac2eb73, every field as the course
+ * has it; on a course that already holds that data, such as
  * the CI course, the course's own copy of it): the chips on the Exam view with
  * the current exam (Exam 3) chosen; choosing Exam 2 shows its four pools, their
  * 7/7/20/6 split and what the bank holds, its blurb, and the note that the other
@@ -32,8 +32,9 @@
  * paper for Exam 2; the result names the exam, and drawing the result page again
  * records the paper once; the paper is listed with its score; the choice and the list survive a reload; a second paper, for Exam 3, is
  * listed first with its 39 blank items; a choice made before its exam gives way
- * to the current exam, one made after it is kept; Exam 1, whose Module 2 pool the
- * bank cannot fill, says so and its paper is drawn for the current exam; Settings
+ * to the current exam, one made after it is kept; Exam 1's paper is drawn for it from
+ * its pools; with its Module 2 pool emptied in the page (a set-up shortage), it says its
+ * pools are short and its paper is drawn for the current exam; Settings
  * changes the choice; an exam left off cannot be chosen; opening the Exam view and Settings before any choice adds
  * nothing to the saved progress.
  * Persistence, in a fresh profile: 101 papers submitted keep the 100 newest and
@@ -93,18 +94,23 @@ const sameIds = (a, b) => a.length === b.length && a.every((x, i) => x === b[i])
     // the select-all count: split by marks, the pool with the most marks taking the rounding, each pool giving what it holds
     const ok = q => !q.lowYield && !q.type;
     const order = e.pools.map((p, i) => i).sort((a, b) => e.pools[a].marks - e.pools[b].marks);
-    let left = e.sata || 0, want = 0, single = true;
+    // a family can hold both a select-all and a single-answer wording: once its select-all wording is drawn, its
+    // single-answer wordings cannot be, so only single-answer families with no select-all wording count as certain
+    let left = e.sata || 0, want = 0, extra = 0;
     const sOf = [];
     order.forEach((i, k) => {
       const s = k === order.length - 1 ? Math.max(0, left) : Math.round((e.sata || 0) * e.pools[i].marks / total); left -= s;
       sOf[i] = s;
       const qs = X.QUESTIONS.filter(q => ok(q) && inPool(q) === i);
-      const m = Math.min(s, new Set(qs.filter(X.isMulti).map(X.familyOf)).size);
+      const mf = new Set(qs.filter(X.isMulti).map(X.familyOf));
+      const m = Math.min(s, mf.size);
       want += m;
-      if(new Set(qs.filter(q => !X.isMulti(q)).map(X.familyOf)).size < sh[i] - m) single = false;
+      const solo = new Set(qs.filter(q => !X.isMulti(q)).map(X.familyOf).filter(f => !mf.has(f))).size;
+      extra += Math.max(0, Math.min(mf.size - m, sh[i] - m - solo));
     });
-    if(single) check(d.filter(X.isMulti).length === want, `${e.name}: the paper carries ${want} select-all item(s) (its sata ${e.sata || 0}, split by marks, as many as each pool holds)`, d.filter(X.isMulti).length);
-    else L.skip(`${e.name}: the select-all count`, 'a pool holds too few single-answer questions, so the module tops it up with select-all ones');
+    const got = d.filter(X.isMulti).length;
+    if(!extra) check(got === want, `${e.name}: the paper carries ${want} select-all item(s) (its sata ${e.sata || 0}, split by marks, as many as each pool holds)`, got);
+    else check(got >= want && got <= want + extra, `${e.name}: the paper carries ${want} to ${want + extra} select-all item(s) (its sata ${e.sata || 0}, split by marks; a pool whose single-answer families can run short is topped up with up to ${extra} of its own select-all items)`, got);
     // the paper is shuffled: over five papers, at least one does not hold its pools one after another
     let mixed = false;
     for(let t = 0; t < 5 && !mixed; t++){ const p = S.drawFor(e, n) || [], at = p.map(inPool); mixed = at.some((x, j) => j && at[j - 1] !== x && at.slice(0, j - 1).includes(x)); }
@@ -130,7 +136,6 @@ const sameIds = (a, b) => a.length === b.length && a.every((x, i) => x === b[i])
   check(S.drawFor(X.EXAM, X.QUESTIONS.length + 1) === null, 'a paper longer than the pools can fill is not drawn');
 
   console.log('\n=== the build step: which exams get a chip ===');
-  const own = {prof: X.COURSE.professors[0]};
   const two = "COURSE.exams = [COURSE.exams.find(e => e.id === COURSE.activeExam) || COURSE.exams[0]]; COURSE.exams.push(Object.assign(JSON.parse(JSON.stringify(COURSE.exams[0])), {id: 'pp-other', name: 'Other paper'}));";
   // the step output in the module's FX.load call of a built page
   const stepOf = html => { const m = html.match(/FX\.load\("paper-picker", "v1", (\{.*?\}), (\{.*?\}), function/); return m ? JSON.parse(m[2]) : null; };
@@ -171,8 +176,8 @@ const sameIds = (a, b) => a.length === b.length && a.every((x, i) => x === b[i])
   // The fixture's questions (ids with the prefix FIX.PRE): the course's own copy of them (the CI course), or the
   // fixture added to a scratch copy. Either way the scratch copy is set to the fixture's own exams and current exam
   // (a course may hold the questions with other exams: a 1-exam course, or a course where another module's script
-  // set COURSE.exams after this one). Exam 1's pools take only the fixture's topics in the copy, so the check that
-  // its Module 2 pool cannot be filled reads the fixture's own bank, whatever other modules add; Exam 2's and
+  // set COURSE.exams after this one). Exam 1's pools take only the fixture's topics in the copy, so the checks that
+  // Exam 1's pools are filled (and, once narrowed, short) read the fixture's own bank, whatever other modules add; Exam 2's and
   // Exam 3's pools take every question, as in a course. Where another lecture with one of the fixture's decks and
   // another exam or module comes before the fixture's own lectures (the core reads a question's exam and module
   // from the first lecture naming its deck), the fixture's lectures are moved ahead in the copy, all lectures kept.
@@ -187,7 +192,7 @@ const sameIds = (a, b) => a.length === b.length && a.every((x, i) => x === b[i])
   let opts;
   if(have) opts = {courseLine: setUp};
   else {
-    const d = FIX.courseData(own.prof);
+    const d = FIX.courseData();
     opts = {files: d.files, courseLine: d.courseLine + ' ' + setUp, edit: src => {
       const f = path.join(src, 'images.json');
       fs.writeFileSync(f, FIX.withImages(fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '{}'));
@@ -317,16 +322,29 @@ const sameIds = (a, b) => a.length === b.length && a.every((x, i) => x === b[i])
         e1: A.examEnds(e1) === Date.parse(e1.when) + e1.minutes * 60000}; });
     check(rule.beforeIt === 3 && rule.afterIt === 1, `${E1.name} chosen before it was sat gives way to ${E3.name} now it is over; chosen after it (to review it), it is kept`, rule);
     check(rule.never && rule.fut && rule.e1, 'an exam ends at its `when` plus its minutes; one with no date in ISO form never ends', rule);
-    // Exam 1: the bank cannot fill its pools
+    // Exam 1: the fixture's bank fills its pools, so its paper is drawn for it
     const b1 = await bank(1);
     await page.click('#v-exam .chip[data-ppexam="1"]');
+    await page.waitForSelector('#v-exam [data-pp="other"]', {timeout: 5000}).catch(() => {});
+    const e1v = await ev(() => ({short: !!document.querySelector('#v-exam [data-pp="short"]'), kept: DB.paperPicker.exam}));
+    check(b1.room === N && !e1v.short && e1v.kept === 1, `${E1.name}'s pools hold enough questions (${b1.per.join('/')}): no shortage note, and ${E1.name} is chosen`, {room: b1.room, e1v});
+    await page.click('#startExam');
+    const r1e = await ev(() => { const e = COURSE.exams.find(x => x.id === 1), tests = e.pools.map(p => poolFilter(p.filter));
+      return {drawn: DB.paperPicker.drawn.exam, n: EX.qs.length, all: EX.qs.every(q => tests.some(t => t(q)))}; });
+    check(r1e.drawn === 1 && r1e.n === N && r1e.all, `the paper started then is drawn for ${E1.name}, ${N} questions from its pools`, r1e);
+    await ev(() => { finishExam(true); EX = null; renderExam(); });
+    // a pool the bank cannot fill (set up here: Exam 1's Module 2 pool narrowed, in the page, to a topic no question has)
+    await ev(() => { const p = COURSE.exams.find(x => x.id === 1).pools[1]; p.ppWas = p.filter; p.filter = Object.assign({}, p.filter, {topic: ['pp-no-such-topic']}); delete p.test; renderExam(); });
+    await page.click('#v-exam .chip[data-ppexam="1"]');
     await page.waitForSelector('#v-exam [data-pp="short"]', {timeout: 5000}).catch(() => {});
+    const b1s = await bank(1);
     const sh = await ev(() => (document.querySelector('#v-exam [data-pp="short"]') || {}).textContent || '');
-    check(b1.room < N && sh.includes(`its pools can supply ${b1.room} of the ${N}`) && sh.includes(`drawn for ${E3.name}`),
-          `${E1.name}'s pools hold too few questions (${b1.per.join('/')}): the page says they supply ${b1.room} of the ${N}, and that the paper is drawn for the current exam`, sh);
+    check(b1s.room < N && sh.includes(`its pools can supply ${b1s.room} of the ${N}`) && sh.includes(`drawn for ${E3.name}`),
+          `with ${E1.name}'s Module 2 pool emptied (${b1s.per.join('/')}): the page says its pools supply ${b1s.room} of the ${N}, and that the paper is drawn for the current exam`, sh);
     await page.click('#startExam');
     const r5 = await ev(() => ({drawn: DB.paperPicker.drawn.exam, n: EX.qs.length}));
     check(r5.drawn === 3 && r5.n === N, 'the paper started then is the current exam\'s', r5);
+    await ev(() => { const p = COURSE.exams.find(x => x.id === 1).pools[1]; p.filter = p.ppWas; delete p.ppWas; delete p.test; });
     await ev(() => { finishExam(true); EX = null; renderExam(); });
     // Settings
     await page.click('#nav button[data-v="settings"]');
