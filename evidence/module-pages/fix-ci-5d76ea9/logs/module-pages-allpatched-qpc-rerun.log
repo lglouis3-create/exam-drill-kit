@@ -1,0 +1,68 @@
+
+=== the course's own quizzes ===
+  ok    the page carries quiz-prep-cards, working
+  ok    every quiz covers at least one question, and only questions of the topics or modules it names (2 quizzes)
+  ok    one card per quiz still ahead and not hidden (0 of 2)
+
+=== Quiz 5 of the fixture: the days left and the end of the quiz ===
+  ok    the days-left line for Quiz 5 (2026-10-19T08:00, 24 minutes) at 5 fixed times
+  ok    Quiz 5 is ahead until its start plus its 24 minutes (08:24), and not after
+
+=== the build step stops on bad quiz data ===
+  ok    no quizzes stops the build and says so
+  ok    a topic that TOPICS does not have stops the build and says so
+  ok    a module no question carries stops the build and says so
+  ok    a quiz that covers no question stops the build and says so
+  ok    a when that is not YYYY-MM-DDTHH:MM stops the build and says so
+  ok    minutes below 0 stops the build and says so
+  ok    an id with a space stops the build and says so
+  ok    two quizzes with one id stops the build and says so
+  ok    a field the module does not read stops the build and says so
+  ok    said that is not a list stops the build and says so
+  ok    a tag other than sub, sup, b, i, em in a said line stops the build and says so
+  ok    a tag in covers stops the build and says so
+
+=== on a scratch copy with Basic-Pharmacokinetics' Quiz 5 and Quiz 4 (Chromium) ===
+  ok    Fri 2 Oct 2026: a card for each of the two quizzes ahead, in the course's order
+  ok    the Quiz 5 card names the quiz, its day and time, the days left (17) and what it covers
+  ok    the Quiz 4 card says 3 days until the quiz
+  ok    the card carries the professor's words and the source
+  ok    every said line is listed (8 and 11), with each <sub> and <sup> kept
+  ok    formulas-in-text is on: the two {{frac:a|b}} of said line 5 are stacked
+  ok    the cards sit under the build stamp or the What's new card, above the Topics filters
+  ok    the Hide button says what it hides
+  ok    the Quiz 5 card offers concepts (77), calculations (15), everything (92) and a straight pass (92)
+  ok    Everything on this quiz starts the drill on Quiz 5's 92 questions: every fixture question of modules 9 and 8, and only those modules
+  ok    the concepts drill (77) has no typed number and the calculations drill (15) only typed numbers
+  FAIL  the Quiz 4 straight pass queues each of its 83 questions once  — ["sw-m6b-c15","m6b-c13","sw-m6b-c20","sw-m6b-c16","m6b-c17","sw-m6b-c04","sw-cq4-4","wsc-m6b-n10","m6b-c20","wsc-m7-n09","m6b-c15","sw-cq4-2","x3-c-13","sw-m6b-c13","cq4-5","x3-b-intsata","m6-c19","m7-c08","wsc-m7-n08","fr-8a","cq4-3","sw-m6b-c07","sw-cq4-6","sw-m6b-c06","cq4-4","m7-c04","m7-c02","fr-6a","wsc-m6b-n09","sw-m6b-c10","wsc-m7-n04","e2r-8","m6b-c03","m6b-c07","cq4-7","sw-x3-c-13","m7-c09","m6b-c08","cq4-3","cq4-10","m7-c03","cq4-10","m6b-c14","cq4-8","m6b-c09","m6b-c19","m6b-c14","wsc-m6b-n11","sw-cq4-8","x3-b-maxbolus","x3-b-dosesata","sw-m6b-c08","wsc-m6b-n13","cq4-6","m7-c15","cq4-9","m7-c01","sw-m6b-c14","m6b-c16","sw-m6b-c03","wsc-m7-n05","plc-m6-p1d","cq4-5","m6b-c06","sw-m6b-c05","m7-c03","m7-c10","wsc-m6b-n14","m6b-c10","m6b-c05","e2r-9","cq4-2","m6b-c04","cq4-7","sw-m6b-c09","m7-c07","m7-c05","plc-m6-n05","x3-b-adjsata","wsc-m6b-n12","m6b-c16","sw-cq4-9","wsc-m7-n07"]
+  ok    Hide removes the card and the choice survives a reload
+  ok    Settings offers to put the hidden card back, by name
+  ok    the card is back on Topics and Settings says no card is hidden
+  ok    no page error and no module error
+  ok    Mon 12 Oct: no card for Quiz 4, which is over; Quiz 5 is 7 days away
+  ok    a hidden card of a quiz that is over is not offered back in Settings
+  ok    Mon 19 Oct: Quiz 5 says quiz day at 07:00 and in progress at 08:10, and its card is gone at 08:24, its start plus 24 minutes
+  ok    no page error with the clock moved
+
+=== persistence: Export and Import, a profile switch, reloads ===
+  FAIL  the two straight passes record 80 answers (40 on Quiz 5, 40 on Quiz 4), all on the quizzes' questions  — {"n5":40,"n":80}
+  ok    Export writes the 80 answers; the hide flag is not in it (it is kept per browser)
+  ok    a profile switch: the other profile has no answers, and switching back brings the 80 answers back
+  ok    the hidden Quiz 4 card stays hidden in both profiles (one browser)
+  ok    a reload at once (under 150 ms) and 400 ms after Hide keeps the hidden card hidden (Quiz 5 both times; Quiz 4 shows again after Show again)
+  note  an answer followed at once by a reload: 0 of 1 kept (the core saves 150 ms after the last change); 400 ms later: 1 of 1 kept
+  ok    an answer in a quiz drill is saved 400 ms later and survives a reload
+  ok    no page error
+  ok    Import into a fresh browser brings the same 80 answers and 57 concepts back
+  ok    in the fresh browser both cards show: a hidden card is hidden on its own browser only
+
+=== persistence: storage full and storage denied ===
+  ok    quota: Hide shows the notice that nothing was saved, and the card is hidden for this visit
+  ok    quota: the saved Quiz 4 flag and the 40 saved answers are unchanged
+  ok    quota: with storage working again, the saved flag and the 40 answers load; the Hide that was not saved is not applied
+  ok    quota: no page error
+  ok    denied: Hide shows the notice that nothing was saved, and the card is hidden for this visit
+  ok    denied: the saved Quiz 4 flag and the 40 saved answers are unchanged
+  ok    denied: with storage working again, the saved flag and the 40 answers load; the Hide that was not saved is not applied
+  ok    denied: no page error
+FAIL: features/quiz-prep-cards/test.js: 2 of 54 checks failed: the Quiz 4 straight pass queues each of its 83 questions once; the two straight passes record 80 answers (40 on Quiz 5, 40 on Quiz 4), all on the quizzes' questions

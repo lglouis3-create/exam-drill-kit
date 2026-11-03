@@ -1,0 +1,81 @@
+
+=== Explanation quality ===
+  126 of 364 questions carry at least one issue
+
+    94  thin option why
+    56  no diagnosis of the error
+     2  vague reference
+
+  by pool:
+    77  f-e2 (supplies 15 of the 40)
+    49  f-e1 (supplies 15 of the 40)
+
+  worst 30, ranked by severity x exam weight:
+
+  L10-004     L10       f-e2            rank 97.5
+      - thin option why: A (58), B (39), C (22), D (51), E (44)
+      - vague reference: concept block: "does the opposite", unnamed
+  L10-033     L10       f-e2            rank 90.0
+      - thin option why: A (30), B (56), C (40), D (71), E (23), F (75)
+  L10-036     L10       f-e2            rank 90.0
+      - thin option why: A (79), B (75), C (67), D (71), E (42), F (69)
+  L10-045     L10       f-e2            rank 90.0
+      - thin option why: A (72), B (77), C (97), D (78), E (29), F (30)
+  L10-053     L10       f-e2            rank 90.0
+      - thin option why: A (67), B (46), C (62), D (43), E (27)
+      - no diagnosis of the error: F, G
+  L10-058     L10       f-e2            rank 90.0
+      - thin option why: A (56), B (33), C (32), D (24), E (38), F (71)
+  L10-041     L10       f-e2            rank 82.5
+      - thin option why: A (61), B (92), C (76), D (28), F (48)
+      - no diagnosis of the error: E
+  sgc-PE2-031 PE2       f-e2            rank 82.5
+      - thin option why: B (73), C (75), D (109), E (74)
+      - vague reference: concept block: "does the opposite", unnamed
+  L10-001     L10       f-e2            rank 75.0
+      - thin option why: A (84), B (57), C (56), D (39), E (40)
+  L10-002     L10       f-e2            rank 75.0
+      - thin option why: A (68), B (36), C (48), D (25), E (25)
+  L10-007     L10       f-e2            rank 75.0
+      - thin option why: A (94), B (89), C (45), D (75), E (55)
+  L10-016     L10       f-e2            rank 75.0
+      - thin option why: A (78), B (49), C (73), D (67), E (70)
+  L10-018     L10       f-e2            rank 75.0
+      - thin option why: A (73), B (40), C (36), D (48), E (46)
+  L10-025     L10       f-e2            rank 75.0
+      - thin option why: A (94), B (85), C (67), D (46), E (53)
+  L10-028     L10       f-e2            rank 75.0
+      - thin option why: A (95), B (49), C (28), D (51), E (93)
+  L10-030     L10       f-e2            rank 75.0
+      - thin option why: A (109), B (44), C (45), D (74), E (105)
+  L10-039     L10       f-e2            rank 75.0
+      - thin option why: A (104), B (23), C (49), D (25), E (23)
+  L10-046     L10       f-e2            rank 75.0
+      - thin option why: A (59), B (54), C (33), D (23), E (59)
+  L10-048     L10       f-e2            rank 75.0
+      - thin option why: A (105), B (50), C (35), D (41), E (67)
+  sgc-FG-027  FG        f-e1            rank 75.0
+      - thin option why: A (54), B (71), C (48), D (72), E (85)
+  L01-007     L01       f-e1            rank 75.0
+      - thin option why: A (40), B (102), C (84), D (63), E (67)
+  L01-004     L01       f-e1            rank 67.5
+      - thin option why: A (99), B (43), C (45), D (92)
+      - no diagnosis of the error: E
+  L04-009     L04       f-e1            rank 60.0
+      - thin option why: B (30), C (60), D (32), E (45)
+  L04-023     L04       f-e1            rank 60.0
+      - thin option why: A (76), B (66), C (83), D (68)
+  L04-025     L04       f-e1            rank 60.0
+      - thin option why: A (105), B (97), C (106), D (25)
+  L10-003     L10       f-e2            rank 60.0
+      - thin option why: B (23), C (64), D (90), E (36)
+  L10-005     L10       f-e2            rank 60.0
+      - thin option why: B (56), C (88), D (67), E (100)
+  L10-008     L10       f-e2            rank 60.0
+      - thin option why: A (101), B (88), C (64), D (48)
+  L10-009     L10       f-e2            rank 60.0
+      - thin option why: A (80), B (64), C (70), D (80)
+  L10-010     L10       f-e2            rank 60.0
+      - thin option why: B (32), C (58), D (69), E (53)
+
+REPORT: explain_check.js: 126 of 364 questions carry at least one explanation issue
