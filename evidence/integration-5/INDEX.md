@@ -18,7 +18,7 @@ Every result here was run by the coordinator (the porter session), not by an imp
 
 | Check | Result | Log |
 |---|---|---|
-| Module tests (18, each module's `test.js` on the all-module course) | 18 PASS, 0 FAIL. SKIPPED cases inside passing tests: chained-problem-sets 1, short-answer-graphs 1, study-controls 1, theme 2 (KNOWN LIMIT T1: 8 of 12 first frames light, 6 of 12 dark, on the 2.93 MB page), worksheets-ink 1 (Apple Pencil, iPad and Safari), wrong-number-diagnosis 1 | `logs/ci-all.log` |
+| Module tests (18, each module's `test.js` on the all-module course) | 18 PASS, 0 FAIL. SKIPPED cases inside passing tests: chained-problem-sets 1, short-answer-graphs 1, study-controls 1, theme 2 (KNOWN LIMIT T1: 8 of 12 first frames light, 6 of 12 dark, "on a 3.1 MB page" by the theme test's own measure; `build.py` reports index.html as 2.93 MB), worksheets-ink 1 (Apple Pencil, iPad and Safari), wrong-number-diagnosis 1 | `logs/ci-all.log` |
 | Core checks (`run_checks.sh`) | 23 PASS, 3 FAIL, 1 NOT RUN (`cite_check.py`, no lecture PDFs), 1 REPORT (`explain_check.js`). `home_test.js` PASS, 36 checks | `logs/ci-all.log` |
 | FAIL `test.js` section 7 | "returned the identical question, not a new wording" | `logs/test-js-section7-FAIL.log` |
 | FAIL `output_test.js`, FAIL `checks_test.js` | each runs `test.js` (or `run_checks.sh`) again on a copy of the course, and fails because `test.js` fails: "exit 1: FAIL: test.js: 1 failure(s)" | `logs/output_test-FAIL.log`, `logs/checks_test-FAIL.log` |
