@@ -1,0 +1,20 @@
+{
+ "name": "terms-variables",
+ "version": "v1",
+ "does": "A Terms tab: Flashcards over the course's TERMS (a situation with the term left out, then the term, its meaning and its definition, marked Knew it, Not sure or Did not know), Quiz me (up to three questions per term: which term a situation describes, what a term means, which term a definition belongs to, the wrong options from the term's look-alikes and group first), and the variables quiz over the course's ASKS: which symbol one of the professor's own calculation stems asks for, what each symbol means, and which symbol a meaning belongs to, the wrong options from the same family of symbols first; also offered on the Equations tab when equation-drill is on. Reads TERMS ([{id, term, group, def, cite, gist?, scene?, hook?, module?, confuse?}], the shape glossary-tap reads) and ASKS ({key: [symbol, meaning]}, the shape plan-the-problem reads) from data files listed in course.js `files`, either of them optional, and each numeric question's `asks`. The questions are kept off exam papers and out of the bank.",
+ "source": "Basic-Pharmacokinetics src/views.js lines 1029-1260 (termQuestions, varQuestions, varQuizHTML, renderTerms; its Glossary mode is glossary-tap's) and 4173-4175, src/shell.html 1371-1428 (ASKS), at ac2eb73",
+ "js": ["terms-variables.js"],
+ "css": ["terms-variables.css"],
+ "step": "step.js",
+ "options": {
+  "label": {"default": "Terms", "about": "the tab's name in the nav"},
+  "before": {"default": "settings", "about": "the tab it is placed before"},
+  "groups": {"default": {}, "about": "{module number: name} for the module chips; without it, Module <n>"},
+  "families": {"default": {}, "about": "{ASKS key: family name}: the symbols the variables quiz drills, and their neighbours, the first wrong options; without it, every ASKS key in one family"},
+  "names": {"default": {}, "about": "{ASKS key: [words]}: the usual names of a symbol; a stem sentence that uses one is not asked, since it would name its own answer"},
+  "twins": {"default": {}, "about": "{ASKS key: [ASKS keys]}: symbols the professor's wording alone cannot tell apart, never each other's wrong option"},
+  "cite": {"default": "The course's list of the symbols in its equations (ASKS)", "about": "the source shown on the questions on what a symbol means"},
+  "skill": {"default": "", "about": "a COURSE.skills id for these questions; without it the core judges the skill from the stem"}
+ },
+ "test": "test.js"
+}
