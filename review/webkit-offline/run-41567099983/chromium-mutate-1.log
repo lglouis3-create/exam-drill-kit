@@ -1,0 +1,608 @@
+﻿2026-11-03T02:36:02.3338843Z Current runner version: '2.338.2'
+2026-11-03T02:36:02.3367429Z ##[group]Runner Image Provisioner
+2026-11-03T02:36:02.3368496Z Hosted Compute Agent
+2026-11-03T02:36:02.3369197Z Version: 20261021.618
+2026-11-03T02:36:02.3370149Z Commit: 21505ad2541d5be6135ed84fc33697146cf75b8e
+2026-11-03T02:36:02.3372020Z Build Date: 2026-10-21T00:45:21Z
+2026-11-03T02:36:02.3373063Z Worker ID: {ae8075e9-3854-4746-8867-0d297d5fe293}
+2026-11-03T02:36:02.3373932Z Region: mexicocentral
+2026-11-03T02:36:02.3374676Z Cloud: Azure
+2026-11-03T02:36:02.3375580Z ##[endgroup]
+2026-11-03T02:36:02.3377211Z ##[group]Operating System
+2026-11-03T02:36:02.3378125Z Ubuntu
+2026-11-03T02:36:02.3378759Z 24.04.5
+2026-11-03T02:36:02.3379425Z LTS
+2026-11-03T02:36:02.3380072Z ##[endgroup]
+2026-11-03T02:36:02.3380774Z ##[group]Runner Image
+2026-11-03T02:36:02.3381646Z Image: ubuntu-24.04
+2026-11-03T02:36:02.3383245Z Version: 20261025.353.1
+2026-11-03T02:36:02.3384965Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261025.353/images/ubuntu/Ubuntu2404-Readme.md
+2026-11-03T02:36:02.3387352Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261025.353
+2026-11-03T02:36:02.3388760Z ##[endgroup]
+2026-11-03T02:36:02.3390146Z ##[group]GITHUB_TOKEN Permissions
+2026-11-03T02:36:02.3392252Z Contents: read
+2026-11-03T02:36:02.3393068Z Metadata: read
+2026-11-03T02:36:02.3393865Z ##[endgroup]
+2026-11-03T02:36:02.3397083Z Secret source: Actions
+2026-11-03T02:36:02.3398195Z Cache mode: write
+2026-11-03T02:36:02.3399320Z Prepare workflow directory
+2026-11-03T02:36:02.3915529Z Prepare all required actions
+2026-11-03T02:36:02.3971778Z Getting action download info
+2026-11-03T02:36:02.7033639Z Download action repository 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1' (SHA:3d3c42e5aac5ba805825da76410c181273ba90b1)
+2026-11-03T02:36:02.8133719Z Download action repository 'actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1' (SHA:949feb2413d6458794dcd2491c4babbbce0c15c1)
+2026-11-03T02:36:02.9819108Z Download action repository 'actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0' (SHA:6d4fd22b20465ccc0f7354476588e8df7c9ca0e0)
+2026-11-03T02:36:03.8022193Z Complete job name: chromium · mutate · set 1
+2026-11-03T02:36:03.8701301Z ##[group]Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+2026-11-03T02:36:03.8702171Z with:
+2026-11-03T02:36:03.8702594Z   repository: lglouis3-create/exam-drill-kit
+2026-11-03T02:36:03.8706194Z   token: ***
+2026-11-03T02:36:03.8706586Z   ssh-strict: true
+2026-11-03T02:36:03.8706978Z   ssh-user: git
+2026-11-03T02:36:03.8707367Z   persist-credentials: true
+2026-11-03T02:36:03.8707794Z   clean: true
+2026-11-03T02:36:03.8708184Z   sparse-checkout-cone-mode: true
+2026-11-03T02:36:03.8708636Z   fetch-depth: 1
+2026-11-03T02:36:03.8709015Z   fetch-tags: false
+2026-11-03T02:36:03.8709401Z   show-progress: true
+2026-11-03T02:36:03.8709801Z   lfs: false
+2026-11-03T02:36:03.8710173Z   submodules: false
+2026-11-03T02:36:03.8710577Z   set-safe-directory: true
+2026-11-03T02:36:03.8711045Z   allow-unsafe-pr-checkout: false
+2026-11-03T02:36:03.8711720Z ##[endgroup]
+2026-11-03T02:36:04.0617978Z Syncing repository: lglouis3-create/exam-drill-kit
+2026-11-03T02:36:04.0620523Z ##[group]Getting Git version info
+2026-11-03T02:36:04.0621665Z Working directory is '/home/runner/work/exam-drill-kit/exam-drill-kit'
+2026-11-03T02:36:04.0641300Z [command]/usr/bin/git version
+2026-11-03T02:36:04.0769763Z git version 2.56.0
+2026-11-03T02:36:04.0818136Z ##[endgroup]
+2026-11-03T02:36:04.0827219Z Temporarily overriding HOME='/home/runner/work/_temp/3da61dcb-3d1a-4797-a1fb-6f47e2dec30d' before making global git config changes
+2026-11-03T02:36:04.0829560Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-03T02:36:04.0851266Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/exam-drill-kit/exam-drill-kit
+2026-11-03T02:36:04.0910671Z Deleting the contents of '/home/runner/work/exam-drill-kit/exam-drill-kit'
+2026-11-03T02:36:04.0912605Z ##[group]Determining repository object format
+2026-11-03T02:36:04.0914671Z ##[endgroup]
+2026-11-03T02:36:04.0953199Z ##[group]Initializing the repository
+2026-11-03T02:36:04.0954786Z [command]/usr/bin/git init /home/runner/work/exam-drill-kit/exam-drill-kit
+2026-11-03T02:36:04.1003052Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-11-03T02:36:04.1008596Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-11-03T02:36:04.1011556Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-11-03T02:36:04.1013296Z hint: call:
+2026-11-03T02:36:04.1014493Z hint:
+2026-11-03T02:36:04.1015620Z hint: 	git config --global init.defaultBranch <name>
+2026-11-03T02:36:04.1030230Z hint:
+2026-11-03T02:36:04.1031470Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-11-03T02:36:04.1033102Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-11-03T02:36:04.1034418Z hint:
+2026-11-03T02:36:04.1035410Z hint: 	git branch -m <name>
+2026-11-03T02:36:04.1036359Z hint:
+2026-11-03T02:36:04.1037401Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-11-03T02:36:04.1039482Z Initialized empty Git repository in /home/runner/work/exam-drill-kit/exam-drill-kit/.git/
+2026-11-03T02:36:04.1042568Z [command]/usr/bin/git remote add origin https://github.com/lglouis3-create/exam-drill-kit
+2026-11-03T02:36:04.1153463Z ##[endgroup]
+2026-11-03T02:36:04.1192313Z ##[group]Disabling automatic garbage collection
+2026-11-03T02:36:04.1206772Z [command]/usr/bin/git config --local gc.auto 0
+2026-11-03T02:36:04.1209783Z ##[endgroup]
+2026-11-03T02:36:04.1211211Z ##[group]Setting up auth
+2026-11-03T02:36:04.1212330Z Removing SSH command configuration
+2026-11-03T02:36:04.1227777Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-03T02:36:04.1288450Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-03T02:36:04.1670907Z Removing HTTP extra header
+2026-11-03T02:36:04.1676474Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-03T02:36:04.1715105Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-03T02:36:04.1957305Z Removing includeIf entries pointing to credentials config files
+2026-11-03T02:36:04.1970496Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-03T02:36:04.2022929Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-03T02:36:04.2245080Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-1f6eee46-4279-4729-981b-f1f1e345dc54.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-11-03T02:36:04.2289353Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/exam-drill-kit/exam-drill-kit/.git.path /home/runner/work/_temp/git-credentials-1f6eee46-4279-4729-981b-f1f1e345dc54.config
+2026-11-03T02:36:04.2318457Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/exam-drill-kit/exam-drill-kit/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-1f6eee46-4279-4729-981b-f1f1e345dc54.config
+2026-11-03T02:36:04.2358322Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-1f6eee46-4279-4729-981b-f1f1e345dc54.config
+2026-11-03T02:36:04.2398512Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-1f6eee46-4279-4729-981b-f1f1e345dc54.config
+2026-11-03T02:36:04.2436421Z ##[endgroup]
+2026-11-03T02:36:04.2438018Z ##[group]Fetching the repository
+2026-11-03T02:36:04.2442620Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +836d9fa861ca102e3b17a2d36201f2cf1f2f6edd:refs/remotes/origin/claude/elegant-ptolemy-pqxb8y-webkit-diag
+2026-11-03T02:36:05.0786663Z From https://github.com/lglouis3-create/exam-drill-kit
+2026-11-03T02:36:05.0788329Z  * [new ref]         836d9fa861ca102e3b17a2d36201f2cf1f2f6edd -> origin/claude/elegant-ptolemy-pqxb8y-webkit-diag
+2026-11-03T02:36:05.0796883Z [command]/usr/bin/git branch --list --remote origin/claude/elegant-ptolemy-pqxb8y-webkit-diag
+2026-11-03T02:36:05.0828680Z   origin/claude/elegant-ptolemy-pqxb8y-webkit-diag
+2026-11-03T02:36:05.0835624Z [command]/usr/bin/git rev-parse refs/remotes/origin/claude/elegant-ptolemy-pqxb8y-webkit-diag
+2026-11-03T02:36:05.0866327Z 836d9fa861ca102e3b17a2d36201f2cf1f2f6edd
+2026-11-03T02:36:05.0871766Z ##[endgroup]
+2026-11-03T02:36:05.0873769Z ##[group]Determining the checkout info
+2026-11-03T02:36:05.0876526Z ##[endgroup]
+2026-11-03T02:36:05.0878156Z [command]/usr/bin/git sparse-checkout disable
+2026-11-03T02:36:05.0931237Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-11-03T02:36:05.0970673Z ##[group]Checking out the ref
+2026-11-03T02:36:05.0975696Z [command]/usr/bin/git checkout --progress --force -B claude/elegant-ptolemy-pqxb8y-webkit-diag refs/remotes/origin/claude/elegant-ptolemy-pqxb8y-webkit-diag
+2026-11-03T02:36:05.1338258Z Switched to a new branch 'claude/elegant-ptolemy-pqxb8y-webkit-diag'
+2026-11-03T02:36:05.1347840Z branch 'claude/elegant-ptolemy-pqxb8y-webkit-diag' set up to track 'origin/claude/elegant-ptolemy-pqxb8y-webkit-diag'.
+2026-11-03T02:36:05.1357351Z ##[endgroup]
+2026-11-03T02:36:05.1404394Z [command]/usr/bin/git log -1 --format=%H
+2026-11-03T02:36:05.1440633Z 836d9fa861ca102e3b17a2d36201f2cf1f2f6edd
+2026-11-03T02:36:05.1888014Z ##[group]Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+2026-11-03T02:36:05.1889366Z with:
+2026-11-03T02:36:05.1890090Z   node-version: 22
+2026-11-03T02:36:05.1890911Z   check-latest: false
+2026-11-03T02:36:05.1899127Z   token: ***
+2026-11-03T02:36:05.1899926Z   package-manager-cache: true
+2026-11-03T02:36:05.1900849Z ##[endgroup]
+2026-11-03T02:36:05.3026779Z Found in cache @ /opt/hostedtoolcache/node/22.23.4/x64
+2026-11-03T02:36:05.3746415Z ##[group]Environment details
+2026-11-03T02:36:05.8361947Z node: v22.23.4
+2026-11-03T02:36:05.8362677Z npm: 10.9.9
+2026-11-03T02:36:05.8363293Z yarn: 1.22.22
+2026-11-03T02:36:05.8364502Z ##[endgroup]
+2026-11-03T02:36:05.8526548Z ##[group]Run actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+2026-11-03T02:36:05.8526860Z with:
+2026-11-03T02:36:05.8527036Z   python-version: 3.13
+2026-11-03T02:36:05.8527225Z   check-latest: false
+2026-11-03T02:36:05.8529078Z   token: ***
+2026-11-03T02:36:05.8529339Z   mirror: https://raw.githubusercontent.com/actions/python-versions/main
+2026-11-03T02:36:05.8529655Z   update-environment: true
+2026-11-03T02:36:05.8529852Z   allow-prereleases: false
+2026-11-03T02:36:05.8530055Z   freethreaded: false
+2026-11-03T02:36:05.8530235Z ##[endgroup]
+2026-11-03T02:36:05.9511584Z ##[group]Installed versions
+2026-11-03T02:36:05.9581355Z Successfully set up CPython (3.13.17)
+2026-11-03T02:36:05.9582226Z ##[endgroup]
+2026-11-03T02:36:05.9709758Z ##[group]Run npm install -g playwright@1.63.0
+2026-11-03T02:36:05.9710422Z [36;1mnpm install -g playwright@1.63.0[0m
+2026-11-03T02:36:05.9711053Z [36;1mnpx --yes playwright@1.63.0 install --with-deps "$BROWSER"[0m
+2026-11-03T02:36:05.9751503Z shell: /usr/bin/bash -e {0}
+2026-11-03T02:36:05.9751827Z env:
+2026-11-03T02:36:05.9752401Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.17/x64
+2026-11-03T02:36:05.9752982Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.17/x64/lib/pkgconfig
+2026-11-03T02:36:05.9753559Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.17/x64
+2026-11-03T02:36:05.9754056Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.17/x64
+2026-11-03T02:36:05.9754555Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.17/x64
+2026-11-03T02:36:05.9755461Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.17/x64/lib
+2026-11-03T02:36:05.9755899Z   BROWSER: chromium
+2026-11-03T02:36:05.9756164Z ##[endgroup]
+2026-11-03T02:36:07.9539715Z 
+2026-11-03T02:36:07.9556346Z added 2 packages in 2s
+2026-11-03T02:36:09.2155971Z Installing dependencies...
+2026-11-03T02:36:09.2218769Z Switching to root user to install dependencies...
+2026-11-03T02:36:09.3504219Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+2026-11-03T02:36:09.4384813Z Hit:2 http://azure.archive.ubuntu.com/ubuntu noble InRelease
+2026-11-03T02:36:09.4595070Z Get:3 http://azure.archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+2026-11-03T02:36:09.5384459Z Get:4 http://azure.archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+2026-11-03T02:36:09.5416634Z Get:6 https://packages.microsoft.com/ubuntu/24.04/prod noble InRelease [3600 B]
+2026-11-03T02:36:09.5578871Z Get:5 http://azure.archive.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+2026-11-03T02:36:09.5861530Z Get:7 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1408 kB]
+2026-11-03T02:36:09.6544130Z Get:8 http://azure.archive.ubuntu.com/ubuntu noble-updates/main Translation-en [311 kB]
+2026-11-03T02:36:09.6598039Z Get:14 https://packages.microsoft.com/ubuntu/24.04/prod noble/main amd64 Packages [685 kB]
+2026-11-03T02:36:09.6696177Z Get:15 https://packages.microsoft.com/ubuntu/24.04/prod noble/main arm64 Packages [617 kB]
+2026-11-03T02:36:09.6766240Z Get:9 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [1707 kB]
+2026-11-03T02:36:09.7145187Z Get:10 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe Translation-en [343 kB]
+2026-11-03T02:36:09.7396930Z Get:11 http://azure.archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1813 kB]
+2026-11-03T02:36:09.7676830Z Get:12 http://azure.archive.ubuntu.com/ubuntu noble-updates/restricted Translation-en [412 kB]
+2026-11-03T02:36:09.7882515Z Get:13 http://azure.archive.ubuntu.com/ubuntu noble-updates/multiverse Translation-en [14.3 kB]
+2026-11-03T02:36:09.8081688Z Get:16 http://azure.archive.ubuntu.com/ubuntu noble-security/main amd64 Packages [1153 kB]
+2026-11-03T02:36:09.8333122Z Get:17 http://azure.archive.ubuntu.com/ubuntu noble-security/main Translation-en [232 kB]
+2026-11-03T02:36:09.8526795Z Get:18 http://azure.archive.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1224 kB]
+2026-11-03T02:36:09.9390424Z Get:19 http://azure.archive.ubuntu.com/ubuntu noble-security/universe Translation-en [246 kB]
+2026-11-03T02:36:09.9609208Z Get:20 http://azure.archive.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1721 kB]
+2026-11-03T02:36:09.9886820Z Get:21 http://azure.archive.ubuntu.com/ubuntu noble-security/restricted Translation-en [394 kB]
+2026-11-03T02:36:10.0121471Z Get:22 http://azure.archive.ubuntu.com/ubuntu noble-security/multiverse Translation-en [12.4 kB]
+2026-11-03T02:36:13.1168201Z Fetched 12.7 MB in 1s (9899 kB/s)
+2026-11-03T02:36:13.9260733Z Reading package lists...
+2026-11-03T02:36:13.9526903Z Reading package lists...
+2026-11-03T02:36:14.1358839Z Building dependency tree...
+2026-11-03T02:36:14.1366337Z Reading state information...
+2026-11-03T02:36:14.2637746Z libasound2t64 is already the newest version (1.2.11-1ubuntu0.3).
+2026-11-03T02:36:14.2638690Z libasound2t64 set to manually installed.
+2026-11-03T02:36:14.2639839Z libatk-bridge2.0-0t64 is already the newest version (2.52.0-1build1).
+2026-11-03T02:36:14.2640629Z libatk-bridge2.0-0t64 set to manually installed.
+2026-11-03T02:36:14.2641278Z libatk1.0-0t64 is already the newest version (2.52.0-1build1).
+2026-11-03T02:36:14.2641781Z libatk1.0-0t64 set to manually installed.
+2026-11-03T02:36:14.2642242Z libatspi2.0-0t64 is already the newest version (2.52.0-1build1).
+2026-11-03T02:36:14.2642893Z libatspi2.0-0t64 set to manually installed.
+2026-11-03T02:36:14.2643486Z libcairo2 is already the newest version (1.18.0-3build1).
+2026-11-03T02:36:14.2644093Z libcairo2 set to manually installed.
+2026-11-03T02:36:14.2644980Z libcups2t64 is already the newest version (2.4.7-1.2ubuntu7.14).
+2026-11-03T02:36:14.2645795Z libcups2t64 set to manually installed.
+2026-11-03T02:36:14.2646493Z libdbus-1-3 is already the newest version (1.14.10-4ubuntu4.1).
+2026-11-03T02:36:14.2647128Z libdbus-1-3 set to manually installed.
+2026-11-03T02:36:14.2647812Z libdrm2 is already the newest version (2.4.125-1ubuntu0.1~24.04.2).
+2026-11-03T02:36:14.2648497Z libdrm2 set to manually installed.
+2026-11-03T02:36:14.2649185Z libgbm1 is already the newest version (25.2.8-0ubuntu0.24.04.4).
+2026-11-03T02:36:14.2649852Z libgbm1 set to manually installed.
+2026-11-03T02:36:14.2650514Z libglib2.0-0t64 is already the newest version (2.80.0-6ubuntu3.10).
+2026-11-03T02:36:14.2651211Z libglib2.0-0t64 set to manually installed.
+2026-11-03T02:36:14.2651888Z libnspr4 is already the newest version (2:4.35-1.1build1).
+2026-11-03T02:36:14.2652504Z libnspr4 set to manually installed.
+2026-11-03T02:36:14.2653208Z libnss3 is already the newest version (2:3.98-1ubuntu0.3).
+2026-11-03T02:36:14.2653844Z libnss3 set to manually installed.
+2026-11-03T02:36:14.2654528Z libpango-1.0-0 is already the newest version (1.52.1+ds-1build1).
+2026-11-03T02:36:14.2655207Z libpango-1.0-0 set to manually installed.
+2026-11-03T02:36:14.2656072Z libx11-6 is already the newest version (2:1.8.7-1ubuntu0.1).
+2026-11-03T02:36:14.2656691Z libx11-6 set to manually installed.
+2026-11-03T02:36:14.2657321Z libxcb1 is already the newest version (1.15-1ubuntu2).
+2026-11-03T02:36:14.2658027Z libxcb1 set to manually installed.
+2026-11-03T02:36:14.2658684Z libxcomposite1 is already the newest version (1:0.4.5-1build3).
+2026-11-03T02:36:14.2659360Z libxcomposite1 set to manually installed.
+2026-11-03T02:36:14.2660033Z libxdamage1 is already the newest version (1:1.1.6-1build1).
+2026-11-03T02:36:14.2660675Z libxdamage1 set to manually installed.
+2026-11-03T02:36:14.2661359Z libxext6 is already the newest version (2:1.3.4-1build2).
+2026-11-03T02:36:14.2662023Z libxext6 set to manually installed.
+2026-11-03T02:36:14.2662723Z libxfixes3 is already the newest version (1:6.0.0-2build1).
+2026-11-03T02:36:14.2663412Z libxfixes3 set to manually installed.
+2026-11-03T02:36:14.2664135Z libxkbcommon0 is already the newest version (1.6.0-1build1).
+2026-11-03T02:36:14.2664813Z libxkbcommon0 set to manually installed.
+2026-11-03T02:36:14.2665691Z libxrandr2 is already the newest version (2:1.5.2-2build1).
+2026-11-03T02:36:14.2666382Z libxrandr2 set to manually installed.
+2026-11-03T02:36:14.2667067Z xvfb is already the newest version (2:21.1.12-1ubuntu1.9).
+2026-11-03T02:36:14.2667920Z fonts-noto-color-emoji is already the newest version (2.047-0ubuntu0.24.04.1).
+2026-11-03T02:36:14.2668734Z libfontconfig1 is already the newest version (2.15.0-1.1ubuntu2).
+2026-11-03T02:36:14.2669444Z libfontconfig1 set to manually installed.
+2026-11-03T02:36:14.2670152Z libfreetype6 is already the newest version (2.13.2+dfsg-1ubuntu0.2).
+2026-11-03T02:36:14.2670881Z libfreetype6 set to manually installed.
+2026-11-03T02:36:14.2671609Z fonts-liberation is already the newest version (1:2.1.5-3).
+2026-11-03T02:36:14.2672309Z fonts-liberation set to manually installed.
+2026-11-03T02:36:14.2672989Z The following additional packages will be installed:
+2026-11-03T02:36:14.2673801Z   xfonts-encodings xfonts-utils
+2026-11-03T02:36:14.2674401Z Recommended packages:
+2026-11-03T02:36:14.2674906Z   fonts-ipafont-mincho fonts-tlwg-loma
+2026-11-03T02:36:14.2833565Z The following NEW packages will be installed:
+2026-11-03T02:36:14.2834599Z   fonts-freefont-ttf fonts-ipafont-gothic fonts-tlwg-loma-otf fonts-unifont
+2026-11-03T02:36:14.2838474Z   fonts-wqy-zenhei xfonts-cyrillic xfonts-encodings xfonts-scalable
+2026-11-03T02:36:14.2839223Z   xfonts-utils
+2026-11-03T02:36:14.3021563Z 0 upgraded, 9 newly installed, 0 to remove and 6 not upgraded.
+2026-11-03T02:36:14.3025829Z Need to get 21.1 MB of archives.
+2026-11-03T02:36:14.3026579Z After this operation, 79.5 MB of additional disk space will be used.
+2026-11-03T02:36:14.3027437Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+2026-11-03T02:36:14.3856279Z Get:2 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-ipafont-gothic all 00303-21ubuntu1 [3513 kB]
+2026-11-03T02:36:14.5959444Z Get:3 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 fonts-freefont-ttf all 20211204+svn4273-2 [5641 kB]
+2026-11-03T02:36:14.7029327Z Get:4 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-tlwg-loma-otf all 1:0.7.3-1 [107 kB]
+2026-11-03T02:36:14.7520180Z Get:5 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-unifont all 1:15.1.01-1build1 [2993 kB]
+2026-11-03T02:36:14.8303940Z Get:6 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-wqy-zenhei all 0.9.45-8 [7472 kB]
+2026-11-03T02:36:14.9539804Z Get:7 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-encodings all 1:1.0.5-0ubuntu2 [578 kB]
+2026-11-03T02:36:15.0046989Z Get:8 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-utils amd64 1:7.7+6build3 [94.4 kB]
+2026-11-03T02:36:15.0531729Z Get:9 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1 [384 kB]
+2026-11-03T02:36:15.1036021Z Get:10 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3 [304 kB]
+2026-11-03T02:36:15.3353830Z Fetched 21.1 MB in 1s (25.9 MB/s)
+2026-11-03T02:36:15.3612554Z Selecting previously unselected package fonts-ipafont-gothic.
+2026-11-03T02:36:15.3850249Z (Reading database ... 
+2026-11-03T02:36:15.3850614Z (Reading database ... 5%
+2026-11-03T02:36:15.3850915Z (Reading database ... 10%
+2026-11-03T02:36:15.3851207Z (Reading database ... 15%
+2026-11-03T02:36:15.3851482Z (Reading database ... 20%
+2026-11-03T02:36:15.3851770Z (Reading database ... 25%
+2026-11-03T02:36:15.3853419Z (Reading database ... 30%
+2026-11-03T02:36:15.3853904Z (Reading database ... 35%
+2026-11-03T02:36:15.3854485Z (Reading database ... 40%
+2026-11-03T02:36:15.3854800Z (Reading database ... 45%
+2026-11-03T02:36:15.3855114Z (Reading database ... 50%
+2026-11-03T02:36:15.3884869Z (Reading database ... 55%
+2026-11-03T02:36:15.5231223Z (Reading database ... 60%
+2026-11-03T02:36:15.7263902Z (Reading database ... 65%
+2026-11-03T02:36:15.9337875Z (Reading database ... 70%
+2026-11-03T02:36:16.1255533Z (Reading database ... 75%
+2026-11-03T02:36:16.2401468Z (Reading database ... 80%
+2026-11-03T02:36:16.3384267Z (Reading database ... 85%
+2026-11-03T02:36:16.4273086Z (Reading database ... 90%
+2026-11-03T02:36:16.5337362Z (Reading database ... 95%
+2026-11-03T02:36:16.5338444Z (Reading database ... 100%
+2026-11-03T02:36:16.5339343Z (Reading database ... 215504 files and directories currently installed.)
+2026-11-03T02:36:16.5380753Z Preparing to unpack .../0-fonts-ipafont-gothic_00303-21ubuntu1_all.deb ...
+2026-11-03T02:36:16.5636579Z Unpacking fonts-ipafont-gothic (00303-21ubuntu1) ...
+2026-11-03T02:36:16.8806426Z Selecting previously unselected package fonts-freefont-ttf.
+2026-11-03T02:36:16.8935078Z Preparing to unpack .../1-fonts-freefont-ttf_20211204+svn4273-2_all.deb ...
+2026-11-03T02:36:16.8942805Z Unpacking fonts-freefont-ttf (20211204+svn4273-2) ...
+2026-11-03T02:36:17.0594822Z Selecting previously unselected package fonts-tlwg-loma-otf.
+2026-11-03T02:36:17.0719195Z Preparing to unpack .../2-fonts-tlwg-loma-otf_1%3a0.7.3-1_all.deb ...
+2026-11-03T02:36:17.0725735Z Unpacking fonts-tlwg-loma-otf (1:0.7.3-1) ...
+2026-11-03T02:36:17.0938929Z Selecting previously unselected package fonts-unifont.
+2026-11-03T02:36:17.1053295Z Preparing to unpack .../3-fonts-unifont_1%3a15.1.01-1build1_all.deb ...
+2026-11-03T02:36:17.1060392Z Unpacking fonts-unifont (1:15.1.01-1build1) ...
+2026-11-03T02:36:17.4585081Z Selecting previously unselected package fonts-wqy-zenhei.
+2026-11-03T02:36:17.4812336Z Preparing to unpack .../4-fonts-wqy-zenhei_0.9.45-8_all.deb ...
+2026-11-03T02:36:17.4961057Z Unpacking fonts-wqy-zenhei (0.9.45-8) ...
+2026-11-03T02:36:18.0566925Z Selecting previously unselected package xfonts-encodings.
+2026-11-03T02:36:18.0729466Z Preparing to unpack .../5-xfonts-encodings_1%3a1.0.5-0ubuntu2_all.deb ...
+2026-11-03T02:36:18.0746128Z Unpacking xfonts-encodings (1:1.0.5-0ubuntu2) ...
+2026-11-03T02:36:18.1157863Z Selecting previously unselected package xfonts-utils.
+2026-11-03T02:36:18.1277282Z Preparing to unpack .../6-xfonts-utils_1%3a7.7+6build3_amd64.deb ...
+2026-11-03T02:36:18.1284265Z Unpacking xfonts-utils (1:7.7+6build3) ...
+2026-11-03T02:36:18.1640985Z Selecting previously unselected package xfonts-cyrillic.
+2026-11-03T02:36:18.1760276Z Preparing to unpack .../7-xfonts-cyrillic_1%3a1.0.5+nmu1_all.deb ...
+2026-11-03T02:36:18.1766335Z Unpacking xfonts-cyrillic (1:1.0.5+nmu1) ...
+2026-11-03T02:36:18.2257438Z Selecting previously unselected package xfonts-scalable.
+2026-11-03T02:36:18.2380674Z Preparing to unpack .../8-xfonts-scalable_1%3a1.0.3-1.3_all.deb ...
+2026-11-03T02:36:18.2387211Z Unpacking xfonts-scalable (1:1.0.3-1.3) ...
+2026-11-03T02:36:18.2961065Z Setting up fonts-wqy-zenhei (0.9.45-8) ...
+2026-11-03T02:36:18.3073376Z Setting up fonts-freefont-ttf (20211204+svn4273-2) ...
+2026-11-03T02:36:18.3099309Z Setting up fonts-tlwg-loma-otf (1:0.7.3-1) ...
+2026-11-03T02:36:18.3124239Z Setting up xfonts-encodings (1:1.0.5-0ubuntu2) ...
+2026-11-03T02:36:18.3157433Z Setting up fonts-ipafont-gothic (00303-21ubuntu1) ...
+2026-11-03T02:36:18.3252537Z update-alternatives: using /usr/share/fonts/opentype/ipafont-gothic/ipag.ttf to provide /usr/share/fonts/truetype/fonts-japanese-gothic.ttf (fonts-japanese-gothic.ttf) in auto mode
+2026-11-03T02:36:18.3267699Z Setting up fonts-unifont (1:15.1.01-1build1) ...
+2026-11-03T02:36:18.3296432Z Setting up xfonts-utils (1:7.7+6build3) ...
+2026-11-03T02:36:18.3340712Z Setting up xfonts-cyrillic (1:1.0.5+nmu1) ...
+2026-11-03T02:36:18.3618169Z Setting up xfonts-scalable (1:1.0.3-1.3) ...
+2026-11-03T02:36:18.3876343Z Processing triggers for man-db (2.12.0-4build2) ...
+2026-11-03T02:36:18.3894471Z Not building database; man-db/auto-update is not 'true'.
+2026-11-03T02:36:18.3907054Z Processing triggers for fontconfig (2.15.0-1.1ubuntu2) ...
+2026-11-03T02:36:18.9871203Z 
+2026-11-03T02:36:18.9872102Z Running kernel seems to be up-to-date.
+2026-11-03T02:36:18.9872782Z 
+2026-11-03T02:36:18.9873173Z No services need to be restarted.
+2026-11-03T02:36:18.9873523Z 
+2026-11-03T02:36:18.9873904Z No containers need to be restarted.
+2026-11-03T02:36:18.9874277Z 
+2026-11-03T02:36:18.9874627Z No user sessions are running outdated binaries.
+2026-11-03T02:36:18.9875032Z 
+2026-11-03T02:36:18.9875715Z No VM guests are running outdated hypervisor (qemu) binaries on this host.
+2026-11-03T02:36:19.8075644Z Downloading Chrome for Testing 153.0.8010.12 (playwright chromium v1243) from https://cdn.playwright.dev/builds/cft/153.0.8010.12/linux64/chrome-linux64.zip
+2026-11-03T02:36:20.3676530Z |                                                                                |   0% of 186.8 MiB
+2026-11-03T02:36:20.9570088Z |■■■■■■■■                                                                        |  10% of 186.8 MiB
+2026-11-03T02:36:21.1946686Z |■■■■■■■■■■■■■■■■                                                                |  20% of 186.8 MiB
+2026-11-03T02:36:21.3493297Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 186.8 MiB
+2026-11-03T02:36:21.5084209Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 186.8 MiB
+2026-11-03T02:36:21.6762253Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 186.8 MiB
+2026-11-03T02:36:21.8817948Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 186.8 MiB
+2026-11-03T02:36:22.0357361Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 186.8 MiB
+2026-11-03T02:36:22.1916895Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 186.8 MiB
+2026-11-03T02:36:22.3401235Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 186.8 MiB
+2026-11-03T02:36:22.4969545Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 186.8 MiB
+2026-11-03T02:36:24.6147572Z Chrome for Testing 153.0.8010.12 (playwright chromium v1243) downloaded to /home/runner/.cache/ms-playwright/chromium-1243
+2026-11-03T02:36:24.6149291Z Downloading FFmpeg (playwright ffmpeg v1011) from https://cdn.playwright.dev/dbazure/download/playwright/builds/ffmpeg/1011/ffmpeg-linux.zip
+2026-11-03T02:36:25.1250203Z |                                                                                |   0% of 2.3 MiB
+2026-11-03T02:36:25.2239819Z |■■■■■■■■                                                                        |  10% of 2.3 MiB
+2026-11-03T02:36:25.2630368Z |■■■■■■■■■■■■■■■■                                                                |  20% of 2.3 MiB
+2026-11-03T02:36:25.2890421Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 2.3 MiB
+2026-11-03T02:36:25.3057215Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 2.3 MiB
+2026-11-03T02:36:25.3196235Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 2.3 MiB
+2026-11-03T02:36:25.3319789Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 2.3 MiB
+2026-11-03T02:36:25.3419687Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 2.3 MiB
+2026-11-03T02:36:25.3505079Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 2.3 MiB
+2026-11-03T02:36:25.3571926Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 2.3 MiB
+2026-11-03T02:36:25.3637101Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 2.3 MiB
+2026-11-03T02:36:25.4150247Z FFmpeg (playwright ffmpeg v1011) downloaded to /home/runner/.cache/ms-playwright/ffmpeg-1011
+2026-11-03T02:36:25.4153617Z Downloading Chrome Headless Shell 153.0.8010.12 (playwright chromium-headless-shell v1243) from https://cdn.playwright.dev/builds/cft/153.0.8010.12/linux64/chrome-headless-shell-linux64.zip
+2026-11-03T02:36:25.9813511Z |                                                                                |   0% of 114.3 MiB
+2026-11-03T02:36:26.5289938Z |■■■■■■■■                                                                        |  10% of 114.3 MiB
+2026-11-03T02:36:26.6121910Z |■■■■■■■■■■■■■■■■                                                                |  20% of 114.3 MiB
+2026-11-03T02:36:26.6889093Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 114.3 MiB
+2026-11-03T02:36:26.7736578Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 114.3 MiB
+2026-11-03T02:36:26.8591911Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 114.3 MiB
+2026-11-03T02:36:26.9397203Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 114.3 MiB
+2026-11-03T02:36:27.0194370Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 114.3 MiB
+2026-11-03T02:36:27.1009684Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 114.3 MiB
+2026-11-03T02:36:27.1779882Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 114.3 MiB
+2026-11-03T02:36:27.2643807Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 114.3 MiB
+2026-11-03T02:36:28.7776432Z Chrome Headless Shell 153.0.8010.12 (playwright chromium-headless-shell v1243) downloaded to /home/runner/.cache/ms-playwright/chromium_headless_shell-1243
+2026-11-03T02:36:28.8233549Z ##[group]Run export NODE_PATH="$(npm root -g)"
+2026-11-03T02:36:28.8234014Z [36;1mexport NODE_PATH="$(npm root -g)"[0m
+2026-11-03T02:36:28.8234445Z [36;1mbash .github/diag/run.sh "$BROWSER" "$RUNS" "$MODE"[0m
+2026-11-03T02:36:28.8254355Z shell: /usr/bin/bash -e {0}
+2026-11-03T02:36:28.8254582Z env:
+2026-11-03T02:36:28.8254817Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.17/x64
+2026-11-03T02:36:28.8255162Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.17/x64/lib/pkgconfig
+2026-11-03T02:36:28.8255670Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.17/x64
+2026-11-03T02:36:28.8256000Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.17/x64
+2026-11-03T02:36:28.8256303Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.17/x64
+2026-11-03T02:36:28.8256611Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.17/x64/lib
+2026-11-03T02:36:28.8256867Z   BROWSER: chromium
+2026-11-03T02:36:28.8257032Z   MODE: mutate
+2026-11-03T02:36:28.8257183Z   RUNS: 1
+2026-11-03T02:36:28.8257374Z   WAIT_UP: 0
+2026-11-03T02:36:28.8257531Z   DOWN: refuse
+2026-11-03T02:36:28.8275349Z   PW_DEBUG: 
+2026-11-03T02:36:28.8275609Z ##[endgroup]
+2026-11-03T02:36:31.1627086Z == kit 836d9fa, chromium, mode mutate, 1
+2026-11-03T02:36:31.1819506Z mutation no-offline-fallback applied to sw.js
+2026-11-03T02:37:02.7774228Z 
+2026-11-03T02:37:02.7775751Z ######## run no-offline-fallback.1, offline_test.js, exit 1 ########
+2026-11-03T02:37:02.7784836Z 
+2026-11-03T02:37:02.7785177Z === Files beside the page ===
+2026-11-03T02:37:02.7785935Z   ok    sw.js is written beside the page
+2026-11-03T02:37:02.7786841Z   ok    the worker's cache prefix comes from the course namespace (course-id-drill-)
+2026-11-03T02:37:02.7787582Z   ok    manifest.json is written and names its icons
+2026-11-03T02:37:02.7788379Z   ok    every icon the page and manifest name is a PNG on disk
+2026-11-03T02:37:02.7789032Z   ok    the page links the manifest
+2026-11-03T02:37:02.7789367Z 
+2026-11-03T02:37:02.7789695Z === Caches on a shared origin ===
+2026-11-03T02:37:02.7790286Z   ok    the worker installs and controls the page on the first visit
+2026-11-03T02:37:02.7790961Z   ok    the student is told the drill now opens offline
+2026-11-03T02:37:02.7791613Z   ok    the shared origin holds 4 other sites' caches for this check
+2026-11-03T02:37:02.7792572Z   ok    another site's cache phar4342-drill-v1 is kept
+2026-11-03T02:37:02.7793139Z   ok    another site's cache bdk-v18 is kept
+2026-11-03T02:37:02.7793697Z   ok    another site's cache other-drill-v2 is kept
+2026-11-03T02:37:02.7794310Z   ok    another site's cache course-id-drill-extra-v1 is kept
+2026-11-03T02:37:02.7794962Z   ok    this course's old cache course-id-drill-v0 is deleted
+2026-11-03T02:37:02.7796336Z   ok    this course's cache course-id-drill-v1 is there
+2026-11-03T02:37:02.7797054Z   ok    the page, the redirect, the manifest and the icons are saved at install
+2026-11-03T02:37:02.7797873Z   ok    after a reload the page is served by the worker
+2026-11-03T02:37:02.7798501Z   ok    the offline note is shown once, not on every load
+2026-11-03T02:37:02.7798905Z 
+2026-11-03T02:37:02.7799171Z === Server down ===
+2026-11-03T02:37:02.7799706Z   FAIL  the site opens from the saved copy with the server down
+2026-11-03T02:37:02.7800362Z   FAIL  the old file name COURSE0000_Drill.html opens it too
+2026-11-03T02:37:02.7800975Z   FAIL  a quiz starts and serves a question offline
+2026-11-03T02:37:02.7801676Z   ok    no request reaches the server while it is down (it refuses connections)
+2026-11-03T02:37:02.7802195Z 
+2026-11-03T02:37:02.7802595Z === Server slower than NET_TIMEOUT, with a newer page ===
+2026-11-03T02:37:02.7803372Z   ok    the saved copy opens without waiting for the network (3546 ms, server 8000 ms)
+2026-11-03T02:37:02.7804052Z   ok    that copy is the last one saved
+2026-11-03T02:37:02.7804627Z   ok    a reload is offered once the newer page arrives
+2026-11-03T02:37:02.7805182Z   ok    the page never reloads by itself
+2026-11-03T02:37:02.7806112Z   ok    Reload brings in the newer page
+2026-11-03T02:37:02.7806679Z   ok    no page errors in the service worker checks
+2026-11-03T02:37:02.7807068Z 
+2026-11-03T02:37:02.7807325Z === Opened from disk ===
+2026-11-03T02:37:02.7807859Z   ok    no worker is registered for a page opened from disk
+2026-11-03T02:37:02.7808402Z   ok    the drill opens from disk
+2026-11-03T02:37:02.7808893Z   ok    no page errors opened from disk
+2026-11-03T02:37:02.7810304Z FAIL: offline_test.js: 3 of 30 checks failed: the site opens from the saved copy with the server down; the old file name COURSE0000_Drill.html opens it too; a quiz starts and serves a question offline
+2026-11-03T02:37:02.8292941Z mutation no-timeout applied to sw.js
+2026-11-03T02:37:31.4882932Z 
+2026-11-03T02:37:31.4884288Z ######## run no-timeout.1, offline_test.js, exit 1 ########
+2026-11-03T02:37:31.4894126Z 
+2026-11-03T02:37:31.4894488Z === Files beside the page ===
+2026-11-03T02:37:31.4895077Z   ok    sw.js is written beside the page
+2026-11-03T02:37:31.4896182Z   ok    the worker's cache prefix comes from the course namespace (course-id-drill-)
+2026-11-03T02:37:31.4897174Z   ok    manifest.json is written and names its icons
+2026-11-03T02:37:31.4897843Z   ok    every icon the page and manifest name is a PNG on disk
+2026-11-03T02:37:31.4898450Z   ok    the page links the manifest
+2026-11-03T02:37:31.4898847Z 
+2026-11-03T02:37:31.4899170Z === Caches on a shared origin ===
+2026-11-03T02:37:31.4899814Z   ok    the worker installs and controls the page on the first visit
+2026-11-03T02:37:31.4900492Z   ok    the student is told the drill now opens offline
+2026-11-03T02:37:31.4901183Z   ok    the shared origin holds 4 other sites' caches for this check
+2026-11-03T02:37:31.4901856Z   ok    another site's cache phar4342-drill-v1 is kept
+2026-11-03T02:37:31.4902452Z   ok    another site's cache bdk-v18 is kept
+2026-11-03T02:37:31.4903011Z   ok    another site's cache other-drill-v2 is kept
+2026-11-03T02:37:31.4903647Z   ok    another site's cache course-id-drill-extra-v1 is kept
+2026-11-03T02:37:31.4904353Z   ok    this course's old cache course-id-drill-v0 is deleted
+2026-11-03T02:37:31.4905027Z   ok    this course's cache course-id-drill-v1 is there
+2026-11-03T02:37:31.4906035Z   ok    the page, the redirect, the manifest and the icons are saved at install
+2026-11-03T02:37:31.4906818Z   ok    after a reload the page is served by the worker
+2026-11-03T02:37:31.4907785Z   ok    the offline note is shown once, not on every load
+2026-11-03T02:37:31.4908234Z 
+2026-11-03T02:37:31.4908511Z === Server down ===
+2026-11-03T02:37:31.4909033Z   ok    the site opens from the saved copy with the server down
+2026-11-03T02:37:31.4909713Z   ok    the old file name COURSE0000_Drill.html opens it too
+2026-11-03T02:37:31.4910351Z   ok    a quiz starts and serves a question offline
+2026-11-03T02:37:31.4911092Z   ok    no request reaches the server while it is down (it refuses connections)
+2026-11-03T02:37:31.4911641Z 
+2026-11-03T02:37:31.4912046Z === Server slower than NET_TIMEOUT, with a newer page ===
+2026-11-03T02:37:31.4912852Z   FAIL  the saved copy opens without waiting for the network (8047 ms, server 8000 ms)
+2026-11-03T02:37:31.4913575Z   FAIL  that copy is the last one saved
+2026-11-03T02:37:31.4914149Z   FAIL  a reload is offered once the newer page arrives
+2026-11-03T02:37:31.4914764Z   FAIL  the page never reloads by itself
+2026-11-03T02:37:31.4915788Z   ok    no page errors in the service worker checks
+2026-11-03T02:37:31.4916212Z 
+2026-11-03T02:37:31.4916483Z === Opened from disk ===
+2026-11-03T02:37:31.4917167Z   ok    no worker is registered for a page opened from disk
+2026-11-03T02:37:31.4917770Z   ok    the drill opens from disk
+2026-11-03T02:37:31.4918290Z   ok    no page errors opened from disk
+2026-11-03T02:37:31.4920123Z FAIL: offline_test.js: 4 of 29 checks failed: the saved copy opens without waiting for the network (8047 ms, server 8000 ms); that copy is the last one saved; a reload is offered once the newer page arrives …
+2026-11-03T02:37:31.5126198Z mutation no-update-offer applied to sw.js
+2026-11-03T02:37:53.6907096Z 
+2026-11-03T02:37:53.6908405Z ######## run no-update-offer.1, offline_test.js, exit 1 ########
+2026-11-03T02:37:53.6918008Z 
+2026-11-03T02:37:53.6918355Z === Files beside the page ===
+2026-11-03T02:37:53.6918952Z   ok    sw.js is written beside the page
+2026-11-03T02:37:53.6919741Z   ok    the worker's cache prefix comes from the course namespace (course-id-drill-)
+2026-11-03T02:37:53.6920718Z   ok    manifest.json is written and names its icons
+2026-11-03T02:37:53.6921450Z   ok    every icon the page and manifest name is a PNG on disk
+2026-11-03T02:37:53.6922075Z   ok    the page links the manifest
+2026-11-03T02:37:53.6922443Z 
+2026-11-03T02:37:53.6922769Z === Caches on a shared origin ===
+2026-11-03T02:37:53.6923416Z   ok    the worker installs and controls the page on the first visit
+2026-11-03T02:37:53.6924095Z   ok    the student is told the drill now opens offline
+2026-11-03T02:37:53.6924774Z   ok    the shared origin holds 4 other sites' caches for this check
+2026-11-03T02:37:53.6925666Z   ok    another site's cache phar4342-drill-v1 is kept
+2026-11-03T02:37:53.6926276Z   ok    another site's cache bdk-v18 is kept
+2026-11-03T02:37:53.6926847Z   ok    another site's cache other-drill-v2 is kept
+2026-11-03T02:37:53.6927498Z   ok    another site's cache course-id-drill-extra-v1 is kept
+2026-11-03T02:37:53.6928205Z   ok    this course's old cache course-id-drill-v0 is deleted
+2026-11-03T02:37:53.6928885Z   ok    this course's cache course-id-drill-v1 is there
+2026-11-03T02:37:53.6929642Z   ok    the page, the redirect, the manifest and the icons are saved at install
+2026-11-03T02:37:53.6930469Z   ok    after a reload the page is served by the worker
+2026-11-03T02:37:53.6931109Z   ok    the offline note is shown once, not on every load
+2026-11-03T02:37:53.6931555Z 
+2026-11-03T02:37:53.6931832Z === Server down ===
+2026-11-03T02:37:53.6932365Z   ok    the site opens from the saved copy with the server down
+2026-11-03T02:37:53.6933029Z   ok    the old file name COURSE0000_Drill.html opens it too
+2026-11-03T02:37:53.6933671Z   ok    a quiz starts and serves a question offline
+2026-11-03T02:37:53.6934411Z   ok    no request reaches the server while it is down (it refuses connections)
+2026-11-03T02:37:53.6934956Z 
+2026-11-03T02:37:53.6935878Z === Server slower than NET_TIMEOUT, with a newer page ===
+2026-11-03T02:37:53.6938594Z   ok    the saved copy opens without waiting for the network (3539 ms, server 8000 ms)
+2026-11-03T02:37:53.6942837Z   ok    that copy is the last one saved
+2026-11-03T02:37:53.6943486Z   FAIL  a reload is offered once the newer page arrives
+2026-11-03T02:37:53.6944100Z   ok    the page never reloads by itself
+2026-11-03T02:37:53.6944689Z   ok    no page errors in the service worker checks
+2026-11-03T02:37:53.6945127Z 
+2026-11-03T02:37:53.6945630Z === Opened from disk ===
+2026-11-03T02:37:53.6946219Z   ok    no worker is registered for a page opened from disk
+2026-11-03T02:37:53.6946825Z   ok    the drill opens from disk
+2026-11-03T02:37:53.6947362Z   ok    no page errors opened from disk
+2026-11-03T02:37:53.6948213Z FAIL: offline_test.js: 1 of 29 checks failed: a reload is offered once the newer page arrives
+2026-11-03T02:37:53.7146343Z mutation down-does-nothing applied to src/check_lib.js
+2026-11-03T02:38:04.7549641Z 
+2026-11-03T02:38:04.7550970Z ######## run down-does-nothing.1, offline_test.js, exit 1 ########
+2026-11-03T02:38:04.7560939Z 
+2026-11-03T02:38:04.7561289Z === Files beside the page ===
+2026-11-03T02:38:04.7561880Z   ok    sw.js is written beside the page
+2026-11-03T02:38:04.7562658Z   ok    the worker's cache prefix comes from the course namespace (course-id-drill-)
+2026-11-03T02:38:04.7563535Z   ok    manifest.json is written and names its icons
+2026-11-03T02:38:04.7564291Z   ok    every icon the page and manifest name is a PNG on disk
+2026-11-03T02:38:04.7564892Z   ok    the page links the manifest
+2026-11-03T02:38:04.7565476Z 
+2026-11-03T02:38:04.7565824Z === Caches on a shared origin ===
+2026-11-03T02:38:04.7568173Z   ok    the worker installs and controls the page on the first visit
+2026-11-03T02:38:04.7569260Z   ok    the student is told the drill now opens offline
+2026-11-03T02:38:04.7569950Z   ok    the shared origin holds 4 other sites' caches for this check
+2026-11-03T02:38:04.7570649Z   ok    another site's cache phar4342-drill-v1 is kept
+2026-11-03T02:38:04.7571265Z   ok    another site's cache bdk-v18 is kept
+2026-11-03T02:38:04.7571862Z   ok    another site's cache other-drill-v2 is kept
+2026-11-03T02:38:04.7572515Z   ok    another site's cache course-id-drill-extra-v1 is kept
+2026-11-03T02:38:04.7573300Z   ok    this course's old cache course-id-drill-v0 is deleted
+2026-11-03T02:38:04.7573958Z   ok    this course's cache course-id-drill-v1 is there
+2026-11-03T02:38:04.7574694Z   ok    the page, the redirect, the manifest and the icons are saved at install
+2026-11-03T02:38:04.7575605Z   ok    after a reload the page is served by the worker
+2026-11-03T02:38:04.7576226Z   ok    the offline note is shown once, not on every load
+2026-11-03T02:38:04.7576647Z 
+2026-11-03T02:38:04.7576929Z === Server down ===
+2026-11-03T02:38:04.7577473Z   ok    the site opens from the saved copy with the server down
+2026-11-03T02:38:04.7578159Z   ok    the old file name COURSE0000_Drill.html opens it too
+2026-11-03T02:38:04.7578816Z   ok    a quiz starts and serves a question offline
+2026-11-03T02:38:04.7580228Z   FAIL  no request reaches the server while it is down (it refuses connections)  — 2 served, 0 answered 503 on a connection busy when it went down
+2026-11-03T02:38:04.7581087Z 
+2026-11-03T02:38:04.7581516Z === Server slower than NET_TIMEOUT, with a newer page ===
+2026-11-03T02:38:04.7582412Z   ok    the saved copy opens without waiting for the network (3539 ms, server 8000 ms)
+2026-11-03T02:38:04.7583147Z   ok    that copy is the last one saved
+2026-11-03T02:38:04.7583746Z   ok    a reload is offered once the newer page arrives
+2026-11-03T02:38:04.7584324Z   ok    the page never reloads by itself
+2026-11-03T02:38:04.7584864Z   ok    Reload brings in the newer page
+2026-11-03T02:38:04.7585721Z   ok    no page errors in the service worker checks
+2026-11-03T02:38:04.7586166Z 
+2026-11-03T02:38:04.7586465Z === Opened from disk ===
+2026-11-03T02:38:04.7587034Z   ok    no worker is registered for a page opened from disk
+2026-11-03T02:38:04.7587617Z   ok    the drill opens from disk
+2026-11-03T02:38:04.7588392Z   ok    no page errors opened from disk
+2026-11-03T02:38:04.7589379Z FAIL: offline_test.js: 1 of 30 checks failed: no request reaches the server while it is down (it refuses connections)
+2026-11-03T02:38:04.7598687Z 
+2026-11-03T02:38:04.7599054Z ######## summary ########
+2026-11-03T02:38:04.7600796Z RUN no-offline-fallback.1 offline_test.js 1 FAIL: offline_test.js: 3 of 30 checks failed: the site opens from the saved copy with the server down; the old file name COURSE0000_Drill.html opens it too; a quiz starts and serves a question offline
+2026-11-03T02:38:04.7603487Z RUN no-timeout.1 offline_test.js 1 FAIL: offline_test.js: 4 of 29 checks failed: the saved copy opens without waiting for the network (8047 ms, server 8000 ms); that copy is the last one saved; a reload is offered once the newer page arrives …
+2026-11-03T02:38:04.7605572Z RUN no-update-offer.1 offline_test.js 1 FAIL: offline_test.js: 1 of 29 checks failed: a reload is offered once the newer page arrives
+2026-11-03T02:38:04.7607197Z RUN down-does-nothing.1 offline_test.js 1 FAIL: offline_test.js: 1 of 30 checks failed: no request reaches the server while it is down (it refuses connections)
+2026-11-03T02:38:04.7623008Z broken copies: 4 of 4 runs FAIL
+2026-11-03T02:38:04.7703834Z Post job cleanup.
+2026-11-03T02:38:04.8855137Z Post job cleanup.
+2026-11-03T02:38:05.0077511Z Post job cleanup.
+2026-11-03T02:38:05.0918150Z [command]/usr/bin/git version
+2026-11-03T02:38:05.0998274Z git version 2.56.0
+2026-11-03T02:38:05.1024910Z Temporarily overriding HOME='/home/runner/work/_temp/53ae2a88-c14f-44d1-a5bb-d2a9c85d4b49' before making global git config changes
+2026-11-03T02:38:05.1027988Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-03T02:38:05.1038556Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/exam-drill-kit/exam-drill-kit
+2026-11-03T02:38:05.1095460Z Removing SSH command configuration
+2026-11-03T02:38:05.1096331Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-03T02:38:05.1157210Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-03T02:38:05.1566755Z Removing HTTP extra header
+2026-11-03T02:38:05.1586288Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-03T02:38:05.1627815Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-03T02:38:05.1962342Z Removing includeIf entries pointing to credentials config files
+2026-11-03T02:38:05.1970004Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-03T02:38:05.2004161Z includeif.gitdir:/home/runner/work/exam-drill-kit/exam-drill-kit/.git.path
+2026-11-03T02:38:05.2005511Z includeif.gitdir:/home/runner/work/exam-drill-kit/exam-drill-kit/.git/worktrees/*.path
+2026-11-03T02:38:05.2006595Z includeif.gitdir:/github/workspace/.git.path
+2026-11-03T02:38:05.2007387Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-11-03T02:38:05.2011128Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/exam-drill-kit/exam-drill-kit/.git.path
+2026-11-03T02:38:05.2044681Z /home/runner/work/_temp/git-credentials-1f6eee46-4279-4729-981b-f1f1e345dc54.config
+2026-11-03T02:38:05.2054364Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/exam-drill-kit/exam-drill-kit/.git.path \/home\/runner\/work\/_temp\/git\-credentials\-1f6eee46\-4279\-4729\-981b\-f1f1e345dc54\.config
+2026-11-03T02:38:05.2100643Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/exam-drill-kit/exam-drill-kit/.git/worktrees/*.path
+2026-11-03T02:38:05.2140581Z /home/runner/work/_temp/git-credentials-1f6eee46-4279-4729-981b-f1f1e345dc54.config
+2026-11-03T02:38:05.2147297Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/exam-drill-kit/exam-drill-kit/.git/worktrees/*.path \/home\/runner\/work\/_temp\/git\-credentials\-1f6eee46\-4279\-4729\-981b\-f1f1e345dc54\.config
+2026-11-03T02:38:05.2189319Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+2026-11-03T02:38:05.2222658Z /github/runner_temp/git-credentials-1f6eee46-4279-4729-981b-f1f1e345dc54.config
+2026-11-03T02:38:05.2228448Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path \/github\/runner_temp\/git\-credentials\-1f6eee46\-4279\-4729\-981b\-f1f1e345dc54\.config
+2026-11-03T02:38:05.2269271Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-11-03T02:38:05.2302669Z /github/runner_temp/git-credentials-1f6eee46-4279-4729-981b-f1f1e345dc54.config
+2026-11-03T02:38:05.2309867Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path \/github\/runner_temp\/git\-credentials\-1f6eee46\-4279\-4729\-981b\-f1f1e345dc54\.config
+2026-11-03T02:38:05.2351739Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-03T02:38:05.2570394Z Removing credentials config '/home/runner/work/_temp/git-credentials-1f6eee46-4279-4729-981b-f1f1e345dc54.config'
+2026-11-03T02:38:05.2730642Z Cleaning up orphan processes

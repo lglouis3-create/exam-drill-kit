@@ -168,3 +168,29 @@ In the 60 refused-connection WebKit runs:
 - no request was left on a busy connection to answer;
 - the drill opened from its saved copy each time, so the worker's network-error path ran
   in every run.
+
+## Run 41567099983 (commit 836d9fa): the fix, first validation, 2026-11-03
+
+The fix (branch `offline-refuse`, merged in here for these runs only):
+`core/check_lib.js` `S.down()` / `S.up()` (refused connections), and `offline_test.js`
+using them, with a check that no request reaches the server while it is down.
+
+| Set | Result | libsoup assertions | "WebKit bug" |
+|---|---|---|---|
+| webkit sequential 1 | offline_test.js 10 of 10 PASS | 0 | 0 |
+| webkit sequential 2 | offline_test.js 10 of 10 PASS | 0 | 0 |
+| webkit load-plain 1-4 | offline_test.js 15 of 15 PASS in each (60 of 60) | 0 | 0 |
+| webkit mutate | 8 of 8 broken copies FAIL | 0 | 0 |
+| chromium mutate | 4 of 4 broken copies FAIL | 0 | 0 |
+
+How each broken copy failed:
+- **no offline fallback.** In Chromium it failed "the site opens from the saved copy with
+  the server down". In WebKit it failed only "no page errors" ("TypeError: Load failed"):
+  the failed reload left the page from before on screen, so "opens from the saved copy"
+  passed without a saved copy. That check is not reliable in WebKit as written. The fix
+  now also requires the page to be loaded again (a mark set on it before is gone).
+- **no timeout.** Failed "the saved copy opens without waiting for the network" (8,049
+  and 8,050 ms in WebKit, 8,047 ms in Chromium).
+- **no reload offer.** Failed "a reload is offered once the newer page arrives".
+- **S.down() leaving the server up.** Failed "no request reaches the server while it is
+  down".

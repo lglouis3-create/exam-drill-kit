@@ -29,7 +29,7 @@ jobs:
           - {browser: webkit, mode: load-plain, runs: 5, set: 2, wait: 0, down: refuse, debug: 'pw:browser*'}
           - {browser: webkit, mode: load-plain, runs: 5, set: 3, wait: 0, down: refuse, debug: 'pw:browser*'}
           - {browser: webkit, mode: load-plain, runs: 5, set: 4, wait: 0, down: refuse, debug: 'pw:browser*'}
-          - {browser: webkit, mode: mutate, runs: 2, set: 1, wait: 0, down: refuse, debug: ''}
+          - {browser: webkit, mode: mutate, runs: 3, set: 1, wait: 0, down: refuse, debug: ''}
           - {browser: chromium, mode: mutate, runs: 1, set: 1, wait: 0, down: refuse, debug: ''}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
