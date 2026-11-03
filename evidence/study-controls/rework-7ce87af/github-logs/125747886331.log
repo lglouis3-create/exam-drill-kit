@@ -1,0 +1,226 @@
+﻿2026-11-03T05:36:17.5827586Z Current runner version: '2.338.2'
+2026-11-03T05:36:17.5862060Z ##[group]Runner Image Provisioner
+2026-11-03T05:36:17.5863526Z Hosted Compute Agent
+2026-11-03T05:36:17.5864580Z Version: 20261021.618
+2026-11-03T05:36:17.5865684Z Commit: 21505ad2541d5be6135ed84fc33697146cf75b8e
+2026-11-03T05:36:17.5867024Z Build Date: 2026-10-21T00:45:21Z
+2026-11-03T05:36:17.5868150Z Worker ID: {7c8ef1ef-52db-4966-9411-e333a2b1d58b}
+2026-11-03T05:36:17.5869363Z Region: eastus
+2026-11-03T05:36:17.5870339Z Cloud: Azure
+2026-11-03T05:36:17.5871478Z ##[endgroup]
+2026-11-03T05:36:17.5874540Z ##[group]Operating System
+2026-11-03T05:36:17.5875607Z Ubuntu
+2026-11-03T05:36:17.5876575Z 24.04.5
+2026-11-03T05:36:17.5877489Z LTS
+2026-11-03T05:36:17.5878344Z ##[endgroup]
+2026-11-03T05:36:17.5879397Z ##[group]Runner Image
+2026-11-03T05:36:17.5880437Z Image: ubuntu-24.04
+2026-11-03T05:36:17.5881584Z Version: 20261025.353.1
+2026-11-03T05:36:17.5883719Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261025.353/images/ubuntu/Ubuntu2404-Readme.md
+2026-11-03T05:36:17.5886499Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261025.353
+2026-11-03T05:36:17.5888156Z ##[endgroup]
+2026-11-03T05:36:17.5889987Z ##[group]GITHUB_TOKEN Permissions
+2026-11-03T05:36:17.5893222Z Contents: read
+2026-11-03T05:36:17.5894239Z Metadata: read
+2026-11-03T05:36:17.5895141Z ##[endgroup]
+2026-11-03T05:36:17.5898065Z Secret source: Actions
+2026-11-03T05:36:17.5899716Z Cache mode: write
+2026-11-03T05:36:17.5901580Z Prepare workflow directory
+2026-11-03T05:36:17.6380171Z Prepare all required actions
+2026-11-03T05:36:17.6450542Z Getting action download info
+2026-11-03T05:36:17.8327154Z Download action repository 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1' (SHA:3d3c42e5aac5ba805825da76410c181273ba90b1)
+2026-11-03T05:36:18.0203602Z Complete job name: Modules to check
+2026-11-03T05:36:18.1120989Z ##[group]Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+2026-11-03T05:36:18.1122339Z with:
+2026-11-03T05:36:18.1122804Z   fetch-depth: 0
+2026-11-03T05:36:18.1123310Z   repository: lglouis3-create/exam-drill-kit
+2026-11-03T05:36:18.1127335Z   token: ***
+2026-11-03T05:36:18.1127771Z   ssh-strict: true
+2026-11-03T05:36:18.1128211Z   ssh-user: git
+2026-11-03T05:36:18.1128667Z   persist-credentials: true
+2026-11-03T05:36:18.1129162Z   clean: true
+2026-11-03T05:36:18.1129619Z   sparse-checkout-cone-mode: true
+2026-11-03T05:36:18.1130148Z   fetch-tags: false
+2026-11-03T05:36:18.1130600Z   show-progress: true
+2026-11-03T05:36:18.1131047Z   lfs: false
+2026-11-03T05:36:18.1131627Z   submodules: false
+2026-11-03T05:36:18.1132082Z   set-safe-directory: true
+2026-11-03T05:36:18.1132594Z   allow-unsafe-pr-checkout: false
+2026-11-03T05:36:18.1133722Z ##[endgroup]
+2026-11-03T05:36:18.3856073Z Syncing repository: lglouis3-create/exam-drill-kit
+2026-11-03T05:36:18.3858860Z ##[group]Getting Git version info
+2026-11-03T05:36:18.3860332Z Working directory is '/home/runner/work/exam-drill-kit/exam-drill-kit'
+2026-11-03T05:36:18.3862456Z [command]/usr/bin/git version
+2026-11-03T05:36:18.3937053Z git version 2.56.0
+2026-11-03T05:36:18.3963865Z ##[endgroup]
+2026-11-03T05:36:18.3974597Z Temporarily overriding HOME='/home/runner/work/_temp/fdd23940-e0c7-4684-a940-2a41e982aae9' before making global git config changes
+2026-11-03T05:36:18.3980342Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-03T05:36:18.3983010Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/exam-drill-kit/exam-drill-kit
+2026-11-03T05:36:18.4032191Z Deleting the contents of '/home/runner/work/exam-drill-kit/exam-drill-kit'
+2026-11-03T05:36:18.4035786Z ##[group]Determining repository object format
+2026-11-03T05:36:18.4037496Z ##[endgroup]
+2026-11-03T05:36:18.4038354Z ##[group]Initializing the repository
+2026-11-03T05:36:18.4042681Z [command]/usr/bin/git init /home/runner/work/exam-drill-kit/exam-drill-kit
+2026-11-03T05:36:18.4160640Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-11-03T05:36:18.4162868Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-11-03T05:36:18.4163944Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-11-03T05:36:18.4164759Z hint: call:
+2026-11-03T05:36:18.4165201Z hint:
+2026-11-03T05:36:18.4165787Z hint: 	git config --global init.defaultBranch <name>
+2026-11-03T05:36:18.4166465Z hint:
+2026-11-03T05:36:18.4167098Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-11-03T05:36:18.4168092Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-11-03T05:36:18.4168910Z hint:
+2026-11-03T05:36:18.4169365Z hint: 	git branch -m <name>
+2026-11-03T05:36:18.4169887Z hint:
+2026-11-03T05:36:18.4170602Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-11-03T05:36:18.4184212Z Initialized empty Git repository in /home/runner/work/exam-drill-kit/exam-drill-kit/.git/
+2026-11-03T05:36:18.4196460Z [command]/usr/bin/git remote add origin https://github.com/lglouis3-create/exam-drill-kit
+2026-11-03T05:36:18.4248804Z ##[endgroup]
+2026-11-03T05:36:18.4250459Z ##[group]Disabling automatic garbage collection
+2026-11-03T05:36:18.4251986Z [command]/usr/bin/git config --local gc.auto 0
+2026-11-03T05:36:18.4294070Z ##[endgroup]
+2026-11-03T05:36:18.4295426Z ##[group]Setting up auth
+2026-11-03T05:36:18.4296171Z Removing SSH command configuration
+2026-11-03T05:36:18.4302907Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-03T05:36:18.4345203Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-03T05:36:18.4757301Z Removing HTTP extra header
+2026-11-03T05:36:18.4765419Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-03T05:36:18.4821846Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-03T05:36:18.5080137Z Removing includeIf entries pointing to credentials config files
+2026-11-03T05:36:18.5085124Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-03T05:36:18.5131763Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-03T05:36:18.5390411Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-b06ae49e-a78b-4693-b53d-2df0dc09dc6b.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-11-03T05:36:18.5447484Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/exam-drill-kit/exam-drill-kit/.git.path /home/runner/work/_temp/git-credentials-b06ae49e-a78b-4693-b53d-2df0dc09dc6b.config
+2026-11-03T05:36:18.5492392Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/exam-drill-kit/exam-drill-kit/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-b06ae49e-a78b-4693-b53d-2df0dc09dc6b.config
+2026-11-03T05:36:18.5537709Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-b06ae49e-a78b-4693-b53d-2df0dc09dc6b.config
+2026-11-03T05:36:18.5589592Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-b06ae49e-a78b-4693-b53d-2df0dc09dc6b.config
+2026-11-03T05:36:18.5633008Z ##[endgroup]
+2026-11-03T05:36:18.5634528Z ##[group]Fetching the repository
+2026-11-03T05:36:18.5641940Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules origin +refs/heads/*:refs/remotes/origin/* +refs/tags/*:refs/tags/* +5404a74965b98e9e10026dc9aa60d162e71c394b:refs/remotes/pull/16/merge
+2026-11-03T05:36:19.6318795Z From https://github.com/lglouis3-create/exam-drill-kit
+2026-11-03T05:36:19.6323276Z  * [new branch]      claude/elegant-ptolemy-pqxb8y            -> origin/claude/elegant-ptolemy-pqxb8y
+2026-11-03T05:36:19.6326948Z  * [new branch]      claude/elegant-ptolemy-pqxb8y-catalog-names -> origin/claude/elegant-ptolemy-pqxb8y-catalog-names
+2026-11-03T05:36:19.6330613Z  * [new branch]      claude/elegant-ptolemy-pqxb8y-given-as   -> origin/claude/elegant-ptolemy-pqxb8y-given-as
+2026-11-03T05:36:19.6334824Z  * [new branch]      claude/elegant-ptolemy-pqxb8y-import     -> origin/claude/elegant-ptolemy-pqxb8y-import
+2026-11-03T05:36:19.6339057Z  * [new branch]      claude/elegant-ptolemy-pqxb8y-lecture-ids -> origin/claude/elegant-ptolemy-pqxb8y-lecture-ids
+2026-11-03T05:36:19.6344166Z  * [new branch]      claude/elegant-ptolemy-pqxb8y-offline-refuse -> origin/claude/elegant-ptolemy-pqxb8y-offline-refuse
+2026-11-03T05:36:19.6348767Z  * [new branch]      claude/elegant-ptolemy-pqxb8y-policy     -> origin/claude/elegant-ptolemy-pqxb8y-policy
+2026-11-03T05:36:19.6353300Z  * [new branch]      claude/elegant-ptolemy-pqxb8y-webkit-diag -> origin/claude/elegant-ptolemy-pqxb8y-webkit-diag
+2026-11-03T05:36:19.6356074Z  * [new branch]      docs/porter-policy                       -> origin/docs/porter-policy
+2026-11-03T05:36:19.6358300Z  * [new branch]      evidence/baseline                        -> origin/evidence/baseline
+2026-11-03T05:36:19.6360850Z  * [new branch]      evidence/concept-statuses                -> origin/evidence/concept-statuses
+2026-11-03T05:36:19.6364659Z  * [new branch]      evidence/glossary-tap                    -> origin/evidence/glossary-tap
+2026-11-03T05:36:19.6367446Z  * [new branch]      evidence/integration                     -> origin/evidence/integration
+2026-11-03T05:36:19.6370295Z  * [new branch]      evidence/integration-3                   -> origin/evidence/integration-3
+2026-11-03T05:36:19.6373664Z  * [new branch]      evidence/integration-4                   -> origin/evidence/integration-4
+2026-11-03T05:36:19.6376444Z  * [new branch]      evidence/module-pages                    -> origin/evidence/module-pages
+2026-11-03T05:36:19.6379067Z  * [new branch]      evidence/notes                           -> origin/evidence/notes
+2026-11-03T05:36:19.6381911Z  * [new branch]      evidence/pair-up-drills                  -> origin/evidence/pair-up-drills
+2026-11-03T05:36:19.6384615Z  * [new branch]      evidence/paper-picker                    -> origin/evidence/paper-picker
+2026-11-03T05:36:19.6387231Z  * [new branch]      evidence/plan-the-problem                -> origin/evidence/plan-the-problem
+2026-11-03T05:36:19.6390056Z  * [new branch]      evidence/quiz-prep-cards                 -> origin/evidence/quiz-prep-cards
+2026-11-03T05:36:19.6393534Z  * [new branch]      evidence/short-answer-graphs             -> origin/evidence/short-answer-graphs
+2026-11-03T05:36:19.6398368Z  * [new branch]      evidence/stopwatch                       -> origin/evidence/stopwatch
+2026-11-03T05:36:19.6403253Z  * [new branch]      evidence/study-controls                  -> origin/evidence/study-controls
+2026-11-03T05:36:19.6408232Z  * [new branch]      evidence/terms-variables                 -> origin/evidence/terms-variables
+2026-11-03T05:36:19.6412558Z  * [new branch]      evidence/theme                           -> origin/evidence/theme
+2026-11-03T05:36:19.6416604Z  * [new branch]      evidence/worksheets-ink                  -> origin/evidence/worksheets-ink
+2026-11-03T05:36:19.6421403Z  * [new branch]      integration/ports-2026-11-02             -> origin/integration/ports-2026-11-02
+2026-11-03T05:36:19.6424792Z  * [new branch]      integration/ports-2026-11-02-run1        -> origin/integration/ports-2026-11-02-run1
+2026-11-03T05:36:19.6427934Z  * [new branch]      integration/ports-2026-11-03             -> origin/integration/ports-2026-11-03
+2026-11-03T05:36:19.6430961Z  * [new branch]      integration/ports-2026-11-03b            -> origin/integration/ports-2026-11-03b
+2026-11-03T05:36:19.6434185Z  * [new branch]      main                                     -> origin/main
+2026-11-03T05:36:19.6437610Z  * [new branch]      port/concept-statuses                    -> origin/port/concept-statuses
+2026-11-03T05:36:19.6440367Z  * [new branch]      port/glossary-tap                        -> origin/port/glossary-tap
+2026-11-03T05:36:19.6443284Z  * [new branch]      port/module-pages                        -> origin/port/module-pages
+2026-11-03T05:36:19.6445954Z  * [new branch]      port/notes                               -> origin/port/notes
+2026-11-03T05:36:19.6449337Z  * [new branch]      port/pair-up-drills                      -> origin/port/pair-up-drills
+2026-11-03T05:36:19.6454134Z  * [new branch]      port/paper-picker                        -> origin/port/paper-picker
+2026-11-03T05:36:19.6458873Z  * [new branch]      port/plan-the-problem                    -> origin/port/plan-the-problem
+2026-11-03T05:36:19.6463812Z  * [new branch]      port/quiz-prep-cards                     -> origin/port/quiz-prep-cards
+2026-11-03T05:36:19.6468164Z  * [new branch]      port/short-answer-graphs                 -> origin/port/short-answer-graphs
+2026-11-03T05:36:19.6472548Z  * [new branch]      port/stopwatch                           -> origin/port/stopwatch
+2026-11-03T05:36:19.6476382Z  * [new branch]      port/study-controls                      -> origin/port/study-controls
+2026-11-03T05:36:19.6479257Z  * [new branch]      port/terms-variables                     -> origin/port/terms-variables
+2026-11-03T05:36:19.6482120Z  * [new branch]      port/theme                               -> origin/port/theme
+2026-11-03T05:36:19.6484681Z  * [new branch]      port/worksheets-ink                      -> origin/port/worksheets-ink
+2026-11-03T05:36:19.6487483Z  * [new branch]      proposal/concept-signals                 -> origin/proposal/concept-signals
+2026-11-03T05:36:19.6492211Z  * [new branch]      proposal/core-from-ports                 -> origin/proposal/core-from-ports
+2026-11-03T05:36:19.6494851Z  * [new ref]         5404a74965b98e9e10026dc9aa60d162e71c394b -> pull/16/merge
+2026-11-03T05:36:19.6499117Z ##[endgroup]
+2026-11-03T05:36:19.6500858Z ##[group]Determining the checkout info
+2026-11-03T05:36:19.6503146Z ##[endgroup]
+2026-11-03T05:36:19.6504304Z [command]/usr/bin/git sparse-checkout disable
+2026-11-03T05:36:19.6507620Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-11-03T05:36:19.6511810Z ##[group]Checking out the ref
+2026-11-03T05:36:19.6513601Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/16/merge
+2026-11-03T05:36:19.6683928Z Note: switching to 'refs/remotes/pull/16/merge'.
+2026-11-03T05:36:19.6685005Z 
+2026-11-03T05:36:19.6685948Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-11-03T05:36:19.6688295Z changes and commit them, and you can discard any commits you make in this
+2026-11-03T05:36:19.6690622Z state without impacting any branches by switching back to a branch.
+2026-11-03T05:36:19.6692285Z 
+2026-11-03T05:36:19.6693194Z If you want to create a new branch to retain commits you create, you may
+2026-11-03T05:36:19.6695760Z do so (now or later) by using -c with the switch command. Example:
+2026-11-03T05:36:19.6697066Z 
+2026-11-03T05:36:19.6697636Z   git switch -c <new-branch-name>
+2026-11-03T05:36:19.6698465Z 
+2026-11-03T05:36:19.6698976Z Or undo this operation with:
+2026-11-03T05:36:19.6699742Z 
+2026-11-03T05:36:19.6700199Z   git switch -
+2026-11-03T05:36:19.6700826Z 
+2026-11-03T05:36:19.6702244Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-11-03T05:36:19.6703665Z 
+2026-11-03T05:36:19.6705287Z HEAD is now at 5404a74 Merge 7ce87af469ce389867b57214503fac154486ef96 into 4e0fae4c978d71e6fdd4717093958d49059b9bfd
+2026-11-03T05:36:19.6709733Z ##[endgroup]
+2026-11-03T05:36:19.6752784Z [command]/usr/bin/git log -1 --format=%H
+2026-11-03T05:36:19.6790334Z 5404a74965b98e9e10026dc9aa60d162e71c394b
+2026-11-03T05:36:19.7094470Z ##[group]Run node .github/ci_plan.js "$EVENT" "$BASE" >> "$GITHUB_OUTPUT"
+2026-11-03T05:36:19.7096689Z [36;1mnode .github/ci_plan.js "$EVENT" "$BASE" >> "$GITHUB_OUTPUT"[0m
+2026-11-03T05:36:19.7122877Z shell: /usr/bin/bash -e {0}
+2026-11-03T05:36:19.7123987Z env:
+2026-11-03T05:36:19.7124861Z   EVENT: pull_request
+2026-11-03T05:36:19.7125997Z   BASE: 4e0fae4c978d71e6fdd4717093958d49059b9bfd
+2026-11-03T05:36:19.7127310Z ##[endgroup]
+2026-11-03T05:36:19.8968668Z changed modules: study-controls
+2026-11-03T05:36:19.8973050Z combination worksheets-ink,chained-problem-sets: not run, worksheets-ink not in this tree
+2026-11-03T05:36:19.8975866Z combination glossary-tap,formulas-in-text: not run, glossary-tap not in this tree
+2026-11-03T05:36:19.8978460Z combination study-controls,paper-picker: not run, paper-picker not in this tree
+2026-11-03T05:36:19.8980774Z combination notes,study-controls: not run, notes not in this tree
+2026-11-03T05:36:19.8983152Z combination theme,*: not run, theme not in this tree
+2026-11-03T05:36:19.9403303Z Post job cleanup.
+2026-11-03T05:36:20.0302327Z [command]/usr/bin/git version
+2026-11-03T05:36:20.0349033Z git version 2.56.0
+2026-11-03T05:36:20.0389801Z Temporarily overriding HOME='/home/runner/work/_temp/0e1665f4-e17e-4ef6-a8b2-a5a9563a6edc' before making global git config changes
+2026-11-03T05:36:20.0395182Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-03T05:36:20.0399641Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/exam-drill-kit/exam-drill-kit
+2026-11-03T05:36:20.0450661Z Removing SSH command configuration
+2026-11-03T05:36:20.0457390Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-03T05:36:20.0506058Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-03T05:36:20.0793042Z Removing HTTP extra header
+2026-11-03T05:36:20.0798480Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-03T05:36:20.0857038Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-03T05:36:20.1109348Z Removing includeIf entries pointing to credentials config files
+2026-11-03T05:36:20.1131767Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-03T05:36:20.1162399Z includeif.gitdir:/home/runner/work/exam-drill-kit/exam-drill-kit/.git.path
+2026-11-03T05:36:20.1165053Z includeif.gitdir:/home/runner/work/exam-drill-kit/exam-drill-kit/.git/worktrees/*.path
+2026-11-03T05:36:20.1167173Z includeif.gitdir:/github/workspace/.git.path
+2026-11-03T05:36:20.1168865Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-11-03T05:36:20.1175019Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/exam-drill-kit/exam-drill-kit/.git.path
+2026-11-03T05:36:20.1217613Z /home/runner/work/_temp/git-credentials-b06ae49e-a78b-4693-b53d-2df0dc09dc6b.config
+2026-11-03T05:36:20.1233000Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/exam-drill-kit/exam-drill-kit/.git.path \/home\/runner\/work\/_temp\/git\-credentials\-b06ae49e\-a78b\-4693\-b53d\-2df0dc09dc6b\.config
+2026-11-03T05:36:20.1284481Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/exam-drill-kit/exam-drill-kit/.git/worktrees/*.path
+2026-11-03T05:36:20.1320609Z /home/runner/work/_temp/git-credentials-b06ae49e-a78b-4693-b53d-2df0dc09dc6b.config
+2026-11-03T05:36:20.1335259Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/exam-drill-kit/exam-drill-kit/.git/worktrees/*.path \/home\/runner\/work\/_temp\/git\-credentials\-b06ae49e\-a78b\-4693\-b53d\-2df0dc09dc6b\.config
+2026-11-03T05:36:20.1382265Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+2026-11-03T05:36:20.1417959Z /github/runner_temp/git-credentials-b06ae49e-a78b-4693-b53d-2df0dc09dc6b.config
+2026-11-03T05:36:20.1461323Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path \/github\/runner_temp\/git\-credentials\-b06ae49e\-a78b\-4693\-b53d\-2df0dc09dc6b\.config
+2026-11-03T05:36:20.1506386Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-11-03T05:36:20.1541744Z /github/runner_temp/git-credentials-b06ae49e-a78b-4693-b53d-2df0dc09dc6b.config
+2026-11-03T05:36:20.1549520Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path \/github\/runner_temp\/git\-credentials\-b06ae49e\-a78b\-4693\-b53d\-2df0dc09dc6b\.config
+2026-11-03T05:36:20.1594047Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-03T05:36:20.1839945Z Removing credentials config '/home/runner/work/_temp/git-credentials-b06ae49e-a78b-4693-b53d-2df0dc09dc6b.config'
+2026-11-03T05:36:20.2011927Z Evaluate and set job outputs
+2026-11-03T05:36:20.2019562Z Set output 'courses'
+2026-11-03T05:36:20.2023069Z Cleaning up orphan processes
