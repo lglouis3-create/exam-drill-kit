@@ -8,8 +8,9 @@
  *      this course's own old cache is deleted, and so is a cache of the
  *      course's pre-core worker when course.js names its `oldCachePrefix`
  *      (that prefix's own cases are in oldcache_test.js)
- *   2. with the server down the page opens from the saved copy, at the site
- *      root and at the old file name
+ *   2. with the server down (it refuses connections, check_lib.js S.down()) the
+ *      page opens from the saved copy, at the site root and at the old file name,
+ *      and no request reaches the server meanwhile
  *   3. with the server slower than NET_TIMEOUT the saved copy opens without
  *      waiting, and when the newer page arrives a reload is offered, never
  *      forced
@@ -94,7 +95,8 @@ check(/<link rel="manifest" href="\.\/manifest\.json">/.test(L.PAGE.read()), 'th
     check(!(await page.$('#swbar')), 'the offline note is shown once, not on every load');
 
     console.log('\n=== Server down ===');
-    S.mode = 'down';
+    const hits = () => Object.values(S.hits).reduce((a, b) => a + b, 0), hitsBefore = hits();
+    await S.down();
     await page.reload().catch(() => {});
     check(await waitApp(10000) && await appShown(), 'the site opens from the saved copy with the server down');
     if(site && site.aliases && site.aliases.length){
@@ -103,7 +105,9 @@ check(/<link rel="manifest" href="\.\/manifest\.json">/.test(L.PAGE.read()), 'th
     }
     const served = await page.evaluate(() => { startQuiz(TOPICS[0].id); return document.querySelectorAll('#v-quiz button[data-o], #numIn, #v-quiz select[data-row]').length; }).catch(() => 0);
     check(served >= 1, 'a quiz starts and serves a question offline');
-    S.mode = 'ok';
+    check(hits() === hitsBefore, 'no request reaches the server while it is down (it refuses connections)',
+      `${hits() - hitsBefore} served, ${S.downAnswered} answered 503 on a connection busy when it went down`);
+    await S.up();
 
     console.log('\n=== Server slower than NET_TIMEOUT, with a newer page ===');
     await page.goto(URL_); await waitApp(10000);
