@@ -7,7 +7,8 @@
  * converter keeps each saved note {t, at} and drops anything else.
  * In Chromium, on a scratch copy with Basic-Pharmacokinetics' course data (FIX below:
  * two topics, their two lectures and two skills, and 16 of their questions, from src/
- * at ac2eb73; the course's own copy when ../ci/oncourse.js wrote it) and 3 copies of the
+ * at ac2eb73, every id prefixed nts- by PFX; the course's own copy when ../ci/oncourse.js
+ * wrote it; a plan-the-problem `setup` or `asks` the course has no data for left out) and 3 copies of the
  * 16 under other ids for a large saved state, the exam paper drawn from those two
  * topics, at 390 px and 1200 px (Basic-Pharmacokinetics src/notes_test.py ported; its
  * paper flags are study-controls' and are checked only through the Notes tab):
@@ -57,8 +58,8 @@ const SHOTS = process.env.NOTES_SHOTS || '';
    professor by a pronoun; nl-c10, whose text has "given as", which style_check.js flags; the
    two-option questions pd-c13, nl-c01 and nl-c18, which the kit's core test.js refuses ("only 2
    options"), and the questions whose dupOf leads to one of them (cq5-2, pd-c14, cq5-5, nl-c08,
-   nl-c09), since core test.js needs every dupOf target in the bank. WRITE below says how FIX is
-   written into a course. */
+   nl-c09), since core test.js needs every dupOf target in the bank. PFX and WRITE below say how
+   FIX is written into a course. */
 const FIX = {
   lectures: [
     {"id":"L11","deck":"7b---Pharmacokinetics-and-Pharmacodynamics.pdf","label":"Module 7b: PK-PD relationship (12 Oct)","prof":"Professor","exam":3,"module":9},
@@ -88,49 +89,70 @@ const FIX = {
     {"id":"nl-ex2a","type":"numeric","prof":"Professor","tier":"new","exam":3,"module":8,"lecture":"L12","topic":"nonlin","sub":"kmvmax","concept":"nl-km-direct","skill":"nonlin","source":"both","stem":"After receiving a drug that displays nonlinear kinetics at a dose of 6 mg/kg/day for some time, the steady-state plasma concentration in a 72 kg patient was determined to be 10 mg/L. Since this concentration was lower than the desired steady-state concentration, the dose was increased to 8 mg/kg/day. This dose increase resulted in a steady-state plasma concentration of 20 mg/L, which was greater than the desired steady-state concentration. Calculate Vmax, KM, and a dose rate that should achieve a steady-state plasma concentration of 15 mg/L. Part a: calculate KM.","units":"mg/L","answer":10,"tol":0.1,"steps":[{"k":"setup","t":"KM = {{frac:R2 − R1|(R1/C1) − (R2/C2)}}, with R1 = 6 mg/kg/day, C1 = 10 mg/L, R2 = 8 mg/kg/day, C2 = 20 mg/L","why":"Two dose rates in the same patient, each at steady state, share one Vmax and one KM, so the two dose-rate lines combine into this direct-method line for KM."},{"k":"algebra","t":"KM = {{frac:8 − 6|(6/10) − (8/20)}} = {{frac:2 mg/kg/day|0.6 − 0.4 (mg/kg/day)/(mg/L)}} = {{frac:2|0.2}}","why":"Each R divided by its own C. The bottom is the earlier rate over its concentration minus the later one, which keeps the result positive. The mg/kg/day cancel and mg/L moves to the top."},{"k":"round","t":"KM = 10 mg/L","why":"KM comes out in concentration units, mg/L, as it must: it is compared with plasma concentrations, so a KM in mg/kg/day signals the units were not cancelled."}],"setup":{"eq":"nl-km","pre":[],"why":"\"a dose of 6 mg/kg/day\" giving \"10 mg/L\", then \"8 mg/kg/day\" giving \"20 mg/L\": two rates and two steady states in one patient, so the direct method for KM."},"asks":"Km","givens":[["R1","6 mg/kg/day","the first dose rate"],["C1","10 mg/L","steady state on the first rate"],["R2","8 mg/kg/day","the increased dose rate"],["C2","20 mg/L","steady state on the second rate"],["weight","72 kg","not needed for KM"]],"check":{"t":"A one-third rise in dose doubled the concentration, so the drug is near saturation; KM is a concentration, here equal to the lower measured level: 10 mg/L.","lo":0},"teach":[{"h":"The direct method","list":["Two dose rates in the same patient, each with the steady-state concentration it produced: KM = {{frac:R2 − R1|(R1/C1) − (R2/C2)}}.","The rate units cancel, so KM is a concentration, mg/L.","Then Vmax = {{frac:R(KM + Css)|Css}} with either pair; both pairs give the same Vmax."]}],"cite":"8 - Nonlinear PK.pdf, slides 13 \"Determination of KM and Vmax by Direct Method\", 14 \"Example\" and 15; transcript 10-14"}
   ]};
 
-const IDS = FIX.qs.map(q => q.id);
-const Q1 = 'cq5-6';                  // the question the quiz checks write on (its id is written out in the page checks below)
+/* Ids that cannot clash with another module's (rule 2 of the kit's CI data rules): every question,
+   topic, subtopic and lecture id of FIX, and every reference to one (dupOf, topic, sub, lecture),
+   gets the prefix nts-, with the course's own id kept inside it: questions cq5-1 -> nts-cq5-1,
+   cq5-6 -> nts-cq5-6, pd-c20 -> nts-pd-c20, pd-c01, pd-c02, pd-c04, pd-c06, pd-c22, pd-ex-b ->
+   nts-pd-..., nl-c04, nl-c02, nl-c03, nl-c05, nl-c06, nl-ex1, nl-ex2a -> nts-nl-...; topics pkpd
+   -> nts-pkpd, nonlin -> nts-nonlin, and each of their subtopics x -> nts-x; lectures L11 ->
+   nts-L11, L12 -> nts-L12. Concepts, skills and every other field are the course's own.
+   ../ci/oncourse.js reads PFX too. */
+const PFX = fix => {
+  const p = id => 'nts-' + id, ref = (o, ks) => { const r = Object.assign({}, o); ks.forEach(k => { if(r[k] !== undefined) r[k] = p(r[k]); }); return r; };
+  return {lectures: fix.lectures.map(l => ref(l, ['id'])), skills: fix.skills,
+          topics: fix.topics.map(t => Object.assign(ref(t, ['id']), t.subs ? {subs: t.subs.map(x => ref(x, ['id']))} : {})),
+          qs: fix.qs.map(q => ref(q, ['id', 'dupOf', 'topic', 'sub', 'lecture']))};
+  };
+const FIXP = PFX(FIX);
+const IDS = FIXP.qs.map(q => q.id);
+const Q1 = 'nts-cq5-6';              // the question the quiz checks write on (its id is written out in the page checks below)
 // the first {{frac:a|b}} in that question's stem, options and the reason its key is right, as the copied text writes it: (a)/(b)
 const FRAC = (q => { const m = [q.stem].concat(q.options.map(o => o.t), q.options.filter(o => o.correct).map(o => o.why)).join(' ').match(/\{\{frac:([^|}]*)\|([^}]*)\}\}/);
-  return m ? `(${m[1]})/(${m[2]})` : null; })(FIX.qs.find(q => q.id === Q1));
+  return m ? `(${m[1]})/(${m[2]})` : null; })(FIXP.qs.find(q => q.id === Q1));
 const COPIES = 3;                    // 3 copies of the 16, for a large saved state
 const ALL = IDS.concat(...Array.from({length: COPIES}, (_, k) => IDS.map(id => `${id}-c${k + 1}`)));
 
-/* How FIX is written into a course, as a question file in the kit's form: one question per line,
+/* How FIX (through PFX) is written into a course, as a question file in the kit's form: one question per line,
    opening {id:'...', then type, dupOf and skill, then prof:'...' (browser_test.js counts the bank that
    way), in the two topics of their own after the course's topics. own = {prof, skills, lectures} of
    the course: `prof` is the course's first professor (the template's "Professor"). The two lectures
    and the two skills are added to course.js, the lectures in the course's literal form
-   ({id:'L11', ...}, which state_check.js reads), unless the course has them already.
+   ({id:'nts-L11', ...}, which state_check.js reads), unless the course has those ids (lectures)
+   or skills already. A `setup` (plan-the-problem's) is written only when own.eq, the course's
+   EQUATIONS ids, has its equation and every one before it; an `asks` only when own.asks, the
+   course's ASKS keys, has it; otherwise it is left out and listed in `dropped`.
    opt.base writes the topics and the 16 questions; opt.copies writes that many more copies of the 16
    (ids, concepts and dupOf suffixed -c<n>, content unchanged; test pages only). ../ci/oncourse.js
    reads FIX and WRITE from this file, so the CI course and the test's copies hold the same data. */
 const WRITE = (fix, own, opt) => {
   const lit = v => { if(!/^[^'\\\n]*$/.test(String(v))) throw new Error('cannot be written as a literal: ' + v); return `'${v}'`; };
+  const eq = new Set(own.eq || []), asks = new Set(own.asks || []), dropped = {setup: [], asks: []};
   const row = (q, c) => { const r = Object.assign({}, q); ['id', 'type', 'dupOf', 'skill', 'prof'].forEach(k => delete r[k]);
     if(c) r.concept = q.concept + c;
+    if(r.setup !== undefined && !(r.setup && (r.setup.eq === 'none' || eq.has(r.setup.eq)) && (r.setup.pre || []).every(x => eq.has(x)))){ delete r.setup; dropped.setup.push(q.id + c); }
+    if(r.asks !== undefined && !asks.has(r.asks)){ delete r.asks; dropped.asks.push(q.id + c); }
     return `{id:${lit(q.id + c)},` + (q.type ? ` type:${lit(q.type)},` : '') + (q.dupOf ? ` dupOf:${lit(q.dupOf + c)},` : '') +
            ` skill:${lit(q.skill)}, prof:${lit(own.prof)}, ${JSON.stringify(r).slice(1)},`; };
   const rows = [];
   if(opt.base) fix.qs.forEach(q => rows.push(row(q, '')));
   for(let c = 1; c <= (opt.copies || 0); c++) fix.qs.forEach(q => rows.push(row(q, '-c' + c)));
-  let body = `/* notes: Basic-Pharmacokinetics' topics pkpd and nonlin and 16 of their questions (src/q13_quizzes.js,\n   q15_module7b.js, q16_module8.js, ac2eb73)${opt.copies ? `, ${opt.copies} copies of the 16 (ids suffixed -c<n>)` : ''}; written from FIX in features/notes/test.js */\n`;
+  let body = `/* notes: Basic-Pharmacokinetics' topics pkpd and nonlin and 16 of their questions (src/q13_quizzes.js,\n   q15_module7b.js, q16_module8.js, ac2eb73), ids prefixed nts-${opt.copies ? `, ${opt.copies} copies of the 16 (ids suffixed -c<n>)` : ''}; written from FIX in features/notes/test.js */\n`;
   if(opt.base) body += fix.topics.map(t => `TOPICS.push(${JSON.stringify(Object.assign({}, t, {prof: own.prof}))});\n`).join('');
   if(rows.length) body += `QUESTIONS.push(\n${rows.join('\n')}\n);\n`;
-  const lec = opt.base ? fix.lectures.filter(l => !(own.lectures || []).some(x => x.id === l.id || x.deck === l.deck)) : [];
+  const lec = opt.base ? fix.lectures.filter(l => !(own.lectures || []).some(x => x.id === l.id)) : [];
   const sk = opt.base ? fix.skills.filter(s => !(own.skills || []).includes(s.id)) : [];
   const lectures = lec.map(l => `{id:${lit(l.id)}, deck:${lit(l.deck)}, label:${lit(l.label)}, prof:${lit(own.prof)}, exam:${JSON.stringify(l.exam)}, module:${JSON.stringify(l.module)}}`);
   const line = (lectures.length ? `COURSE.lectures = (COURSE.lectures || []).concat([${lectures.join(', ')}]); ` : '') +
                (sk.length ? `COURSE.skills = (COURSE.skills || []).concat(${JSON.stringify(sk)}); ` : '');
-  return {body, line, rows: rows.length, lectures: lec.map(l => l.id), skills: sk.map(s => s.id)};
+  return {body, line, rows: rows.length, lectures: lec.map(l => l.id), skills: sk.map(s => s.id), dropped};
   };
 
 /* The test's scratch copies: the course's own copy of FIX when it has one (a course made by
    ../ci/oncourse.js), else FIX written in, and the copies; the exam paper drawn from FIX's topics. */
 function fixtureFiles(own, have){
-  const w = WRITE(FIX, own, {base: !have, copies: COPIES});
-  return {files: {[have ? 'q91_notes_copies.js' : 'q90_notes_fixture.js']: w.body},
-          line: w.line + `COURSE.exams.forEach(e => e.pools.forEach(p => { p.filter = {topic: ${JSON.stringify(FIX.topics.map(t => t.id))}}; }));`};
+  const w = WRITE(FIXP, own, {base: !have, copies: COPIES});
+  return {files: {[have ? 'q91_notes_copies.js' : 'q90_notes_fixture.js']: w.body}, dropped: w.dropped,
+          line: w.line + `COURSE.exams.forEach(e => e.pools.forEach(p => { p.filter = {topic: ${JSON.stringify(FIXP.topics.map(t => t.id))}}; }));`};
 }
 
 const DENY = () => { const orig = Storage.prototype.setItem;
@@ -142,7 +164,9 @@ const DENY = () => { const orig = Storage.prototype.setItem;
 (async () => {
   console.log('\n=== the copied text on the course\'s own bank (node) ===');
   L.PAGE.need(NAME);
-  const X = L.engine('({FX, QUESTIONS, COURSE, db: () => DB, upgradeDB: r => upgradeDB(r)})');
+  const X = L.engine('({FX, QUESTIONS, COURSE, db: () => DB, upgradeDB: r => upgradeDB(r),' +
+    ' EQ: typeof EQUATIONS !== "undefined" && Array.isArray(EQUATIONS) ? EQUATIONS.map(e => e && e.id) : [],' +
+    ' ASKS: typeof ASKS !== "undefined" && ASKS && typeof ASKS === "object" ? Object.keys(ASKS) : []})');
   const N = X.FX && X.FX.api('notes');
   if(!check(!!N, 'the page carries notes, working', JSON.stringify((X.FX && X.FX.errors) || 'no feature modules in the page'))) L.finish(NAME);
   X.db().notes = {};
@@ -159,11 +183,12 @@ const DENY = () => { const orig = Storage.prototype.setItem;
   check(!('notes' in X.upgradeDB({concepts: {}, answers: [], notes: 'x'})), 'a saved `notes` that is not an object is dropped');
 
   console.log('\n=== on a scratch copy with Basic-Pharmacokinetics\' question (Chromium) ===');
-  const own = {prof: X.COURSE.professors[0], skills: X.COURSE.skills.map(k => k.id), lectures: X.COURSE.lectures};
+  const own = {prof: X.COURSE.professors[0], skills: X.COURSE.skills.map(k => k.id), lectures: X.COURSE.lectures, eq: X.EQ, asks: X.ASKS};
   // a course made by ci/oncourse.js has FIX already: the copies are added to the course's own
   const have = IDS.every(id => X.QUESTIONS.some(q => q.id === id));
   console.log(`  the course ${have ? 'has' : 'does not have'} FIX's ${IDS.length} questions; the scratch copy ${have ? 'adds' : 'writes them and adds'} ${COPIES} copies of them`);
   const f = fixtureFiles(own, have);
+  console.log(`  left out of the scratch copy: ${f.dropped.setup.length} setup and ${f.dropped.asks.length} asks lines naming an equation or ASKS key the course lacks`);
   const s = L.scratchBuild('notes', {files: f.files, courseLine: f.line});
   if(s.code !== 0) L.notRun(NAME, 'the scratch copy with the test question does not build: ' + s.out.split('\n').pop());
   const {browser} = await L.launch(NAME);
@@ -176,14 +201,14 @@ const DENY = () => { const orig = Storage.prototype.setItem;
       const wait = ms => page.waitForTimeout(ms);
       const SC = await ev(() => !!FX.api('study-controls'));
       // a note on a drill question
-      await L.quizOn(page, ['cq5-6', 'cq5-6']);
-      check(await ev(() => !!document.querySelector('#v-quiz .qcard .qhead [data-noteq="cq5-6"]')), 'the quiz card carries ✎ Note');
-      await page.click('#v-quiz [data-noteq="cq5-6"]');
-      await page.fill('#v-quiz textarea[data-notetext="cq5-6"]', 'Why is Vmax not compared with Cp?');
+      await L.quizOn(page, ['nts-cq5-6', 'nts-cq5-6']);
+      check(await ev(() => !!document.querySelector('#v-quiz .qcard .qhead [data-noteq="nts-cq5-6"]')), 'the quiz card carries ✎ Note');
+      await page.click('#v-quiz [data-noteq="nts-cq5-6"]');
+      await page.fill('#v-quiz textarea[data-notetext="nts-cq5-6"]', 'Why is Vmax not compared with Cp?');
       if(SHOTS && width === 390) await page.screenshot({path: path.join(SHOTS, 'quiz-note-390.png')});
       await wait(400);
-      check(await ev(() => DB.notes['cq5-6'] && DB.notes['cq5-6'].t) === 'Why is Vmax not compared with Cp?', 'a note on a drill question is saved as it is typed');
-      check(await ev(() => document.querySelector('#v-quiz [data-noteq="cq5-6"]').textContent) === '✎ My note', 'the button then reads My note');
+      check(await ev(() => DB.notes['nts-cq5-6'] && DB.notes['nts-cq5-6'].t) === 'Why is Vmax not compared with Cp?', 'a note on a drill question is saved as it is typed');
+      check(await ev(() => document.querySelector('#v-quiz [data-noteq="nts-cq5-6"]').textContent) === '✎ My note', 'the button then reads My note');
       if(SC){
         // study-controls' keys must not fire while the note is typed in: every key it reads
         // (A-J, 1-9, Enter, the arrows), before the answer and after a right answer
@@ -191,8 +216,8 @@ const DENY = () => { const orig = Storage.prototype.setItem;
         const typeKeys = async sel => { await page.click(sel); await page.keyboard.type(KEYS);
           for(const k of ['Enter', 'ArrowRight', 'ArrowLeft']) await page.keyboard.press(k); };
         const n0 = await ev(() => (DB.answers || []).length);
-        await typeKeys('#v-quiz textarea[data-notetext="cq5-6"]'); await wait(300);
-        const k = await ev(() => ({revealed: Q.revealed, picked: Q.picked, t: DB.notes['cq5-6'].t, n: (DB.answers || []).length}));
+        await typeKeys('#v-quiz textarea[data-notetext="nts-cq5-6"]'); await wait(300);
+        const k = await ev(() => ({revealed: Q.revealed, picked: Q.picked, t: DB.notes['nts-cq5-6'].t, n: (DB.answers || []).length}));
         check(!k.revealed && (k.picked === null || k.picked === undefined) && k.n === n0 && k.t.endsWith(KEYS + '\n'),
               'typing A-J, 1-9, Enter and the arrows in a note on the quiz picks, checks and records nothing, and the keys go into the note (study-controls keys)', k);
         // the same keys outside the note do drive the quiz: the right letter answers it
@@ -202,22 +227,22 @@ const DENY = () => { const orig = Storage.prototype.setItem;
         if(!(await ev(() => Q.revealed))){ await page.keyboard.press('Enter'); await wait(100); }
         const r1 = await ev(() => ({revealed: Q.revealed, right: !!Q.lastRight, n: DB.answers.length}));
         check(r1.revealed && r1.right && r1.n === n0 + 1, 'with the note left, the right letter key answers the question (the keys are live)', r1);
-        if(!(await ev(() => !!document.querySelector('#v-quiz textarea[data-notetext="cq5-6"]')))) await page.click('#v-quiz [data-noteq="cq5-6"]');
-        await typeKeys('#v-quiz textarea[data-notetext="cq5-6"]'); await wait(300);
-        const r2 = await ev(() => ({revealed: Q.revealed, n: DB.answers.length, last: DB.answers[DB.answers.length - 1].result, t: DB.notes['cq5-6'].t}));
+        if(!(await ev(() => !!document.querySelector('#v-quiz textarea[data-notetext="nts-cq5-6"]')))) await page.click('#v-quiz [data-noteq="nts-cq5-6"]');
+        await typeKeys('#v-quiz textarea[data-notetext="nts-cq5-6"]'); await wait(300);
+        const r2 = await ev(() => ({revealed: Q.revealed, n: DB.answers.length, last: DB.answers[DB.answers.length - 1].result, t: DB.notes['nts-cq5-6'].t}));
         check(r2.revealed && r2.n === r1.n && r2.last === 'correct' && r2.t.split(KEYS).length - 1 === 2,
               'after a right answer, typing 1, 2, 3 and Enter in the note marks nothing (Not sure, I guessed) and does not move on', r2);
-        await page.fill('#v-quiz textarea[data-notetext="cq5-6"]', 'Why is Vmax not compared with Cp?'); await wait(300);
+        await page.fill('#v-quiz textarea[data-notetext="nts-cq5-6"]', 'Why is Vmax not compared with Cp?'); await wait(300);
         await ev(() => document.activeElement && document.activeElement.blur());
         await page.keyboard.press('1'); await wait(150);
         check(await ev(() => !Q.revealed), 'with the note left, 1 moves on to the next question (the keys are live)');
       }
       await page.reload(); await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3);
-      check(await ev(() => DB.notes && DB.notes['cq5-6'] && DB.notes['cq5-6'].t) === 'Why is Vmax not compared with Cp?', 'the note is still there after a reload');
+      check(await ev(() => DB.notes && DB.notes['nts-cq5-6'] && DB.notes['nts-cq5-6'].t) === 'Why is Vmax not compared with Cp?', 'the note is still there after a reload');
 
       // a note on a running paper
       await ev(() => { Q = null; show('exam'); beginExam(); });
-      const k2 = await ev(() => { const k = EX.qs.findIndex(q => q.id !== 'cq5-6'); EX.i = k; renderExamQ(); return k; });
+      const k2 = await ev(() => { const k = EX.qs.findIndex(q => q.id !== 'nts-cq5-6'); EX.i = k; renderExamQ(); return k; });
       const pid = await ev(k => EX.qs[k].id, k2);
       check(await ev(all => EX.qs.length > 1 && EX.qs.every(q => all.includes(q.id)), ALL), 'the paper is drawn from the Pharmacokinetics questions only');
       await page.waitForSelector(`#v-exam [data-noteq="${pid}"]`, {timeout: 3000}).catch(() => {});
@@ -266,7 +291,7 @@ const DENY = () => { const orig = Storage.prototype.setItem;
       await page.click('#ntOpen');
       check(await ev(() => VIEW === 'notes' && document.querySelectorAll('#v-notes [data-noteid]').length === 2), 'Open Notes opens the Notes tab with a card for each note');
       check(await ev(id => document.querySelector('#v-notes [data-noteid]').dataset.noteid === id, pid), 'the newest note is first');
-      check(await ev(() => /Your answer:/.test(document.querySelector('#v-notes [data-noteid="cq5-6"]').textContent) || /Not answered yet/.test(document.querySelector('#v-notes [data-noteid="cq5-6"]').textContent)),
+      check(await ev(() => /Your answer:/.test(document.querySelector('#v-notes [data-noteid="nts-cq5-6"]').textContent) || /Not answered yet/.test(document.querySelector('#v-notes [data-noteid="nts-cq5-6"]').textContent)),
             'each card says the answer last given, or that there is none');
       if(SHOTS && width === 390) await page.screenshot({path: path.join(SHOTS, 'notes-tab-390.png'), fullPage: true});
       await ev(() => { navigator.clipboard.writeText = t => { window.__copied = t; return Promise.resolve(); }; });
@@ -279,21 +304,21 @@ const DENY = () => { const orig = Storage.prototype.setItem;
       check(d.suggestedFilename() === `${cid}-my-questions.md`, 'Download saves <course id>-my-questions.md', d.suggestedFilename());
       const dp = path.join(tmp, 'notes-' + width + '.md'); await d.saveAs(dp);
       check(fs.readFileSync(dp, 'utf8') === await ev(() => FX.api('notes').markdown()), 'the downloaded file is the text');
-      await page.fill('#v-notes textarea[data-notetext="cq5-6"]', 'Edited in the Notes tab.'); await wait(300);
-      check(await ev(() => DB.notes['cq5-6'].t) === 'Edited in the Notes tab.', 'a note edits in the Notes tab');
+      await page.fill('#v-notes textarea[data-notetext="nts-cq5-6"]', 'Edited in the Notes tab.'); await wait(300);
+      check(await ev(() => DB.notes['nts-cq5-6'].t) === 'Edited in the Notes tab.', 'a note edits in the Notes tab');
       // the flag mark, read from study-controls when it is on
       if(SC){
-        await ev(() => { FX.api('study-controls').set('cq5-6', true); show('topics'); show('notes'); });
-        check(await ev(() => !!document.querySelector('#v-notes [data-noteid="cq5-6"] .ntflag') && document.querySelectorAll('#v-notes .ntflag').length === 1), 'with study-controls on, the flagged question\'s card says ⚑ flagged');
-        await ev(() => { FX.api('study-controls').set('cq5-6', false); show('topics'); show('notes'); });
+        await ev(() => { FX.api('study-controls').set('nts-cq5-6', true); show('topics'); show('notes'); });
+        check(await ev(() => !!document.querySelector('#v-notes [data-noteid="nts-cq5-6"] .ntflag') && document.querySelectorAll('#v-notes .ntflag').length === 1), 'with study-controls on, the flagged question\'s card says ⚑ flagged');
+        await ev(() => { FX.api('study-controls').set('nts-cq5-6', false); show('topics'); show('notes'); });
         check(await ev(() => !document.querySelector('#v-notes .ntflag')), 'the mark goes when the flag does');
       }else{
-        await ev(() => { DB.flags = {'cq5-6': 1}; show('topics'); show('notes'); });
+        await ev(() => { DB.flags = {'nts-cq5-6': 1}; show('topics'); show('notes'); });
         check(await ev(() => !document.querySelector('#v-notes .ntflag')), 'with study-controls off, no flag mark, even with a stray DB.flags');
         await ev(() => { delete DB.flags; });
       }
-      await page.click('#v-notes [data-notedel="cq5-6"]'); await wait(200);
-      check(await ev(() => !DB.notes['cq5-6'] && document.querySelectorAll('#v-notes [data-noteid]').length === 1), 'Delete note removes it');
+      await page.click('#v-notes [data-notedel="nts-cq5-6"]'); await wait(200);
+      check(await ev(() => !DB.notes['nts-cq5-6'] && document.querySelectorAll('#v-notes [data-noteid]').length === 1), 'Delete note removes it');
       await page.fill(`#v-notes textarea[data-notetext="${pid}"]`, '   '); await wait(300);
       check(await ev(id => !(id in DB.notes), pid), 'an emptied note is removed from the progress');
       await page.fill(`#v-notes textarea[data-notetext="${pid}"]`, 'Back again.'); await wait(300);
@@ -353,23 +378,23 @@ const DENY = () => { const orig = Storage.prototype.setItem;
         await ev(() => { window.__name = 'Other'; askProfile(true); });
         await ev(() => { show('notes'); });
         check(await ev(() => !DB.notes && /No notes yet/.test(document.querySelector('#v-notes').textContent)), 'a third profile has no notes');
-        await ev(() => { FX.api('notes'); DB.notes = {'cq5-6': {t: 'Other profile note', at: Date.now()}}; save(); }); await wait(300);
+        await ev(() => { FX.api('notes'); DB.notes = {'nts-cq5-6': {t: 'Other profile note', at: Date.now()}}; save(); }); await wait(300);
         await ev(p => { window.__name = p; askProfile(true); }, big.profile);
         check(await ev(() => JSON.stringify(DB.notes)) === snap, 'switching back, the first profile has its own notes');
         await ev(() => { window.__name = 'Other'; askProfile(true); });
-        check(await ev(() => Object.keys(DB.notes).length === 1 && DB.notes['cq5-6'].t === 'Other profile note'), 'the other profile keeps only its own note');
+        check(await ev(() => Object.keys(DB.notes).length === 1 && DB.notes['nts-cq5-6'].t === 'Other profile note'), 'the other profile keeps only its own note');
         await ev(p => { window.__name = p; askProfile(true); }, big.profile);
         check(await ev(p => PROFILE === p, big.profile), 'back on the first profile');
 
         // a reload soon after a change
-        const typeNote = async (t) => { await L.quizOn(page, ['cq5-6-c1', 'cq5-6-c1']); await page.click('#v-quiz [data-noteq="cq5-6-c1"]');
-          await page.fill('#v-quiz textarea[data-notetext="cq5-6-c1"]', t); };
+        const typeNote = async (t) => { await L.quizOn(page, ['nts-cq5-6-c1', 'nts-cq5-6-c1']); await page.click('#v-quiz [data-noteq="nts-cq5-6-c1"]');
+          await page.fill('#v-quiz textarea[data-notetext="nts-cq5-6-c1"]', t); };
         await typeNote('Kept: reloaded 400 ms after.'); await wait(400);
         await page.reload(); await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3);
-        check(await ev(() => DB.notes['cq5-6-c1'].t) === 'Kept: reloaded 400 ms after.', 'a reload 400 ms after typing keeps the change');
+        check(await ev(() => DB.notes['nts-cq5-6-c1'].t) === 'Kept: reloaded 400 ms after.', 'a reload 400 ms after typing keeps the change');
         await typeNote('Typed then reloaded at once.');
         await page.reload(); await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3);
-        const fast = await ev(() => ({t: DB.notes['cq5-6-c1'].t, n: Object.keys(DB.notes).length}));
+        const fast = await ev(() => ({t: DB.notes['nts-cq5-6-c1'].t, n: Object.keys(DB.notes).length}));
         console.log(`  report  a reload under 150 ms after typing: the note reads "${fast.t}" (${fast.t === 'Typed then reloaded at once.' ? 'the change was kept' : 'the last change was lost; the earlier text is kept'}), ${fast.n} notes`);
         check(fast.n === big.n && (fast.t === 'Kept: reloaded 400 ms after.' || fast.t === 'Typed then reloaded at once.'), 'a reload under 150 ms after typing loses at most that change, and every note is still there', fast);
 
@@ -381,21 +406,21 @@ const DENY = () => { const orig = Storage.prototype.setItem;
           await typeNote(`Written while storage is ${mode}.`); await wait(400);
           const r = await ev(() => ({warn: (() => { const w = document.querySelector('#savewarn'); if(!w) return false; const b = w.getBoundingClientRect(), cs = getComputedStyle(w);
               return b.width > 0 && b.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none'; })(),
-            text: (document.querySelector('#savewarn') || {}).textContent || '', stored: localStorage.getItem(keyFor(PROFILE)), mem: DB.notes['cq5-6-c1'].t}));
+            text: (document.querySelector('#savewarn') || {}).textContent || '', stored: localStorage.getItem(keyFor(PROFILE)), mem: DB.notes['nts-cq5-6-c1'].t}));
           check(r.warn && /did not save your progress/.test(r.text), `storage ${mode}: the student is told the progress was not saved`, r.text);
           check(r.stored === stored0 && r.mem === `Written while storage is ${mode}.`, `storage ${mode}: the stored progress is left as it was, and the note stays on screen`);
           await ev(() => { window.__deny = null; });
           await typeNote(`Written after storage works again (${mode}).`); await wait(400);
           await page.reload(); await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3);
-          const back = await ev(() => ({t: DB.notes['cq5-6-c1'].t, n: Object.keys(DB.notes).length}));
+          const back = await ev(() => ({t: DB.notes['nts-cq5-6-c1'].t, n: Object.keys(DB.notes).length}));
           check(back.t === `Written after storage works again (${mode}).` && back.n === big.n, `storage ${mode}: once storage works, the next change is saved with every earlier note and loads after a reload`, back);
         }
         if(SHOTS) { await ev(() => show('notes')); await page.screenshot({path: path.join(SHOTS, 'notes-many-390.png')}); }
 
         // a saved note in a bad shape is dropped on load; the rest load
-        await ev(() => { const k = keyFor(PROFILE), d = JSON.parse(localStorage.getItem(k)); d.notes.bad1 = 'text only'; d.notes['cq5-6-c2'] = {t: 7}; localStorage.setItem(k, JSON.stringify(d)); });
+        await ev(() => { const k = keyFor(PROFILE), d = JSON.parse(localStorage.getItem(k)); d.notes.bad1 = 'text only'; d.notes['nts-cq5-6-c2'] = {t: 7}; localStorage.setItem(k, JSON.stringify(d)); });
         await page.reload(); await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3);
-        check(await ev(n => !('bad1' in DB.notes) && !('cq5-6-c2' in DB.notes) && Object.keys(DB.notes).length === n - 1, big.n), 'a saved note in a bad shape is dropped on load, the others load');
+        check(await ev(n => !('bad1' in DB.notes) && !('nts-cq5-6-c2' in DB.notes) && Object.keys(DB.notes).length === n - 1, big.n), 'a saved note in a bad shape is dropped on load, the others load');
 
         await ev(() => show('settings')); await page.click('#btnReset'); await wait(300);
         check(await ev(() => !DB.notes), 'Erase my history removes the notes');
