@@ -13,9 +13,10 @@
 # request #33, then 21 of 21 repeated WebKit runs of the whole suite on main passed, run
 # 41574234473). WebKit on this Linux runner is not the Safari app: an iPhone and an iPad are
 # still tried by hand before BDK goes live. The results are
-# visible on each pull request, and kit sessions merge only when every job passes (KIT_DESIGN.md
-# §12.9). GitHub does not enforce this on this private repository (no required
-# checks or rulesets without a paid plan or a public repository).
+# visible on each pull request, and kit sessions merge only when every applicable job concluded
+# "success" on the final head commit (KIT_DESIGN.md §12 decision 10; a module job the plan
+# intentionally did not select is not applicable). No branch protection is set up, so GitHub
+# does not enforce this.
 name: Kit checks
 
 on:
