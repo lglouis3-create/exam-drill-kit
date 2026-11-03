@@ -1,0 +1,84 @@
+
+=== 1. Question bank integrity ===
+  129 questions, 6 topics, 1 images
+  ok    the build's question count equals QUESTIONS.length (129)
+  warn  gtap-L02-002: very short explanation on "Gαi → PLC → ↓ IP3 and Ca++"
+  warn  gtap-L10-003: very short explanation on "Heart"
+  warn  gtap-L10-004: very short explanation on "β3"
+  warn  gtap-L10-024: very short explanation on "Block postsynaptic α1"
+  warn  gtap-L10-027: very short explanation on "MAO-B is mainly in the gut"
+  warn  gtap-L10-029: very short explanation on "Phenelzine reversibly, selegil"
+  warn  gtap-L10-033: very short explanation on "Sinoatrial node"
+  warn  gtap-L10-039: very short explanation on "Ventricular muscle of the hear"
+  warn  gtap-L10-039: very short explanation on "Radial muscle of the iris"
+  warn  gtap-L10-046: very short explanation on "Cholinesterase inhibitor"
+  warn  gtap-L10-058: very short explanation on "α1"
+
+=== 2. Exam blueprint coverage ===
+  Lectures 1–4: 69 questions (paper takes 4)
+
+=== 3. Concept spread per topic ===
+  topic1       3 q /   3 concepts  (Professor)
+  topic2       4 q /   4 concepts  (Professor)
+  gtap-L02    38 q /  35 concepts  (Gottlieb)
+  warn  subtopic "gtap-L02/gtap-review" (Day 1 review (ion channels)) has no questions
+  gtap-L04    24 q /  22 concepts  (Gottlieb)
+  gtap-L10    59 q /  59 concepts  (Gottlieb)
+  gtap-PE2     1 q /   1 concepts  (Gottlieb)
+  warn  subtopic "gtap-PE2/gtap-variant" (Same idea, different correct option) has no questions
+
+=== 4. Spaced repetition rules ===
+feature module glossary-tap (tab): TypeError: nav.querySelector is not a function
+    at evalmachine.<anonymous>:1724:17
+    at run (evalmachine.<anonymous>:1685:18)
+    at dom (evalmachine.<anonymous>:1717:7)
+    at startUp (evalmachine.<anonymous>:1738:11)
+    at evalmachine.<anonymous>:1799:5
+    at Object.askProfile (evalmachine.<anonymous>:1023:3)
+    at Object.<anonymous> (/tmp/kit-ci-erpVuk/course/src/test.js:118:3)
+    at Module._compile (node:internal/modules/cjs/loader:1781:14)
+    at Object..js (node:internal/modules/cjs/loader:1913:10)
+    at Module.load (node:internal/modules/cjs/loader:1505:32)
+  ok    missed concept is held back rather than repeated at once
+  ok    missed concept resurfaces after other questions
+  ok    box advanced 0 -> 3 with repeated correct answers
+  ok    a later miss resets the concept to active review
+  ok    a guess resets the concept to unresolved and outranks never-seen material
+  ok    "I guessed that one" rewrites the log, resets the box, keeps picked and ms
+  ok    5 concepts have more than one wording available
+
+=== 5. Exam simulation draw ===
+  blueprint: Exam 1 — Lectures 1–4 4 (4 of 4)
+  drew 4
+  ok    no duplicate questions on a single paper
+  ok    dupOf partners never share a paper (2 marked; 1 lowYield kept off the paper)
+  ok    20 repeated draws all kept the paper shape
+  select-all on the paper: 0 of 4 (target 0)
+  ok    the paper carries the intended number of select-all items
+  ok    the 6 lectures in the manifest have distinct ids
+  ok    every question resolves to a lecture, exam and module
+  ok    every question carries a skill from the course taxonomy (recall, tell, apply, read, calc, figure, drug, term)
+  ok    numeric grading accepts the answer within tolerance and rejects the rest
+
+=== 6. Storage isolation ===
+  ok    progress written under namespaced key: course-id-drill:data:me
+  ok    the page opened without asking for a name
+=== 7. Different wording when a missed concept returns ===
+  ok    returned as a different question (gtap-L02-002 -> gtap-L02-044)
+=== 8. Small pools end instead of looping ===
+  ok    pool of 2 served 2 (2 distinct) then stopped
+  ok    "Ask everything" still serves (10 more)
+
+=== 9. Figures, read links, change log, blueprint ===
+  ok    every DIAGRAMS key is in DIA
+  ok    1 step-through figure(s), each with a dot per step
+  ok    2 read link(s), every one naming guide, tell or ref
+  7 of 129 questions resolve to a reading section (the rest group by topic in the review plan)
+  ok    a session is the run with no half-hour gap (2 of 4 answers)
+  ok    a correct answer marked "not sure" does not count as solid
+  skip  blueprint draw (this course draws by pool marks, not announced counts)
+  ok    1 change log entry embedded, each with bullets
+
+All checks passed  (warnings: 13)
+
+PASS: test.js: 129 questions checked, 13 warning(s)

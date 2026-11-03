@@ -1,0 +1,11 @@
+
+=== state_check.js on known histories ===
+  ok    outside a git repository: NOT RUN
+  ok    lecture and CLAUDE.md in one commit: PASS
+  ok    a lecture committed after the last CLAUDE.md change: FAIL, naming it
+  ok    CLAUDE.md changed in the working copy after that: PASS
+  ok    CLAUDE.md committed after the lecture: PASS
+  ok    a lecture not committed yet, CLAUDE.md unchanged: FAIL
+  ok    a depth-1 clone where the newest lecture is in the first commit: NOT RUN
+  ok    no CLAUDE.md at the repository root: FAIL
+PASS: state_check_test.js: 8 checks passed

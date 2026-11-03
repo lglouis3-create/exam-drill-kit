@@ -1,0 +1,76 @@
+
+=== Explanation quality ===
+  172 of 175 questions carry at least one issue
+
+   172  thin option why
+    35  no diagnosis of the error
+     1  vague reference
+
+  by pool:
+   109  all (supplies 4 of the 4)
+    63  none (supplies ? of the 4)
+
+  worst 30, ranked by severity x exam weight:
+
+  gtap-L02-008 gtap-L02  all             rank 28.0
+      - thin option why: A (84), B (84), C (73), D (68), E (73), F (59), G (62)
+  gtap-L02-011 gtap-L02  all             rank 28.0
+      - thin option why: A (52), B (76), C (76), D (63), E (72), F (41), G (49)
+  gtap-L02-019 gtap-L02  all             rank 28.0
+      - thin option why: A (54), B (92), C (59), D (77), E (69), F (56), G (47)
+  gtap-L02-005 gtap-L02  all             rank 24.0
+      - thin option why: A (66), B (66), C (100), D (89), E (65), F (78)
+  s2-1        topic2    all             rank 20.0
+      - thin option why: A (48), B (42), C (39), D (49), E (55)
+  gtap-L02-002 gtap-L02  all             rank 20.0
+      - thin option why: A (61), B (53), C (85), D (63), E (24)
+  gtap-L02-006 gtap-L02  all             rank 20.0
+      - thin option why: A (73), B (92), C (66), D (90), E (82)
+  gtap-L02-052 gtap-L02  all             rank 20.0
+      - thin option why: A (41), B (88), C (79), D (88), E (53)
+  gtap-L02-053 gtap-L02  all             rank 20.0
+      - thin option why: A (108), B (65), C (102), D (56), E (49)
+  gtap-L02-054 gtap-L02  all             rank 20.0
+      - thin option why: A (89), B (83), C (43), D (57), E (38)
+  gtap-L02-057 gtap-L02  all             rank 20.0
+      - thin option why: A (95), B (66), C (74), D (84), E (76)
+  gtap-L02-017 gtap-L02  all             rank 20.0
+      - thin option why: A (78), B (83), C (96), D (82), E (92)
+  gtap-L02-020 gtap-L02  all             rank 20.0
+      - thin option why: A (74), B (54), C (96), D (38), E (29)
+  gtap-L02-022 gtap-L02  all             rank 20.0
+      - thin option why: A (75), B (89), C (76), D (43), E (107)
+  gtap-L02-024 gtap-L02  all             rank 20.0
+      - thin option why: A (102), B (54), C (45), D (43), E (56)
+  gtap-L02-025 gtap-L02  all             rank 20.0
+      - thin option why: A (102), B (74), C (72), D (72), E (71)
+  gtap-L02-027 gtap-L02  all             rank 20.0
+      - thin option why: A (85), B (109), C (39), D (77), E (75)
+  gtap-L02-028 gtap-L02  all             rank 20.0
+      - thin option why: A (107), B (54), C (63), D (71), E (78)
+  gtap-L02-029 gtap-L02  all             rank 20.0
+      - thin option why: A (75), B (65), C (43), D (36), E (41)
+  gtap-L02-030 gtap-L02  all             rank 20.0
+      - thin option why: A (100), B (79), C (45), D (68), E (70)
+  gtap-L02-033 gtap-L02  all             rank 20.0
+      - thin option why: A (40), B (65), C (38), D (69), E (85)
+  gtap-L02-035 gtap-L02  all             rank 20.0
+      - thin option why: A (69), B (50), C (37), D (77), E (78)
+  gtap-L02-044 gtap-L02  all             rank 20.0
+      - thin option why: A (38), B (38), C (38), D (38), E (98)
+  gtap-L04-003 gtap-L04  all             rank 20.0
+      - thin option why: A (89), B (28), C (28), D (73), E (66)
+  gtap-L04-010 gtap-L04  all             rank 20.0
+      - thin option why: A (59), B (67), C (74), D (69), E (96)
+  gtap-L04-018 gtap-L04  all             rank 20.0
+      - thin option why: A (108), B (79), C (72), D (83), E (72)
+  gtap-L04-024 gtap-L04  all             rank 20.0
+      - thin option why: A (81), B (93), C (79), D (85), E (73)
+  gtap-L04-027 gtap-L04  all             rank 20.0
+      - thin option why: B (85), C (100), D (87), E (102), F (84)
+  gtap-L04-031 gtap-L04  all             rank 20.0
+      - thin option why: A (91), B (92), C (68), D (87), E (86)
+  gtap-L04-032 gtap-L04  all             rank 20.0
+      - thin option why: A (95), B (57), C (61), D (74), E (70)
+
+REPORT: explain_check.js: 172 of 175 questions carry at least one explanation issue

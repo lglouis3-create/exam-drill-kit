@@ -1,0 +1,47 @@
+
+=== no module switched on ===
+  ok    `features: {}` and no `features` build the same page, except the build stamp
+  ok    that page holds none of features.js
+  ok    without modules, --list-checks does not list this test
+
+=== what the build refuses ===
+  ok    stops: a module that is not on disk
+  ok    stops: a version the folder does not hold
+  ok    stops: an option the module does not take
+  ok    stops: an option of the wrong kind
+  ok    stops: a module whose needs are off
+  ok    stops: a question type no module draws
+  ok    stops: a build step that throws
+
+=== the probes switched on ===
+  ok    the course builds with the three probes on
+  ok    --list-checks lists this test when a module is on
+  ok    --list-sources names features.js and the modules' files, so the device lint reads them
+  ok    the hooks attach to show, renderQuiz, record, renderSettings, refFigures, drawPaper, load and upgradeDB
+  ok    the modules load in course order, a module after the ones it needs (the course's own modules first)
+  ok    a module that throws while it loads is skipped, and the error is kept
+  ok    the skipped module's tab is not in the nav
+  ok    the tabs sit before Settings
+  ok    the start-up step ran once, after the progress was loaded
+  ok    FX.api gives a module's offer, with its options; a skipped module offers nothing
+  ok    the tab draws its pane with the options and the build step's output
+  ok    the tab is the view on screen, the others hidden
+  ok    the module's CSS is in the page
+  ok    a core tab hides the module's pane again
+  ok    the question type draws its card: the stem, and its own body
+  ok    its grader decides, and the answer is recorded with what was picked
+  ok    the step after an answer sees the answer as kept, and can add to it
+  ok    the answered card offers Next question
+  ok    the keyed pick is graded right
+  ok    the pass after the engine draws ran on Topics, Quiz and the tab
+  ok    the paper hook gets a new paper's questions in order and what it returns is the paper
+  ok    the reading hook changes a reading tab's HTML before it is drawn
+  ok    the Settings section is drawn at the end of Settings and wired
+  ok    the progress converter runs on the saved progress when it is loaded
+  ok    a reload on the module's tab comes back to it
+  ok    and on a progress read in by Import (upgradeDB)
+  ok    a module whose tab throws is switched off: its tab goes and the page shows Topics
+  ok    its other hooks stop too
+  ok    the other modules keep working
+  ok    no page error
+PASS: features_test.js: 40 checks passed

@@ -1,0 +1,39 @@
+== modules switched on, in this order: glossary-tap
+-- glossary-tap: node features/glossary-tap/ci/oncourse.js
+wrote: /tmp/kit-ci-gwj7kz/course/src/terms_gtap.js (10 terms)
+wrote: /tmp/kit-ci-gwj7kz/course/src/q90_gtap_course.js (topics gtap-L02, gtap-L04, gtap-L10, gtap-PE2; 122 questions)
+wrote: /tmp/kit-ci-gwj7kz/course/src/guide.js (Intro to Pharmacology guide.js sections 1 and 4, opening lines, added at the end)
+wrote: /tmp/kit-ci-gwj7kz/course/src/images.json (1 image(s) added: gtap-pollev-kd-table)
+wrote: appended to /tmp/kit-ci-gwj7kz/course/src/course.js: lectures gtap-L02, gtap-L03, gtap-L04, gtap-L10, gtap-PE2; 1 professor(s) and 3 skill(s) the course lacked (figure, drug, term); q90_gtap_course.js and terms_gtap.js in files; glossary-tap v1 on
+== module:glossary-tap, chromium, kit ?
+PASS     build.py          wrote index.html  (0.53 MB)
+PASS     test.js           129 questions checked, 13 warning(s)
+PASS     style_check.js    129 stems and 129 explanations clean
+PASS     style_check_test.js 29 checks passed
+PASS     render_test.js    every view rendered clean
+REPORT   explain_check.js  127 of 129 questions carry at least one explanation issue
+PASS     stepper_test.js   1 step-through(s) settle at every step
+NOT RUN  cite_check.py     no lecture PDFs found under decks/ or src/
+PASS     device_lint.js    3 checks passed
+PASS     output_test.js    16 checks passed
+PASS     files_test.js     13 checks passed
+PASS     tables_test.js    20 checks passed
+PASS     checks_test.js    32 checks passed
+PASS     draw_test.js      9 checks passed
+PASS     browser_test.js   98 checks passed (5 skipped: concept-block figures render after answering; drawn structures; stems that promise a figure show one …)
+PASS     storage_test.js   24 checks passed
+PASS     startup_test.js   77 checks passed
+PASS     update_test.js    38 checks passed
+PASS     offline_test.js   30 checks passed
+PASS     home_test.js      36 checks passed
+PASS     history_test.js   28 checks passed
+PASS     scheduler_test.js 110 checks passed
+PASS     preview_test.js   14 checks passed
+PASS     state_check.js    2 checks passed
+PASS     state_check_test.js 8 checks passed
+PASS     oldcache_test.js  12 checks passed
+PASS     nullexam_test.js  76 checks passed (1 skipped: the Weighting chips)
+PASS     features_test.js  40 checks passed
+PASS     features/glossary-tap/test.js 56 checks passed (1 skipped: glossary-tap with formulas-in-text)
+27 PASS, 0 FAIL, 1 NOT RUN, 1 REPORT; logs in /tmp/drill-checks-FIQqnV
+exit 0

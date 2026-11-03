@@ -1,0 +1,40 @@
+
+=== Stem check (every stem asks the subject, not "what does the deck say") ===
+  all 175 stems clean
+
+=== Style check (rebuilt questions only) ===
+  gtap-L02-007 · option B
+      [metaphor] "...RAF, MEK and ERK are downstream of RAS; blocking RAS removes their activation...."
+  gtap-L02-057 · concept block
+      [metaphor] "...direct antagonist: it binds RAS, a component downstream of the receptor tyrosine kinase. The growth fac..."
+  gtap-L04-005 · option B
+      [commentary about the question] "...B is the point of reference (norepinephrine alone); a secon..."
+  gtap-L04-018 · option B
+      [commentary about the question] "...B is the point of reference; an allosteric agonist changes..."
+  gtap-L04-024 · option E
+      [commentary about the question] "...D is the point of reference; the allosteric antagonist chan..."
+  gtap-L04-036 · option B
+      [commentary about the question] "...B is the point of reference (norepinephrine alone); an anta..."
+  gtap-L04-037 · option B
+      [commentary about the question] "...B is the point of reference (norepinephrine alone); an anta..."
+  gtap-L04-038 · option C
+      [commentary about the question] "...C is the point of reference (norepinephrine alone); an allo..."
+  gtap-L04-050 · option D
+      [commentary about the question] "...D is the point of reference; an allosteric antagonist chang..."
+  gtap-L10-042 · concept block
+      [study meta-commentary] "...predicted from the mechanism of action, not memorized...."
+  gtap-L10-051 · concept block
+      [study meta-commentary] "...ct is predicted from mechanism and site, not memorized...."
+
+  scanned 175 rebuilt questions
+  11 phrasing issues found
+
+=== Change log ===
+  1 entries, 1 bullets, all within one line
+
+  rebuilt questions whose citation names a slide: 68 of 175
+     by slide number: 68
+     by slide title:  0
+  citations naming neither a slide number nor a slide title: gtap-L02-001, gtap-L02-002, gtap-L02-003, gtap-L02-004, gtap-L02-005, gtap-L02-006 …
+  rebuilt questions with a diagram: 0
+FAIL: style_check.js: 11 phrasing or change-log issue(s)

@@ -1,0 +1,8 @@
+head d9c8ec7e35a3b41e62daee0b93555ff939f2119a
+ci_course.sh module:glossary-tap exit 0
+module course: /tmp/kit-ci-erpVuk
+features/glossary-tap/test.js run 1 exit 0
+features/glossary-tap/test.js run 2 exit 0
+features/glossary-tap/test.js run 3 exit 0
+ci_course.sh modules:glossary-tap,formulas-in-text exit 0
+DONE
