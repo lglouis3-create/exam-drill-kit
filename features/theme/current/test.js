@@ -145,7 +145,9 @@ const LOW = function(){
   const missing = coreColours.filter(k => !(k in darkVars));
   check(coreColours.length > 0 && !missing.length, `each of the ${coreColours.length} colours the core's :root sets has a dark value`, missing.join(', '));
 
-  const sb = L.scratchBuild('theme', {files: {[FIXFILE]: fixtureFile()}, courseLine: lectureLine() + L.featureOn(__dirname)});
+  // a course that already holds the fixture (its own copy of q90_theme_fixture.js) is used as it is
+  const hasFix = fs.existsSync(path.join(L.PAGE.SRC, FIXFILE));
+  const sb = L.scratchBuild('theme', hasFix ? {courseLine: L.featureOn(__dirname)} : {files: {[FIXFILE]: fixtureFile()}, courseLine: lectureLine() + L.featureOn(__dirname)});
   if(sb.code !== 0){ check(false, 'the scratch copy builds with the module on and the fixture added', sb.out.slice(-400)); sb.rm(); L.finish(NAME); }
 
   console.log('\n=== in node, as the course\'s checks run the engine ===');
