@@ -660,8 +660,10 @@ function saveWarn(){
    those values, so the old writer's last save is in place before the new one's first.
    `<ns>:writer:<profile>` in localStorage names the tab that took the lock last; a writer
    that finds another tab's name there (a take-over while it was asleep) stops too.
-   A browser without Web Locks, or a page opened from disk, keeps the comparison guards
-   below on their own (WRITER 'none'). */
+   A browser without Web Locks keeps the comparison guards below on their own (WRITER
+   'none'). Not covered: a writer that leaves without handing over (closed, reloaded,
+   switched): the next tab reads storage at once, or after 1 s, and the interval stays
+   open at that moment (core/README.md, "What this does not cover"). */
 const HAS_LOCKS = (() => { try { return !!(window.isSecureContext && navigator.locks && navigator.locks.request && window.BroadcastChannel); } catch(e){ return false; } })();
 let WRITER = HAS_LOCKS ? 'pending' : 'none';   // 'held' | 'other' (another tab has it) | 'pending' (asking) | 'none' (no Web Locks)
 let WRITER_FOR = '', WRITER_WHY = 'other', WRITE_WAITING = false, writerRelease = null, writerSeq = 0;
@@ -746,6 +748,9 @@ function takeOver(force){
         finish(null);
         WRITER = 'held'; WRITER_FOR = p; STALE_WARNED = false;
         load();
+        // the exam paper this page restored when it opened may be older than the stored one:
+        // drop it, so the Exam sim tab reads the paper from storage again
+        try { if(typeof EX !== 'undefined' && EX){ clearInterval(EX.timer); EX = null; } } catch(e){}
         stopWall(null);
         try { if(typeof show === 'function') show(typeof VIEW !== 'undefined' ? VIEW : 'study'); } catch(e){}
         return;
@@ -782,7 +787,7 @@ let EXPORTED_STOPPED = false;
 const STOP_TEXT = {
   stale: 'This profile was saved in another tab or window after this page opened it, so this page has stopped saving and takes no more answers, to keep that progress. Reload to continue from what is saved.',
   other: 'This profile is open in another tab or window of this browser, and that tab saves it. So that the two never write over each other, this page takes no answers and saves nothing while that tab has it.',
-  gave: 'This profile is now used in another tab or window. This page saved everything first and has stopped; it takes no answers while the other tab has the profile.',
+  gave: 'This profile is now used in another tab or window. This page has stopped and takes no answers while the other tab has the profile.',
   taken: 'Another tab or window took this profile over, so this page has stopped saving and takes no more answers.',
   asking: 'Asking the other tab to save and hand this profile over…',
   slow: 'The other tab does not answer; it may be asleep in the background. "Take it over anyway" stops that tab from saving: anything it had not saved stays on that tab only, which then offers to export it.',
@@ -791,6 +796,8 @@ const STOP_TEXT = {
 let STOP_WALL = null;
 function stopWall(why){
   if(STOP_WALL){ STOP_WALL.remove(); STOP_WALL = null; }
+  // the page behind the wall cannot be reached by the keyboard either
+  try { if(document.body) for(const el of document.body.children) if(el.id !== 'stopwall' && el.id !== 'stalewarn') el.inert = !!why; } catch(e){}
   if(!why) return;
   if(!document.body){ document.addEventListener('DOMContentLoaded', () => { if(!mayWrite() || STALE) stopWall(why); }, {once: true}); return; }
   const w = STOP_WALL = document.createElement('div');
@@ -808,7 +815,15 @@ function stopWall(why){
   const row = document.createElement('div'); row.className = 'stoprow';
   const btn = (label, cls, fn, id) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn' + (cls ? ' ' + cls : ''); b.textContent = label; if(id) b.id = id; b.onclick = fn; row.appendChild(b); return b; };
   if(unsaved) btn('Export this page\'s progress', '', () => { try { exportProgress(); EXPORTED_STOPPED = true; } catch(e){ alert('The export did not work: ' + (e && e.message || e)); } }, 'stopExport');
-  if(why === 'other' || why === 'gave' || why === 'taken' || why === 'late') btn('Use it here', '', () => takeOver(false), 'stopTake');
+  if(why === 'other' || why === 'gave' || why === 'taken' || why === 'late') btn('Use it here', '', () => {
+    // taking the profile here reads it from storage: what this page has not saved would go
+    if(unsavedHere() && !EXPORTED_STOPPED && !confirm('The answers and settings this page has not saved are replaced by what is stored when this page takes the profile, unless you export them first. Use it here anyway?')) return;
+    takeOver(false);
+  }, 'stopTake');
+  if(why === 'other' || why === 'gave' || why === 'taken' || why === 'late') btn('Switch profile', 'ghost', () => {
+    if(unsavedHere() && !EXPORTED_STOPPED && !confirm('The answers and settings this page has not saved are lost when it opens another profile, unless you export them first. Switch anyway?')) return;
+    try { askProfile(true); if(typeof show === 'function') show(typeof VIEW !== 'undefined' ? VIEW : 'quiz'); } catch(e){}
+  }, 'stopSwitch');
   if(why === 'slow') btn('Take it over anyway', '', () => takeOver(true), 'stopSteal');
   if(why !== 'asking') btn('Reload', 'ghost', () => {
     if(unsavedHere() && !EXPORTED_STOPPED && !confirm('The answers and settings this page has not saved are lost on reload unless you export them first. Reload anyway?')) return;

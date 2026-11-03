@@ -1334,7 +1334,8 @@ let nfile = 0;
     return (await p.evaluate(() => { const b = document.getElementById('importPlan'); return b ? b.textContent : ''; })).replace(/\s+/g, ' ').trim();
   };
   // a real answer through the page's own path (record, then the save the page would make)
-  const answerHere = (p, i) => p.evaluate(i => { record(QUESTIONS[i % QUESTIONS.length], 'correct', undefined, 1000); saveNow(); return DB.answers.length ? DB.answers[DB.answers.length - 1].at : null; }, i);
+  // the answer's time, or null when the page took no answer (a read-only page)
+  const answerHere = (p, i) => p.evaluate(i => { const n = DB.answers.length; record(QUESTIONS[i % QUESTIONS.length], 'correct', undefined, 1000); saveNow(); return DB.answers.length > n ? DB.answers[DB.answers.length - 1].at : null; }, i);
   // the answer at `at` is in the stored progress or in a copy Import or Put back kept
   const keptSomewhere = async (p, di, at) => {
     const prog = JSON.parse(await stored(p, di.data) || '{"answers":[]}');
@@ -1355,6 +1356,9 @@ let nfile = 0;
       await lagView(actor, [di.data, di.log, di.backup]);
       const at = await answerHere(other, 7);                                   // the other tab's answer
       const otherSaved = at !== null && await keptSomewhere(other, di, at);
+      // whichever of the two tabs is read-only takes no answer at all
+      const ro = await other.evaluate(() => WRITER) === 'other';
+      check(ro ? at === null : otherSaved, `${order}, ${act}: the other tab ${ro ? 'is read-only and takes no answer' : 'is the writer and its answer is stored'}`, {ro, at, otherSaved});
       if(act === 'Import') await chooseJS(actor, later(file, 2));
       else if(act === 'an ordinary save') await answerHere(actor, 9);
       else await actor.evaluate(() => { show('settings'); restoreBackup(); });
@@ -1496,6 +1500,80 @@ let nfile = 0;
     const r = await d.page.evaluate(() => withOtherProfile({action: 'separate', name: 'other-one'}, () => ({text: 'WROTE'})));
     const free = await d.page.evaluate(() => withOtherProfile({action: 'separate', name: 'free-one'}, () => ({text: 'WROTE'})));
     check(/open in another tab/.test(r.text) && free.text === 'WROTE', 'Import into a profile another tab has open writes nothing and says why; a free name is written', {r: r.text.slice(0, 80), free: free.text});
+    await d.ctx.close();
+  }
+
+  console.log('\n=== One writer per profile: the review of 4b3b94c ===');
+  {
+    // a read-only tab writes no exam paper and erases nothing
+    const d = await device(undefined, true); const di = await info(d.page);
+    await answer(d.page, 3, 0);
+    const t2 = await secondTab(d);
+    await t2.waitForFunction(() => WRITER === 'other', null, {timeout: 5000}).catch(() => {});
+    const before = await stored(d.page, di.data);
+    await t2.evaluate(() => { EX = {running: true, qs: [QUESTIONS[0]], picks: [0], orders: [[0, 1, 2, 3]], i: 0, ends: Date.now() + 3600000, timer: 0}; saveExam(); EX = null; });
+    await t2.evaluate(() => { show('settings'); const b = document.getElementById('btnReset'); if(b) b.click(); });
+    await t2.waitForTimeout(300);
+    check(await stored(d.page, di.ns + ':exam:' + di.profile) === null && await stored(d.page, di.data) === before && await stored(d.page, di.log) !== null,
+      'a read-only tab writes no exam paper, and Erase there erases nothing');
+    // the writer's lock is taken by name: a writer that finds another tab named in <ns>:writer:<profile> stops
+    await d.page.evaluate(() => localStorage.setItem(NS + ':writer:' + PROFILE, 'another-tab'));
+    const n0 = await stored(d.page, di.data);
+    await d.page.evaluate(() => { DB.settings.goal = 77; save(); saveNow(); });
+    check(await stored(d.page, di.data) === n0 && await wall(d.page) === 'taken', 'a writer whose tab is no longer named as the writer writes nothing and stops', await wall(d.page));
+    await d.ctx.close();
+  }
+  {
+    // a profile switch frees the old profile's lock: another tab can then take it without a hand-over
+    const d = await device(undefined, true);
+    await answer(d.page, 2, 0);
+    const t2 = await secondTab(d);
+    await t2.waitForFunction(() => WRITER === 'other', null, {timeout: 5000}).catch(() => {});
+    await d.page.evaluate(() => useProfile('elsewhere'));
+    const free = await t2.evaluate(() => navigator.locks.request(NS + ':writer:' + PROFILE, {ifAvailable: true}, l => !!l));
+    check(free === true, 'a profile switch frees the old profile\'s lock', free);
+    await d.ctx.close();
+  }
+  {
+    // the Import button itself goes through the other profile's lock: the plan's new-profile name is
+    // opened in another tab after the plan was shown (that tab has written nothing yet)
+    const d = await device(undefined, true); const di = await info(d.page);
+    await answer(d.page, 3, 0);
+    const rr = await choose(d.page, fileA, false);
+    const name = (rr.plan.match(/new profile, "([^"]+)"/) || [])[1];
+    const t2 = await secondTab(d);
+    await t2.evaluate(n => useProfile(n), name);
+    await t2.waitForFunction(() => WRITER === 'held', null, {timeout: 5000}).catch(() => {});
+    await d.page.evaluate(() => document.getElementById('importGo').click());
+    await d.page.waitForSelector('#importResult', {timeout: 5000}).catch(() => {});
+    const res = await d.page.evaluate(() => (document.getElementById('importResult') || {}).textContent || '');
+    check(!!name && /open in another tab/.test(res) && await stored(d.page, di.ns + ':data:' + name) === null, 'the Import button writes no profile another tab has open, and says why', {name, res: res.slice(0, 100)});
+    await d.ctx.close();
+  }
+  {
+    // after Use it here the exam paper is read from storage again, not the one this page restored
+    const d = await device(undefined, true);
+    await answer(d.page, 2, 0);
+    const t2 = await secondTab(d);
+    await t2.waitForFunction(() => WRITER === 'other', null, {timeout: 5000}).catch(() => {});
+    await t2.evaluate(() => { EX = {running: true, qs: [QUESTIONS[0]], picks: [null], orders: [[0, 1, 2, 3]], i: 0, ends: Date.now() + 3600000, timer: 0}; });
+    await t2.evaluate(() => takeOver(false));
+    await t2.waitForFunction(() => WRITER === 'held', null, {timeout: 8000}).catch(() => {});
+    check(await t2.evaluate(() => EX === null), 'after Use it here the page drops the exam paper it restored earlier, so the stored one is read again');
+    // Use it here on a page with unsaved answers asks first; cancelled, nothing changes
+    await holdTimer(t2);
+    await t2.evaluate(() => { record(QUESTIONS[3], 'correct', undefined, 1000); });
+    await d.page.evaluate(() => takeOver(true));
+    await t2.waitForFunction(() => WRITER === 'other', null, {timeout: 5000}).catch(() => {});
+    const msgs = [];
+    t2.removeAllListeners('dialog'); t2.on('dialog', x => { msgs.push(x.message()); x.dismiss(); });
+    const n = await t2.evaluate(() => DB.answers.length);
+    await t2.evaluate(() => { const b = document.getElementById('stopTake'); if(b) b.click(); });
+    await t2.waitForTimeout(300);
+    check(/replaced by what is stored/.test(msgs.join(' ')) && await t2.evaluate(() => DB.answers.length) === n && await t2.evaluate(() => WRITER) === 'other',
+      'Use it here on a page with unsaved answers asks first; cancelled, the page and its answers stay', msgs);
+    // the page behind the wall cannot be reached by the keyboard
+    check(await t2.evaluate(() => [...document.body.children].filter(e => e.id !== 'stopwall' && e.id !== 'stalewarn').every(e => e.inert)), 'the page behind the stop wall is inert (no keyboard access)');
     await d.ctx.close();
   }
 

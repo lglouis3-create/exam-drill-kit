@@ -430,15 +430,28 @@ frees it when that tab closes).
   itself with that wall: it takes no answers, offers "Export this page's progress" when it
   holds answers or settings that are not stored, and asks before a reload would drop them.
 
-What this does not cover:
+What this does not cover (the independent review of 4b3b94c; Chromium only):
+- **A writer that leaves without handing over.** When the writing tab closes, reloads,
+  navigates away or switches profile, no hand-over message is sent. The next tab to take
+  the lock (Use it here, a page opening, or a switch back) reads storage at once, or after
+  a 1-second wait for a hand-over that does not come. If the leaving tab's last save has
+  not reached it by then, its next save writes over that save: the same interval as before,
+  now only at the moment one tab leaves and another takes over. Closing it needs a change
+  to how progress is stored (each tab's answers in a key only it writes, merged by the
+  writer, or IndexedDB transactions, which run one at a time across tabs); that is a
+  separate decision.
 - A browser without Web Locks (Safari and Safari on iPhone and iPad before 15.4, per
-  https://caniuse.com/mdn-api_lockmanager, read 2026-11-03; a page opened from disk) keeps the
-  comparison guards below on their own, and the interval above stays open there.
+  https://caniuse.com/mdn-api_lockmanager, read 2026-11-03) keeps the comparison guards
+  below on their own, and the interval above stays open there. A page opened from disk has
+  Web Locks in Chromium; in Safari that is NOT RUN.
 - A tab still running a core from before this change writes without the lock until it is
   reloaded.
 - After a take-over, what the old tab had not saved exists only in that tab (it offers the
-  export when it runs again); a tab the system closes while asleep loses it, as any unsaved
-  answer.
+  export, and asks before Use it here, Switch or Reload would drop it); a tab the system
+  closes while asleep loses it, as any unsaved answer. A truly suspended tab was not
+  tested: NOT RUN.
+- The check of `<ns>:writer:<profile>` before each write reads localStorage too, so it is
+  subject to the same delay between tabs it guards against.
 - The hand-over relies on a value this tab reads from storage having been stored, which is
   how browsers behave; the HTML Standard does not define the timing of storage between tabs.
 - Two devices never share a lock: moving progress between devices is Import's job.
