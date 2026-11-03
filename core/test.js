@@ -291,23 +291,33 @@ console.log('=== 7. Different wording when a missed concept returns ===');
   if (!pair) { console.log('  skip  no concept with two questions in one topic'); return; }
   const topic = pair[0].topic;
   const pool  = QUESTIONS.filter(q => q.topic === topic);
-  // reset state
-  X.getDB().concepts = {}; X.getDB().answers = []; X.getDB().qn = 0;
-  record(pair[0], 'wrong');
-  // advance past the cool-down gap with unrelated questions
-  for (let i=0;i<6;i++){ const n = pickNext(pool.filter(q=>q.concept!==pair[0].concept), null); if(n) record(n,'correct'); }
-  let got = null;
-  for (let i=0;i<60;i++){
-    const n = pickNext(pool, null);
-    if (!n) break;
-    if (n.concept === pair[0].concept) { got = n; break; }
-    record(n,'correct');
+  // RUNS trials: pickNext chooses at random among equal candidates, so one trial catches a
+  // scheduler that ignores the unseen-wording rule in only about half the runs.
+  const RUNS = 20, n = {ok: 0, same: 0, never: 0}; let to = null;
+  for (let t = 0; t < RUNS; t++){
+    // reset state
+    X.getDB().concepts = {}; X.getDB().answers = []; X.getDB().qn = 0;
+    record(pair[0], 'wrong');
+    // past the cool-down gap (GAP = 4 other answers, shell.html) by adding six to the answer
+    // count, as if those answers were given elsewhere (section 4's guess check adds to it the
+    // same way): answering six of this topic's other concepts left the cool-down unfinished in a
+    // topic with fewer than GAP other concepts. A fixed six, not GAP + 2, so that a scheduler
+    // whose cool-down is far too long still fails here ("never returned").
+    X.getDB().qn += 6;
+    let got = null;
+    for (let i=0;i<60;i++){
+      const q = pickNext(pool, null);
+      if (!q) break;
+      if (q.concept === pair[0].concept) { got = q; break; }
+      record(q,'correct');
+    }
+    if (!got) n.never++; else if (got.id === pair[0].id) n.same++; else { n.ok++; to = to || got.id; }
   }
   // counted in `fails`: process.exitCode alone was overridden by the
   // process.exit(fails ? 1 : 0) at the end, so these two failures exited 0
-  if (!got) { console.log('  FAIL  missed concept never returned'); fails++; }
-  else if (got.id === pair[0].id) { console.log('  FAIL  returned the identical question, not a new wording'); fails++; }
-  else console.log(`  ok    returned as a different question (${pair[0].id} -> ${got.id}, topic ${topic})`);
+  if (n.never) { console.log(`  FAIL  missed concept never returned (${n.never} of ${RUNS} trials)`); fails++; }
+  if (n.same) { console.log(`  FAIL  returned the identical question, not a new wording (${n.same} of ${RUNS} trials)`); fails++; }
+  if (!n.never && !n.same) console.log(`  ok    returned as a different question in ${RUNS} of ${RUNS} trials (${pair[0].id} -> ${to}, topic ${topic})`);
 })();
 
 
