@@ -194,3 +194,39 @@ How each broken copy failed:
 - **no reload offer.** Failed "a reload is offered once the newer page arrives".
 - **S.down() leaving the server up.** Failed "no request reaches the server while it is
   down".
+
+## Run 41568079994 (commit d5c2a1d): the fix, final validation, 2026-11-03
+
+The same `core/check_lib.js` and `core/offline_test.js` as in kit pull request #33
+(commit 1738291), with the server-down checks requiring the page to be loaded again.
+
+| Set | Result | libsoup assertions | "WebKit bug" |
+|---|---|---|---|
+| webkit sequential 1 | offline_test.js 10 of 10 PASS | 0 | 0 |
+| webkit sequential 2 | offline_test.js 10 of 10 PASS | 0 | 0 |
+| webkit load-plain 1-4 | offline_test.js 15 of 15 PASS in each (60 of 60) | 0 | 0 |
+| webkit mutate | 12 of 12 broken copies FAIL (3 of each) | 0 | 0 |
+| chromium mutate | 4 of 4 broken copies FAIL | 0 | 0 |
+
+Each broken copy fails on its own check in both browsers:
+- **no offline fallback:** "the site opens from the saved copy with the server down
+  (loaded again, not the page from before)", "the old file name ... opens it too", "a
+  quiz starts and serves a question offline";
+- **no timeout:** "the saved copy opens without waiting for the network" (8,052-8,053 ms
+  in WebKit, 8,061 ms in Chromium);
+- **no reload offer:** "a reload is offered once the newer page arrives";
+- **S.down() leaving the server up:** "no request reaches the server while it is down".
+
+## All runs on this branch
+
+- **WebKit, with "server down" as a dropped connection**, the kit's test server before
+  the fix:
+  - in turn: 0 failed of 40;
+  - under load: 15 failed of 180.
+- **WebKit, with "server down" as an HTTP 503 answer:** 0 failed of 45 under load.
+- **WebKit, with refused connections (the fix):**
+  - the instrumented test: 0 failed of 60 under load, and 0 of 40 in turn (20 in run
+    41567099983, 20 in this run);
+  - the unmodified test: 0 failed of 40 in turn and 0 of 120 under load (runs 41567099983
+    and 41568079994).
+- **Chromium:** no failure in any set.

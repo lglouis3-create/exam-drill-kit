@@ -1,0 +1,1906 @@
+﻿2026-11-03T02:45:42.7733250Z Current runner version: '2.338.2'
+2026-11-03T02:45:42.7817744Z ##[group]Runner Image Provisioner
+2026-11-03T02:45:42.7819582Z Hosted Compute Agent
+2026-11-03T02:45:42.7820681Z Version: 20261021.618
+2026-11-03T02:45:42.7821807Z Commit: 21505ad2541d5be6135ed84fc33697146cf75b8e
+2026-11-03T02:45:42.7823271Z Build Date: 2026-10-21T00:45:21Z
+2026-11-03T02:45:42.7824547Z Worker ID: {29f24f0f-b2d1-4a31-92bd-9e38e5c150ba}
+2026-11-03T02:45:42.7825855Z Region: eastus
+2026-11-03T02:45:42.7827019Z Cloud: Azure
+2026-11-03T02:45:42.7848346Z ##[endgroup]
+2026-11-03T02:45:42.7851191Z ##[group]Operating System
+2026-11-03T02:45:42.7852288Z Ubuntu
+2026-11-03T02:45:42.7853262Z 24.04.5
+2026-11-03T02:45:42.7854146Z LTS
+2026-11-03T02:45:42.7854972Z ##[endgroup]
+2026-11-03T02:45:42.7856014Z ##[group]Runner Image
+2026-11-03T02:45:42.7857084Z Image: ubuntu-24.04
+2026-11-03T02:45:42.7858390Z Version: 20261025.353.1
+2026-11-03T02:45:42.7860642Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261025.353/images/ubuntu/Ubuntu2404-Readme.md
+2026-11-03T02:45:42.7863527Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261025.353
+2026-11-03T02:45:42.7865294Z ##[endgroup]
+2026-11-03T02:45:42.7867369Z ##[group]GITHUB_TOKEN Permissions
+2026-11-03T02:45:42.7891058Z Contents: read
+2026-11-03T02:45:42.7892261Z Metadata: read
+2026-11-03T02:45:42.7893373Z ##[endgroup]
+2026-11-03T02:45:42.7896870Z Secret source: Actions
+2026-11-03T02:45:42.7898764Z Cache mode: write
+2026-11-03T02:45:42.7900118Z Prepare workflow directory
+2026-11-03T02:45:42.9014119Z Prepare all required actions
+2026-11-03T02:45:42.9174331Z Getting action download info
+2026-11-03T02:45:43.1246945Z Download action repository 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1' (SHA:3d3c42e5aac5ba805825da76410c181273ba90b1)
+2026-11-03T02:45:43.2405372Z Download action repository 'actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1' (SHA:949feb2413d6458794dcd2491c4babbbce0c15c1)
+2026-11-03T02:45:43.3332422Z Download action repository 'actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0' (SHA:6d4fd22b20465ccc0f7354476588e8df7c9ca0e0)
+2026-11-03T02:45:43.6351469Z Complete job name: webkit · mutate · set 1
+2026-11-03T02:45:43.7304758Z ##[group]Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+2026-11-03T02:45:43.7306272Z with:
+2026-11-03T02:45:43.7306789Z   repository: lglouis3-create/exam-drill-kit
+2026-11-03T02:45:43.7311019Z   token: ***
+2026-11-03T02:45:43.7311473Z   ssh-strict: true
+2026-11-03T02:45:43.7311922Z   ssh-user: git
+2026-11-03T02:45:43.7312381Z   persist-credentials: true
+2026-11-03T02:45:43.7312879Z   clean: true
+2026-11-03T02:45:43.7313372Z   sparse-checkout-cone-mode: true
+2026-11-03T02:45:43.7313904Z   fetch-depth: 1
+2026-11-03T02:45:43.7314332Z   fetch-tags: false
+2026-11-03T02:45:43.7314779Z   show-progress: true
+2026-11-03T02:45:43.7315227Z   lfs: false
+2026-11-03T02:45:43.7315640Z   submodules: false
+2026-11-03T02:45:43.7316095Z   set-safe-directory: true
+2026-11-03T02:45:43.7316640Z   allow-unsafe-pr-checkout: false
+2026-11-03T02:45:43.7317496Z ##[endgroup]
+2026-11-03T02:45:44.0392028Z Syncing repository: lglouis3-create/exam-drill-kit
+2026-11-03T02:45:44.0395489Z ##[group]Getting Git version info
+2026-11-03T02:45:44.0398306Z Working directory is '/home/runner/work/exam-drill-kit/exam-drill-kit'
+2026-11-03T02:45:44.0446650Z [command]/usr/bin/git version
+2026-11-03T02:45:44.0660790Z git version 2.56.0
+2026-11-03T02:45:44.0698723Z ##[endgroup]
+2026-11-03T02:45:44.0718786Z Temporarily overriding HOME='/home/runner/work/_temp/b7026b80-0ac4-4365-993b-64799e755509' before making global git config changes
+2026-11-03T02:45:44.0729533Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-03T02:45:44.0742360Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/exam-drill-kit/exam-drill-kit
+2026-11-03T02:45:44.0843519Z Deleting the contents of '/home/runner/work/exam-drill-kit/exam-drill-kit'
+2026-11-03T02:45:44.0863706Z ##[group]Determining repository object format
+2026-11-03T02:45:44.0866177Z ##[endgroup]
+2026-11-03T02:45:44.0867728Z ##[group]Initializing the repository
+2026-11-03T02:45:44.0869623Z [command]/usr/bin/git init /home/runner/work/exam-drill-kit/exam-drill-kit
+2026-11-03T02:45:44.1006673Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-11-03T02:45:44.1020523Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-11-03T02:45:44.1023109Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-11-03T02:45:44.1024706Z hint: call:
+2026-11-03T02:45:44.1026158Z hint:
+2026-11-03T02:45:44.1027244Z hint: 	git config --global init.defaultBranch <name>
+2026-11-03T02:45:44.1046833Z hint:
+2026-11-03T02:45:44.1048458Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-11-03T02:45:44.1052867Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-11-03T02:45:44.1054447Z hint:
+2026-11-03T02:45:44.1055422Z hint: 	git branch -m <name>
+2026-11-03T02:45:44.1056420Z hint:
+2026-11-03T02:45:44.1057794Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-11-03T02:45:44.1113463Z Initialized empty Git repository in /home/runner/work/exam-drill-kit/exam-drill-kit/.git/
+2026-11-03T02:45:44.1121574Z [command]/usr/bin/git remote add origin https://github.com/lglouis3-create/exam-drill-kit
+2026-11-03T02:45:44.1186014Z ##[endgroup]
+2026-11-03T02:45:44.1187735Z ##[group]Disabling automatic garbage collection
+2026-11-03T02:45:44.1190346Z [command]/usr/bin/git config --local gc.auto 0
+2026-11-03T02:45:44.1273561Z ##[endgroup]
+2026-11-03T02:45:44.1278701Z ##[group]Setting up auth
+2026-11-03T02:45:44.1280379Z Removing SSH command configuration
+2026-11-03T02:45:44.1282070Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-03T02:45:44.1358536Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-03T02:45:44.1864384Z Removing HTTP extra header
+2026-11-03T02:45:44.1872859Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-03T02:45:44.1928191Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-03T02:45:44.2205628Z Removing includeIf entries pointing to credentials config files
+2026-11-03T02:45:44.2208327Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-03T02:45:44.2265408Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-03T02:45:44.2545379Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-121e1362-43e1-4f15-a04d-52a4cbef91b6.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-11-03T02:45:44.2605166Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/exam-drill-kit/exam-drill-kit/.git.path /home/runner/work/_temp/git-credentials-121e1362-43e1-4f15-a04d-52a4cbef91b6.config
+2026-11-03T02:45:44.2656082Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/exam-drill-kit/exam-drill-kit/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-121e1362-43e1-4f15-a04d-52a4cbef91b6.config
+2026-11-03T02:45:44.2707489Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-121e1362-43e1-4f15-a04d-52a4cbef91b6.config
+2026-11-03T02:45:44.2761260Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-121e1362-43e1-4f15-a04d-52a4cbef91b6.config
+2026-11-03T02:45:44.2812376Z ##[endgroup]
+2026-11-03T02:45:44.2814489Z ##[group]Fetching the repository
+2026-11-03T02:45:44.2831460Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +d5c2a1db252562e9bda071e855f96edf8af13e2c:refs/remotes/origin/claude/elegant-ptolemy-pqxb8y-webkit-diag
+2026-11-03T02:45:44.6757602Z From https://github.com/lglouis3-create/exam-drill-kit
+2026-11-03T02:45:44.6760350Z  * [new ref]         d5c2a1db252562e9bda071e855f96edf8af13e2c -> origin/claude/elegant-ptolemy-pqxb8y-webkit-diag
+2026-11-03T02:45:44.6774015Z [command]/usr/bin/git branch --list --remote origin/claude/elegant-ptolemy-pqxb8y-webkit-diag
+2026-11-03T02:45:44.6821374Z   origin/claude/elegant-ptolemy-pqxb8y-webkit-diag
+2026-11-03T02:45:44.6867796Z [command]/usr/bin/git rev-parse refs/remotes/origin/claude/elegant-ptolemy-pqxb8y-webkit-diag
+2026-11-03T02:45:44.6888492Z d5c2a1db252562e9bda071e855f96edf8af13e2c
+2026-11-03T02:45:44.6944150Z ##[endgroup]
+2026-11-03T02:45:44.6954403Z ##[group]Determining the checkout info
+2026-11-03T02:45:44.6970038Z ##[endgroup]
+2026-11-03T02:45:44.6972794Z [command]/usr/bin/git sparse-checkout disable
+2026-11-03T02:45:44.7013978Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-11-03T02:45:44.7098395Z ##[group]Checking out the ref
+2026-11-03T02:45:44.7140108Z [command]/usr/bin/git checkout --progress --force -B claude/elegant-ptolemy-pqxb8y-webkit-diag refs/remotes/origin/claude/elegant-ptolemy-pqxb8y-webkit-diag
+2026-11-03T02:45:44.7773618Z Switched to a new branch 'claude/elegant-ptolemy-pqxb8y-webkit-diag'
+2026-11-03T02:45:44.7783827Z branch 'claude/elegant-ptolemy-pqxb8y-webkit-diag' set up to track 'origin/claude/elegant-ptolemy-pqxb8y-webkit-diag'.
+2026-11-03T02:45:44.7803097Z ##[endgroup]
+2026-11-03T02:45:44.7882911Z [command]/usr/bin/git log -1 --format=%H
+2026-11-03T02:45:44.7957823Z d5c2a1db252562e9bda071e855f96edf8af13e2c
+2026-11-03T02:45:44.8568425Z ##[group]Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+2026-11-03T02:45:44.8570286Z with:
+2026-11-03T02:45:44.8571205Z   node-version: 22
+2026-11-03T02:45:44.8572239Z   check-latest: false
+2026-11-03T02:45:44.8582635Z   token: ***
+2026-11-03T02:45:44.8583667Z   package-manager-cache: true
+2026-11-03T02:45:44.8584835Z ##[endgroup]
+2026-11-03T02:45:45.0088524Z Found in cache @ /opt/hostedtoolcache/node/22.23.4/x64
+2026-11-03T02:45:45.1455854Z ##[group]Environment details
+2026-11-03T02:45:45.7440390Z node: v22.23.4
+2026-11-03T02:45:45.7442450Z npm: 10.9.9
+2026-11-03T02:45:45.7444636Z yarn: 1.22.22
+2026-11-03T02:45:45.7445797Z ##[endgroup]
+2026-11-03T02:45:45.7604741Z ##[group]Run actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+2026-11-03T02:45:45.7605174Z with:
+2026-11-03T02:45:45.7605399Z   python-version: 3.13
+2026-11-03T02:45:45.7605635Z   check-latest: false
+2026-11-03T02:45:45.7608371Z   token: ***
+2026-11-03T02:45:45.7608741Z   mirror: https://raw.githubusercontent.com/actions/python-versions/main
+2026-11-03T02:45:45.7609165Z   update-environment: true
+2026-11-03T02:45:45.7609416Z   allow-prereleases: false
+2026-11-03T02:45:45.7609674Z   freethreaded: false
+2026-11-03T02:45:45.7609893Z ##[endgroup]
+2026-11-03T02:45:45.8913023Z ##[group]Installed versions
+2026-11-03T02:45:45.8984401Z Successfully set up CPython (3.13.17)
+2026-11-03T02:45:45.8985662Z ##[endgroup]
+2026-11-03T02:45:45.9237302Z ##[group]Run npm install -g playwright@1.63.0
+2026-11-03T02:45:45.9251053Z [36;1mnpm install -g playwright@1.63.0[0m
+2026-11-03T02:45:45.9252001Z [36;1mnpx --yes playwright@1.63.0 install --with-deps "$BROWSER"[0m
+2026-11-03T02:45:45.9364567Z shell: /usr/bin/bash -e {0}
+2026-11-03T02:45:45.9365053Z env:
+2026-11-03T02:45:45.9365510Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.17/x64
+2026-11-03T02:45:45.9366278Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.17/x64/lib/pkgconfig
+2026-11-03T02:45:45.9367068Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.17/x64
+2026-11-03T02:45:45.9367747Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.17/x64
+2026-11-03T02:45:45.9368607Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.17/x64
+2026-11-03T02:45:45.9369819Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.17/x64/lib
+2026-11-03T02:45:45.9370395Z   BROWSER: webkit
+2026-11-03T02:45:45.9370741Z ##[endgroup]
+2026-11-03T02:45:48.1682029Z 
+2026-11-03T02:45:48.1683244Z added 2 packages in 2s
+2026-11-03T02:45:49.6432258Z Installing dependencies...
+2026-11-03T02:45:49.6529562Z Switching to root user to install dependencies...
+2026-11-03T02:45:49.8191353Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+2026-11-03T02:45:49.9061579Z Get:6 https://packages.microsoft.com/ubuntu/24.04/prod noble InRelease [3600 B]
+2026-11-03T02:45:49.9395122Z Hit:2 http://azure.archive.ubuntu.com/ubuntu noble InRelease
+2026-11-03T02:45:49.9450047Z Get:3 http://azure.archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+2026-11-03T02:45:49.9499262Z Get:4 http://azure.archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+2026-11-03T02:45:49.9581893Z Get:5 http://azure.archive.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+2026-11-03T02:45:50.0284501Z Get:7 https://packages.microsoft.com/ubuntu/24.04/prod noble/main amd64 Packages [685 kB]
+2026-11-03T02:45:50.0700547Z Get:8 https://packages.microsoft.com/ubuntu/24.04/prod noble/main arm64 Packages [617 kB]
+2026-11-03T02:45:50.1994462Z Get:9 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1408 kB]
+2026-11-03T02:45:50.2115886Z Get:10 http://azure.archive.ubuntu.com/ubuntu noble-updates/main Translation-en [311 kB]
+2026-11-03T02:45:50.2149035Z Get:11 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [1707 kB]
+2026-11-03T02:45:50.2327464Z Get:12 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe Translation-en [343 kB]
+2026-11-03T02:45:50.2429317Z Get:13 http://azure.archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1813 kB]
+2026-11-03T02:45:50.2579666Z Get:14 http://azure.archive.ubuntu.com/ubuntu noble-updates/restricted Translation-en [412 kB]
+2026-11-03T02:45:50.2598279Z Get:15 http://azure.archive.ubuntu.com/ubuntu noble-updates/multiverse Translation-en [14.3 kB]
+2026-11-03T02:45:50.3939264Z Get:16 http://azure.archive.ubuntu.com/ubuntu noble-security/main amd64 Packages [1153 kB]
+2026-11-03T02:45:50.3980497Z Get:17 http://azure.archive.ubuntu.com/ubuntu noble-security/main Translation-en [232 kB]
+2026-11-03T02:45:50.4010414Z Get:18 http://azure.archive.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1224 kB]
+2026-11-03T02:45:50.4516942Z Get:19 http://azure.archive.ubuntu.com/ubuntu noble-security/universe Translation-en [246 kB]
+2026-11-03T02:45:50.4550692Z Get:20 http://azure.archive.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1721 kB]
+2026-11-03T02:45:50.4669389Z Get:21 http://azure.archive.ubuntu.com/ubuntu noble-security/restricted Translation-en [394 kB]
+2026-11-03T02:45:50.4702859Z Get:22 http://azure.archive.ubuntu.com/ubuntu noble-security/multiverse Translation-en [12.4 kB]
+2026-11-03T02:45:54.1325069Z Fetched 12.7 MB in 2s (7941 kB/s)
+2026-11-03T02:45:55.3276442Z Reading package lists...
+2026-11-03T02:45:55.3638801Z Reading package lists...
+2026-11-03T02:45:55.6649143Z Building dependency tree...
+2026-11-03T02:45:55.6659969Z Reading state information...
+2026-11-03T02:45:55.8386253Z libicu74 is already the newest version (74.2-1ubuntu3.1).
+2026-11-03T02:45:55.8387586Z libatomic1 is already the newest version (14.2.0-4ubuntu2~24.04.1).
+2026-11-03T02:45:55.8389064Z libatomic1 set to manually installed.
+2026-11-03T02:45:55.8390083Z libatk-bridge2.0-0t64 is already the newest version (2.52.0-1build1).
+2026-11-03T02:45:55.8391183Z libatk-bridge2.0-0t64 set to manually installed.
+2026-11-03T02:45:55.8392147Z libatk1.0-0t64 is already the newest version (2.52.0-1build1).
+2026-11-03T02:45:55.8393058Z libatk1.0-0t64 set to manually installed.
+2026-11-03T02:45:55.8394035Z libcairo-gobject2 is already the newest version (1.18.0-3build1).
+2026-11-03T02:45:55.8395029Z libcairo-gobject2 set to manually installed.
+2026-11-03T02:45:55.8396083Z libcairo2 is already the newest version (1.18.0-3build1).
+2026-11-03T02:45:55.8397359Z libcairo2 set to manually installed.
+2026-11-03T02:45:55.8408969Z libdbus-1-3 is already the newest version (1.14.10-4ubuntu4.1).
+2026-11-03T02:45:55.8410255Z libdbus-1-3 set to manually installed.
+2026-11-03T02:45:55.8411374Z libdrm2 is already the newest version (2.4.125-1ubuntu0.1~24.04.2).
+2026-11-03T02:45:55.8415604Z libdrm2 set to manually installed.
+2026-11-03T02:45:55.8416519Z libenchant-2-2 is already the newest version (2.3.3-2build2).
+2026-11-03T02:45:55.8417440Z libenchant-2-2 set to manually installed.
+2026-11-03T02:45:55.8420764Z libepoxy0 is already the newest version (1.5.10-1build1).
+2026-11-03T02:45:55.8421484Z libepoxy0 set to manually installed.
+2026-11-03T02:45:55.8422397Z libfontconfig1 is already the newest version (2.15.0-1.1ubuntu2).
+2026-11-03T02:45:55.8423185Z libfontconfig1 set to manually installed.
+2026-11-03T02:45:55.8424034Z libfreetype6 is already the newest version (2.13.2+dfsg-1ubuntu0.2).
+2026-11-03T02:45:55.8424854Z libfreetype6 set to manually installed.
+2026-11-03T02:45:55.8425656Z libgbm1 is already the newest version (25.2.8-0ubuntu0.24.04.4).
+2026-11-03T02:45:55.8426378Z libgbm1 set to manually installed.
+2026-11-03T02:45:55.8427222Z libgdk-pixbuf-2.0-0 is already the newest version (2.42.10+dfsg-3ubuntu3.3).
+2026-11-03T02:45:55.8428340Z libgdk-pixbuf-2.0-0 set to manually installed.
+2026-11-03T02:45:55.8429164Z libglib2.0-0t64 is already the newest version (2.80.0-6ubuntu3.10).
+2026-11-03T02:45:55.8429925Z libglib2.0-0t64 set to manually installed.
+2026-11-03T02:45:55.8430815Z libgstreamer1.0-0 is already the newest version (1.24.2-1ubuntu0.1).
+2026-11-03T02:45:55.8431612Z libgstreamer1.0-0 set to manually installed.
+2026-11-03T02:45:55.8432373Z libharfbuzz0b is already the newest version (8.3.0-2build2).
+2026-11-03T02:45:55.8433092Z libharfbuzz0b set to manually installed.
+2026-11-03T02:45:55.8433850Z libjpeg-turbo8 is already the newest version (2.1.5-2ubuntu2).
+2026-11-03T02:45:55.8434590Z libjpeg-turbo8 set to manually installed.
+2026-11-03T02:45:55.8435338Z liblcms2-2 is already the newest version (2.14-2ubuntu0.1).
+2026-11-03T02:45:55.8436042Z liblcms2-2 set to manually installed.
+2026-11-03T02:45:55.8437018Z libpango-1.0-0 is already the newest version (1.52.1+ds-1build1).
+2026-11-03T02:45:55.8437767Z libpango-1.0-0 set to manually installed.
+2026-11-03T02:45:55.8439078Z libpangocairo-1.0-0 is already the newest version (1.52.1+ds-1build1).
+2026-11-03T02:45:55.8439886Z libpangocairo-1.0-0 set to manually installed.
+2026-11-03T02:45:55.8440700Z libpng16-16t64 is already the newest version (1.6.43-5ubuntu0.7).
+2026-11-03T02:45:55.8441433Z libpng16-16t64 set to manually installed.
+2026-11-03T02:45:55.8442221Z libwayland-client0 is already the newest version (1.22.0-2.1build1).
+2026-11-03T02:45:55.8443009Z libwayland-client0 set to manually installed.
+2026-11-03T02:45:55.8443790Z libwayland-egl1 is already the newest version (1.22.0-2.1build1).
+2026-11-03T02:45:55.8444543Z libwayland-egl1 set to manually installed.
+2026-11-03T02:45:55.8445258Z libwebp7 is already the newest version (1.3.2-0.4build3).
+2026-11-03T02:45:55.8445916Z libwebp7 set to manually installed.
+2026-11-03T02:45:55.8446632Z libwebpdemux2 is already the newest version (1.3.2-0.4build3).
+2026-11-03T02:45:55.8447622Z libwebpdemux2 set to manually installed.
+2026-11-03T02:45:55.8448597Z libx11-6 is already the newest version (2:1.8.7-1ubuntu0.1).
+2026-11-03T02:45:55.8449293Z libx11-6 set to manually installed.
+2026-11-03T02:45:55.8449993Z libxkbcommon0 is already the newest version (1.6.0-1build1).
+2026-11-03T02:45:55.8450699Z libxkbcommon0 set to manually installed.
+2026-11-03T02:45:55.8451454Z libxml2 is already the newest version (2.9.14+dfsg-1.3ubuntu3.10).
+2026-11-03T02:45:55.8452170Z libxml2 set to manually installed.
+2026-11-03T02:45:55.8452937Z libxslt1.1 is already the newest version (1.1.39-0exp1ubuntu0.24.04.3).
+2026-11-03T02:45:55.8453706Z libxslt1.1 set to manually installed.
+2026-11-03T02:45:55.8454402Z xvfb is already the newest version (2:21.1.12-1ubuntu1.9).
+2026-11-03T02:45:55.8455567Z fonts-noto-color-emoji is already the newest version (2.047-0ubuntu0.24.04.1).
+2026-11-03T02:45:55.8456538Z fonts-liberation is already the newest version (1:2.1.5-3).
+2026-11-03T02:45:55.8457275Z fonts-liberation set to manually installed.
+2026-11-03T02:45:55.8458256Z The following additional packages will be installed:
+2026-11-03T02:45:55.8459190Z   glib-networking glib-networking-common glib-networking-services
+2026-11-03T02:45:55.8460131Z   gsettings-desktop-schemas libaa1 libabsl20220623t64 libass9 libasyncns0
+2026-11-03T02:45:55.8461109Z   libavc1394-0 libavcodec60 libavfilter9 libavformat60 libavtp0 libavutil58
+2026-11-03T02:45:55.8462063Z   libblas3 libbluray2 libbs2b0 libcaca0 libcairo-script-interpreter2
+2026-11-03T02:45:55.8462958Z   libcdparanoia0 libchromaprint1 libcjson1 libcodec2-1.2 libdav1d7
+2026-11-03T02:45:55.8463880Z   libdc1394-25 libdca0 libde265-0 libdecor-0-0 libdirectfb-1.7-7t64 libdv4t64
+2026-11-03T02:45:55.8464812Z   libdvdnav4 libdvdread8t64 libegl-mesa0 libegl1 libfaad2 libflac12t64
+2026-11-03T02:45:55.8465753Z   libfluidsynth3 libfreeaptx0 libgav1-1 libgme0 libgraphene-1.0-0 libgsm1
+2026-11-03T02:45:55.8466755Z   libgssdp-1.6-0 libgstreamer-plugins-good1.0-0 libgtk-4-common libgupnp-1.6-0
+2026-11-03T02:45:55.8467678Z   libgupnp-igd-1.6-0 libhwy1t64 libiec61883-0 libimath-3-1-29t64
+2026-11-03T02:45:55.8468710Z   libinstpatch-1.0-2 libjack-jackd2-0 libjxl0.7 liblapack3 liblc3-1
+2026-11-03T02:45:55.8469609Z   libldacbt-enc2 liblilv-0-0 liblrdf0 libltc11 libmbedcrypto7t64 libmfx1
+2026-11-03T02:45:55.8470467Z   libmjpegutils-2.1-0t64 libmodplug1 libmp3lame0 libmpcdec6
+2026-11-03T02:45:55.8471305Z   libmpeg2encpp-2.1-0t64 libmpg123-0t64 libmplex2-2.1-0t64 libmysofa1
+2026-11-03T02:45:55.8472081Z   libneon27t64 libnice10 libopenal-data libopenal1 libopenexr-3-1-30
+2026-11-03T02:45:55.8472783Z   libopenh264-7 libopenmpt0t64 libopenni2-0 liborc-0.4-0t64
+2026-11-03T02:45:55.8473472Z   libpipewire-0.3-0t64 libplacebo338 libpocketsphinx3 libpostproc57
+2026-11-03T02:45:55.8474252Z   libproxy1v5 libpulse0 libqrencode4 libraptor2-0 librav1e0 libraw1394-11
+2026-11-03T02:45:55.8475050Z   librist4 librsvg2-2 librubberband2 libsamplerate0 libsbc1 libsdl2-2.0-0
+2026-11-03T02:45:55.8475858Z   libsecret-common libserd-0-0 libshine3 libshout3 libsndfile1 libsndio7.0
+2026-11-03T02:45:55.8476648Z   libsord-0-0 libsoundtouch1 libsoup-3.0-0 libsoup-3.0-common libsoxr0
+2026-11-03T02:45:55.8477497Z   libspa-0.2-modules libspandsp2t64 libspeex1 libsphinxbase3t64 libsratom-0-0
+2026-11-03T02:45:55.8478644Z   libsrt1.5-gnutls libsrtp2-1 libssh-gcrypt-4 libsvtav1enc1d1 libswresample4
+2026-11-03T02:45:55.8479478Z   libswscale7 libtag1v5 libtag1v5-vanilla libtheora0 libtwolame0 libudfread0
+2026-11-03T02:45:55.8480290Z   libunibreak5 libv4l-0t64 libv4lconvert0t64 libva-drm2 libva-x11-2 libva2
+2026-11-03T02:45:55.8481064Z   libvdpau1 libvidstab1.1 libvisual-0.4-0 libvo-aacenc0 libvo-amrwbenc0
+2026-11-03T02:45:55.8481879Z   libvorbisenc2 libvpl2 libwavpack1 libwebrtc-audio-processing1 libwildmidi2
+2026-11-03T02:45:55.8482716Z   libx265-199 libxcb-xkb1 libxkbcommon-x11-0 libxvidcore4 libyuv0 libzbar0t64
+2026-11-03T02:45:55.8483534Z   libzimg2 libzix-0-0 libzvbi-common libzvbi0t64 libzxing3 ocl-icd-libopencl1
+2026-11-03T02:45:55.8484651Z   session-migration timgm6mb-soundfont xfonts-encodings xfonts-utils
+2026-11-03T02:45:55.8485243Z Suggested packages:
+2026-11-03T02:45:55.8485817Z   frei0r-plugins gvfs libcuda1 libnvcuvid1 libnvidia-encode1 libbluray-bdj
+2026-11-03T02:45:55.8486625Z   libdirectfb-extra libdv-bin oss-compat libdvdcss2 libvisual-0.4-plugins
+2026-11-03T02:45:55.8487392Z   jackd2 liblrdf0-dev libportaudio2 opus-tools pipewire pulseaudio
+2026-11-03T02:45:55.8488317Z   raptor2-utils libraw1394-doc librsvg2-bin serdi sndiod sordi speex
+2026-11-03T02:45:55.8488971Z   libwildmidi-config opencl-icd fluid-soundfont-gm
+2026-11-03T02:45:55.8489466Z Recommended packages:
+2026-11-03T02:45:55.8489978Z   fonts-ipafont-mincho fonts-tlwg-loma gstreamer1.0-x libaacs0
+2026-11-03T02:45:55.8490713Z   default-libdecor-0-plugin-1 | libdecor-0-plugin-1 gstreamer1.0-gl
+2026-11-03T02:45:55.8491718Z   libgtk-4-bin librsvg2-common libgtk-4-media-gstreamer libpipewire-0.3-common
+2026-11-03T02:45:55.8492587Z   pocketsphinx-en-us va-driver-all | va-driver vdpau-driver-all | vdpau-driver
+2026-11-03T02:45:55.8493210Z   libmagickcore-6.q16-7-extra
+2026-11-03T02:45:55.9099579Z The following NEW packages will be installed:
+2026-11-03T02:45:55.9100823Z   fonts-freefont-ttf fonts-ipafont-gothic fonts-tlwg-loma-otf fonts-unifont
+2026-11-03T02:45:55.9102120Z   fonts-wqy-zenhei glib-networking glib-networking-common
+2026-11-03T02:45:55.9103277Z   glib-networking-services gsettings-desktop-schemas gstreamer1.0-libav
+2026-11-03T02:45:55.9104892Z   gstreamer1.0-plugins-bad gstreamer1.0-plugins-base gstreamer1.0-plugins-good
+2026-11-03T02:45:55.9106410Z   libaa1 libabsl20220623t64 libass9 libasyncns0 libavc1394-0 libavcodec60
+2026-11-03T02:45:55.9107656Z   libavfilter9 libavformat60 libavif16 libavtp0 libavutil58 libblas3
+2026-11-03T02:45:55.9109361Z   libbluray2 libbs2b0 libcaca0 libcairo-script-interpreter2 libcdparanoia0
+2026-11-03T02:45:55.9110637Z   libchromaprint1 libcjson1 libcodec2-1.2 libdav1d7 libdc1394-25 libdca0
+2026-11-03T02:45:55.9111877Z   libde265-0 libdecor-0-0 libdirectfb-1.7-7t64 libdv4t64 libdvdnav4
+2026-11-03T02:45:55.9113062Z   libdvdread8t64 libegl-mesa0 libegl1 libevent-2.1-7t64 libfaad2 libflac12t64
+2026-11-03T02:45:55.9114306Z   libflite1 libfluidsynth3 libfreeaptx0 libgav1-1 libgles2 libgme0
+2026-11-03T02:45:55.9115343Z   libgraphene-1.0-0 libgsm1 libgssdp-1.6-0 libgstreamer-gl1.0-0
+2026-11-03T02:45:55.9116395Z   libgstreamer-plugins-bad1.0-0 libgstreamer-plugins-base1.0-0
+2026-11-03T02:45:55.9117645Z   libgstreamer-plugins-good1.0-0 libgtk-4-1 libgtk-4-common libgupnp-1.6-0
+2026-11-03T02:45:55.9119014Z   libgupnp-igd-1.6-0 libharfbuzz-icu0 libhwy1t64 libhyphen0 libiec61883-0
+2026-11-03T02:45:55.9120297Z   libimath-3-1-29t64 libinstpatch-1.0-2 libjack-jackd2-0 libjxl0.7 liblapack3
+2026-11-03T02:45:55.9121433Z   liblc3-1 libldacbt-enc2 liblilv-0-0 liblrdf0 libltc11 libmanette-0.2-0
+2026-11-03T02:45:55.9122530Z   libmbedcrypto7t64 libmfx1 libmjpegutils-2.1-0t64 libmodplug1 libmp3lame0
+2026-11-03T02:45:55.9123741Z   libmpcdec6 libmpeg2encpp-2.1-0t64 libmpg123-0t64 libmplex2-2.1-0t64
+2026-11-03T02:45:55.9124816Z   libmysofa1 libneon27t64 libnice10 libopenal-data libopenal1
+2026-11-03T02:45:55.9126050Z   libopenexr-3-1-30 libopenh264-7 libopenmpt0t64 libopenni2-0 libopus0
+2026-11-03T02:45:55.9127066Z   liborc-0.4-0t64 libpipewire-0.3-0t64 libplacebo338 libpocketsphinx3
+2026-11-03T02:45:55.9128393Z   libpostproc57 libproxy1v5 libpulse0 libqrencode4 libraptor2-0 librav1e0
+2026-11-03T02:45:55.9129625Z   libraw1394-11 librist4 librsvg2-2 librubberband2 libsamplerate0 libsbc1
+2026-11-03T02:45:55.9130732Z   libsdl2-2.0-0 libsecret-1-0 libsecret-common libserd-0-0 libshine3 libshout3
+2026-11-03T02:45:55.9131806Z   libsndfile1 libsndio7.0 libsord-0-0 libsoundtouch1 libsoup-3.0-0
+2026-11-03T02:45:55.9133021Z   libsoup-3.0-common libsoxr0 libspa-0.2-modules libspandsp2t64 libspeex1
+2026-11-03T02:45:55.9134290Z   libsphinxbase3t64 libsratom-0-0 libsrt1.5-gnutls libsrtp2-1 libssh-gcrypt-4
+2026-11-03T02:45:55.9135972Z   libsvtav1enc1d1 libswresample4 libswscale7 libtag1v5 libtag1v5-vanilla
+2026-11-03T02:45:55.9137051Z   libtheora0 libtwolame0 libudfread0 libunibreak5 libv4l-0t64
+2026-11-03T02:45:55.9138314Z   libv4lconvert0t64 libva-drm2 libva-x11-2 libva2 libvdpau1 libvidstab1.1
+2026-11-03T02:45:55.9139515Z   libvisual-0.4-0 libvo-aacenc0 libvo-amrwbenc0 libvorbisenc2 libvpl2 libvpx9
+2026-11-03T02:45:55.9140710Z   libwavpack1 libwayland-server0 libwebrtc-audio-processing1 libwildmidi2
+2026-11-03T02:45:55.9141767Z   libwoff1 libx264-164 libx265-199 libxcb-xkb1 libxkbcommon-x11-0 libxvidcore4
+2026-11-03T02:45:55.9142866Z   libyuv0 libzbar0t64 libzimg2 libzix-0-0 libzvbi-common libzvbi0t64 libzxing3
+2026-11-03T02:45:55.9143970Z   ocl-icd-libopencl1 session-migration timgm6mb-soundfont xfonts-cyrillic
+2026-11-03T02:45:55.9144884Z   xfonts-encodings xfonts-scalable xfonts-utils
+2026-11-03T02:45:55.9409395Z 0 upgraded, 181 newly installed, 0 to remove and 6 not upgraded.
+2026-11-03T02:45:55.9418105Z Need to get 114 MB of archives.
+2026-11-03T02:45:55.9420409Z After this operation, 364 MB of additional disk space will be used.
+2026-11-03T02:45:55.9421460Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+2026-11-03T02:45:55.9830813Z Get:2 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-ipafont-gothic all 00303-21ubuntu1 [3513 kB]
+2026-11-03T02:45:56.0259750Z Get:3 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 fonts-freefont-ttf all 20211204+svn4273-2 [5641 kB]
+2026-11-03T02:45:56.0789460Z Get:4 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-tlwg-loma-otf all 1:0.7.3-1 [107 kB]
+2026-11-03T02:45:56.0943847Z Get:5 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-unifont all 1:15.1.01-1build1 [2993 kB]
+2026-11-03T02:45:56.1277548Z Get:6 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-wqy-zenhei all 0.9.45-8 [7472 kB]
+2026-11-03T02:45:56.1929785Z Get:7 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libproxy1v5 amd64 0.5.4-4build1 [26.5 kB]
+2026-11-03T02:45:56.2088663Z Get:8 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 glib-networking-common all 2.80.0-1build1 [6702 B]
+2026-11-03T02:45:56.2235949Z Get:9 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 glib-networking-services amd64 2.80.0-1build1 [12.8 kB]
+2026-11-03T02:45:56.2386233Z Get:10 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 session-migration amd64 0.3.9build1 [9034 B]
+2026-11-03T02:45:56.2537387Z Get:11 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 gsettings-desktop-schemas all 46.1-0ubuntu1 [35.6 kB]
+2026-11-03T02:45:56.2692330Z Get:12 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 glib-networking amd64 2.80.0-1build1 [64.1 kB]
+2026-11-03T02:45:56.2849551Z Get:13 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe amd64 libva2 amd64 2.20.0-2ubuntu0.2 [66.4 kB]
+2026-11-03T02:45:56.3090574Z Get:14 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe amd64 libva-drm2 amd64 2.20.0-2ubuntu0.2 [7124 B]
+2026-11-03T02:45:56.3242877Z Get:15 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe amd64 libva-x11-2 amd64 2.20.0-2ubuntu0.2 [12.0 kB]
+2026-11-03T02:45:56.3397375Z Get:16 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libvdpau1 amd64 1.5-2build1 [27.8 kB]
+2026-11-03T02:45:56.3551865Z Get:17 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libvpl2 amd64 2023.3.0-1build1 [99.8 kB]
+2026-11-03T02:45:56.3708462Z Get:18 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 ocl-icd-libopencl1 amd64 2.3.2-1build1 [38.5 kB]
+2026-11-03T02:45:56.3866280Z Get:19 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libavutil58 amd64 7:6.1.1-3ubuntu5 [401 kB]
+2026-11-03T02:45:56.4481793Z Get:20 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libcodec2-1.2 amd64 1.2.0-2build1 [8998 kB]
+2026-11-03T02:45:56.5143153Z Get:21 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libdav1d7 amd64 1.4.1-1build1 [604 kB]
+2026-11-03T02:45:56.5394705Z Get:22 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libgsm1 amd64 1.0.22-1build1 [27.8 kB]
+2026-11-03T02:45:56.5569689Z Get:23 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libhwy1t64 amd64 1.0.7-8.1build1 [584 kB]
+2026-11-03T02:45:56.5740258Z Get:24 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe amd64 libjxl0.7 amd64 0.7.0-10.2ubuntu6.1 [1001 kB]
+2026-11-03T02:45:56.5970000Z Get:25 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libmp3lame0 amd64 3.100-6build1 [142 kB]
+2026-11-03T02:45:56.6122706Z Get:26 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libopus0 amd64 1.4-1build1 [208 kB]
+2026-11-03T02:45:56.6286791Z Get:27 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 librav1e0 amd64 0.7.1-2 [1022 kB]
+2026-11-03T02:45:56.6502113Z Get:28 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 librsvg2-2 amd64 2.58.0+dfsg-1ubuntu0.1 [2141 kB]
+2026-11-03T02:45:56.6783522Z Get:29 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libshine3 amd64 3.1.1-2build1 [23.2 kB]
+2026-11-03T02:45:56.6928866Z Get:30 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 libspeex1 amd64 1.2.1-2ubuntu2.24.04.1 [59.6 kB]
+2026-11-03T02:45:56.7084278Z Get:31 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libsvtav1enc1d1 amd64 1.7.0+dfsg-2build1 [2425 kB]
+2026-11-03T02:45:56.7378688Z Get:32 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libsoxr0 amd64 0.1.3-4build3 [80.0 kB]
+2026-11-03T02:45:56.7530759Z Get:33 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libswresample4 amd64 7:6.1.1-3ubuntu5 [63.8 kB]
+2026-11-03T02:45:56.7688452Z Get:34 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libtheora0 amd64 1.1.1+dfsg.1-16.1build3 [211 kB]
+2026-11-03T02:45:56.7869981Z Get:35 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libtwolame0 amd64 0.4.0-2build3 [52.3 kB]
+2026-11-03T02:45:56.8020070Z Get:36 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libvorbisenc2 amd64 1.3.7-1build3 [80.8 kB]
+2026-11-03T02:45:56.8173376Z Get:37 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 libvpx9 amd64 1.14.0-1ubuntu2.3 [1143 kB]
+2026-11-03T02:45:56.8390831Z Get:38 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libx264-164 amd64 2:0.164.3108+git31e19f9-1 [604 kB]
+2026-11-03T02:45:56.8999311Z Get:39 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libx265-199 amd64 3.5-2build1 [1226 kB]
+2026-11-03T02:45:56.9227556Z Get:40 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libxvidcore4 amd64 2:1.3.7-1build1 [219 kB]
+2026-11-03T02:45:56.9397302Z Get:41 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libzvbi-common all 0.2.42-2 [42.4 kB]
+2026-11-03T02:45:56.9557152Z Get:42 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libzvbi0t64 amd64 0.2.42-2 [261 kB]
+2026-11-03T02:45:56.9732563Z Get:43 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libavcodec60 amd64 7:6.1.1-3ubuntu5 [5851 kB]
+2026-11-03T02:45:57.0226404Z Get:44 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libunibreak5 amd64 5.1-2build1 [25.0 kB]
+2026-11-03T02:45:57.0384019Z Get:45 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libass9 amd64 1:0.17.1-2build1 [104 kB]
+2026-11-03T02:45:57.0543090Z Get:46 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libudfread0 amd64 1.1.2-1build1 [19.0 kB]
+2026-11-03T02:45:57.0695568Z Get:47 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libbluray2 amd64 1:1.3.4-1build1 [159 kB]
+2026-11-03T02:45:57.0858926Z Get:48 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libchromaprint1 amd64 1.5.1-5 [30.5 kB]
+2026-11-03T02:45:57.1019935Z Get:49 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libgme0 amd64 0.6.3-7build1 [134 kB]
+2026-11-03T02:45:57.1186049Z Get:50 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 libmpg123-0t64 amd64 1.32.5-1ubuntu1.1 [169 kB]
+2026-11-03T02:45:57.1369969Z Get:51 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libopenmpt0t64 amd64 0.7.3-1.1build3 [647 kB]
+2026-11-03T02:45:57.1542322Z Get:52 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libcjson1 amd64 1.7.17-1 [24.8 kB]
+2026-11-03T02:45:57.1693588Z Get:53 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libmbedcrypto7t64 amd64 2.28.8-1 [209 kB]
+2026-11-03T02:45:57.1858999Z Get:54 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 librist4 amd64 0.2.10+dfsg-2 [74.9 kB]
+2026-11-03T02:45:57.2017584Z Get:55 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libsrt1.5-gnutls amd64 1.5.3-1build2 [316 kB]
+2026-11-03T02:45:57.2196147Z Get:56 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 libssh-gcrypt-4 amd64 0.10.6-2ubuntu0.5 [226 kB]
+2026-11-03T02:45:57.2362860Z Get:57 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libavformat60 amd64 7:6.1.1-3ubuntu5 [1153 kB]
+2026-11-03T02:45:57.3000901Z Get:58 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libbs2b0 amd64 3.1.0+dfsg-7build1 [10.6 kB]
+2026-11-03T02:45:57.3149735Z Get:59 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libflite1 amd64 2.2-6build3 [13.6 MB]
+2026-11-03T02:45:57.5647208Z Get:60 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libserd-0-0 amd64 0.32.2-1 [43.6 kB]
+2026-11-03T02:45:57.5793689Z Get:61 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libzix-0-0 amd64 0.4.2-2build1 [23.6 kB]
+2026-11-03T02:45:57.5944796Z Get:62 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libsord-0-0 amd64 0.16.16-2build1 [15.8 kB]
+2026-11-03T02:45:57.6090747Z Get:63 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libsratom-0-0 amd64 0.6.16-1build1 [17.3 kB]
+2026-11-03T02:45:57.6241683Z Get:64 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 liblilv-0-0 amd64 0.24.22-1build1 [41.0 kB]
+2026-11-03T02:45:57.6401456Z Get:65 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libmysofa1 amd64 1.3.2+dfsg-2ubuntu2 [1158 kB]
+2026-11-03T02:45:57.6655685Z Get:66 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libplacebo338 amd64 6.338.2-2build1 [2654 kB]
+2026-11-03T02:45:57.6968750Z Get:67 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 libblas3 amd64 3.12.0-3build1.1 [238 kB]
+2026-11-03T02:45:57.7132309Z Get:68 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 liblapack3 amd64 3.12.0-3build1.1 [2646 kB]
+2026-11-03T02:45:57.7442386Z Get:69 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libasyncns0 amd64 0.8-6build4 [11.3 kB]
+2026-11-03T02:45:57.7606938Z Get:70 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libflac12t64 amd64 1.4.3+ds-2.1ubuntu2 [197 kB]
+2026-11-03T02:45:57.7755426Z Get:71 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 libsndfile1 amd64 1.2.2-1ubuntu5.24.04.1 [209 kB]
+2026-11-03T02:45:57.7920488Z Get:72 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 libpulse0 amd64 1:16.1+dfsg1-2ubuntu10.1 [292 kB]
+2026-11-03T02:45:57.8088696Z Get:73 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libsphinxbase3t64 amd64 0.8+5prealpha+1-17build2 [126 kB]
+2026-11-03T02:45:57.8243386Z Get:74 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libpocketsphinx3 amd64 0.8.0+real5prealpha+1-15ubuntu5 [133 kB]
+2026-11-03T02:45:57.8408532Z Get:75 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libpostproc57 amd64 7:6.1.1-3ubuntu5 [49.9 kB]
+2026-11-03T02:45:57.8996801Z Get:76 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libsamplerate0 amd64 0.2.2-4build1 [1344 kB]
+2026-11-03T02:45:57.9242615Z Get:77 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 librubberband2 amd64 3.3.0+dfsg-2build1 [130 kB]
+2026-11-03T02:45:57.9403146Z Get:78 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libswscale7 amd64 7:6.1.1-3ubuntu5 [193 kB]
+2026-11-03T02:45:57.9561473Z Get:79 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libvidstab1.1 amd64 1.1.0-2build1 [38.5 kB]
+2026-11-03T02:45:57.9716570Z Get:80 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libzimg2 amd64 3.0.5+ds1-1build1 [254 kB]
+2026-11-03T02:45:57.9882727Z Get:81 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libavfilter9 amd64 7:6.1.1-3ubuntu5 [4235 kB]
+2026-11-03T02:45:58.0325876Z Get:82 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 liborc-0.4-0t64 amd64 1:0.4.38-1ubuntu0.1 [207 kB]
+2026-11-03T02:45:58.0490634Z Get:83 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 libgstreamer-plugins-base1.0-0 amd64 1.24.2-1ubuntu0.5 [862 kB]
+2026-11-03T02:45:58.0696112Z Get:84 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 gstreamer1.0-libav amd64 1.24.1-1build1 [103 kB]
+2026-11-03T02:45:58.0853789Z Get:85 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libcdparanoia0 amd64 3.10.2+debian-14build3 [48.5 kB]
+2026-11-03T02:45:58.1011226Z Get:86 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libvisual-0.4-0 amd64 0.4.2-2build1 [115 kB]
+2026-11-03T02:45:58.1169367Z Get:87 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 gstreamer1.0-plugins-base amd64 1.24.2-1ubuntu0.5 [721 kB]
+2026-11-03T02:45:58.1364501Z Get:88 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libaa1 amd64 1.4p5-51.1 [49.9 kB]
+2026-11-03T02:45:58.1523941Z Get:89 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libraw1394-11 amd64 2.1.2-2build3 [26.2 kB]
+2026-11-03T02:45:58.1676210Z Get:90 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libavc1394-0 amd64 0.5.4-5build3 [15.4 kB]
+2026-11-03T02:45:58.1834375Z Get:91 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 libcaca0 amd64 0.99.beta20-4ubuntu0.2 [209 kB]
+2026-11-03T02:45:58.2004441Z Get:92 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libdv4t64 amd64 1.0.0-17.1build1 [63.2 kB]
+2026-11-03T02:45:58.2170105Z Get:93 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 libgstreamer-plugins-good1.0-0 amd64 1.24.2-1ubuntu1.8 [34.3 kB]
+2026-11-03T02:45:58.2759744Z Get:94 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libiec61883-0 amd64 1.2.0-6build1 [24.5 kB]
+2026-11-03T02:45:58.2912635Z Get:95 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libshout3 amd64 2.4.6-1build2 [50.3 kB]
+2026-11-03T02:45:58.3064151Z Get:96 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libtag1v5-vanilla amd64 1.13.1-1build1 [326 kB]
+2026-11-03T02:45:58.3231268Z Get:97 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libtag1v5 amd64 1.13.1-1build1 [11.7 kB]
+2026-11-03T02:45:58.3374512Z Get:98 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libv4lconvert0t64 amd64 1.26.1-4build3 [87.6 kB]
+2026-11-03T02:45:58.3530434Z Get:99 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libv4l-0t64 amd64 1.26.1-4build3 [46.9 kB]
+2026-11-03T02:45:58.3678241Z Get:100 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libwavpack1 amd64 5.6.0-1build1 [84.6 kB]
+2026-11-03T02:45:58.3832063Z Get:101 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 libsoup-3.0-common all 3.4.4-5ubuntu0.9 [12.3 kB]
+2026-11-03T02:45:58.3979542Z Get:102 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 libsoup-3.0-0 amd64 3.4.4-5ubuntu0.9 [291 kB]
+2026-11-03T02:45:58.4306190Z Get:103 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 gstreamer1.0-plugins-good amd64 1.24.2-1ubuntu1.8 [2236 kB]
+2026-11-03T02:45:58.5529519Z Get:104 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 libabsl20220623t64 amd64 20220623.1-3.1ubuntu3.2 [423 kB]
+2026-11-03T02:45:58.5712635Z Get:105 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libgav1-1 amd64 0.18.0-1build3 [357 kB]
+2026-11-03T02:45:58.5897465Z Get:106 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libyuv0 amd64 0.0~git202401110.af6ac82-1 [178 kB]
+2026-11-03T02:45:58.6061457Z Get:107 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libavif16 amd64 1.0.4-1ubuntu3 [91.2 kB]
+2026-11-03T02:45:58.6375382Z Get:108 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libavtp0 amd64 0.2.0-1build1 [6414 B]
+2026-11-03T02:45:58.6566774Z Get:109 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libcairo-script-interpreter2 amd64 1.18.0-3build1 [60.3 kB]
+2026-11-03T02:45:58.6698533Z Get:110 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libdc1394-25 amd64 2.2.6-4build1 [90.1 kB]
+2026-11-03T02:45:58.6850574Z Get:111 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 libde265-0 amd64 1.0.15-1ubuntu0.2 [167 kB]
+2026-11-03T02:45:58.7015276Z Get:112 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libdecor-0-0 amd64 0.2.2-1build2 [16.5 kB]
+2026-11-03T02:45:58.7173637Z Get:113 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libgles2 amd64 1.7.0-1build1 [17.1 kB]
+2026-11-03T02:45:58.7330726Z Get:114 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libdirectfb-1.7-7t64 amd64 1.7.7-11.1ubuntu2 [1035 kB]
+2026-11-03T02:45:58.7564344Z Get:115 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libdvdread8t64 amd64 6.1.3-1.1build1 [54.7 kB]
+2026-11-03T02:45:58.7756809Z Get:116 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libdvdnav4 amd64 6.1.1-3build1 [39.5 kB]
+2026-11-03T02:45:58.7925131Z Get:117 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 libegl-mesa0 amd64 25.2.8-0ubuntu0.24.04.4 [117 kB]
+2026-11-03T02:45:58.8080239Z Get:118 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 libevent-2.1-7t64 amd64 2.1.12-stable-9ubuntu2.2 [146 kB]
+2026-11-03T02:45:58.8246606Z Get:119 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libfaad2 amd64 2.11.1-1build1 [207 kB]
+2026-11-03T02:45:58.8415866Z Get:120 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libinstpatch-1.0-2 amd64 1.1.6-1build2 [251 kB]
+2026-11-03T02:45:58.9020246Z Get:121 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libjack-jackd2-0 amd64 1.9.21~dfsg-3ubuntu3 [289 kB]
+2026-11-03T02:45:58.9185160Z Get:122 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libwebrtc-audio-processing1 amd64 0.3.1-0ubuntu6 [290 kB]
+2026-11-03T02:45:58.9355684Z Get:123 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 libspa-0.2-modules amd64 1.0.5-1ubuntu3.3 [628 kB]
+2026-11-03T02:45:58.9552646Z Get:124 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 libpipewire-0.3-0t64 amd64 1.0.5-1ubuntu3.3 [252 kB]
+2026-11-03T02:45:58.9723114Z Get:125 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 libsdl2-2.0-0 amd64 2.30.0+dfsg-1ubuntu3.1 [686 kB]
+2026-11-03T02:45:58.9920995Z Get:126 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 timgm6mb-soundfont all 1.3-5 [5427 kB]
+2026-11-03T02:45:59.0387684Z Get:127 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libfluidsynth3 amd64 2.3.4-1build3 [249 kB]
+2026-11-03T02:45:59.0560390Z Get:128 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libfreeaptx0 amd64 0.1.1-2build1 [13.5 kB]
+2026-11-03T02:45:59.0719813Z Get:129 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libgraphene-1.0-0 amd64 1.10.8-3build2 [46.2 kB]
+2026-11-03T02:45:59.0876000Z Get:130 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libgssdp-1.6-0 amd64 1.6.3-1build3 [40.4 kB]
+2026-11-03T02:45:59.1033030Z Get:131 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libegl1 amd64 1.7.0-1build1 [28.7 kB]
+2026-11-03T02:45:59.1200608Z Get:132 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 libgstreamer-gl1.0-0 amd64 1.24.2-1ubuntu0.5 [214 kB]
+2026-11-03T02:45:59.1355268Z Get:133 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 libgtk-4-common all 4.14.5+ds-0ubuntu0.10 [1497 kB]
+2026-11-03T02:45:59.1611443Z Get:134 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 libgtk-4-1 amd64 4.14.5+ds-0ubuntu0.10 [3295 kB]
+2026-11-03T02:45:59.1942690Z Get:135 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libgupnp-1.6-0 amd64 1.6.6-1build3 [92.7 kB]
+2026-11-03T02:45:59.2101253Z Get:136 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libgupnp-igd-1.6-0 amd64 1.6.0-3build3 [16.5 kB]
+2026-11-03T02:45:59.2259319Z Get:137 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libharfbuzz-icu0 amd64 8.3.0-2build2 [13.3 kB]
+2026-11-03T02:45:59.2411537Z Get:138 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libhyphen0 amd64 2.8.8-7build3 [26.5 kB]
+2026-11-03T02:45:59.3021504Z Get:139 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libimath-3-1-29t64 amd64 3.1.9-3.1ubuntu2 [72.2 kB]
+2026-11-03T02:45:59.3177499Z Get:140 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 liblc3-1 amd64 1.0.4-3build1 [69.7 kB]
+2026-11-03T02:45:59.3329047Z Get:141 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libldacbt-enc2 amd64 2.0.2.3+git20200429+ed310a0-4ubuntu2 [27.1 kB]
+2026-11-03T02:45:59.3484623Z Get:142 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 libraptor2-0 amd64 2.0.16-3ubuntu0.1 [165 kB]
+2026-11-03T02:45:59.3642936Z Get:143 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 liblrdf0 amd64 0.6.1-4build1 [18.5 kB]
+2026-11-03T02:45:59.3792771Z Get:144 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libltc11 amd64 1.3.2-1build1 [13.0 kB]
+2026-11-03T02:45:59.3947294Z Get:145 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libmanette-0.2-0 amd64 0.2.7-1build2 [30.6 kB]
+2026-11-03T02:45:59.4096224Z Get:146 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libmfx1 amd64 22.5.4-1 [3124 kB]
+2026-11-03T02:45:59.4437443Z Get:147 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libmjpegutils-2.1-0t64 amd64 1:2.1.0+debian-8.1build1 [25.5 kB]
+2026-11-03T02:45:59.4589220Z Get:148 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libmodplug1 amd64 1:0.8.9.0-3build1 [166 kB]
+2026-11-03T02:45:59.4753231Z Get:149 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libmpcdec6 amd64 2:0.1~r495-2build1 [32.7 kB]
+2026-11-03T02:45:59.4917006Z Get:150 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libmpeg2encpp-2.1-0t64 amd64 1:2.1.0+debian-8.1build1 [75.6 kB]
+2026-11-03T02:45:59.5068743Z Get:151 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libmplex2-2.1-0t64 amd64 1:2.1.0+debian-8.1build1 [46.1 kB]
+2026-11-03T02:45:59.5224013Z Get:152 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libneon27t64 amd64 0.33.0-1.1build3 [102 kB]
+2026-11-03T02:45:59.5384931Z Get:153 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libnice10 amd64 0.1.21-2build3 [157 kB]
+2026-11-03T02:45:59.5549166Z Get:154 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libopenal-data all 1:1.23.1-4build1 [161 kB]
+2026-11-03T02:45:59.5716307Z Get:155 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libopenexr-3-1-30 amd64 3.1.5-5.1build3 [1004 kB]
+2026-11-03T02:45:59.5913674Z Get:156 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libopenh264-7 amd64 2.4.1+dfsg-1 [409 kB]
+2026-11-03T02:45:59.6095840Z Get:157 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libopenni2-0 amd64 2.2.0.33+dfsg-18 [370 kB]
+2026-11-03T02:45:59.6691975Z Get:158 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libqrencode4 amd64 4.1.1-1build2 [25.0 kB]
+2026-11-03T02:45:59.6843505Z Get:159 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libsecret-common all 0.21.4-1build3 [4962 B]
+2026-11-03T02:45:59.6998471Z Get:160 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libsecret-1-0 amd64 0.21.4-1build3 [116 kB]
+2026-11-03T02:45:59.7157441Z Get:161 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libsndio7.0 amd64 1.9.0-0.3build3 [29.6 kB]
+2026-11-03T02:45:59.7313587Z Get:162 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libsoundtouch1 amd64 2.3.2+ds1-1build1 [60.5 kB]
+2026-11-03T02:45:59.7475297Z Get:163 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libspandsp2t64 amd64 0.0.6+dfsg-2.1build1 [311 kB]
+2026-11-03T02:45:59.7840142Z Get:164 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libsrtp2-1 amd64 2.5.0-3build1 [41.9 kB]
+2026-11-03T02:45:59.7995653Z Get:165 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libwayland-server0 amd64 1.22.0-2.1build1 [33.9 kB]
+2026-11-03T02:45:59.8146530Z Get:166 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libwildmidi2 amd64 0.4.3-1build3 [68.5 kB]
+2026-11-03T02:45:59.8306075Z Get:167 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libwoff1 amd64 1.0.2-2build1 [45.3 kB]
+2026-11-03T02:45:59.8461177Z Get:168 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libxcb-xkb1 amd64 1.15-1ubuntu2 [32.3 kB]
+2026-11-03T02:45:59.8613102Z Get:169 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libxkbcommon-x11-0 amd64 1.6.0-1build1 [14.5 kB]
+2026-11-03T02:45:59.8770485Z Get:170 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libzbar0t64 amd64 0.23.93-4build3 [123 kB]
+2026-11-03T02:45:59.8924152Z Get:171 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libzxing3 amd64 2.2.1-3 [583 kB]
+2026-11-03T02:45:59.9130143Z Get:172 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-encodings all 1:1.0.5-0ubuntu2 [578 kB]
+2026-11-03T02:45:59.9312399Z Get:173 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-utils amd64 1:7.7+6build3 [94.4 kB]
+2026-11-03T02:45:59.9484425Z Get:174 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1 [384 kB]
+2026-11-03T02:45:59.9655951Z Get:175 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3 [304 kB]
+2026-11-03T02:46:00.0321074Z Get:176 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libgstreamer-plugins-bad1.0-0 amd64 1.24.2-1ubuntu4 [797 kB]
+2026-11-03T02:46:00.0511331Z Get:177 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libdca0 amd64 0.0.7-2build1 [93.8 kB]
+2026-11-03T02:46:00.0681873Z Get:178 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libopenal1 amd64 1:1.23.1-4build1 [540 kB]
+2026-11-03T02:46:00.0866396Z Get:179 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libsbc1 amd64 2.0-1build1 [33.9 kB]
+2026-11-03T02:46:00.1024097Z Get:180 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libvo-aacenc0 amd64 0.1.3-2build1 [67.8 kB]
+2026-11-03T02:46:00.1184492Z Get:181 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libvo-amrwbenc0 amd64 0.1.3-2build1 [76.7 kB]
+2026-11-03T02:46:00.1361342Z Get:182 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 gstreamer1.0-plugins-bad amd64 1.24.2-1ubuntu4 [3081 kB]
+2026-11-03T02:46:00.6442439Z Fetched 114 MB in 4s (26.9 MB/s)
+2026-11-03T02:46:00.6808108Z Selecting previously unselected package fonts-ipafont-gothic.
+2026-11-03T02:46:00.7139117Z (Reading database ... 
+2026-11-03T02:46:00.7139965Z (Reading database ... 5%
+2026-11-03T02:46:00.7140535Z (Reading database ... 10%
+2026-11-03T02:46:00.7141053Z (Reading database ... 15%
+2026-11-03T02:46:00.7142120Z (Reading database ... 20%
+2026-11-03T02:46:00.7142964Z (Reading database ... 25%
+2026-11-03T02:46:00.7143445Z (Reading database ... 30%
+2026-11-03T02:46:00.7143935Z (Reading database ... 35%
+2026-11-03T02:46:00.7144829Z (Reading database ... 40%
+2026-11-03T02:46:00.7145724Z (Reading database ... 45%
+2026-11-03T02:46:00.7146372Z (Reading database ... 50%
+2026-11-03T02:46:00.7200518Z (Reading database ... 55%
+2026-11-03T02:46:00.8788984Z (Reading database ... 60%
+2026-11-03T02:46:01.0804077Z (Reading database ... 65%
+2026-11-03T02:46:01.2729936Z (Reading database ... 70%
+2026-11-03T02:46:01.4787089Z (Reading database ... 75%
+2026-11-03T02:46:01.6293801Z (Reading database ... 80%
+2026-11-03T02:46:01.6976591Z (Reading database ... 85%
+2026-11-03T02:46:01.7901092Z (Reading database ... 90%
+2026-11-03T02:46:01.9449834Z (Reading database ... 95%
+2026-11-03T02:46:01.9451092Z (Reading database ... 100%
+2026-11-03T02:46:01.9452605Z (Reading database ... 215504 files and directories currently installed.)
+2026-11-03T02:46:01.9509465Z Preparing to unpack .../000-fonts-ipafont-gothic_00303-21ubuntu1_all.deb ...
+2026-11-03T02:46:01.9623106Z Unpacking fonts-ipafont-gothic (00303-21ubuntu1) ...
+2026-11-03T02:46:02.2152063Z Selecting previously unselected package fonts-freefont-ttf.
+2026-11-03T02:46:02.2312340Z Preparing to unpack .../001-fonts-freefont-ttf_20211204+svn4273-2_all.deb ...
+2026-11-03T02:46:02.2321536Z Unpacking fonts-freefont-ttf (20211204+svn4273-2) ...
+2026-11-03T02:46:02.3292780Z Selecting previously unselected package fonts-tlwg-loma-otf.
+2026-11-03T02:46:02.3453814Z Preparing to unpack .../002-fonts-tlwg-loma-otf_1%3a0.7.3-1_all.deb ...
+2026-11-03T02:46:02.3468966Z Unpacking fonts-tlwg-loma-otf (1:0.7.3-1) ...
+2026-11-03T02:46:02.3709521Z Selecting previously unselected package fonts-unifont.
+2026-11-03T02:46:02.3862008Z Preparing to unpack .../003-fonts-unifont_1%3a15.1.01-1build1_all.deb ...
+2026-11-03T02:46:02.3870400Z Unpacking fonts-unifont (1:15.1.01-1build1) ...
+2026-11-03T02:46:02.5106601Z Selecting previously unselected package fonts-wqy-zenhei.
+2026-11-03T02:46:02.5257706Z Preparing to unpack .../004-fonts-wqy-zenhei_0.9.45-8_all.deb ...
+2026-11-03T02:46:02.5379582Z Unpacking fonts-wqy-zenhei (0.9.45-8) ...
+2026-11-03T02:46:03.0361461Z Selecting previously unselected package libproxy1v5:amd64.
+2026-11-03T02:46:03.0520480Z Preparing to unpack .../005-libproxy1v5_0.5.4-4build1_amd64.deb ...
+2026-11-03T02:46:03.0551390Z Unpacking libproxy1v5:amd64 (0.5.4-4build1) ...
+2026-11-03T02:46:03.0793066Z Selecting previously unselected package glib-networking-common.
+2026-11-03T02:46:03.0944895Z Preparing to unpack .../006-glib-networking-common_2.80.0-1build1_all.deb ...
+2026-11-03T02:46:03.0963077Z Unpacking glib-networking-common (2.80.0-1build1) ...
+2026-11-03T02:46:03.1219404Z Selecting previously unselected package glib-networking-services.
+2026-11-03T02:46:03.1354478Z Preparing to unpack .../007-glib-networking-services_2.80.0-1build1_amd64.deb ...
+2026-11-03T02:46:03.1365410Z Unpacking glib-networking-services (2.80.0-1build1) ...
+2026-11-03T02:46:03.1605399Z Selecting previously unselected package session-migration.
+2026-11-03T02:46:03.1758931Z Preparing to unpack .../008-session-migration_0.3.9build1_amd64.deb ...
+2026-11-03T02:46:03.1767714Z Unpacking session-migration (0.3.9build1) ...
+2026-11-03T02:46:03.2061160Z Selecting previously unselected package gsettings-desktop-schemas.
+2026-11-03T02:46:03.2219332Z Preparing to unpack .../009-gsettings-desktop-schemas_46.1-0ubuntu1_all.deb ...
+2026-11-03T02:46:03.2228130Z Unpacking gsettings-desktop-schemas (46.1-0ubuntu1) ...
+2026-11-03T02:46:03.2599844Z Selecting previously unselected package glib-networking:amd64.
+2026-11-03T02:46:03.2742773Z Preparing to unpack .../010-glib-networking_2.80.0-1build1_amd64.deb ...
+2026-11-03T02:46:03.2751369Z Unpacking glib-networking:amd64 (2.80.0-1build1) ...
+2026-11-03T02:46:03.3034168Z Selecting previously unselected package libva2:amd64.
+2026-11-03T02:46:03.3190906Z Preparing to unpack .../011-libva2_2.20.0-2ubuntu0.2_amd64.deb ...
+2026-11-03T02:46:03.3200044Z Unpacking libva2:amd64 (2.20.0-2ubuntu0.2) ...
+2026-11-03T02:46:03.3473450Z Selecting previously unselected package libva-drm2:amd64.
+2026-11-03T02:46:03.3623036Z Preparing to unpack .../012-libva-drm2_2.20.0-2ubuntu0.2_amd64.deb ...
+2026-11-03T02:46:03.3631948Z Unpacking libva-drm2:amd64 (2.20.0-2ubuntu0.2) ...
+2026-11-03T02:46:03.3875809Z Selecting previously unselected package libva-x11-2:amd64.
+2026-11-03T02:46:03.4028601Z Preparing to unpack .../013-libva-x11-2_2.20.0-2ubuntu0.2_amd64.deb ...
+2026-11-03T02:46:03.4040929Z Unpacking libva-x11-2:amd64 (2.20.0-2ubuntu0.2) ...
+2026-11-03T02:46:03.4290567Z Selecting previously unselected package libvdpau1:amd64.
+2026-11-03T02:46:03.4445852Z Preparing to unpack .../014-libvdpau1_1.5-2build1_amd64.deb ...
+2026-11-03T02:46:03.4456587Z Unpacking libvdpau1:amd64 (1.5-2build1) ...
+2026-11-03T02:46:03.4720406Z Selecting previously unselected package libvpl2.
+2026-11-03T02:46:03.4878487Z Preparing to unpack .../015-libvpl2_2023.3.0-1build1_amd64.deb ...
+2026-11-03T02:46:03.4889061Z Unpacking libvpl2 (2023.3.0-1build1) ...
+2026-11-03T02:46:03.5159449Z Selecting previously unselected package ocl-icd-libopencl1:amd64.
+2026-11-03T02:46:03.5302213Z Preparing to unpack .../016-ocl-icd-libopencl1_2.3.2-1build1_amd64.deb ...
+2026-11-03T02:46:03.5315283Z Unpacking ocl-icd-libopencl1:amd64 (2.3.2-1build1) ...
+2026-11-03T02:46:03.5609845Z Selecting previously unselected package libavutil58:amd64.
+2026-11-03T02:46:03.5741282Z Preparing to unpack .../017-libavutil58_7%3a6.1.1-3ubuntu5_amd64.deb ...
+2026-11-03T02:46:03.5749682Z Unpacking libavutil58:amd64 (7:6.1.1-3ubuntu5) ...
+2026-11-03T02:46:03.6058550Z Selecting previously unselected package libcodec2-1.2:amd64.
+2026-11-03T02:46:03.6212048Z Preparing to unpack .../018-libcodec2-1.2_1.2.0-2build1_amd64.deb ...
+2026-11-03T02:46:03.6224551Z Unpacking libcodec2-1.2:amd64 (1.2.0-2build1) ...
+2026-11-03T02:46:03.7105962Z Selecting previously unselected package libdav1d7:amd64.
+2026-11-03T02:46:03.7260639Z Preparing to unpack .../019-libdav1d7_1.4.1-1build1_amd64.deb ...
+2026-11-03T02:46:03.7269820Z Unpacking libdav1d7:amd64 (1.4.1-1build1) ...
+2026-11-03T02:46:03.7603465Z Selecting previously unselected package libgsm1:amd64.
+2026-11-03T02:46:03.7759232Z Preparing to unpack .../020-libgsm1_1.0.22-1build1_amd64.deb ...
+2026-11-03T02:46:03.7768984Z Unpacking libgsm1:amd64 (1.0.22-1build1) ...
+2026-11-03T02:46:03.8042308Z Selecting previously unselected package libhwy1t64:amd64.
+2026-11-03T02:46:03.8193896Z Preparing to unpack .../021-libhwy1t64_1.0.7-8.1build1_amd64.deb ...
+2026-11-03T02:46:03.8204372Z Unpacking libhwy1t64:amd64 (1.0.7-8.1build1) ...
+2026-11-03T02:46:03.8620503Z Selecting previously unselected package libjxl0.7:amd64.
+2026-11-03T02:46:03.8779506Z Preparing to unpack .../022-libjxl0.7_0.7.0-10.2ubuntu6.1_amd64.deb ...
+2026-11-03T02:46:03.8791097Z Unpacking libjxl0.7:amd64 (0.7.0-10.2ubuntu6.1) ...
+2026-11-03T02:46:03.9220525Z Selecting previously unselected package libmp3lame0:amd64.
+2026-11-03T02:46:03.9372986Z Preparing to unpack .../023-libmp3lame0_3.100-6build1_amd64.deb ...
+2026-11-03T02:46:03.9382980Z Unpacking libmp3lame0:amd64 (3.100-6build1) ...
+2026-11-03T02:46:03.9679859Z Selecting previously unselected package libopus0:amd64.
+2026-11-03T02:46:03.9829506Z Preparing to unpack .../024-libopus0_1.4-1build1_amd64.deb ...
+2026-11-03T02:46:03.9840878Z Unpacking libopus0:amd64 (1.4-1build1) ...
+2026-11-03T02:46:04.0111344Z Selecting previously unselected package librav1e0:amd64.
+2026-11-03T02:46:04.0264184Z Preparing to unpack .../025-librav1e0_0.7.1-2_amd64.deb ...
+2026-11-03T02:46:04.0274061Z Unpacking librav1e0:amd64 (0.7.1-2) ...
+2026-11-03T02:46:04.0695250Z Selecting previously unselected package librsvg2-2:amd64.
+2026-11-03T02:46:04.0858865Z Preparing to unpack .../026-librsvg2-2_2.58.0+dfsg-1ubuntu0.1_amd64.deb ...
+2026-11-03T02:46:04.0868973Z Unpacking librsvg2-2:amd64 (2.58.0+dfsg-1ubuntu0.1) ...
+2026-11-03T02:46:04.1450892Z Selecting previously unselected package libshine3:amd64.
+2026-11-03T02:46:04.1603661Z Preparing to unpack .../027-libshine3_3.1.1-2build1_amd64.deb ...
+2026-11-03T02:46:04.1618888Z Unpacking libshine3:amd64 (3.1.1-2build1) ...
+2026-11-03T02:46:04.1879885Z Selecting previously unselected package libspeex1:amd64.
+2026-11-03T02:46:04.2030494Z Preparing to unpack .../028-libspeex1_1.2.1-2ubuntu2.24.04.1_amd64.deb ...
+2026-11-03T02:46:04.2052254Z Unpacking libspeex1:amd64 (1.2.1-2ubuntu2.24.04.1) ...
+2026-11-03T02:46:04.2299809Z Selecting previously unselected package libsvtav1enc1d1:amd64.
+2026-11-03T02:46:04.2448263Z Preparing to unpack .../029-libsvtav1enc1d1_1.7.0+dfsg-2build1_amd64.deb ...
+2026-11-03T02:46:04.2456712Z Unpacking libsvtav1enc1d1:amd64 (1.7.0+dfsg-2build1) ...
+2026-11-03T02:46:04.3044069Z Selecting previously unselected package libsoxr0:amd64.
+2026-11-03T02:46:04.3197050Z Preparing to unpack .../030-libsoxr0_0.1.3-4build3_amd64.deb ...
+2026-11-03T02:46:04.3218700Z Unpacking libsoxr0:amd64 (0.1.3-4build3) ...
+2026-11-03T02:46:04.3484198Z Selecting previously unselected package libswresample4:amd64.
+2026-11-03T02:46:04.3620389Z Preparing to unpack .../031-libswresample4_7%3a6.1.1-3ubuntu5_amd64.deb ...
+2026-11-03T02:46:04.3630242Z Unpacking libswresample4:amd64 (7:6.1.1-3ubuntu5) ...
+2026-11-03T02:46:04.3888911Z Selecting previously unselected package libtheora0:amd64.
+2026-11-03T02:46:04.4024591Z Preparing to unpack .../032-libtheora0_1.1.1+dfsg.1-16.1build3_amd64.deb ...
+2026-11-03T02:46:04.4032040Z Unpacking libtheora0:amd64 (1.1.1+dfsg.1-16.1build3) ...
+2026-11-03T02:46:04.4303133Z Selecting previously unselected package libtwolame0:amd64.
+2026-11-03T02:46:04.4452494Z Preparing to unpack .../033-libtwolame0_0.4.0-2build3_amd64.deb ...
+2026-11-03T02:46:04.4460658Z Unpacking libtwolame0:amd64 (0.4.0-2build3) ...
+2026-11-03T02:46:04.4708676Z Selecting previously unselected package libvorbisenc2:amd64.
+2026-11-03T02:46:04.4856607Z Preparing to unpack .../034-libvorbisenc2_1.3.7-1build3_amd64.deb ...
+2026-11-03T02:46:04.4868823Z Unpacking libvorbisenc2:amd64 (1.3.7-1build3) ...
+2026-11-03T02:46:04.5339238Z Selecting previously unselected package libvpx9:amd64.
+2026-11-03T02:46:04.5508925Z Preparing to unpack .../035-libvpx9_1.14.0-1ubuntu2.3_amd64.deb ...
+2026-11-03T02:46:04.5520640Z Unpacking libvpx9:amd64 (1.14.0-1ubuntu2.3) ...
+2026-11-03T02:46:04.5931782Z Selecting previously unselected package libx264-164:amd64.
+2026-11-03T02:46:04.6082798Z Preparing to unpack .../036-libx264-164_2%3a0.164.3108+git31e19f9-1_amd64.deb ...
+2026-11-03T02:46:04.6099171Z Unpacking libx264-164:amd64 (2:0.164.3108+git31e19f9-1) ...
+2026-11-03T02:46:04.6475545Z Selecting previously unselected package libx265-199:amd64.
+2026-11-03T02:46:04.6621664Z Preparing to unpack .../037-libx265-199_3.5-2build1_amd64.deb ...
+2026-11-03T02:46:04.6642680Z Unpacking libx265-199:amd64 (3.5-2build1) ...
+2026-11-03T02:46:04.7409710Z Selecting previously unselected package libxvidcore4:amd64.
+2026-11-03T02:46:04.7546511Z Preparing to unpack .../038-libxvidcore4_2%3a1.3.7-1build1_amd64.deb ...
+2026-11-03T02:46:04.7555399Z Unpacking libxvidcore4:amd64 (2:1.3.7-1build1) ...
+2026-11-03T02:46:04.7839046Z Selecting previously unselected package libzvbi-common.
+2026-11-03T02:46:04.7973052Z Preparing to unpack .../039-libzvbi-common_0.2.42-2_all.deb ...
+2026-11-03T02:46:04.7980543Z Unpacking libzvbi-common (0.2.42-2) ...
+2026-11-03T02:46:04.8301821Z Selecting previously unselected package libzvbi0t64:amd64.
+2026-11-03T02:46:04.8449648Z Preparing to unpack .../040-libzvbi0t64_0.2.42-2_amd64.deb ...
+2026-11-03T02:46:04.8458942Z Unpacking libzvbi0t64:amd64 (0.2.42-2) ...
+2026-11-03T02:46:04.8746444Z Selecting previously unselected package libavcodec60:amd64.
+2026-11-03T02:46:04.8894352Z Preparing to unpack .../041-libavcodec60_7%3a6.1.1-3ubuntu5_amd64.deb ...
+2026-11-03T02:46:04.8903295Z Unpacking libavcodec60:amd64 (7:6.1.1-3ubuntu5) ...
+2026-11-03T02:46:04.9919668Z Selecting previously unselected package libunibreak5:amd64.
+2026-11-03T02:46:05.0070397Z Preparing to unpack .../042-libunibreak5_5.1-2build1_amd64.deb ...
+2026-11-03T02:46:05.0079008Z Unpacking libunibreak5:amd64 (5.1-2build1) ...
+2026-11-03T02:46:05.0329447Z Selecting previously unselected package libass9:amd64.
+2026-11-03T02:46:05.0480529Z Preparing to unpack .../043-libass9_1%3a0.17.1-2build1_amd64.deb ...
+2026-11-03T02:46:05.0500935Z Unpacking libass9:amd64 (1:0.17.1-2build1) ...
+2026-11-03T02:46:05.0769834Z Selecting previously unselected package libudfread0:amd64.
+2026-11-03T02:46:05.0912088Z Preparing to unpack .../044-libudfread0_1.1.2-1build1_amd64.deb ...
+2026-11-03T02:46:05.0921485Z Unpacking libudfread0:amd64 (1.1.2-1build1) ...
+2026-11-03T02:46:05.1175913Z Selecting previously unselected package libbluray2:amd64.
+2026-11-03T02:46:05.1330383Z Preparing to unpack .../045-libbluray2_1%3a1.3.4-1build1_amd64.deb ...
+2026-11-03T02:46:05.1349723Z Unpacking libbluray2:amd64 (1:1.3.4-1build1) ...
+2026-11-03T02:46:05.1749611Z Selecting previously unselected package libchromaprint1:amd64.
+2026-11-03T02:46:05.1893164Z Preparing to unpack .../046-libchromaprint1_1.5.1-5_amd64.deb ...
+2026-11-03T02:46:05.1912446Z Unpacking libchromaprint1:amd64 (1.5.1-5) ...
+2026-11-03T02:46:05.2164766Z Selecting previously unselected package libgme0:amd64.
+2026-11-03T02:46:05.2315890Z Preparing to unpack .../047-libgme0_0.6.3-7build1_amd64.deb ...
+2026-11-03T02:46:05.2335152Z Unpacking libgme0:amd64 (0.6.3-7build1) ...
+2026-11-03T02:46:05.2586192Z Selecting previously unselected package libmpg123-0t64:amd64.
+2026-11-03T02:46:05.2740212Z Preparing to unpack .../048-libmpg123-0t64_1.32.5-1ubuntu1.1_amd64.deb ...
+2026-11-03T02:46:05.2750164Z Unpacking libmpg123-0t64:amd64 (1.32.5-1ubuntu1.1) ...
+2026-11-03T02:46:05.3018974Z Selecting previously unselected package libopenmpt0t64:amd64.
+2026-11-03T02:46:05.3176569Z Preparing to unpack .../049-libopenmpt0t64_0.7.3-1.1build3_amd64.deb ...
+2026-11-03T02:46:05.3186394Z Unpacking libopenmpt0t64:amd64 (0.7.3-1.1build3) ...
+2026-11-03T02:46:05.3549609Z Selecting previously unselected package libcjson1:amd64.
+2026-11-03T02:46:05.3711606Z Preparing to unpack .../050-libcjson1_1.7.17-1_amd64.deb ...
+2026-11-03T02:46:05.3722631Z Unpacking libcjson1:amd64 (1.7.17-1) ...
+2026-11-03T02:46:05.3999200Z Selecting previously unselected package libmbedcrypto7t64:amd64.
+2026-11-03T02:46:05.4173676Z Preparing to unpack .../051-libmbedcrypto7t64_2.28.8-1_amd64.deb ...
+2026-11-03T02:46:05.4189232Z Unpacking libmbedcrypto7t64:amd64 (2.28.8-1) ...
+2026-11-03T02:46:05.4494250Z Selecting previously unselected package librist4:amd64.
+2026-11-03T02:46:05.4663997Z Preparing to unpack .../052-librist4_0.2.10+dfsg-2_amd64.deb ...
+2026-11-03T02:46:05.4684900Z Unpacking librist4:amd64 (0.2.10+dfsg-2) ...
+2026-11-03T02:46:05.4949699Z Selecting previously unselected package libsrt1.5-gnutls:amd64.
+2026-11-03T02:46:05.5095859Z Preparing to unpack .../053-libsrt1.5-gnutls_1.5.3-1build2_amd64.deb ...
+2026-11-03T02:46:05.5104745Z Unpacking libsrt1.5-gnutls:amd64 (1.5.3-1build2) ...
+2026-11-03T02:46:05.5439747Z Selecting previously unselected package libssh-gcrypt-4:amd64.
+2026-11-03T02:46:05.5576018Z Preparing to unpack .../054-libssh-gcrypt-4_0.10.6-2ubuntu0.5_amd64.deb ...
+2026-11-03T02:46:05.5586245Z Unpacking libssh-gcrypt-4:amd64 (0.10.6-2ubuntu0.5) ...
+2026-11-03T02:46:05.5889116Z Selecting previously unselected package libavformat60:amd64.
+2026-11-03T02:46:05.6033553Z Preparing to unpack .../055-libavformat60_7%3a6.1.1-3ubuntu5_amd64.deb ...
+2026-11-03T02:46:05.6042997Z Unpacking libavformat60:amd64 (7:6.1.1-3ubuntu5) ...
+2026-11-03T02:46:05.6434861Z Selecting previously unselected package libbs2b0:amd64.
+2026-11-03T02:46:05.6585004Z Preparing to unpack .../056-libbs2b0_3.1.0+dfsg-7build1_amd64.deb ...
+2026-11-03T02:46:05.6594377Z Unpacking libbs2b0:amd64 (3.1.0+dfsg-7build1) ...
+2026-11-03T02:46:05.6909221Z Selecting previously unselected package libflite1:amd64.
+2026-11-03T02:46:05.7051596Z Preparing to unpack .../057-libflite1_2.2-6build3_amd64.deb ...
+2026-11-03T02:46:05.7060087Z Unpacking libflite1:amd64 (2.2-6build3) ...
+2026-11-03T02:46:05.8331806Z Selecting previously unselected package libserd-0-0:amd64.
+2026-11-03T02:46:05.8490386Z Preparing to unpack .../058-libserd-0-0_0.32.2-1_amd64.deb ...
+2026-11-03T02:46:05.8500157Z Unpacking libserd-0-0:amd64 (0.32.2-1) ...
+2026-11-03T02:46:05.8769571Z Selecting previously unselected package libzix-0-0:amd64.
+2026-11-03T02:46:05.8925399Z Preparing to unpack .../059-libzix-0-0_0.4.2-2build1_amd64.deb ...
+2026-11-03T02:46:05.8935227Z Unpacking libzix-0-0:amd64 (0.4.2-2build1) ...
+2026-11-03T02:46:05.9180940Z Selecting previously unselected package libsord-0-0:amd64.
+2026-11-03T02:46:05.9355666Z Preparing to unpack .../060-libsord-0-0_0.16.16-2build1_amd64.deb ...
+2026-11-03T02:46:05.9369119Z Unpacking libsord-0-0:amd64 (0.16.16-2build1) ...
+2026-11-03T02:46:05.9623774Z Selecting previously unselected package libsratom-0-0:amd64.
+2026-11-03T02:46:05.9778822Z Preparing to unpack .../061-libsratom-0-0_0.6.16-1build1_amd64.deb ...
+2026-11-03T02:46:05.9790500Z Unpacking libsratom-0-0:amd64 (0.6.16-1build1) ...
+2026-11-03T02:46:06.0055593Z Selecting previously unselected package liblilv-0-0:amd64.
+2026-11-03T02:46:06.0221528Z Preparing to unpack .../062-liblilv-0-0_0.24.22-1build1_amd64.deb ...
+2026-11-03T02:46:06.0232556Z Unpacking liblilv-0-0:amd64 (0.24.22-1build1) ...
+2026-11-03T02:46:06.0540449Z Selecting previously unselected package libmysofa1:amd64.
+2026-11-03T02:46:06.0705774Z Preparing to unpack .../063-libmysofa1_1.3.2+dfsg-2ubuntu2_amd64.deb ...
+2026-11-03T02:46:06.0716229Z Unpacking libmysofa1:amd64 (1.3.2+dfsg-2ubuntu2) ...
+2026-11-03T02:46:06.1058460Z Selecting previously unselected package libplacebo338:amd64.
+2026-11-03T02:46:06.1214987Z Preparing to unpack .../064-libplacebo338_6.338.2-2build1_amd64.deb ...
+2026-11-03T02:46:06.1228905Z Unpacking libplacebo338:amd64 (6.338.2-2build1) ...
+2026-11-03T02:46:06.1950435Z Selecting previously unselected package libblas3:amd64.
+2026-11-03T02:46:06.2105813Z Preparing to unpack .../065-libblas3_3.12.0-3build1.1_amd64.deb ...
+2026-11-03T02:46:06.2149365Z Unpacking libblas3:amd64 (3.12.0-3build1.1) ...
+2026-11-03T02:46:06.2460068Z Selecting previously unselected package liblapack3:amd64.
+2026-11-03T02:46:06.2609848Z Preparing to unpack .../066-liblapack3_3.12.0-3build1.1_amd64.deb ...
+2026-11-03T02:46:06.2668980Z Unpacking liblapack3:amd64 (3.12.0-3build1.1) ...
+2026-11-03T02:46:06.3299661Z Selecting previously unselected package libasyncns0:amd64.
+2026-11-03T02:46:06.3444304Z Preparing to unpack .../067-libasyncns0_0.8-6build4_amd64.deb ...
+2026-11-03T02:46:06.3458968Z Unpacking libasyncns0:amd64 (0.8-6build4) ...
+2026-11-03T02:46:06.3736268Z Selecting previously unselected package libflac12t64:amd64.
+2026-11-03T02:46:06.3896500Z Preparing to unpack .../068-libflac12t64_1.4.3+ds-2.1ubuntu2_amd64.deb ...
+2026-11-03T02:46:06.3912449Z Unpacking libflac12t64:amd64 (1.4.3+ds-2.1ubuntu2) ...
+2026-11-03T02:46:06.4220573Z Selecting previously unselected package libsndfile1:amd64.
+2026-11-03T02:46:06.4367771Z Preparing to unpack .../069-libsndfile1_1.2.2-1ubuntu5.24.04.1_amd64.deb ...
+2026-11-03T02:46:06.4391553Z Unpacking libsndfile1:amd64 (1.2.2-1ubuntu5.24.04.1) ...
+2026-11-03T02:46:06.4739850Z Selecting previously unselected package libpulse0:amd64.
+2026-11-03T02:46:06.4885313Z Preparing to unpack .../070-libpulse0_1%3a16.1+dfsg1-2ubuntu10.1_amd64.deb ...
+2026-11-03T02:46:06.4979250Z Unpacking libpulse0:amd64 (1:16.1+dfsg1-2ubuntu10.1) ...
+2026-11-03T02:46:06.5301448Z Selecting previously unselected package libsphinxbase3t64:amd64.
+2026-11-03T02:46:06.5459960Z Preparing to unpack .../071-libsphinxbase3t64_0.8+5prealpha+1-17build2_amd64.deb ...
+2026-11-03T02:46:06.5469213Z Unpacking libsphinxbase3t64:amd64 (0.8+5prealpha+1-17build2) ...
+2026-11-03T02:46:06.5745705Z Selecting previously unselected package libpocketsphinx3:amd64.
+2026-11-03T02:46:06.5899257Z Preparing to unpack .../072-libpocketsphinx3_0.8.0+real5prealpha+1-15ubuntu5_amd64.deb ...
+2026-11-03T02:46:06.5910247Z Unpacking libpocketsphinx3:amd64 (0.8.0+real5prealpha+1-15ubuntu5) ...
+2026-11-03T02:46:06.6234832Z Selecting previously unselected package libpostproc57:amd64.
+2026-11-03T02:46:06.6393542Z Preparing to unpack .../073-libpostproc57_7%3a6.1.1-3ubuntu5_amd64.deb ...
+2026-11-03T02:46:06.6409048Z Unpacking libpostproc57:amd64 (7:6.1.1-3ubuntu5) ...
+2026-11-03T02:46:06.6670610Z Selecting previously unselected package libsamplerate0:amd64.
+2026-11-03T02:46:06.6829267Z Preparing to unpack .../074-libsamplerate0_0.2.2-4build1_amd64.deb ...
+2026-11-03T02:46:06.6838909Z Unpacking libsamplerate0:amd64 (0.2.2-4build1) ...
+2026-11-03T02:46:06.7172786Z Selecting previously unselected package librubberband2:amd64.
+2026-11-03T02:46:06.7330656Z Preparing to unpack .../075-librubberband2_3.3.0+dfsg-2build1_amd64.deb ...
+2026-11-03T02:46:06.7342551Z Unpacking librubberband2:amd64 (3.3.0+dfsg-2build1) ...
+2026-11-03T02:46:06.7907438Z Selecting previously unselected package libswscale7:amd64.
+2026-11-03T02:46:06.8068621Z Preparing to unpack .../076-libswscale7_7%3a6.1.1-3ubuntu5_amd64.deb ...
+2026-11-03T02:46:06.8079370Z Unpacking libswscale7:amd64 (7:6.1.1-3ubuntu5) ...
+2026-11-03T02:46:06.8394845Z Selecting previously unselected package libvidstab1.1:amd64.
+2026-11-03T02:46:06.8552072Z Preparing to unpack .../077-libvidstab1.1_1.1.0-2build1_amd64.deb ...
+2026-11-03T02:46:06.8562267Z Unpacking libvidstab1.1:amd64 (1.1.0-2build1) ...
+2026-11-03T02:46:06.8837444Z Selecting previously unselected package libzimg2:amd64.
+2026-11-03T02:46:06.8996716Z Preparing to unpack .../078-libzimg2_3.0.5+ds1-1build1_amd64.deb ...
+2026-11-03T02:46:06.9008865Z Unpacking libzimg2:amd64 (3.0.5+ds1-1build1) ...
+2026-11-03T02:46:06.9326386Z Selecting previously unselected package libavfilter9:amd64.
+2026-11-03T02:46:06.9479873Z Preparing to unpack .../079-libavfilter9_7%3a6.1.1-3ubuntu5_amd64.deb ...
+2026-11-03T02:46:06.9487354Z Unpacking libavfilter9:amd64 (7:6.1.1-3ubuntu5) ...
+2026-11-03T02:46:07.0466650Z Selecting previously unselected package liborc-0.4-0t64:amd64.
+2026-11-03T02:46:07.0620032Z Preparing to unpack .../080-liborc-0.4-0t64_1%3a0.4.38-1ubuntu0.1_amd64.deb ...
+2026-11-03T02:46:07.0630330Z Unpacking liborc-0.4-0t64:amd64 (1:0.4.38-1ubuntu0.1) ...
+2026-11-03T02:46:07.0961759Z Selecting previously unselected package libgstreamer-plugins-base1.0-0:amd64.
+2026-11-03T02:46:07.1117427Z Preparing to unpack .../081-libgstreamer-plugins-base1.0-0_1.24.2-1ubuntu0.5_amd64.deb ...
+2026-11-03T02:46:07.1129142Z Unpacking libgstreamer-plugins-base1.0-0:amd64 (1.24.2-1ubuntu0.5) ...
+2026-11-03T02:46:07.1859254Z Selecting previously unselected package gstreamer1.0-libav:amd64.
+2026-11-03T02:46:07.2010007Z Preparing to unpack .../082-gstreamer1.0-libav_1.24.1-1build1_amd64.deb ...
+2026-11-03T02:46:07.2018844Z Unpacking gstreamer1.0-libav:amd64 (1.24.1-1build1) ...
+2026-11-03T02:46:07.2291630Z Selecting previously unselected package libcdparanoia0:amd64.
+2026-11-03T02:46:07.2441327Z Preparing to unpack .../083-libcdparanoia0_3.10.2+debian-14build3_amd64.deb ...
+2026-11-03T02:46:07.2450972Z Unpacking libcdparanoia0:amd64 (3.10.2+debian-14build3) ...
+2026-11-03T02:46:07.2707541Z Selecting previously unselected package libvisual-0.4-0:amd64.
+2026-11-03T02:46:07.2866845Z Preparing to unpack .../084-libvisual-0.4-0_0.4.2-2build1_amd64.deb ...
+2026-11-03T02:46:07.2879169Z Unpacking libvisual-0.4-0:amd64 (0.4.2-2build1) ...
+2026-11-03T02:46:07.3140431Z Selecting previously unselected package gstreamer1.0-plugins-base:amd64.
+2026-11-03T02:46:07.3297235Z Preparing to unpack .../085-gstreamer1.0-plugins-base_1.24.2-1ubuntu0.5_amd64.deb ...
+2026-11-03T02:46:07.3306719Z Unpacking gstreamer1.0-plugins-base:amd64 (1.24.2-1ubuntu0.5) ...
+2026-11-03T02:46:07.3724944Z Selecting previously unselected package libaa1:amd64.
+2026-11-03T02:46:07.3880290Z Preparing to unpack .../086-libaa1_1.4p5-51.1_amd64.deb ...
+2026-11-03T02:46:07.3891240Z Unpacking libaa1:amd64 (1.4p5-51.1) ...
+2026-11-03T02:46:07.4197415Z Selecting previously unselected package libraw1394-11:amd64.
+2026-11-03T02:46:07.4351298Z Preparing to unpack .../087-libraw1394-11_2.1.2-2build3_amd64.deb ...
+2026-11-03T02:46:07.4359390Z Unpacking libraw1394-11:amd64 (2.1.2-2build3) ...
+2026-11-03T02:46:07.4593018Z Selecting previously unselected package libavc1394-0:amd64.
+2026-11-03T02:46:07.4740109Z Preparing to unpack .../088-libavc1394-0_0.5.4-5build3_amd64.deb ...
+2026-11-03T02:46:07.4746863Z Unpacking libavc1394-0:amd64 (0.5.4-5build3) ...
+2026-11-03T02:46:07.5048624Z Selecting previously unselected package libcaca0:amd64.
+2026-11-03T02:46:07.5244885Z Preparing to unpack .../089-libcaca0_0.99.beta20-4ubuntu0.2_amd64.deb ...
+2026-11-03T02:46:07.5257272Z Unpacking libcaca0:amd64 (0.99.beta20-4ubuntu0.2) ...
+2026-11-03T02:46:07.5651224Z Selecting previously unselected package libdv4t64:amd64.
+2026-11-03T02:46:07.5859566Z Preparing to unpack .../090-libdv4t64_1.0.0-17.1build1_amd64.deb ...
+2026-11-03T02:46:07.5869033Z Unpacking libdv4t64:amd64 (1.0.0-17.1build1) ...
+2026-11-03T02:46:07.6250089Z Selecting previously unselected package libgstreamer-plugins-good1.0-0:amd64.
+2026-11-03T02:46:07.6399790Z Preparing to unpack .../091-libgstreamer-plugins-good1.0-0_1.24.2-1ubuntu1.8_amd64.deb ...
+2026-11-03T02:46:07.6406870Z Unpacking libgstreamer-plugins-good1.0-0:amd64 (1.24.2-1ubuntu1.8) ...
+2026-11-03T02:46:07.6663634Z Selecting previously unselected package libiec61883-0:amd64.
+2026-11-03T02:46:07.6816961Z Preparing to unpack .../092-libiec61883-0_1.2.0-6build1_amd64.deb ...
+2026-11-03T02:46:07.6839005Z Unpacking libiec61883-0:amd64 (1.2.0-6build1) ...
+2026-11-03T02:46:07.7079911Z Selecting previously unselected package libshout3:amd64.
+2026-11-03T02:46:07.7227261Z Preparing to unpack .../093-libshout3_2.4.6-1build2_amd64.deb ...
+2026-11-03T02:46:07.7248927Z Unpacking libshout3:amd64 (2.4.6-1build2) ...
+2026-11-03T02:46:07.7505645Z Selecting previously unselected package libtag1v5-vanilla:amd64.
+2026-11-03T02:46:07.7664426Z Preparing to unpack .../094-libtag1v5-vanilla_1.13.1-1build1_amd64.deb ...
+2026-11-03T02:46:07.7672192Z Unpacking libtag1v5-vanilla:amd64 (1.13.1-1build1) ...
+2026-11-03T02:46:07.7968193Z Selecting previously unselected package libtag1v5:amd64.
+2026-11-03T02:46:07.8122445Z Preparing to unpack .../095-libtag1v5_1.13.1-1build1_amd64.deb ...
+2026-11-03T02:46:07.8139141Z Unpacking libtag1v5:amd64 (1.13.1-1build1) ...
+2026-11-03T02:46:07.8367437Z Selecting previously unselected package libv4lconvert0t64:amd64.
+2026-11-03T02:46:07.8526635Z Preparing to unpack .../096-libv4lconvert0t64_1.26.1-4build3_amd64.deb ...
+2026-11-03T02:46:07.8545520Z Unpacking libv4lconvert0t64:amd64 (1.26.1-4build3) ...
+2026-11-03T02:46:07.8791940Z Selecting previously unselected package libv4l-0t64:amd64.
+2026-11-03T02:46:07.8946600Z Preparing to unpack .../097-libv4l-0t64_1.26.1-4build3_amd64.deb ...
+2026-11-03T02:46:07.8958901Z Unpacking libv4l-0t64:amd64 (1.26.1-4build3) ...
+2026-11-03T02:46:07.9231364Z Selecting previously unselected package libwavpack1:amd64.
+2026-11-03T02:46:07.9397293Z Preparing to unpack .../098-libwavpack1_5.6.0-1build1_amd64.deb ...
+2026-11-03T02:46:07.9405968Z Unpacking libwavpack1:amd64 (5.6.0-1build1) ...
+2026-11-03T02:46:07.9642517Z Selecting previously unselected package libsoup-3.0-common.
+2026-11-03T02:46:07.9792344Z Preparing to unpack .../099-libsoup-3.0-common_3.4.4-5ubuntu0.9_all.deb ...
+2026-11-03T02:46:07.9803551Z Unpacking libsoup-3.0-common (3.4.4-5ubuntu0.9) ...
+2026-11-03T02:46:08.0044990Z Selecting previously unselected package libsoup-3.0-0:amd64.
+2026-11-03T02:46:08.0203557Z Preparing to unpack .../100-libsoup-3.0-0_3.4.4-5ubuntu0.9_amd64.deb ...
+2026-11-03T02:46:08.0219027Z Unpacking libsoup-3.0-0:amd64 (3.4.4-5ubuntu0.9) ...
+2026-11-03T02:46:08.0480374Z Selecting previously unselected package gstreamer1.0-plugins-good:amd64.
+2026-11-03T02:46:08.0635180Z Preparing to unpack .../101-gstreamer1.0-plugins-good_1.24.2-1ubuntu1.8_amd64.deb ...
+2026-11-03T02:46:08.0642713Z Unpacking gstreamer1.0-plugins-good:amd64 (1.24.2-1ubuntu1.8) ...
+2026-11-03T02:46:08.1327588Z Selecting previously unselected package libabsl20220623t64:amd64.
+2026-11-03T02:46:08.1485854Z Preparing to unpack .../102-libabsl20220623t64_20220623.1-3.1ubuntu3.2_amd64.deb ...
+2026-11-03T02:46:08.1504197Z Unpacking libabsl20220623t64:amd64 (20220623.1-3.1ubuntu3.2) ...
+2026-11-03T02:46:08.1993735Z Selecting previously unselected package libgav1-1:amd64.
+2026-11-03T02:46:08.2150249Z Preparing to unpack .../103-libgav1-1_0.18.0-1build3_amd64.deb ...
+2026-11-03T02:46:08.2158891Z Unpacking libgav1-1:amd64 (0.18.0-1build3) ...
+2026-11-03T02:46:08.2459392Z Selecting previously unselected package libyuv0:amd64.
+2026-11-03T02:46:08.2599560Z Preparing to unpack .../104-libyuv0_0.0~git202401110.af6ac82-1_amd64.deb ...
+2026-11-03T02:46:08.2608645Z Unpacking libyuv0:amd64 (0.0~git202401110.af6ac82-1) ...
+2026-11-03T02:46:08.2875646Z Selecting previously unselected package libavif16:amd64.
+2026-11-03T02:46:08.3037068Z Preparing to unpack .../105-libavif16_1.0.4-1ubuntu3_amd64.deb ...
+2026-11-03T02:46:08.3059238Z Unpacking libavif16:amd64 (1.0.4-1ubuntu3) ...
+2026-11-03T02:46:08.3315743Z Selecting previously unselected package libavtp0:amd64.
+2026-11-03T02:46:08.3469009Z Preparing to unpack .../106-libavtp0_0.2.0-1build1_amd64.deb ...
+2026-11-03T02:46:08.3476762Z Unpacking libavtp0:amd64 (0.2.0-1build1) ...
+2026-11-03T02:46:08.3722788Z Selecting previously unselected package libcairo-script-interpreter2:amd64.
+2026-11-03T02:46:08.3876764Z Preparing to unpack .../107-libcairo-script-interpreter2_1.18.0-3build1_amd64.deb ...
+2026-11-03T02:46:08.3888164Z Unpacking libcairo-script-interpreter2:amd64 (1.18.0-3build1) ...
+2026-11-03T02:46:08.4132062Z Selecting previously unselected package libdc1394-25:amd64.
+2026-11-03T02:46:08.4289228Z Preparing to unpack .../108-libdc1394-25_2.2.6-4build1_amd64.deb ...
+2026-11-03T02:46:08.4309189Z Unpacking libdc1394-25:amd64 (2.2.6-4build1) ...
+2026-11-03T02:46:08.4557432Z Selecting previously unselected package libde265-0:amd64.
+2026-11-03T02:46:08.4707257Z Preparing to unpack .../109-libde265-0_1.0.15-1ubuntu0.2_amd64.deb ...
+2026-11-03T02:46:08.4717353Z Unpacking libde265-0:amd64 (1.0.15-1ubuntu0.2) ...
+2026-11-03T02:46:08.4973962Z Selecting previously unselected package libdecor-0-0:amd64.
+2026-11-03T02:46:08.5130607Z Preparing to unpack .../110-libdecor-0-0_0.2.2-1build2_amd64.deb ...
+2026-11-03T02:46:08.5141743Z Unpacking libdecor-0-0:amd64 (0.2.2-1build2) ...
+2026-11-03T02:46:08.5383923Z Selecting previously unselected package libgles2:amd64.
+2026-11-03T02:46:08.5543367Z Preparing to unpack .../111-libgles2_1.7.0-1build1_amd64.deb ...
+2026-11-03T02:46:08.5558877Z Unpacking libgles2:amd64 (1.7.0-1build1) ...
+2026-11-03T02:46:08.5807118Z Selecting previously unselected package libdirectfb-1.7-7t64:amd64.
+2026-11-03T02:46:08.5964987Z Preparing to unpack .../112-libdirectfb-1.7-7t64_1.7.7-11.1ubuntu2_amd64.deb ...
+2026-11-03T02:46:08.5973298Z Unpacking libdirectfb-1.7-7t64:amd64 (1.7.7-11.1ubuntu2) ...
+2026-11-03T02:46:08.6489664Z Selecting previously unselected package libdvdread8t64:amd64.
+2026-11-03T02:46:08.6653548Z Preparing to unpack .../113-libdvdread8t64_6.1.3-1.1build1_amd64.deb ...
+2026-11-03T02:46:08.6669139Z Unpacking libdvdread8t64:amd64 (6.1.3-1.1build1) ...
+2026-11-03T02:46:08.6927783Z Selecting previously unselected package libdvdnav4:amd64.
+2026-11-03T02:46:08.7089925Z Preparing to unpack .../114-libdvdnav4_6.1.1-3build1_amd64.deb ...
+2026-11-03T02:46:08.7109402Z Unpacking libdvdnav4:amd64 (6.1.1-3build1) ...
+2026-11-03T02:46:08.7371661Z Selecting previously unselected package libegl-mesa0:amd64.
+2026-11-03T02:46:08.7530427Z Preparing to unpack .../115-libegl-mesa0_25.2.8-0ubuntu0.24.04.4_amd64.deb ...
+2026-11-03T02:46:08.7539439Z Unpacking libegl-mesa0:amd64 (25.2.8-0ubuntu0.24.04.4) ...
+2026-11-03T02:46:08.7807619Z Selecting previously unselected package libevent-2.1-7t64:amd64.
+2026-11-03T02:46:08.7962470Z Preparing to unpack .../116-libevent-2.1-7t64_2.1.12-stable-9ubuntu2.2_amd64.deb ...
+2026-11-03T02:46:08.7982767Z Unpacking libevent-2.1-7t64:amd64 (2.1.12-stable-9ubuntu2.2) ...
+2026-11-03T02:46:08.8237194Z Selecting previously unselected package libfaad2:amd64.
+2026-11-03T02:46:08.8389349Z Preparing to unpack .../117-libfaad2_2.11.1-1build1_amd64.deb ...
+2026-11-03T02:46:08.8398912Z Unpacking libfaad2:amd64 (2.11.1-1build1) ...
+2026-11-03T02:46:08.8679343Z Selecting previously unselected package libinstpatch-1.0-2:amd64.
+2026-11-03T02:46:08.8835937Z Preparing to unpack .../118-libinstpatch-1.0-2_1.1.6-1build2_amd64.deb ...
+2026-11-03T02:46:08.8849170Z Unpacking libinstpatch-1.0-2:amd64 (1.1.6-1build2) ...
+2026-11-03T02:46:08.9136677Z Selecting previously unselected package libjack-jackd2-0:amd64.
+2026-11-03T02:46:08.9296003Z Preparing to unpack .../119-libjack-jackd2-0_1.9.21~dfsg-3ubuntu3_amd64.deb ...
+2026-11-03T02:46:08.9304381Z Unpacking libjack-jackd2-0:amd64 (1.9.21~dfsg-3ubuntu3) ...
+2026-11-03T02:46:08.9644362Z Selecting previously unselected package libwebrtc-audio-processing1:amd64.
+2026-11-03T02:46:08.9808858Z Preparing to unpack .../120-libwebrtc-audio-processing1_0.3.1-0ubuntu6_amd64.deb ...
+2026-11-03T02:46:08.9819312Z Unpacking libwebrtc-audio-processing1:amd64 (0.3.1-0ubuntu6) ...
+2026-11-03T02:46:09.0080263Z Selecting previously unselected package libspa-0.2-modules:amd64.
+2026-11-03T02:46:09.0232982Z Preparing to unpack .../121-libspa-0.2-modules_1.0.5-1ubuntu3.3_amd64.deb ...
+2026-11-03T02:46:09.0241895Z Unpacking libspa-0.2-modules:amd64 (1.0.5-1ubuntu3.3) ...
+2026-11-03T02:46:09.0610913Z Selecting previously unselected package libpipewire-0.3-0t64:amd64.
+2026-11-03T02:46:09.0770999Z Preparing to unpack .../122-libpipewire-0.3-0t64_1.0.5-1ubuntu3.3_amd64.deb ...
+2026-11-03T02:46:09.0849271Z Unpacking libpipewire-0.3-0t64:amd64 (1.0.5-1ubuntu3.3) ...
+2026-11-03T02:46:09.1142555Z Selecting previously unselected package libsdl2-2.0-0:amd64.
+2026-11-03T02:46:09.1305830Z Preparing to unpack .../123-libsdl2-2.0-0_2.30.0+dfsg-1ubuntu3.1_amd64.deb ...
+2026-11-03T02:46:09.1319153Z Unpacking libsdl2-2.0-0:amd64 (2.30.0+dfsg-1ubuntu3.1) ...
+2026-11-03T02:46:09.1663547Z Selecting previously unselected package timgm6mb-soundfont.
+2026-11-03T02:46:09.1824546Z Preparing to unpack .../124-timgm6mb-soundfont_1.3-5_all.deb ...
+2026-11-03T02:46:09.1830754Z Unpacking timgm6mb-soundfont (1.3-5) ...
+2026-11-03T02:46:09.5464093Z Selecting previously unselected package libfluidsynth3:amd64.
+2026-11-03T02:46:09.5624705Z Preparing to unpack .../125-libfluidsynth3_2.3.4-1build3_amd64.deb ...
+2026-11-03T02:46:09.5630203Z Unpacking libfluidsynth3:amd64 (2.3.4-1build3) ...
+2026-11-03T02:46:09.5929412Z Selecting previously unselected package libfreeaptx0:amd64.
+2026-11-03T02:46:09.6091934Z Preparing to unpack .../126-libfreeaptx0_0.1.1-2build1_amd64.deb ...
+2026-11-03T02:46:09.6109223Z Unpacking libfreeaptx0:amd64 (0.1.1-2build1) ...
+2026-11-03T02:46:09.6372544Z Selecting previously unselected package libgraphene-1.0-0:amd64.
+2026-11-03T02:46:09.6540096Z Preparing to unpack .../127-libgraphene-1.0-0_1.10.8-3build2_amd64.deb ...
+2026-11-03T02:46:09.6548605Z Unpacking libgraphene-1.0-0:amd64 (1.10.8-3build2) ...
+2026-11-03T02:46:09.6864649Z Selecting previously unselected package libgssdp-1.6-0:amd64.
+2026-11-03T02:46:09.7030797Z Preparing to unpack .../128-libgssdp-1.6-0_1.6.3-1build3_amd64.deb ...
+2026-11-03T02:46:09.7038107Z Unpacking libgssdp-1.6-0:amd64 (1.6.3-1build3) ...
+2026-11-03T02:46:09.7326987Z Selecting previously unselected package libegl1:amd64.
+2026-11-03T02:46:09.7485666Z Preparing to unpack .../129-libegl1_1.7.0-1build1_amd64.deb ...
+2026-11-03T02:46:09.7499030Z Unpacking libegl1:amd64 (1.7.0-1build1) ...
+2026-11-03T02:46:09.7758409Z Selecting previously unselected package libgstreamer-gl1.0-0:amd64.
+2026-11-03T02:46:09.7920336Z Preparing to unpack .../130-libgstreamer-gl1.0-0_1.24.2-1ubuntu0.5_amd64.deb ...
+2026-11-03T02:46:09.7940213Z Unpacking libgstreamer-gl1.0-0:amd64 (1.24.2-1ubuntu0.5) ...
+2026-11-03T02:46:09.8216809Z Selecting previously unselected package libgtk-4-common.
+2026-11-03T02:46:09.8381761Z Preparing to unpack .../131-libgtk-4-common_4.14.5+ds-0ubuntu0.10_all.deb ...
+2026-11-03T02:46:09.8404524Z Unpacking libgtk-4-common (4.14.5+ds-0ubuntu0.10) ...
+2026-11-03T02:46:09.9030628Z Selecting previously unselected package libgtk-4-1:amd64.
+2026-11-03T02:46:09.9201851Z Preparing to unpack .../132-libgtk-4-1_4.14.5+ds-0ubuntu0.10_amd64.deb ...
+2026-11-03T02:46:09.9208509Z Unpacking libgtk-4-1:amd64 (4.14.5+ds-0ubuntu0.10) ...
+2026-11-03T02:46:10.0014923Z Selecting previously unselected package libgupnp-1.6-0:amd64.
+2026-11-03T02:46:10.0177237Z Preparing to unpack .../133-libgupnp-1.6-0_1.6.6-1build3_amd64.deb ...
+2026-11-03T02:46:10.0185540Z Unpacking libgupnp-1.6-0:amd64 (1.6.6-1build3) ...
+2026-11-03T02:46:10.0481055Z Selecting previously unselected package libgupnp-igd-1.6-0:amd64.
+2026-11-03T02:46:10.0651509Z Preparing to unpack .../134-libgupnp-igd-1.6-0_1.6.0-3build3_amd64.deb ...
+2026-11-03T02:46:10.0665521Z Unpacking libgupnp-igd-1.6-0:amd64 (1.6.0-3build3) ...
+2026-11-03T02:46:10.0929878Z Selecting previously unselected package libharfbuzz-icu0:amd64.
+2026-11-03T02:46:10.1104756Z Preparing to unpack .../135-libharfbuzz-icu0_8.3.0-2build2_amd64.deb ...
+2026-11-03T02:46:10.1119476Z Unpacking libharfbuzz-icu0:amd64 (8.3.0-2build2) ...
+2026-11-03T02:46:10.1380538Z Selecting previously unselected package libhyphen0:amd64.
+2026-11-03T02:46:10.1544760Z Preparing to unpack .../136-libhyphen0_2.8.8-7build3_amd64.deb ...
+2026-11-03T02:46:10.1554169Z Unpacking libhyphen0:amd64 (2.8.8-7build3) ...
+2026-11-03T02:46:10.1855934Z Selecting previously unselected package libimath-3-1-29t64:amd64.
+2026-11-03T02:46:10.2028300Z Preparing to unpack .../137-libimath-3-1-29t64_3.1.9-3.1ubuntu2_amd64.deb ...
+2026-11-03T02:46:10.2038277Z Unpacking libimath-3-1-29t64:amd64 (3.1.9-3.1ubuntu2) ...
+2026-11-03T02:46:10.2352344Z Selecting previously unselected package liblc3-1:amd64.
+2026-11-03T02:46:10.2521174Z Preparing to unpack .../138-liblc3-1_1.0.4-3build1_amd64.deb ...
+2026-11-03T02:46:10.2530257Z Unpacking liblc3-1:amd64 (1.0.4-3build1) ...
+2026-11-03T02:46:10.2835496Z Selecting previously unselected package libldacbt-enc2:amd64.
+2026-11-03T02:46:10.3005890Z Preparing to unpack .../139-libldacbt-enc2_2.0.2.3+git20200429+ed310a0-4ubuntu2_amd64.deb ...
+2026-11-03T02:46:10.3019507Z Unpacking libldacbt-enc2:amd64 (2.0.2.3+git20200429+ed310a0-4ubuntu2) ...
+2026-11-03T02:46:10.3303690Z Selecting previously unselected package libraptor2-0:amd64.
+2026-11-03T02:46:10.3478087Z Preparing to unpack .../140-libraptor2-0_2.0.16-3ubuntu0.1_amd64.deb ...
+2026-11-03T02:46:10.3487789Z Unpacking libraptor2-0:amd64 (2.0.16-3ubuntu0.1) ...
+2026-11-03T02:46:10.3805650Z Selecting previously unselected package liblrdf0:amd64.
+2026-11-03T02:46:10.3967128Z Preparing to unpack .../141-liblrdf0_0.6.1-4build1_amd64.deb ...
+2026-11-03T02:46:10.3979057Z Unpacking liblrdf0:amd64 (0.6.1-4build1) ...
+2026-11-03T02:46:10.4254556Z Selecting previously unselected package libltc11:amd64.
+2026-11-03T02:46:10.4417345Z Preparing to unpack .../142-libltc11_1.3.2-1build1_amd64.deb ...
+2026-11-03T02:46:10.4426731Z Unpacking libltc11:amd64 (1.3.2-1build1) ...
+2026-11-03T02:46:10.4708450Z Selecting previously unselected package libmanette-0.2-0:amd64.
+2026-11-03T02:46:10.4867727Z Preparing to unpack .../143-libmanette-0.2-0_0.2.7-1build2_amd64.deb ...
+2026-11-03T02:46:10.4879062Z Unpacking libmanette-0.2-0:amd64 (0.2.7-1build2) ...
+2026-11-03T02:46:10.5143537Z Selecting previously unselected package libmfx1:amd64.
+2026-11-03T02:46:10.5307624Z Preparing to unpack .../144-libmfx1_22.5.4-1_amd64.deb ...
+2026-11-03T02:46:10.5316850Z Unpacking libmfx1:amd64 (22.5.4-1) ...
+2026-11-03T02:46:10.6440212Z Selecting previously unselected package libmjpegutils-2.1-0t64:amd64.
+2026-11-03T02:46:10.6586888Z Preparing to unpack .../145-libmjpegutils-2.1-0t64_1%3a2.1.0+debian-8.1build1_amd64.deb ...
+2026-11-03T02:46:10.6593983Z Unpacking libmjpegutils-2.1-0t64:amd64 (1:2.1.0+debian-8.1build1) ...
+2026-11-03T02:46:10.6883579Z Selecting previously unselected package libmodplug1:amd64.
+2026-11-03T02:46:10.7044379Z Preparing to unpack .../146-libmodplug1_1%3a0.8.9.0-3build1_amd64.deb ...
+2026-11-03T02:46:10.7059384Z Unpacking libmodplug1:amd64 (1:0.8.9.0-3build1) ...
+2026-11-03T02:46:10.7341635Z Selecting previously unselected package libmpcdec6:amd64.
+2026-11-03T02:46:10.7501666Z Preparing to unpack .../147-libmpcdec6_2%3a0.1~r495-2build1_amd64.deb ...
+2026-11-03T02:46:10.7509858Z Unpacking libmpcdec6:amd64 (2:0.1~r495-2build1) ...
+2026-11-03T02:46:10.7790884Z Selecting previously unselected package libmpeg2encpp-2.1-0t64:amd64.
+2026-11-03T02:46:10.7950163Z Preparing to unpack .../148-libmpeg2encpp-2.1-0t64_1%3a2.1.0+debian-8.1build1_amd64.deb ...
+2026-11-03T02:46:10.7969333Z Unpacking libmpeg2encpp-2.1-0t64:amd64 (1:2.1.0+debian-8.1build1) ...
+2026-11-03T02:46:10.8258594Z Selecting previously unselected package libmplex2-2.1-0t64:amd64.
+2026-11-03T02:46:10.8421384Z Preparing to unpack .../149-libmplex2-2.1-0t64_1%3a2.1.0+debian-8.1build1_amd64.deb ...
+2026-11-03T02:46:10.8428287Z Unpacking libmplex2-2.1-0t64:amd64 (1:2.1.0+debian-8.1build1) ...
+2026-11-03T02:46:10.8720728Z Selecting previously unselected package libneon27t64:amd64.
+2026-11-03T02:46:10.8885422Z Preparing to unpack .../150-libneon27t64_0.33.0-1.1build3_amd64.deb ...
+2026-11-03T02:46:10.8894401Z Unpacking libneon27t64:amd64 (0.33.0-1.1build3) ...
+2026-11-03T02:46:10.9197718Z Selecting previously unselected package libnice10:amd64.
+2026-11-03T02:46:10.9365934Z Preparing to unpack .../151-libnice10_0.1.21-2build3_amd64.deb ...
+2026-11-03T02:46:10.9379096Z Unpacking libnice10:amd64 (0.1.21-2build3) ...
+2026-11-03T02:46:10.9660809Z Selecting previously unselected package libopenal-data.
+2026-11-03T02:46:10.9815245Z Preparing to unpack .../152-libopenal-data_1%3a1.23.1-4build1_all.deb ...
+2026-11-03T02:46:10.9821935Z Unpacking libopenal-data (1:1.23.1-4build1) ...
+2026-11-03T02:46:11.0098456Z Selecting previously unselected package libopenexr-3-1-30:amd64.
+2026-11-03T02:46:11.0251755Z Preparing to unpack .../153-libopenexr-3-1-30_3.1.5-5.1build3_amd64.deb ...
+2026-11-03T02:46:11.0282643Z Unpacking libopenexr-3-1-30:amd64 (3.1.5-5.1build3) ...
+2026-11-03T02:46:11.0722724Z Selecting previously unselected package libopenh264-7:amd64.
+2026-11-03T02:46:11.0880564Z Preparing to unpack .../154-libopenh264-7_2.4.1+dfsg-1_amd64.deb ...
+2026-11-03T02:46:11.0904307Z Unpacking libopenh264-7:amd64 (2.4.1+dfsg-1) ...
+2026-11-03T02:46:11.1217533Z Selecting previously unselected package libopenni2-0:amd64.
+2026-11-03T02:46:11.1375283Z Preparing to unpack .../155-libopenni2-0_2.2.0.33+dfsg-18_amd64.deb ...
+2026-11-03T02:46:11.1440558Z Unpacking libopenni2-0:amd64 (2.2.0.33+dfsg-18) ...
+2026-11-03T02:46:11.1751637Z Selecting previously unselected package libqrencode4:amd64.
+2026-11-03T02:46:11.1919155Z Preparing to unpack .../156-libqrencode4_4.1.1-1build2_amd64.deb ...
+2026-11-03T02:46:11.1929049Z Unpacking libqrencode4:amd64 (4.1.1-1build2) ...
+2026-11-03T02:46:11.2189666Z Selecting previously unselected package libsecret-common.
+2026-11-03T02:46:11.2334654Z Preparing to unpack .../157-libsecret-common_0.21.4-1build3_all.deb ...
+2026-11-03T02:46:11.2348982Z Unpacking libsecret-common (0.21.4-1build3) ...
+2026-11-03T02:46:11.2597484Z Selecting previously unselected package libsecret-1-0:amd64.
+2026-11-03T02:46:11.2764212Z Preparing to unpack .../158-libsecret-1-0_0.21.4-1build3_amd64.deb ...
+2026-11-03T02:46:11.2779364Z Unpacking libsecret-1-0:amd64 (0.21.4-1build3) ...
+2026-11-03T02:46:11.3099797Z Selecting previously unselected package libsndio7.0:amd64.
+2026-11-03T02:46:11.3266240Z Preparing to unpack .../159-libsndio7.0_1.9.0-0.3build3_amd64.deb ...
+2026-11-03T02:46:11.3279267Z Unpacking libsndio7.0:amd64 (1.9.0-0.3build3) ...
+2026-11-03T02:46:11.3564811Z Selecting previously unselected package libsoundtouch1:amd64.
+2026-11-03T02:46:11.3737057Z Preparing to unpack .../160-libsoundtouch1_2.3.2+ds1-1build1_amd64.deb ...
+2026-11-03T02:46:11.3749799Z Unpacking libsoundtouch1:amd64 (2.3.2+ds1-1build1) ...
+2026-11-03T02:46:11.4046150Z Selecting previously unselected package libspandsp2t64:amd64.
+2026-11-03T02:46:11.4223093Z Preparing to unpack .../161-libspandsp2t64_0.0.6+dfsg-2.1build1_amd64.deb ...
+2026-11-03T02:46:11.4239576Z Unpacking libspandsp2t64:amd64 (0.0.6+dfsg-2.1build1) ...
+2026-11-03T02:46:11.4567740Z Selecting previously unselected package libsrtp2-1:amd64.
+2026-11-03T02:46:11.4734401Z Preparing to unpack .../162-libsrtp2-1_2.5.0-3build1_amd64.deb ...
+2026-11-03T02:46:11.4744351Z Unpacking libsrtp2-1:amd64 (2.5.0-3build1) ...
+2026-11-03T02:46:11.5036190Z Selecting previously unselected package libwayland-server0:amd64.
+2026-11-03T02:46:11.5192837Z Preparing to unpack .../163-libwayland-server0_1.22.0-2.1build1_amd64.deb ...
+2026-11-03T02:46:11.5209553Z Unpacking libwayland-server0:amd64 (1.22.0-2.1build1) ...
+2026-11-03T02:46:11.5473066Z Selecting previously unselected package libwildmidi2:amd64.
+2026-11-03T02:46:11.5634921Z Preparing to unpack .../164-libwildmidi2_0.4.3-1build3_amd64.deb ...
+2026-11-03T02:46:11.5644312Z Unpacking libwildmidi2:amd64 (0.4.3-1build3) ...
+2026-11-03T02:46:11.6195373Z Selecting previously unselected package libwoff1:amd64.
+2026-11-03T02:46:11.6364034Z Preparing to unpack .../165-libwoff1_1.0.2-2build1_amd64.deb ...
+2026-11-03T02:46:11.6370815Z Unpacking libwoff1:amd64 (1.0.2-2build1) ...
+2026-11-03T02:46:11.6652047Z Selecting previously unselected package libxcb-xkb1:amd64.
+2026-11-03T02:46:11.6815076Z Preparing to unpack .../166-libxcb-xkb1_1.15-1ubuntu2_amd64.deb ...
+2026-11-03T02:46:11.6829068Z Unpacking libxcb-xkb1:amd64 (1.15-1ubuntu2) ...
+2026-11-03T02:46:11.7091221Z Selecting previously unselected package libxkbcommon-x11-0:amd64.
+2026-11-03T02:46:11.7250025Z Preparing to unpack .../167-libxkbcommon-x11-0_1.6.0-1build1_amd64.deb ...
+2026-11-03T02:46:11.7269165Z Unpacking libxkbcommon-x11-0:amd64 (1.6.0-1build1) ...
+2026-11-03T02:46:11.7523041Z Selecting previously unselected package libzbar0t64:amd64.
+2026-11-03T02:46:11.7681852Z Preparing to unpack .../168-libzbar0t64_0.23.93-4build3_amd64.deb ...
+2026-11-03T02:46:11.7689054Z Unpacking libzbar0t64:amd64 (0.23.93-4build3) ...
+2026-11-03T02:46:11.7990671Z Selecting previously unselected package libzxing3:amd64.
+2026-11-03T02:46:11.8152690Z Preparing to unpack .../169-libzxing3_2.2.1-3_amd64.deb ...
+2026-11-03T02:46:11.8161237Z Unpacking libzxing3:amd64 (2.2.1-3) ...
+2026-11-03T02:46:11.8502474Z Selecting previously unselected package xfonts-encodings.
+2026-11-03T02:46:11.8664894Z Preparing to unpack .../170-xfonts-encodings_1%3a1.0.5-0ubuntu2_all.deb ...
+2026-11-03T02:46:11.8672147Z Unpacking xfonts-encodings (1:1.0.5-0ubuntu2) ...
+2026-11-03T02:46:11.9036983Z Selecting previously unselected package xfonts-utils.
+2026-11-03T02:46:11.9192422Z Preparing to unpack .../171-xfonts-utils_1%3a7.7+6build3_amd64.deb ...
+2026-11-03T02:46:11.9200640Z Unpacking xfonts-utils (1:7.7+6build3) ...
+2026-11-03T02:46:11.9608116Z Selecting previously unselected package xfonts-cyrillic.
+2026-11-03T02:46:11.9764543Z Preparing to unpack .../172-xfonts-cyrillic_1%3a1.0.5+nmu1_all.deb ...
+2026-11-03T02:46:11.9779127Z Unpacking xfonts-cyrillic (1:1.0.5+nmu1) ...
+2026-11-03T02:46:12.0224407Z Selecting previously unselected package xfonts-scalable.
+2026-11-03T02:46:12.0389170Z Preparing to unpack .../173-xfonts-scalable_1%3a1.0.3-1.3_all.deb ...
+2026-11-03T02:46:12.0395247Z Unpacking xfonts-scalable (1:1.0.3-1.3) ...
+2026-11-03T02:46:12.0720577Z Selecting previously unselected package libgstreamer-plugins-bad1.0-0:amd64.
+2026-11-03T02:46:12.0876100Z Preparing to unpack .../174-libgstreamer-plugins-bad1.0-0_1.24.2-1ubuntu4_amd64.deb ...
+2026-11-03T02:46:12.0889337Z Unpacking libgstreamer-plugins-bad1.0-0:amd64 (1.24.2-1ubuntu4) ...
+2026-11-03T02:46:12.1349399Z Selecting previously unselected package libdca0:amd64.
+2026-11-03T02:46:12.1505732Z Preparing to unpack .../175-libdca0_0.0.7-2build1_amd64.deb ...
+2026-11-03T02:46:12.1525803Z Unpacking libdca0:amd64 (0.0.7-2build1) ...
+2026-11-03T02:46:12.1802747Z Selecting previously unselected package libopenal1:amd64.
+2026-11-03T02:46:12.1959058Z Preparing to unpack .../176-libopenal1_1%3a1.23.1-4build1_amd64.deb ...
+2026-11-03T02:46:12.1966764Z Unpacking libopenal1:amd64 (1:1.23.1-4build1) ...
+2026-11-03T02:46:12.2299725Z Selecting previously unselected package libsbc1:amd64.
+2026-11-03T02:46:12.2436425Z Preparing to unpack .../177-libsbc1_2.0-1build1_amd64.deb ...
+2026-11-03T02:46:12.2448874Z Unpacking libsbc1:amd64 (2.0-1build1) ...
+2026-11-03T02:46:12.2691358Z Selecting previously unselected package libvo-aacenc0:amd64.
+2026-11-03T02:46:12.2844781Z Preparing to unpack .../178-libvo-aacenc0_0.1.3-2build1_amd64.deb ...
+2026-11-03T02:46:12.2865101Z Unpacking libvo-aacenc0:amd64 (0.1.3-2build1) ...
+2026-11-03T02:46:12.3110283Z Selecting previously unselected package libvo-amrwbenc0:amd64.
+2026-11-03T02:46:12.3270509Z Preparing to unpack .../179-libvo-amrwbenc0_0.1.3-2build1_amd64.deb ...
+2026-11-03T02:46:12.3279151Z Unpacking libvo-amrwbenc0:amd64 (0.1.3-2build1) ...
+2026-11-03T02:46:12.3564923Z Selecting previously unselected package gstreamer1.0-plugins-bad:amd64.
+2026-11-03T02:46:12.3726266Z Preparing to unpack .../180-gstreamer1.0-plugins-bad_1.24.2-1ubuntu4_amd64.deb ...
+2026-11-03T02:46:12.3748197Z Unpacking gstreamer1.0-plugins-bad:amd64 (1.24.2-1ubuntu4) ...
+2026-11-03T02:46:12.5863606Z Setting up libgme0:amd64 (0.6.3-7build1) ...
+2026-11-03T02:46:12.5896640Z Setting up libchromaprint1:amd64 (1.5.1-5) ...
+2026-11-03T02:46:12.5915977Z Setting up libssh-gcrypt-4:amd64 (0.10.6-2ubuntu0.5) ...
+2026-11-03T02:46:12.5935944Z Setting up libhwy1t64:amd64 (1.0.7-8.1build1) ...
+2026-11-03T02:46:12.5954195Z Setting up libcairo-script-interpreter2:amd64 (1.18.0-3build1) ...
+2026-11-03T02:46:12.5975045Z Setting up libfreeaptx0:amd64 (0.1.1-2build1) ...
+2026-11-03T02:46:12.5992855Z Setting up libdvdread8t64:amd64 (6.1.3-1.1build1) ...
+2026-11-03T02:46:12.6011481Z Setting up libudfread0:amd64 (1.1.2-1build1) ...
+2026-11-03T02:46:12.6031550Z Setting up libmodplug1:amd64 (1:0.8.9.0-3build1) ...
+2026-11-03T02:46:12.6050218Z Setting up libcdparanoia0:amd64 (3.10.2+debian-14build3) ...
+2026-11-03T02:46:12.6069277Z Setting up libwayland-server0:amd64 (1.22.0-2.1build1) ...
+2026-11-03T02:46:12.6088797Z Setting up libvo-amrwbenc0:amd64 (0.1.3-2build1) ...
+2026-11-03T02:46:12.6107062Z Setting up session-migration (0.3.9build1) ...
+2026-11-03T02:46:12.7420318Z Created symlink /etc/systemd/user/graphical-session-pre.target.wants/session-migration.service → /usr/lib/systemd/user/session-migration.service.
+2026-11-03T02:46:12.7421888Z 
+2026-11-03T02:46:12.7451519Z Setting up libraw1394-11:amd64 (2.1.2-2build3) ...
+2026-11-03T02:46:12.7473088Z Setting up libsbc1:amd64 (2.0-1build1) ...
+2026-11-03T02:46:12.7498754Z Setting up libproxy1v5:amd64 (0.5.4-4build1) ...
+2026-11-03T02:46:12.7516643Z Setting up libneon27t64:amd64 (0.33.0-1.1build3) ...
+2026-11-03T02:46:12.7543152Z Setting up libtag1v5-vanilla:amd64 (1.13.1-1build1) ...
+2026-11-03T02:46:12.7569245Z Setting up libharfbuzz-icu0:amd64 (8.3.0-2build2) ...
+2026-11-03T02:46:12.7586838Z Setting up libopenni2-0:amd64 (2.2.0.33+dfsg-18) ...
+2026-11-03T02:46:12.7758605Z Setting up libspeex1:amd64 (1.2.1-2ubuntu2.24.04.1) ...
+2026-11-03T02:46:12.7787287Z Setting up libshine3:amd64 (3.1.1-2build1) ...
+2026-11-03T02:46:12.7805661Z Setting up libcaca0:amd64 (0.99.beta20-4ubuntu0.2) ...
+2026-11-03T02:46:12.7823998Z Setting up libvpl2 (2023.3.0-1build1) ...
+2026-11-03T02:46:12.7842729Z Setting up libv4lconvert0t64:amd64 (1.26.1-4build3) ...
+2026-11-03T02:46:12.7860131Z Setting up libx264-164:amd64 (2:0.164.3108+git31e19f9-1) ...
+2026-11-03T02:46:12.7877755Z Setting up libtwolame0:amd64 (0.4.0-2build3) ...
+2026-11-03T02:46:12.7895181Z Setting up libmbedcrypto7t64:amd64 (2.28.8-1) ...
+2026-11-03T02:46:12.7913396Z Setting up libwoff1:amd64 (1.0.2-2build1) ...
+2026-11-03T02:46:12.7974460Z Setting up liblc3-1:amd64 (1.0.4-3build1) ...
+2026-11-03T02:46:12.7994221Z Setting up libqrencode4:amd64 (4.1.1-1build2) ...
+2026-11-03T02:46:12.8012830Z Setting up libhyphen0:amd64 (2.8.8-7build3) ...
+2026-11-03T02:46:12.8029904Z Setting up libgsm1:amd64 (1.0.22-1build1) ...
+2026-11-03T02:46:12.8047189Z Setting up libvisual-0.4-0:amd64 (0.4.2-2build1) ...
+2026-11-03T02:46:12.8066819Z Setting up libsoxr0:amd64 (0.1.3-4build3) ...
+2026-11-03T02:46:12.8085797Z Setting up libzix-0-0:amd64 (0.4.2-2build1) ...
+2026-11-03T02:46:12.8105879Z Setting up libcodec2-1.2:amd64 (1.2.0-2build1) ...
+2026-11-03T02:46:12.8124225Z Setting up libmanette-0.2-0:amd64 (0.2.7-1build2) ...
+2026-11-03T02:46:12.8142766Z Setting up libsrtp2-1:amd64 (2.5.0-3build1) ...
+2026-11-03T02:46:12.8160419Z Setting up libmysofa1:amd64 (1.3.2+dfsg-2ubuntu2) ...
+2026-11-03T02:46:12.8178666Z Setting up libraptor2-0:amd64 (2.0.16-3ubuntu0.1) ...
+2026-11-03T02:46:12.8195799Z Setting up libldacbt-enc2:amd64 (2.0.2.3+git20200429+ed310a0-4ubuntu2) ...
+2026-11-03T02:46:12.8220872Z Setting up fonts-wqy-zenhei (0.9.45-8) ...
+2026-11-03T02:46:12.8347197Z Setting up libwebrtc-audio-processing1:amd64 (0.3.1-0ubuntu6) ...
+2026-11-03T02:46:12.8368409Z Setting up fonts-freefont-ttf (20211204+svn4273-2) ...
+2026-11-03T02:46:12.8385577Z Setting up libevent-2.1-7t64:amd64 (2.1.12-stable-9ubuntu2.2) ...
+2026-11-03T02:46:12.8402399Z Setting up libsvtav1enc1d1:amd64 (1.7.0+dfsg-2build1) ...
+2026-11-03T02:46:12.8423229Z Setting up libsoup-3.0-common (3.4.4-5ubuntu0.9) ...
+2026-11-03T02:46:12.8441855Z Setting up libmpg123-0t64:amd64 (1.32.5-1ubuntu1.1) ...
+2026-11-03T02:46:12.8459672Z Setting up libcjson1:amd64 (1.7.17-1) ...
+2026-11-03T02:46:12.8478959Z Setting up libxvidcore4:amd64 (2:1.3.7-1build1) ...
+2026-11-03T02:46:12.8495932Z Setting up libmpcdec6:amd64 (2:0.1~r495-2build1) ...
+2026-11-03T02:46:12.8514474Z Setting up libmjpegutils-2.1-0t64:amd64 (1:2.1.0+debian-8.1build1) ...
+2026-11-03T02:46:12.8533145Z Setting up librav1e0:amd64 (0.7.1-2) ...
+2026-11-03T02:46:12.8551992Z Setting up liborc-0.4-0t64:amd64 (1:0.4.38-1ubuntu0.1) ...
+2026-11-03T02:46:12.8573958Z Setting up libxcb-xkb1:amd64 (1.15-1ubuntu2) ...
+2026-11-03T02:46:12.8594428Z Setting up libvo-aacenc0:amd64 (0.1.3-2build1) ...
+2026-11-03T02:46:12.8612334Z Setting up librist4:amd64 (0.2.10+dfsg-2) ...
+2026-11-03T02:46:12.8631214Z Setting up librsvg2-2:amd64 (2.58.0+dfsg-1ubuntu0.1) ...
+2026-11-03T02:46:12.8649852Z Setting up libblas3:amd64 (3.12.0-3build1.1) ...
+2026-11-03T02:46:12.8712503Z update-alternatives: using /usr/lib/x86_64-linux-gnu/blas/libblas.so.3 to provide /usr/lib/x86_64-linux-gnu/libblas.so.3 (libblas.so.3-x86_64-linux-gnu) in auto mode
+2026-11-03T02:46:12.8732903Z Setting up libegl-mesa0:amd64 (25.2.8-0ubuntu0.24.04.4) ...
+2026-11-03T02:46:12.8752222Z Setting up libsoundtouch1:amd64 (2.3.2+ds1-1build1) ...
+2026-11-03T02:46:12.8772720Z Setting up libplacebo338:amd64 (6.338.2-2build1) ...
+2026-11-03T02:46:12.8790494Z Setting up libgles2:amd64 (1.7.0-1build1) ...
+2026-11-03T02:46:12.8808655Z Setting up fonts-tlwg-loma-otf (1:0.7.3-1) ...
+2026-11-03T02:46:12.8829134Z Setting up libva2:amd64 (2.20.0-2ubuntu0.2) ...
+2026-11-03T02:46:12.8846655Z Setting up libspa-0.2-modules:amd64 (1.0.5-1ubuntu3.3) ...
+2026-11-03T02:46:12.8866254Z Setting up libzxing3:amd64 (2.2.1-3) ...
+2026-11-03T02:46:12.8886202Z Setting up xfonts-encodings (1:1.0.5-0ubuntu2) ...
+2026-11-03T02:46:12.8905692Z Setting up libopus0:amd64 (1.4-1build1) ...
+2026-11-03T02:46:12.8924975Z Setting up libfaad2:amd64 (2.11.1-1build1) ...
+2026-11-03T02:46:12.8943360Z Setting up libxkbcommon-x11-0:amd64 (1.6.0-1build1) ...
+2026-11-03T02:46:12.8969197Z Setting up libdc1394-25:amd64 (2.2.6-4build1) ...
+2026-11-03T02:46:12.8990901Z Setting up libimath-3-1-29t64:amd64 (3.1.9-3.1ubuntu2) ...
+2026-11-03T02:46:12.9009094Z Setting up libunibreak5:amd64 (5.1-2build1) ...
+2026-11-03T02:46:12.9029174Z Setting up libdv4t64:amd64 (1.0.0-17.1build1) ...
+2026-11-03T02:46:12.9098500Z Setting up libjxl0.7:amd64 (0.7.0-10.2ubuntu6.1) ...
+2026-11-03T02:46:12.9120331Z Setting up libopenh264-7:amd64 (2.4.1+dfsg-1) ...
+2026-11-03T02:46:12.9142675Z Setting up libltc11:amd64 (1.3.2-1build1) ...
+2026-11-03T02:46:12.9163187Z Setting up libx265-199:amd64 (3.5-2build1) ...
+2026-11-03T02:46:12.9182640Z Setting up libv4l-0t64:amd64 (1.26.1-4build3) ...
+2026-11-03T02:46:12.9208883Z Setting up libavtp0:amd64 (0.2.0-1build1) ...
+2026-11-03T02:46:12.9231665Z Setting up libsndio7.0:amd64 (1.9.0-0.3build3) ...
+2026-11-03T02:46:12.9518180Z Setting up libdirectfb-1.7-7t64:amd64 (1.7.7-11.1ubuntu2) ...
+2026-11-03T02:46:12.9539066Z Setting up libspandsp2t64:amd64 (0.0.6+dfsg-2.1build1) ...
+2026-11-03T02:46:12.9560354Z Setting up libvidstab1.1:amd64 (1.1.0-2build1) ...
+2026-11-03T02:46:12.9577458Z Setting up libvpx9:amd64 (1.14.0-1ubuntu2.3) ...
+2026-11-03T02:46:12.9597055Z Setting up libsrt1.5-gnutls:amd64 (1.5.3-1build2) ...
+2026-11-03T02:46:12.9616268Z Setting up libtag1v5:amd64 (1.13.1-1build1) ...
+2026-11-03T02:46:12.9633811Z Setting up libflite1:amd64 (2.2-6build3) ...
+2026-11-03T02:46:12.9654057Z Setting up libdav1d7:amd64 (1.4.1-1build1) ...
+2026-11-03T02:46:12.9683675Z Setting up libva-drm2:amd64 (2.20.0-2ubuntu0.2) ...
+2026-11-03T02:46:12.9701236Z Setting up fonts-ipafont-gothic (00303-21ubuntu1) ...
+2026-11-03T02:46:12.9776891Z update-alternatives: using /usr/share/fonts/opentype/ipafont-gothic/ipag.ttf to provide /usr/share/fonts/truetype/fonts-japanese-gothic.ttf (fonts-japanese-gothic.ttf) in auto mode
+2026-11-03T02:46:12.9802647Z Setting up ocl-icd-libopencl1:amd64 (2.3.2-1build1) ...
+2026-11-03T02:46:12.9835163Z Setting up libasyncns0:amd64 (0.8-6build4) ...
+2026-11-03T02:46:12.9854358Z Setting up libwildmidi2:amd64 (0.4.3-1build3) ...
+2026-11-03T02:46:12.9874248Z Setting up libvdpau1:amd64 (1.5-2build1) ...
+2026-11-03T02:46:12.9901889Z Setting up libwavpack1:amd64 (5.6.0-1build1) ...
+2026-11-03T02:46:12.9921398Z Setting up libbs2b0:amd64 (3.1.0+dfsg-7build1) ...
+2026-11-03T02:46:12.9939612Z Setting up libtheora0:amd64 (1.1.1+dfsg.1-16.1build3) ...
+2026-11-03T02:46:12.9955729Z Setting up libegl1:amd64 (1.7.0-1build1) ...
+2026-11-03T02:46:12.9972990Z Setting up libdecor-0-0:amd64 (0.2.2-1build2) ...
+2026-11-03T02:46:12.9994390Z Setting up libdca0:amd64 (0.0.7-2build1) ...
+2026-11-03T02:46:13.0014741Z Setting up libzimg2:amd64 (3.0.5+ds1-1build1) ...
+2026-11-03T02:46:13.0033146Z Setting up libopenal-data (1:1.23.1-4build1) ...
+2026-11-03T02:46:13.0058263Z Setting up libabsl20220623t64:amd64 (20220623.1-3.1ubuntu3.2) ...
+2026-11-03T02:46:13.0076148Z Setting up libflac12t64:amd64 (1.4.3+ds-2.1ubuntu2) ...
+2026-11-03T02:46:13.0102408Z Setting up libgtk-4-common (4.14.5+ds-0ubuntu0.10) ...
+2026-11-03T02:46:13.0123498Z Setting up libmpeg2encpp-2.1-0t64:amd64 (1:2.1.0+debian-8.1build1) ...
+2026-11-03T02:46:13.0150641Z Setting up glib-networking-common (2.80.0-1build1) ...
+2026-11-03T02:46:13.0188389Z Setting up libmfx1:amd64 (22.5.4-1) ...
+2026-11-03T02:46:13.0207543Z Setting up libbluray2:amd64 (1:1.3.4-1build1) ...
+2026-11-03T02:46:13.0228774Z Setting up libde265-0:amd64 (1.0.15-1ubuntu0.2) ...
+2026-11-03T02:46:13.0251679Z Setting up libsamplerate0:amd64 (0.2.2-4build1) ...
+2026-11-03T02:46:13.0271220Z Setting up timgm6mb-soundfont (1.3-5) ...
+2026-11-03T02:46:13.0365363Z update-alternatives: using /usr/share/sounds/sf2/TimGM6mb.sf2 to provide /usr/share/sounds/sf2/default-GM.sf2 (default-GM.sf2) in auto mode
+2026-11-03T02:46:13.0420962Z update-alternatives: using /usr/share/sounds/sf2/TimGM6mb.sf2 to provide /usr/share/sounds/sf3/default-GM.sf3 (default-GM.sf3) in auto mode
+2026-11-03T02:46:13.0437420Z Setting up libva-x11-2:amd64 (2.20.0-2ubuntu0.2) ...
+2026-11-03T02:46:13.0460889Z Setting up libyuv0:amd64 (0.0~git202401110.af6ac82-1) ...
+2026-11-03T02:46:13.0483508Z Setting up libmplex2-2.1-0t64:amd64 (1:2.1.0+debian-8.1build1) ...
+2026-11-03T02:46:13.0501395Z Setting up libpipewire-0.3-0t64:amd64 (1.0.5-1ubuntu3.3) ...
+2026-11-03T02:46:13.0521327Z Setting up libopenmpt0t64:amd64 (0.7.3-1.1build3) ...
+2026-11-03T02:46:13.0538428Z Setting up libzvbi-common (0.2.42-2) ...
+2026-11-03T02:46:13.0556429Z Setting up libsecret-common (0.21.4-1build3) ...
+2026-11-03T02:46:13.0577818Z Setting up libmp3lame0:amd64 (3.100-6build1) ...
+2026-11-03T02:46:13.0595527Z Setting up libgraphene-1.0-0:amd64 (1.10.8-3build2) ...
+2026-11-03T02:46:13.0623237Z Setting up libvorbisenc2:amd64 (1.3.7-1build3) ...
+2026-11-03T02:46:13.0645818Z Setting up libdvdnav4:amd64 (6.1.1-3build1) ...
+2026-11-03T02:46:13.0665164Z Setting up fonts-unifont (1:15.1.01-1build1) ...
+2026-11-03T02:46:13.0686112Z Setting up libaa1:amd64 (1.4p5-51.1) ...
+2026-11-03T02:46:13.0704149Z Setting up libiec61883-0:amd64 (1.2.0-6build1) ...
+2026-11-03T02:46:13.0723086Z Setting up libserd-0-0:amd64 (0.32.2-1) ...
+2026-11-03T02:46:13.0744895Z Setting up libavc1394-0:amd64 (0.5.4-5build3) ...
+2026-11-03T02:46:13.0764301Z Setting up gsettings-desktop-schemas (46.1-0ubuntu1) ...
+2026-11-03T02:46:13.0790721Z Setting up glib-networking-services (2.80.0-1build1) ...
+2026-11-03T02:46:13.0810283Z Setting up liblapack3:amd64 (3.12.0-3build1.1) ...
+2026-11-03T02:46:13.0874092Z update-alternatives: using /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3 to provide /usr/lib/x86_64-linux-gnu/liblapack.so.3 (liblapack.so.3-x86_64-linux-gnu) in auto mode
+2026-11-03T02:46:13.0891898Z Setting up libzvbi0t64:amd64 (0.2.42-2) ...
+2026-11-03T02:46:13.0912495Z Setting up liblrdf0:amd64 (0.6.1-4build1) ...
+2026-11-03T02:46:13.0932472Z Setting up libzbar0t64:amd64 (0.23.93-4build3) ...
+2026-11-03T02:46:13.0954870Z Setting up libgstreamer-plugins-base1.0-0:amd64 (1.24.2-1ubuntu0.5) ...
+2026-11-03T02:46:13.0973201Z Setting up libavutil58:amd64 (7:6.1.1-3ubuntu5) ...
+2026-11-03T02:46:13.0991823Z Setting up libopenal1:amd64 (1:1.23.1-4build1) ...
+2026-11-03T02:46:13.1011848Z Setting up xfonts-utils (1:7.7+6build3) ...
+2026-11-03T02:46:13.1055584Z Setting up libsecret-1-0:amd64 (0.21.4-1build3) ...
+2026-11-03T02:46:13.1076861Z Setting up libgstreamer-plugins-good1.0-0:amd64 (1.24.2-1ubuntu1.8) ...
+2026-11-03T02:46:13.1097712Z Setting up libgstreamer-gl1.0-0:amd64 (1.24.2-1ubuntu0.5) ...
+2026-11-03T02:46:13.1118471Z Setting up gstreamer1.0-plugins-base:amd64 (1.24.2-1ubuntu0.5) ...
+2026-11-03T02:46:13.1140234Z Setting up libass9:amd64 (1:0.17.1-2build1) ...
+2026-11-03T02:46:13.1159403Z Setting up libswresample4:amd64 (7:6.1.1-3ubuntu5) ...
+2026-11-03T02:46:13.1180349Z Setting up libopenexr-3-1-30:amd64 (3.1.5-5.1build3) ...
+2026-11-03T02:46:13.1201236Z Setting up libshout3:amd64 (2.4.6-1build2) ...
+2026-11-03T02:46:13.1223763Z Setting up libgav1-1:amd64 (0.18.0-1build3) ...
+2026-11-03T02:46:13.1271421Z Setting up libavcodec60:amd64 (7:6.1.1-3ubuntu5) ...
+2026-11-03T02:46:13.1293432Z Setting up librubberband2:amd64 (3.3.0+dfsg-2build1) ...
+2026-11-03T02:46:13.1313312Z Setting up libjack-jackd2-0:amd64 (1.9.21~dfsg-3ubuntu3) ...
+2026-11-03T02:46:13.1335158Z Setting up libsord-0-0:amd64 (0.16.16-2build1) ...
+2026-11-03T02:46:13.1353740Z Setting up xfonts-cyrillic (1:1.0.5+nmu1) ...
+2026-11-03T02:46:13.1676058Z Setting up libpostproc57:amd64 (7:6.1.1-3ubuntu5) ...
+2026-11-03T02:46:13.1694383Z Setting up libsratom-0-0:amd64 (0.6.16-1build1) ...
+2026-11-03T02:46:13.1715454Z Setting up libsndfile1:amd64 (1.2.2-1ubuntu5.24.04.1) ...
+2026-11-03T02:46:13.1743397Z Setting up liblilv-0-0:amd64 (0.24.22-1build1) ...
+2026-11-03T02:46:13.1764539Z Setting up libinstpatch-1.0-2:amd64 (1.1.6-1build2) ...
+2026-11-03T02:46:13.1787252Z Setting up xfonts-scalable (1:1.0.3-1.3) ...
+2026-11-03T02:46:13.2086096Z Setting up libswscale7:amd64 (7:6.1.1-3ubuntu5) ...
+2026-11-03T02:46:13.2110917Z Setting up libavif16:amd64 (1.0.4-1ubuntu3) ...
+2026-11-03T02:46:13.2131149Z Setting up libpulse0:amd64 (1:16.1+dfsg1-2ubuntu10.1) ...
+2026-11-03T02:46:13.2502579Z Setting up libavformat60:amd64 (7:6.1.1-3ubuntu5) ...
+2026-11-03T02:46:13.2523991Z Setting up libsphinxbase3t64:amd64 (0.8+5prealpha+1-17build2) ...
+2026-11-03T02:46:13.2544571Z Setting up libsdl2-2.0-0:amd64 (2.30.0+dfsg-1ubuntu3.1) ...
+2026-11-03T02:46:13.2562801Z Setting up libfluidsynth3:amd64 (2.3.4-1build3) ...
+2026-11-03T02:46:13.2584071Z Setting up libpocketsphinx3:amd64 (0.8.0+real5prealpha+1-15ubuntu5) ...
+2026-11-03T02:46:13.2601227Z Setting up libavfilter9:amd64 (7:6.1.1-3ubuntu5) ...
+2026-11-03T02:46:13.2621967Z Setting up gstreamer1.0-libav:amd64 (1.24.1-1build1) ...
+2026-11-03T02:46:13.2890075Z Processing triggers for fontconfig (2.15.0-1.1ubuntu2) ...
+2026-11-03T02:46:13.3774065Z Processing triggers for libc-bin (2.39-0ubuntu8.9) ...
+2026-11-03T02:46:13.4230238Z Processing triggers for man-db (2.12.0-4build2) ...
+2026-11-03T02:46:13.4261295Z Not building database; man-db/auto-update is not 'true'.
+2026-11-03T02:46:13.4289295Z Processing triggers for libglib2.0-0t64:amd64 (2.80.0-6ubuntu3.10) ...
+2026-11-03T02:46:13.4726578Z Setting up libgtk-4-1:amd64 (4.14.5+ds-0ubuntu0.10) ...
+2026-11-03T02:46:13.6672142Z Setting up glib-networking:amd64 (2.80.0-1build1) ...
+2026-11-03T02:46:13.6709433Z Setting up libsoup-3.0-0:amd64 (3.4.4-5ubuntu0.9) ...
+2026-11-03T02:46:13.6741319Z Setting up libgssdp-1.6-0:amd64 (1.6.3-1build3) ...
+2026-11-03T02:46:13.6836472Z Setting up gstreamer1.0-plugins-good:amd64 (1.24.2-1ubuntu1.8) ...
+2026-11-03T02:46:13.6865090Z Setting up libgupnp-1.6-0:amd64 (1.6.6-1build3) ...
+2026-11-03T02:46:13.6925356Z Setting up libgupnp-igd-1.6-0:amd64 (1.6.0-3build3) ...
+2026-11-03T02:46:13.6959860Z Setting up libnice10:amd64 (0.1.21-2build3) ...
+2026-11-03T02:46:13.7018614Z Setting up libgstreamer-plugins-bad1.0-0:amd64 (1.24.2-1ubuntu4) ...
+2026-11-03T02:46:13.7059580Z Setting up gstreamer1.0-plugins-bad:amd64 (1.24.2-1ubuntu4) ...
+2026-11-03T02:46:13.7082047Z Processing triggers for libc-bin (2.39-0ubuntu8.9) ...
+2026-11-03T02:46:14.4698865Z 
+2026-11-03T02:46:14.4699861Z Running kernel seems to be up-to-date.
+2026-11-03T02:46:14.4700640Z 
+2026-11-03T02:46:14.4701061Z No services need to be restarted.
+2026-11-03T02:46:14.4701599Z 
+2026-11-03T02:46:14.4702043Z No containers need to be restarted.
+2026-11-03T02:46:14.4702585Z 
+2026-11-03T02:46:14.4703432Z No user sessions are running outdated binaries.
+2026-11-03T02:46:14.4704052Z 
+2026-11-03T02:46:14.4704762Z No VM guests are running outdated hypervisor (qemu) binaries on this host.
+2026-11-03T02:46:15.6218273Z Downloading WebKit 26.6 (playwright webkit v2359) from https://cdn.playwright.dev/dbazure/download/playwright/builds/webkit/2359/webkit-ubuntu-24.04.zip
+2026-11-03T02:46:16.1149517Z |                                                                                |   0% of 102.3 MiB
+2026-11-03T02:46:16.4488171Z |■■■■■■■■                                                                        |  10% of 102.3 MiB
+2026-11-03T02:46:16.5390868Z |■■■■■■■■■■■■■■■■                                                                |  20% of 102.3 MiB
+2026-11-03T02:46:16.6014215Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 102.3 MiB
+2026-11-03T02:46:16.6629622Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 102.3 MiB
+2026-11-03T02:46:16.7362698Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 102.3 MiB
+2026-11-03T02:46:16.9163172Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 102.3 MiB
+2026-11-03T02:46:17.2481286Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 102.3 MiB
+2026-11-03T02:46:17.3157651Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 102.3 MiB
+2026-11-03T02:46:17.3795804Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 102.3 MiB
+2026-11-03T02:46:17.4390336Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 102.3 MiB
+2026-11-03T02:46:19.4930190Z WebKit 26.6 (playwright webkit v2359) downloaded to /home/runner/.cache/ms-playwright/webkit-2359
+2026-11-03T02:46:19.4934659Z Downloading FFmpeg (playwright ffmpeg v1011) from https://cdn.playwright.dev/dbazure/download/playwright/builds/ffmpeg/1011/ffmpeg-linux.zip
+2026-11-03T02:46:19.9478137Z |                                                                                |   0% of 2.3 MiB
+2026-11-03T02:46:19.9902646Z |■■■■■■■■                                                                        |  10% of 2.3 MiB
+2026-11-03T02:46:20.0072320Z |■■■■■■■■■■■■■■■■                                                                |  20% of 2.3 MiB
+2026-11-03T02:46:20.0188570Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 2.3 MiB
+2026-11-03T02:46:20.0253703Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 2.3 MiB
+2026-11-03T02:46:20.0283702Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 2.3 MiB
+2026-11-03T02:46:20.0372500Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 2.3 MiB
+2026-11-03T02:46:20.0408685Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 2.3 MiB
+2026-11-03T02:46:20.0429797Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 2.3 MiB
+2026-11-03T02:46:20.0453665Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 2.3 MiB
+2026-11-03T02:46:20.0469018Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 2.3 MiB
+2026-11-03T02:46:20.1185986Z FFmpeg (playwright ffmpeg v1011) downloaded to /home/runner/.cache/ms-playwright/ffmpeg-1011
+2026-11-03T02:46:20.6273626Z ##[group]Run export NODE_PATH="$(npm root -g)"
+2026-11-03T02:46:20.6274221Z [36;1mexport NODE_PATH="$(npm root -g)"[0m
+2026-11-03T02:46:20.6274914Z [36;1mbash .github/diag/run.sh "$BROWSER" "$RUNS" "$MODE"[0m
+2026-11-03T02:46:20.6300435Z shell: /usr/bin/bash -e {0}
+2026-11-03T02:46:20.6300744Z env:
+2026-11-03T02:46:20.6301092Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.17/x64
+2026-11-03T02:46:20.6301668Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.17/x64/lib/pkgconfig
+2026-11-03T02:46:20.6302250Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.17/x64
+2026-11-03T02:46:20.6302767Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.17/x64
+2026-11-03T02:46:20.6303277Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.17/x64
+2026-11-03T02:46:20.6303787Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.17/x64/lib
+2026-11-03T02:46:20.6304215Z   BROWSER: webkit
+2026-11-03T02:46:20.6304469Z   MODE: mutate
+2026-11-03T02:46:20.6304707Z   RUNS: 3
+2026-11-03T02:46:20.6304984Z   WAIT_UP: 0
+2026-11-03T02:46:20.6305227Z   DOWN: refuse
+2026-11-03T02:46:20.6305469Z   PW_DEBUG: 
+2026-11-03T02:46:20.6305710Z ##[endgroup]
+2026-11-03T02:46:22.4694222Z == kit d5c2a1d, webkit, mode mutate, 3
+2026-11-03T02:46:22.5006619Z mutation no-offline-fallback applied to sw.js
+2026-11-03T02:46:38.3492376Z 
+2026-11-03T02:46:38.3500470Z ######## run no-offline-fallback.1, offline_test.js, exit 1 ########
+2026-11-03T02:46:38.3503915Z 
+2026-11-03T02:46:38.3504443Z === Files beside the page ===
+2026-11-03T02:46:38.3505378Z   ok    sw.js is written beside the page
+2026-11-03T02:46:38.3513567Z   ok    the worker's cache prefix comes from the course namespace (course-id-drill-)
+2026-11-03T02:46:38.3514713Z   ok    manifest.json is written and names its icons
+2026-11-03T02:46:38.3515636Z   ok    every icon the page and manifest name is a PNG on disk
+2026-11-03T02:46:38.3516504Z   ok    the page links the manifest
+2026-11-03T02:46:38.3516983Z 
+2026-11-03T02:46:38.3517465Z === Caches on a shared origin ===
+2026-11-03T02:46:38.3518667Z   ok    the worker installs and controls the page on the first visit
+2026-11-03T02:46:38.3519706Z   ok    the student is told the drill now opens offline
+2026-11-03T02:46:38.3520820Z   ok    the shared origin holds 4 other sites' caches for this check
+2026-11-03T02:46:38.3521861Z   ok    another site's cache phar4342-drill-v1 is kept
+2026-11-03T02:46:38.3522750Z   ok    another site's cache bdk-v18 is kept
+2026-11-03T02:46:38.3523551Z   ok    another site's cache other-drill-v2 is kept
+2026-11-03T02:46:38.3524493Z   ok    another site's cache course-id-drill-extra-v1 is kept
+2026-11-03T02:46:38.3525523Z   ok    this course's old cache course-id-drill-v0 is deleted
+2026-11-03T02:46:38.3526502Z   ok    this course's cache course-id-drill-v1 is there
+2026-11-03T02:46:38.3527575Z   ok    the page, the redirect, the manifest and the icons are saved at install
+2026-11-03T02:46:38.3528922Z   ok    after a reload the page is served by the worker
+2026-11-03T02:46:38.3529831Z   ok    the offline note is shown once, not on every load
+2026-11-03T02:46:38.3530441Z 
+2026-11-03T02:46:38.3530810Z === Server down ===
+2026-11-03T02:46:38.3531830Z   FAIL  the site opens from the saved copy with the server down (loaded again, not the page from before)
+2026-11-03T02:46:38.3533060Z   FAIL  the old file name COURSE0000_Drill.html opens it too
+2026-11-03T02:46:38.3533999Z   ok    a quiz starts and serves a question offline
+2026-11-03T02:46:38.3535037Z   ok    no request reaches the server while it is down (it refuses connections)
+2026-11-03T02:46:38.3535805Z 
+2026-11-03T02:46:38.3536377Z === Server slower than NET_TIMEOUT, with a newer page ===
+2026-11-03T02:46:38.3537481Z   ok    the saved copy opens without waiting for the network (3545 ms, server 8000 ms)
+2026-11-03T02:46:38.3538917Z   ok    that copy is the last one saved
+2026-11-03T02:46:38.3539823Z   ok    a reload is offered once the newer page arrives
+2026-11-03T02:46:38.3540550Z   ok    the page never reloads by itself
+2026-11-03T02:46:38.3541377Z   ok    Reload brings in the newer page
+2026-11-03T02:46:38.3543383Z   FAIL  no page errors in the service worker checks  — TypeError: Load failed; /localhost:42327/course-drill/index.html.; TypeError: Load failed
+2026-11-03T02:46:38.3544645Z 
+2026-11-03T02:46:38.3545353Z === Opened from disk ===
+2026-11-03T02:46:38.3546194Z   ok    no worker is registered for a page opened from disk
+2026-11-03T02:46:38.3547098Z   ok    the drill opens from disk
+2026-11-03T02:46:38.3548174Z   ok    no page errors opened from disk
+2026-11-03T02:46:38.3550627Z FAIL: offline_test.js: 3 of 30 checks failed: the site opens from the saved copy with the server down (loaded again, not the page from before); the old file name COURSE0000_Drill.html opens it too; no page errors in the service worker checks
+2026-11-03T02:46:38.3781844Z mutation no-offline-fallback applied to sw.js
+2026-11-03T02:46:50.3840930Z 
+2026-11-03T02:46:50.3849923Z ######## run no-offline-fallback.2, offline_test.js, exit 1 ########
+2026-11-03T02:46:50.3852095Z 
+2026-11-03T02:46:50.3852378Z === Files beside the page ===
+2026-11-03T02:46:50.3853023Z   ok    sw.js is written beside the page
+2026-11-03T02:46:50.3853967Z   ok    the worker's cache prefix comes from the course namespace (course-id-drill-)
+2026-11-03T02:46:50.3854858Z   ok    manifest.json is written and names its icons
+2026-11-03T02:46:50.3855604Z   ok    every icon the page and manifest name is a PNG on disk
+2026-11-03T02:46:50.3856293Z   ok    the page links the manifest
+2026-11-03T02:46:50.3856583Z 
+2026-11-03T02:46:50.3856839Z === Caches on a shared origin ===
+2026-11-03T02:46:50.3857529Z   ok    the worker installs and controls the page on the first visit
+2026-11-03T02:46:50.3858615Z   ok    the student is told the drill now opens offline
+2026-11-03T02:46:50.3859403Z   ok    the shared origin holds 4 other sites' caches for this check
+2026-11-03T02:46:50.3860186Z   ok    another site's cache phar4342-drill-v1 is kept
+2026-11-03T02:46:50.3860832Z   ok    another site's cache bdk-v18 is kept
+2026-11-03T02:46:50.3861512Z   ok    another site's cache other-drill-v2 is kept
+2026-11-03T02:46:50.3862234Z   ok    another site's cache course-id-drill-extra-v1 is kept
+2026-11-03T02:46:50.3862974Z   ok    this course's old cache course-id-drill-v0 is deleted
+2026-11-03T02:46:50.3863627Z   ok    this course's cache course-id-drill-v1 is there
+2026-11-03T02:46:50.3864396Z   ok    the page, the redirect, the manifest and the icons are saved at install
+2026-11-03T02:46:50.3865124Z   ok    after a reload the page is served by the worker
+2026-11-03T02:46:50.3865740Z   ok    the offline note is shown once, not on every load
+2026-11-03T02:46:50.3866088Z 
+2026-11-03T02:46:50.3866253Z === Server down ===
+2026-11-03T02:46:50.3867083Z   FAIL  the site opens from the saved copy with the server down (loaded again, not the page from before)
+2026-11-03T02:46:50.3876488Z   FAIL  the old file name COURSE0000_Drill.html opens it too
+2026-11-03T02:46:50.3877257Z   ok    a quiz starts and serves a question offline
+2026-11-03T02:46:50.3878369Z   ok    no request reaches the server while it is down (it refuses connections)
+2026-11-03T02:46:50.3878923Z 
+2026-11-03T02:46:50.3879313Z === Server slower than NET_TIMEOUT, with a newer page ===
+2026-11-03T02:46:50.3880213Z   ok    the saved copy opens without waiting for the network (3544 ms, server 8000 ms)
+2026-11-03T02:46:50.3880993Z   ok    that copy is the last one saved
+2026-11-03T02:46:50.3881579Z   ok    a reload is offered once the newer page arrives
+2026-11-03T02:46:50.3882194Z   ok    the page never reloads by itself
+2026-11-03T02:46:50.3882677Z   ok    Reload brings in the newer page
+2026-11-03T02:46:50.3884287Z   FAIL  no page errors in the service worker checks  — TypeError: Load failed; /localhost:36283/course-drill/index.html.; TypeError: Load failed
+2026-11-03T02:46:50.3885266Z 
+2026-11-03T02:46:50.3885460Z === Opened from disk ===
+2026-11-03T02:46:50.3886063Z   ok    no worker is registered for a page opened from disk
+2026-11-03T02:46:50.3887189Z   ok    the drill opens from disk
+2026-11-03T02:46:50.3887771Z   ok    no page errors opened from disk
+2026-11-03T02:46:50.3890246Z FAIL: offline_test.js: 3 of 30 checks failed: the site opens from the saved copy with the server down (loaded again, not the page from before); the old file name COURSE0000_Drill.html opens it too; no page errors in the service worker checks
+2026-11-03T02:46:50.4134374Z mutation no-offline-fallback applied to sw.js
+2026-11-03T02:47:02.4062588Z 
+2026-11-03T02:47:02.4064675Z ######## run no-offline-fallback.3, offline_test.js, exit 1 ########
+2026-11-03T02:47:02.4076518Z 
+2026-11-03T02:47:02.4077041Z === Files beside the page ===
+2026-11-03T02:47:02.4078498Z   ok    sw.js is written beside the page
+2026-11-03T02:47:02.4079844Z   ok    the worker's cache prefix comes from the course namespace (course-id-drill-)
+2026-11-03T02:47:02.4081419Z   ok    manifest.json is written and names its icons
+2026-11-03T02:47:02.4082538Z   ok    every icon the page and manifest name is a PNG on disk
+2026-11-03T02:47:02.4083571Z   ok    the page links the manifest
+2026-11-03T02:47:02.4084158Z 
+2026-11-03T02:47:02.4084644Z === Caches on a shared origin ===
+2026-11-03T02:47:02.4085607Z   ok    the worker installs and controls the page on the first visit
+2026-11-03T02:47:02.4086665Z   ok    the student is told the drill now opens offline
+2026-11-03T02:47:02.4087681Z   ok    the shared origin holds 4 other sites' caches for this check
+2026-11-03T02:47:02.4089033Z   ok    another site's cache phar4342-drill-v1 is kept
+2026-11-03T02:47:02.4089878Z   ok    another site's cache bdk-v18 is kept
+2026-11-03T02:47:02.4090693Z   ok    another site's cache other-drill-v2 is kept
+2026-11-03T02:47:02.4091830Z   ok    another site's cache course-id-drill-extra-v1 is kept
+2026-11-03T02:47:02.4092844Z   ok    this course's old cache course-id-drill-v0 is deleted
+2026-11-03T02:47:02.4093756Z   ok    this course's cache course-id-drill-v1 is there
+2026-11-03T02:47:02.4094736Z   ok    the page, the redirect, the manifest and the icons are saved at install
+2026-11-03T02:47:02.4095670Z   ok    after a reload the page is served by the worker
+2026-11-03T02:47:02.4096549Z   ok    the offline note is shown once, not on every load
+2026-11-03T02:47:02.4097187Z 
+2026-11-03T02:47:02.4097576Z === Server down ===
+2026-11-03T02:47:02.4099064Z   FAIL  the site opens from the saved copy with the server down (loaded again, not the page from before)
+2026-11-03T02:47:02.4100377Z   FAIL  the old file name COURSE0000_Drill.html opens it too
+2026-11-03T02:47:02.4101267Z   ok    a quiz starts and serves a question offline
+2026-11-03T02:47:02.4102316Z   ok    no request reaches the server while it is down (it refuses connections)
+2026-11-03T02:47:02.4103127Z 
+2026-11-03T02:47:02.4103716Z === Server slower than NET_TIMEOUT, with a newer page ===
+2026-11-03T02:47:02.4104938Z   ok    the saved copy opens without waiting for the network (3544 ms, server 8000 ms)
+2026-11-03T02:47:02.4105979Z   ok    that copy is the last one saved
+2026-11-03T02:47:02.4106940Z   ok    a reload is offered once the newer page arrives
+2026-11-03T02:47:02.4107686Z   ok    the page never reloads by itself
+2026-11-03T02:47:02.4109194Z   ok    Reload brings in the newer page
+2026-11-03T02:47:02.4111313Z   FAIL  no page errors in the service worker checks  — TypeError: Load failed; /localhost:34215/course-drill/index.html.; TypeError: Load failed
+2026-11-03T02:47:02.4112535Z 
+2026-11-03T02:47:02.4112944Z === Opened from disk ===
+2026-11-03T02:47:02.4113742Z   ok    no worker is registered for a page opened from disk
+2026-11-03T02:47:02.4114546Z   ok    the drill opens from disk
+2026-11-03T02:47:02.4115283Z   ok    no page errors opened from disk
+2026-11-03T02:47:02.4117649Z FAIL: offline_test.js: 3 of 30 checks failed: the site opens from the saved copy with the server down (loaded again, not the page from before); the old file name COURSE0000_Drill.html opens it too; no page errors in the service worker checks
+2026-11-03T02:47:02.4374114Z mutation no-timeout applied to sw.js
+2026-11-03T02:47:30.1721329Z 
+2026-11-03T02:47:30.1726978Z ######## run no-timeout.1, offline_test.js, exit 1 ########
+2026-11-03T02:47:30.1734079Z 
+2026-11-03T02:47:30.1734580Z === Files beside the page ===
+2026-11-03T02:47:30.1735491Z   ok    sw.js is written beside the page
+2026-11-03T02:47:30.1740400Z   ok    the worker's cache prefix comes from the course namespace (course-id-drill-)
+2026-11-03T02:47:30.1741638Z   ok    manifest.json is written and names its icons
+2026-11-03T02:47:30.1742664Z   ok    every icon the page and manifest name is a PNG on disk
+2026-11-03T02:47:30.1743553Z   ok    the page links the manifest
+2026-11-03T02:47:30.1744062Z 
+2026-11-03T02:47:30.1744504Z === Caches on a shared origin ===
+2026-11-03T02:47:30.1745401Z   ok    the worker installs and controls the page on the first visit
+2026-11-03T02:47:30.1746366Z   ok    the student is told the drill now opens offline
+2026-11-03T02:47:30.1747268Z   ok    the shared origin holds 4 other sites' caches for this check
+2026-11-03T02:47:30.1752017Z   ok    another site's cache phar4342-drill-v1 is kept
+2026-11-03T02:47:30.1752956Z   ok    another site's cache bdk-v18 is kept
+2026-11-03T02:47:30.1753819Z   ok    another site's cache other-drill-v2 is kept
+2026-11-03T02:47:30.1754686Z   ok    another site's cache course-id-drill-extra-v1 is kept
+2026-11-03T02:47:30.1755692Z   ok    this course's old cache course-id-drill-v0 is deleted
+2026-11-03T02:47:30.1756693Z   ok    this course's cache course-id-drill-v1 is there
+2026-11-03T02:47:30.1757789Z   ok    the page, the redirect, the manifest and the icons are saved at install
+2026-11-03T02:47:30.1759268Z   ok    after a reload the page is served by the worker
+2026-11-03T02:47:30.1760181Z   ok    the offline note is shown once, not on every load
+2026-11-03T02:47:30.1760771Z 
+2026-11-03T02:47:30.1761089Z === Server down ===
+2026-11-03T02:47:30.1762104Z   ok    the site opens from the saved copy with the server down (loaded again, not the page from before)
+2026-11-03T02:47:30.1763386Z   ok    the old file name COURSE0000_Drill.html opens it too
+2026-11-03T02:47:30.1764427Z   ok    a quiz starts and serves a question offline
+2026-11-03T02:47:30.1765486Z   ok    no request reaches the server while it is down (it refuses connections)
+2026-11-03T02:47:30.1766228Z 
+2026-11-03T02:47:30.1766785Z === Server slower than NET_TIMEOUT, with a newer page ===
+2026-11-03T02:47:30.1768190Z   FAIL  the saved copy opens without waiting for the network (8053 ms, server 8000 ms)
+2026-11-03T02:47:30.1769264Z   FAIL  that copy is the last one saved
+2026-11-03T02:47:30.1770104Z   FAIL  a reload is offered once the newer page arrives
+2026-11-03T02:47:30.1770955Z   FAIL  the page never reloads by itself
+2026-11-03T02:47:30.1772867Z   FAIL  no page errors in the service worker checks  — /localhost:39203/course-drill/version.json?t=1793674030492 due to access control checks.
+2026-11-03T02:47:30.1774028Z 
+2026-11-03T02:47:30.1774398Z === Opened from disk ===
+2026-11-03T02:47:30.1775344Z   ok    no worker is registered for a page opened from disk
+2026-11-03T02:47:30.1776211Z   ok    the drill opens from disk
+2026-11-03T02:47:30.1776913Z   ok    no page errors opened from disk
+2026-11-03T02:47:30.1779671Z FAIL: offline_test.js: 5 of 29 checks failed: the saved copy opens without waiting for the network (8053 ms, server 8000 ms); that copy is the last one saved; a reload is offered once the newer page arrives …
+2026-11-03T02:47:30.2013913Z mutation no-timeout applied to sw.js
+2026-11-03T02:47:57.8115650Z 
+2026-11-03T02:47:57.8117395Z ######## run no-timeout.2, offline_test.js, exit 1 ########
+2026-11-03T02:47:57.8130445Z 
+2026-11-03T02:47:57.8130940Z === Files beside the page ===
+2026-11-03T02:47:57.8131817Z   ok    sw.js is written beside the page
+2026-11-03T02:47:57.8132975Z   ok    the worker's cache prefix comes from the course namespace (course-id-drill-)
+2026-11-03T02:47:57.8134490Z   ok    manifest.json is written and names its icons
+2026-11-03T02:47:57.8135563Z   ok    every icon the page and manifest name is a PNG on disk
+2026-11-03T02:47:57.8136832Z   ok    the page links the manifest
+2026-11-03T02:47:57.8137537Z 
+2026-11-03T02:47:57.8138380Z === Caches on a shared origin ===
+2026-11-03T02:47:57.8139322Z   ok    the worker installs and controls the page on the first visit
+2026-11-03T02:47:57.8140348Z   ok    the student is told the drill now opens offline
+2026-11-03T02:47:57.8141610Z   ok    the shared origin holds 4 other sites' caches for this check
+2026-11-03T02:47:57.8142568Z   ok    another site's cache phar4342-drill-v1 is kept
+2026-11-03T02:47:57.8143323Z   ok    another site's cache bdk-v18 is kept
+2026-11-03T02:47:57.8144113Z   ok    another site's cache other-drill-v2 is kept
+2026-11-03T02:47:57.8145070Z   ok    another site's cache course-id-drill-extra-v1 is kept
+2026-11-03T02:47:57.8146115Z   ok    this course's old cache course-id-drill-v0 is deleted
+2026-11-03T02:47:57.8147225Z   ok    this course's cache course-id-drill-v1 is there
+2026-11-03T02:47:57.8148567Z   ok    the page, the redirect, the manifest and the icons are saved at install
+2026-11-03T02:47:57.8149724Z   ok    after a reload the page is served by the worker
+2026-11-03T02:47:57.8150630Z   ok    the offline note is shown once, not on every load
+2026-11-03T02:47:57.8151190Z 
+2026-11-03T02:47:57.8151553Z === Server down ===
+2026-11-03T02:47:57.8152597Z   ok    the site opens from the saved copy with the server down (loaded again, not the page from before)
+2026-11-03T02:47:57.8153898Z   ok    the old file name COURSE0000_Drill.html opens it too
+2026-11-03T02:47:57.8154849Z   ok    a quiz starts and serves a question offline
+2026-11-03T02:47:57.8155928Z   ok    no request reaches the server while it is down (it refuses connections)
+2026-11-03T02:47:57.8156658Z 
+2026-11-03T02:47:57.8157234Z === Server slower than NET_TIMEOUT, with a newer page ===
+2026-11-03T02:47:57.8158994Z   FAIL  the saved copy opens without waiting for the network (8052 ms, server 8000 ms)
+2026-11-03T02:47:57.8159950Z   FAIL  that copy is the last one saved
+2026-11-03T02:47:57.8160741Z   FAIL  a reload is offered once the newer page arrives
+2026-11-03T02:47:57.8161753Z   FAIL  the page never reloads by itself
+2026-11-03T02:47:57.8163656Z   FAIL  no page errors in the service worker checks  — /localhost:34721/course-drill/version.json?t=1793674058143 due to access control checks.
+2026-11-03T02:47:57.8164883Z 
+2026-11-03T02:47:57.8165285Z === Opened from disk ===
+2026-11-03T02:47:57.8166200Z   ok    no worker is registered for a page opened from disk
+2026-11-03T02:47:57.8167062Z   ok    the drill opens from disk
+2026-11-03T02:47:57.8167793Z   ok    no page errors opened from disk
+2026-11-03T02:47:57.8170379Z FAIL: offline_test.js: 5 of 29 checks failed: the saved copy opens without waiting for the network (8052 ms, server 8000 ms); that copy is the last one saved; a reload is offered once the newer page arrives …
+2026-11-03T02:47:57.8413169Z mutation no-timeout applied to sw.js
+2026-11-03T02:48:25.4752115Z 
+2026-11-03T02:48:25.4753393Z ######## run no-timeout.3, offline_test.js, exit 1 ########
+2026-11-03T02:48:25.4765489Z 
+2026-11-03T02:48:25.4766157Z === Files beside the page ===
+2026-11-03T02:48:25.4768905Z   ok    sw.js is written beside the page
+2026-11-03T02:48:25.4780240Z   ok    the worker's cache prefix comes from the course namespace (course-id-drill-)
+2026-11-03T02:48:25.4789182Z   ok    manifest.json is written and names its icons
+2026-11-03T02:48:25.4790276Z   ok    every icon the page and manifest name is a PNG on disk
+2026-11-03T02:48:25.4791286Z   ok    the page links the manifest
+2026-11-03T02:48:25.4791831Z 
+2026-11-03T02:48:25.4792594Z === Caches on a shared origin ===
+2026-11-03T02:48:25.4793683Z   ok    the worker installs and controls the page on the first visit
+2026-11-03T02:48:25.4794983Z   ok    the student is told the drill now opens offline
+2026-11-03T02:48:25.4796008Z   ok    the shared origin holds 4 other sites' caches for this check
+2026-11-03T02:48:25.4799129Z   ok    another site's cache phar4342-drill-v1 is kept
+2026-11-03T02:48:25.4800034Z   ok    another site's cache bdk-v18 is kept
+2026-11-03T02:48:25.4801221Z   ok    another site's cache other-drill-v2 is kept
+2026-11-03T02:48:25.4802454Z   ok    another site's cache course-id-drill-extra-v1 is kept
+2026-11-03T02:48:25.4803411Z   ok    this course's old cache course-id-drill-v0 is deleted
+2026-11-03T02:48:25.4804609Z   ok    this course's cache course-id-drill-v1 is there
+2026-11-03T02:48:25.4805631Z   ok    the page, the redirect, the manifest and the icons are saved at install
+2026-11-03T02:48:25.4806612Z   ok    after a reload the page is served by the worker
+2026-11-03T02:48:25.4807497Z   ok    the offline note is shown once, not on every load
+2026-11-03T02:48:25.4808427Z 
+2026-11-03T02:48:25.4808796Z === Server down ===
+2026-11-03T02:48:25.4809961Z   ok    the site opens from the saved copy with the server down (loaded again, not the page from before)
+2026-11-03T02:48:25.4811212Z   ok    the old file name COURSE0000_Drill.html opens it too
+2026-11-03T02:48:25.4812112Z   ok    a quiz starts and serves a question offline
+2026-11-03T02:48:25.4813161Z   ok    no request reaches the server while it is down (it refuses connections)
+2026-11-03T02:48:25.4814066Z 
+2026-11-03T02:48:25.4814635Z === Server slower than NET_TIMEOUT, with a newer page ===
+2026-11-03T02:48:25.4815861Z   FAIL  the saved copy opens without waiting for the network (8052 ms, server 8000 ms)
+2026-11-03T02:48:25.4816898Z   FAIL  that copy is the last one saved
+2026-11-03T02:48:25.4817721Z   FAIL  a reload is offered once the newer page arrives
+2026-11-03T02:48:25.4818923Z   FAIL  the page never reloads by itself
+2026-11-03T02:48:25.4821308Z   FAIL  no page errors in the service worker checks  — /localhost:36593/course-drill/version.json?t=1793674085801 due to access control checks.
+2026-11-03T02:48:25.4822883Z 
+2026-11-03T02:48:25.4823240Z === Opened from disk ===
+2026-11-03T02:48:25.4824099Z   ok    no worker is registered for a page opened from disk
+2026-11-03T02:48:25.4825113Z   ok    the drill opens from disk
+2026-11-03T02:48:25.4825841Z   ok    no page errors opened from disk
+2026-11-03T02:48:25.4828446Z FAIL: offline_test.js: 5 of 29 checks failed: the saved copy opens without waiting for the network (8052 ms, server 8000 ms); that copy is the last one saved; a reload is offered once the newer page arrives …
+2026-11-03T02:48:25.5049718Z mutation no-update-offer applied to sw.js
+2026-11-03T02:48:48.6257655Z 
+2026-11-03T02:48:48.6260263Z ######## run no-update-offer.1, offline_test.js, exit 1 ########
+2026-11-03T02:48:48.6272234Z 
+2026-11-03T02:48:48.6272787Z === Files beside the page ===
+2026-11-03T02:48:48.6273686Z   ok    sw.js is written beside the page
+2026-11-03T02:48:48.6274889Z   ok    the worker's cache prefix comes from the course namespace (course-id-drill-)
+2026-11-03T02:48:48.6276453Z   ok    manifest.json is written and names its icons
+2026-11-03T02:48:48.6277436Z   ok    every icon the page and manifest name is a PNG on disk
+2026-11-03T02:48:48.6278886Z   ok    the page links the manifest
+2026-11-03T02:48:48.6279454Z 
+2026-11-03T02:48:48.6279962Z === Caches on a shared origin ===
+2026-11-03T02:48:48.6280907Z   ok    the worker installs and controls the page on the first visit
+2026-11-03T02:48:48.6281950Z   ok    the student is told the drill now opens offline
+2026-11-03T02:48:48.6282954Z   ok    the shared origin holds 4 other sites' caches for this check
+2026-11-03T02:48:48.6283970Z   ok    another site's cache phar4342-drill-v1 is kept
+2026-11-03T02:48:48.6284835Z   ok    another site's cache bdk-v18 is kept
+2026-11-03T02:48:48.6285578Z   ok    another site's cache other-drill-v2 is kept
+2026-11-03T02:48:48.6286428Z   ok    another site's cache course-id-drill-extra-v1 is kept
+2026-11-03T02:48:48.6287379Z   ok    this course's old cache course-id-drill-v0 is deleted
+2026-11-03T02:48:48.6288724Z   ok    this course's cache course-id-drill-v1 is there
+2026-11-03T02:48:48.6289892Z   ok    the page, the redirect, the manifest and the icons are saved at install
+2026-11-03T02:48:48.6290957Z   ok    after a reload the page is served by the worker
+2026-11-03T02:48:48.6292253Z   ok    the offline note is shown once, not on every load
+2026-11-03T02:48:48.6292867Z 
+2026-11-03T02:48:48.6293252Z === Server down ===
+2026-11-03T02:48:48.6294294Z   ok    the site opens from the saved copy with the server down (loaded again, not the page from before)
+2026-11-03T02:48:48.6295855Z   ok    the old file name COURSE0000_Drill.html opens it too
+2026-11-03T02:48:48.6296788Z   ok    a quiz starts and serves a question offline
+2026-11-03T02:48:48.6297843Z   ok    no request reaches the server while it is down (it refuses connections)
+2026-11-03T02:48:48.6299247Z 
+2026-11-03T02:48:48.6299775Z === Server slower than NET_TIMEOUT, with a newer page ===
+2026-11-03T02:48:48.6300797Z   ok    the saved copy opens without waiting for the network (3542 ms, server 8000 ms)
+2026-11-03T02:48:48.6301692Z   ok    that copy is the last one saved
+2026-11-03T02:48:48.6302744Z   FAIL  a reload is offered once the newer page arrives
+2026-11-03T02:48:48.6303620Z   ok    the page never reloads by itself
+2026-11-03T02:48:48.6304437Z   ok    no page errors in the service worker checks
+2026-11-03T02:48:48.6304996Z 
+2026-11-03T02:48:48.6305387Z === Opened from disk ===
+2026-11-03T02:48:48.6306092Z   ok    no worker is registered for a page opened from disk
+2026-11-03T02:48:48.6306873Z   ok    the drill opens from disk
+2026-11-03T02:48:48.6307598Z   ok    no page errors opened from disk
+2026-11-03T02:48:48.6309148Z FAIL: offline_test.js: 1 of 29 checks failed: a reload is offered once the newer page arrives
+2026-11-03T02:48:48.6549804Z mutation no-update-offer applied to sw.js
+2026-11-03T02:49:11.8150380Z 
+2026-11-03T02:49:11.8152114Z ######## run no-update-offer.2, offline_test.js, exit 1 ########
+2026-11-03T02:49:11.8164495Z 
+2026-11-03T02:49:11.8164969Z === Files beside the page ===
+2026-11-03T02:49:11.8165795Z   ok    sw.js is written beside the page
+2026-11-03T02:49:11.8166918Z   ok    the worker's cache prefix comes from the course namespace (course-id-drill-)
+2026-11-03T02:49:11.8168657Z   ok    manifest.json is written and names its icons
+2026-11-03T02:49:11.8169722Z   ok    every icon the page and manifest name is a PNG on disk
+2026-11-03T02:49:11.8170593Z   ok    the page links the manifest
+2026-11-03T02:49:11.8171132Z 
+2026-11-03T02:49:11.8171647Z === Caches on a shared origin ===
+2026-11-03T02:49:11.8172549Z   ok    the worker installs and controls the page on the first visit
+2026-11-03T02:49:11.8173552Z   ok    the student is told the drill now opens offline
+2026-11-03T02:49:11.8174525Z   ok    the shared origin holds 4 other sites' caches for this check
+2026-11-03T02:49:11.8175470Z   ok    another site's cache phar4342-drill-v1 is kept
+2026-11-03T02:49:11.8176290Z   ok    another site's cache bdk-v18 is kept
+2026-11-03T02:49:11.8177038Z   ok    another site's cache other-drill-v2 is kept
+2026-11-03T02:49:11.8178429Z   ok    another site's cache course-id-drill-extra-v1 is kept
+2026-11-03T02:49:11.8179379Z   ok    this course's old cache course-id-drill-v0 is deleted
+2026-11-03T02:49:11.8180458Z   ok    this course's cache course-id-drill-v1 is there
+2026-11-03T02:49:11.8181551Z   ok    the page, the redirect, the manifest and the icons are saved at install
+2026-11-03T02:49:11.8182736Z   ok    after a reload the page is served by the worker
+2026-11-03T02:49:11.8183668Z   ok    the offline note is shown once, not on every load
+2026-11-03T02:49:11.8184324Z 
+2026-11-03T02:49:11.8184685Z === Server down ===
+2026-11-03T02:49:11.8185667Z   ok    the site opens from the saved copy with the server down (loaded again, not the page from before)
+2026-11-03T02:49:11.8186890Z   ok    the old file name COURSE0000_Drill.html opens it too
+2026-11-03T02:49:11.8188078Z   ok    a quiz starts and serves a question offline
+2026-11-03T02:49:11.8189230Z   ok    no request reaches the server while it is down (it refuses connections)
+2026-11-03T02:49:11.8189982Z 
+2026-11-03T02:49:11.8190592Z === Server slower than NET_TIMEOUT, with a newer page ===
+2026-11-03T02:49:11.8191961Z   ok    the saved copy opens without waiting for the network (3541 ms, server 8000 ms)
+2026-11-03T02:49:11.8193009Z   ok    that copy is the last one saved
+2026-11-03T02:49:11.8193869Z   FAIL  a reload is offered once the newer page arrives
+2026-11-03T02:49:11.8194965Z   ok    the page never reloads by itself
+2026-11-03T02:49:11.8196156Z   ok    no page errors in the service worker checks
+2026-11-03T02:49:11.8196745Z 
+2026-11-03T02:49:11.8197140Z === Opened from disk ===
+2026-11-03T02:49:11.8198318Z   ok    no worker is registered for a page opened from disk
+2026-11-03T02:49:11.8199256Z   ok    the drill opens from disk
+2026-11-03T02:49:11.8200016Z   ok    no page errors opened from disk
+2026-11-03T02:49:11.8201206Z FAIL: offline_test.js: 1 of 29 checks failed: a reload is offered once the newer page arrives
+2026-11-03T02:49:11.8437794Z mutation no-update-offer applied to sw.js
+2026-11-03T02:49:34.9877377Z 
+2026-11-03T02:49:34.9879317Z ######## run no-update-offer.3, offline_test.js, exit 1 ########
+2026-11-03T02:49:34.9891814Z 
+2026-11-03T02:49:34.9892304Z === Files beside the page ===
+2026-11-03T02:49:34.9893257Z   ok    sw.js is written beside the page
+2026-11-03T02:49:34.9894532Z   ok    the worker's cache prefix comes from the course namespace (course-id-drill-)
+2026-11-03T02:49:34.9896155Z   ok    manifest.json is written and names its icons
+2026-11-03T02:49:34.9897281Z   ok    every icon the page and manifest name is a PNG on disk
+2026-11-03T02:49:34.9898604Z   ok    the page links the manifest
+2026-11-03T02:49:34.9899265Z 
+2026-11-03T02:49:34.9899745Z === Caches on a shared origin ===
+2026-11-03T02:49:34.9900768Z   ok    the worker installs and controls the page on the first visit
+2026-11-03T02:49:34.9901893Z   ok    the student is told the drill now opens offline
+2026-11-03T02:49:34.9902995Z   ok    the shared origin holds 4 other sites' caches for this check
+2026-11-03T02:49:34.9904046Z   ok    another site's cache phar4342-drill-v1 is kept
+2026-11-03T02:49:34.9904993Z   ok    another site's cache bdk-v18 is kept
+2026-11-03T02:49:34.9905791Z   ok    another site's cache other-drill-v2 is kept
+2026-11-03T02:49:34.9906931Z   ok    another site's cache course-id-drill-extra-v1 is kept
+2026-11-03T02:49:34.9908662Z   ok    this course's old cache course-id-drill-v0 is deleted
+2026-11-03T02:49:34.9909687Z   ok    this course's cache course-id-drill-v1 is there
+2026-11-03T02:49:34.9910664Z   ok    the page, the redirect, the manifest and the icons are saved at install
+2026-11-03T02:49:34.9911978Z   ok    after a reload the page is served by the worker
+2026-11-03T02:49:34.9912922Z   ok    the offline note is shown once, not on every load
+2026-11-03T02:49:34.9913542Z 
+2026-11-03T02:49:34.9913923Z === Server down ===
+2026-11-03T02:49:34.9914917Z   ok    the site opens from the saved copy with the server down (loaded again, not the page from before)
+2026-11-03T02:49:34.9916141Z   ok    the old file name COURSE0000_Drill.html opens it too
+2026-11-03T02:49:34.9917126Z   ok    a quiz starts and serves a question offline
+2026-11-03T02:49:34.9918466Z   ok    no request reaches the server while it is down (it refuses connections)
+2026-11-03T02:49:34.9919327Z 
+2026-11-03T02:49:34.9919896Z === Server slower than NET_TIMEOUT, with a newer page ===
+2026-11-03T02:49:34.9920997Z   ok    the saved copy opens without waiting for the network (3542 ms, server 8000 ms)
+2026-11-03T02:49:34.9921961Z   ok    that copy is the last one saved
+2026-11-03T02:49:34.9922785Z   FAIL  a reload is offered once the newer page arrives
+2026-11-03T02:49:34.9923645Z   ok    the page never reloads by itself
+2026-11-03T02:49:34.9924578Z   ok    no page errors in the service worker checks
+2026-11-03T02:49:34.9925193Z 
+2026-11-03T02:49:34.9925586Z === Opened from disk ===
+2026-11-03T02:49:34.9926368Z   ok    no worker is registered for a page opened from disk
+2026-11-03T02:49:34.9927200Z   ok    the drill opens from disk
+2026-11-03T02:49:34.9928229Z   ok    no page errors opened from disk
+2026-11-03T02:49:34.9929511Z FAIL: offline_test.js: 1 of 29 checks failed: a reload is offered once the newer page arrives
+2026-11-03T02:49:35.0178927Z mutation down-does-nothing applied to src/check_lib.js
+2026-11-03T02:49:47.1202394Z 
+2026-11-03T02:49:47.1204379Z ######## run down-does-nothing.1, offline_test.js, exit 1 ########
+2026-11-03T02:49:47.1216667Z 
+2026-11-03T02:49:47.1217224Z === Files beside the page ===
+2026-11-03T02:49:47.1218791Z   ok    sw.js is written beside the page
+2026-11-03T02:49:47.1220067Z   ok    the worker's cache prefix comes from the course namespace (course-id-drill-)
+2026-11-03T02:49:47.1221406Z   ok    manifest.json is written and names its icons
+2026-11-03T02:49:47.1222465Z   ok    every icon the page and manifest name is a PNG on disk
+2026-11-03T02:49:47.1223470Z   ok    the page links the manifest
+2026-11-03T02:49:47.1224038Z 
+2026-11-03T02:49:47.1224518Z === Caches on a shared origin ===
+2026-11-03T02:49:47.1225494Z   ok    the worker installs and controls the page on the first visit
+2026-11-03T02:49:47.1226601Z   ok    the student is told the drill now opens offline
+2026-11-03T02:49:47.1227722Z   ok    the shared origin holds 4 other sites' caches for this check
+2026-11-03T02:49:47.1228913Z   ok    another site's cache phar4342-drill-v1 is kept
+2026-11-03T02:49:47.1229681Z   ok    another site's cache bdk-v18 is kept
+2026-11-03T02:49:47.1230432Z   ok    another site's cache other-drill-v2 is kept
+2026-11-03T02:49:47.1231537Z   ok    another site's cache course-id-drill-extra-v1 is kept
+2026-11-03T02:49:47.1232454Z   ok    this course's old cache course-id-drill-v0 is deleted
+2026-11-03T02:49:47.1233272Z   ok    this course's cache course-id-drill-v1 is there
+2026-11-03T02:49:47.1234338Z   ok    the page, the redirect, the manifest and the icons are saved at install
+2026-11-03T02:49:47.1235431Z   ok    after a reload the page is served by the worker
+2026-11-03T02:49:47.1236477Z   ok    the offline note is shown once, not on every load
+2026-11-03T02:49:47.1237163Z 
+2026-11-03T02:49:47.1237543Z === Server down ===
+2026-11-03T02:49:47.1238927Z   ok    the site opens from the saved copy with the server down (loaded again, not the page from before)
+2026-11-03T02:49:47.1240144Z   ok    the old file name COURSE0000_Drill.html opens it too
+2026-11-03T02:49:47.1241019Z   ok    a quiz starts and serves a question offline
+2026-11-03T02:49:47.1242957Z   FAIL  no request reaches the server while it is down (it refuses connections)  — 2 served, 0 answered 503 on a connection busy when it went down
+2026-11-03T02:49:47.1244268Z 
+2026-11-03T02:49:47.1244866Z === Server slower than NET_TIMEOUT, with a newer page ===
+2026-11-03T02:49:47.1245999Z   ok    the saved copy opens without waiting for the network (3545 ms, server 8000 ms)
+2026-11-03T02:49:47.1246983Z   ok    that copy is the last one saved
+2026-11-03T02:49:47.1248456Z   ok    a reload is offered once the newer page arrives
+2026-11-03T02:49:47.1249393Z   ok    the page never reloads by itself
+2026-11-03T02:49:47.1250208Z   ok    Reload brings in the newer page
+2026-11-03T02:49:47.1251033Z   ok    no page errors in the service worker checks
+2026-11-03T02:49:47.1251646Z 
+2026-11-03T02:49:47.1252057Z === Opened from disk ===
+2026-11-03T02:49:47.1252828Z   ok    no worker is registered for a page opened from disk
+2026-11-03T02:49:47.1253692Z   ok    the drill opens from disk
+2026-11-03T02:49:47.1254457Z   ok    no page errors opened from disk
+2026-11-03T02:49:47.1256004Z FAIL: offline_test.js: 1 of 30 checks failed: no request reaches the server while it is down (it refuses connections)
+2026-11-03T02:49:47.1495723Z mutation down-does-nothing applied to src/check_lib.js
+2026-11-03T02:49:59.1850238Z 
+2026-11-03T02:49:59.1851526Z ######## run down-does-nothing.2, offline_test.js, exit 1 ########
+2026-11-03T02:49:59.1861679Z 
+2026-11-03T02:49:59.1862220Z === Files beside the page ===
+2026-11-03T02:49:59.1863182Z   ok    sw.js is written beside the page
+2026-11-03T02:49:59.1867183Z   ok    the worker's cache prefix comes from the course namespace (course-id-drill-)
+2026-11-03T02:49:59.1868811Z   ok    manifest.json is written and names its icons
+2026-11-03T02:49:59.1870256Z   ok    every icon the page and manifest name is a PNG on disk
+2026-11-03T02:49:59.1871231Z   ok    the page links the manifest
+2026-11-03T02:49:59.1871773Z 
+2026-11-03T02:49:59.1872215Z === Caches on a shared origin ===
+2026-11-03T02:49:59.1873122Z   ok    the worker installs and controls the page on the first visit
+2026-11-03T02:49:59.1874489Z   ok    the student is told the drill now opens offline
+2026-11-03T02:49:59.1875312Z   ok    the shared origin holds 4 other sites' caches for this check
+2026-11-03T02:49:59.1876364Z   ok    another site's cache phar4342-drill-v1 is kept
+2026-11-03T02:49:59.1877260Z   ok    another site's cache bdk-v18 is kept
+2026-11-03T02:49:59.1882243Z   ok    another site's cache other-drill-v2 is kept
+2026-11-03T02:49:59.1883252Z   ok    another site's cache course-id-drill-extra-v1 is kept
+2026-11-03T02:49:59.1884245Z   ok    this course's old cache course-id-drill-v0 is deleted
+2026-11-03T02:49:59.1885194Z   ok    this course's cache course-id-drill-v1 is there
+2026-11-03T02:49:59.1886187Z   ok    the page, the redirect, the manifest and the icons are saved at install
+2026-11-03T02:49:59.1887219Z   ok    after a reload the page is served by the worker
+2026-11-03T02:49:59.1888384Z   ok    the offline note is shown once, not on every load
+2026-11-03T02:49:59.1889236Z 
+2026-11-03T02:49:59.1889622Z === Server down ===
+2026-11-03T02:49:59.1890714Z   ok    the site opens from the saved copy with the server down (loaded again, not the page from before)
+2026-11-03T02:49:59.1891948Z   ok    the old file name COURSE0000_Drill.html opens it too
+2026-11-03T02:49:59.1892899Z   ok    a quiz starts and serves a question offline
+2026-11-03T02:49:59.1894978Z   FAIL  no request reaches the server while it is down (it refuses connections)  — 2 served, 0 answered 503 on a connection busy when it went down
+2026-11-03T02:49:59.1896282Z 
+2026-11-03T02:49:59.1896889Z === Server slower than NET_TIMEOUT, with a newer page ===
+2026-11-03T02:49:59.1898308Z   ok    the saved copy opens without waiting for the network (3542 ms, server 8000 ms)
+2026-11-03T02:49:59.1899451Z   ok    that copy is the last one saved
+2026-11-03T02:49:59.1900266Z   ok    a reload is offered once the newer page arrives
+2026-11-03T02:49:59.1901099Z   ok    the page never reloads by itself
+2026-11-03T02:49:59.1901871Z   ok    Reload brings in the newer page
+2026-11-03T02:49:59.1902688Z   ok    no page errors in the service worker checks
+2026-11-03T02:49:59.1903404Z 
+2026-11-03T02:49:59.1903770Z === Opened from disk ===
+2026-11-03T02:49:59.1904633Z   ok    no worker is registered for a page opened from disk
+2026-11-03T02:49:59.1905464Z   ok    the drill opens from disk
+2026-11-03T02:49:59.1906163Z   ok    no page errors opened from disk
+2026-11-03T02:49:59.1907509Z FAIL: offline_test.js: 1 of 30 checks failed: no request reaches the server while it is down (it refuses connections)
+2026-11-03T02:49:59.2148896Z mutation down-does-nothing applied to src/check_lib.js
+2026-11-03T02:50:11.2910795Z 
+2026-11-03T02:50:11.2912185Z ######## run down-does-nothing.3, offline_test.js, exit 1 ########
+2026-11-03T02:50:11.2925397Z 
+2026-11-03T02:50:11.2925837Z === Files beside the page ===
+2026-11-03T02:50:11.2927052Z   ok    sw.js is written beside the page
+2026-11-03T02:50:11.2928467Z   ok    the worker's cache prefix comes from the course namespace (course-id-drill-)
+2026-11-03T02:50:11.2930190Z   ok    manifest.json is written and names its icons
+2026-11-03T02:50:11.2931398Z   ok    every icon the page and manifest name is a PNG on disk
+2026-11-03T02:50:11.2932578Z   ok    the page links the manifest
+2026-11-03T02:50:11.2933265Z 
+2026-11-03T02:50:11.2933837Z === Caches on a shared origin ===
+2026-11-03T02:50:11.2934900Z   ok    the worker installs and controls the page on the first visit
+2026-11-03T02:50:11.2936000Z   ok    the student is told the drill now opens offline
+2026-11-03T02:50:11.2937249Z   ok    the shared origin holds 4 other sites' caches for this check
+2026-11-03T02:50:11.2938575Z   ok    another site's cache phar4342-drill-v1 is kept
+2026-11-03T02:50:11.2939988Z   ok    another site's cache bdk-v18 is kept
+2026-11-03T02:50:11.2941016Z   ok    another site's cache other-drill-v2 is kept
+2026-11-03T02:50:11.2942040Z   ok    another site's cache course-id-drill-extra-v1 is kept
+2026-11-03T02:50:11.2943237Z   ok    this course's old cache course-id-drill-v0 is deleted
+2026-11-03T02:50:11.2944804Z   ok    this course's cache course-id-drill-v1 is there
+2026-11-03T02:50:11.2946118Z   ok    the page, the redirect, the manifest and the icons are saved at install
+2026-11-03T02:50:11.2947476Z   ok    after a reload the page is served by the worker
+2026-11-03T02:50:11.2948863Z   ok    the offline note is shown once, not on every load
+2026-11-03T02:50:11.2949884Z 
+2026-11-03T02:50:11.2950282Z === Server down ===
+2026-11-03T02:50:11.2951648Z   ok    the site opens from the saved copy with the server down (loaded again, not the page from before)
+2026-11-03T02:50:11.2953260Z   ok    the old file name COURSE0000_Drill.html opens it too
+2026-11-03T02:50:11.2954555Z   ok    a quiz starts and serves a question offline
+2026-11-03T02:50:11.2957068Z   FAIL  no request reaches the server while it is down (it refuses connections)  — 2 served, 0 answered 503 on a connection busy when it went down
+2026-11-03T02:50:11.2958841Z 
+2026-11-03T02:50:11.2959616Z === Server slower than NET_TIMEOUT, with a newer page ===
+2026-11-03T02:50:11.2960929Z   ok    the saved copy opens without waiting for the network (3542 ms, server 8000 ms)
+2026-11-03T02:50:11.2962458Z   ok    that copy is the last one saved
+2026-11-03T02:50:11.2963636Z   ok    a reload is offered once the newer page arrives
+2026-11-03T02:50:11.2964825Z   ok    the page never reloads by itself
+2026-11-03T02:50:11.2965882Z   ok    Reload brings in the newer page
+2026-11-03T02:50:11.2966982Z   ok    no page errors in the service worker checks
+2026-11-03T02:50:11.2967702Z 
+2026-11-03T02:50:11.2968428Z === Opened from disk ===
+2026-11-03T02:50:11.2969358Z   ok    no worker is registered for a page opened from disk
+2026-11-03T02:50:11.2970360Z   ok    the drill opens from disk
+2026-11-03T02:50:11.2971221Z   ok    no page errors opened from disk
+2026-11-03T02:50:11.2973021Z FAIL: offline_test.js: 1 of 30 checks failed: no request reaches the server while it is down (it refuses connections)
+2026-11-03T02:50:11.2975320Z 
+2026-11-03T02:50:11.2975709Z ######## summary ########
+2026-11-03T02:50:11.2979672Z RUN no-offline-fallback.1 offline_test.js 1 FAIL: offline_test.js: 3 of 30 checks failed: the site opens from the saved copy with the server down (loaded again, not the page from before); the old file name COURSE0000_Drill.html opens it too; no page errors in the service worker checks
+2026-11-03T02:50:11.2984235Z RUN no-offline-fallback.2 offline_test.js 1 FAIL: offline_test.js: 3 of 30 checks failed: the site opens from the saved copy with the server down (loaded again, not the page from before); the old file name COURSE0000_Drill.html opens it too; no page errors in the service worker checks
+2026-11-03T02:50:11.2988901Z RUN no-offline-fallback.3 offline_test.js 1 FAIL: offline_test.js: 3 of 30 checks failed: the site opens from the saved copy with the server down (loaded again, not the page from before); the old file name COURSE0000_Drill.html opens it too; no page errors in the service worker checks
+2026-11-03T02:50:11.2993241Z RUN no-timeout.1 offline_test.js 1 FAIL: offline_test.js: 5 of 29 checks failed: the saved copy opens without waiting for the network (8053 ms, server 8000 ms); that copy is the last one saved; a reload is offered once the newer page arrives …
+2026-11-03T02:50:11.2997165Z RUN no-timeout.2 offline_test.js 1 FAIL: offline_test.js: 5 of 29 checks failed: the saved copy opens without waiting for the network (8052 ms, server 8000 ms); that copy is the last one saved; a reload is offered once the newer page arrives …
+2026-11-03T02:50:11.3001577Z RUN no-timeout.3 offline_test.js 1 FAIL: offline_test.js: 5 of 29 checks failed: the saved copy opens without waiting for the network (8052 ms, server 8000 ms); that copy is the last one saved; a reload is offered once the newer page arrives …
+2026-11-03T02:50:11.3004350Z RUN no-update-offer.1 offline_test.js 1 FAIL: offline_test.js: 1 of 29 checks failed: a reload is offered once the newer page arrives
+2026-11-03T02:50:11.3006788Z RUN no-update-offer.2 offline_test.js 1 FAIL: offline_test.js: 1 of 29 checks failed: a reload is offered once the newer page arrives
+2026-11-03T02:50:11.3009380Z RUN no-update-offer.3 offline_test.js 1 FAIL: offline_test.js: 1 of 29 checks failed: a reload is offered once the newer page arrives
+2026-11-03T02:50:11.3011702Z RUN down-does-nothing.1 offline_test.js 1 FAIL: offline_test.js: 1 of 30 checks failed: no request reaches the server while it is down (it refuses connections)
+2026-11-03T02:50:11.3014198Z RUN down-does-nothing.2 offline_test.js 1 FAIL: offline_test.js: 1 of 30 checks failed: no request reaches the server while it is down (it refuses connections)
+2026-11-03T02:50:11.3016712Z RUN down-does-nothing.3 offline_test.js 1 FAIL: offline_test.js: 1 of 30 checks failed: no request reaches the server while it is down (it refuses connections)
+2026-11-03T02:50:11.3018491Z broken copies: 12 of 12 runs FAIL
+2026-11-03T02:50:11.3117588Z Post job cleanup.
+2026-11-03T02:50:11.4578430Z Post job cleanup.
+2026-11-03T02:50:11.6776779Z Post job cleanup.
+2026-11-03T02:50:11.8012368Z [command]/usr/bin/git version
+2026-11-03T02:50:11.8103726Z git version 2.56.0
+2026-11-03T02:50:11.8172242Z Temporarily overriding HOME='/home/runner/work/_temp/06384864-dcd9-4667-b465-76995965b2bc' before making global git config changes
+2026-11-03T02:50:11.8173935Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-03T02:50:11.8175427Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/exam-drill-kit/exam-drill-kit
+2026-11-03T02:50:11.8256502Z Removing SSH command configuration
+2026-11-03T02:50:11.8269125Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-03T02:50:11.8350473Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-03T02:50:11.8919879Z Removing HTTP extra header
+2026-11-03T02:50:11.8967466Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-03T02:50:11.9077427Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-03T02:50:11.9576252Z Removing includeIf entries pointing to credentials config files
+2026-11-03T02:50:11.9587617Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-03T02:50:11.9629337Z includeif.gitdir:/home/runner/work/exam-drill-kit/exam-drill-kit/.git.path
+2026-11-03T02:50:11.9631050Z includeif.gitdir:/home/runner/work/exam-drill-kit/exam-drill-kit/.git/worktrees/*.path
+2026-11-03T02:50:11.9632564Z includeif.gitdir:/github/workspace/.git.path
+2026-11-03T02:50:11.9633812Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-11-03T02:50:11.9639922Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/exam-drill-kit/exam-drill-kit/.git.path
+2026-11-03T02:50:11.9680953Z /home/runner/work/_temp/git-credentials-121e1362-43e1-4f15-a04d-52a4cbef91b6.config
+2026-11-03T02:50:11.9693562Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/exam-drill-kit/exam-drill-kit/.git.path \/home\/runner\/work\/_temp\/git\-credentials\-121e1362\-43e1\-4f15\-a04d\-52a4cbef91b6\.config
+2026-11-03T02:50:11.9770432Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/exam-drill-kit/exam-drill-kit/.git/worktrees/*.path
+2026-11-03T02:50:11.9802375Z /home/runner/work/_temp/git-credentials-121e1362-43e1-4f15-a04d-52a4cbef91b6.config
+2026-11-03T02:50:11.9815083Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/exam-drill-kit/exam-drill-kit/.git/worktrees/*.path \/home\/runner\/work\/_temp\/git\-credentials\-121e1362\-43e1\-4f15\-a04d\-52a4cbef91b6\.config
+2026-11-03T02:50:11.9865782Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+2026-11-03T02:50:11.9906701Z /github/runner_temp/git-credentials-121e1362-43e1-4f15-a04d-52a4cbef91b6.config
+2026-11-03T02:50:11.9915520Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path \/github\/runner_temp\/git\-credentials\-121e1362\-43e1\-4f15\-a04d\-52a4cbef91b6\.config
+2026-11-03T02:50:11.9967093Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-11-03T02:50:12.0006521Z /github/runner_temp/git-credentials-121e1362-43e1-4f15-a04d-52a4cbef91b6.config
+2026-11-03T02:50:12.0015852Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path \/github\/runner_temp\/git\-credentials\-121e1362\-43e1\-4f15\-a04d\-52a4cbef91b6\.config
+2026-11-03T02:50:12.0069479Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-03T02:50:12.0335038Z Removing credentials config '/home/runner/work/_temp/git-credentials-121e1362-43e1-4f15-a04d-52a4cbef91b6.config'
+2026-11-03T02:50:12.0501807Z Cleaning up orphan processes
