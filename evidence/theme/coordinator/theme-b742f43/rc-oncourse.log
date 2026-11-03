@@ -1,0 +1,3 @@
+wrote: appended to /tmp/port-coord/rc-theme/src/course.js:
+;/* theme ci */ COURSE.features = Object.assign({}, COURSE.features, {"theme": {"version":"v1"}});
+wrote: no data files (the module reads no course data)

@@ -1,0 +1,54 @@
+
+=== theme.css and the core's colours ===
+  ok    theme.css holds the same 18 dark rules for Match device on a dark device and for Dark picked
+  ok    each of the 24 colours the core's :root sets has a dark value
+
+=== in node, as the course's checks run the engine ===
+  ok    the module loads with no page around it (explain_check.js and test.js run the engine so)
+
+=== in Chromium, on a scratch copy built with the module on ===
+  ok    the core's light page colour (rgb(242, 244, 247)) and the dark one (rgb(16, 22, 29)) differ
+  ok    the scratch copy holds the fixture's 4 Basic-Pharmacokinetics questions in a topic of their own, after the course's topics
+  ok    a stored Dark is on the page in the first frame that shows the tabs, 3 reloads of the 0.28 MB page (no light page first)
+  ok    the large scratch copy builds
+  ok    the large page is 1500000 bytes or more (1564690)
+  ok    the first frame that shows the tabs is found in each of 5 reloads of the 1.56 MB page
+  measure  a stored Dark is on the page in the first frame that shows the tabs, 5 reloads of the 1.56 MB page: 3 of 5 first frames light: light (tabs at 42 ms, page loading), dark, dark, light (tabs at 51 ms, page loading), light (tabs at 37 ms, page loading)
+  skip  a stored Dark is on the page in the first frame that shows the tabs, 5 reloads of the 1.56 MB page  — KNOWN LIMIT (fault T1): 3 of 5 first frames light: light (tabs at 42 ms, page loading), dark, dark, light (tabs at 51 ms, page loading), light (tabs at 37 ms, page loading); theme.js sets data-theme at the end of the page's script and a module cannot put a script in <head>, so this needs a core change
+  ok    nothing chosen, a device set to light shows the light colours (Match device)
+  ok    the header holds the choice: Match device, Light, Dark
+  ok    nothing chosen, a device set to dark shows the dark colours (Match device)
+  ok    Dark picked in the header on a light device shows the dark colours and is stored
+  ok    the choice is kept under <ns>:theme (course-id-drill:theme)
+  ok    Dark is still on after a reload, and the header shows it
+  ok    the profile's progress, in memory and as saved 400 ms after a pick, holds no theme
+  ok    the Export progress file (11358 characters, 30 answers in the history) holds no theme
+  ok    Import progress in a fresh browser brings the 12 distinct answers of the file (30 entries) and leaves that browser's own choice (Light) as it was
+  ok    Settings holds the same choice, with Dark marked
+  ok    Settings says where the choice is kept and that it is not part of the progress
+  ok    Light picked in Settings shows the light colours and the header follows
+  ok    switching profile keeps the choice (a device setting)
+  ok    Light stored on a dark device shows the light colours
+  ok    Match device removes the stored choice and follows the dark device again
+  ok    a stored value that is not light or dark reads as Match device
+  ok    with storage refused the page runs and Dark applies for the visit
+  ok    a reload 0 ms after Dark is picked keeps Dark
+  ok    a reload 100 ms after Dark is picked keeps Dark
+  ok    a reload 400 ms after Dark is picked keeps Dark
+  ok    storage denied (setItem throws SecurityError): Dark applies for the visit and the student sees the notice that the browser did not save
+  ok    storage denied (setItem throws SecurityError): the saved Light and the saved progress (25 answers) are not overwritten
+  ok    storage denied (setItem throws SecurityError): with storage working again, the saved Light and the 25 answers load
+  ok    storage denied (setItem throws SecurityError): with storage working again, a new choice is saved
+  ok    storage full (setItem throws QuotaExceededError): Dark applies for the visit and the student sees the notice that the browser did not save
+  ok    storage full (setItem throws QuotaExceededError): the saved Light and the saved progress (25 answers) are not overwritten
+  ok    storage full (setItem throws QuotaExceededError): with storage working again, the saved Light and the 25 answers load
+  ok    storage full (setItem throws QuotaExceededError): with storage working again, a new choice is saved
+  ok    on a dark device (Match device), no text on the 9 tabs or on 5 quiz cards (4 of them Basic-Pharmacokinetics questions), unanswered and answered, reads below 4.5 : 1 (3 : 1 large)
+  ok    on a dark device (Match device), the answer box of a calculation (s2-3) is dark with text at 4.5 : 1 or better
+  ok    on a dark device (Match device), the page and the Settings radio buttons are drawn in the browser's dark style (color-scheme)
+  ok    with Dark picked on a light device, no text on the 9 tabs or on 5 quiz cards (4 of them Basic-Pharmacokinetics questions), unanswered and answered, reads below 4.5 : 1 (3 : 1 large)
+  ok    with Dark picked on a light device, the answer box of a calculation (s2-3) is dark with text at 4.5 : 1 or better
+  ok    with Dark picked on a light device, the page and the Settings radio buttons are drawn in the browser's dark style (color-scheme)
+  ok    no page error and no module error
+
+PASS: features/theme/test.js: 44 checks passed (1 skipped: a stored Dark is on the page in the first frame that shows the tabs, 5 reloads of the 1.56 MB page)

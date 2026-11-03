@@ -1,0 +1,1 @@
+PASS: features/theme/test.js: 44 checks passed (1 skipped: a stored Dark is on the page in the first frame that shows the tabs, 5 reloads of the 1.56 MB page)

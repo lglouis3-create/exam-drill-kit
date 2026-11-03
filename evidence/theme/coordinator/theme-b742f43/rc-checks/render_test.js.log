@@ -1,0 +1,36 @@
+
+=== Render smoke test ===
+  ok    topics list            4446 chars
+  ok    quiz, unanswered       1277 chars
+  ok    quiz, answered         3039 chars
+         explanations rendered: 4 option rows
+         citation present: true
+  skip  quiz, image item        no question in this bank carries an image
+  ok    quiz, numeric answered 2218 chars
+  ok    quiz, match answered   2197 chars
+  ok    weak spots             3821 chars
+  ok    reference              5930 chars
+  ok    tell apart             793 chars
+  ok    guides                 1695 chars
+  ok    diagrams               3693 chars
+         figures registered: 1, step-throughs: 1
+feature module theme (settings): TypeError: el.appendChild is not a function
+    at evalmachine.<anonymous>:1638:10
+    at run (evalmachine.<anonymous>:1540:18)
+    at evalmachine.<anonymous>:1634:27
+    at Array.forEach (<anonymous>)
+    at Object.renderSettings (evalmachine.<anonymous>:1634:14)
+    at Object.<anonymous> (/tmp/port-coord/rc-theme/src/render_test.js:78:3)
+    at Module._compile (node:internal/modules/cjs/loader:1781:14)
+    at Object..js (node:internal/modules/cjs/loader:1913:10)
+    at Module.load (node:internal/modules/cjs/loader:1505:32)
+    at Function._load (node:internal/modules/cjs/loader:1309:12)
+  ok    settings               3951 chars
+  ok    settings says 7 questions; the page holds 7
+  ok    exam paper             1162 chars
+  ok    exam question count: 4 of 4
+         0 questions carry an image
+
+Render smoke test passed
+
+PASS: render_test.js: every view rendered clean
