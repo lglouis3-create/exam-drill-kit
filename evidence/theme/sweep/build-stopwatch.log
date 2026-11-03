@@ -1,0 +1,7 @@
+wrote: appended to /tmp/port-theme/sw-stopwatch/src/course.js:
+;/* stopwatch ci */ COURSE.features = Object.assign({}, COURSE.features, {"stopwatch": {"version":"v1","paceSeconds":120}});
+wrote: no data files (the module reads no course data)
+wrote: appended to /tmp/port-theme/sw-stopwatch/src/course.js:
+;/* theme ci */ COURSE.features = Object.assign({}, COURSE.features, {"theme": {"version":"v1"}});
+wrote: no data files (the module reads no course data)
+wrote sw.js  (caches named course-id-drill-v<n>; 7 files saved at install)

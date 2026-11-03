@@ -1,0 +1,34 @@
+
+=== theme.css and the core's colours ===
+  ok    theme.css holds the same 18 dark rules for Match device on a dark device and for Dark picked
+  ok    each of the 24 colours the core's :root sets has a dark value
+
+=== in node, as the course's checks run the engine ===
+  ok    the module loads with no page around it (explain_check.js and test.js run the engine so)
+
+=== in Chromium, on a scratch copy built with the module on ===
+  ok    the core's light page colour (rgb(242, 244, 247)) and the dark one (rgb(16, 22, 29)) differ
+  ok    the scratch copy holds the fixture's 4 Basic-Pharmacokinetics questions in a topic of their own, after the course's topics
+  ok    a stored Dark is on the page in the first frame that shows the tabs (no light page first)
+  ok    nothing chosen, a device set to light shows the light colours (Match device)
+  ok    the header holds the choice: Match device, Light, Dark
+  ok    nothing chosen, a device set to dark shows the dark colours (Match device)
+  ok    Dark picked in the header on a light device shows the dark colours and is stored
+  ok    the choice is kept under <ns>:theme (course-id-drill:theme)
+  ok    Dark is still on after a reload, and the header shows it
+  ok    the profile's progress, in memory and as saved 400 ms after a pick, holds no theme
+  ok    the Export progress file (11375 characters, 30 answers in the history) holds no theme
+  ok    Import progress in a fresh browser brings the 14 distinct answers of the file (30 entries) and leaves that browser's own choice (Light) as it was
+  ok    Settings holds the same choice, with Dark marked
+  ok    Settings says where the choice is kept and that it is not part of the progress
+  ok    Light picked in Settings shows the light colours and the header follows
+  ok    switching profile keeps the choice (a device setting)
+  ok    Light stored on a dark device shows the light colours
+  ok    Match device removes the stored choice and follows the dark device again
+  ok    a stored value that is not light or dark reads as Match device
+page.selectOption: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for locator('#themeSel')[22m
+
+    at /tmp/port-theme/evidence/mutations-final/work-M09/src/features/theme/test.js:291:16
+FAIL: features/theme/test.js: the test stopped: page.selectOption: Timeout 30000ms exceeded.

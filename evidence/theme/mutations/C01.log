@@ -1,0 +1,45 @@
+
+=== theme.css and the core's colours ===
+  FAIL  theme.css holds the same 0 dark rules for Match device on a dark device and for Dark picked  — no @media (prefers-color-scheme: dark) block
+  FAIL  each of the 24 colours the core's :root sets has a dark value  — ink, ink-2, paper, surface, line, line-soft, text, text-dim, ok, ok-bg, bad, bad-bg, warn, warn-bg, accent, accent-bg, sik, yen, at-o, at-n, at-s, at-p, at-x, wash
+
+=== in node, as the course's checks run the engine ===
+  ok    the module loads with no page around it (explain_check.js and test.js run the engine so)
+
+=== in Chromium, on a scratch copy built with the module on ===
+  ok    the core's light page colour (rgb(242, 244, 247)) and the dark one (rgb(0, 0, 0)) differ
+  ok    the scratch copy holds the fixture's 4 Basic-Pharmacokinetics questions in a topic of their own, after the course's topics
+  ok    a stored Dark is on the page in the first frame that shows the tabs (no light page first)
+  FAIL  nothing chosen, a device set to light shows the light colours (Match device)  — {"bg":"rgb(16, 22, 29)","attr":null,"sel":"device","key":"course-id-drill:theme","stored":null,"opts":["device=Match device","light=Light","dark=Dark"],"fx":[]}
+  ok    the header holds the choice: Match device, Light, Dark
+  FAIL  nothing chosen, a device set to dark shows the dark colours (Match device)  — {"bg":"rgb(242, 244, 247)","attr":null,"sel":"device","key":"course-id-drill:theme","stored":null,"opts":["device=Match device","light=Light","dark=Dark"],"fx":[]}
+  FAIL  Dark picked in the header on a light device shows the dark colours and is stored  — {"bg":"rgb(16, 22, 29)","attr":"dark","sel":"dark","key":"course-id-drill:theme","stored":"dark","opts":["device=Match device","light=Light","dark=Dark"],"fx":[]}
+  ok    the choice is kept under <ns>:theme (course-id-drill:theme)
+  FAIL  Dark is still on after a reload, and the header shows it  — {"bg":"rgb(16, 22, 29)","attr":"dark","sel":"dark","key":"course-id-drill:theme","stored":"dark","opts":["device=Match device","light=Light","dark=Dark"],"fx":[]}
+  ok    the profile's saved progress holds no theme
+  ok    the Export progress file (11369 characters, 30 answers in the history) holds no theme
+  ok    Import progress in a fresh browser brings the 14 distinct answers of the file (30 entries) and leaves that browser's own choice (Light) as it was
+  ok    Settings holds the same choice, with Dark marked
+  ok    Settings says where the choice is kept and that it is not part of the progress
+  ok    Light picked in Settings shows the light colours and the header follows
+  ok    switching profile keeps the choice (a device setting)
+  ok    Light stored on a dark device shows the light colours
+  FAIL  Match device removes the stored choice and follows the dark device again  — {"bg":"rgb(242, 244, 247)","attr":null,"sel":"device","key":"course-id-drill:theme","stored":null,"opts":["device=Match device","light=Light","dark=Dark"],"fx":[]}
+  FAIL  a stored value that is not light or dark reads as Match device  — {"bg":"rgb(242, 244, 247)","attr":null,"sel":"device","key":"course-id-drill:theme","stored":"purple","opts":["device=Match device","light=Light","dark=Dark"],"fx":[]}
+  FAIL  with storage refused the page runs and Dark applies for the visit  — {"attr":"dark","bg":"rgb(16, 22, 29)","errors":[]}
+  ok    a reload 0 ms after Dark is picked keeps Dark
+  ok    a reload 100 ms after Dark is picked keeps Dark
+  ok    a reload 400 ms after Dark is picked keeps Dark
+  FAIL  storage denied (setItem throws SecurityError): Dark applies for the visit and the student sees the notice that the browser did not save  — {"s":{"bg":"rgb(16, 22, 29)","attr":"dark","sel":"dark","key":"course-id-drill:theme","stored":"light","opts":["device=Match device","light=Light","dark=Dark"],"fx":[]},"warn":"This browser did not save your progress (storage is full or blocked). It is kept until you close or reload this page. To keep a copy, open Settings and use Export progress. OK"}
+  ok    storage denied (setItem throws SecurityError): the saved Light and the saved progress (25 answers) are not overwritten
+  ok    storage denied (setItem throws SecurityError): with storage working again, the saved Light and the 25 answers load
+  ok    storage denied (setItem throws SecurityError): with storage working again, a new choice is saved
+  FAIL  storage full (setItem throws QuotaExceededError): Dark applies for the visit and the student sees the notice that the browser did not save  — {"s":{"bg":"rgb(16, 22, 29)","attr":"dark","sel":"dark","key":"course-id-drill:theme","stored":"light","opts":["device=Match device","light=Light","dark=Dark"],"fx":[]},"warn":"This browser did not save your progress (storage is full or blocked). It is kept until you close or reload this page. To keep a copy, open Settings and use Export progress. OK"}
+  ok    storage full (setItem throws QuotaExceededError): the saved Light and the saved progress (25 answers) are not overwritten
+  ok    storage full (setItem throws QuotaExceededError): with storage working again, the saved Light and the 25 answers load
+  ok    storage full (setItem throws QuotaExceededError): with storage working again, a new choice is saved
+  FAIL  on a dark device (Match device), no text on the 9 tabs or on 5 quiz cards (4 of them Basic-Pharmacokinetics questions), unanswered and answered, reads below 4.5 : 1 (3 : 1 large)  — s1-1 answered: button.btn.amber "I was sure of that" 3.82 | thm-pd-c01 answered: button.btn.amber "I was sure of that" 3.82 | thm-pd-c02 answered: button.btn.amber "I was sure of that" 3.82 | thm-pd-c04 answered: button.btn.amber "I was sure of that" 3.82
+  ok    with Dark picked on a light device, no text on the 9 tabs or on 5 quiz cards (4 of them Basic-Pharmacokinetics questions), unanswered and answered, reads below 4.5 : 1 (3 : 1 large)
+  ok    no page error and no module error
+
+FAIL: features/theme/test.js: 12 of 37 checks failed: theme.css holds the same 0 dark rules for Match device on a dark device and for Dark picked; each of the 24 colours the core's :root sets has a dark value; nothing chosen, a device set to light shows the light colours (Match device) …

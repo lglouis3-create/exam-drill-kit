@@ -1,0 +1,10 @@
+  ok    dark-device: control: the measure finds a planted #333-on-#222 line
+  ok    dark-device ({"attr":null,"bg":"rgb(16, 22, 29)"}): no text in 55 views reads below 4.5 : 1 (3 : 1 large)
+  ok    dark-device: no page error and no module error
+  views not reached (dark-device): topics > All changes; topics > Concepts6 questions · 0 objectives; quiz > BAll of it enters at once and distribute; quiz > CAll of it enters at once and then distr; quiz > DIt enters at once and stays in the plas; glossary tap in the quiz (no term named in this card); Scratch paper
+  ok    dark-picked: control: the measure finds a planted #333-on-#222 line
+  ok    dark-picked ({"attr":"dark","bg":"rgb(16, 22, 29)"}): no text in 55 views reads below 4.5 : 1 (3 : 1 large)
+  ok    dark-picked: no page error and no module error
+  views not reached (dark-picked): topics > All changes; topics > Concepts6 questions · 0 objectives; quiz > BA hypothetical volume that would hold t; quiz > DThe total volume of blood and extracell; glossary tap in the quiz (no term named in this card); Scratch paper
+[{"label":"dark-device","theme":{"attr":null,"bg":"rgb(16, 22, 29)"},"views":55,"low":0,"skipped":["topics > All changes","topics > Concepts6 questions · 0 objectives","quiz > BAll of it enters at once and distribute","quiz > CAll of it enters at once and then distr","quiz > DIt enters at once and stays in the plas","glossary tap in the quiz (no term named in this card)","Scratch paper"]},{"label":"dark-picked","theme":{"attr":"dark","bg":"rgb(16, 22, 29)"},"views":55,"low":0,"skipped":["topics > All changes","topics > Concepts6 questions · 0 objectives","quiz > BA hypothetical volume that would hold t","quiz > DThe total volume of blood and extracell","glossary tap in the quiz (no term named in this card)","Scratch paper"]}]
+PASS: integration contrast_test.js: 6 checks passed

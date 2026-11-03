@@ -1,0 +1,353 @@
+{
+ "theme": {
+  "attr": null,
+  "bg": "rgb(16, 22, 29)"
+ },
+ "seen": [
+  {
+   "view": "tab topics",
+   "low": 0,
+   "shot": "dark-device-01-tab_topics.png"
+  },
+  {
+   "view": "topics after Got it",
+   "low": 0,
+   "shot": "dark-device-02-topics_after_Got_it.png"
+  },
+  {
+   "view": "topics after All",
+   "low": 0,
+   "shot": "dark-device-03-topics_after_All.png"
+  },
+  {
+   "view": "topics after Professor",
+   "low": 0,
+   "shot": "dark-device-04-topics_after_Professor.png"
+  },
+  {
+   "view": "topics after Any",
+   "low": 0,
+   "shot": "dark-device-05-topics_after_Any.png"
+  },
+  {
+   "view": "topics after predict the outcome",
+   "low": 0,
+   "shot": "dark-device-06-topics_after_predict_the_outcome.png"
+  },
+  {
+   "view": "topics after define a term",
+   "low": 0,
+   "shot": "dark-device-07-topics_after_define_a_term.png"
+  },
+  {
+   "view": "topics after list or rank",
+   "low": 0,
+   "shot": "dark-device-08-topics_after_list_or_rank.png"
+  },
+  {
+   "view": "topics after Start",
+   "low": 0,
+   "shot": "dark-device-09-topics_after_Start.png"
+  },
+  {
+   "view": "tab quiz",
+   "low": 0,
+   "shot": "dark-device-10-tab_quiz.png"
+  },
+  {
+   "view": "quiz after AThe separating feature",
+   "low": 0,
+   "shot": "dark-device-11-quiz_after_AThe_separating_feature.png"
+  },
+  {
+   "view": "tab gaps",
+   "low": 0,
+   "shot": "dark-device-12-tab_gaps.png"
+  },
+  {
+   "view": "gaps after Start these",
+   "low": 0,
+   "shot": "dark-device-13-gaps_after_Start_these.png"
+  },
+  {
+   "view": "tab exam",
+   "low": 0,
+   "shot": "dark-device-14-tab_exam.png"
+  },
+  {
+   "view": "exam after Start the 10-minute paper",
+   "low": 0,
+   "shot": "dark-device-15-exam_after_Start_the_10_minute_paper.png"
+  },
+  {
+   "view": "tab diagrams",
+   "low": 0,
+   "shot": "dark-device-16-tab_diagrams.png"
+  },
+  {
+   "view": "diagrams after ◀ Back",
+   "low": 0,
+   "shot": "dark-device-17-diagrams_after_Back.png"
+  },
+  {
+   "view": "diagrams after Next ▶",
+   "low": 0,
+   "shot": "dark-device-18-diagrams_after_Next_.png"
+  },
+  {
+   "view": "diagrams after ↻ Replay step",
+   "low": 0,
+   "shot": "dark-device-19-diagrams_after_Replay_step.png"
+  },
+  {
+   "view": "diagrams after ▶ Play all",
+   "low": 0,
+   "shot": "dark-device-20-diagrams_after_Play_all.png"
+  },
+  {
+   "view": "tab guide",
+   "low": 0,
+   "shot": "dark-device-21-tab_guide.png"
+  },
+  {
+   "view": "tab tell",
+   "low": 0,
+   "shot": "dark-device-22-tab_tell.png"
+  },
+  {
+   "view": "tab ref",
+   "low": 0,
+   "shot": "dark-device-23-tab_ref.png"
+  },
+  {
+   "view": "ref after ◀ Back",
+   "low": 0,
+   "shot": "dark-device-24-ref_after_Back.png"
+  },
+  {
+   "view": "ref after Next ▶",
+   "low": 0,
+   "shot": "dark-device-25-ref_after_Next_.png"
+  },
+  {
+   "view": "ref after ↻ Replay step",
+   "low": 0,
+   "shot": "dark-device-26-ref_after_Replay_step.png"
+  },
+  {
+   "view": "ref after ▶ Play all",
+   "low": 0,
+   "shot": "dark-device-27-ref_after_Play_all.png"
+  },
+  {
+   "view": "ref after Why?",
+   "low": 0,
+   "shot": "dark-device-28-ref_after_Why_.png"
+  },
+  {
+   "view": "tab pairup",
+   "low": 0,
+   "shot": "dark-device-29-tab_pairup.png"
+  },
+  {
+   "view": "pairup after Receptor → what an agonist does there",
+   "low": 0,
+   "shot": "dark-device-30-pairup_after_Receptor_what_an_agonist_does_there.png"
+  },
+  {
+   "view": "pairup after DUMBBELSS: each letter, with its recepto",
+   "low": 0,
+   "shot": "dark-device-31-pairup_after_DUMBBELSS_each_letter_with_its_recept.png"
+  },
+  {
+   "view": "pairup after Anti-DUMBBELSS: what the antagonist give",
+   "low": 0,
+   "shot": "dark-device-32-pairup_after_Anti_DUMBBELSS_what_the_antagonist_gi.png"
+  },
+  {
+   "view": "pairup after Receptor → G protein, or ion channel",
+   "low": 0,
+   "shot": "dark-device-33-pairup_after_Receptor_G_protein_or_ion_channel.png"
+  },
+  {
+   "view": "pairup after Drug → its receptor (Exam 2 list)",
+   "low": 0,
+   "shot": "dark-device-34-pairup_after_Drug_its_receptor_Exam_2_list_.png"
+  },
+  {
+   "view": "tab rt-ip-rx",
+   "low": 0,
+   "shot": "dark-device-35-tab_rt_ip_rx.png"
+  },
+  {
+   "view": "rt-ip-rx after Name the receptor",
+   "low": 0,
+   "shot": "dark-device-36-rt_ip_rx_after_Name_the_receptor.png"
+  },
+  {
+   "view": "rt-ip-rx after Name the drug",
+   "low": 0,
+   "shot": "dark-device-37-rt_ip_rx_after_Name_the_drug.png"
+  },
+  {
+   "view": "rt-ip-rx after Cover and reveal",
+   "low": 0,
+   "shot": "dark-device-38-rt_ip_rx_after_Cover_and_reveal.png"
+  },
+  {
+   "view": "tab rt-ip-pt",
+   "low": 0,
+   "shot": "dark-device-39-tab_rt_ip_pt.png"
+  },
+  {
+   "view": "rt-ip-pt after Name the antidote",
+   "low": 0,
+   "shot": "dark-device-40-rt_ip_pt_after_Name_the_antidote.png"
+  },
+  {
+   "view": "rt-ip-pt after Name the mechanism",
+   "low": 0,
+   "shot": "dark-device-41-rt_ip_pt_after_Name_the_mechanism.png"
+  },
+  {
+   "view": "rt-ip-pt after Name the poison",
+   "low": 0,
+   "shot": "dark-device-42-rt_ip_pt_after_Name_the_poison.png"
+  },
+  {
+   "view": "rt-ip-pt after The professor's special questions",
+   "low": 0,
+   "shot": "dark-device-43-rt_ip_pt_after_The_professor_s_special_questions.png"
+  },
+  {
+   "view": "rt-ip-pt after Cover and reveal",
+   "low": 0,
+   "shot": "dark-device-44-rt_ip_pt_after_Cover_and_reveal.png"
+  },
+  {
+   "view": "tab settings",
+   "low": 0,
+   "shot": "dark-device-45-tab_settings.png"
+  },
+  {
+   "view": "settings after Exam cram",
+   "low": 0,
+   "shot": "dark-device-46-settings_after_Exam_cram.png"
+  },
+  {
+   "view": "settings after Weekly exams",
+   "low": 0,
+   "shot": "dark-device-47-settings_after_Weekly_exams.png"
+  },
+  {
+   "view": "settings after Semester",
+   "low": 0,
+   "shot": "dark-device-48-settings_after_Semester.png"
+  },
+  {
+   "view": "settings after Ask everything",
+   "low": 0,
+   "shot": "dark-device-49-settings_after_Ask_everything.png"
+  },
+  {
+   "view": "settings after Questions as text (Markdown)",
+   "low": 0,
+   "shot": "dark-device-50-settings_after_Questions_as_text_Markdown_.png"
+  },
+  {
+   "view": "settings after Questions as data (JSON)",
+   "low": 0,
+   "shot": "dark-device-51-settings_after_Questions_as_data_JSON_.png"
+  },
+  {
+   "view": "settings after Guides + Tell apart + Reference (HTML)",
+   "low": 0,
+   "shot": "dark-device-52-settings_after_Guides_Tell_apart_Reference_HTML_.png"
+  },
+  {
+   "view": "quiz card unanswered (flag, note, keys line)",
+   "low": 0,
+   "shot": "dark-device-53-quiz_card_unanswered_flag_note_keys_line_.png"
+  },
+  {
+   "view": "quiz card flagged, note box open",
+   "low": 0,
+   "shot": "dark-device-54-quiz_card_flagged_note_box_open.png"
+  },
+  {
+   "view": "quiz card answered wrong",
+   "low": 0,
+   "shot": "dark-device-55-quiz_card_answered_wrong.png"
+  },
+  {
+   "view": "calculation, stopwatch running",
+   "low": 0,
+   "shot": "dark-device-56-calculation_stopwatch_running.png"
+  },
+  {
+   "view": "calculation answered wrong (diagnosis, miss chips, time taken)",
+   "low": 0,
+   "shot": "dark-device-57-calculation_answered_wrong_diagnosis_miss_chips_ti.png"
+  },
+  {
+   "view": "quiz, all on one page (study-controls)",
+   "low": 0,
+   "shot": "dark-device-58-quiz_all_on_one_page_study_controls_.png"
+  },
+  {
+   "view": "one-page quiz, a note open",
+   "low": 0,
+   "shot": "dark-device-59-one_page_quiz_a_note_open.png"
+  },
+  {
+   "view": "exam start (paper-picker chips, strict box)",
+   "low": 0,
+   "shot": "dark-device-60-exam_start_paper_picker_chips_strict_box_.png"
+  },
+  {
+   "view": "exam paper running, one at a time",
+   "low": 0,
+   "shot": "dark-device-61-exam_paper_running_one_at_a_time.png"
+  },
+  {
+   "view": "exam paper, a pick and a flag",
+   "low": 0,
+   "shot": "dark-device-62-exam_paper_a_pick_and_a_flag.png"
+  },
+  {
+   "view": "exam result page",
+   "low": 0,
+   "shot": "dark-device-63-exam_result_page.png"
+  },
+  {
+   "view": "Weak spots after answers (concept-statuses)",
+   "low": 0,
+   "shot": "dark-device-64-Weak_spots_after_answers_concept_statuses_.png"
+  }
+ ],
+ "low": [],
+ "skipped": [
+  "topics > All changes",
+  "quiz > BA feature neither has",
+  "quiz > CA feature they share",
+  "quiz > DA feature of a third term",
+  "pairup > M2 in the heart",
+  "pairup > β1 in the heart",
+  "pairup > M3 on the endothelium",
+  "pairup > M3 in the bladder",
+  "pairup > Nn in a ganglion",
+  "rt-ip-rx > No receptor directly; more ACh everywher",
+  "rt-ip-rx > Nm · antagonist",
+  "rt-ip-rx > Nn, α4/β2 · agonist (partial)",
+  "rt-ip-rx > Nm · agonist (depolarizing)",
+  "rt-ip-rx > Skip",
+  "rt-ip-pt > Intravenous fluids, dopamine or norepine",
+  "rt-ip-pt > Atropine; Pralidoxime",
+  "rt-ip-pt > Flumazenil",
+  "rt-ip-pt > Deferoxamine",
+  "rt-ip-pt > N-acetylcysteine",
+  "glossary tap in the quiz (no term named in this card)",
+  "Scratch paper",
+  "module-pages cards (none on Topics)"
+ ]
+}

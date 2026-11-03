@@ -1,0 +1,10 @@
+  ok    dark-device: control: the measure finds a planted #333-on-#222 line
+  ok    dark-device ({"attr":null,"bg":"rgb(16, 22, 29)"}): no text in 54 views reads below 4.5 : 1 (3 : 1 large)
+  ok    dark-device: no page error and no module error
+  views not reached (dark-device): topics > All changes; quiz > BA near miss; quiz > CThe right term; quiz > DA related term; glossary tap in the quiz (no term named in this card); Scratch paper; module-pages cards (none on Topics)
+  ok    dark-picked: control: the measure finds a planted #333-on-#222 line
+  ok    dark-picked ({"attr":"dark","bg":"rgb(16, 22, 29)"}): no text in 54 views reads below 4.5 : 1 (3 : 1 large)
+  ok    dark-picked: no page error and no module error
+  views not reached (dark-picked): topics > All changes; quiz > BThe outcome the slide predicts; quiz > CAn unrelated effect; quiz > DNo change; glossary tap in the quiz (no term named in this card); Scratch paper; module-pages cards (none on Topics)
+[{"label":"dark-device","theme":{"attr":null,"bg":"rgb(16, 22, 29)"},"views":54,"low":0,"skipped":["topics > All changes","quiz > BA near miss","quiz > CThe right term","quiz > DA related term","glossary tap in the quiz (no term named in this card)","Scratch paper","module-pages cards (none on Topics)"]},{"label":"dark-picked","theme":{"attr":"dark","bg":"rgb(16, 22, 29)"},"views":54,"low":0,"skipped":["topics > All changes","quiz > BThe outcome the slide predicts","quiz > CAn unrelated effect","quiz > DNo change","glossary tap in the quiz (no term named in this card)","Scratch paper","module-pages cards (none on Topics)"]}]
+PASS: integration contrast_test.js: 6 checks passed

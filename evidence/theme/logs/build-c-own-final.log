@@ -1,0 +1,7 @@
+wrote: appended to /tmp/port-theme/c-own-final/src/course.js:
+;/* theme ci */ COURSE.features = Object.assign({}, COURSE.features, {"theme": {"version":"v1"}});
+wrote: no data files (the module reads no course data)
+owncourse: wrote /tmp/port-theme/c-own-final/src/q90_theme_fixture.js (4 questions) and appended to course.js:
+;/* theme own course */ COURSE.files = (COURSE.files || ['atlas.js', 'diagrams.js', 'q1_topics.js']).concat(["q90_theme_fixture.js"]); if(!(COURSE.lectures || []).some(l => l.deck === '7b---Pharmacokinetics-and-Pharmacodynamics.pdf')) COURSE.lectures = (COURSE.lectures || []).concat([{id:'L11', deck:'7b---Pharmacokinetics-and-Pharmacodynamics.pdf', label:'Module 7b: PK-PD relationship (12 Oct)', prof:'Professor', exam:3, module:9}]);
+wrote sw.js  (caches named course-id-drill-v<n>; 7 files saved at install)
+build c-own-final exit 0

@@ -1,0 +1,5 @@
+
+=== CLAUDE.md is updated after the newest lecture ===
+  ok    the repository root has CLAUDE.md, the course state file
+  ok    CLAUDE.md (commit 3a25f58, 2026-11-03 00:20 UTC) is not older than the newest lecture, L11 (commit e5d6c4d, 2026-11-03 00:20 UTC)
+PASS: state_check.js: 2 checks passed

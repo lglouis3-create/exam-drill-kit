@@ -1,0 +1,20 @@
+M01 1 15s 18 FAIL a stored Dark is on the page in the first frame that shows the tabs (no light page first); Dark picked in the header on a light device shows the dark colours and is stored; Dark is still on after a re
+M02 1 15s 22 FAIL a stored Dark is on the page in the first frame that shows the tabs (no light page first); Dark picked in the header on a light device shows the dark colours and is stored; Dark is still on after a re
+M03 1 15s 1 FAIL Match device removes the stored choice and follows the dark device again
+M04 1 15s 1 FAIL a stored value that is not light or dark reads as Match device
+M05 1 15s 2 FAIL the profile's progress, in memory and as saved 400 ms after a pick, holds no theme; the Export progress file (11376 characters, 30 answers in the history) holds no theme
+M06 1 15s 8 FAIL a stored Dark is on the page in the first frame that shows the tabs (no light page first); Dark is still on after a reload, and the header shows it; Light stored on a dark device shows the light colou
+M07 1 15s 1 FAIL Light picked in Settings shows the light colours and the header follows
+M08 1 15s 2 FAIL Light picked in Settings shows the light colours and the header follows; switching profile keeps the choice (a device setting)
+M09 1 35s 0 FAIL  | FAIL: features/theme/test.js: the test stopped: page.selectOption: Timeout 30000ms exceeded.
+M10 1 15s 1 FAIL the module loads with no page around it (explain_check.js and test.js run the engine so)
+M11 1 35s 4 FAIL nothing chosen, a device set to light shows the light colours (Match device); the header holds the choice: Match device, Light, Dark; nothing chosen, a device set to dark shows the dark colours (Match
+M12 1 15s 4 FAIL with storage refused the page runs and Dark applies for the visit; storage denied (setItem throws SecurityError): Dark applies for the visit and the student sees the notice that the browser did not sa
+C01 1 15s 14 FAIL theme.css holds the same 0 dark rules for Match device on a dark device and for Dark picked; each of the 24 colours the core's :root sets has a dark value; nothing chosen, a device set to light shows 
+C02 1 15s 2 FAIL on a dark device (Match device), no text on the 9 tabs or on 5 quiz cards (4 of them Basic-Pharmacokinetics questions), unanswered and answered, reads below 4.5 : 1 (3 : 1 large); with Dark picked on 
+C03 1 15s 11 FAIL theme.css holds the same 17 dark rules for Match device on a dark device and for Dark picked; each of the 24 colours the core's :root sets has a dark value; nothing chosen, a device set to dark shows 
+C04 1 15s 1 FAIL theme.css holds the same 18 dark rules for Match device on a dark device and for Dark picked
+C05 1 15s 1 FAIL each of the 24 colours the core's :root sets has a dark value
+C06 1 15s 2 FAIL on a dark device (Match device), the page and the Settings radio buttons are drawn in the browser's dark style (color-scheme); with Dark picked on a light device, the page and the Settings radio butto
+C08 1 15s 2 FAIL on a dark device (Match device), the page and the Settings radio buttons are drawn in the browser's dark style (color-scheme); with Dark picked on a light device, the page and the Settings radio butto
+C07 1 15s 2 FAIL on a dark device (Match device), no text on the 9 tabs or on 5 quiz cards (4 of them Basic-Pharmacokinetics questions), unanswered and answered, reads below 4.5 : 1 (3 : 1 large); with Dark picked on 

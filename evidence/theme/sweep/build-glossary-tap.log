@@ -1,0 +1,8 @@
+wrote: /tmp/port-theme/sw-glossary-tap/src/terms_gtap.js (10 terms)
+wrote: /tmp/port-theme/sw-glossary-tap/src/q1_topics.js (2 topics, 66 questions; replaces the template sample)
+wrote: /tmp/port-theme/sw-glossary-tap/src/guide.js (Intro to Pharmacology guide.js sections 1 and 4, opening lines; replaces the template sample)
+wrote: /tmp/port-theme/sw-glossary-tap/src/course.js: lectures L04, L10 in its list; appended 7 skills, terms_gtap.js in files, glossary-tap v1 on
+wrote: appended to /tmp/port-theme/sw-glossary-tap/src/course.js:
+;/* theme ci */ COURSE.features = Object.assign({}, COURSE.features, {"theme": {"version":"v1"}});
+wrote: no data files (the module reads no course data)
+wrote sw.js  (caches named course-id-drill-v<n>; 7 files saved at install)

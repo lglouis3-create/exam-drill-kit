@@ -1,0 +1,7 @@
+notes ci/oncourse.js: appended to /tmp/port-theme/sw-notes/src/course.js:
+;/* switched on by features/notes/ci/oncourse.js */ COURSE.features = Object.assign({}, COURSE.features, {"notes": {version: "v1"}});
+notes ci/oncourse.js: no data files written (the module reads no course data)
+wrote: appended to /tmp/port-theme/sw-notes/src/course.js:
+;/* theme ci */ COURSE.features = Object.assign({}, COURSE.features, {"theme": {"version":"v1"}});
+wrote: no data files (the module reads no course data)
+wrote sw.js  (caches named course-id-drill-v<n>; 7 files saved at install)

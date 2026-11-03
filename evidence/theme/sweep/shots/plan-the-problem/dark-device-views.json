@@ -1,0 +1,307 @@
+{
+ "theme": {
+  "attr": null,
+  "bg": "rgb(16, 22, 29)"
+ },
+ "seen": [
+  {
+   "view": "tab topics",
+   "low": 0,
+   "shot": "dark-device-01-tab_topics.png"
+  },
+  {
+   "view": "topics after Got it",
+   "low": 0,
+   "shot": "dark-device-02-topics_after_Got_it.png"
+  },
+  {
+   "view": "topics after All",
+   "low": 0,
+   "shot": "dark-device-03-topics_after_All.png"
+  },
+  {
+   "view": "topics after Professor",
+   "low": 0,
+   "shot": "dark-device-04-topics_after_Professor.png"
+  },
+  {
+   "view": "topics after Any",
+   "low": 0,
+   "shot": "dark-device-05-topics_after_Any.png"
+  },
+  {
+   "view": "topics after predict the outcome",
+   "low": 0,
+   "shot": "dark-device-06-topics_after_predict_the_outcome.png"
+  },
+  {
+   "view": "topics after define a term",
+   "low": 0,
+   "shot": "dark-device-07-topics_after_define_a_term.png"
+  },
+  {
+   "view": "topics after list or rank",
+   "low": 0,
+   "shot": "dark-device-08-topics_after_list_or_rank.png"
+  },
+  {
+   "view": "topics after Start",
+   "low": 0,
+   "shot": "dark-device-09-topics_after_Start.png"
+  },
+  {
+   "view": "tab quiz",
+   "low": 0,
+   "shot": "dark-device-10-tab_quiz.png"
+  },
+  {
+   "view": "quiz after AA near miss",
+   "low": 0,
+   "shot": "dark-device-11-quiz_after_AA_near_miss.png"
+  },
+  {
+   "view": "tab gaps",
+   "low": 0,
+   "shot": "dark-device-12-tab_gaps.png"
+  },
+  {
+   "view": "gaps after Retry the 1 missed this session",
+   "low": 0,
+   "shot": "dark-device-13-gaps_after_Retry_the_1_missed_this_session.png"
+  },
+  {
+   "view": "gaps after Read: Guide: objective 1",
+   "low": 0,
+   "shot": "dark-device-14-gaps_after_Read_Guide_objective_1.png"
+  },
+  {
+   "view": "gaps after Drill these 1",
+   "low": 0,
+   "shot": "dark-device-15-gaps_after_Drill_these_1.png"
+  },
+  {
+   "view": "gaps after Drill all 1 not-solid questions",
+   "low": 0,
+   "shot": "dark-device-16-gaps_after_Drill_all_1_not_solid_questions.png"
+  },
+  {
+   "view": "gaps after Start these",
+   "low": 0,
+   "shot": "dark-device-17-gaps_after_Start_these.png"
+  },
+  {
+   "view": "gaps after Redrill",
+   "low": 0,
+   "shot": "dark-device-18-gaps_after_Redrill.png"
+  },
+  {
+   "view": "gaps after Drill these 1 now",
+   "low": 0,
+   "shot": "dark-device-19-gaps_after_Drill_these_1_now.png"
+  },
+  {
+   "view": "tab exam",
+   "low": 0,
+   "shot": "dark-device-20-tab_exam.png"
+  },
+  {
+   "view": "exam after Start the 10-minute paper",
+   "low": 0,
+   "shot": "dark-device-21-exam_after_Start_the_10_minute_paper.png"
+  },
+  {
+   "view": "tab diagrams",
+   "low": 0,
+   "shot": "dark-device-22-tab_diagrams.png"
+  },
+  {
+   "view": "diagrams after ◀ Back",
+   "low": 0,
+   "shot": "dark-device-23-diagrams_after_Back.png"
+  },
+  {
+   "view": "diagrams after Next ▶",
+   "low": 0,
+   "shot": "dark-device-24-diagrams_after_Next_.png"
+  },
+  {
+   "view": "diagrams after ↻ Replay step",
+   "low": 0,
+   "shot": "dark-device-25-diagrams_after_Replay_step.png"
+  },
+  {
+   "view": "diagrams after ▶ Play all",
+   "low": 0,
+   "shot": "dark-device-26-diagrams_after_Play_all.png"
+  },
+  {
+   "view": "tab guide",
+   "low": 0,
+   "shot": "dark-device-27-tab_guide.png"
+  },
+  {
+   "view": "tab tell",
+   "low": 0,
+   "shot": "dark-device-28-tab_tell.png"
+  },
+  {
+   "view": "tab ref",
+   "low": 0,
+   "shot": "dark-device-29-tab_ref.png"
+  },
+  {
+   "view": "ref after ◀ Back",
+   "low": 0,
+   "shot": "dark-device-30-ref_after_Back.png"
+  },
+  {
+   "view": "ref after Next ▶",
+   "low": 0,
+   "shot": "dark-device-31-ref_after_Next_.png"
+  },
+  {
+   "view": "ref after ↻ Replay step",
+   "low": 0,
+   "shot": "dark-device-32-ref_after_Replay_step.png"
+  },
+  {
+   "view": "ref after ▶ Play all",
+   "low": 0,
+   "shot": "dark-device-33-ref_after_Play_all.png"
+  },
+  {
+   "view": "ref after Why?",
+   "low": 0,
+   "shot": "dark-device-34-ref_after_Why_.png"
+  },
+  {
+   "view": "tab eq",
+   "low": 0,
+   "shot": "dark-device-35-tab_eq.png"
+  },
+  {
+   "view": "eq after Start",
+   "low": 0,
+   "shot": "dark-device-36-eq_after_Start.png"
+  },
+  {
+   "view": "tab settings",
+   "low": 0,
+   "shot": "dark-device-37-tab_settings.png"
+  },
+  {
+   "view": "settings after Exam cram",
+   "low": 0,
+   "shot": "dark-device-38-settings_after_Exam_cram.png"
+  },
+  {
+   "view": "settings after Weekly exams",
+   "low": 0,
+   "shot": "dark-device-39-settings_after_Weekly_exams.png"
+  },
+  {
+   "view": "settings after Semester",
+   "low": 0,
+   "shot": "dark-device-40-settings_after_Semester.png"
+  },
+  {
+   "view": "settings after Ask everything",
+   "low": 0,
+   "shot": "dark-device-41-settings_after_Ask_everything.png"
+  },
+  {
+   "view": "settings after Questions as text (Markdown)",
+   "low": 0,
+   "shot": "dark-device-42-settings_after_Questions_as_text_Markdown_.png"
+  },
+  {
+   "view": "settings after Questions as data (JSON)",
+   "low": 0,
+   "shot": "dark-device-43-settings_after_Questions_as_data_JSON_.png"
+  },
+  {
+   "view": "settings after Guides + Tell apart + Reference (HTML)",
+   "low": 0,
+   "shot": "dark-device-44-settings_after_Guides_Tell_apart_Reference_HTML_.png"
+  },
+  {
+   "view": "quiz card unanswered (flag, note, keys line)",
+   "low": 0,
+   "shot": "dark-device-45-quiz_card_unanswered_flag_note_keys_line_.png"
+  },
+  {
+   "view": "quiz card flagged, note box open",
+   "low": 0,
+   "shot": "dark-device-46-quiz_card_flagged_note_box_open.png"
+  },
+  {
+   "view": "quiz card answered wrong",
+   "low": 0,
+   "shot": "dark-device-47-quiz_card_answered_wrong.png"
+  },
+  {
+   "view": "calculation, stopwatch running",
+   "low": 0,
+   "shot": "dark-device-48-calculation_stopwatch_running.png"
+  },
+  {
+   "view": "calculation answered wrong (diagnosis, miss chips, time taken)",
+   "low": 0,
+   "shot": "dark-device-49-calculation_answered_wrong_diagnosis_miss_chips_ti.png"
+  },
+  {
+   "view": "quiz, all on one page (study-controls)",
+   "low": 0,
+   "shot": "dark-device-50-quiz_all_on_one_page_study_controls_.png"
+  },
+  {
+   "view": "one-page quiz, a note open",
+   "low": 0,
+   "shot": "dark-device-51-one_page_quiz_a_note_open.png"
+  },
+  {
+   "view": "exam start (paper-picker chips, strict box)",
+   "low": 0,
+   "shot": "dark-device-52-exam_start_paper_picker_chips_strict_box_.png"
+  },
+  {
+   "view": "exam paper running, one at a time",
+   "low": 0,
+   "shot": "dark-device-53-exam_paper_running_one_at_a_time.png"
+  },
+  {
+   "view": "exam paper, a pick and a flag",
+   "low": 0,
+   "shot": "dark-device-54-exam_paper_a_pick_and_a_flag.png"
+  },
+  {
+   "view": "exam result page",
+   "low": 0,
+   "shot": "dark-device-55-exam_result_page.png"
+  },
+  {
+   "view": "Weak spots after answers (concept-statuses)",
+   "low": 0,
+   "shot": "dark-device-56-Weak_spots_after_answers_concept_statuses_.png"
+  }
+ ],
+ "low": [],
+ "skipped": [
+  "topics > All changes",
+  "quiz > BThe right term",
+  "quiz > CAn unrelated term",
+  "quiz > DA related term",
+  "eq > Module 1",
+  "eq > Module 2",
+  "eq > Module 3",
+  "eq > Module 4",
+  "eq > Module 5",
+  "eq > Module 6",
+  "eq > All",
+  "eq > The 9 said to memorise",
+  "eq > The 0 not printed but reached from the s",
+  "glossary tap in the quiz (no term named in this card)",
+  "Scratch paper",
+  "module-pages cards (none on Topics)"
+ ]
+}

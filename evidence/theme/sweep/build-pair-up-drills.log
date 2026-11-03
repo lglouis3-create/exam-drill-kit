@@ -1,0 +1,6 @@
+wrote: /tmp/port-theme/sw-pair-up-drills/src/pud_ci_data.js (5 pair sets with 14, 9, 8, 12, 32 pairs; 2 tables with 39, 12 rows, from the fixture in test.js)
+wrote: appended to /tmp/port-theme/sw-pair-up-drills/src/course.js: the file in COURSE.files and pair-up-drills v1 on
+wrote: appended to /tmp/port-theme/sw-pair-up-drills/src/course.js:
+;/* theme ci */ COURSE.features = Object.assign({}, COURSE.features, {"theme": {"version":"v1"}});
+wrote: no data files (the module reads no course data)
+wrote sw.js  (caches named course-id-drill-v<n>; 7 files saved at install)

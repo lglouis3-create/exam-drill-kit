@@ -1,0 +1,8 @@
+wrote: /tmp/port-theme/sw-terms-variables/src/tvc_course_data.js (8 terms, 55 ASKS entries)
+wrote: /tmp/port-theme/sw-terms-variables/src/q90_tvc_course.js (3 of 5 topics, 8 of 10 questions)
+left out: terms none (the course's TERMS has a term of that name); questions m2-n-d3a, m2-n-vp1 (their cite names no deck of COURSE.lectures); 8 setup lines (equations the course does not have); 8 teachImg (crops the course's images.json does not have)
+wrote: appended to /tmp/port-theme/sw-terms-variables/src/course.js: the 2 files in COURSE.files, 5 lectures, 5 skills, and terms-variables v1 on
+wrote: appended to /tmp/port-theme/sw-terms-variables/src/course.js:
+;/* theme ci */ COURSE.features = Object.assign({}, COURSE.features, {"theme": {"version":"v1"}});
+wrote: no data files (the module reads no course data)
+wrote sw.js  (caches named course-id-drill-v<n>; 7 files saved at install)

@@ -1,0 +1,40 @@
+
+=== Files beside the page ===
+  ok    sw.js is written beside the page
+  ok    the worker's cache prefix comes from the course namespace (course-id-drill-)
+  ok    manifest.json is written and names its icons
+  ok    every icon the page and manifest name is a PNG on disk
+  ok    the page links the manifest
+
+=== Caches on a shared origin ===
+  ok    the worker installs and controls the page on the first visit
+  ok    the student is told the drill now opens offline
+  ok    the shared origin holds 4 other sites' caches for this check
+  ok    another site's cache phar4342-drill-v1 is kept
+  ok    another site's cache bdk-v18 is kept
+  ok    another site's cache other-drill-v2 is kept
+  ok    another site's cache course-id-drill-extra-v1 is kept
+  ok    this course's old cache course-id-drill-v0 is deleted
+  ok    this course's cache course-id-drill-v1 is there
+  ok    the page, the redirect, the manifest and the icons are saved at install
+  ok    after a reload the page is served by the worker
+  ok    the offline note is shown once, not on every load
+
+=== Server down ===
+  ok    the site opens from the saved copy with the server down
+  ok    the old file name COURSE0000_Drill.html opens it too
+  ok    a quiz starts and serves a question offline
+
+=== Server slower than NET_TIMEOUT, with a newer page ===
+  ok    the saved copy opens without waiting for the network (3539 ms, server 8000 ms)
+  ok    that copy is the last one saved
+  ok    a reload is offered once the newer page arrives
+  ok    the page never reloads by itself
+  ok    Reload brings in the newer page
+  ok    no page errors in the service worker checks
+
+=== Opened from disk ===
+  ok    no worker is registered for a page opened from disk
+  ok    the drill opens from disk
+  ok    no page errors opened from disk
+PASS: offline_test.js: 29 checks passed

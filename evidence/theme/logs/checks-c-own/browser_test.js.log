@@ -1,0 +1,107 @@
+
+=== Browser smoke test ===
+  ok    page loads with no uncaught JavaScript error
+  ok    no console errors on load
+  ok    the page is opened over HTTP from 127.0.0.1
+  ok    its manifest is served beside it
+  ok    no service worker is registered in the check's browser
+  ok    a file outside the page's folder is refused
+  ok    page renders visible text
+  ok    question bank present in the page (11 of 11 in the sources)
+  ok    image bank present in the page (0 of 0 in images.json)
+  ok    all 0 embedded images decode
+  ok    a quiz starts
+  ok    question options render (4 found)
+  ok    answering reveals the explanation
+  skip  concept-block figures render after answering  — no question in this bank carries a teachImg
+  ok    all 11 questions answer without throwing
+  ok    every question renders all of its options
+  ok    every answer produces an explanation panel
+  ok    every option gets its own explanation row
+  ok    every question shows a citation
+  ok    the full sweep starts from the topics view
+  ok    the sweep serves all 11 questions
+  ok    the sweep repeats nothing
+  ok    the sweep covers every question
+  ok    the sweep ends on its completion panel
+  ok    the drill still runs when the browser denies localStorage
+  ok    no uncaught error with storage denied
+  ok    reference has 2 sections, each with a jump link
+  ok    every reference figure is an embedded data URL
+  ok    no unexpanded figure token reached the reference
+  ok    no raw HTML entity reaches the reader
+  skip  drawn structures  — no question in this bank carries a drawn structure (no atlas)
+  ok    every structure question shows its drawing before the answer
+  skip  stems that promise a figure show one  — no stem in this bank promises a figure
+  ok    every stem that promises a figure shows one before the answer
+  ok    select-all questions exist (2, the paper draws 0)
+  ok    a select-all item renders its banner and toggle options
+  ok    the Check button waits for a selection and toggles mark on
+  ok    a partial selection is marked wrong
+  ok    the answer log stores the picked set and the verdict
+  ok    the review marks which options were selected
+  ok    the complete correct set is marked right and can be flagged as a guess
+  ok    the correct set plus a wrong option is marked wrong
+  ok    the Exam tab offers a Start button (the number of questions is set)
+  ok    the Start button draws a paper with questions (4 drawn)
+  ok    the exam paper carries 0 select-all items
+  skip  exam select-all rendering  — the blueprint puts no select-all item on the paper
+  ok    weak spots shows a next-step card per pool (1 of 1)
+  ok    weak spots renders its tables
+  ok    numeric item grades the answer and shows its steps (3 steps)
+  ok    a wrong numeric answer logs the kind of miss
+  ok    matching item grades every pair (3 rows)
+  ok    beginExam draws a paper with questions (the number of questions is set)
+  ok    an exam paper in progress is saved and restored
+  ok    submitting a partial paper logs only the answered items (1 logged)
+  ok    What's new card shows the newest entries (1 bullets)
+  ok    "Got it" dismisses the card and remembers the entry
+  ok    the card stays dismissed on the next visit to Topics
+  ok    Settings lists the whole change log
+  ok    answers land in this session (30 logged)
+  ok    the quiz carries a session line
+  ok    Weak spots shows this session's dots (20)
+  ok    Weak spots shows the review plan
+  ok    the plan groups what is not solid (3 section(s))
+  ok    a plan section drills its own questions
+  ok    an answered question offers its reading sections
+  ok    the chip opens that tab (guide)
+  ok    the section it names exists in that tab
+  ok    the floating button comes back to the question
+  ok    a Why? button fills the explanation card
+  ok    the Explain-one select fills it too
+  ok    following a card to its figure offers a way back
+  ok    the Diagrams tab renders its figures
+  ok    a step-through has its steps (3)
+  ok    Next moves one step on
+  ok    a step dot jumps back to that step
+  ok    one dot per step
+  ok    the contents chips list the figures
+  ok    every figure label sits inside its figure
+  ok    view 'topics' renders
+  ok    view 'quiz' renders
+  ok    view 'gaps' renders
+  ok    view 'exam' renders
+  ok    view 'diagrams' renders
+  ok    view 'guide' renders
+  ok    view 'tell' renders
+  ok    view 'ref' renders
+  ok    view 'settings' renders
+  ok    no uncaught error after interaction
+  ok    no sideways scroll on phone (light)
+  ok    no undefined or NaN on screen on phone (light)
+  ok    a table wider than the screen scrolls inside its own box and the page does not (2588 px table, 353 px wide around it)
+  skip  the course's own tables wider than the screen  — none in this bank at 375 px
+  ok    every jump-list chip in the reading tabs fits on the phone screen
+  ok    no page error on phone (light)
+  ok    no sideways scroll on phone (dark)
+  ok    no undefined or NaN on screen on phone (dark)
+  ok    no page error on phone (dark)
+  ok    no sideways scroll on desktop (light)
+  ok    no undefined or NaN on screen on desktop (light)
+  ok    no page error on desktop (light)
+  ok    no sideways scroll on desktop (dark)
+  ok    no undefined or NaN on screen on desktop (dark)
+  ok    no page error on desktop (dark)
+
+PASS: browser_test.js: 98 checks passed (5 skipped: concept-block figures render after answering; drawn structures; stems that promise a figure show one …)

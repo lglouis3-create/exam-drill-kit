@@ -1,0 +1,7 @@
+wrote: /tmp/port-theme/sw-paper-picker/src/q90_paper_picker_pk.js (11 topics and 118 questions from features/paper-picker/current/test_fixture.js, prof "Professor")
+wrote: /tmp/port-theme/sw-paper-picker/src/images.json (the 9 images those questions show, added to the course's own)
+wrote: appended to /tmp/port-theme/sw-paper-picker/src/course.js: the file in COURSE.files, 12 lectures in COURSE.lectures, the skills the course lacks, COURSE.exams (Exam 1, Exam 2, Exam 3 (final)), COURSE.activeExam 3, and paper-picker v1 on
+wrote: appended to /tmp/port-theme/sw-paper-picker/src/course.js:
+;/* theme ci */ COURSE.features = Object.assign({}, COURSE.features, {"theme": {"version":"v1"}});
+wrote: no data files (the module reads no course data)
+wrote sw.js  (caches named course-id-drill-v<n>; 7 files saved at install)
