@@ -23,8 +23,9 @@ after Phase 1 and overrides earlier sections where they differ.
   - fitting FSRS parameters to Louis's own answers (`review/scheduler-proposal.md`
     4.2.3; findings in `core/README.md`: `@open-spaced-repetition/binding` needs Node 24
     and this container has Node 22; `fsrs-browser` does not confirm FSRS-7);
-  - a WebKit (Safari) run of the browser checks: NOT RUN so far; the FSRS page contains
-    BigInt syntax;
+  - WebKit: the GitHub job "WebKit · template" runs the template course's checks in
+    WebKit and blocks a merge (#29); WebKit on the other courses and the Safari app on
+    an iPhone or iPad: NOT RUN so far; the FSRS page contains BigInt syntax;
   - the stored instructions of the scheduled task "Kit update run" still say a
     bookkeeping or `small-fix` update goes live without Louis's reply (read 2026-11-03).
     Louis authorized changing them on 2026-11-03 so that no preview is promoted to live
@@ -52,7 +53,10 @@ after Phase 1 and overrides earlier sections where they differ.
 - **Moving the courses onto the core** (Louis's order, 2026-11-01: Medicinal-chemistry,
   Pharmacokinetics, BDK, Intro to Pharmacology). Medicinal-chemistry: live on the core
   since 2026-11-01 (commit `d7331be` in its repo, kit pin `ff7bd51`), after kit pull
-  requests #2, #3 and #4 and Louis's approval of its preview.
+  requests #2, #3 and #4 and Louis's approval of its preview. The kit-update run moved
+  its pin to `2bbe395` on 2026-11-02 (Medicinal-chemistry commit `e954e08`, deploy run
+  41424293314), after Louis approved the preview in the "Kit updater" session ("Yrs do
+  it"; Medicinal-chemistry `reviews/LOG.md`, 2026-11-02 09:54 UTC).
   Read-only assessments (2026-11-01) of a move for the other three: Pharmacokinetics
   about 35 kit pull requests (a straight move broke start-up and lost most features),
   BDK about 33 (quizzes still on 11/17-11/19 and 11/30), Intro to Pharmacology about
@@ -66,10 +70,10 @@ after Phase 1 and overrides earlier sections where they differ.
   start with the porter's next nightly run. Start-up safety fix merged in #5. Louis
   approved on 2026-11-01 adding BDK's and Intro to Pharmacology's features after
   Pharmacokinetics' Tier 2 (`review/port-queue.md` items 11-21, merged in #6); no work on Intro to Pharmacology's files before 2026-11-02 11:00
-  CT (after its Exam 4). The "Kit feature port" task's instructions still name only
-  Pharmacokinetics; they can be changed only from the "Kit feature porter" session
-  (an `update_trigger` from this session was refused on 2026-11-01), so that change
-  waits for a message from Louis there.
+  CT (after its Exam 4). The "Kit feature port" task's instructions were updated from
+  the "Kit feature porter" session on 2026-11-03 (the version stored now is from 06:30:42
+  UTC, read with `get_trigger` the same day): they follow `review/porter-policy.md` and
+  take Intro to Pharmacology's items 18-21 first.
   Louis's decision on 2026-11-01 ("Lets do what you recommend that will result in the
   least mistakes", after Claude recommended option B of the Intro to Pharmacology
   assessment): Intro to Pharmacology is not moved; its site stays as it is and its
@@ -86,6 +90,43 @@ after Phase 1 and overrides earlier sections where they differ.
   course move in progress. The plan, the pre-move decisions and the order of its pull
   requests: `review/bdk-move-plan.md`; the three move assessments are kept in
   `review/assessments/`.
+- **Kit pull requests merged 2026-11-02 to 2026-11-03 (UTC)** (merge commit, from the
+  GitHub pull request list read 2026-11-03): #9 `2bbe395` (BDK move 1/32), #10 `ac5c644`
+  (`render_test`), #12 `98e7b5b` (checks on GitHub), #27 `366caf6` (pages over HTTP;
+  module courses), #28 `6432c36` (`home_test`), #31 `da6ea21` (style rule "given as"),
+  #33 `7286854` (offline test: refused connections), #34 `c1efa19` (lecture ids), #35
+  `e3433d2` (catalog wording), #29 `4e0fae4` (the WebKit job blocks a merge), #36
+  `8b5ffdb` (the porter's policy; merged by the porter session under its §7 at 06:35
+  UTC), #38 `9f2940b` (`test.js` section 7; merged by the main kit session under Louis's
+  standing policy and his go-ahead for that fix at 06:35 UTC, at 06:54 UTC), #37 `494e6d5`
+  (the policy record, decision 10; merged on Louis's yes to it), #40 `751251a` (`test.js`
+  section 7, 20 trials; merged by the main kit session under decision 10). The WebKit
+  diagnosis and every run's log: branch `claude/elegant-ptolemy-pqxb8y-webkit-diag`,
+  `review/webkit-offline/` (never merged). Open: #32 (Import; Louis keeps it unmerged
+  until its two intermittent two-tab failures are explained and resolved), #39 (the
+  waiting save when a page is hidden or closed; progress storage, waits for Louis), this
+  bookkeeping record, the proposals #23 and #30, and the porter's draft ports (#11,
+  #13-#22, #24-#26).
+- **GitHub Actions stopped starting jobs on 2026-11-03** between 04:13 UTC (run
+  41576828141, the last that ran and passed) and 04:35 UTC (main's run 41579030257 for
+  4e0fae4, the first refused). Every run created since then (22 by 05:05 UTC) failed
+  with no steps on its first attempt (three of them, 41580289929, 41581178372 and
+  41581740260, were started again at 05:43 UTC and passed on attempt 2), with GitHub's
+  message "The job was not started because recent account
+  payments have failed or your spending limit needs to be increased" (check-run
+  annotations). The kit repository was private, and GitHub's free amount for private
+  repositories on GitHub Free is $12 a month, at $0.006 a minute on a standard Linux
+  runner (GitHub Docs. GitHub Actions billing. Accessed November 3, 2026.
+  https://docs.github.com/en/billing/concepts/product-billing/github-actions). The kit's
+  own job time from 2026-11-01 to that stop: 2,021 minutes by exact time ($12.13), 2,376
+  with each job rounded up to a minute (Kit checks 2,105, WebKit offline diagnosis 271;
+  from the Actions runs and jobs API: 103 runs created, 95 "Kit checks" and 8 "WebKit
+  offline diagnosis", the first on 2026-11-02, and 631 jobs that ran); the account's
+  total is not readable from a kit session. **Resolved:** Louis made the kit repository
+  public on 2026-11-03 (visibility read 05:36 UTC); standard GitHub-hosted runners are
+  free for public repositories (same GitHub Docs page), and runs were starting again by
+  05:36 UTC (run 41584721586, created 05:34 UTC, was in progress). The refused runs stay
+  in the record; when one may be started again is Claude's reading 5 in decision 10.
 - **Phase 3 (test) and Phase 4 (install): not started.**
 
 ## Rules for kit sessions
@@ -160,13 +201,13 @@ after Phase 1 and overrides earlier sections where they differ.
 | Google Drive: search, metadata, download | works | 2026-11-01 |
 | Claude Projects | not reachable from a cloud session | 2026-10-31 |
 | Create a new repository (Mode 1, decision 8) | not tested yet | — |
-| A kit pull request merging itself after required checks (§12.9) | not tested yet | — |
+| A kit pull request merging itself after required checks (§12.9; since 2026-11-03 decision 10 instead: Claude merges a listed kind of change after an independent review) | used: #36 (by the porter session, after its third independent review) and #38 (by the main kit session, after an independent review and run 41591399415) | 2026-11-03 |
 | Scheduled task that starts a fresh session each time (first "Kit update run", now deleted) | does not work for this: the fired session started with no repository, `gh` and `git` were refused, and it reported FAILED by push notification | 2026-11-01 |
 | `gh api 'repos/<owner>/<repo>/actions/runs?head_sha=<sha>'` for Pages deploys | works through the session proxy without any connector, for repos attached to the session; `gh api …/pages/builds/latest` is refused by the proxy | 2026-11-01 |
 | Session "Kit updater" (`session_01LVkWFDAbAtw7kDGwqd43Qg`, started with the kit as its repository) | kit fetch and push dry run work; Python, Node and Chromium work; `mcp__github__*` tools present; `add_repo` for a course repo from a seeded message was blocked by the permission system; after Louis's own message there, all four course repos were attached with push access, and fetch, `git push --dry-run` and `gh api …/actions/runs` worked in each (the session's stored sources list the kit and the four course repos) | 2026-11-01 |
 | Scheduled task "Kit update run" (`trig_01QduqhookGDD8HxANEbLq4w`, daily 2:47 AM America/Chicago, fires into "Kit updater") | first run 2026-11-01 08:48 UTC ended "Nothing to update: the kit's main has no core yet" (correct: PR #1 merged at about 12:10 UTC), changed nothing and sent no notification; not yet checked whether a run after the container is replaced still has the repos | 2026-11-01 |
-| Session "Kit feature porter" (`session_01LVkWFDVVDwgsL5WF7yWqcV`, started with the kit) and scheduled task "Kit feature port" (`trig_017nw2kiZvgqCKkgWcKuvA8V`, daily 12:45 AM America/Chicago) | setup test 2026-11-01: kit fetch and push dry run, a read-only clone of Pharmacokinetics, `mcp__github__create_pull_request`, Python, Node and Chromium all work; a real push and pull request not yet tried | 2026-11-01 |
-| WebKit / Safari browser engine | not installed in the cloud container; Chromium only | 2026-10-31 |
+| Session "Kit feature porter" (`session_01LVkWFDVVDwgsL5WF7yWqcV`, started with the kit) and scheduled task "Kit feature port" (`trig_017nw2kiZvgqCKkgWcKuvA8V`, daily 12:45 AM America/Chicago) | setup test 2026-11-01: kit fetch and push dry run, a read-only clone of Pharmacokinetics, `mcp__github__create_pull_request`, Python, Node and Chromium all work; since then the porter has pushed `port/*` branches, opened the draft ports #11, #13-#22 and #24-#26 and #36, and merged #36 (GitHub's pull request list, read 2026-11-03) | 2026-11-01; 2026-11-03 |
+| WebKit / Safari browser engine | not installed in the cloud container; Chromium only (GitHub's runners run WebKit: kit job "WebKit · template") | 2026-10-31; 2026-11-03 |
 
 ## Open questions for Louis
 

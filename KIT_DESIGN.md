@@ -34,7 +34,7 @@ Repositories (all owned by `lglouis3-create`):
 | `Basic-Pharmacokinetics-` | 2nd | Own engine variant: 25 check scripts, `figures.py`, `slides.py`, Diagrams tab, audio clips, variables quiz, daily file check, `version.json`. No state doc. |
 | `Intro-Pharmacology-` | 3rd | Has `course.js`, `share/FEATURES.md` (early feature inventory), `share/skill/` (317-line unpublished SKILL.md draft), state doc at `claude/drill-app-state.md` (stale). |
 | `BDK` | built separately | Not built with the skill. Built from Louis's Quizlet deck spec; has `course.js`; tracks state in `CLAUDE.md`, `reviews/LOG.md`, `reviews/OPEN_QUESTIONS.md`. Louis values how it adapted its format to the course. |
-| `exam-drill-kit` | this repo | Private. Holds `Exam drill builder-v1.zip` (skill v1, 173 lines) and `exam-drill-builder.skill` (skill v2, 245 lines, identical to the installed skill). |
+| `exam-drill-kit` | this repo | Private at Phase 1 (public since 2026-11-03, Louis's change). Holds `Exam drill builder-v1.zip` (skill v1, 173 lines) and `exam-drill-builder.skill` (skill v2, 245 lines, identical to the installed skill). |
 
 Each course repo has `claude/drill-notes.md`, written by that course's build
 session: what the drill added beyond the skill, problems and their fixing
