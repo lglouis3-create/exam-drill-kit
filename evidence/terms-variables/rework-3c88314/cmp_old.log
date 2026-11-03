@@ -1,0 +1,89 @@
+q:m1-ord-n01.prof 
+   fixture: "PROF" 
+   PK     : "Mosley"
+q:m1-ord-n01.steps.1.why 
+   fixture: "Writing the integrated first-order equation for two measured points and subtracting cancels ln C0, so the unknown starting concentration drops out and k depends only on values in the table. The professor writes this difference of logarithms as the logarithm of the ratio." 
+   PK     : "Writing the integrated first-order equation for two measured points and subtracting cancels ln C0, so the unknown starting concentration drops out and k depends only on values in the table. Dr. Mosley writes this difference of logarithms as the logarithm of the ratio."
+q:m1-ord-n01.steps.3.why 
+   fixture: "Dividing a dimensionless logarithm by a time gives reciprocal time, the unit of a first-order rate constant. The professor reports rate constants to four decimal places (her key prints 0.0866 per hour), and a leading decimal with no digit before it loses half the marks on her paper." 
+   PK     : "Dividing a dimensionless logarithm by a time gives reciprocal time, the unit of a first-order rate constant. Dr. Mosley reports rate constants to four decimal places (her key prints 0.0866 per hour), and a leading decimal with no digit before it loses half the marks on her paper."
+q:m1-ord-n02.prof 
+   fixture: "PROF" 
+   PK     : "Mosley"
+q:m1-ord-n02.steps.3.why 
+   fixture: "The professor reports this value as 350 mg/L, to three significant figures, which matches the precision of the tabulated concentrations. The computed 349.98 rounds to that value without any further adjustment." 
+   PK     : "Dr. Mosley reports this value as 350 mg/L, to three significant figures, which matches the precision of the tabulated concentrations. The computed 349.98 rounds to that value without any further adjustment."
+q:m1-ord-n03.prof 
+   fixture: "PROF" 
+   PK     : "Mosley"
+q:m1-ord-n03.steps.2.why 
+   fixture: "The professor reports this as 8 hours, to the whole hour. The answer is a time and carries no reciprocal unit; hours to the minus one belongs to the rate constant that was given, not to the half-life that was asked for." 
+   PK     : "Dr. Mosley reports this as 8 hours, to the whole hour. The answer is a time and carries no reciprocal unit; hours to the minus one belongs to the rate constant that was given, not to the half-life that was asked for."
+q:m2-n-d3a.prof 
+   fixture: "PROF" 
+   PK     : "Mosley"
+q:m2-n-vp1.prof 
+   fixture: "PROF" 
+   PK     : "Mosley"
+q:inf-n2.prof 
+   fixture: "PROF" 
+   PK     : "Mosley"
+q:m4-n-fe.prof 
+   fixture: "PROF" 
+   PK     : "Mosley"
+q:m4-n-fe.steps.2.why 
+   fixture: "The professor asks the class directly what the units of fe are and confirms there are none, because an amount has been divided by an amount. Reporting 0.6 rather than .6 also satisfies her rule that a number smaller than one must carry a leading zero." 
+   PK     : "Dr. Mosley asks the class directly what the units of fe are and confirms there are none, because an amount has been divided by an amount. Reporting 0.6 rather than .6 also satisfies her rule that a number smaller than one must carry a leading zero."
+q:m1-ord-n04.prof 
+   fixture: "PROF" 
+   PK     : "Mosley"
+q:m1-ord-n04.steps.3.why 
+   fixture: "The professor reports this to one decimal place, as 26.6 hours. As a check, 90 per cent decomposition is a little more than three half-lives, which for an 8-hour half-life would be 24 hours, and the answer sits just above that." 
+   PK     : "Dr. Mosley reports this to one decimal place, as 26.6 hours. As a check, 90 per cent decomposition is a little more than three half-lives, which for an 8-hour half-life would be 24 hours, and the answer sits just above that."
+q:m1-ord-n04.teach.0.list.2 
+   fixture: "If the fraction remaining is a power of one half, counting half-lives gives the same answer faster; The professor prints both routes when both are available." 
+   PK     : "If the fraction remaining is a power of one half, counting half-lives gives the same answer faster; Dr. Mosley prints both routes when both are available."
+q:m1-ord-n06.prof 
+   fixture: "PROF" 
+   PK     : "Mosley"
+q:m1-ord-n06.steps.2.why 
+   fixture: "The professor reports this to one decimal place, as 29.2 hours. As a check, the table for this solution reads 206 mg/mL at 24 hours and 134 mg/mL at 36 hours, so the concentration passes 175 mg/mL between those two times, which brackets the answer." 
+   PK     : "Dr. Mosley reports this to one decimal place, as 29.2 hours. As a check, the table for this solution reads 206 mg/mL at 24 hours and 134 mg/mL at 36 hours, so the concentration passes 175 mg/mL between those two times, which brackets the answer."
+q:m1-ord-n08.prof 
+   fixture: "PROF" 
+   PK     : "Mosley"
+q:m1-ord-n08.steps.4.why 
+   fixture: "The professor reports this half-life to one decimal place, as 65.6 minutes. The answer is a time and carries no reciprocal unit; per minute belongs to the rate constant that was given." 
+   PK     : "Dr. Mosley reports this half-life to one decimal place, as 65.6 minutes. The answer is a time and carries no reciprocal unit; per minute belongs to the rate constant that was given."
+topic:orders.prof 
+   fixture: "PROF" 
+   PK     : "Mosley"
+topic:bolus1.prof 
+   fixture: "PROF" 
+   PK     : "Mosley"
+topic:bolus2.prof 
+   fixture: "PROF" 
+   PK     : "Mosley"
+topic:infusion.prof 
+   fixture: "PROF" 
+   PK     : "Mosley"
+topic:clearance.prof 
+   fixture: "PROF" 
+   PK     : "Mosley"
+lecture:L01.prof 
+   fixture: "PROF" 
+   PK     : "Mosley"
+lecture:L02.prof 
+   fixture: "PROF" 
+   PK     : "Mosley"
+lecture:L03.prof 
+   fixture: "PROF" 
+   PK     : "Mosley"
+lecture:L04.prof 
+   fixture: "PROF" 
+   PK     : "Mosley"
+lecture:L05.prof 
+   fixture: "PROF" 
+   PK     : "Mosley"
+29 differences
+fixture keys: terms, qs, topics, lectures, skills, asks, families, names, twins, pk

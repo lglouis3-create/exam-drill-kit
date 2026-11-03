@@ -1,0 +1,5 @@
+112c112,113
+<   if(rest.teachImg !== undefined && q.type === 'numeric'){ delete rest.teachImg; droppedImg++; }   // core fault C7
+---
+>   // evidence patch: teachImg kept, its image copied from Basic-Pharmacokinetics' images.json (read-only)
+>   if(rest.teachImg !== undefined){ const I = JSON.parse(fs.readFileSync(path.join(src, 'images.json'), 'utf8')); I[rest.teachImg] = JSON.parse(fs.readFileSync('/tmp/pk-readonly/src/images.json', 'utf8'))[rest.teachImg]; fs.writeFileSync(path.join(src, 'images.json'), JSON.stringify(I)); }

@@ -1,0 +1,4 @@
+103c103
+< const citesDeck = q => [...decks].some(d => String(q.cite || '').includes(d));   // the core's lecOf
+---
+> const citesDeck = q => true;   // evidence patch: every question kept

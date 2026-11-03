@@ -1,0 +1,11 @@
+01-mkcourse	0	/tmp/port-tools/mkcourse.sh /tmp/port-rework/wt-terms-variables /tmp/port-rework/terms-variables/run1/own terms-variables
+02-oncourse	0	node /tmp/port-rework/wt-terms-variables/features/terms-variables/ci/oncourse.js /tmp/port-rework/wt-terms-variables /tmp/port-rework/terms-variables/run1/own/src
+03-commit	0	git -C /tmp/port-rework/terms-variables/run1/own -c user.email=t@t -c user.name=t commit -qam module data
+03b-add	0	bash -c cd /tmp/port-rework/terms-variables/run1/own && git add -A && git -c user.email=t@t -c user.name=t commit -qm 'module data files' || true
+04-build	0	bash -c cd /tmp/port-rework/terms-variables/run1/own/src && python3 build.py
+05-module-test-1	0	bash -c cd /tmp/port-rework/terms-variables/run1/own/src && timeout 1200 node features/terms-variables/test.js
+05-module-test-2	0	bash -c cd /tmp/port-rework/terms-variables/run1/own/src && timeout 1200 node features/terms-variables/test.js
+05-module-test-3	0	bash -c cd /tmp/port-rework/terms-variables/run1/own/src && timeout 1200 node features/terms-variables/test.js
+06-ci_course	0	timeout 2400 /tmp/port-rework/wt-terms-variables/core/ci_course.sh module:terms-variables
+07-ci_course-combination	0	core/ci_course.sh modules:terms-variables,equation-drill
+done

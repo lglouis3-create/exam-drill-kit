@@ -1,0 +1,5 @@
+wrote: /tmp/port-rework/terms-variables/expC7/c/src/tvc_course_data.js (8 terms, 55 ASKS entries)
+wrote: /tmp/port-rework/terms-variables/expC7/c/src/q90_tvc_course.js (3 of 5 topics, 8 of 10 questions)
+left out: terms none (the course's TERMS has a term of that name); questions m2-n-d3a, m2-n-vp1 (their cite names no deck of COURSE.lectures); 8 setup lines (equations the course does not have); 0 teachImg on calculations (core fault C7, kit PR #30)
+wrote: appended to /tmp/port-rework/terms-variables/expC7/c/src/course.js: the professor(s) Mosley in COURSE.professors, the 2 files in COURSE.files, 5 lectures, 5 skills, and terms-variables v1 on
+oncourse exit 0
