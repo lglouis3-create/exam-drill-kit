@@ -41,6 +41,7 @@ Dated kit changes, newest first.
   scratch course with Intro to Pharmacology's 5 sets, 39-drug table and 12-row poisoning table
   as course data (written by `features/pair-up-drills/ci/oncourse.js` from the fixture that
   `port_from_ip.js` takes from that course's files); with the module's code left out, 1 of 1 fails.
+- New feature module `study-controls` v1 (`features/study-controls/`), from Intro-Pharmacology- `929cd62`: flags with Drill flagged, one at a time or all on one page, keyboard shortcuts, and a strict paper with no going back, each switched on by its own option. No course switches it on yet. After review: no shortcut acts while a dialog such as worksheets-ink's Scratch paper is open or while a pen is down on a canvas; the ticked strict box survives a redraw of the start page; a paper with calculations stays one at a time. Test: 59 checks (61 with paper-picker on), on Intro to Pharmacology's own Day 1 questions.
 - `core/render_test.js`: answers calculation and matching items with their own controls; no more random failures.
 - New feature module `plan-the-problem` v1 (`features/plan-the-problem/`), from
   Basic-Pharmacokinetics `ac2eb73` (`src/views.js` 4754-5120, the set-up drill): on the
