@@ -3,7 +3,8 @@
 # 41593159353): an answer made just before the tab closed was missing in a tab opened at once.
 # This times that case in WebKit and Chromium and repeats storage_test.js, keeping every result.
 # Round 1 (run 41594335211): 300 WebKit and 150 Chromium close trials and 24 WebKit storage_test.js
-# runs, all without the failure. Round 2: the whole WebKit suite, as the failing job ran it.
+# runs, all without the failure. Round 2 (run 41595476287): the whole WebKit suite 24 times, all
+# passed. Round 3: the corrected storage_test.js of ab7df8b, 48 times in WebKit.
 name: Pending-save close diagnosis
 on:
   push:
@@ -21,13 +22,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # round 2: the whole WebKit check suite, 4 times per job, with the report line
-          - {browser: webkit, mode: suite, n: 4, set: 1}
-          - {browser: webkit, mode: suite, n: 4, set: 2}
-          - {browser: webkit, mode: suite, n: 4, set: 3}
-          - {browser: webkit, mode: suite, n: 4, set: 4}
-          - {browser: webkit, mode: suite, n: 4, set: 5}
-          - {browser: webkit, mode: suite, n: 4, set: 6}
+          # round 3: the corrected storage_test.js of ab7df8b (close awaited, save timer unable to
+          # fire), 12 runs per job
+          - {browser: webkit, mode: storage, n: 12, set: 1}
+          - {browser: webkit, mode: storage, n: 12, set: 2}
+          - {browser: webkit, mode: storage, n: 12, set: 3}
+          - {browser: webkit, mode: storage, n: 12, set: 4}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
