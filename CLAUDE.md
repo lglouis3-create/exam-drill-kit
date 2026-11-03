@@ -242,15 +242,19 @@ after Phase 1 and overrides earlier sections where they differ.
 
 ## Tracked limits of the core
 
-- **4,000 answers per profile** (`ANSWERS_MAX`): past it, a round trip of a file between two
-  devices makes a new profile instead of a replace (#32, design choice 4). Louis asked on
-  2026-11-03 to track it. `review/storage-usage-proposal.md` §4 recommends a Settings count now
-  and the origin-chain change once any of his profiles passes 2,000 answers; his current
-  counts are not known in this session.
+- **4,000 answers per profile** (the literal `4000` in `record()`, `core/shell.html:1210` on
+  `main`; `ANSWERS_MAX` on #32's branch): past it, a profile's list no longer shows where it
+  began; with #32, a round trip of a file between two devices then makes a new profile instead
+  of a replace (#32, design choice 4). Louis asked on 2026-11-03 to track it.
+  `review/storage-usage-proposal.md` §4 recommends a Settings count now and the origin-chain
+  change once any of his profiles passes 2,000 answers; his current counts are not known in
+  this session.
 - **Storage per site:** every drill shares lglouis3-create.github.io's localStorage
-  (5,242,873 characters measured in Chromium; MDN: 5 MiB per origin). One profile at both caps
-  takes 2,271,973 of them (`review/storage-usage-proposal.md` §1-2); the display and warning there
-  wait for Louis's approval.
+  (5,242,873 characters measured in Chromium; MDN: up to 5 MiB per origin). One profile at
+  both caps takes 2,271,973 characters; a preview's copy of it as much again; and a refused
+  history write on `main` deletes the oldest half of the history with no notice
+  (`review/storage-usage-proposal.md` §1-2). The display, the warning and the history change
+  there wait for Louis's approval.
 
 ## Known issues in course drills found by the kit work
 
