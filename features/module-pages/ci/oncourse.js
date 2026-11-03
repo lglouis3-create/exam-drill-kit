@@ -28,7 +28,12 @@
  * copies use `mpt-`). The one change to the data: `prof` is the course's own
  * (COURSE.professors[0], the template's "Professor") on the questions, topics and lectures.
  * The module is switched on with the `modules` option: the course's own modules in the
- * order its lectures name them, then module 2 under its Basic-Pharmacokinetics name.
+ * order its lectures name them, then the fixture's module under its Basic-Pharmacokinetics
+ * name. That module is number 2 when the course does not use 2; when the course's lectures
+ * or questions already use module 2 (another module's script may have written it), it is the
+ * first number from 92 on that the course does not use, as test.js does (`FM = free(92)`),
+ * and the questions, objectives, kinds of problem and lectures written carry that number
+ * (CIDATA rule 3).
  * Files written in <courseSrcDir>:
  *   q90_mpc_fixture.js   the topics and the questions, one per line in the template's form
  *                        ({id:'...', prof:'...', ...})
@@ -78,25 +83,31 @@ try {
 } catch(e){ fail('the course could not be read: ' + e.message); }
 const prof = (own.COURSE.professors || [])[0];
 if(typeof prof !== 'string' || !prof || /['\\\n]/.test(prof)) fail('course.js has no first professor that can be written as a literal');
+// the module number the fixture goes on: its own (2) when free, else the first free one from 92, as test.js does
+const usedMods = new Set((own.COURSE.lectures || []).map(l => l.module).concat(own.QUESTIONS.map(q => q.module))
+  .filter(m => m !== undefined && m !== null).map(String));
+const free = from => { let n = from; while(usedMods.has(String(n))) n++; return n; };
+const FM = usedMods.has(String(PK.module.module)) ? free(92) : PK.module.module;
+if(FM !== PK.module.module) console.log(`the course already uses module ${PK.module.module}; the fixture's module goes on module ${FM}`);
 
 // the questions that cite a lecture deck, with their dupOf partners
 const decks = [...new Set(LECS.map(l => l.deck))];
 const byQ = Object.fromEntries(PK.qs.map(q => [q.id, q])), want = [];
 const add = id => { const q = byQ[id]; if(!q) fail('the fixture has no question ' + id); if(want.includes(id)) return; want.push(id); if(q.dupOf) add(q.dupOf); };
 PK.qs.filter(q => !q.dupOf && decks.some(d => String(q.cite || '').includes(d))).forEach(q => add(q.id));
-const qs = PK.qs.filter(q => want.includes(q.id));
+const qs = PK.qs.filter(q => want.includes(q.id)).map(q => Object.assign({}, q, {module: FM}));
 if(!qs.length) fail('no question of the fixture cites ' + decks.join(', '));
 const subs = new Set(qs.map(q => q.topic + '/' + q.sub));
 const ownTopics = own.TOPICS.map(t => t.id), ownSkills = (own.COURSE.skills || []).map(k => k.id);
 const clash = PK.topics.filter(t => qs.some(q => q.topic === t.id) && ownTopics.includes(t.id)).map(t => t.id);
 if(clash.length) fail('the course already has the topic(s) ' + clash.join(', '));
 const topics = PK.topics.filter(t => qs.some(q => q.topic === t.id)).map(t => Object.assign({}, t, {prof}));
-const objectives = PK.objectives.filter(o => o.subs.some(s => subs.has(s)));
-const types = PK.types.filter(t => t.example && want.includes(t.example)).map(t => Object.assign({}, t, {id: pre(t.id), example: pre(t.example)}));
+const objectives = PK.objectives.filter(o => o.subs.some(s => subs.has(s))).map(o => Object.assign({}, o, {module: FM}));
+const types = PK.types.filter(t => t.example && want.includes(t.example)).map(t => Object.assign({}, t, {id: pre(t.id), example: pre(t.example), module: FM}));
 const skills = PK.skills.filter(k => qs.some(q => q.skill === k.id) && !ownSkills.includes(k.id));
 const missingSkill = [...new Set(qs.map(q => q.skill))].filter(k => !ownSkills.includes(k) && !skills.some(s => s.id === k));
 if(missingSkill.length) fail('the questions use skills neither the course nor the fixture has: ' + missingSkill.join(', '));
-const lectures = LECS.map(l => Object.assign({}, l, {id: pre(l.id), prof}));
+const lectures = LECS.map(l => Object.assign({}, l, {id: pre(l.id), prof, module: FM}));
 
 // one question per line, in the template's form: id and prof first, as literals
 const qLine = q => { const rest = Object.assign({}, q); delete rest.id; delete rest.prof;
@@ -115,8 +126,8 @@ const lectureLit = l => '{' + Object.entries(l).map(([k, v]) => `${k}:${lit(v)}`
 if(lectures.some(l => Object.values(l).some(v => typeof v !== 'number' && typeof v !== 'string'))) fail('a lecture holds a value that cannot be written as a literal');
 const ownMods = [];
 (own.COURSE.lectures || []).forEach(l => { if(l.module !== undefined && l.module !== null && !ownMods.includes(l.module)) ownMods.push(l.module); });
-if(ownMods.includes(PK.module.module)) fail(`the course already has a module ${PK.module.module}`);
-const modules = ownMods.map(m => [m, typeof m === 'string' && /\D/.test(m) ? m : 'Module ' + m]).concat([[PK.module.module, PK.module.name]]);
+if(ownMods.some(m => String(m) === String(FM))) fail(`the course already has a module ${FM}`);   // cannot happen: FM is free
+const modules = ownMods.map(m => [m, typeof m === 'string' && /\D/.test(m) ? m : 'Module ' + m]).concat([[FM, PK.module.name]]);
 try { for(const [f, t] of Object.entries(out)){ fs.writeFileSync(path.join(src, f), t); console.log(`wrote: ${path.join(src, f)} (${t.length} characters)`); } }
 catch(e){ fail('cannot write the data files: ' + e.message); }
 const line = `\n;${TAG} COURSE.files = (COURSE.files || ['atlas.js', 'diagrams.js', 'q1_topics.js']).concat([${JSON.stringify(QFILE)}, ${JSON.stringify(DFILE)}]); ` +
