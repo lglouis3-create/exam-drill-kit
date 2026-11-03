@@ -240,3 +240,24 @@ Counted from the `RUN` lines of the job logs kept here. Each run is one test run
   8 in Chromium.
 - **Chromium:** no failure in any set that should pass (20 in turn, 18 under load, 2
   forced update-check runs).
+
+## The repeated WebKit checks on main (after kit pull request #33), 2026-11-03
+
+Louis, 2026-11-03: "Yes to repeated full WebKit checks after #33, including runs under
+load and deliberate broken-behavior checks. Preserve every result and leave the
+additional uninstrumented failure classified as unconfirmed. Bring #29 back afterward."
+
+This branch now carries main at c1efa19 (#31, #33 and #34 merged); its core/, template/
+and features/ are main's exactly. The runs:
+- mode `full`: the whole check suite as the kit's WebKit job runs it
+  (`core/ci_course.sh template webkit`), 4 sets of 3 in turn;
+- mode `full-load`: the same with two busy loops on the CPU, 3 sets of 3;
+- mode `mutate`: the four broken copies, 3 times each in WebKit and once in Chromium.
+
+WebKit's own output is recorded in the check logs (`DEBUG=pw:browser*`), and each run
+reports the libsoup assertions and "This is a WebKit bug" lines found there.
+
+**Unconfirmed.** The WebKit failure of port/concept-statuses 0110c61 (run 41565101924,
+job 125684620836, before #33) stays unconfirmed: "version.json ... due to access control
+checks", then no reload offered. That has the shape of the diagnosed libsoup failure, but
+the job did not record WebKit's own output.

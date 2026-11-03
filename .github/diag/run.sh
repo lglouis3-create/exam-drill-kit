@@ -16,6 +16,12 @@
 #                         at once while two busy loops keep the CPU occupied
 #   mutate                core/offline_test.js on each deliberately broken copy in
 #                         mutations.py, <runs> times each (each must FAIL)
+#   full                  the whole check suite, core/ci_course.sh template <browser>, as
+#                         the kit's GitHub job runs it, <runs> times in turn
+#   full-load             the same while two busy loops keep the CPU occupied
+#   For full and full-load each run also reports, from its check logs, the libsoup
+#   assertions and the "This is a WebKit bug" lines (PW_DEBUG=pw:browser* records WebKit's
+#   own output there), and the failing lines of every check that failed.
 # Every run's whole output is printed, then one line per run:
 #   RUN <n> <test> <exit code> <its last line>
 # Nothing is retried and no run is left out. Exit status 0: the counts are the result.
@@ -50,6 +56,38 @@ if [ "$mode" = repro ]; then
     show "$i" repro_versionjson.js $? "$log"
   done
   echo; echo "######## summary ########"; printf '%s\n' "${summary[@]}"; exit 0
+fi
+if [ "$mode" = full ] || [ "$mode" = full-load ]; then
+  for i in $(seq 1 "$runs"); do
+    loops=()
+    if [ "$mode" = full-load ]; then
+      timeout 1800 node -e 'for(;;){}' & loops+=($!)
+      timeout 1800 node -e 'for(;;){}' & loops+=($!)
+    fi
+    log="$work/full-$i.log"
+    (cd "$kit" && DEBUG="${PW_DEBUG:-}" timeout 1800 bash core/ci_course.sh template "$browser") > "$log" 2>&1
+    code=$?
+    for p in "${loops[@]}"; do kill "$p" 2>/dev/null; done; wait "${loops[@]}" 2>/dev/null
+    logs="$(sed -n 's/.*; logs in \(.*\)$/\1/p' "$log" | tail -n 1)"
+    soup=0; bug=0
+    if [ -n "$logs" ] && [ -d "$logs" ]; then
+      soup=$(cat "$logs"/*.log 2>/dev/null | grep -c 'libsoup-CRITICAL'); bug=$(cat "$logs"/*.log 2>/dev/null | grep -c 'This is a WebKit bug')
+    fi
+    echo; echo "######## run $i, ci_course.sh template $browser ($mode), exit $code ########"
+    grep -v 'pw:browser' "$log"
+    echo "libsoup assertions in this run's check logs: $soup; 'This is a WebKit bug' lines: $bug"
+    if [ "$code" != 0 ] && [ -n "$logs" ]; then
+      for f in "$logs"/*.log; do
+        grep -qE '^FAIL:|^NOT RUN:' "$f" || continue
+        echo "---- failing lines of $(basename "$f")"
+        grep -E '^ +FAIL|^FAIL:|^NOT RUN:|libsoup-CRITICAL|This is a WebKit bug|internal error|access control' "$f" | head -n 40
+      done
+    fi
+    summary+=("RUN $i ci_course.sh $code $(grep -E 'PASS, .* FAIL' "$log" | tail -n 1) | libsoup $soup | webkit-bug $bug")
+  done
+  echo; echo "######## summary ########"; printf '%s\n' "${summary[@]}"
+  echo "full suite ($mode): $(printf '%s\n' "${summary[@]}" | grep -c ' ci_course.sh 0 ') of $runs runs exit 0"
+  exit 0
 fi
 if [ "$mode" = load-plain ]; then
   for i in $(seq 1 "$runs"); do

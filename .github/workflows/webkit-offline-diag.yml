@@ -18,17 +18,18 @@ jobs:
   diag:
     name: ${{ matrix.browser }} · ${{ matrix.mode }} · set ${{ matrix.set }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    timeout-minutes: 100
     strategy:
       fail-fast: false
       matrix:
         include:
-          - {browser: webkit, mode: sequential, runs: 10, set: 1, wait: 0, down: refuse, debug: ''}
-          - {browser: webkit, mode: sequential, runs: 10, set: 2, wait: 0, down: refuse, debug: ''}
-          - {browser: webkit, mode: load-plain, runs: 5, set: 1, wait: 0, down: refuse, debug: 'pw:browser*'}
-          - {browser: webkit, mode: load-plain, runs: 5, set: 2, wait: 0, down: refuse, debug: 'pw:browser*'}
-          - {browser: webkit, mode: load-plain, runs: 5, set: 3, wait: 0, down: refuse, debug: 'pw:browser*'}
-          - {browser: webkit, mode: load-plain, runs: 5, set: 4, wait: 0, down: refuse, debug: 'pw:browser*'}
+          - {browser: webkit, mode: full, runs: 3, set: 1, wait: 0, down: refuse, debug: 'pw:browser*'}
+          - {browser: webkit, mode: full, runs: 3, set: 2, wait: 0, down: refuse, debug: 'pw:browser*'}
+          - {browser: webkit, mode: full, runs: 3, set: 3, wait: 0, down: refuse, debug: 'pw:browser*'}
+          - {browser: webkit, mode: full, runs: 3, set: 4, wait: 0, down: refuse, debug: 'pw:browser*'}
+          - {browser: webkit, mode: full-load, runs: 3, set: 1, wait: 0, down: refuse, debug: 'pw:browser*'}
+          - {browser: webkit, mode: full-load, runs: 3, set: 2, wait: 0, down: refuse, debug: 'pw:browser*'}
+          - {browser: webkit, mode: full-load, runs: 3, set: 3, wait: 0, down: refuse, debug: 'pw:browser*'}
           - {browser: webkit, mode: mutate, runs: 3, set: 1, wait: 0, down: refuse, debug: ''}
           - {browser: chromium, mode: mutate, runs: 1, set: 1, wait: 0, down: refuse, debug: ''}
     steps:
@@ -39,12 +40,13 @@ jobs:
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
         with:
           python-version: '3.13'
-      - name: Playwright 1.63.0 and the browser
+      - name: Playwright 1.63.0, the browser and pdfplumber 0.11.10 (as the kit's checks job)
         env:
           BROWSER: ${{ matrix.browser }}
         run: |
           npm install -g playwright@1.63.0
           npx --yes playwright@1.63.0 install --with-deps "$BROWSER"
+          python -m pip install pdfplumber==0.11.10
       - name: Run the diagnosis
         env:
           BROWSER: ${{ matrix.browser }}
