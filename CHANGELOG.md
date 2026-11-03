@@ -17,8 +17,9 @@ Dated kit changes, newest first.
   spots is not ported. Test `features/stopwatch/current/test.js` (29 checks), on the
   module's own course (`features/stopwatch/ci/oncourse.js`): PK's Exam 3, the 5 calculations
   of the professor's Quiz 4 and 55 of PK's questions for Exam 3's pools, from
-  `features/stopwatch/current/test_fixture.js`. No course switches it on; `core/` and
-  `template/` unchanged.
+  `features/stopwatch/current/test_fixture.js`; ids prefixed `sw-`, and a `setup` line or
+  `asks` key written only when the course has that equation or key. No course switches it
+  on; `core/` and `template/` unchanged.
 - `core/render_test.js`: answers calculation and matching items with their own controls; no more random failures.
 
 ## 2026-11-01

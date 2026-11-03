@@ -9,7 +9,13 @@
  * Exam 3's pools, their topics, lectures, skills and images. That file's header says
  * which questions and why. The one change to the data: every `prof` is the course's own
  * first professor (the template's "Professor"), so the kit holds no personal name.
- * Ids carry the prefix sw-. The module is on with paceSeconds 120, Basic-Pharmacokinetics'
+ * Every question, topic, subtopic and lecture id carries the prefix sw- with the course's
+ * id kept inside it (cq4-2 -> sw-cq4-2; dupOf, topic, sub and lecture rewritten the same
+ * way; test_fixture.js's header has the mapping), and a course that already has one of
+ * these ids stops the script (kit rule 2). A calculation's `setup` line (plan-the-problem
+ * equations) and `asks` (an ASKS key) are written only when the course, as it stands when
+ * this script runs, has those equations and that key; otherwise they are left out and the
+ * script says so (kit rule 4; the module reads neither). The module is on with paceSeconds 120, Basic-Pharmacokinetics'
  * pace (its course.js line 264: "A few calculations, each meant to take 2 minutes or
  * less"). Exam 3 has no `typed` in the course, so it is written without one.
  * Files written in <courseSrcDir>:
@@ -25,7 +31,7 @@
  * wrote; stops with a non-zero exit on any failure, including a course it already ran on
  * (it runs once per fresh course).
  */
-const fs = require('fs'), path = require('path');
+const fs = require('fs'), path = require('path'), vm = require('vm');
 const NAME = 'stopwatch', TAG = '/* stopwatch ci */', PACE = 120;
 function fail(msg){ console.error(`${NAME} ci/oncourse.js: ${msg}`); process.exit(1); }
 const [kit, src] = process.argv.slice(2);
@@ -46,10 +52,22 @@ let COURSE;
 try { COURSE = new Function(text + '\n;return COURSE;')(); } catch(e){ fail('course.js cannot be read: ' + e.message); }
 const prof = (COURSE.professors || [])[0];
 if(prof !== 'Professor') fail(`the course's first professor is ${JSON.stringify(prof)}, not the template's "Professor"`);
+const F0 = FX.FIX;
 const clash = (COURSE.lectures || []).filter(l => FX.FIX.lectures.some(x => FX.pre(x.id) === l.id)).map(l => l.id);
 if(clash.length) fail('course.js already has lecture ' + clash.join(', '));
+// what the course already holds (course.js and its data files, run as the build runs them)
+let own;
+try {
+  const files = vm.runInNewContext(text + '\n;COURSE.files', {}) || [];
+  const code = files.filter(f => fs.existsSync(path.join(src, f))).map(f => fs.readFileSync(path.join(src, f), 'utf8')).join('\n;\n');
+  own = vm.runInNewContext(text + '\n;\n' + code + '\n;({T: typeof TOPICS === "undefined" ? [] : TOPICS.map(t => t.id), Q: typeof QUESTIONS === "undefined" ? [] : QUESTIONS.map(q => q.id),' +
+    ' eq: typeof EQUATIONS !== "undefined" && Array.isArray(EQUATIONS) ? EQUATIONS.map(e => e && e.id) : [],' +
+    ' asks: typeof ASKS !== "undefined" && ASKS && typeof ASKS === "object" ? Object.keys(ASKS) : []})', {});
+} catch(e){ fail('the course could not be read: ' + e.message); }
+const taken = [...F0.qs.map(q => FX.pre(q.id)).filter(id => own.Q.includes(id)), ...F0.topics.map(t => FX.pre(t.id)).filter(id => own.T.includes(id))];
+if(taken.length) fail('the course already has the id(s) ' + taken.slice(0, 8).join(', ') + ' this script writes');
 let out;
-try { out = FX.courseData(prof); } catch(e){ fail(e.message); }
+try { out = FX.courseData(prof, {eq: own.eq, asks: own.asks}); } catch(e){ fail(e.message); }
 const imagesFile = path.join(src, 'images.json');
 let images;
 try { images = FX.withImages(fs.existsSync(imagesFile) ? fs.readFileSync(imagesFile, 'utf8') : '{}'); } catch(e){ fail('images.json: ' + e.message); }
@@ -65,3 +83,5 @@ console.log(`wrote: ${imagesFile} (the ${Object.keys(F.images).length} images th
 console.log(`wrote: appended to ${course}: ${FX.FILE} in COURSE.files, ${F.lectures.length} lectures (${F.lectures.map(l => FX.pre(l.id)).join(', ')}), ` +
   `the skills the course lacks, COURSE.exams = [${F.exam.name}] (no typed, as in the course), COURSE.activeExam ${JSON.stringify(F.activeExam)}, ` +
   `and ${NAME} ${meta.version} on with paceSeconds ${PACE}`);
+if(out.left.setup.length) console.log(`left out: the setup line of ${out.left.setup.join(', ')} (it names equations the course's EQUATIONS does not have)`);
+if(out.left.asks.length) console.log(`left out: asks of ${out.left.asks.join(', ')} (the course's ASKS does not have that key)`);
