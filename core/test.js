@@ -30,7 +30,7 @@ sandbox.globalThis = sandbox;
 vm.createContext(sandbox);
 // DIA, DIAGRAMS and READ_LINKS are optional: a course without drawn figures or
 // read links may leave them out (views.js reads them the same way).
-code += "\nglobalThis.__X={QUESTIONS,TOPICS,IMAGES,COURSE,EXAM,DIA:typeof DIA!=='undefined'?DIA:{},DIAGRAMS:typeof DIAGRAMS!=='undefined'?DIAGRAMS:[],READ_LINKS:typeof READ_LINKS!=='undefined'?READ_LINKS:{},BUILD,record,pickNext,st,score,drawN,drawMixed,drawPaper,drawBlueprint,bpCat,EXAM_SATA,askProfile,markGuessed,markShaky,isMulti,gradeMulti,correctSet,gradeNumeric,NUMERIC:typeof NUMERIC!=='undefined'?NUMERIC:null,lecOf,skillOf,linksFor,sessionLog,solidEntry,getDB:()=>DB};\n";
+code += "\nglobalThis.__X={QUESTIONS,TOPICS,IMAGES,COURSE,EXAM,DIA:typeof DIA!=='undefined'?DIA:{},DIAGRAMS:typeof DIAGRAMS!=='undefined'?DIAGRAMS:[],READ_LINKS:typeof READ_LINKS!=='undefined'?READ_LINKS:{},BUILD,record,pickNext,st,score,drawN,drawMixed,drawPaper,drawBlueprint,bpCat,EXAM_SATA,askProfile,markGuessed,markShaky,isMulti,gradeMulti,correctSet,gradeNumeric,NUMERIC:typeof NUMERIC!=='undefined'?NUMERIC:null,lecOf,skillOf,linksFor,sessionLog,solidEntry,GAP,getDB:()=>DB};\n";
 try { vm.runInContext(code, sandbox); }
 catch (e) { console.error('FAIL: script threw at load — ' + e.message + '\n' + e.stack); process.exit(1); }
 
@@ -298,10 +298,11 @@ console.log('=== 7. Different wording when a missed concept returns ===');
     // reset state
     X.getDB().concepts = {}; X.getDB().answers = []; X.getDB().qn = 0;
     record(pair[0], 'wrong');
-    // past the cool-down gap (GAP other answers) as if six answers were given elsewhere, as
-    // section 4 does: answering six of this topic's other concepts left the cool-down unfinished
-    // in a topic with fewer than GAP other concepts
-    X.getDB().qn += 6;
+    // past the cool-down gap (GAP other answers, shell.html) by adding GAP + 2 to the answer
+    // count, as if those answers were given elsewhere (section 4's guess check adds to it the
+    // same way): answering six of this topic's other concepts left the cool-down unfinished in a
+    // topic with fewer than GAP other concepts
+    X.getDB().qn += X.GAP + 2;
     let got = null;
     for (let i=0;i<60;i++){
       const q = pickNext(pool, null);
