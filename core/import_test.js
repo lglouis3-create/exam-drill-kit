@@ -43,10 +43,13 @@
  *                      sends a file whose answers continue it into a new profile;
  *                      settings, an answer count, concept records and scheduler
  *                      records of the wrong kind are refused
+ *   cleared storage    site data cleared while a page is open: its next save writes
+ *                      its copy back
  *   tabs and refused   a profile another tab saved since, or progress the browser
  *   saves              refused to save in this visit: Import plans and writes nothing;
  *                      a tab opened before an import does not save over it, and says
- *                      so; a waiting save refused at Import stays on the page, flagged
+ *                      so; a waiting save refused at Import stays on the page, flagged;
+ *                      Import, Erase and Put back in a stale tab write nothing and say so
  *   history            an empty profile with another record's history is not
  *                      replaced; a file whose progress is all in a profile here adds
  *                      its new history entries to that profile
@@ -609,6 +612,63 @@ let nfile = 0;
     await tab2.reload();
     await tab2.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
     check(await tab2.evaluate(() => DB.answers.length) === 4, 'reloaded, the other tab shows the imported progress (4 answers)');
+    await d.ctx.close();
+  }
+
+  console.log('\n=== Storage cleared while the page is open; stale tabs and the other writes ===');
+  {
+    // the browser's site data cleared while a page is open: the page's next save writes its copy back
+    const o = await own(3);
+    await o.d.page.evaluate(() => localStorage.clear());
+    await o.d.page.evaluate(() => record(QUESTIONS[3], 'correct', undefined, 1000));
+    await o.d.page.waitForTimeout(400);
+    const back = JSON.parse(await stored(o.d.page, o.di.data) || '{"answers":[]}'), log = JSON.parse(await stored(o.d.page, o.di.log) || '[]');
+    const warned = await o.d.page.evaluate(() => !!document.getElementById('stalewarn'));
+    check(back.answers.length === 4 && log.length === 4 && !warned,
+      'site data cleared while the page is open: the next save writes the page\'s 4 answers and 4 history entries back, with no "another tab" notice', {n: back.answers.length, log: log.length, warned});
+    await o.d.ctx.close();
+  }
+  {
+    // two tabs on one profile: a history import in one, then Import, Erase and Put back in the other
+    const d = await device(); const di = await info(d.page);
+    await answer(d.page, 3, 0);
+    const base = await exportOf(d.page);
+    const tab2 = await d.ctx.newPage(); const said2 = [];
+    tab2.on('dialog', x => { said2.push(x.message()); x.accept(); });
+    await tab2.goto(d.page.url());
+    await tab2.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+    const H = JSON.parse(JSON.stringify(base)); H.log.push([H.log[2][0] + 11, 'aaaaaaaa', 1, 'quiz']);
+    const G = JSON.parse(JSON.stringify(base)); G.log.push([G.log[2][0] + 13, 'bbbbbbbb', 1, 'quiz']);
+    let rr = await choose(tab2, H, true);
+    check(/1 history entry added|adds 1 history entry/.test(rr.plan + rr.result), 'the other tab imports a file that adds one history entry', rr.result.slice(0, 160));
+    const data0 = await stored(d.page, di.data), log0 = await stored(d.page, di.log);
+    rr = await choose(d.page, G, true);
+    check(!rr.offered && /saved by another tab or window/.test(rr.plan) && await stored(d.page, di.log) === log0 && log0.includes('aaaaaaaa'),
+      'this tab, whose history the other tab has saved since, imports nothing: the other tab\'s entry stays in the history', rr.plan.slice(0, 260));
+    const n0 = d.dialogs.length;
+    await d.page.evaluate(() => show('settings'));
+    await d.page.click('#btnReset');
+    await d.page.waitForTimeout(400);
+    const saidErase = d.dialogs.slice(n0).join(' | ');
+    check(/nothing was erased/.test(saidErase) && !/History erased/.test(saidErase) && await stored(d.page, di.data) === data0 && await stored(d.page, di.log) === log0,
+      'Erase in that tab erases nothing and says so, instead of "History erased."', saidErase.slice(0, 200));
+    await d.ctx.close();
+  }
+  {
+    // Put back in a tab another tab has saved over
+    const d = await device(); const di = await info(d.page);
+    await answer(d.page, 2, 0);
+    const tab2 = await d.ctx.newPage(); const said2 = [];
+    tab2.on('dialog', x => { said2.push(x.message()); x.accept(); });
+    await tab2.goto(d.page.url());
+    await tab2.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+    const rr = await choose(d.page, later(await exportOf(d.page), 2), true);   // this tab replaces; a copy is kept
+    const data1 = await stored(d.page, di.data), copies1 = await stored(d.page, di.backup);
+    await tab2.evaluate(() => { show('settings'); });
+    await tab2.evaluate(() => restoreBackup());
+    await tab2.waitForTimeout(300);
+    check(/Imported/.test(rr.result) && said2.some(m => /nothing was put back/.test(m)) && await stored(d.page, di.data) === data1 && await stored(d.page, di.backup) === copies1,
+      'Put back in a tab another tab has saved over puts nothing back and says so', said2.join(' | ').slice(0, 200));
     await d.ctx.close();
   }
 

@@ -643,12 +643,15 @@ function staleWarn(){
   STALE_WARNED = true;
   const d = document.createElement('div');
   d.id = 'stalewarn'; d.setAttribute('role', 'alert');
-  d.innerHTML = 'This profile was saved in another tab or window after this page opened it, so this page has stopped saving, to keep that progress. Reload this page to continue from what is saved; answers given here since that save are not kept. <button type="button" class="btn">Reload</button>';
+  d.innerHTML = 'This profile was saved in another tab or window after this page opened it, so this page has stopped saving, to keep that progress. Reload this page to continue from what is saved; what was done here since then (answers, settings) is not kept. To keep a copy of it first, open <b>Settings</b> and use <b>Export progress</b>. <button type="button" class="btn">Reload</button>';
   d.querySelector('button').onclick = () => location.reload();
   document.body.appendChild(d);
 }
-/* The stored value under `k` is not what this page last read or wrote there. */
-const savedElsewhere = (k, seen) => { let now; try { now = localStorage.getItem(k); } catch(e){ return false; } return now !== seen && !FAILED.has(k); };
+/* The stored value under `k` is not what this page last read or wrote there. A key
+   that is gone is not another tab's save (the core never deletes a profile's progress
+   or history): the browser's site data was cleared while this page was open, and the
+   page's next save writes its copy back. */
+const savedElsewhere = (k, seen) => { let now; try { now = localStorage.getItem(k); } catch(e){ return false; } return now !== seen && now !== null && !FAILED.has(k); };
 /* Another tab or window saved this profile, its progress or its history, since this
    page read them: both belong to one record, so neither is written then. */
 const profileSavedElsewhere = () => savedElsewhere(keyFor(PROFILE), SEEN) || savedElsewhere(logKey(), SEEN_LOG);

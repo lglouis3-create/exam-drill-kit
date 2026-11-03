@@ -589,9 +589,9 @@ const NOT_COMPARED = ['v', 'created', 'fsUndo', 'fsHistory', 'answers', 'qn', 's
 const CONCEPT_COUNTS = ['seen', 'correct', 'wrong', 'guessed', 'streak', 'box', 'dueAt', 'dueQ', 'lastQ'];
 /* Another tab or window saved this profile's progress after this page read or wrote
    it: what is stored is neither what this page last read or wrote (SEEN) nor what it
-   shows. Import then plans and writes nothing. */
-const changedElsewhere = () => { const now = store.get(keyFor(PROFILE)); return now !== SEEN && now !== JSON.stringify(DB); };
-const ELSEWHERE = 'This profile\'s progress was saved by another tab or window after this page opened it, so this page cannot import over it. Nothing was imported. Reload this page, then import again.';
+   shows (shell.html profileSavedElsewhere). Import then plans and writes nothing. */
+const changedElsewhere = () => profileSavedElsewhere();   // its progress or its history
+const ELSEWHERE = 'This profile\'s progress or answer history was saved by another tab or window after this page opened it, so this page cannot import over it. Nothing was imported. Reload this page, then import again.';
 const UNSAVED = 'This profile\'s progress could not be saved in this visit (storage is full or blocked), so what this page shows is not what is stored, and nothing was imported. Export progress first, free some space, reload, and import again.';
 const ENTRY_MAPS = {concepts: 'concepts', arms: 'scheduler', fsrsQ: 'scheduler', fsrsC: 'scheduler'};   // compared entry by entry
 const canon = v => JSON.stringify(v, (k, x) => isObj(x) ? Object.keys(x).sort().reduce((o, key) => (o[key] = x[key], o), {}) : x);
@@ -822,7 +822,10 @@ function runImport(plan){
   const f = plan.f;
   const refused = 'The browser refused to save (storage is full or blocked)';
   // an answer given in the last 150 ms is saved first, so the copy kept below holds it
-  if(saveTimer){
+  // the browser's site data cleared while this page was open: the page's copy is
+  // written back first, so the copy kept below holds it
+  const cleared = store.get(keyFor(PROFILE)) === null && holdsProgress(DB);
+  if(saveTimer || cleared){
     clearTimeout(saveTimer); saveTimer = null;
     // store.set keeps the refused change on this page and flags it, as any save does
     if(!store.set(keyFor(PROFILE), JSON.stringify(DB))) return {text: `${refused}, so nothing was imported. Your progress is kept on this page until you leave it; export it now.`};
@@ -897,8 +900,10 @@ function readCopies(){
    written as the progress, (3) that copy is taken off the list. A refusal at (1) or
    (2) changes nothing; a refusal at (3) leaves that copy on the list as well, and the
    put-back stands. */
+const ELSEWHERE_SHORT = 'This profile was saved in another tab or window after this page opened it';
 function restoreBackup(){
   if(!canSave()){ alert(LOAD_FAIL + ' Nothing was put back.'); return; }
+  if(changedElsewhere()){ staleWarn(); alert(ELSEWHERE_SHORT + ', so nothing was put back. Reload this page first.'); return; }
   const copies = readCopies();
   if(copies === null){ alert('The copies kept by Import cannot be read, so nothing was put back.'); return; }
   if(!copies.length){ alert('There is no copy to put back.'); return; }
@@ -931,6 +936,7 @@ function restoreBackup(){
 /* Settings' "Delete the copies": only when the student asks, after a confirm. */
 function deleteCopies(){
   if(!canSave()){ alert(LOAD_FAIL + ' Nothing was deleted.'); return; }
+  if(changedElsewhere()){ staleWarn(); alert(ELSEWHERE_SHORT + ', so nothing was deleted. Reload this page first.'); return; }
   const copies = readCopies();
   if(!copies || !copies.length) return;
   if(!confirm(`Delete the ${copies.length} cop${copies.length === 1 ? 'y' : 'ies'} of earlier progress kept by Import for "${PROFILE}"? This cannot be undone.`)) return;
@@ -2055,11 +2061,12 @@ const untimedPaper = () => !!EX && EX.ends === null && typeof EX.started === 'nu
 // written, and removed, only when the saved progress was loaded (canSave in shell.html)
 function saveExam(){
   if(!EX || !EX.running || !canSave()) return;
+  if(profileSavedElsewhere()){ staleWarn(); return; }   // never over another tab's paper
   const paper = {ids:EX.qs.map(q=>q.id), picks:EX.picks, orders:EX.orders, i:EX.i, ends:EX.ends};
   if(untimedPaper()) paper.started = EX.started;
   store.set(EXAM_KEY(), JSON.stringify(paper));
 }
-function clearExam(){ if(canSave()) store.del(EXAM_KEY()); }
+function clearExam(){ if(canSave() && !profileSavedElsewhere()) store.del(EXAM_KEY()); }
 /* A paper saved by an earlier visit is brought back if its clock has not run
    out; otherwise it is submitted as it stands. */
 function restoreExam(){
@@ -2692,6 +2699,7 @@ function renderSettings(){
   if(dc) dc.onclick = deleteCopies;
   $('#btnReset').onclick = ()=>{
     if(!canSave()){ alert(LOAD_FAIL + ' Nothing was erased.'); return; }
+    if(changedElsewhere()){ staleWarn(); alert(ELSEWHERE_SHORT + ', so nothing was erased. Reload this page first.'); return; }
     if(confirm(`Erase all quiz history for "${PROFILE}"? This cannot be undone.`)){
       // erasing replaces a stored history that could not be read, too
       DB = BLANK(); save(); LOG = []; LOG_OK = true; saveLog(); alert('History erased.'); renderSettings();

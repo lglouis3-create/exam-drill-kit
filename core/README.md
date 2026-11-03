@@ -412,8 +412,13 @@ stays on the page, flagged as not saved, and nothing is imported.
 The same check guards every ordinary save, not only Import's: a page whose profile
 another tab or window has saved since (its progress or its answer history, `SEEN` and
 `SEEN_LOG`, kept by every write through `store` and by `saveLog`) stops saving both and
-shows a notice with a Reload button (`staleWarn`). Before 2026-11-03 the older page's
-next save wrote its copy over the newer one, which could undo an import.
+shows a notice with a Reload button and a pointer to Export progress (`staleWarn`).
+Before 2026-11-03 the older page's next save wrote its copy over the newer one, which
+could undo an import. Import, Erase my history, Put back, Delete the copies and the
+exam paper's saves have the same guard. A key that is gone is not another tab's save:
+the core never deletes a profile's progress or history, so a missing key means the
+browser's site data was cleared while the page was open, and the page's next save
+writes its copy back (as before 2026-11-03).
 
 An answer is found by its question id and its time to the millisecond. Two copies are
 the same answer only when every field agrees (result, choices picked, confidence, count
