@@ -9,7 +9,8 @@
  * become PAIR_SETS and its two tables RECALL_TABLES, unchanged, ids and all (the
  * test's own scratch copies replace them with the same data, so no id is shared
  * between two different rows). The module reads no question, topic or lecture, so
- * none is added; the data has no `prof` field, so no professor is written. Files
+ * none is added. The data has no `prof` field; its text is the source's own, names
+ * and pronouns included (Louis's policy of 2026-11-03). Files
  * written in <courseSrcDir>:
  *   pud_ci_data.js   `const PAIR_SETS = [...]` and `const RECALL_TABLES = [...]` (each
  *                    pushed when the course already declares it)
@@ -48,11 +49,6 @@ if(text.includes(TAG)) fail(`course.js already switches ${NAME} on (this script 
 if(fs.existsSync(data)) fail(data + ' already exists (this script runs once per course)');
 let COURSE;
 try { COURSE = new Function(text + '\n;return COURSE;')(); } catch(e){ fail('course.js cannot be read: ' + e.message); }
-// a professor's name of the course must not reach the data (the fixture is kept free of personal names)
-const names = (COURSE.professors || []).filter(p => typeof p === 'string' && p && p !== 'Professor');
-const json = JSON.stringify(IP.pairSets) + JSON.stringify(IP.tables);
-const named = names.filter(p => json.includes(p));
-if(named.length) fail('the fixture names a professor of the course: ' + named.length + ' name(s)');
 const declared = v => (COURSE.files || []).some(f => { try { return new RegExp(`^\\s*(const|let|var)\\s+${v}\\b`, 'm').test(fs.readFileSync(path.join(src, f), 'utf8')); } catch(e){ return false; } });
 const decl = (v, list) => declared(v) ? `${v}.push(...${JSON.stringify(list)});` : `const ${v} = ${JSON.stringify(list)};`;
 const body = `/* pair-up-drills ci: the Pair up sets and the two tables of the module test's fixture

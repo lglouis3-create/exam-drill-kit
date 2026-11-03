@@ -20,7 +20,14 @@
    per mode, and per drug its answer line, flipped line and receptor-plus-action,
    which the module's test compares with what the module builds. The "See the
    figure" links of Pair up are left out (they open Intro to Pharmacology's own
-   diagrams). Row and set ids get the prefix ip-. It is not copied into a course. */
+   diagrams). Row and set ids get the prefix ip-. The tables' intro, cite, prompts, mode
+   labels and the reference column's label are the drill's own text (app.js vRx, vPtab,
+   PT_MODES, ptItems, ptRowHTML), names and pronouns as the source has them (Louis's
+   policy of 2026-11-03); the poisoning table's cite stops before the source's pointer to
+   its Exam 3 question topic, which the kit course does not have, and the column labels
+   'Special considerations: the question' and '...: the professor's answer' are the
+   kit's own (the source labels each item with its own question). It is not copied
+   into a course. */
 const fs = require('fs'), path = require('path'), vm = require('vm');
 const SRC = process.argv[2];
 if(!SRC) { console.error('usage: node port_from_ip.js <Intro-Pharmacology exam1-drill/src>'); process.exit(2); }
@@ -68,7 +75,7 @@ const rxRows = O.rxRows().map(r => {
 });
 const rxTable = {id: 'ip-rx', tab: 'Drug ↔ receptor', title: 'Drug ↔ receptor',
   intro: 'Every drug on the Exam 2 table, one at a time. Name the receptor: the drug is shown with five answers written the way the drug table writes them; tap the one that is the table\'s own line. Name the drug: a receptor, action and site are shown; tap the drug. A miss comes back at the end of the round and leads the next one.',
-  cite: 'the Exam 2 drug table (All drugs page), built from the professor\'s slides and the official list',
+  cite: 'the Exam 2 drug table (All drugs page), built from his slides and the official list',
   name: 'name',
   columns: [['line', 'The table\'s line'], ['cls', 'Class'], ['rec', 'Receptor'], ['soa', 'Site'], ['moa', 'Mechanism'], ['why', 'Why']],
   covers: [['all', 'Cover the line and the class', ['line', 'cls']]],
@@ -87,17 +94,17 @@ const ptRowsOut = O.POISON_TABLE.map(r => {
   return row;
 });
 const ptTable = {id: 'ip-pt', tab: 'Poisoning table', title: 'Poisoning table',
-  intro: 'The professor\'s Poisoning Treatment Table 2026 key, row by row, in the professor\'s wording. Pick a mode; a miss comes back at the end of the round and leads the next one.',
-  cite: 'PoisoningTreatmentTable2026KEY.pdf, the professor\'s posted key (pages 1–3)',
+  intro: 'Dr. Smith\'s Poisoning Treatment Table 2026 key, row by row, in her wording. On 10/20 she said: "you do need to know the details that I have in my table, my key." Pick a mode; a miss comes back at the end of the round and leads the next one.',
+  cite: 'PoisoningTreatmentTable2026KEY.pdf, her posted key (pages 1–3)',
   name: 'poison',
   columns: [['sym', 'Symptoms of acute poisoning / diagnostic methods'], ['antidotes', 'Antidote(s)'], ['moa', 'MOA of antidote(s)'],
-            ['special_q', 'Special considerations: the question'], ['special', 'Special considerations: the professor\'s answer'], ['ref', 'Reference column']],
+            ['special_q', 'Special considerations: the question'], ['special', 'Special considerations: the professor\'s answer'], ['ref', 'Her reference column']],
   covers: [['all', 'Cover every cell', ['sym', 'antidotes', 'moa', 'special']], ['antimoa', 'Cover antidote + mechanism', ['antidotes', 'moa']], ['sym', 'Cover symptoms', ['sym']]],
   modes: [
-    {id: 'anti', label: 'Name the antidote', ask: 'poison', answer: 'antidotes', prompt: 'Antidote(s) in the professor\'s table?'},
-    {id: 'moa', label: 'Name the mechanism', ask: ['antidote', 'poison_od'], answer: 'mechanism', prompt: 'Mechanism of this antidote in the professor\'s table?'},
-    {id: 'poison', label: 'Name the poison', ask: 'sym', answer: 'poison', prompt: 'Which overdose has these symptoms or diagnostic methods in the professor\'s table?'},
-    {id: 'special', label: 'The professor\'s special questions', ask: 'special_ask', answer: 'special', prompt: 'The professor\'s answer in the key?'}],
+    {id: 'anti', label: 'Name the antidote', ask: 'poison', answer: 'antidotes', prompt: 'Antidote(s) in her table?'},
+    {id: 'moa', label: 'Name the mechanism', ask: ['antidote', 'poison_od'], answer: 'mechanism', prompt: 'Mechanism of this antidote in her table?'},
+    {id: 'poison', label: 'Name the poison', ask: 'sym', answer: 'poison', prompt: 'Which overdose has these symptoms or diagnostic methods in her table?'},
+    {id: 'special', label: 'Her special questions', ask: 'special_ask', answer: 'special', prompt: 'Her answer in the key?'}],
   rows: ptRowsOut};
 
 const expect = {
@@ -107,10 +114,6 @@ const expect = {
 };
 const IP = {pairSets, tables: [rxTable, ptTable], expect};
 const line = 'const IP = ' + JSON.stringify(IP) + ';';
-// no professor's name in the fixture: the names are read from the course's own course.js, so none is written here
-const profs = new Function(fs.readFileSync(path.join(SRC, 'course.js'), 'utf8') + '\n;return COURSE;')().professors || [];
-if(!profs.length) throw new Error('course.js lists no professors, so the fixture cannot be checked for their names');
-if(profs.some(p => p && line.includes(p))) throw new Error('a professor\'s name is in the fixture');
 const test = path.join(__dirname, 'current', 'test.js');
 const t = fs.readFileSync(test, 'utf8'), m = t.match(/^const IP = .*;$/m);
 if(!m) throw new Error('current/test.js has no `const IP = ...;` line');
