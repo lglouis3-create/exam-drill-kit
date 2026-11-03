@@ -8,9 +8,12 @@
  * Intro-Pharmacology- exam1-drill/src at 929cd62, with `prof` set to the template's
  * "Professor"), written by that file's `const WRITE`, the same writer the test's scratch
  * copies use (its comment lists how: one question per line in the kit's form, a topic of
- * its own after the course's topics, the lecture under id L91). The question ids are the
- * course's own (L01-002 and so on); the test finds them in the course and uses the
- * course's copy.
+ * its own after the course's topics, the lecture under the first id from L91 on that the
+ * course's lectures do not use). The question ids are the course's own (L01-002 and so on);
+ * the test finds them in the course and uses the course's copy.
+ * Lecture id: the source's L01 (Intro to Pharmacology course.js) is written as L91, or, when
+ * the course already has L91 (other modules' scripts write L91 and L92), as the next id from
+ * L92 on that is free (CIDATA rule 2). The output names the id used.
  * Files written in <courseSrcDir>:
  *   q90_sc_fixture.js   the topic and the 6 questions
  * and one line appended to course.js: the file in COURSE.files, the lecture in
@@ -61,5 +64,5 @@ const line = `\n;${TAG} COURSE.files = (COURSE.files || ['atlas.js', 'diagrams.j
 try { fs.writeFileSync(data, w.body); } catch(e){ fail('cannot write ' + data + ': ' + e.message); }
 try { fs.appendFileSync(course, line); } catch(e){ fail('cannot write ' + course + ': ' + e.message); }
 console.log(`wrote: ${data} (topic ${FIX.topic.id} and ${w.rows} questions from FIX in test.js)`);
-console.log(`wrote: appended to ${course}: the file in COURSE.files, ${w.lecture ? 'the lecture ' + FIX.lecture.deck + ' (id L91) in COURSE.lectures' : 'no lecture (the course has the deck)'}, ` +
+console.log(`wrote: appended to ${course}: the file in COURSE.files, ${w.lecture ? 'the lecture ' + FIX.lecture.deck + ' (id ' + w.lectureId + ', the source\'s ' + FIX.lecture.id + ') in COURSE.lectures' : 'no lecture (the course has the deck)'}, ` +
   `and ${NAME} ${meta.version} on with strict: true and the strict note`);

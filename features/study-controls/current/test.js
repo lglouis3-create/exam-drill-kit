@@ -89,8 +89,10 @@ const NOTE = FIX.strictNote;
    course's first professor; a question's own skill is kept when the course has it (the template has
    both of FIX's, recall and apply), else the course's first skill. The source's `lecture` field
    (the source's lecture id) is left out: the kit finds a question's lecture from the deck its
-   `cite` names. The topic keeps the subtopics FIX's questions are in (intro, nds). The lecture is
-   added under id L91 (the template has its own L01), unless the course already has its deck.
+   `cite` names. The topic keeps the subtopics FIX's questions are in (intro, nds). The lecture
+   (L01 in the source) is added under the first id from L91 on that the course's lectures do not
+   use (L91 on the template, which has its own L01; other modules' data may already hold L91 or
+   L92: CIDATA rule 2), unless the course already has its deck.
    opt.base writes the topic and the 6 questions; opt.copies writes that many more copies of the 6
    (ids and concepts suffixed -c<n>, content unchanged; test pages only). ../ci/oncourse.js reads
    FIX and WRITE from this file, so the CI course and the test's copies hold the same data. */
@@ -109,9 +111,12 @@ const WRITE = (fix, own, opt) => {
   if(opt.base) body += `TOPICS.push(${JSON.stringify(topic)});\n`;
   if(rows.length) body += `QUESTIONS.push(\n${rows.join('\n')}\n);\n`;
   const l = fix.lecture;
+  const usedIds = new Set((own.lectures || []).map(x => String(x.id)));
+  let n = 91; while(usedIds.has('L' + n)) n++;
+  const lectureId = 'L' + n;
   const lecture = (own.lectures || []).some(x => x.deck === l.deck) ? '' :
-    `{id:'L91', deck:${lit(l.deck)}, label:${lit(l.label)}, prof:${lit(own.prof)}, exam:${JSON.stringify(l.exam)}, module:${JSON.stringify(l.module)}}`;
-  return {body, lecture, rows: rows.length};
+    `{id:${lit(lectureId)}, deck:${lit(l.deck)}, label:${lit(l.label)}, prof:${lit(own.prof)}, exam:${JSON.stringify(l.exam)}, module:${JSON.stringify(l.module)}}`;
+  return {body, lecture, lectureId: lecture ? lectureId : '', rows: rows.length};
   };
 
 /* The test's scratch copies: the course's own copy of FIX when it has one (a course made by
