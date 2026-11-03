@@ -3,6 +3,7 @@
 Dated kit changes, newest first.
 
 ## 2026-11-03
+- `core/test.js`: two lectures with the same id in `course.js` fail the check.
 - `core/offline_test.js`: "server down" refuses connections; dropped ones broke WebKit's network session at random.
 
 ## 2026-11-02
