@@ -1,0 +1,37 @@
+
+=== Render smoke test ===
+  ok    topics list            32935 chars
+  ok    quiz, unanswered       1277 chars
+  ok    quiz, answered         3039 chars
+         explanations rendered: 4 option rows
+         citation present: true
+  ok    quiz, image item       10242 chars
+         image shown: true
+  ok    quiz, numeric answered 2254 chars
+  ok    quiz, match answered   2233 chars
+  ok    weak spots             5187 chars
+  ok    reference              5930 chars
+  ok    tell apart             793 chars
+  ok    guides                 1695 chars
+  ok    diagrams               3693 chars
+         figures registered: 1, step-throughs: 1
+feature module paper-picker (settings): TypeError: el.appendChild is not a function
+    at evalmachine.<anonymous>:1883:10
+    at run (evalmachine.<anonymous>:1785:18)
+    at evalmachine.<anonymous>:1879:27
+    at Array.forEach (<anonymous>)
+    at Object.renderSettings (evalmachine.<anonymous>:1879:14)
+    at Object.<anonymous> (/tmp/port-rework/paper-picker/kit-ci-xUnN0J/course/src/render_test.js:78:3)
+    at Module._compile (node:internal/modules/cjs/loader:1781:14)
+    at Object..js (node:internal/modules/cjs/loader:1913:10)
+    at Module.load (node:internal/modules/cjs/loader:1505:32)
+    at Function._load (node:internal/modules/cjs/loader:1309:12)
+  ok    settings               3954 chars
+  ok    settings says 231 questions; the page holds 231
+  ok    exam paper             1566 chars
+  ok    exam question count: 40 of 40
+         11 questions carry an image
+
+Render smoke test passed
+
+PASS: render_test.js: every view rendered clean

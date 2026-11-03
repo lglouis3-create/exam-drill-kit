@@ -1,0 +1,91 @@
+
+=== 1. Question bank integrity ===
+  231 questions, 16 topics, 38 images
+  ok    the build's question count equals QUESTIONS.length (231)
+  FAIL  pp-e2r-10: only 2 options
+  FAIL  pp-pd-c13: only 2 options
+  FAIL  pp-nl-c01: only 2 options
+  FAIL  pp-nl-c18: only 2 options
+  FAIL  pp-fr-5: only 2 options
+  FAIL  pp-fr-9: only 2 options
+  FAIL  pp-fr-10: only 2 options
+  FAIL  pp-x3-a-tf-rate: only 2 options
+  FAIL  pp-x3-a-tf-half: only 2 options
+  FAIL  pp-x3-a-tf-cl: only 2 options
+
+=== 2. Exam blueprint coverage ===
+  Exam 1 material (Modules 1–3): 64 questions (paper takes 15)
+  Exam 2 material (Modules 4–7a): 84 questions (paper takes 15)
+  Module 7b — PK-PD relationship: 29 questions (paper takes 5)
+  Module 8 — Nonlinear pharmacokinetics: 25 questions (paper takes 5)
+
+=== 3. Concept spread per topic ===
+  topic1       3 q /   3 concepts  (Professor)
+  topic2       4 q /   4 concepts  (Professor)
+  pp-intro     5 q /   5 concepts  (Mosley)
+  warn  subtopic "pp-intro/pp-matrix" (Whole blood, serum and plasma) has no questions
+  pp-orders   22 q /  11 concepts  (Mosley)
+  pp-auc       1 q /   1 concepts  (Mosley)
+  warn  subtopic "pp-auc/pp-trap" (The trapezoidal rule) has no questions
+  pp-bolus1   14 q /   9 concepts  (Mosley)
+  warn  subtopic "pp-bolus1/pp-calc" (Parameters from concentration versus time data) has no questions
+  pp-bolus2   11 q /  11 concepts  (Mosley)
+  warn  subtopic "pp-bolus2/pp-calc" (Predicting concentration and the apparent volumes) has no questions
+  pp-infusion  18 q /  12 concepts  (Mosley)
+  warn  subtopic "pp-infusion/pp-rate" (Infusion rate for a target steady-state concentration) has no questions
+  warn  subtopic "pp-infusion/pp-time" (Time to reach a stated fraction of steady state) has no questions
+  pp-clearance  24 q /  13 concepts  (Mosley)
+  pp-oral     21 q /  18 concepts  (Mosley)
+  pp-multi    11 q /   9 concepts  (Mosley)
+  pp-intermit   8 q /   8 concepts  (Mosley)
+  pp-multoral  19 q /  14 concepts  (Mosley)
+  pp-bioavail  15 q /   9 concepts  (Mosley)
+  warn  subtopic "pp-bioavail/pp-frel" (Relative bioavailability) has no questions
+  warn  subtopic "pp-bioavail/pp-figure" (Reading the bioequivalence example) has no questions
+  pp-pkpd     30 q /  25 concepts  (Mosley)
+  pp-nonlin   25 q /  19 concepts  (Mosley)
+
+=== 4. Spaced repetition rules ===
+  ok    missed concept is held back rather than repeated at once
+  ok    missed concept resurfaces after other questions
+  ok    box advanced 0 -> 3 with repeated correct answers
+  ok    a later miss resets the concept to active review
+  ok    a guess resets the concept to unresolved and outranks never-seen material
+  ok    "I guessed that one" rewrites the log, resets the box, keeps picked and ms
+  ok    36 concepts have more than one wording available
+
+=== 5. Exam simulation draw ===
+  blueprint: Exam 3 (final) — Exam 1 material (Modules 1–3) 15, Exam 2 material (Modules 4–7a) 15, Module 7b — PK-PD relationship 5, Module 8 — Nonlinear pharmacokinetics 5 (40 of 40)
+  drew 40
+  ok    no duplicate questions on a single paper
+  ok    dupOf partners never share a paper (54 marked; 0 lowYield kept off the paper)
+  ok    20 repeated draws all kept the paper shape
+  select-all on the paper: 4 of 40 (target 4)
+  ok    the paper carries the intended number of select-all items
+  ok    the 13 lectures in the manifest have distinct ids
+  FAIL  29 questions cite no deck in the manifest: pp-m2-mc-2, pp-inf-c8, pp-inf-c14, pp-m5-c04, pp-m5-c12, pp-m5-c17
+  ok    every question carries a skill from the course taxonomy (recall, tell, apply, read, calc, order, vddose, infusion, multidose, bioavail, pkpd)
+  ok    numeric grading accepts the answer within tolerance and rejects the rest
+
+=== 6. Storage isolation ===
+  ok    progress written under namespaced key: course-id-drill:data:me
+  ok    the page opened without asking for a name
+=== 7. Different wording when a missed concept returns ===
+  ok    returned as a different question (pp-m1-ord-c01 -> pp-x3-a-q1-zero)
+=== 8. Small pools end instead of looping ===
+  ok    pool of 2 served 2 (2 distinct) then stopped
+  ok    "Ask everything" still serves (10 more)
+
+=== 9. Figures, read links, change log, blueprint ===
+  ok    every DIAGRAMS key is in DIA
+  ok    1 step-through figure(s), each with a dot per step
+  ok    2 read link(s), every one naming guide, tell or ref
+  7 of 231 questions resolve to a reading section (the rest group by topic in the review plan)
+  ok    a session is the run with no half-hour gap (2 of 4 answers)
+  ok    a correct answer marked "not sure" does not count as solid
+  skip  blueprint draw (this course draws by pool marks, not announced counts)
+  ok    1 change log entry embedded, each with bullets
+
+FAILURES: 11  (warnings: 8)
+
+FAIL: test.js: 11 failure(s)

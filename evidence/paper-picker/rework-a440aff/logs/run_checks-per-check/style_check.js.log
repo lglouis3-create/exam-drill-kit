@@ -1,0 +1,18 @@
+
+=== Stem check (every stem asks the subject, not "what does the deck say") ===
+  all 175 stems clean
+
+=== Style check (rebuilt questions only) ===
+
+  scanned 175 rebuilt questions
+  no flagged phrasing found
+
+=== Change log ===
+  1 entries, 1 bullets, all within one line
+
+  rebuilt questions whose citation names a slide: 172 of 175
+     by slide number: 95
+     by slide title:  77
+  citations naming neither a slide number nor a slide title: pp-inf-c16, pp-m7-c15, pp-cq1-1
+  rebuilt questions with a diagram: 0
+PASS: style_check.js: 175 stems and 175 explanations clean

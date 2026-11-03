@@ -1,0 +1,23 @@
+
+=== Stem check (every stem asks the subject, not "what does the deck say") ===
+  pp-inf-c8 [described as]: "Why is the plasma concentration during a continuous infusion described as never actually reaching steady state?"
+  pp-m5-c25 [described as]: "A drug is described as disposition rate limiting. What does that say about its two half-lives?"
+  pp-m6-c01 [given as]: "A drug eliminated by first-order kinetics is given as the same IV bolus dose at a fixed interval. How long does it take to reach the plateau?"
+  pp-fr-2 [given as]: "400 mg of a drug was administered by IV bolus injection. The equation describing the drug in the body is given as Cp =(40 mg/L)e^(-0.9t). What is the apparent volume of distribution of this drug?"
+  pp-x3-a-p3h [According to]: "A female patient (35 years old, 65 kg) with normal renal function is to be given a drug by IV infusion. According to the literature, the elimination half-life of this drug is 7 hours and the apparent VD is 23.1% of body weight. The pharmacokinetics of this drug assumes a first-order process. The desired steady-state plasma level for this antibiotic is 10 mcg/mL. If the patient suddenly develops partial renal failure, how long would it take for a new steady-state plasma level to be established (assume that 95% of the Css is a reasonable approximation)?"
+  5 stems refer to the course material
+
+=== Style check (rebuilt questions only) ===
+
+  scanned 231 rebuilt questions
+  5 phrasing issues found
+
+=== Change log ===
+  1 entries, 1 bullets, all within one line
+
+  rebuilt questions whose citation names a slide: 202 of 231
+     by slide number: 112
+     by slide title:  90
+  citations naming neither a slide number nor a slide title: pp-m2-mc-2, pp-inf-c8, pp-inf-c14, pp-inf-c16, pp-m5-c04, pp-m5-c12 …
+  rebuilt questions with a diagram: 0
+FAIL: style_check.js: 5 phrasing or change-log issue(s)

@@ -1,0 +1,3000 @@
+[
+ {
+  "reason": "core test.js refuses a question with 2 options (true/false), kit PR #30 C2",
+  "question": {
+   "id": "e2r-10",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 2,
+   "module": 6,
+   "lecture": "L07",
+   "topic": "multi",
+   "sub": "superpos",
+   "concept": "superposition-assumptions",
+   "skill": "recall",
+   "source": "slide",
+   "stem": "The principle of superposition assumes that early doses of drug have no effect on the pharmacokinetics of subsequent doses.",
+   "options": [
+    {
+     "t": "True",
+     "correct": true,
+     "why": "Her slide \"Superposition\" lists two assumptions: the drug is eliminated by first-order kinetics, and the pharmacokinetics of the drug after a single dose are not altered after multiple doses. The statement is the second one."
+    },
+    {
+     "t": "False",
+     "why": "Picking this treats accumulation as a change in the kinetics. Drug does build up, but each dose is still eliminated with the same k, VD and clearance; that unchanged behaviour is exactly what superposition assumes."
+    }
+   ],
+   "teach": [
+    {
+     "h": "Superposition",
+     "list": [
+      "Assumption 1: first-order elimination. Assumption 2: the pharmacokinetics after a single dose are not altered after multiple doses.",
+      "Under both, the concentration at any time is the sum of what is left of every dose given so far."
+     ]
+    }
+   ],
+   "cite": "Exam 2 In-Class Review (handed out 7 Oct 2026), question 10; 6---Repetitive-IV-Bolus-and-Intermittent-IV-Infusions.pdf, slide \"Superposition\""
+  }
+ },
+ {
+  "reason": "core test.js refuses a question with 2 options (true/false), kit PR #30 C2",
+  "question": {
+   "id": "pd-c13",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 3,
+   "module": 9,
+   "lecture": "L11",
+   "topic": "pkpd",
+   "sub": "teff",
+   "concept": "dose-double-teff",
+   "skill": "apply",
+   "source": "slide",
+   "stem": "Doubling the IV bolus dose of a drug that follows linear, first-order pharmacokinetics results in a 2-fold increase in the duration of activity.",
+   "options": [
+    {
+     "t": "True",
+     "why": "Choosing this treats duration as proportional to dose. The dose sits inside a logarithm, teff = 1.44 t½ ln({{frac:D0|VD × Ceff}}), so doubling it adds ln 2 over k, one half-life, to teff instead of doubling it."
+    },
+    {
+     "t": "False",
+     "correct": true,
+     "why": "Doubling D0 doubles C0, and the level needs exactly one half-life to fall from 2C0 back to C0; after that it follows the old curve. teff grows by one t½: 26.35 hr becomes 30.97 hr when 250 mg is doubled to 500 mg (VD 24 L, k 0.15 hr⁻¹)."
+    }
+   ],
+   "teach": [
+    {
+     "h": "Duration of activity, teff",
+     "list": [
+      "teff: the time one IV bolus keeps the plasma level at or above Ceff, the minimum effective concentration.",
+      "From C = C0e^(−kt) with C = Ceff: teff = {{frac:ln C0 − ln Ceff|k}}, where C0 = {{frac:D0|VD}}, the level just after the bolus.",
+      "With k = {{frac:0.693|t½}}: teff = 1.44 t½ ln({{frac:D0|VD × Ceff}}); 1.44 is {{frac:1|0.693}}.",
+      "The dose is inside the logarithm, so doubling it adds {{frac:ln 2|k}}, one half-life, to teff; it does not double teff.",
+      "Built for a single IV bolus, a one-compartment open model and first-order elimination."
+     ]
+    }
+   ],
+   "cite": "7b---Pharmacokinetics-and-Pharmacodynamics.pdf, slide 12, PollEv (keyed False)"
+  }
+ },
+ {
+  "reason": "core test.js refuses a question with 2 options (true/false), kit PR #30 C2",
+  "question": {
+   "id": "nl-c01",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 3,
+   "module": 8,
+   "lecture": "L12",
+   "topic": "nonlin",
+   "sub": "kmcp",
+   "concept": "nl-order-by-conc",
+   "skill": "recall",
+   "source": "transcript",
+   "stem": "Drugs that display Michaelis-Menten saturation kinetics will often exhibit zero-order kinetics at low concentrations and first-order kinetics at high concentrations.",
+   "options": [
+    {
+     "t": "True",
+     "why": "Choosing this reverses the two ends. Well below KM the rate is {{frac:Vmax|KM}} × Cp, proportional to concentration, which is first order; well above KM the rate equals Vmax whatever the concentration, which is zero order."
+    },
+    {
+     "t": "False",
+     "correct": true,
+     "why": "The statement has the orders the other way round. At low concentrations, Cp much less than KM, elimination looks first order; at high concentrations, Cp much greater than KM, the enzyme runs at Vmax and elimination looks zero order."
+    }
+   ],
+   "teach": [
+    {
+     "h": "KM against Cp",
+     "list": [
+      "−{{frac:dCp|dt}} = {{frac:Vmax × Cp|KM + Cp}} (Michaelis-Menten kinetics).",
+      "Cp much greater than KM: KM is negligible, the rate equals Vmax and does not depend on concentration, which is zero order.",
+      "Cp much less than KM: the rate is {{frac:Vmax|KM}} × Cp = k′Cp, proportional to concentration, which is first order."
+     ]
+    }
+   ],
+   "cite": "8 - Nonlinear PK.pdf, slide 8 \"Saturable-Enzymatic Elimination Processes\"; PollEv true/false, transcript 10-14 (keyed false)"
+  }
+ },
+ {
+  "reason": "core test.js refuses a question with 2 options (true/false), kit PR #30 C2",
+  "question": {
+   "id": "nl-c18",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 3,
+   "module": 8,
+   "lecture": "L12",
+   "topic": "nonlin",
+   "sub": "linear",
+   "concept": "nl-summary",
+   "skill": "recall",
+   "source": "slide",
+   "stem": "Clearance and half-life are usually not constant within nonlinear pharmacokinetic processes.",
+   "options": [
+    {
+     "t": "True",
+     "correct": true,
+     "why": "ClT = Vmax/(KM + Cp) and t½ = VD(0.693/Vmax)(KM + Cp) both contain Cp, so both change as the dose, and so the concentration, changes. In linear pharmacokinetics both are fixed."
+    },
+    {
+     "t": "False",
+     "why": "Choosing this carries the linear rule into nonlinear kinetics. A fixed half-life and clearance hold for first-order drugs; with saturable elimination both depend on the concentration."
+    }
+   ],
+   "teach": [
+    {
+     "h": "Summary",
+     "list": [
+      "Saturable or dose-dependent pharmacokinetics: nonlinear changes in plasma concentrations and AUC with increases in dose or multiple administrations.",
+      "Clearance and half-life are usually not constant within nonlinear processes."
+     ]
+    }
+   ],
+   "cite": "8 - Nonlinear PK.pdf, slide 19 \"Summary\""
+  }
+ },
+ {
+  "reason": "core test.js refuses a question with 2 options (true/false), kit PR #30 C2",
+  "question": {
+   "id": "fr-5",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 2,
+   "module": 4,
+   "lecture": "L05",
+   "topic": "clearance",
+   "sub": "clcalc",
+   "concept": "hepatic-by-difference",
+   "skill": "recall",
+   "source": "both",
+   "stem": "Hepatic clearance is most readily approximated with creatinine clearance.",
+   "options": [
+    {
+     "t": "True",
+     "why": "Picking this mixes up the two clearances. Creatinine clearance estimates the patient's renal function, the glomerular filtration rate; it says nothing about the liver."
+    },
+    {
+     "t": "False",
+     "correct": true,
+     "why": "Hepatic clearance is approximated by difference: ClH = ClT − ClR, total clearance minus renal clearance. Creatinine clearance, from Cockcroft-Gault, estimates the patient's renal function instead."
+    }
+   ],
+   "teach": [
+    {
+     "h": "Which clearance comes from where",
+     "list": [
+      "Total clearance: ClT = k × VD, or {{frac:D0|AUC}} for an IV dose.",
+      "Renal clearance: ClR = fe × ClT, from the drug recovered unchanged in the urine.",
+      "Hepatic clearance: ClH = ClT − ClR. No simpler measure of it is available.",
+      "Creatinine clearance: Cockcroft-Gault with the ideal body weight; it estimates the individual's renal function."
+     ]
+    }
+   ],
+   "quote": "how do we approximate hepatic clearance? Total minus renal. Why do we do it that way? Yeah, it's it, there's not an easier way to do it, right?",
+   "audit": "PollEv on page 11, 1 response on the capture. Keyed False (transcript 10-19): \"That should be false.\" She then says creatinine clearance \"calculates an individual's renal function\".",
+   "cite": "Final-Exam-Review-10.19.pdf slide 11 (PollEv); 4---Clearance-and-Elimination.pdf slide 11"
+  }
+ },
+ {
+  "reason": "core test.js refuses a question with 2 options (true/false), kit PR #30 C2",
+  "question": {
+   "id": "fr-9",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 3,
+   "module": 8,
+   "lecture": "L12",
+   "dupOf": "nl-c01",
+   "topic": "nonlin",
+   "sub": "kmcp",
+   "concept": "nl-order-by-conc",
+   "skill": "recall",
+   "source": "both",
+   "stem": "Drugs that display Michaelis-Menten saturation kinetics will often exhibit zero-order kinetics at low concentrations and first-order kinetics at high concentrations.",
+   "options": [
+    {
+     "t": "True",
+     "why": "Picking this reverses the two ends. Well below KM the rate is {{frac:Vmax|KM}} × Cp, proportional to the concentration, which is first order. Well above KM the rate is Vmax whatever the concentration, which is zero order."
+    },
+    {
+     "t": "False",
+     "correct": true,
+     "why": "The orders are the wrong way round. At low concentrations elimination looks first order; at high concentrations the process proceeds at Vmax, a constant for a given drug in a given patient, which is zero order."
+    }
+   ],
+   "teach": [
+    {
+     "h": "The order depends on Cp against KM",
+     "list": [
+      "−{{frac:dCp|dt}} = {{frac:Vmax Cp|KM + Cp}}.",
+      "Cp much less than KM: the rate is {{frac:Vmax|KM}} × Cp, first order. Low dose, first order.",
+      "Cp much greater than KM: the rate is Vmax, zero order. High dose, zero order.",
+      "Vmax and KM are constants for a given drug in a given patient; half-life and clearance change with the concentration."
+     ]
+    }
+   ],
+   "quote": "At high concentrations, then the process proceeds according to VM max, right? VMAX is a constant for a given drug given patient.",
+   "audit": "PollEv on page 19, 0 votes on the capture. Same stem as her 14 Oct poll (nl-c01). Keyed False (transcript 10-19): \"most of you guys thought that that was false. And that was indeed false\".",
+   "cite": "Final-Exam-Review-10.19.pdf slide 19 (PollEv); 8 - Nonlinear PK.pdf, slide 8 \"Saturable-Enzymatic Elimination Processes\""
+  }
+ },
+ {
+  "reason": "core test.js refuses a question with 2 options (true/false), kit PR #30 C2",
+  "question": {
+   "id": "fr-10",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 1,
+   "module": 1,
+   "lecture": "L01",
+   "topic": "auc",
+   "sub": "concept",
+   "concept": "trapezoidal-auc",
+   "skill": "recall",
+   "source": "both",
+   "stem": "The trapezoidal rule provides a simple way to estimate the AUC.",
+   "options": [
+    {
+     "t": "True",
+     "correct": true,
+     "why": "The trapezoidal rule breaks the curve into segments between the measured points, finds the area of each, one half base times height summed over the two sides, and adds them. It estimates the AUC from the data alone."
+    },
+    {
+     "t": "False",
+     "why": "Picking this reads the existence of other routes as ruling the rule out. AUC can also be calculated from the dose and the clearance, AUC = {{frac:D0|Cl}}, but the trapezoidal rule remains a way to estimate it from measured points."
+    }
+   ],
+   "teach": [
+    {
+     "h": "AUC",
+     "list": [
+      "AUC tells the extent of drug available for the body to use: the extent of drug absorbed.",
+      "Trapezoidal rule, one segment: AUC = ({{frac:Cn−1 + Cn|2}})(tn − tn−1); the segments are summed.",
+      "Without data points, AUC = {{frac:D0|Cl}} for an IV dose, and {{frac:FD0|Cl}} for an oral one."
+     ]
+    }
+   ],
+   "quote": "And way back when we did the trapezoidal rule, we haven't done it since because we have some other ways to calculate AUC.",
+   "audit": "PollEv on page 21, 34 responses on the capture, no distribution shown and no key spoken. Keyed True from her Module 1 objective 5 (\"Determine the area under the curve for a provided data set using the trapezoidal rule\") and her 17 Aug description (TRANSCRIPT_CUES 1.2). She asked the same as the 30 Sep attendance poll (\"most of you guys thought, yes\").",
+   "cite": "Final-Exam-Review-10.19.pdf slide 21 (PollEv); Introduction.pdf, slide \"The Concept of Area Under The Curve (AUC)\""
+  }
+ },
+ {
+  "reason": "core test.js refuses a question with 2 options (true/false), kit PR #30 C2",
+  "question": {
+   "id": "x3-a-tf-rate",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 1,
+   "module": 1,
+   "lecture": "L01",
+   "topic": "orders",
+   "sub": "first",
+   "concept": "first-order-rate-depends",
+   "skill": "tell",
+   "source": "both",
+   "dupOf": "m1-ord-c04",
+   "stem": "The rate of a first-order process is independent of the concentration of drug present.",
+   "options": [
+    {
+     "t": "True",
+     "why": "Picking True reads \"independent\" as a first-order property. In a first-order process the rate is k times the concentration, dC/dt = −kC, so the rate is fastest where there is most drug and slows as the drug is eliminated. A rate independent of concentration is zero order, dC/dt = −k."
+    },
+    {
+     "t": "False",
+     "correct": true,
+     "why": "The first-order rate depends on the concentration present: dC/dt = −kC. On the curve the slope is steepest at the start, where there is most drug, and flattens as the drug is eliminated. What is independent of concentration in first order is the half-life, {{frac:0.693|k}}."
+    }
+   ],
+   "teach": [
+    {
+     "h": "Rate and half-life in the two orders",
+     "list": [
+      "First order: the rate depends on the concentration, {{frac:dC|dt}} = −kC; the half-life does not, t½ = {{frac:0.693|k}}.",
+      "Zero order: the rate is independent of the concentration, {{frac:dC|dt}} = −k; the half-life depends on it, t½ = {{frac:C0|2k}}.",
+      "Read which quantity the statement names, the rate or the half-life, before answering."
+     ]
+    }
+   ],
+   "quote": "If we're thinking about the rate being the slope, higher, steeper slope up here where we've got more drug in the body ... so the rate depends on the concentration that's there",
+   "audit": "PollEv on 19 Aug (transcript 08-19), printed on annotated Introduction deck page 25: \"The rate of a first-order process is independent of the concentration of drug present. True False\". Class \"fifty-fifty\"; keyed False from her debrief.",
+   "cite": "Introduction.pdf, poll slide following slide 21"
+  }
+ },
+ {
+  "reason": "core test.js refuses a question with 2 options (true/false), kit PR #30 C2",
+  "question": {
+   "id": "x3-a-tf-half",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 1,
+   "module": 1,
+   "lecture": "L01",
+   "topic": "orders",
+   "sub": "half",
+   "concept": "first-order-halflife",
+   "skill": "tell",
+   "source": "both",
+   "dupOf": "m1-ord-c03",
+   "stem": "The half-life of a first-order process is independent of the concentration of drug present.",
+   "options": [
+    {
+     "t": "True",
+     "correct": true,
+     "why": "First-order half-life is t½ = {{frac:0.693|k}}: a constant divided by a constant. No concentration appears in it, so the time to fall from 100 to 50 mg/L is the same as from 10 to 5 mg/L, whatever dose was given."
+    },
+    {
+     "t": "False",
+     "why": "Picking False reads \"independent\" as \"dependent\", or carries the zero-order half-life, t½ = {{frac:C0|2k}}, into first order. Only in zero order does the starting concentration set the half-life. In first order the rate changes with concentration and the half-life does not."
+    }
+   ],
+   "teach": [
+    {
+     "h": "Rate and half-life in the two orders",
+     "list": [
+      "First order: the rate depends on the concentration, {{frac:dC|dt}} = −kC; the half-life does not, t½ = {{frac:0.693|k}}.",
+      "Zero order: the rate is independent of the concentration, {{frac:dC|dt}} = −k; the half-life depends on it, t½ = {{frac:C0|2k}}.",
+      "t½ = {{frac:0.693|k}} is not on the equation sheet."
+     ]
+    }
+   ],
+   "quote": "So no matter how much drug you have for a first-order process, the half-life will be the half-life, 0.693 over the rate constant K",
+   "audit": "PollEv opening the 24 Aug lecture (annotated ivb deck page 1: \"The half-life of a first-order process is independent of the concentration of drug present. True False\"). \"Most of you guys said true\"; keyed True (transcript 08-24).",
+   "cite": "Introduction.pdf slide 19; 2IVBolusAdministration.pdf, opening PollEv slide"
+  }
+ },
+ {
+  "reason": "core test.js refuses a question with 2 options (true/false), kit PR #30 C2",
+  "question": {
+   "id": "x3-a-tf-cl",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 1,
+   "module": 2,
+   "lecture": "L02",
+   "topic": "bolus1",
+   "sub": "cl",
+   "concept": "cl-constant",
+   "skill": "apply",
+   "source": "transcript",
+   "dupOf": "m2-cl-3",
+   "stem": "Clearance increases as concentration increases.",
+   "options": [
+    {
+     "t": "True",
+     "why": "Picking True confuses clearance with the rate of elimination. The amount removed per hour, Cl × Cp, does rise with the concentration, but clearance itself, the volume of plasma cleared per hour, is k × VD, a constant times a constant."
+    },
+    {
+     "t": "False",
+     "correct": true,
+     "why": "Clearance is k × VD. Both are constants for a first-order drug in a given patient, so clearance does not change when the concentration changes. What rises with concentration is the amount eliminated per hour, Cl × Cp, in mg/hr."
+    }
+   ],
+   "teach": [
+    {
+     "h": "Clearance",
+     "list": [
+      "Clearance (Cl) is the volume of plasma cleared of drug per unit time, in L/hr.",
+      "Cl = k × VD; it is not on the equation sheet.",
+      "The rate of elimination, in mg/hr, is Cl × Cp: it rises and falls with the concentration while Cl stays fixed."
+     ]
+    }
+   ],
+   "quote": "We like clearance because it is a constant, OK? So, changing the concentration does not change the clearance.",
+   "audit": "PollEv, 24 Aug (transcript 08-24): \"Clearance increases as concentration increases. True or false ... Most of you guys said false ... that is what I was looking for\". The stem is her spoken wording.",
+   "cite": "2IVBolusAdministration.pdf, slide \"Clearance\""
+  }
+ },
+ {
+  "reason": "core test.js: its cite names no lecture deck, kit PR #30 C3",
+  "question": {
+   "id": "m2-mc-2",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 1,
+   "module": 2,
+   "lecture": "L03",
+   "topic": "bolus2",
+   "sub": "why",
+   "concept": "graph-id",
+   "skill": "read",
+   "source": "transcript",
+   "stem": "A plasma concentration-versus-time curve after an intravenous bolus dose is plotted on a logarithmic concentration scale. The curve has a steep initial segment that then bends into a shallower straight segment. What does that shape indicate?",
+   "options": [
+    {
+     "t": "A two-compartment model",
+     "correct": true,
+     "why": "On a logarithmic scale a one-compartment first-order decline is one straight line. A steep segment bending into a shallower line has two slopes: two processes with different rate constants, the first being distribution into the tissue compartment. Dr. Mosley gives this as a graph-reading rule for the exam."
+    },
+    {
+     "t": "A one-compartment model",
+     "correct": false,
+     "why": "A one-compartment model gives one straight line on a logarithmic scale, not a bend, because a single first-order process has a single slope. Choosing this usually means reading the shallow later segment on its own and ignoring the steep segment that precedes it."
+    },
+    {
+     "t": "A zero-order elimination process",
+     "correct": false,
+     "why": "Picking this reads a bend on a logarithmic plot as a change of kinetic order. Zero-order elimination is a straight line on a linear scale and a smooth curve on a logarithmic one, never a two-slope bend. Both segments here are straight on the log scale, so both are first order with different rate constants."
+    },
+    {
+     "t": "A drug given by oral administration",
+     "correct": false,
+     "why": "This answer confuses the two-slope bend with the rise and fall of an oral curve. An oral curve rises to a peak before falling, because absorption competes with elimination at early times. The curve here starts at its maximum and only falls, which identifies the input as a bolus; the bend is distribution, not absorption."
+    }
+   ],
+   "teach": [
+    {
+     "h": "The idea",
+     "list": [
+      "Check the axis before reading the line.",
+      "On a logarithmic concentration scale, the number of straight segments equals the number of exponential terms in the equation.",
+      "One segment: one compartment and one rate constant.",
+      "Two segments joined by a bend: two exponential terms, a fast one for distribution and a slow one for elimination. The model needs two compartments."
+     ]
+    }
+   ],
+   "cite": "Basic Pharmacokinetics - 08-26 Lecture.txt (exam cue on graph reading)",
+   "quote": "if I give you a graph that looks something like this without the red and blue and just a log scale and I am telling you that it is an IV bolus dose … That should say to you that this is a two compartment model.",
+   "note": "On the exam the axis may not say that it is logarithmic. Values that go up by a factor of 10 at each gridline (1, 10, 100) mark a log scale.",
+   "audit": "The deck slide \"Why Multicompartment Models?\" plots log Cp against time without labelling the scale as logarithmic. Dr. Mosley supplies the reading rule out loud and repeats it in the exam review, so the rule is taken from the transcript. An exam written from these lectures would expect the scale to be inferred from the axis values."
+  }
+ },
+ {
+  "reason": "core test.js: its cite names no lecture deck, kit PR #30 C3; core style_check.js stem rule flags it after kit PR #31, kit PR #30 C10 (remaining after #31)",
+  "question": {
+   "id": "inf-c8",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 1,
+   "module": 3,
+   "lecture": "L04",
+   "topic": "infusion",
+   "sub": "css",
+   "concept": "time-to-css",
+   "skill": "recall",
+   "dupOf": "inf-c4",
+   "source": "transcript",
+   "stem": "Why is the plasma concentration during a continuous infusion described as never actually reaching steady state?",
+   "options": [
+    {
+     "t": "The approach to the plateau is asymptotic",
+     "correct": true,
+     "why": "The fraction of steady state reached is one minus e to the minus kt, and an exponential never reaches zero, so the fraction never reaches exactly one. Each half-life halves the remaining gap; at ten half-lives the shortfall is about one part in a thousand, so the level is treated as steady well before then."
+    },
+    {
+     "t": "The concentration overshoots the plateau and falls back",
+     "correct": false,
+     "why": "This answer confuses the shape of the approach with an oscillation. The concentration never overshoots: the rate of elimination rises with the concentration, so the gap between input and output closes smoothly and the curve flattens from below. There is no fall back because the concentration never exceeds Css, the steady-state concentration."
+    },
+    {
+     "t": "The infusion pump cannot hold a truly constant rate",
+     "correct": false,
+     "why": "The statement is about the mathematics of the model, not about the equipment, and the model assumes a perfectly constant input. Even with an exactly constant rate the plateau is approached rather than attained. Reaching for a practical explanation here misses what the exponential is doing."
+    },
+    {
+     "t": "The volume of distribution keeps increasing during the infusion",
+     "correct": false,
+     "why": "Volume of distribution is a constant for the drug in the patient and does not change because drug is arriving continuously. If it did change, the plateau itself would move rather than being approached. This answer makes a fixed parameter carry the behaviour of the exponential term."
+    }
+   ],
+   "teach": [
+    {
+     "h": "The idea",
+     "list": [
+      "An exponential approach closes a fixed fraction of the remaining gap in each equal interval of time.",
+      "The gap therefore shrinks without ever closing; that is what asymptotic means.",
+      "Steady state is therefore defined by how close is close enough: three to five half-lives is the working answer, and ten half-lives gives 99.9 per cent."
+     ]
+    }
+   ],
+   "cite": "09-02 lecture (transcript)",
+   "quote": "remember, this is an asymptotic curve, so we’re never actually going to reach steady state, we’re gonna get close. So, 10 gets us 99.9, 11 gets us 99.99"
+  }
+ },
+ {
+  "reason": "core test.js: its cite names no lecture deck, kit PR #30 C3",
+  "question": {
+   "id": "inf-c14",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 1,
+   "module": 3,
+   "lecture": "L04",
+   "topic": "infusion",
+   "sub": "basics",
+   "concept": "units-of-R",
+   "skill": "recall",
+   "source": "transcript",
+   "stem": "What are the units of the infusion rate R?",
+   "options": [
+    {
+     "t": "Amount per unit time, such as mg/hr",
+     "correct": true,
+     "why": "R is a zero-order input, and a zero-order rate is always an amount or concentration per unit time. Infusions deliver an amount of drug, so mg per hour is usual; divided by a clearance in litres per hour it leaves mg per litre, the concentration the equations return."
+    },
+    {
+     "t": "Reciprocal time, such as hr⁻¹",
+     "correct": false,
+     "why": "Reciprocal time belongs to a first-order rate constant, where the rate is a proportion of what is present rather than a fixed quantity. R is fixed by the pump and does not refer to the amount in the body at all. Selecting this carries the elimination constant’s units onto the input."
+    },
+    {
+     "t": "Volume per unit time, such as L/hr",
+     "correct": false,
+     "why": "Volume per unit time is clearance, which appears in the same equation and is easy to swap with R for that reason. Clearance describes how much plasma is stripped of drug per hour; R describes how many milligrams arrive per hour. Mixing them makes Css come out with no units at all."
+    },
+    {
+     "t": "Amount per unit volume, such as mg/L",
+     "correct": false,
+     "why": "That is a concentration, which is what the equations produce rather than what is put into them. An infusion rate with no time in its units could not describe a continuous input. This usually comes from reading the units off the answer rather than off the quantity."
+    }
+   ],
+   "teach": [
+    {
+     "h": "Units",
+     "list": [
+      "Units give a quick check on an infusion calculation.",
+      "R (infusion rate) is an amount per time, most often mg/hr; clearance is a volume per time.",
+      "Their quotient is an amount per volume, which is the steady-state concentration: Css = {{frac:R|Cl}}.",
+      "If a calculated Css does not come out in mg/L, the wrong quantity is in one of the two positions."
+     ]
+    }
+   ],
+   "cite": "09-02 lecture (transcript)",
+   "quote": "what I want you to know about this one, this are. The units of r. Are going to be a mount. Per time. So most often milligrams per hour."
+  }
+ },
+ {
+  "reason": "core test.js: its cite names no lecture deck, kit PR #30 C3",
+  "question": {
+   "id": "m5-c04",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 2,
+   "module": 5,
+   "lecture": "L06",
+   "topic": "oral",
+   "sub": "extravasc",
+   "concept": "ka-meaning",
+   "skill": "recall",
+   "source": "both",
+   "stem": "The first-order absorption rate constant ka of an oral tablet accounts for which processes?",
+   "options": [
+    {
+     "t": "Disintegration, dissolution, membrane crossing and first pass",
+     "correct": true,
+     "why": "A tablet must break up, the drug must dissolve, the dissolved drug must cross the gut membranes, and what crosses then passes through the liver. The single constant ka lumps these steps into one number, so a change of dosage form changes ka without changing elimination."
+    },
+    {
+     "t": "Glomerular filtration, tubular secretion and tubular reabsorption",
+     "correct": false,
+     "why": "Filtration, secretion and reabsorption decide how drug leaves the body, so they belong to the elimination rate constant k, not to ka. Choosing this attaches output processes to the input constant."
+    },
+    {
+     "t": "Distribution into the tissues",
+     "correct": false,
+     "why": "Picking this imports the distribution phase of the two-compartment intravenous model into a one-compartment oral one. Here distribution is immediate and is carried by the volume of distribution, not a rate constant; the rising limb of an oral curve is absorption, not distribution."
+    },
+    {
+     "t": "Protein binding in the plasma",
+     "correct": false,
+     "why": "Protein binding affects how much drug is free once the drug is in the plasma and has nothing to do with the rate at which it arrives there. No binding term appears anywhere in the single oral dose equation. Selecting this attaches a plasma process to a gastrointestinal rate constant."
+    }
+   ],
+   "teach": [
+    {
+     "h": "The idea",
+     "list": [
+      "ka (the absorption rate constant) is one first-order rate constant standing for a whole chain of events, from the tablet breaking up to the drug reaching the circulation.",
+      "ka is a property of the formulation as much as of the drug, so two products of the same drug can differ in ka while sharing the same k (the elimination rate constant).",
+      "Because ka is first order, its size can be expressed as an absorption half-life."
+     ]
+    }
+   ],
+   "cite": "09.21 lecture",
+   "quote": "all of those pieces give us our case of A, first order rate constant for absorption"
+  }
+ },
+ {
+  "reason": "core test.js: its cite names no lecture deck, kit PR #30 C3",
+  "question": {
+   "id": "m5-c12",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 2,
+   "module": 5,
+   "lecture": "L06",
+   "topic": "oral",
+   "sub": "conc",
+   "concept": "oral-curve-shape",
+   "skill": "read",
+   "dupOf": "fig-oral-1",
+   "source": "transcript",
+   "stem": "A plasma concentration against time curve rises to a clear peak and then declines. Which route of administration does it indicate?",
+   "options": [
+    {
+     "t": "Oral",
+     "correct": true,
+     "why": "A peak needs an input that starts at zero, builds the concentration up and is then overtaken by elimination: a first-order input alongside a first-order output. Only the extravascular route behaves that way in this course, and any rising limb rules out a route that puts drug straight into the circulation."
+    },
+    {
+     "t": "Intravenous bolus",
+     "correct": false,
+     "why": "A bolus places the whole dose in the circulation at once, so the highest concentration is at time zero and the curve only falls from there. There is no rising limb and therefore no interior peak. Choosing this means reading the descending part of the curve and ignoring the ascending part."
+    },
+    {
+     "t": "Intravenous infusion",
+     "correct": false,
+     "why": "Picking this matches the rising limb but not the top: a zero-order infusion drives the level up to a plateau and holds it there, falling only once the infusion stops. A peak partway along needs the input to fade while elimination continues, as a first-order oral input does when the gut empties."
+    },
+    {
+     "t": "Any route of administration",
+     "correct": false,
+     "why": "This confuses a scale factor with the kinetics. The dose sits in the constant prefactor and multiplies every point equally, so it moves the curve up or down without moving the turning point. The shape is set by how drug enters: instantaneous for a bolus, zero order for an infusion, first order by mouth."
+    }
+   ],
+   "teach": [
+    {
+     "h": "The idea",
+     "list": [
+      "The shape of a concentration against time curve identifies the input.",
+      "Climbs to a peak, then falls: first-order input and first-order output, which is the oral case.",
+      "The peak itself is the moment the two rates are equal.",
+      "Her exam wording: a curve with a clear peak is to be identified as an oral input, first order in, first order out."
+     ]
+    }
+   ],
+   "cite": "09.21 lecture",
+   "quote": "if I give you a curve on the exam and it looks like this. Right, where there is a clear peak. Right, we go up, we peak, we come back down, then you, I want you to identify that as an oral input. Right? First order in, first order out."
+  }
+ },
+ {
+  "reason": "core test.js: its cite names no lecture deck, kit PR #30 C3",
+  "question": {
+   "id": "m5-c17",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 2,
+   "module": 5,
+   "lecture": "L06",
+   "topic": "oral",
+   "sub": "peak",
+   "concept": "tmax-before-cmax",
+   "skill": "apply",
+   "source": "transcript",
+   "stem": "To calculate the maximum plasma concentration after a single oral dose from F, the dose, the volume of distribution and both rate constants, which quantity must be found first?",
+   "options": [
+    {
+     "t": "The time to peak",
+     "correct": true,
+     "why": "There is no separate expression for the peak concentration; it is the concentration equation evaluated at the one time the curve turns over. That time must first be found from the two rate constants. Every quantity in the stem is used, but the time is the one not given."
+    },
+    {
+     "t": "The elimination half-life",
+     "correct": false,
+     "why": "The half-life is a restatement of k and adds nothing the calculation needs, since k is already supplied. It is worth having when a problem states a half-life instead of a rate constant, which is the reverse of this situation. Computing it here is extra work that does not move the problem forward."
+    },
+    {
+     "t": "The area under the curve",
+     "correct": false,
+     "why": "Picking this substitutes another named parameter for the missing time. The area under the curve describes total exposure across the whole profile and is not a step in the peak calculation; nothing in the concentration equation calls for it. The peak is the concentration at one moment, so that moment has to be found first."
+    },
+    {
+     "t": "The absorption half-life",
+     "correct": false,
+     "why": "Like the elimination half-life, this restates a rate constant that has already been given, so it produces no new information. It is needed only in the other direction, when a problem states an absorption half-life and the rate constant must be recovered from it."
+    }
+   ],
+   "teach": [
+    {
+     "h": "The order of work",
+     "list": [
+      "First, tmax (the time to peak) = {{frac:ln(ka/k)|ka - k}} comes from the two rate constants alone.",
+      "Then tmax goes into the full single oral dose equation; this is where F, the dose and VD (apparent volume of distribution) enter.",
+      "Her exam wording: “if you are asked for C-Max … you must find TMax first.”"
+     ]
+    }
+   ],
+   "cite": "09.21 lecture",
+   "quote": "if you are asked for C-Max, and I will ask you for CMax, you must find TMax first. Find T-Max before you find CMax"
+  }
+ },
+ {
+  "reason": "core test.js: its cite names no lecture deck, kit PR #30 C3",
+  "question": {
+   "id": "m5-c19",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 2,
+   "module": 5,
+   "lecture": "L06",
+   "topic": "oral",
+   "sub": "peak",
+   "concept": "unqualified-halflife",
+   "skill": "recall",
+   "source": "transcript",
+   "stem": "A drug given orally has an absorption rate constant and an elimination rate constant. When the half-life of the drug is stated with no qualifier, which half-life is meant?",
+   "options": [
+    {
+     "t": "The elimination half-life",
+     "correct": true,
+     "why": "Half-life without a qualifier always means the elimination half-life, because that is the one routinely quoted for a drug and the one that governs the tail of any curve. It is 0.693 divided by k. The absorption half-life is asked for only when the word absorption is present."
+    },
+    {
+     "t": "The absorption half-life",
+     "correct": false,
+     "why": "The absorption half-life exists and is 0.693 divided by ka, but it is never the default reading of an unqualified t½. Choosing it means picking the larger rate constant because it appears first in the equation. The word absorption has to be there before that constant is used."
+    },
+    {
+     "t": "The half-life of the time to peak",
+     "correct": false,
+     "why": "Choosing this treats a property of a process as a property of a curve. Half-lives belong to first-order processes and are 0.693 divided by that process's rate constant, so this model has only an absorption and an elimination half-life. The time to peak is a single moment, not a decaying process."
+    },
+    {
+     "t": "The distribution half-life",
+     "why": "Picking this carries a two-compartment term into a one-compartment oral model. A distribution half-life describes the fast early fall in concentration as drug moves from plasma into tissues, a process this model does not separate out. The two half-lives here are absorption, {{frac:0.693|ka}}, and elimination, {{frac:0.693|k}}."
+    }
+   ],
+   "teach": [
+    {
+     "h": "The convention",
+     "list": [
+      "An oral model runs two first-order processes, so it has two half-lives: elimination, {{frac:0.693|k}}, and absorption, {{frac:0.693|ka}}.",
+      "An unqualified half-life, plain t½ or “the half-life”, is the elimination half-life, because it belongs to the drug in the patient rather than to the formulation.",
+      "The absorption half-life is always labelled: t½a, or “the half-life of absorption”."
+     ]
+    }
+   ],
+   "cite": "09.21 lecture",
+   "quote": "If it's just T1/2, then your assumption is that I'm looking for the half-life of elimination, right?"
+  }
+ },
+ {
+  "reason": "core test.js: its cite names no lecture deck, kit PR #30 C3",
+  "question": {
+   "id": "m6-p1i",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 2,
+   "module": 6,
+   "lecture": "L07",
+   "topic": "multi",
+   "sub": "ssbolus",
+   "concept": "renal-mechanism-p1",
+   "skill": "apply",
+   "source": "slide",
+   "stem": "A drug has a total body clearance of 52.95 mL/min per 70 kg and a renal clearance of 34.72 mL/min per 70 kg. What is the probable mechanism of its renal clearance?",
+   "options": [
+    {
+     "t": "Glomerular filtration with tubular reabsorption",
+     "correct": true,
+     "why": "A renal clearance of 34.72 mL/min is below the glomerular filtration rate of 120 mL/min. The kidney removes less drug than filtration alone would, so some of the filtered drug must be reabsorbed in the tubule."
+    },
+    {
+     "t": "Glomerular filtration with active tubular secretion",
+     "why": "Secretion adds drug to the urine beyond what is filtered, which would push renal clearance above 120 mL/min. A clearance below the filtration rate points the other way."
+    },
+    {
+     "t": "Glomerular filtration only",
+     "why": "Choosing this reads a low clearance as plain filtration. Filtration alone would give a renal clearance about equal to the filtration rate, 120 mL/min. 34.72 mL/min is well below that."
+    },
+    {
+     "t": "Hepatic metabolism",
+     "why": "Choosing this confuses renal clearance with the rest of total clearance. The non-renal part, 52.95 − 34.72 = 18.23 mL/min per 70 kg, is not a renal mechanism, and nothing in the question says which organ carries it."
+    }
+   ],
+   "steps": [
+    {
+     "k": "setup",
+     "t": "ClR = 34.72 mL/min is read against the GFR, about 120 mL/min; ClT = 52.95 mL/min gives only the renal share, fe = {{frac:34.72|52.95}} = 0.656, and the non-renal part, 52.95 − 34.72 = 18.23 mL/min",
+     "why": "Renal clearance is compared with the glomerular filtration rate, the clearance filtration alone would give. The total clearance includes the non-renal part, so it is not the comparison."
+    },
+    {
+     "k": "algebra",
+     "t": "{{frac:34.72 mL/min|120 mL/min}} = 0.289; 120 − 34.72 = 85.28 mL/min less than filtration alone would clear",
+     "why": "The kidney clears less than a third of the plasma that filtration alone would clear: 85.28 mL/min of filtered plasma is not cleared, so drug filtered into the tubule is being returned to the blood."
+    },
+    {
+     "k": "setup",
+     "t": "Compare: ClR = 34.72 mL/min is below 120 mL/min, so glomerular filtration with tubular reabsorption",
+     "why": "Below the GFR means some filtered drug is taken back, so the mechanism is filtration with reabsorption; above it would mean active secretion adding drug to the urine, and at it, within a few mL/min, filtration alone."
+    }
+   ],
+   "givens": [
+    [
+     "ClT",
+     "52.95 mL/min per 70 kg",
+     "not needed for the mechanism: gives fe = 0.656 and the non-renal 18.23 mL/min"
+    ],
+    [
+     "ClR",
+     "34.72 mL/min per 70 kg",
+     "compared with the GFR of about 120 mL/min: below it"
+    ]
+   ],
+   "check": {
+    "t": "The renal share of total clearance, fe = 0.656, cannot name the mechanism: a drug two-thirds renal could be secreted or reabsorbed. Only ClR against about 120 mL/min decides, and 34.72 is well below it."
+   },
+   "teach": [
+    {
+     "t": "The mechanism of renal clearance comes from comparing it with the glomerular filtration rate (GFR), about 120 mL/min (Module 4)."
+    },
+    {
+     "h": "Why the comparison works",
+     "list": [
+      "Glomerular filtration is the passive passage of drug from the blood into the kidney tubule; in a healthy adult its rate averages 120 mL/min (slide \"Renal Excretion\").",
+      "Tubular reabsorption moves filtered drug from the tubule back into the blood, so the plasma cleared per minute is less than the plasma filtered (slide \"Tubular Reabsorption\").",
+      "The clearances are per 70 kg; scaled to the 65-kg patient, 34.72 × 65 ÷ 70 = 32.2 mL/min, still far below 120."
+     ]
+    },
+    {
+     "h": "Renal clearance against the filtration rate",
+     "table": {
+      "head": [
+       "Renal clearance",
+       "Mechanism"
+      ],
+      "rows": [
+       [
+        "About 120 mL/min",
+        "Filtration only"
+       ],
+       [
+        "Above 120 mL/min",
+        "Filtration and active secretion"
+       ],
+       [
+        "Below 120 mL/min",
+        "Filtration and reabsorption"
+       ]
+      ]
+     }
+    }
+   ],
+   "cite": "Multiple-IV-Bolus-Practice-1---Solutions.pdf, question 1(i)",
+   "quote": "ClR = 34.72 mL/min < GFR 120 mL/min → glomerular filtration with tubular reabsorption"
+  }
+ },
+ {
+  "reason": "core test.js: its cite names no lecture deck, kit PR #30 C3",
+  "question": {
+   "id": "m6b-c18",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 2,
+   "module": 6,
+   "lecture": "L09",
+   "topic": "multoral",
+   "sub": "oparam",
+   "concept": "clinical-rounding",
+   "skill": "apply",
+   "source": "transcript",
+   "stem": "A calculation gives a dosing interval of 3.72 hours and an oral dose of 17.29 mg. How should the regimen be written for the patient?",
+   "options": [
+    {
+     "t": "Rounded to a practical interval and a marketed strength",
+     "correct": true,
+     "why": "A patient cannot take a tablet every 3.72 hours, and no 17.29-mg oral dosage form exists, so both are rounded: to an interval a person can keep and a strength that is made. An IV dose can be given to the calculated milligram, because the nurse draws it up."
+    },
+    {
+     "t": "Exactly as calculated, to keep the concentrations on target",
+     "why": "This treats the arithmetic as the regimen. The numbers give the target concentrations only if the patient takes the drug as prescribed, and every 3.72 hours will not be followed."
+    },
+    {
+     "t": "Every 3.72 hours, with the dose rounded to 17 mg",
+     "why": "Choosing this rounds the wrong item and leaves the unusable one. The interval is the harder thing for a patient to keep, and an oral dose is limited to the strengths that exist, of which 17 mg is not one."
+    },
+    {
+     "t": "Every 4 hours, with the dose kept at 17.29 mg",
+     "why": "This reverses the two routes. It is the IV dose that can be given to the calculated milligram; a solid oral dose comes only in the strengths manufactured."
+    }
+   ],
+   "teach": [
+    {
+     "h": "The idea",
+     "list": [
+      "Exam answers for dosing intervals and oral doses are to be stated as a clinician would write them.",
+      "The interval should make sense to the patient, and the oral dose should be rounded to a strength that exists.",
+      "Her own roundings: 181.8 mg to 182 mg, or to 200 mg if 175 and 200 are the strengths made; 571.43 mg of ciprofloxacin to 575 or 600 mg."
+     ]
+    }
+   ],
+   "cite": "09.28 lecture",
+   "quote": "Don't tell me 17.29 mg for an oral dose. ... So, I'm gonna ask you to round to something that makes more sense, right? 20 mg."
+  }
+ },
+ {
+  "reason": "core test.js: its cite names no lecture deck, kit PR #30 C3",
+  "question": {
+   "id": "cq4-1",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 2,
+   "module": 6,
+   "lecture": "L08",
+   "topic": "multi",
+   "sub": "superpos",
+   "concept": "why-multiple-dosing",
+   "skill": "recall",
+   "source": "both",
+   "stem": "Why are multiple dosage regimens are used?",
+   "options": [
+    {
+     "t": "to maintain plasma drug levels within the therapeutic window",
+     "correct": true,
+     "why": "One dose rises above the minimum effective concentration and then falls below it. Repeating the dose keeps the level between the minimum effective and the minimum toxic concentration, the therapeutic window."
+    },
+    {
+     "t": "to decrease the MEC",
+     "correct": false,
+     "why": "Picking this treats the MEC as something a regimen can move. The minimum effective concentration (MEC) is a property of the drug and the response it produces, fixed for a given patient. Dosing does not lower it; dosing raises the plasma level so that it reaches the MEC and stays above it between doses."
+    },
+    {
+     "t": "to decrease the rate of elimination of drug from the body",
+     "correct": false,
+     "why": "Picking this reads repeated dosing as a brake on elimination. Elimination is set by clearance, a property of the patient and the drug, which the schedule cannot change. A repeated dose replaces the drug that elimination has removed since the last dose; the fraction removed each hour is the same as after a single dose."
+    },
+    {
+     "t": "to increase the clearance of drugs",
+     "correct": false,
+     "why": "Picking this takes a parameter of the patient for an aim of the regimen. Clearance belongs to the patient and the drug, not to the schedule, so no regimen can raise it; and a higher clearance would lower the plasma levels, the opposite of what the regimen is for."
+    }
+   ],
+   "teach": [
+    {
+     "h": "The idea",
+     "list": [
+      "Her drawing on the single-dose curve adds two lines, the minimum toxic concentration (MTC) above and the minimum effective concentration (MEC) below: \"our goal is that we want to stay in between these two lines.\"",
+      "A single dose stays between them only for a while, because first-order elimination carries the level back below the MEC. Multiple doses, or an infusion, replace what is eliminated and hold the level there.",
+      "Dose and interval are then chosen so that the steady-state peak stays below the MTC and the trough above the MEC (6a slide \"Consider Peak and Trough\").",
+      "The textbook states the same purpose: multiple-dosage or infusion regimens keep plasma levels within the therapeutic window."
+     ]
+    }
+   ],
+   "cite": "Canvas Quiz 4 (Modules 6–7a), question 1; transcript, the MTC and MEC lines drawn on the single-dose curve (TRANSCRIPT_CUES.md); Shargel 7e Chapter 9, printout p. 1"
+  }
+ },
+ {
+  "reason": "core test.js: its cite names no lecture deck, kit PR #30 C3; core browser_test.js reads \"below\" in its stem as a promised figure (a table written in the stem, or \"well below\" / \"term below\"), new: proposed C11",
+  "question": {
+   "id": "ws1-3-1a",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 1,
+   "module": 1,
+   "lecture": "L01",
+   "topic": "orders",
+   "sub": "decide",
+   "concept": "order-from-data",
+   "skill": "order",
+   "source": "slide",
+   "stem": "1. The table below shows the decomposition of a drug as a function of time.\n\nTime (minute) | Drug A (mg)\n10 | 97.0\n20 | 89.0\n40 | 73.0\n60 | 57.0\n90 | 34.0\n120 | 10.0\n130 | 2.5\n\na. How would you classify the decrease in the amount of drug A?",
+   "options": [
+    {
+     "t": "Zero-order",
+     "correct": true,
+     "why": "The drug is decreasing at a constant amount per unit time: 16.0 mg in each 20 minutes from 20 to 60 minutes. Equal amounts lost in equal times is zero order."
+    },
+    {
+     "t": "First-order",
+     "why": "First order loses the same fraction in equal times. Over the two 20-minute intervals the ratio grows from {{frac:89.0|73.0}} = 1.219 to {{frac:73.0|57.0}} = 1.281, so the fraction lost is not constant."
+    },
+    {
+     "t": "Neither order fits the data",
+     "why": "The uneven spacing of the times does not prevent a decision: over equal 20-minute intervals the amount falls by the same 16.0 mg, which is zero order."
+    }
+   ],
+   "teach": [
+    {
+     "h": "Deciding the order from a table",
+     "list": [
+      "Zero order: the same amount is lost in each equal time interval; the amount against time is a straight line.",
+      "First order: the same fraction is lost in each equal interval; ln(amount) against time is a straight line.",
+      "Compare differences and ratios over intervals of equal length."
+     ]
+    }
+   ],
+   "cite": "IntroductionandMathReview3Solutions.pdf, problem 1a",
+   "dupOf": "m1-ord-c07",
+   "steps": [
+    {
+     "k": "setup",
+     "t": "Equal intervals: 20 to 40 min and 40 to 60 min, 20 minutes each",
+     "why": "The order is read from how the amount falls over equal time intervals: equal differences mean zero order, equal ratios mean first order."
+    },
+    {
+     "k": "algebra",
+     "t": "89.0 − 73.0 = 16.0 mg; 73.0 − 57.0 = 16.0 mg",
+     "why": "The same 16.0 mg is lost in each 20-minute interval: a constant amount per unit time, the zero-order pattern."
+    },
+    {
+     "k": "algebra",
+     "t": "{{frac:89.0|73.0}} = 1.219; {{frac:73.0|57.0}} = 1.281",
+     "why": "The two ratios differ, so the fraction lost per interval is not constant and the decline is not first order."
+    }
+   ],
+   "givens": [
+    [
+     "A at 20 min",
+     "89.0",
+     "mg; the start of a 20-minute interval"
+    ],
+    [
+     "A at 40 min",
+     "73.0",
+     "mg; the end of one interval and the start of the next"
+    ],
+    [
+     "A at 60 min",
+     "57.0",
+     "mg; the end of the second interval"
+    ],
+    [
+     "A at 10, 90, 120, 130 min",
+     "97.0, 34.0, 10.0, 2.5",
+     "mg; not needed: the two 20-minute intervals decide the order"
+    ]
+   ],
+   "check": {
+    "t": "A zero-order amount falls along a straight line: 16.0 mg every 20 minutes here. The ratios 1.219 and 1.281 differ, so ln(amount) against time would curve, which rules out first order."
+   },
+   "audit": "Her sheet offers two choices, zero-order and first-order; the third option comes from m1-ord-c07, because every multiple-choice item has three."
+  }
+ },
+ {
+  "reason": "core test.js: its cite names no lecture deck, kit PR #30 C3",
+  "question": {
+   "id": "ws2-4-1d",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 1,
+   "module": 2,
+   "lecture": "L02",
+   "topic": "bolus1",
+   "sub": "model",
+   "concept": "thalf-dose-independent",
+   "skill": "apply",
+   "source": "slide",
+   "stem": "1. A drug that follows one-compartment, first-order elimination has an elimination half-life of 6 hours and apparent volume of distribution VD of 400 mL/kg has been administered as a single 600-mg dose is given to an adult female patient (62 kg) by rapid IV injection. d. If the dose were doubled, what is the expected change in the half-life of elimination?",
+   "options": [
+    {
+     "t": "No change; the half-life is constant for a first-order process",
+     "correct": true,
+     "why": "No change in half-life: half-life is constant for first-order processes. t½ = {{frac:0.693|k}}, and k is a property of the drug in this patient, not of the dose."
+    },
+    {
+     "t": "The half-life doubles",
+     "why": "This reads a larger amount as taking longer to halve. In a first-order process the amount eliminated per hour doubles with the amount present, so halving takes the same 6 hours."
+    },
+    {
+     "t": "The half-life halves",
+     "why": "This reads a larger dose as being eliminated faster. The rate of elimination in mg/hr doubles, but so does the amount to remove, so the time to remove half is unchanged."
+    },
+    {
+     "t": "The half-life increases, but by less than double",
+     "why": "A partial change would mean elimination depends on the dose, which is the saturable (nonlinear) case. The stem states first-order elimination, so k and t½ do not depend on the dose."
+    }
+   ],
+   "teach": [
+    {
+     "h": "What a larger dose changes, first order",
+     "list": [
+      "k, t½, VD and ClT are constants of the drug in the patient: a different dose does not change them.",
+      "Amounts and concentrations are proportional to the dose: C0 = {{frac:D0|VD}}, so twice the dose gives twice C0.",
+      "The rate of elimination in mg/hr, ClT × Cp, doubles with the dose; clearance in L/hr does not."
+     ]
+    }
+   ],
+   "cite": "IV-Bolus-Practice-4---Solutions.pdf, problem 1, part d",
+   "steps": [
+    {
+     "k": "setup",
+     "t": "t½ = {{frac:0.693|k}} = {{frac:0.693|0.1155 hr⁻¹}} = 6 hr for either dose",
+     "why": "The half-life depends only on k, and the dose does not appear in it, so 600 mg and 1200 mg have the same 6-hour half-life."
+    }
+   ],
+   "givens": [
+    [
+     "t½",
+     "6 hours",
+     "unchanged: {{frac:0.693|k}} has no dose in it"
+    ],
+    [
+     "D0",
+     "600-mg",
+     "doubled; it does not enter k or t½"
+    ],
+    [
+     "VD",
+     "400 mL/kg",
+     "not needed: the volume does not enter t½"
+    ],
+    [
+     "weight",
+     "62 kg",
+     "not needed"
+    ]
+   ],
+   "check": {
+    "t": "For a first-order drug k, t½, VD and clearance are constants of the drug in the patient; only amounts and concentrations scale with the dose."
+   }
+  }
+ },
+ {
+  "reason": "core test.js: its cite names no lecture deck, kit PR #30 C3",
+  "question": {
+   "id": "ws2-4-1e",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 1,
+   "module": 2,
+   "lecture": "L02",
+   "topic": "bolus1",
+   "sub": "cl",
+   "concept": "cl-constant",
+   "skill": "apply",
+   "source": "slide",
+   "stem": "1. A drug that follows one-compartment, first-order elimination has an elimination half-life of 6 hours and apparent volume of distribution VD of 400 mL/kg has been administered as a single 600-mg dose is given to an adult female patient (62 kg) by rapid IV injection. e. If the dose were doubled, what is the expected change in the clearance?",
+   "options": [
+    {
+     "t": "No change; clearance is constant for a first-order process",
+     "correct": true,
+     "why": "No change in clearance: clearance is constant for first-order processes. ClT = k × VD, and neither k nor VD depends on the dose."
+    },
+    {
+     "t": "Clearance doubles",
+     "why": "This confuses clearance with the rate of elimination. Twice the dose gives twice the concentration and twice the mg/hr removed, but the volume of plasma cleared each hour, ClT, is unchanged."
+    },
+    {
+     "t": "Clearance halves",
+     "why": "This reads a larger dose as lowering clearance. Clearance falls with the dose only when elimination is saturable; with first-order elimination it stays at k × VD."
+    },
+    {
+     "t": "Clearance increases by a factor of 4",
+     "why": "Nothing in ClT = k × VD scales with the dose, let alone with its square. Both factors are constants of the drug in the patient."
+    }
+   ],
+   "teach": [
+    {
+     "h": "What a larger dose changes, first order",
+     "list": [
+      "k, t½, VD and ClT are constants of the drug in the patient: a different dose does not change them.",
+      "Amounts and concentrations are proportional to the dose: C0 = {{frac:D0|VD}}, so twice the dose gives twice C0.",
+      "The rate of elimination in mg/hr, ClT × Cp, doubles with the dose; clearance in L/hr does not."
+     ]
+    }
+   ],
+   "cite": "IV-Bolus-Practice-4---Solutions.pdf, problem 1, part e",
+   "steps": [
+    {
+     "k": "algebra",
+     "t": "ClT = k × VD = (0.1155 hr⁻¹)(24.8 L) = 2.86 L/hr for either dose",
+     "why": "Neither factor contains the dose: hr⁻¹ times L gives L/hr, the same volume of plasma cleared each hour for 600 mg or 1200 mg."
+    }
+   ],
+   "givens": [
+    [
+     "t½",
+     "6 hours",
+     "k = 0.1155 hr⁻¹, a constant"
+    ],
+    [
+     "VD",
+     "400 mL/kg",
+     "24.8 L for 62 kg, a constant"
+    ],
+    [
+     "D0",
+     "600-mg",
+     "doubled; it does not enter ClT"
+    ],
+    [
+     "weight",
+     "62 kg",
+     "times 0.4 L/kg gives the 24.8 L in ClT"
+    ]
+   ],
+   "check": {
+    "t": "Clearance is a volume per hour, k × VD, and neither factor changes with the dose; the mg removed per hour, ClT × Cp, is what doubles."
+   }
+  }
+ },
+ {
+  "reason": "core test.js: its cite names no lecture deck, kit PR #30 C3",
+  "question": {
+   "id": "ws2-4-1f",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 1,
+   "module": 2,
+   "lecture": "L02",
+   "topic": "bolus1",
+   "sub": "vd",
+   "concept": "c0-proportional-to-dose",
+   "skill": "apply",
+   "source": "slide",
+   "stem": "1. A drug that follows one-compartment, first-order elimination has an elimination half-life of 6 hours and apparent volume of distribution VD of 400 mL/kg has been administered as a single 600-mg dose is given to an adult female patient (62 kg) by rapid IV injection. f. If the dose were doubled, what is the expected change in the initial plasma concentration? (Part a: C0 = 24.19 mg/L.)",
+   "options": [
+    {
+     "t": "It increases by a factor of 2",
+     "correct": true,
+     "why": "Expect the initial concentration to increase by a factor of 2. C0 = {{frac:D0|VD}} with VD unchanged, so 1200 mg gives 48.387 mg/L, twice 24.19 mg/L."
+    },
+    {
+     "t": "No change",
+     "why": "This applies the no-change answers for half-life and clearance to C0. Those are constants of the drug; C0 is an amount over a volume, so it scales with the dose."
+    },
+    {
+     "t": "It increases by a factor of 4",
+     "why": "Doubling only the numerator of C0 = {{frac:D0|VD}} doubles C0. A factor of 4 would need the volume to halve as well, and VD does not change with the dose."
+    },
+    {
+     "t": "It halves",
+     "why": "This puts the dose in the denominator. C0 = {{frac:D0|VD}} has the dose on top, so a larger dose gives a higher initial concentration."
+    }
+   ],
+   "teach": [
+    {
+     "h": "What a larger dose changes, first order",
+     "list": [
+      "k, t½, VD and ClT are constants of the drug in the patient: a different dose does not change them.",
+      "Amounts and concentrations are proportional to the dose: C0 = {{frac:D0|VD}}, so twice the dose gives twice C0.",
+      "The rate of elimination in mg/hr, ClT × Cp, doubles with the dose; clearance in L/hr does not."
+     ]
+    }
+   ],
+   "cite": "IV-Bolus-Practice-4---Solutions.pdf, problem 1, part f",
+   "steps": [
+    {
+     "k": "setup",
+     "t": "C0 = {{frac:D0|VD}}, with VD = (0.4 L/kg)(62 kg) = 24.8 L unchanged",
+     "why": "The initial concentration is dose over volume; the volume is a property of the drug in the patient and stays at 24.8 L."
+    },
+    {
+     "k": "algebra",
+     "t": "C0 = {{frac:1200 mg|24.8 L}} = 48.387 mg/L",
+     "why": "mg over L gives mg/L. 48.387 mg/L is twice the 24.19 mg/L of part a."
+    }
+   ],
+   "givens": [
+    [
+     "VD",
+     "400 mL/kg",
+     "24.8 L, unchanged"
+    ],
+    [
+     "D0",
+     "600-mg",
+     "doubled, the numerator of the new C0"
+    ],
+    [
+     "C0",
+     "24.19 mg/L",
+     "the value that doubles"
+    ],
+    [
+     "t½",
+     "6 hours",
+     "not needed: C0 comes before any elimination"
+    ],
+    [
+     "weight",
+     "62 kg",
+     "times 0.4 L/kg gives VD = 24.8 L"
+    ]
+   ],
+   "check": {
+    "t": "C0 is proportional to the dose when VD is fixed, so the new C0, 48.387 mg/L, is twice the 24.19 mg/L of part a."
+   }
+  }
+ },
+ {
+  "reason": "core test.js: its cite names no lecture deck, kit PR #30 C3",
+  "question": {
+   "id": "ws4-2-1c",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 2,
+   "module": 4,
+   "lecture": "L05",
+   "topic": "clearance",
+   "sub": "renalmech",
+   "concept": "mechanism-from-clr",
+   "skill": "apply",
+   "source": "slide",
+   "stem": "1. A single 250-mg oral dose of an antibiotic is given to a young man (age 32 years, creatinine clearance 122 mL/min, 78 kg). From the literature, the drug is known to have an apparent VD equal to 21% of body weight and an elimination half-life of 2 hours. The dose is normally 90% bioavailable. Urinary excretion of the unchanged drug is equal to 70% of the absorbed dose. What is the probable mechanism for renal clearance of this drug?",
+   "options": [
+    {
+     "t": "Filtration with tubular reabsorption",
+     "correct": true,
+     "why": "Renal clearance, 66.22 mL/min, is below the creatinine clearance, 122 mL/min, this patient's GFR estimate. Filtration alone would clear plasma at that rate, so some filtered drug moved back into the blood: filtration with partial reabsorption."
+    },
+    {
+     "t": "Filtration with active secretion",
+     "why": "Picking this reads a largely renal drug (fe = 0.7) as one the kidney handles actively. Active secretion would push renal clearance above the GFR, 122 mL/min; here ClR is 66.22 mL/min, below it."
+    },
+    {
+     "t": "Filtration only",
+     "why": "This answer takes filtration as the only mechanism when ClR is below the GFR. Filtration alone clears at about 122 mL/min for this patient, so a renal clearance of 66.22 mL/min means some filtered drug was reabsorbed."
+    },
+    {
+     "t": "Cleared mainly by the liver",
+     "why": "Picking this reads a renal clearance below the GFR as a minor kidney route. fe = 0.7 means 70% of the absorbed dose leaves in urine unchanged, so the kidney is the main route; the question asks how the kidney handles it."
+    }
+   ],
+   "teach": [
+    {
+     "h": "Reading the renal mechanism",
+     "list": [
+      "Renal clearance (ClR) is the volume of plasma the kidney clears of drug per minute. GFR, the glomerular filtration rate, is about 120 mL/min in a healthy adult, or the patient's creatinine clearance when given.",
+      "ClR equal to GFR: filtration only (her tolerance is 119 or 121 mL/min). Greater: filtration plus active secretion. Less: filtration with partial reabsorption.",
+      "Put ClR in mL/min before comparing. fe alone cannot name the mechanism.",
+      "Her slides \"Renal Excretion\", \"Active Secretion\" and \"Tubular Reabsorption\" state the three cases."
+     ]
+    }
+   ],
+   "cite": "Clearance--26-Elimination-Practice-2-Solutions.pdf, page 1, part 1c",
+   "steps": [
+    {
+     "k": "setup",
+     "t": "fe = 0.70: urinary excretion of unchanged drug is 70% of the absorbed dose",
+     "why": "fe is the fraction of the absorbed dose reaching the urine unchanged. It says the kidney handles 70% of the elimination, not how: filtration alone, with reabsorption, or with secretion."
+    },
+    {
+     "k": "setup",
+     "t": "VD = (0.21)(78 kg) = 16.38 L; k = {{frac:0.693|2 hr}} = 0.3465 hr⁻¹; ClT = kVD = (0.3465)(16.38) = 5.676 L/hr",
+     "why": "The mechanism is read from renal clearance, a share of total clearance, so total clearance comes first: the volume from 21% of body weight and k from the 2-hour half-life."
+    },
+    {
+     "k": "unit",
+     "t": "ClT = 5.676 L/hr × {{frac:1000 mL|1 L}} × {{frac:1 hr|60 min}} = 94.59 mL/min",
+     "why": "The creatinine clearance, the GFR estimate, is in mL/min, so total clearance is put in the same unit before the renal share is taken."
+    },
+    {
+     "k": "algebra",
+     "t": "ClR = fe × ClT = 0.70 × 94.59 mL/min = 66.22 mL/min",
+     "why": "Renal clearance is the renal fraction of total clearance, a number with units that can be set against the filtration rate. The unrounded 94.594 gives 66.22; the rounded total gives 66.21."
+    },
+    {
+     "k": "setup",
+     "t": "Compare: ClR = 66.22 mL/min against the GFR, the creatinine clearance of 122 mL/min (about 120); 66.22 is below it",
+     "why": "A renal clearance below the GFR means some filtered drug is taken back into the blood: filtration with partial reabsorption. Above the GFR would mean active secretion."
+    }
+   ],
+   "givens": [
+    [
+     "D0",
+     "250-mg",
+     "not needed: clearance does not depend on the dose"
+    ],
+    [
+     "age",
+     "32 years",
+     "not needed: the creatinine clearance is given, so no Cockcroft-Gault"
+    ],
+    [
+     "CrCl",
+     "122 mL/min",
+     "the GFR estimate that ClR is compared with"
+    ],
+    [
+     "weight",
+     "78 kg",
+     "scales the volume: (0.21)(78) = 16.38 L"
+    ],
+    [
+     "VD",
+     "21% of body weight",
+     "0.21 L per kg, inside ClT = kVD"
+    ],
+    [
+     "t½",
+     "2 hours",
+     "gives k = {{frac:0.693|2}} = 0.3465 hr⁻¹"
+    ],
+    [
+     "F",
+     "90%",
+     "not needed: fe is already a fraction of the absorbed dose"
+    ],
+    [
+     "fe",
+     "70% of the absorbed dose",
+     "fe = 0.70, scales ClT to ClR"
+    ]
+   ],
+   "check": {
+    "t": "fe = 0.70 alone cannot name the mechanism: a drug with the same fe but a much shorter half-life would have a renal clearance above the GFR and be secreted. Only ClR in mL/min set against the GFR, 122 mL/min for this patient, decides, and 66.22 is below it."
+   }
+  }
+ },
+ {
+  "reason": "core test.js: its cite names no lecture deck, kit PR #30 C3",
+  "question": {
+   "id": "ws4-4-1a",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 2,
+   "module": 4,
+   "lecture": "L05",
+   "topic": "clearance",
+   "sub": "renalmech",
+   "concept": "mechanism-from-clr",
+   "skill": "apply",
+   "source": "slide",
+   "stem": "1. A new antibiotic is excreted by the kidney. The apparent volume of distribution is 25L in the normal adult. The clearance of this drug is 300 mL/min. a. What is the probable mechanism of renal excretion of this drug?",
+   "options": [
+    {
+     "t": "Filtration with active secretion",
+     "correct": true,
+     "why": "Clearance, 300 mL/min, is well above the GFR, the glomerular filtration rate of about 120 mL/min. Filtration cannot clear more plasma than it filters, so a transporter must add drug to the tubule: filtration with active secretion."
+    },
+    {
+     "t": "Filtration only",
+     "why": "Picking this reads any renally excreted drug as simply filtered. Filtration alone clears at about 120 mL/min; a renal clearance of 300 mL/min is 2.5 times that, so a second process must add drug to the urine."
+    },
+    {
+     "t": "Filtration with tubular reabsorption",
+     "why": "This answer reads the comparison with GFR in the wrong direction. Reabsorption returns filtered drug to the blood, so it lowers renal clearance below the GFR of about 120 mL/min, not above it."
+    },
+    {
+     "t": "Hepatic metabolism",
+     "why": "Picking this treats the 300 mL/min as a total clearance with a hepatic share to find. The stem says the drug is excreted by the kidney, so 300 mL/min is renal clearance; metabolism is not a mechanism of renal excretion."
+    }
+   ],
+   "teach": [
+    {
+     "h": "Reading the renal mechanism",
+     "list": [
+      "Renal clearance (ClR) is the volume of plasma the kidney clears of drug per minute. GFR, the glomerular filtration rate, is about 120 mL/min in a healthy adult, or the patient's creatinine clearance when given.",
+      "ClR equal to GFR: filtration only (her tolerance is 119 or 121 mL/min). Greater: filtration plus active secretion. Less: filtration with partial reabsorption.",
+      "Put ClR in mL/min before comparing. fe alone cannot name the mechanism.",
+      "Her slides \"Renal Excretion\", \"Active Secretion\" and \"Tubular Reabsorption\" state the three cases."
+     ]
+    }
+   ],
+   "cite": "Clearance--26-Elimination-Practice-4-Solutions.pdf, page 1, part 1a",
+   "steps": [
+    {
+     "k": "setup",
+     "t": "The drug is excreted by the kidney, so the 300 mL/min clearance is its renal clearance; reference GFR about 120 mL/min",
+     "why": "Nothing else eliminates the drug, so total and renal clearance are the same number, read against the glomerular filtration rate of about 120 mL/min."
+    },
+    {
+     "k": "algebra",
+     "t": "{{frac:300 mL/min|120 mL/min}} = 2.5; 300 − 120 = 180 mL/min beyond filtration",
+     "why": "Each minute 180 mL of plasma more than filtration can account for is cleared of the drug, so a second process is adding drug to the tubular fluid."
+    },
+    {
+     "k": "setup",
+     "t": "Compare: ClR = 300 mL/min is above 120 mL/min, so filtration with active tubular secretion",
+     "why": "Above the GFR means a process adds drug to the lumen beyond filtration: active secretion. Reabsorption could only pull the value below 120 mL/min."
+    }
+   ],
+   "givens": [
+    [
+     "VD",
+     "25L",
+     "not needed for the mechanism; used for the half-life in part b"
+    ],
+    [
+     "ClT",
+     "300 mL/min",
+     "equals ClR, since excretion is renal; compared with about 120 mL/min"
+    ]
+   ],
+   "check": {
+    "t": "Reabsorption can only lower renal clearance below the filtration rate, and filtration alone cannot exceed about 120 mL/min, so 300 mL/min, 2.5 times the GFR, can come from nothing but filtration plus active secretion. The 25 L volume does not enter."
+   }
+  }
+ },
+ {
+  "reason": "core test.js: its cite names no lecture deck, kit PR #30 C3",
+  "question": {
+   "id": "ws5-1-3",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 2,
+   "module": 5,
+   "lecture": "L06",
+   "topic": "oral",
+   "sub": "peak",
+   "concept": "cmax-vs-range",
+   "skill": "apply",
+   "source": "slide",
+   "stem": "Procainamide is used for the treatment of ventricular tachyarrhythmia. It is administered intravenously, intramuscularly, and orally (Canada), and its therapeutic range is 4 to 8 mcg/mL. When a 750 mg dose is administered intravenously to a normal healthy subject: the elimination half-life is 3 hr; the apparent volume of distribution is 140 L or 2 L/kg; 65% is excreted in the urine; 35% is metabolized. When a 250 mg tablet is administered orally to a normal healthy subject: the absorption rate constant is 2.8 hr⁻¹; fraction of dose absorbed is 85.54%. Determine the following from the data provided: 3. Whether the 250 mg tablet will provide a maximum plasma concentration sufficient to control the arrhythmia.",
+   "options": [
+    {
+     "t": "No: its peak, 1.22 mg/L, is below the 4 mcg/mL lower limit",
+     "correct": true,
+     "why": "1 mg is 1000 mcg and 1 L is 1000 mL, so the thousands cancel and the 1.22 mg/L peak is 1.22 mcg/mL. The peak is the highest the level gets after one tablet, and it never reaches the 4 to 8 mcg/mL range."
+    },
+    {
+     "t": "Yes: 1.22 mg/L is above 1 mcg/mL",
+     "why": "Picking this compares the peak with 1 mcg/mL, which is not a limit of the range. The range is 4 to 8 mcg/mL, and 1.22 mg/L is 1.22 mcg/mL, below the 4 mcg/mL lower limit."
+    },
+    {
+     "t": "Yes, after unit conversion 1.22 mg/L is 1220 mcg/mL",
+     "why": "This answer converts only the mass: 1 mg is 1000 mcg, but 1 L is also 1000 mL, so 1 mg/L = {{frac:1000 mcg|1000 mL}} = 1 mcg/mL. The peak stays 1.22 mcg/mL, not 1220 mcg/mL."
+    },
+    {
+     "t": "It cannot be judged without the AUC",
+     "why": "Picking this reads the comparison as one of total exposure. The therapeutic range is a range of concentrations, so Cmax is compared with 4 to 8 mcg/mL directly; the AUC, an area with different units, is not needed."
+    }
+   ],
+   "teach": [
+    {
+     "h": "Comparing a peak with a range",
+     "list": [
+      "A therapeutic range runs from the minimum effective concentration (MEC), below which the drug does not act, to the minimum toxic concentration (MTC), above which adverse effects appear.",
+      "Cmax, the peak, is the highest the concentration gets after one dose; a peak below the lower limit means the drug never reaches an effective level."
+     ]
+    }
+   ],
+   "cite": "Daily-Practice-Singler-Oral-1---Solutions.pdf, page 2, part 3",
+   "steps": [
+    {
+     "k": "setup",
+     "t": "k = {{frac:0.693|3 hr}} = 0.231 hr⁻¹; tmax = {{frac:ln 12.12|(2.8 − 0.231) hr⁻¹}} = {{frac:2.495|2.569 hr⁻¹}} = 0.97 hr",
+     "why": "The peak of the 250 mg tablet, from part 2, is compared with the range, so it comes first: k from the IV half-life, then tmax; {{frac:2.8|0.231}} = 12.12 and ln 12.12 = 2.495."
+    },
+    {
+     "k": "algebra",
+     "t": "Cmax = {{frac:(0.8554)(250 mg)(2.8 hr⁻¹)|(140 L)(2.569 hr⁻¹)}} (e^(−(0.231)(0.97)) − e^(−(2.8)(0.97))) = (1.665 mg/L)(0.799 − 0.066) = 1.22 mg/L",
+     "why": "The coefficient is (0.8554)(250)(2.8) = 598.8 over (140)(2.569) = 359.7, which is 1.665 mg/L; the bracket is 0.799 − 0.066 = 0.733, so one tablet peaks at 1.22 mg/L."
+    },
+    {
+     "k": "unit",
+     "t": "Cmax = 1.22 mg/L = 1.22 × {{frac:1000 mcg|1000 mL}} = 1.22 mcg/mL",
+     "why": "The range is in mcg/mL and the peak in mg/L. The factor of 1000 cancels, so 1 mg/L is 1 mcg/mL and the peak is 1.22 mcg/mL."
+    },
+    {
+     "k": "setup",
+     "t": "Compare: Cmax = 1.22 mcg/mL against the lower limit of the range, 4 mcg/mL; 1.22 is below 4",
+     "why": "The peak has to reach at least 4 mcg/mL for the tablet to control the arrhythmia at any time. A peak of 1.22 mcg/mL never enters the range, so one 250 mg tablet is not sufficient."
+    }
+   ],
+   "givens": [
+    [
+     "window",
+     "4 to 8 mcg/mL",
+     "the peak is compared with the lower limit, 4 mcg/mL"
+    ],
+    [
+     "IV dose",
+     "750 mg",
+     "not needed: the tablet is asked about"
+    ],
+    [
+     "t½",
+     "3 hr",
+     "gives k = {{frac:0.693|3}} = 0.231 hr⁻¹, inside tmax and Cmax"
+    ],
+    [
+     "VD",
+     "140 L or 2 L/kg",
+     "140 L in the denominator of Cmax"
+    ],
+    [
+     "fe",
+     "65%",
+     "not needed: the split of elimination does not move the peak"
+    ],
+    [
+     "metabolized",
+     "35%",
+     "not needed"
+    ],
+    [
+     "D0",
+     "250 mg tablet",
+     "the dose in the numerator of Cmax"
+    ],
+    [
+     "ka",
+     "2.8 hr⁻¹",
+     "in tmax and in the coefficient of Cmax"
+    ],
+    [
+     "F",
+     "85.54%",
+     "F = 0.8554 in the numerator of Cmax"
+    ]
+   ],
+   "check": {
+    "t": "mg/L and mcg/mL are the same size, so no factor of 1000 enters, and the whole absorbed dose, 0.8554 × 250 mg in 140 L, is under 2 mg/L; a peak above 4 mcg/mL from one tablet is impossible, and 1.22 fits below it."
+   }
+  }
+ },
+ {
+  "reason": "core test.js: its cite names no lecture deck, kit PR #30 C3",
+  "question": {
+   "id": "ws5-1-4",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 2,
+   "module": 5,
+   "lecture": "L06",
+   "topic": "oral",
+   "sub": "peak",
+   "concept": "tablets-to-range",
+   "skill": "apply",
+   "source": "slide",
+   "stem": "Procainamide is used for the treatment of ventricular tachyarrhythmia. It is administered intravenously, intramuscularly, and orally (Canada), and its therapeutic range is 4 to 8 mcg/mL. When a 750 mg dose is administered intravenously to a normal healthy subject: the elimination half-life is 3 hr; the apparent volume of distribution is 140 L or 2 L/kg; 65% is excreted in the urine; 35% is metabolized. When a 250 mg tablet is administered orally to a normal healthy subject: the absorption rate constant is 2.8 hr⁻¹; fraction of dose absorbed is 85.54%. Determine the following from the data provided: 4. If the 250 mg tablet is insufficient to control the arrhythmia, how many tablets (250 mg strength) will be required to control the arrhythmia?",
+   "options": [
+    {
+     "t": "4 to 6 tablets",
+     "correct": true,
+     "why": "Cmax is proportional to the dose, so each tablet adds 1.22 mg/L to the peak. {{frac:4|1.22}} = 3.28, so 4 tablets reach the minimum; {{frac:8|1.22}} = 6.56, so 6 tablets stay under the maximum."
+    },
+    {
+     "t": "3 to 6 tablets",
+     "why": "Picking this rounds {{frac:4|1.22}} = 3.28 tablets down to 3. 3 tablets give 3 × 1.22 = 3.66 mg/L, still below the 4 mcg/mL lower limit, so the minimum is rounded up to 4 tablets."
+    },
+    {
+     "t": "4 to 7 tablets",
+     "why": "Picking this rounds {{frac:8|1.22}} = 6.56 tablets up to 7. 7 tablets give 7 × 1.22 = 8.54 mg/L, above the 8 mcg/mL upper limit, so the maximum is rounded down to 6 tablets."
+    },
+    {
+     "t": "2 tablets",
+     "why": "This answer stops at doubling the dose. 2 tablets give 2 × 1.22 = 2.44 mg/L, the part 2 value for 500 mg, still below the 4 mcg/mL lower limit; at least 4 tablets are needed."
+    }
+   ],
+   "teach": [
+    {
+     "h": "Scaling a peak to a range",
+     "list": [
+      "Cmax is proportional to the dose: the dose sits only in the prefactor {{frac:F ka D0|VD(ka − k)}} and tmax holds no dose (her slide \"Changing Dose\").",
+      "The answer is whole tablets of the strength that exists; she asks oral doses rounded to a practical strength (\"Don't tell me 17.29 mg for an oral dose\")."
+     ]
+    }
+   ],
+   "cite": "Daily-Practice-Singler-Oral-1---Solutions.pdf, page 2, part 4",
+   "note": "Her key writes 3.27 and 6.55 ({{frac:4|1.22}} and {{frac:8|1.22}} cut off at two decimals); the tablet counts are the same.",
+   "steps": [
+    {
+     "k": "setup",
+     "t": "One tablet (part 2): k = {{frac:0.693|3 hr}} = 0.231 hr⁻¹; tmax = 0.97 hr; Cmax = {{frac:(0.8554)(250 mg)(2.8 hr⁻¹)|(140 L)(2.569 hr⁻¹)}} (e^(−(0.231)(0.97)) − e^(−(2.8)(0.97))) = (1.665 mg/L)(0.799 − 0.066) = 1.22 mg/L",
+     "why": "Each 250 mg tablet adds the same 1.22 mg/L to the peak, because Cmax is proportional to the dose. The number of tablets is a limit of the range over the peak of one tablet."
+    },
+    {
+     "k": "algebra",
+     "t": "Lower limit: {{frac:4 mcg/mL|1.22 mcg/mL per tablet}} = 3.28 tablets; 3 × 1.22 = 3.66 mg/L is below 4, 4 × 1.22 = 4.88 mg/L is inside",
+     "why": "The minimum is the lower limit over the peak per tablet, 3.28. Three tablets leave the peak at 3.66 mcg/mL, below the range, so the count rounds up to 4 tablets, peaking at 4.88 mcg/mL."
+    },
+    {
+     "k": "algebra",
+     "t": "Upper limit: {{frac:8 mcg/mL|1.22 mcg/mL per tablet}} = 6.56 tablets; 6 × 1.22 = 7.32 mg/L is inside, 7 × 1.22 = 8.54 mg/L is above 8",
+     "why": "The maximum is the upper limit over the peak per tablet, 6.56. Seven tablets push the peak to 8.54 mcg/mL, over the range, so the count rounds down to 6 tablets, peaking at 7.32 mcg/mL."
+    },
+    {
+     "k": "round",
+     "t": "3.28 rounds up to 4 tablets; 6.56 rounds down to 6 tablets: 4 to 6 tablets, peaks of 4.88 to 7.32 mcg/mL, inside 4 to 8",
+     "why": "The minimum must clear the floor, so it rounds up; the maximum must stay under the ceiling, so it rounds down. Four to six tablets keep the peak inside 4 to 8 mcg/mL."
+    }
+   ],
+   "givens": [
+    [
+     "window",
+     "4 to 8 mcg/mL",
+     "both limits divided by the 1.22 mg/L one tablet gives"
+    ],
+    [
+     "IV dose",
+     "750 mg",
+     "not needed: the tablet is asked about"
+    ],
+    [
+     "t½",
+     "3 hr",
+     "gives k = {{frac:0.693|3}} = 0.231 hr⁻¹, inside tmax and Cmax"
+    ],
+    [
+     "VD",
+     "140 L or 2 L/kg",
+     "140 L in the denominator of Cmax"
+    ],
+    [
+     "fe",
+     "65%",
+     "not needed: the split of elimination does not move the peak"
+    ],
+    [
+     "metabolized",
+     "35%",
+     "not needed"
+    ],
+    [
+     "D0",
+     "250 mg tablet",
+     "one tablet peaks at 1.22 mg/L; n tablets at n × 1.22"
+    ],
+    [
+     "ka",
+     "2.8 hr⁻¹",
+     "in tmax and in the coefficient of Cmax"
+    ],
+    [
+     "F",
+     "85.54%",
+     "F = 0.8554 in the numerator of Cmax"
+    ]
+   ],
+   "check": {
+    "t": "Each tablet peaks at 1.22 mcg/mL, so the count is a limit over 1.22; 3 tablets, 3.66, miss the floor of 4, and 7 tablets, 8.54, pass the ceiling of 8, so 4 to 6. Rounding both counts the same way puts one end outside the range."
+   }
+  }
+ },
+ {
+  "reason": "core test.js: its cite names no lecture deck, kit PR #30 C3",
+  "question": {
+   "id": "ws6-b2e",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 2,
+   "module": 6,
+   "lecture": "L07",
+   "topic": "multi",
+   "sub": "ssbolus",
+   "concept": "regimen-trough-adjust",
+   "skill": "apply",
+   "source": "slide",
+   "stem": "The elimination half-life of an antibiotic is 3 hours and the apparent volume of distribution is 20% of the body weight. The therapeutic window for this drug is from 2 to 10 mcg/mL. Adverse toxicity is often observed at drug concentrations above 15 mcg/mL. The drug will be given by multiple IV bolus injections. e. Does your regimen provide the desired peak and trough concentrations? If not, how would you adjust to achieve the desired concentrations? (The regimen from part a: 138.16 mg every 8 hours, giving a steady-state peak of 10 mg/L and a trough of 1.576 mg/L.)",
+   "options": [
+    {
+     "t": "No: the trough is below 2 mg/L; shorten the interval from 8 to 6 hours",
+     "correct": true,
+     "why": "The trough, 1.6 mg/L, is below the 2 to 10 mcg/mL window, so the drug is sub-therapeutic for part of each interval. A 6-hour interval gives a trough of 2.5 mg/L."
+    },
+    {
+     "t": "Yes: both the peak and the trough stay below the 15 mcg/mL toxic level",
+     "why": "This reads the 15 mcg/mL toxicity threshold as the test of the regimen. The test is the 2 to 10 mcg/mL window, and a trough of 1.6 mg/L is below its lower limit."
+    },
+    {
+     "t": "No: the peak is too high; lower the dose and keep the 8-hour interval",
+     "why": "Choosing this misreads the peak as the problem. The peak, 10 mg/L, was assigned as the upper limit of the window, so it is not too high. Lowering the dose scales peak and trough down together, moving the trough further below 2 mg/L."
+    },
+    {
+     "t": "No: the trough is too low; raise the dose and keep the 8-hour interval",
+     "why": "This reads the low trough as a dose problem instead of an interval problem. With τ fixed at 8 hours the trough is always 0.158 of the peak, so a trough of 2 mg/L would need a peak of 12.7 mg/L, above the 10 mcg/mL upper limit."
+    }
+   ],
+   "teach": [
+    {
+     "h": "Checking a regimen against a therapeutic window",
+     "list": [
+      "The 15 mcg/mL level is the minimum toxic concentration (MTC), a separate ceiling; the test of a regimen is the therapeutic window, 2 to 10 mcg/mL here.",
+      "Her key chose the interval, then recomputed the dose for 6 hours: 123 mg every 6 hours."
+     ]
+    }
+   ],
+   "cite": "Multiple-IV-Bolus-Practice-2---Solutions.pdf, part e",
+   "steps": [
+    {
+     "k": "setup",
+     "t": "k = {{frac:0.693|3 hr}} = 0.231 hr⁻¹; window 2 to 10 mcg/mL = 2 to 10 mg/L; regimen: Cmax∞ = 10 mg/L, Cmin∞ = 1.576 mg/L",
+     "why": "mcg/mL and mg/L are the same size, so the window is 2 to 10 mg/L: the steady-state peak is judged against 10 and the trough against 2."
+    },
+    {
+     "k": "setup",
+     "t": "Compare: peak 10 mg/L is at the upper limit, 10; trough 1.576 mg/L is below the lower limit, 2. The trough fails",
+     "why": "The peak was assigned the top of the window, so it is inside. The trough is below 2 mg/L, so the antibiotic is sub-therapeutic at the end of each 8-hour interval."
+    },
+    {
+     "k": "algebra",
+     "t": "Trough fraction at τ = 8 hr: {{frac:Cmin∞|Cmax∞}} = e^(−(0.231)(8)) = e^(−1.848) = 0.1576; a trough of 2 mg/L would need a peak of {{frac:2 mg/L|0.1576}} = 12.69 mg/L, above 10",
+     "why": "With the interval fixed, the trough is always 0.1576 of the peak, whatever the dose, so lifting the trough to 2 mg/L lifts the peak to 12.69 mg/L, outside the window."
+    },
+    {
+     "k": "algebra",
+     "t": "{{frac:10 mg/L|2 mg/L}} = 5; time for the peak to fall to the floor: t = {{frac:ln 5|k}} = {{frac:1.609|0.231 hr⁻¹}} = 6.97 hr, so τ must be under 7 hr; try τ = 6 hr",
+     "why": "Starting at the 10 mg/L peak, the level reaches the 2 mg/L floor after 6.97 hours, so an interval under that keeps the trough inside. Six hours is the practical interval just under it."
+    },
+    {
+     "k": "algebra",
+     "t": "Cmin∞ at τ = 6 hr: (10 mg/L) e^(−(0.231)(6)) = (10 mg/L) e^(−1.386) = (10 mg/L)(0.25) = 2.5 mg/L, inside 2 to 10",
+     "why": "Six hours is two half-lives of 3 hours, so a quarter of the peak remains at the trough: 2.5 mg/L, above the 2 mg/L floor."
+    },
+    {
+     "k": "setup",
+     "t": "Decision: no, the 8-hour trough of 1.576 mg/L is below 2 mg/L; shorten the interval from 8 to 6 hours, which gives a trough of 2.5 mg/L",
+     "why": "The trough-to-peak ratio is set by the interval alone, so the correction is a shorter interval, not a larger dose."
+    }
+   ],
+   "givens": [
+    [
+     "t½",
+     "3 hours",
+     "gives k = {{frac:0.693|3}} = 0.231 hr⁻¹, in e^(−kτ)"
+    ],
+    [
+     "VD",
+     "20% of the body weight",
+     "not needed: the peak and trough are given"
+    ],
+    [
+     "window",
+     "2 to 10 mcg/mL",
+     "the trough against 2, the peak against 10"
+    ],
+    [
+     "toxic above",
+     "15 mcg/mL",
+     "not needed: the window, not toxicity, is the test"
+    ],
+    [
+     "D0",
+     "138.16 mg",
+     "not needed: already inside the given peak and trough"
+    ],
+    [
+     "τ",
+     "every 8 hours",
+     "the exponent kτ = 0.231 × 8; the interval that is changed"
+    ],
+    [
+     "Cmax∞",
+     "10 mg/L",
+     "at the upper limit; the trough is 0.1576 of it"
+    ],
+    [
+     "Cmin∞",
+     "1.576 mg/L",
+     "below the 2 mg/L floor: the failing number"
+    ]
+   ],
+   "check": {
+    "t": "The 15 mcg/mL toxic level is not the test; the window is. The dose scales peak and trough together, so at 8 hours a trough of 2 needs a peak of 12.69, over 10; only a shorter interval moves the trough up alone, and 6 hours gives 2.5 mg/L."
+   }
+  }
+ },
+ {
+  "reason": "core test.js: its cite names no lecture deck, kit PR #30 C3",
+  "question": {
+   "id": "ws6-i3-2c",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 2,
+   "module": 6,
+   "lecture": "L09",
+   "topic": "multoral",
+   "sub": "oparam",
+   "concept": "clearance-constant-with-dose",
+   "skill": "apply",
+   "source": "slide",
+   "stem": "2. A patient is receiving his antihypertensive medication as 500 mg every 8 hours in the form of an oral capsule. The bioavailability of the drug from this capsule is 80% and the total body clearance in this patient is 2.5 L/hr. c. What is the ClT of the drug in this patient while taking the 1000 mg orally every 8 hours?",
+   "options": [
+    {
+     "t": "2.5 L/hr, unchanged",
+     "correct": true,
+     "why": "Total body clearance, the volume of plasma cleared of drug per hour, belongs to the patient and the drug, not the dose. Doubling the dose doubles the rate of elimination, ClT × Cp, because Cp doubles; ClT stays 2.5 L/hr."
+    },
+    {
+     "t": "5 L/hr, twice the clearance",
+     "why": "This reads clearance as a quantity that scales with the dose, which it does not. What doubles is the rate of elimination, ClT × Cp; the clearance stays 2.5 L/hr."
+    },
+    {
+     "t": "1.25 L/hr, half the clearance",
+     "why": "This reads a higher concentration as a slower-clearing patient. Clearance is the elimination rate over the concentration, and both double together, so the ratio stays 2.5 L/hr."
+    },
+    {
+     "t": "2.0 L/hr, the clearance times F",
+     "why": "Multiplying clearance by the bioavailability mixes two different quantities. F is the fraction of the oral dose reaching the circulation; clearance is how fast the circulation is cleared. F enters Cavg∞ = {{frac:FD0|ClT τ}}, not ClT."
+    }
+   ],
+   "teach": [
+    {
+     "h": "Clearance does not change with the dose",
+     "list": [
+      "Clearance is constant because elimination is first order: Cl = {{frac:rate of elimination|Cp}} is the proportionality factor (Module 4 slide \"Clearance\").",
+      "It would change only if elimination saturated, which is nonlinear pharmacokinetics.",
+      "Cavg∞ = {{frac:FD0|ClT τ}} is therefore proportional to the dose: twice the dose, twice the average."
+     ]
+    }
+   ],
+   "cite": "Multiple-IV-Infusion-and-Multiple-Oral-Solution-3.pdf, problem 2, part c",
+   "steps": [
+    {
+     "k": "setup",
+     "t": "ClT = {{frac:rate of elimination|Cp}}; at steady state the rate of elimination equals the rate in, {{frac:F D0|τ}}",
+     "why": "Clearance is the elimination rate over the concentration. At steady state the body eliminates what is absorbed in each interval, so the rate of elimination is the absorbed dose over the interval."
+    },
+    {
+     "k": "algebra",
+     "t": "At 500 mg: rate in = {{frac:(0.8)(500 mg)|8 hr}} = 50 mg/hr; Cavg∞ = {{frac:(0.8)(500 mg)|(2.5 L/hr)(8 hr)}} = 20 mg/L; ClT = {{frac:50 mg/hr|20 mg/L}} = 2.5 L/hr",
+     "why": "At 500 mg the rate in is 50 mg/hr and the average concentration, from part a, is 20 mg/L; their ratio returns the given clearance, 2.5 L/hr."
+    },
+    {
+     "k": "algebra",
+     "t": "At 1000 mg: rate in = {{frac:(0.8)(1000 mg)|8 hr}} = 100 mg/hr; Cavg∞ = {{frac:(0.8)(1000 mg)|(2.5 L/hr)(8 hr)}} = 40 mg/L; ClT = {{frac:100 mg/hr|40 mg/L}} = 2.5 L/hr",
+     "why": "Doubling the dose doubles the rate in, 50 to 100 mg/hr, and the average, 20 to 40 mg/L, so their ratio, the clearance, stays 2.5 L/hr."
+    },
+    {
+     "k": "setup",
+     "t": "Compare: ClT = 2.5 L/hr at 500 mg and 2.5 L/hr at 1000 mg; unchanged",
+     "why": "The dose moved the elimination rate and the concentration together and left their ratio unchanged: 2.5 L/hr, which is why Cavg∞ scaled from 20 to 40 mg/L."
+    }
+   ],
+   "givens": [
+    [
+     "D0",
+     "500 mg",
+     "the part a dose: rate in 50 mg/hr, Cavg∞ 20 mg/L"
+    ],
+    [
+     "τ",
+     "every 8 hours",
+     "the denominator of the rate in and of Cavg∞"
+    ],
+    [
+     "route",
+     "oral capsule",
+     "F applies to the dose"
+    ],
+    [
+     "F",
+     "80%",
+     "F = 0.8 scales each dose"
+    ],
+    [
+     "ClT",
+     "2.5 L/hr",
+     "the patient value; the ratio returns it at both doses"
+    ],
+    [
+     "D0 new",
+     "1000 mg",
+     "rate in 100 mg/hr, Cavg∞ 40 mg/L: both doubled"
+    ]
+   ],
+   "check": {
+    "t": "Clearance is a ratio of elimination rate to concentration, and the dose doubles both, 50 to 100 mg/hr and 20 to 40 mg/L, so the ratio cannot move: 2.5 L/hr at both doses. Multiplying by F or by 2 confuses clearance with the rate or the input."
+   }
+  }
+ },
+ {
+  "reason": "core test.js: its cite names no lecture deck, kit PR #30 C3",
+  "question": {
+   "id": "hw1-1a",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 1,
+   "module": 1,
+   "lecture": "L01",
+   "topic": "orders",
+   "sub": "decide",
+   "concept": "order-from-table",
+   "skill": "order",
+   "source": "slide",
+   "stem": "1. A pharmacist dissolved 300 milligrams of a new antibiotic drug into a volume of purified water and placed the solution in a refrigerator (4°C). At various time intervals, the pharmacist removed a small aliquot from the solution and measured the amount of drug contained in each aliquot. The following data were obtained.\n\nTime (hr) | Drug (mcg/mL)\n0.5 | 226.6\n1 | 213.9\n2 | 190.7\n4 | 151.5\n8 | 95.6\n12 | 60.4\n16 | 38.1\n\na. Is the decomposition of this antibiotic a first-order or a zero-order process?",
+   "options": [
+    {
+     "t": "First order",
+     "correct": true,
+     "why": "Over each 4-hour step from 4 to 16 hr the concentration falls by the same fraction (1.58, 1.58, 1.59), so ln C against time is a straight line. A constant fraction lost per equal time is first order, because the rate is proportional to the amount remaining."
+    },
+    {
+     "t": "Zero order",
+     "why": "Picking this reads a falling concentration as a constant loss per hour. Zero order needs equal drops in equal times; from 4 to 8 hr the concentration falls 55.9 mcg/mL but from 12 to 16 hr only 22.3 mcg/mL. The drops shrink while the ratios stay constant, which is first order."
+    },
+    {
+     "t": "Neither: it needs a third plot",
+     "why": "This answer treats the two orders as needing a third test to separate them. Two plots settle it: C against t curves downward, because the drop per step shrinks, and ln C against t is a straight line, because the fraction lost per step is constant; that straight line is the first-order signature."
+    }
+   ],
+   "teach": [
+    {
+     "h": "Deciding the order from a table",
+     "list": [
+      "Zero order: the same amount is lost in each equal time step, so C against t is a straight line; k0 is an amount per unit time.",
+      "First order: the same fraction is lost in each equal time step, so ln C against t is a straight line; k is in reciprocal time.",
+      "A first-order table also shows a constant half-life; a zero-order half-life, {{frac:A0|2k0}}, depends on the starting amount.",
+      "Her data-table stems do not state the order; her Homework 1 key reads it from the plot."
+     ]
+    }
+   ],
+   "cite": "Homework-1.pdf, problem 1a (her wording; numbers changed)",
+   "note": "Her homework wording with different numbers, so this is not the graded answer."
+  }
+ },
+ {
+  "reason": "core test.js: its cite names no lecture deck, kit PR #30 C3",
+  "question": {
+   "id": "hwo1-1a",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 1,
+   "module": 1,
+   "lecture": "L01",
+   "topic": "orders",
+   "sub": "decide",
+   "concept": "order-from-table",
+   "skill": "order",
+   "source": "slide",
+   "stem": "1. A pharmacist dissolved 200 milligrams of a new antibiotic drug into a volume of purified water and placed the solution in a refrigerator (4°C). At various time intervals, the pharmacist removed a small aliquot from the solution and measured the amount of drug contained in each aliquot. The following data were obtained.\n\nTime (hr) | Drug (mcg/mL)\n0.5 | 233.3\n1 | 217.6\n2 | 189.5\n4 | 143.6\n8 | 82.5\n12 | 47.4\n16 | 27.2\n\na. Is the decomposition of this antibiotic a first-order or a zero-order process?",
+   "options": [
+    {
+     "t": "First order",
+     "correct": true,
+     "why": "Over each 4-hour step from 4 to 16 hr the concentration falls by the same fraction (1.74, 1.74, 1.74), so ln C against time is a straight line. A constant fraction lost per equal time is first order, because the rate is proportional to the amount remaining."
+    },
+    {
+     "t": "Zero order",
+     "why": "Picking this reads a falling concentration as a constant loss per hour. Zero order needs equal drops in equal times; from 4 to 8 hr the concentration falls 61.1 mcg/mL but from 12 to 16 hr only 20.2 mcg/mL. The drops shrink while the ratios stay constant, which is first order."
+    },
+    {
+     "t": "Neither: it needs a third plot",
+     "why": "This answer treats the two orders as needing a third test to separate them. Two plots settle it: C against t curves downward, because the drop per step shrinks, and ln C against t is a straight line, because the fraction lost per step is constant; that straight line is the first-order signature."
+    }
+   ],
+   "teach": [
+    {
+     "h": "Deciding the order from a table",
+     "list": [
+      "Zero order: the same amount is lost in each equal time step, so C against t is a straight line; k0 is an amount per unit time.",
+      "First order: the same fraction is lost in each equal time step, so ln C against t is a straight line; k is in reciprocal time.",
+      "A first-order table also shows a constant half-life; a zero-order half-life, {{frac:A0|2k0}}, depends on the starting amount.",
+      "Her data-table stems do not state the order; her Homework 1 key reads it from the plot."
+     ]
+    }
+   ],
+   "cite": "Homework-1.pdf, problem 1a (her wording and numbers)",
+   "note": "Her homework with her own numbers; her key gives this answer.",
+   "dupOf": "hw1-1a"
+  }
+ },
+ {
+  "reason": "core test.js: its cite names no lecture deck, kit PR #30 C3; core browser_test.js reads \"below\" in its stem as a promised figure (a table written in the stem, or \"well below\" / \"term below\"), new: proposed C11",
+  "question": {
+   "id": "hw1-2a",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 1,
+   "module": 1,
+   "lecture": "L01",
+   "topic": "orders",
+   "sub": "decide",
+   "concept": "order-from-table",
+   "skill": "order",
+   "source": "slide",
+   "stem": "2. Below is the decrease in the amount of drug as a function of time.\n\nTime (hr) | Drug A (mg)\n0.5 | 508\n1 | 496\n2 | 472\n3 | 448\n6 | 376\n9 | 304\n12 | 232\n16 | 136\n\na. Does the decrease in the amount of drug A appear to be a zero-order or a first-order process?",
+   "options": [
+    {
+     "t": "Zero order",
+     "correct": true,
+     "why": "Each 3-hour step from 3 to 12 hr loses the same 72 mg, so the amount against time is a straight line on ordinary axes. A constant amount lost per equal time is zero order, because the rate does not depend on how much drug is left."
+    },
+    {
+     "t": "First order",
+     "why": "Picking this reads any decline as first order. First order loses the same fraction per equal step, so successive ratios would be constant; from 3 to 6 hr the ratio is 1.191, from 9 to 12 hr 1.310. The fraction lost grows while the amount lost, 72 mg per 3 hours, does not: zero order."
+    },
+    {
+     "t": "Cannot tell without logarithms",
+     "why": "This answer treats the logarithmic plot as the only test of order. Equal drops in equal times, 72 mg every 3 hours from 3 to 12 hr, already show that amount against time is a straight line on ordinary axes, the zero-order signature; a log plot would curve and add nothing."
+    }
+   ],
+   "teach": [
+    {
+     "h": "Deciding the order from a table",
+     "list": [
+      "Zero order: the same amount is lost in each equal time step, so C against t is a straight line; k0 is an amount per unit time.",
+      "First order: the same fraction is lost in each equal time step, so ln C against t is a straight line; k is in reciprocal time.",
+      "A first-order table also shows a constant half-life; a zero-order half-life, {{frac:A0|2k0}}, depends on the starting amount.",
+      "Her data-table stems do not state the order; her Homework 1 key reads it from the plot."
+     ]
+    }
+   ],
+   "cite": "Homework-1.pdf, problem 2a (her wording; numbers changed)",
+   "note": "Her homework wording with different numbers, so this is not the graded answer."
+  }
+ },
+ {
+  "reason": "core test.js: its cite names no lecture deck, kit PR #30 C3; core browser_test.js reads \"below\" in its stem as a promised figure (a table written in the stem, or \"well below\" / \"term below\"), new: proposed C11",
+  "question": {
+   "id": "hwo1-2a",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 1,
+   "module": 1,
+   "lecture": "L01",
+   "topic": "orders",
+   "sub": "decide",
+   "concept": "order-from-table",
+   "skill": "order",
+   "source": "slide",
+   "stem": "2. Below is the decrease in the amount of drug as a function of time.\n\nTime (hr) | Drug A (mg)\n0.5 | 489\n1 | 478\n2 | 455\n3 | 433\n6 | 365\n9 | 298\n12 | 230\n16 | 140\n\na. Does the decrease in the amount of drug A appear to be a zero-order or a first-order process?",
+   "options": [
+    {
+     "t": "Zero order",
+     "correct": true,
+     "why": "Each 3-hour step from 3 to 12 hr loses about the same 67–68 mg, so the amount against time is a straight line on ordinary axes. A constant amount lost per equal time is zero order, because the rate does not depend on how much drug is left."
+    },
+    {
+     "t": "First order",
+     "why": "Picking this reads any decline as first order. First order loses the same fraction per equal step, so successive ratios would be constant; from 3 to 6 hr the ratio is 1.186, from 9 to 12 hr 1.296. The fraction lost grows while the amount lost, 67–68 mg per 3 hours, barely changes: zero order."
+    },
+    {
+     "t": "Cannot tell without logarithms",
+     "why": "This answer treats the logarithmic plot as the only test of order. Nearly equal drops in equal times, 67–68 mg every 3 hours from 3 to 12 hr, already show that amount against time is a straight line on ordinary axes, the zero-order signature; a log plot would curve and add nothing."
+    }
+   ],
+   "teach": [
+    {
+     "h": "Deciding the order from a table",
+     "list": [
+      "Zero order: the same amount is lost in each equal time step, so C against t is a straight line; k0 is an amount per unit time.",
+      "First order: the same fraction is lost in each equal time step, so ln C against t is a straight line; k is in reciprocal time.",
+      "A first-order table also shows a constant half-life; a zero-order half-life, {{frac:A0|2k0}}, depends on the starting amount.",
+      "Her data-table stems do not state the order; her Homework 1 key reads it from the plot."
+     ]
+    }
+   ],
+   "cite": "Homework-1.pdf, problem 2a (her wording and numbers)",
+   "note": "Her homework with her own numbers; her key gives this answer.",
+   "dupOf": "hw1-2a"
+  }
+ },
+ {
+  "reason": "core test.js: its cite names no lecture deck, kit PR #30 C3",
+  "question": {
+   "id": "hw4-2e",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 2,
+   "module": 4,
+   "lecture": "L05",
+   "topic": "clearance",
+   "sub": "renalmech",
+   "concept": "mechanism-from-clr",
+   "skill": "apply",
+   "source": "slide",
+   "stem": "2. A drug with an elimination half-life of approximately 6 hours and an apparent volume of distribution of 0.3 L/kg was administered to a male volunteer (70 kg) by a bolus intravenous injection at a dose level of 15 mg/kg. Urine samples were collected and analyzed for 48 hours following the dose. 735 mg of drug was recovered in the urine. e. What is the probable mechanism for renal clearance of this drug?",
+   "options": [
+    {
+     "t": "Filtration with tubular reabsorption",
+     "correct": true,
+     "why": "Renal clearance is 28.3 mL/min, below the GFR, the glomerular filtration rate of about 120 mL/min. Filtration alone would clear plasma at that rate, so some filtered drug moved back into the blood: filtration with partial reabsorption."
+    },
+    {
+     "t": "Filtration with active secretion",
+     "why": "Picking this reads a mostly renal drug (fe = 0.70) as one the kidney secretes. Secretion would push renal clearance above the GFR of about 120 mL/min; here ClR is 28.3 mL/min, far below it."
+    },
+    {
+     "t": "Filtration only",
+     "why": "This answer takes filtration as the whole mechanism although renal clearance is below GFR. Filtration alone clears at about 120 mL/min; 28.3 mL/min is far less, so most filtered drug is reabsorbed."
+    },
+    {
+     "t": "Active secretion only",
+     "why": "Picking this treats secretion as a route that can replace filtration. Filtration is always present, and secretion added to it would raise renal clearance above the GFR; 28.3 mL/min is below it, which only reabsorption produces."
+    }
+   ],
+   "teach": [
+    {
+     "h": "Clearance after an IV bolus",
+     "list": [
+      "Compare ClR in mL/min with the GFR, the glomerular filtration rate, about 120 mL/min in a healthy adult: equal means filtration only, above means active secretion, below means reabsorption.",
+      "fe says how much of the elimination is renal, not how; only ClR set against the GFR names the mechanism.",
+      "Her slides \"Renal Excretion\", \"Active Secretion\" and \"Tubular Reabsorption\" state the three cases."
+     ]
+    }
+   ],
+   "cite": "Homework-4.pdf, problem 2e (her wording; numbers changed)",
+   "note": "Her homework wording with different numbers, so this is not the graded answer.",
+   "steps": [
+    {
+     "k": "setup",
+     "t": "D0 = (15 mg/kg)(70 kg) = 1050 mg; fe = {{frac:Du|D0}} = {{frac:735 mg|1050 mg}} = 0.70",
+     "why": "fe is the fraction of the dose reaching the urine unchanged. It says how much of the elimination is renal, 70%, not how the kidney does it."
+    },
+    {
+     "k": "setup",
+     "t": "k = {{frac:0.693|6}} = 0.1155 hr⁻¹; VD = (0.3 L/kg)(70 kg) = 21 L; ClT = kVD = (0.1155)(21) = 2.4255 L/hr",
+     "why": "The mechanism is read from renal clearance, a share of total clearance, so total clearance comes first: k from the half-life and the volume scaled to the patient."
+    },
+    {
+     "k": "algebra",
+     "t": "ClR = fe × ClT = 0.70 × 2.4255 L/hr = 1.698 L/hr",
+     "why": "Renal clearance is the renal fraction of total clearance: fe now scales a clearance, which has units and a physiological reference to compare against."
+    },
+    {
+     "k": "unit",
+     "t": "ClR = 1.698 L/hr × {{frac:1000 mL|1 L}} × {{frac:1 hr|60 min}} = 28.3 mL/min",
+     "why": "The glomerular filtration rate is quoted in mL/min, so renal clearance is put in the same unit before the two are compared."
+    },
+    {
+     "k": "setup",
+     "t": "Compare: ClR = 28.3 mL/min against GFR of about 120 mL/min; 28.3 is below 120",
+     "why": "A renal clearance below the GFR means some filtered drug is taken back into the blood: filtration with partial reabsorption."
+    }
+   ],
+   "givens": [
+    [
+     "t½",
+     "approximately 6 hours",
+     "gives k = {{frac:0.693|6}} = 0.1155 hr⁻¹, on the way to ClT"
+    ],
+    [
+     "VD",
+     "0.3 L/kg",
+     "scaled to 21 L, inside ClT = kVD"
+    ],
+    [
+     "weight",
+     "70 kg",
+     "scales the dose and the volume"
+    ],
+    [
+     "D0",
+     "15 mg/kg",
+     "scaled to 1050 mg, the denominator of fe"
+    ],
+    [
+     "collection",
+     "48 hours",
+     "not needed for the number: long enough to collect all unchanged drug"
+    ],
+    [
+     "Du",
+     "735 mg",
+     "the numerator of fe = 0.70"
+    ]
+   ],
+   "check": {
+    "t": "fe = 0.70 alone cannot name the mechanism: a drug with the same fe but a much shorter half-life would have a renal clearance above GFR and be secreted. Only ClR in mL/min set against about 120 mL/min decides, and 28.3 is well below it."
+   }
+  }
+ },
+ {
+  "reason": "core test.js: its cite names no lecture deck, kit PR #30 C3",
+  "question": {
+   "id": "hwo4-2e",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 2,
+   "module": 4,
+   "lecture": "L05",
+   "topic": "clearance",
+   "sub": "renalmech",
+   "concept": "mechanism-from-clr",
+   "skill": "apply",
+   "source": "slide",
+   "stem": "2. A drug with an elimination half-life of approximately 5 hours and an apparent volume of distribution of 0.25 L/kg was administered to a male volunteer (75 kg) by a bolus intravenous injection at a dose level of 20 mg/kg. e. What is the probable mechanism for renal clearance of this drug? (Part c: urine samples were collected and analyzed for 48 hours following the dose, and 1275 mg of drug was recovered in the urine.)",
+   "options": [
+    {
+     "t": "Filtration with tubular reabsorption",
+     "correct": true,
+     "why": "Renal clearance is 36.8 mL/min, below the GFR, the glomerular filtration rate of about 120 mL/min. Filtration alone would clear plasma at that rate, so some filtered drug moved back into the blood: filtration with partial reabsorption."
+    },
+    {
+     "t": "Filtration with active secretion",
+     "why": "Picking this reads a mostly renal drug (fe = 0.85) as one the kidney secretes. Secretion would push renal clearance above the GFR of about 120 mL/min; here ClR is 36.8 mL/min, far below it."
+    },
+    {
+     "t": "Filtration only",
+     "why": "This answer takes filtration as the whole mechanism although renal clearance is below GFR. Filtration alone clears at about 120 mL/min; 36.8 mL/min is far less, so most filtered drug is reabsorbed."
+    },
+    {
+     "t": "Active secretion only",
+     "why": "Picking this treats secretion as a route that can replace filtration. Filtration is always present, and secretion added to it would raise renal clearance above the GFR; 36.8 mL/min is below it, which only reabsorption produces."
+    }
+   ],
+   "teach": [
+    {
+     "h": "Clearance after an IV bolus",
+     "list": [
+      "Compare ClR in mL/min with the GFR, the glomerular filtration rate, about 120 mL/min in a healthy adult: equal means filtration only, above means active secretion, below means reabsorption.",
+      "fe says how much of the elimination is renal, not how; only ClR set against the GFR names the mechanism.",
+      "Her slides \"Renal Excretion\", \"Active Secretion\" and \"Tubular Reabsorption\" state the three cases."
+     ]
+    }
+   ],
+   "cite": "Homework-4.pdf, problem 2e (her wording and numbers)",
+   "note": "Her homework with her own numbers. She gave no key for it, so this answer is computed from her stem.",
+   "dupOf": "hw4-2e",
+   "steps": [
+    {
+     "k": "setup",
+     "t": "D0 = (20 mg/kg)(75 kg) = 1500 mg; fe = {{frac:Du|D0}} = {{frac:1275 mg|1500 mg}} = 0.85",
+     "why": "fe is the fraction of the dose reaching the urine unchanged. It says how much of the elimination is renal, 85%, not how the kidney does it."
+    },
+    {
+     "k": "setup",
+     "t": "k = {{frac:0.693|5}} = 0.1386 hr⁻¹; VD = (0.25 L/kg)(75 kg) = 18.75 L; ClT = kVD = (0.1386)(18.75) = 2.5987 L/hr",
+     "why": "The mechanism is read from renal clearance, a share of total clearance, so total clearance comes first: k from the half-life and the volume scaled to the patient."
+    },
+    {
+     "k": "algebra",
+     "t": "ClR = fe × ClT = 0.85 × 2.5987 L/hr = 2.209 L/hr",
+     "why": "Renal clearance is the renal fraction of total clearance: fe now scales a clearance, which has units and a physiological reference to compare against."
+    },
+    {
+     "k": "unit",
+     "t": "ClR = 2.209 L/hr × {{frac:1000 mL|1 L}} × {{frac:1 hr|60 min}} = 36.8 mL/min",
+     "why": "The glomerular filtration rate is quoted in mL/min, so renal clearance is put in the same unit before the two are compared."
+    },
+    {
+     "k": "setup",
+     "t": "Compare: ClR = 36.8 mL/min against GFR of about 120 mL/min; 36.8 is below 120",
+     "why": "A renal clearance below the GFR means some filtered drug is taken back into the blood: filtration with partial reabsorption."
+    }
+   ],
+   "givens": [
+    [
+     "t½",
+     "approximately 5 hours",
+     "gives k = {{frac:0.693|5}} = 0.1386 hr⁻¹, on the way to ClT"
+    ],
+    [
+     "VD",
+     "0.25 L/kg",
+     "scaled to 18.75 L, inside ClT = kVD"
+    ],
+    [
+     "weight",
+     "75 kg",
+     "scales the dose and the volume"
+    ],
+    [
+     "D0",
+     "20 mg/kg",
+     "scaled to 1500 mg, the denominator of fe"
+    ],
+    [
+     "collection",
+     "48 hours",
+     "not needed for the number: long enough to collect all unchanged drug"
+    ],
+    [
+     "Du",
+     "1275 mg",
+     "the numerator of fe = 0.85"
+    ]
+   ],
+   "check": {
+    "t": "fe = 0.85 alone cannot name the mechanism: a drug with the same fe but a much shorter half-life would have a renal clearance above GFR and be secreted. Only ClR in mL/min set against about 120 mL/min decides, and 36.8 is well below it."
+   }
+  }
+ },
+ {
+  "reason": "core test.js: its cite names no lecture deck, kit PR #30 C3",
+  "question": {
+   "id": "fr-1",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 1,
+   "module": 1,
+   "lecture": "L01",
+   "topic": "orders",
+   "sub": "first",
+   "concept": "first-order-properties",
+   "skill": "tell",
+   "source": "both",
+   "stem": "Which of the following is characteristic of first-order processes?",
+   "options": [
+    {
+     "t": "a constant half-life",
+     "correct": true,
+     "why": "For a first-order process t½ = {{frac:0.693|k}}, and k is a constant, so the half-life does not depend on how much drug is present. The time to go from 100 to 50 is the same as from 10 to 5."
+    },
+    {
+     "t": "a constant rate of elimination",
+     "why": "Picking this attaches the zero-order property to first order. In a first-order process the rate is proportional to the amount remaining, dC/dt = −kC, so the rate keeps changing as the concentration falls. A constant rate is zero order."
+    },
+    {
+     "t": "dC/dt = -k",
+     "why": "Picking this takes the zero-order rate law for the first-order one. dC/dt = −k says the rate does not depend on concentration. The first-order law carries the concentration: dC/dt = −kC."
+    },
+    {
+     "t": "units of k of (concentration or amount)/time",
+     "why": "Picking this gives k the zero-order units. A zero-order k is an amount or concentration lost per unit time; a first-order k is a fraction per unit time, so its units are reciprocal time, such as hr⁻¹."
+    }
+   ],
+   "teach": [
+    {
+     "h": "Zero order and first order",
+     "table": {
+      "head": [
+       "",
+       "Zero order",
+       "First order"
+      ],
+      "rows": [
+       [
+        "Rate of the process",
+        "Constant: dC/dt = −k",
+        "Proportional to what is left: dC/dt = −kC"
+       ],
+       [
+        "Concentration against time",
+        "C = C0 − kt, a straight line on a linear axis",
+        "C = C0e^(−kt), a straight line only on a log axis"
+       ],
+       [
+        "Half-life",
+        "t½ = {{frac:C0|2k}}, changes with C0",
+        "t½ = {{frac:0.693|k}}, constant"
+       ],
+       [
+        "Units of k",
+        "Concentration or amount per time",
+        "Reciprocal time, such as hr⁻¹"
+       ]
+      ]
+     }
+    },
+    {
+     "h": "Reading k",
+     "list": [
+      "Any k is a rate constant. Written as kC, the process depends on the concentration present; k alone means it does not.",
+      "A subscript names the process k describes: metabolism, excretion, absorption.",
+      "On a graph, read the axis first: a straight line on an axis marked 1, 10, 100, 1000 is a log scale, so the process is first order."
+     ]
+    }
+   ],
+   "quote": "So the correct answer here. Was a constant half-life 0.693 over K gives us our half-life, right? Rate of elimination is constantly changing. DCDT is equal to minus KC. And appropriate units of k are reciprocal time.",
+   "audit": "PollEv on page 3; no count on the capture. Class response as she read it: most chose a constant half-life and a constant rate of elimination; some chose dC/dt = -k. Keyed a constant half-life (transcript 10-19).",
+   "cite": "Final-Exam-Review-10.19.pdf slide 3 (PollEv), with slides 4 \"Zero-Order Reactions\" and 5 \"First-Order Reactions\""
+  }
+ },
+ {
+  "reason": "core test.js: its cite names no lecture deck, kit PR #30 C3; core style_check.js stem rule flags it after kit PR #31, kit PR #30 C10 (remaining after #31)",
+  "question": {
+   "id": "fr-2",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 1,
+   "module": 2,
+   "lecture": "L02",
+   "topic": "bolus1",
+   "sub": "vd",
+   "concept": "vd-from-dose-c0",
+   "skill": "vddose",
+   "source": "both",
+   "stem": "400 mg of a drug was administered by IV bolus injection. The equation describing the drug in the body is given as Cp =(40 mg/L)e^(-0.9t). What is the apparent volume of distribution of this drug?",
+   "options": [
+    {
+     "t": "10 L",
+     "correct": true,
+     "why": "For an IV bolus Cp = C0e^(−kt), so the number in front of the exponential is C0, 40 mg/L. VD = {{frac:D0|C0}} = {{frac:400 mg|40 mg/L}} = 10 L."
+    },
+    {
+     "t": "20 L",
+     "why": "Picking this divides the dose by half the coefficient, as though C0 were 20 mg/L. The equation states C0 directly: the whole 40 mg/L in front of the exponential, which gives 10 L."
+    },
+    {
+     "t": "40 L",
+     "why": "Picking this reads the 40 in the equation as a volume. Its units are mg/L, a concentration; the volume is the dose divided by it, 400 mg over 40 mg/L."
+    },
+    {
+     "t": "50 L",
+     "why": "Picking this would need C0 of 8 mg/L, because 400 mg over 50 L is 8 mg/L, and no number in the equation is 8. The 0.9 is k, in hr⁻¹, and takes no part in the volume."
+    }
+   ],
+   "steps": [
+    {
+     "k": "setup",
+     "t": "Cp = C0e^(−kt), so C0 = 40 mg/L and k = 0.9 hr⁻¹",
+     "why": "The one-compartment IV bolus equation. At t = 0 the exponential is 1, so the coefficient is the concentration just after the dose."
+    },
+    {
+     "k": "algebra",
+     "t": "VD = {{frac:D0|C0}} = {{frac:400 mg|40 mg/L}} = 10 L",
+     "why": "The apparent volume relates the amount in the body to the plasma concentration, and just after a bolus the amount in the body is the whole 400 mg dose. mg divided by mg/L leaves L."
+    }
+   ],
+   "teach": [
+    {
+     "h": "What each parameter tells you",
+     "list": [
+      "k: a rate constant, the fraction of drug removed per unit time for a first-order process.",
+      "t½: a time, the time for half of what is present to be eliminated; during an IV infusion, the time to reach half of the steady-state concentration.",
+      "VD: the apparent volume of distribution, {{frac:amount in the body|Cp}}.",
+      "VD is apparent: it is the volume the drug would need at the plasma concentration everywhere, not a real body space.",
+      "Cp: the concentration of drug in the plasma. Cb is blood and Cs is serum; most of the time the concentration is plasma."
+     ]
+    }
+   ],
+   "quote": "And most of you guys thought 10 L. That is the correct answer. So we're taking this 400 mg and dividing it by the 40 mg per liter, OK?",
+   "audit": "PollEv on page 7, locked, no count on the capture. Printed e^-0.9t; written e^(-0.9t) so the exponent sets without the full stop. Class response and key from transcript 10-19: most chose 10 L, keyed 10 L. Recompute 400/40 = 10.",
+   "cite": "Final-Exam-Review-10.19.pdf slide 7 (PollEv)"
+  }
+ },
+ {
+  "reason": "core test.js: its cite names no lecture deck, kit PR #30 C3",
+  "question": {
+   "id": "fr-7",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 1,
+   "module": 3,
+   "lecture": "L04",
+   "dupOf": "fig-inf-1",
+   "topic": "infusion",
+   "sub": "basics",
+   "concept": "shape-of-infusion-curve",
+   "skill": "read",
+   "source": "both",
+   "stem": "Which type of drug input is depicted by this curve?",
+   "img": "inf_css",
+   "options": [
+    {
+     "t": "instantaneous input",
+     "why": "Picking this reads the curve as a bolus. Instantaneous input puts the whole dose in at time zero, so the concentration starts at its highest and only falls; this curve starts at zero and rises."
+    },
+    {
+     "t": "first-order input",
+     "why": "Picking this reads the rise as absorption from an oral dose. First-order input slows as the absorption site empties, so the curve peaks and then falls; this curve never turns down, because drug keeps arriving at the same rate."
+    },
+    {
+     "t": "zero-order input",
+     "correct": true,
+     "why": "Zero order means a constant rate of input: an IV infusion. With first-order output, the level rises until the rate out equals the rate in and then holds at the steady-state level."
+    }
+   ],
+   "teach": [
+    {
+     "h": "Input and output for each route",
+     "list": [
+      "Instantaneous input, first-order output: IV bolus.",
+      "First-order input, first-order output: a conventional oral dose.",
+      "Zero-order input, first-order output: IV infusion.",
+      "Most drugs are eliminated by first order, so the route changes only the input."
+     ]
+    }
+   ],
+   "quote": "So, I was looking for zero order. What does zero order mean? Same Same rate. Non-changing. What, what's another word for non-changing? Constant, right? So a constant rate of input.",
+   "audit": "PollEv on page 15, 14 responses on the capture, no distribution shown. Her figure is a textbook plasma-level curve rising to a \"Steady-state level\"; the drill shows its own drawn infusion curve of the same shape (inf_css). Keyed zero-order input (transcript 10-19).",
+   "cite": "Final-Exam-Review-10.19.pdf slide 15 (PollEv)"
+  }
+ },
+ {
+  "reason": "core browser_test.js and nullexam_test.js read the word \"undefined\" in its text as a page fault, kit PR #30 C9",
+  "question": {
+   "id": "m1-int-10",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 1,
+   "module": 1,
+   "lecture": "L01",
+   "topic": "intro",
+   "sub": "curve",
+   "concept": "curve-landmarks",
+   "skill": "read",
+   "source": "transcript",
+   "stem": "On a plasma concentration-versus-time curve after a single oral dose, what does tmax denote?",
+   "options": [
+    {
+     "t": "The time at which the peak concentration occurs",
+     "correct": true,
+     "why": "The peak of the curve is Cmax and the time at which the curve reaches it is tmax, so the two are read off the same point on different axes. Before that point the concentration is still climbing; after it the concentration falls. Reading a curve therefore starts with locating that single turning point."
+    },
+    {
+     "t": "The time at which the concentration first exceeds the minimum effective concentration",
+     "correct": false,
+     "why": "That crossing is the onset of the desired response and it happens on the rising part of the curve, earlier than the peak. It is a landmark on the curve but it is not tmax. This answer attaches the time label to the wrong horizontal line."
+    },
+    {
+     "t": "The highest concentration the drug reaches",
+     "correct": false,
+     "why": "The highest concentration is Cmax, which is a concentration and carries concentration units. The subscript is shared between the two quantities, and taking the subscript as the whole meaning swaps a time for a concentration. Dr. Mosley is explicit that a quantity is identified by its units before anything else."
+    },
+    {
+     "t": "The time at which the concentration exceeds the minimum toxic concentration",
+     "correct": false,
+     "why": "A curve kept inside the intended range never crosses the minimum toxic concentration at all, so this would be undefined for most doses. Even where a curve does cross it, that crossing is not the peak. This confuses a safety threshold with the shape of the curve."
+    }
+   ],
+   "audit": "Printed slide 9 shows the curve with no labels; Cmax, tmax and the two threshold lines were supplied in the lecture. An exam written from these lectures would key the time of the peak.",
+   "teach": [
+    {
+     "h": "The idea",
+     "list": [
+      "Cmax is the highest concentration reached; tmax is the time at which it occurs.",
+      "Cmax and tmax are set by how fast the drug is absorbed and eliminated.",
+      "Cmax also rises with the dose, because the dose sits in the numerator of the concentration equation.",
+      "tmax does not change with the dose: tmax = {{frac:ln(ka ÷ k)|ka − k}} contains only the absorption rate constant ka and the elimination rate constant k.",
+      "The minimum effective and minimum toxic concentrations are horizontal lines that bracket the range the curve is meant to stay within."
+     ]
+    },
+    {
+     "h": "Where to read more",
+     "t": "Introduction.pdf, slide \"Concentration versus Time Curve\"."
+    }
+   ],
+   "teachImg": "slide_Introduction_p9",
+   "cite": "Introduction.pdf slide 9",
+   "quote": "our goal is. That we want to stay in between these two lines."
+  }
+ },
+ {
+  "reason": "core browser_test.js and nullexam_test.js read the word \"undefined\" in its text as a page fault, kit PR #30 C9; core style_check.js stem rule flags it after kit PR #31, kit PR #30 C10 (remaining after #31)",
+  "question": {
+   "id": "m5-c25",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 2,
+   "module": 5,
+   "lecture": "L06",
+   "topic": "oral",
+   "sub": "changes",
+   "concept": "rate-limiting-defn",
+   "skill": "tell",
+   "source": "slide",
+   "stem": "A drug is described as disposition rate limiting. What does that say about its two half-lives?",
+   "options": [
+    {
+     "t": "The absorption half-life is much the shorter of the two",
+     "correct": true,
+     "why": "Disposition rate limiting means the slow step is the drug's disposition, its elimination, rather than its arrival. For elimination to be the slow step, the absorption half-life must be the shorter, so ka is much larger than k. This is the ordinary situation for an oral product."
+    },
+    {
+     "t": "The absorption half-life is much longer than the elimination half-life",
+     "correct": false,
+     "why": "That is the definition of absorption rate limiting, the other of the two terms. The name tells you which process is the slow one, and the slow process is the one with the longer half-life. Swapping the two definitions is the whole risk in this pair."
+    },
+    {
+     "t": "The two half-lives are equal",
+     "correct": false,
+     "why": "Picking this avoids choosing between the two terms. Neither describes equal half-lives: disposition rate limiting means the absorption half-life is much the shorter, absorption rate limiting that it is much the longer. Equal constants would also leave the standard oral equation undefined, since ka − k in its denominator would be zero."
+    },
+    {
+     "t": "The elimination half-life cannot be determined from the absorption one",
+     "correct": false,
+     "why": "This reads a naming convention as a claim about what can be measured. The terms only say which process is slower. The elimination half-life is 0.693 divided by k in either case, and under disposition rate limiting it is the longer one and governs the tail of the curve."
+    }
+   ],
+   "teach": [
+    {
+     "h": "The idea",
+     "list": [
+      "Each term names the process that is rate limiting, meaning the slower one, for what is seen in the plasma; the longer half-life always belongs to it.",
+      "Disposition means everything that happens to a drug after it is absorbed, distribution and elimination together, so disposition rate limiting means elimination is the slow step.",
+      "Absorption rate limiting is the reverse.",
+      "Her slide \"Absorption Kinetics Terminology\" defines both terms by comparing the two half-lives."
+     ]
+    }
+   ],
+   "cite": "5---Pharmacokinetics-of-Oral-Absorption.pdf, slide \"Absorption Kinetics Terminology\"",
+   "quote": "Disposition Rate Limiting: absorption half-life is much shorter than elimination half-life"
+  }
+ },
+ {
+  "reason": "core browser_test.js and nullexam_test.js read the word \"undefined\" in its text as a page fault, kit PR #30 C9",
+  "question": {
+   "id": "fig-elim-2",
+   "skill": "order",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 2,
+   "module": 4,
+   "lecture": "L05",
+   "topic": "clearance",
+   "sub": "clcalc",
+   "concept": "order-from-rate-vs-conc-flat",
+   "source": "both",
+   "stem": "For a second drug, the measured rate of elimination is plotted against the plasma concentration at which it was measured, as shown. What does this figure indicate about its elimination?",
+   "img": "elim_rate_flat",
+   "options": [
+    {
+     "t": "It is zero order",
+     "correct": true,
+     "why": "The rate is the same at every concentration on the axis, so how much drug is present makes no difference to how fast it leaves. A rate that does not depend on the amount present is the definition of zero order, {{frac:dC|dt}} = −k0."
+    },
+    {
+     "t": "It is first order",
+     "correct": false,
+     "why": "First order requires the rate to rise with concentration, giving a line that climbs from the origin. Selecting this reads a straight line as first order without checking its direction; a horizontal line is straight and still shows no dependence on concentration at all."
+    },
+    {
+     "t": "The clearance is unusually high",
+     "correct": false,
+     "why": "Clearance is the slope of rate against concentration, and the slope here is zero, so clearance is not high but undefined as a single constant. This answer comes from treating the height of the line as the clearance, when it is the steepness that carries it."
+    },
+    {
+     "t": "The measurements were taken before steady state",
+     "correct": false,
+     "why": "These axes carry no time, so nothing about them depends on whether steady state was reached. Reaching for this imports a timing concern into a plot whose two variables are a rate and a concentration."
+    }
+   ],
+   "teach": [
+    {
+     "h": "The idea",
+     "list": [
+      "Across the figure the concentration rises ninefold, from 2 to 18 mg/L, while the rate of elimination does not move.",
+      "The process removing the drug is working at a fixed capacity, so the same amount leaves per hour regardless of how much is there: zero order."
+     ]
+    },
+    {
+     "h": "The relation",
+     "list": [
+      "Zero order gives C = C0 − k0t, where k0 is an amount per unit time. The half-life C0/2k0 depends on the starting concentration.",
+      "Clearance is the rate of elimination divided by the plasma concentration. With the rate fixed, that ratio falls as concentration rises, so clearance is no longer one number.",
+      "On these axes, a line rising from the origin means first order, and its slope is the clearance."
+     ]
+    }
+   ],
+   "audit": "Drawn on the same axes as the rising-line figure.",
+   "teachImg": "slide_4ClearanceandElimi_p4",
+   "cite": "4---Clearance-and-Elimination.pdf, slide \"Clearance\""
+  }
+ },
+ {
+  "reason": "core style_check.js stem rule flags it after kit PR #31, kit PR #30 C10 (remaining after #31)",
+  "question": {
+   "id": "m6-c01",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 2,
+   "module": 6,
+   "lecture": "L07",
+   "topic": "multi",
+   "sub": "accum",
+   "concept": "time-to-plateau",
+   "skill": "recall",
+   "source": "both",
+   "stem": "A drug eliminated by first-order kinetics is given as the same IV bolus dose at a fixed interval. How long does it take to reach the plateau?",
+   "options": [
+    {
+     "t": "3 to 5 half-lives",
+     "correct": true,
+     "why": "Elimination is first order, so how close the level is to its plateau is set by how many half-lives have passed. After 3 to 5 half-lives the peaks and troughs have stopped climbing and each dose reaches the same maximum and minimum."
+    },
+    {
+     "t": "3 to 5 doses",
+     "why": "Choosing this counts doses where the rule counts half-lives. With a half-life of 4 hours, 3 to 5 half-lives is 12 to 20 hours: 2 to 3 doses (at 0, 8 and 16 hours) with a dose every 8 hours, but 7 to 11 doses with a dose every 2 hours."
+    },
+    {
+     "t": "One dosing interval",
+     "why": "Choosing this treats the first trough as the plateau. One interval brings the level down to the first trough, not to the plateau. The second dose then starts from that trough, and the peaks keep climbing for several more intervals. That climb is accumulation."
+    },
+    {
+     "t": "A time that doubles when the dose doubles",
+     "why": "This answer ties the time to plateau to the dose. A first-order rate is proportional to the amount present, so a larger dose is eliminated faster in proportion, and the time to plateau does not change. Doubling the dose doubles the plateau level instead."
+    }
+   ],
+   "teach": [
+    {
+     "t": "The plateau is reached when the peaks and troughs stop rising: 3 to 5 half-lives with first-order elimination, whatever the dose."
+    },
+    {
+     "h": "Where 3 to 5 half-lives comes from",
+     "list": [
+      "The climb stops when the drug eliminated over one interval equals one dose.",
+      "Each half-life closes half of the remaining gap to the plateau: 50 per cent of the way there after one half-life, 75 after two, 87.5 after three and about 97 after five.",
+      "Her slide \"Drug accumulation with repeated administration\" puts it as 3 to 5 half-lives, not 3 to 5 doses."
+     ]
+    },
+    {
+     "h": "Her Example 1 regimen drawn out",
+     "fig": "md_bolus",
+     "list": [
+      "10 mg/kg every 8 hours, with a half-life of 4 hours and VD (apparent volume of distribution) 0.25 L/kg. Each dose adds C0 = 40 mg/L.",
+      "The peaks climb from 40 to 53.3 mg/L and the troughs from 10 to 13.3 mg/L. The climb is over within 3 to 5 half-lives, 12 to 20 hours."
+     ]
+    }
+   ],
+   "teachImg": "slide_6RepetitiveIVBolus_p3",
+   "cite": "6---Repetitive-IV-Bolus-and-Intermittent-IV-Infusions.pdf, slide \"Drug accumulation with repeated administration\"; 09.23 lecture",
+   "quote": "and not 3 to 5 doses, 3 to 5 half-lives, OK?"
+  }
+ },
+ {
+  "reason": "core style_check.js stem rule flags it after kit PR #31, kit PR #30 C10 (remaining after #31)",
+  "question": {
+   "id": "x3-a-p3h",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 1,
+   "module": 3,
+   "lecture": "L04",
+   "topic": "infusion",
+   "sub": "css",
+   "concept": "time-to-percent-css",
+   "skill": "apply",
+   "source": "slide",
+   "stem": "A female patient (35 years old, 65 kg) with normal renal function is to be given a drug by IV infusion. According to the literature, the elimination half-life of this drug is 7 hours and the apparent VD is 23.1% of body weight. The pharmacokinetics of this drug assumes a first-order process. The desired steady-state plasma level for this antibiotic is 10 mcg/mL. If the patient suddenly develops partial renal failure, how long would it take for a new steady-state plasma level to be established (assume that 95% of the Css is a reasonable approximation)?",
+   "options": [
+    {
+     "t": "About 4.32 times the new half-life",
+     "correct": true,
+     "why": "95% of Css takes 4.32 half-lives: 0.95 = 1 − e^(−kt) gives t = {{frac:ln 20|k}}. Renal failure lowers clearance and so lengthens the half-life, so the new half-life has to be found first, as her key says."
+    },
+    {
+     "t": "About 30.3 hours, as before the renal failure",
+     "why": "Picking this keeps the old half-life. 30.3 hours is 4.32 half-lives of 7 hours; with less clearance k is smaller, the half-life is longer, and the new plateau is reached later."
+    },
+    {
+     "t": "About 4.32 times the original 7-hour half-life",
+     "why": "This counts the right number of half-lives with the wrong half-life. After renal failure k = {{frac:ClT|VD}} falls, so each half-life is longer than 7 hours."
+    },
+    {
+     "t": "No time: the level stays at the old steady state",
+     "why": "Picking this treats the plateau as fixed once reached. Css = {{frac:R|ClT}}; when ClT falls at the same rate R, the level rises toward a new, higher plateau, and that climb takes 4.32 of the new half-lives."
+    }
+   ],
+   "teach": [
+    {
+     "h": "A change in clearance during an infusion",
+     "list": [
+      "Css = {{frac:R|ClT}}: lower clearance at the same rate gives a higher plateau.",
+      "k = {{frac:ClT|VD}}: lower clearance gives a smaller k and a longer half-life.",
+      "The time to the new plateau is set by the new half-life: 3 to 5 half-lives, or 4.32 for 95%."
+     ]
+    }
+   ],
+   "quote": "One would have to establish the new t½ for the patient, but the time to reach Css would be 4.32 t½ (see part a)",
+   "audit": "Her key (STYLE.md M3-3 h) is prose only; options built from her part a (30.3 hr = 4.32 x 7 hr) and Practice 4 part g (k = ClT/VD falls with renal clearance).",
+   "cite": "IV-Infusions-Practice-3---Solutions.pdf, part h; IV-Infusions-Practice-4-Solutions.pdf, part g; 3IntravenousInfusions.pdf, slide \"Drug Concentration at Steady-State\""
+  }
+ },
+ {
+  "reason": "core browser_test.js reads \"below\" in its stem as a promised figure (a table written in the stem, or \"well below\" / \"term below\"), new: proposed C11",
+  "question": {
+   "id": "m1-ord-c07",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 1,
+   "module": 1,
+   "lecture": "L01",
+   "topic": "orders",
+   "sub": "decide",
+   "concept": "order-from-data",
+   "skill": "order",
+   "source": "slide",
+   "stem": "The table below shows the decomposition of a drug as a function of time.\n\nTime (minute) | Drug A (mg)\n10 | 97.0\n20 | 89.0\n40 | 73.0\n60 | 57.0\n90 | 34.0\n120 | 10.0\n130 | 2.5\n\nWhich order of reaction describes the decrease in the amount of drug A?",
+   "options": [
+    {
+     "t": "Zero order",
+     "correct": true,
+     "why": "From 20 to 40 minutes the amount falls from 89.0 to 73.0 mg, and from 40 to 60 minutes from 73.0 to 57.0 mg: 16.0 mg lost in each 20 minutes. Equal quantities lost in equal intervals (constant differences, not ratios) is the zero-order signature."
+    },
+    {
+     "t": "First order",
+     "why": "Picking this reads a continuous fall as the first-order signature; first order needs a constant ratio over equal intervals. Over 20 minutes, {{frac:89.0|73.0}} is 1.22 and {{frac:73.0|57.0}} is 1.28; over 30 minutes, {{frac:57.0|34.0}} is 1.68 and {{frac:34.0|10.0}} is 3.40. The ratios climb, so it is not first order."
+    },
+    {
+     "t": "Neither order fits the data",
+     "why": "Choosing this treats the unequal spacing of the time points as a reason the data cannot be classified. Unequal spacing adds arithmetic, not ambiguity: take the difference or ratio over whatever interval separates the points. The two 20-minute pairs, 89.0 to 73.0 mg and 73.0 to 57.0 mg, each lose 16.0 mg: zero order."
+    }
+   ],
+   "teach": [
+    {
+     "h": "The idea",
+     "list": [
+      "To decide the order from a data set, compare what happens over equal time intervals.",
+      "Equal differences, the same amount lost per interval, mean zero order: C = C0 − kt is a straight line on linear axes.",
+      "Equal ratios, the same fraction lost per interval, mean first order: ln C against time is a straight line.",
+      "From two points, zero order gives k0 = {{frac:C1 − C2|t2 − t1}}; first order gives k = {{frac:ln(C1 ÷ C2)|t2 − t1}}.",
+      "On the exam a data set is supplied and the order has to be decided from it."
+     ]
+    }
+   ],
+   "teachImg": "slide_Introduction_p20",
+   "cite": "IntroductionandMathReview3Solutions.pdf, problem 1a; Introduction.pdf slide 17",
+   "quote": "Zero-order — the drug is decreasing at a constant amount per unit time"
+  }
+ },
+ {
+  "reason": "core browser_test.js reads \"below\" in its stem as a promised figure (a table written in the stem, or \"well below\" / \"term below\"), new: proposed C11",
+  "question": {
+   "id": "m4-rm-6",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 2,
+   "module": 4,
+   "lecture": "L05",
+   "topic": "clearance",
+   "sub": "renalmech",
+   "concept": "reabsorption-inference",
+   "skill": "apply",
+   "source": "both",
+   "stem": "A drug has a renal clearance well below the clearance that would be expected from glomerular filtration alone. What accounts for this?",
+   "options": [
+    {
+     "t": "Tubular reabsorption",
+     "correct": true,
+     "why": "Reabsorption occurs when the renal clearance is less than the calculated clearance by filtration, because drug that was filtered into the lumen moves back into the bloodstream instead of leaving in the urine."
+    },
+    {
+     "t": "Active tubular secretion",
+     "correct": false,
+     "why": "Secretion adds drug to the lumen, so it raises renal clearance above the filtration rate rather than lowering it. Choosing it means applying the right vocabulary to the wrong direction of the inequality, which is the commonest error on this pair."
+    },
+    {
+     "t": "An increased glomerular filtration rate",
+     "correct": false,
+     "why": "Picking this changes the reference value instead of naming a process acting on the drug. A higher filtration rate would deliver more drug into the lumen and raise renal clearance, not lower it. Filtered drug returning to the blood, which is reabsorption, explains a value below it."
+    },
+    {
+     "t": "Increased hepatic metabolism",
+     "correct": false,
+     "why": "Picking this answers a kidney question with a liver process: faster metabolism changes hepatic clearance, not renal clearance. Drug reaching the nephron is still filtered, secreted and reabsorbed as before. Only a renal process can move renal clearance below the filtration clearance, and here that process is reabsorption."
+    }
+   ],
+   "teach": [
+    {
+     "h": "The idea",
+     "list": [
+      "Secretion and reabsorption are inferred from one comparison: measured renal clearance against the clearance calculated from filtration, the glomerular filtration rate (GFR) of about 120 mL/min.",
+      "Above it: drug is being added to the lumen actively, so secretion is present.",
+      "Below it: filtered drug is being returned to the blood, so reabsorption is present.",
+      "Both are inferences from one measured number set against a known reference value, not direct observations of the process.",
+      "Her slide \"Tubular Reabsorption\" states the comparison."
+     ]
+    }
+   ],
+   "teachImg": "slide_4ClearanceandElimi_p21",
+   "cite": "4---Clearance-and-Elimination.pdf slide 19",
+   "quote": "Reabsorption occurs if the renal clearance is less than the calculated clearance by filtration."
+  }
+ },
+ {
+  "reason": "core browser_test.js reads \"below\" in its stem as a promised figure (a table written in the stem, or \"well below\" / \"term below\"), new: proposed C11",
+  "question": {
+   "id": "e2r-11",
+   "prof": "Mosley",
+   "tier": "new",
+   "exam": 2,
+   "module": 7,
+   "lecture": "L10",
+   "topic": "bioavail",
+   "sub": "defs",
+   "concept": "absolute-vs-relative",
+   "skill": "recall",
+   "source": "slide",
+   "dupOf": "cq4-10",
+   "stem": "Which term below describes a comparison of the bioavailability of the active drug in the systemic circulation following extravascular administration with the bioavailability of the same drug following intravenous administration?",
+   "options": [
+    {
+     "t": "absolute bioavailability",
+     "correct": true,
+     "why": "Her slide \"Absolute Bioavailability\" word for word: extravascular compared with intravenous. The IV dose is the reference because all of it reaches the systemic circulation."
+    },
+    {
+     "t": "bioequivalence",
+     "why": "Picking this takes a test between two products for a comparison with IV. Bioequivalence asks whether two products differ significantly in rate and extent of absorption."
+    },
+    {
+     "t": "drug product performance",
+     "why": "Picking this names the release of drug from the product, the step that leads to bioavailability, not a comparison of two routes."
+    },
+    {
+     "t": "relative bioavailability",
+     "why": "Picking this keeps the comparison but changes the reference. Relative bioavailability compares two extravascular products, such as a tablet against an oral solution, with no IV dose."
+    }
+   ],
+   "teach": [
+    {
+     "h": "Absolute or relative",
+     "list": [
+      "Absolute: extravascular against IV, Fabs = {{frac:AUCpo|AUCIV}} × {{frac:DIV|Dpo}}.",
+      "Relative: one extravascular product against another, Frel = {{frac:AUCA|AUCB}} × {{frac:DB|DA}}.",
+      "This stem is her Quiz 4, question 10, repeated on the review."
+     ]
+    }
+   ],
+   "cite": "Exam 2 In-Class Review (handed out 7 Oct 2026), question 11; 7a---Bioavailability-and-Bioequivalence.pdf, slide \"Absolute Bioavailability\""
+  }
+ }
+]

@@ -1,0 +1,75 @@
+
+=== Explanation quality ===
+  36 of 175 questions carry at least one issue
+
+    30  no diagnosis of the error
+     6  thin option why
+
+  by pool:
+    26  f-e1 (supplies 15 of the 40)
+    10  f-e2 (supplies 15 of the 40)
+
+  worst 30, ranked by severity x exam weight:
+
+  s2-1        topic2    f-e1            rank 75.0
+      - thin option why: A (48), B (42), C (39), D (49), E (55)
+  s1-1        topic1    f-e1            rank 60.0
+      - thin option why: A (69), B (67), C (77), D (65)
+  s1-2        topic1    f-e1            rank 60.0
+      - thin option why: A (52), B (40), C (28), D (29)
+  s1-3        topic1    f-e1            rank 60.0
+      - thin option why: A (91), B (45), C (31), D (46)
+  s2-2        topic2    f-e1            rank 60.0
+      - thin option why: A (25), B (42), C (51), D (50)
+  pp-x3-b-intsata pp-multoral f-e2            rank 30.0
+      - thin option why: C (108), D (98)
+  pp-cq1-2    pp-orders f-e1            rank 22.5
+      - no diagnosis of the error: A, B, D
+  pp-m1-ord-c01 pp-orders f-e1            rank 15.0
+      - no diagnosis of the error: C, D
+  pp-m2-cl-1  pp-bolus1 f-e1            rank 15.0
+      - no diagnosis of the error: B, D
+  pp-m6b-c13  pp-multoral f-e2            rank 15.0
+      - no diagnosis of the error: C, D
+  pp-cq1-1    pp-orders f-e1            rank 15.0
+      - no diagnosis of the error: A, D
+  pp-x3-a-q2-first pp-orders f-e1            rank 15.0
+      - no diagnosis of the error: C, D
+  pp-x3-a-kpos pp-orders f-e1            rank 15.0
+      - no diagnosis of the error: C, D
+  pp-m1-int-07 pp-intro  f-e1            rank 7.5
+      - no diagnosis of the error: B
+  pp-m1-ord-c05 pp-orders f-e1            rank 7.5
+      - no diagnosis of the error: C
+  pp-m1-ord-c06 pp-orders f-e1            rank 7.5
+      - no diagnosis of the error: B
+  pp-m2-mod-2 pp-bolus1 f-e1            rank 7.5
+      - no diagnosis of the error: E
+  pp-m2-mc-4  pp-bolus2 f-e1            rank 7.5
+      - no diagnosis of the error: C
+  pp-m2-mc-6  pp-bolus2 f-e1            rank 7.5
+      - no diagnosis of the error: D
+  pp-m2-mc-8  pp-bolus2 f-e1            rank 7.5
+      - no diagnosis of the error: D
+  pp-m2-mc-9  pp-bolus2 f-e1            rank 7.5
+      - no diagnosis of the error: C
+  pp-m2-mc-10 pp-bolus2 f-e1            rank 7.5
+      - no diagnosis of the error: B
+  pp-inf-c9   pp-infusion f-e1            rank 7.5
+      - no diagnosis of the error: C
+  pp-inf-c10  pp-infusion f-e1            rank 7.5
+      - no diagnosis of the error: D
+  pp-inf-c13  pp-infusion f-e1            rank 7.5
+      - no diagnosis of the error: C
+  pp-m4-cr-4  pp-clearance f-e2            rank 7.5
+      - no diagnosis of the error: D
+  pp-m5-c06   pp-oral   f-e2            rank 7.5
+      - no diagnosis of the error: C
+  pp-m5-c16   pp-oral   f-e2            rank 7.5
+      - no diagnosis of the error: C
+  pp-m6b-c03  pp-intermit f-e2            rank 7.5
+      - no diagnosis of the error: C
+  pp-m6b-c06  pp-intermit f-e2            rank 7.5
+      - no diagnosis of the error: B
+
+REPORT: explain_check.js: 36 of 175 questions carry at least one explanation issue

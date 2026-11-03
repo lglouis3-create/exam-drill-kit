@@ -1,0 +1,4 @@
+
+=== the course's own exams ===
+  FAIL  the page carries paper-picker, working  — []
+FAIL: features/paper-picker/test.js: 1 of 1 checks failed: the page carries paper-picker, working

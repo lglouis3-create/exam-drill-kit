@@ -1,0 +1,23 @@
+
+=== course.js `tools` across a core update ===
+  ok    the course's own tables: cite_check.py reads citeAliases, citeLectures and citeBareMap from course.js (0, 0, 0 entries)
+  ok    the course's own tables: explain_check.js reads explainTerms from course.js and appends them to its own list (0 of 0 terms in use)
+  ok    the course's own tables: harvest_mask.py reads harvestMasks from course.js (0 crops)
+  ok    the course builds with test tables in course.js `tools`
+  ok    test tables: cite_check.py reads citeAliases, citeLectures and citeBareMap from course.js (2, 1, 2 entries)
+  ok    test tables: explain_check.js reads explainTerms from course.js and appends them to its own list (1 of 1 terms in use)
+  ok    test tables: harvest_mask.py reads harvestMasks from course.js (1 crops)
+  ok    the three tools name none of the test tables: the tables are the course's
+  ok    explain_check.js reports the course term with no gloss (173 questions)
+  ok    the course builds without `tools`
+  ok    without `tools`: cite_check.py reads citeAliases, citeLectures and citeBareMap from course.js (0, 0, 0 entries)
+  ok    without `tools`: explain_check.js reads explainTerms from course.js and appends them to its own list (0 of 0 terms in use)
+  ok    without `tools`: harvest_mask.py reads harvestMasks from course.js (0 crops)
+  ok    without the course term, explain_check.js does not report it
+  ok    with every lecture deck aliased to a one-page deck, cite_check.py checks 88 slide references against it
+  ok    without the aliases it checks none of them (NOT RUN: no citation matched a deck on hand)
+  ok    the build stops on a field no tool reads (citeAlias), names it and writes nothing
+  ok    the build stops on explainTerms written as a regex instead of its source, names it and writes nothing
+  ok    the build stops on harvestMasks with its phrases not in a list, names it and writes nothing
+  ok    the build stops on citeAliases naming a deck with a number, names it and writes nothing
+PASS: tables_test.js: 20 checks passed

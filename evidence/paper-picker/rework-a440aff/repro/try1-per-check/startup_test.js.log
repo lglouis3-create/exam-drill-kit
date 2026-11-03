@@ -1,0 +1,95 @@
+  5 answers saved as the starting progress (profile "me", 231 questions in the bank)
+
+=== Nothing fails ===
+  ok    the saved progress is loaded (5 answers)
+  ok    the quiz screen shows the 5 saved answers in "This session"
+  ok    no notice that progress could not be loaded
+  ok    an answer is saved (6 answers stored)
+  ok    the answer history is saved (6 entries stored)
+  ok    a started exam paper is saved
+  ok    the Diagrams tab is there exactly when the course lists figures
+  ok    no page errors and no errors on the console
+
+=== A start-up step throws: DIAGRAMS of the wrong shape ===
+  ok    nothing is thrown out of start-up
+  ok    the fault is reported on the console
+  ok    the saved progress is loaded (5 answers)
+  ok    the rest of start-up runs: Topics is on screen
+  ok    the rest of start-up runs: the place is kept across a reload and the Switch button works
+  ok    the Diagrams tab, whose list cannot be built, is removed
+  ok    the quiz screen shows the 5 saved answers in "This session"
+  ok    answering works: 6 answers stored
+  ok    no write of the progress stores fewer than the 5 saved answers
+  ok    no write of the history stores fewer than the 5 saved entries
+  ok    no notice that progress could not be loaded
+
+=== A start-up step throws: the offline copy ===
+  ok    nothing is thrown out of start-up
+  ok    the fault is reported on the console
+  ok    the saved progress is loaded (5 answers)
+  ok    the rest of start-up runs: Topics is on screen
+  ok    the rest of start-up runs: the place is kept across a reload and the Switch button works
+  ok    the quiz screen shows the 5 saved answers in "This session"
+  ok    answering works: 6 answers stored
+  ok    no write of the progress stores fewer than the 5 saved answers
+  ok    no write of the history stores fewer than the 5 saved entries
+  ok    no notice that progress could not be loaded
+
+=== A start-up step throws: the reading tab a reload comes back to ===
+  ok    nothing is thrown out of start-up
+  ok    the fault is reported on the console
+  ok    the saved progress is loaded (5 answers)
+  ok    the rest of start-up runs: Topics is on screen
+  ok    the rest of start-up runs: the place is kept across a reload and the Switch button works
+  ok    the quiz screen shows the 5 saved answers in "This session"
+  ok    answering works: 6 answers stored
+  ok    no write of the progress stores fewer than the 5 saved answers
+  ok    no write of the history stores fewer than the 5 saved entries
+  ok    no notice that progress could not be loaded
+
+=== The load fails: the stored progress is not valid JSON ===
+  ok    one notice is shown
+  ok    it says the saved progress could not be loaded and nothing will be saved during this visit
+  ok    the drill opens on Topics
+  ok    answering works during the visit (2 answers)
+  ok    the stored progress is exactly as it was
+  ok    the stored answer history is exactly as it was
+  ok    nothing was written to the progress or the history
+  ok    a started exam paper is not written
+  ok    Erase my history changes nothing stored
+  ok    Erase says that nothing was erased
+  ok    Import progress changes nothing
+  ok    Import says that the file was not imported
+  ok    still one notice after the refused writes, and no other
+  ok    switching to a profile whose progress loads takes the notice away
+  ok    that profile saves its answer as usual
+  ok    the first profile's stored progress is still exactly as it was
+  ok    no page errors
+
+=== The load fails: a stored value the load cannot convert ===
+  ok    one notice is shown
+  ok    it says the saved progress could not be loaded and nothing will be saved during this visit
+  ok    the drill opens on Topics
+  ok    answering works during the visit (2 answers)
+  ok    the stored progress is exactly as it was
+  ok    the stored answer history is exactly as it was
+  ok    nothing was written to the progress or the history
+  ok    no page errors
+
+=== The load fails: the load itself throws ===
+  ok    one notice is shown
+  ok    it says the saved progress could not be loaded and nothing will be saved during this visit
+  ok    the drill opens on Topics
+  ok    answering works during the visit (2 answers)
+  ok    the stored progress is exactly as it was
+  ok    the stored answer history is exactly as it was
+  ok    nothing was written to the progress or the history
+  ok    no page errors
+
+=== The stored answer history cannot be read ===
+  ok    the saved progress is loaded (5 answers)
+  ok    no notice: the progress loaded
+  ok    the answer is saved (6 answers stored)
+  ok    the stored history is left exactly as it was
+  ok    no page errors
+PASS: startup_test.js: 77 checks passed

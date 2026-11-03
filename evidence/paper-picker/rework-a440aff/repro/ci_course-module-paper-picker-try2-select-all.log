@@ -1,0 +1,69 @@
+== modules switched on, in this order: paper-picker
+-- paper-picker: node features/paper-picker/ci/oncourse.js
+wrote: /tmp/port-rework/paper-picker/kit-ci-ursz6l/course/src/q90_paper_picker_pk.js (13 topics and 168 questions from features/paper-picker/current/test_fixture.js, prof as the course has it; ids with the prefix pp-)
+wrote: /tmp/port-rework/paper-picker/kit-ci-ursz6l/course/src/images.json (the 34 images those questions show, added to the course's own)
+wrote: appended to /tmp/port-rework/paper-picker/kit-ci-ursz6l/course/src/course.js: the file in COURSE.files, the professors ["Mosley"] in COURSE.professors (kept beside the course's own), 12 lectures in COURSE.lectures, the skills the course lacks, COURSE.exams (Exam 1, Exam 2, Exam 3 (final)), COURSE.activeExam 3, and paper-picker v1 on
+== module:paper-picker, chromium, kit b283f2f
+PASS     build.py          wrote index.html  (1.55 MB)
+PASS     test.js           175 questions checked, 11 warning(s)
+PASS     style_check.js    175 stems and 175 explanations clean
+PASS     style_check_test.js 29 checks passed
+PASS     render_test.js    every view rendered clean
+REPORT   explain_check.js  36 of 175 questions carry at least one explanation issue
+PASS     stepper_test.js   1 step-through(s) settle at every step
+NOT RUN  cite_check.py     no lecture PDFs found under decks/ or src/
+PASS     device_lint.js    3 checks passed
+PASS     output_test.js    16 checks passed
+PASS     files_test.js     13 checks passed
+PASS     tables_test.js    20 checks passed
+PASS     checks_test.js    32 checks passed
+PASS     draw_test.js      9 checks passed
+PASS     browser_test.js   104 checks passed (2 skipped: drawn structures; the course's own tables wider than the screen)
+PASS     storage_test.js   24 checks passed
+PASS     startup_test.js   77 checks passed
+PASS     update_test.js    38 checks passed
+PASS     offline_test.js   30 checks passed
+PASS     home_test.js      36 checks passed
+PASS     history_test.js   28 checks passed
+PASS     scheduler_test.js 110 checks passed
+PASS     preview_test.js   14 checks passed
+PASS     state_check.js    2 checks passed
+PASS     state_check_test.js 8 checks passed
+PASS     oldcache_test.js  12 checks passed
+PASS     nullexam_test.js  76 checks passed (1 skipped: the Weighting chips)
+PASS     features_test.js  40 checks passed
+FAIL     features/paper-picker/test.js 1 of 82 checks failed: Exam 1: the paper carries 3 select-all item(s) (its sata 4, split by marks, as many as each pool holds)
+26 PASS, 1 FAIL, 1 NOT RUN, 1 REPORT; logs in /tmp/port-rework/paper-picker/drill-checks-FUL39y
+
+---- features/paper-picker/test.js (failing lines, then the end of its log) ----
+  FAIL  Exam 1: the paper carries 3 select-all item(s) (its sata 4, split by marks, as many as each pool holds)  — 4
+  ok    no page error
+  ok    storage full (QuotaExceededError): the student is told, nothing saved is overwritten, and the saved choice and papers load after storage works again
+  ok    no page error in the persistence checks
+  ok    no page error with an exam left off
+  ok    with the current exam chosen, the engine's own opening page is shown
+  ok    a paper for the current exam is the engine's own draw of 40, recorded for Exam 3 (final)
+  ok    a paper submitted with 39 blank is kept for Exam 3 (final) with its blank count, and its result page names no other exam
+  ok    the list shows the newest paper first
+  ok    Exam 1 chosen before it was sat gives way to Exam 3 (final) now it is over; chosen after it (to review it), it is kept
+  ok    an exam ends at its `when` plus its minutes; one with no date in ISO form never ends
+  ok    Exam 1's pools hold enough questions (20/18/12): no shortage note, and Exam 1 is chosen
+  ok    the paper started then is drawn for Exam 1, 40 questions from its pools
+  ok    with Exam 1's Module 2 pool emptied (20/0/12): the page says its pools supply 24 of the 40, and that the paper is drawn for the current exam
+  ok    the paper started then is the current exam's
+  ok    Settings offers the same chips and changes the choice
+  ok    no page error
+  ok    101 papers submitted: the 100 newest are kept (the first one dropped), the 12 newest are listed, and all 100 come back after a reload
+  note  a reload at once (under 150 ms) after a choice: the choice was lost (the core saves 150 ms after the last change; agent-run report, not a check)
+  ok    a choice is kept through a reload made 300 ms after it
+  ok    Export carries the choice and the 100 papers; Import into a fresh profile brings them back
+  ok    a profile switch: each profile keeps its own choice and papers
+  ok    storage denied: the student is told, the saved choice and papers are not overwritten, the new paper and choice hold for the visit
+  ok    once storage works again the next save writes the paper made while it was denied, and a reload loads it
+  ok    storage full (QuotaExceededError): the student is told, nothing saved is overwritten, and the saved choice and papers load after storage works again
+  ok    no page error in the persistence checks
+  ok    the Exam view names the exam left off and why, offers no chips, and keeps its start button
+  ok    the exam left off cannot be chosen: the paper stays the current exam's
+  ok    no page error with an exam left off
+FAIL: features/paper-picker/test.js: 1 of 82 checks failed: Exam 1: the paper carries 3 select-all item(s) (its sata 4, split by marks, as many as each pool holds)
+exit 1

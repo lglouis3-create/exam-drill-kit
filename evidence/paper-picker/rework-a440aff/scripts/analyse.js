@@ -1,0 +1,25 @@
+const B = require('./pkload.js');
+const fs=require('fs');
+const IM = JSON.parse(fs.readFileSync(B.SRC + '/images.json', 'utf8'));
+const {stemFlag} = require('/tmp/port-rework/pp/core/style_rules.js');
+const FX = require('/tmp/port-rework/pp/features/paper-picker/current/test_fixture.js');
+const inFx = new Set(FX.PK.qs.map(q=>q.id));
+const NAME = /Mosley|Dr\./i;
+const PRON = /\b(she|her|hers|herself)\b/i;
+const FIG_RE = /\b(shown|below|drawn|pictured|illustrated|depicted|circled|boxed)\b/i;
+const BAD_WORD = /\b(undefined|null|NaN|\[object Object\])\b/;
+const decks = B.COURSE.lectures.map(l => l.deck);
+const text = q => JSON.stringify(Object.assign({}, q, {prof: ''}));
+const imgsOf = q => [q.img, q.teachImg].filter(Boolean);
+const R = q => ({type:q.type, low:q.lowYield, name:NAME.test(text(q)), pron:PRON.test(text(q)), stem:stemFlag(q.stem), fig: FIG_RE.test(q.stem||'') && !q.img, nodeck: !decks.some(d => (q.cite || '').includes(d)), few:(q.options||[]).length<3, sata4: q.multi && (q.options||[]).length<4, nodis: q.multi && (q.options||[]).every(o=>o.correct), bad: BAD_WORD.test(text(q)), noimg: imgsOf(q).some(k=>!IM[k]), imgs: imgsOf(q), dupOf:q.dupOf});
+const out = B.QUESTIONS.filter(q=>!q.type && !q.lowYield && !inFx.has(q.id)).map(q=>Object.assign({id:q.id}, R(q)));
+console.log('bank', B.QUESTIONS.length, 'untyped non-low', B.QUESTIONS.filter(q=>!q.type&&!q.lowYield).length, 'in fixture', inFx.size, 'untyped non-low not in fixture', out.length);
+console.log('names prof in bank (any type):', B.QUESTIONS.filter(q=>NAME.test(text(q))).length, ' pronoun:', B.QUESTIONS.filter(q=>PRON.test(text(q))).length);
+const cnt={}; for(const o of out) for(const k of ['name','stem','fig','nodeck','few','sata4','nodis','bad','noimg']) if(o[k]) cnt[k]=(cnt[k]||0)+1;
+console.log(cnt);
+console.log('stem flags now:', out.filter(o=>o.stem).map(o=>o.id+':'+o.stem).join(', '));
+const old10=['inf-c8','m5-c25','m6-c01','m6b-c01','m6b-c02','fig-cpt-1','fig-cpt-2','nl-c10','fr-2','x3-a-p3h'];
+for(const id of old10){ const q=B.QUESTIONS.find(q=>q.id===id); console.log(id, JSON.stringify(stemFlag(q.stem)), '|', q.stem.slice(0,160)); }
+console.log('bad word:', out.filter(o=>o.bad).map(o=>o.id).join(','));
+console.log('no reason except images/dup:', out.filter(o=>!['name','stem','fig','nodeck','few','sata4','nodis','bad','noimg'].some(k=>o[k])).length);
+fs.writeFileSync('/tmp/port-rework/paper-picker/analyse.json', JSON.stringify(out,null,1));
