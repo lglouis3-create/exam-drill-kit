@@ -75,7 +75,7 @@ K and F numbers are the assessment's.
 | Order | Pull request | Kind | Status |
 |---|---|---|---|
 | 1 | K13 a paper for pools with `questions:null` or `marks:null` (crashes today) | small fix | |
-| 2 | K10 `test.js` "missed concept resurfaced" check under `fsrs` | small fix | |
+| 2 | K10 `test.js` "missed concept resurfaced" check (section 4) under `fsrs`; also section 7 (a missed concept returns as a different wording), which since #40 fails nearly every run under `fsrs` (34 of 35 runs in the independent review of #40) | small fix | |
 | 3 | K11 `scheduler_test.js` preset cases use the course's own skill names | small fix | |
 | 4 | K12 `browser_test.js`: ids with an apostrophe; the tab crash in the full sweep | small fix | |
 | 5 | K5 converter hook for an older progress format, on first load and on Import | core | |
