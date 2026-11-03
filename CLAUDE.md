@@ -98,17 +98,21 @@ after Phase 1 and overrides earlier sections where they differ.
   `e3433d2` (catalog wording), #29 `4e0fae4` (the WebKit job blocks a merge), #36
   `8b5ffdb` (the porter's policy; merged by the porter session under its §7 at 06:35
   UTC), #38 `9f2940b` (`test.js` section 7; merged by the main kit session under Louis's
-  standing policy at 06:54 UTC), #37 `494e6d5` (the policy record, decision 10; merged on
-  Louis's yes to it). The WebKit diagnosis and every run's log: branch
-  `claude/elegant-ptolemy-pqxb8y-webkit-diag`, `review/webkit-offline/` (never merged).
-  Open: #32 (Import; Louis keeps it unmerged until its two intermittent two-tab failures
-  are explained and resolved), #39 (the waiting save when a page is hidden or closed;
-  progress storage, waits for Louis), #40 (`test.js` section 7, 20 trials), this
-  bookkeeping record, the proposals #23 and #30, and the porter's draft ports.
+  standing policy and his go-ahead for that fix at 06:35 UTC, at 06:54 UTC), #37 `494e6d5`
+  (the policy record, decision 10; merged on Louis's yes to it), #40 `751251a` (`test.js`
+  section 7, 20 trials; merged by the main kit session under decision 10). The WebKit
+  diagnosis and every run's log: branch `claude/elegant-ptolemy-pqxb8y-webkit-diag`,
+  `review/webkit-offline/` (never merged). Open: #32 (Import; Louis keeps it unmerged
+  until its two intermittent two-tab failures are explained and resolved), #39 (the
+  waiting save when a page is hidden or closed; progress storage, waits for Louis), this
+  bookkeeping record, the proposals #23 and #30, and the porter's draft ports (#11,
+  #13-#22, #24-#26).
 - **GitHub Actions stopped starting jobs on 2026-11-03** between 04:13 UTC (run
   41576828141, the last that ran and passed) and 04:35 UTC (main's run 41579030257 for
-  4e0fae4, the first refused). Every run since then (22 by 05:05 UTC) failed with no
-  steps, with GitHub's message "The job was not started because recent account
+  4e0fae4, the first refused). Every run created since then (22 by 05:05 UTC) failed
+  with no steps on its first attempt (three of them, 41580289929, 41581178372 and
+  41581740260, were started again at 05:43 UTC and passed on attempt 2), with GitHub's
+  message "The job was not started because recent account
   payments have failed or your spending limit needs to be increased" (check-run
   annotations). The kit repository was private, and GitHub's free amount for private
   repositories on GitHub Free is $12 a month, at $0.006 a minute on a standard Linux
@@ -202,7 +206,7 @@ after Phase 1 and overrides earlier sections where they differ.
 | `gh api 'repos/<owner>/<repo>/actions/runs?head_sha=<sha>'` for Pages deploys | works through the session proxy without any connector, for repos attached to the session; `gh api …/pages/builds/latest` is refused by the proxy | 2026-11-01 |
 | Session "Kit updater" (`session_01LVkWFDAbAtw7kDGwqd43Qg`, started with the kit as its repository) | kit fetch and push dry run work; Python, Node and Chromium work; `mcp__github__*` tools present; `add_repo` for a course repo from a seeded message was blocked by the permission system; after Louis's own message there, all four course repos were attached with push access, and fetch, `git push --dry-run` and `gh api …/actions/runs` worked in each (the session's stored sources list the kit and the four course repos) | 2026-11-01 |
 | Scheduled task "Kit update run" (`trig_01QduqhookGDD8HxANEbLq4w`, daily 2:47 AM America/Chicago, fires into "Kit updater") | first run 2026-11-01 08:48 UTC ended "Nothing to update: the kit's main has no core yet" (correct: PR #1 merged at about 12:10 UTC), changed nothing and sent no notification; not yet checked whether a run after the container is replaced still has the repos | 2026-11-01 |
-| Session "Kit feature porter" (`session_01LVkWFDVVDwgsL5WF7yWqcV`, started with the kit) and scheduled task "Kit feature port" (`trig_017nw2kiZvgqCKkgWcKuvA8V`, daily 12:45 AM America/Chicago) | setup test 2026-11-01: kit fetch and push dry run, a read-only clone of Pharmacokinetics, `mcp__github__create_pull_request`, Python, Node and Chromium all work; a real push and pull request not yet tried | 2026-11-01 |
+| Session "Kit feature porter" (`session_01LVkWFDVVDwgsL5WF7yWqcV`, started with the kit) and scheduled task "Kit feature port" (`trig_017nw2kiZvgqCKkgWcKuvA8V`, daily 12:45 AM America/Chicago) | setup test 2026-11-01: kit fetch and push dry run, a read-only clone of Pharmacokinetics, `mcp__github__create_pull_request`, Python, Node and Chromium all work; since then the porter has pushed `port/*` branches, opened the draft ports #11, #13-#22 and #24-#26 and #36, and merged #36 (GitHub's pull request list, read 2026-11-03) | 2026-11-01; 2026-11-03 |
 | WebKit / Safari browser engine | not installed in the cloud container; Chromium only (GitHub's runners run WebKit: kit job "WebKit · template") | 2026-10-31; 2026-11-03 |
 
 ## Open questions for Louis
