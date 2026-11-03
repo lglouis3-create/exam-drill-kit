@@ -8,7 +8,8 @@
 # appended (for .github/diag/offline_diag.js and repro_versionjson.js).
 #   sequential (default)  each of offline_test.js and offline_diag.js <runs> times in turn
 #   load                  <runs> rounds of three offline_diag.js at once while two busy
-#                         loops keep the CPU occupied (a slower machine)
+#                         loops keep the CPU occupied (a slower machine); WAIT_UP in the
+#                         environment is passed on as DIAG_WAIT_AFTER_UP
 #   repro                 repro_versionjson.js <runs> times
 # Every run's whole output is printed, then one line per run:
 #   RUN <n> <test> <exit code> <its last line>
@@ -50,7 +51,7 @@ if [ "$mode" = load ]; then
     node -e 'const e = Date.now() + 120000; while(Date.now() < e){}' & b1=$!
     node -e 'const e = Date.now() + 120000; while(Date.now() < e){}' & b2=$!
     pids=(); for k in 1 2 3; do
-      (cd "$work/diag/src" && DRILL_BROWSER="$browser" timeout 300 node offline_diag.js) > "$work/load-$i-$k.log" 2>&1 & pids+=($!)
+      (cd "$work/diag/src" && DRILL_BROWSER="$browser" DIAG_WAIT_AFTER_UP="${WAIT_UP:-0}" timeout 300 node offline_diag.js) > "$work/load-$i-$k.log" 2>&1 & pids+=($!)
     done
     codes=(); for p in "${pids[@]}"; do wait "$p"; codes+=($?); done
     kill "$b1" "$b2" 2>/dev/null; wait "$b1" "$b2" 2>/dev/null

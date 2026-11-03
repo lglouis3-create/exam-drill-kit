@@ -19,6 +19,14 @@
  *   - in the page: every 'error' and 'unhandledrejection' event, and every fetch of
  *     version.json with its outcome, kept in sessionStorage across reloads;
  *   - every Playwright 'pageerror', with its time and the server's mode then.
+ *   - every failed request (Playwright 'requestfailed', with WebKit's reason), every
+ *     frame navigation, every console error and a page crash, with the time;
+ *   - when the navigation after the server comes back up fails, that error, the
+ *     worker's state and the saved copy at that moment; then, for the diagnosis only, one
+ *     more navigation (recorded as such), so the rest of the run is still observed;
+ *   - DIAG_WAIT_AFTER_UP (ms, default 0): a pause between the server coming back up and
+ *     that navigation, to tell a race from a lasting state (offline_test.js has none).
+ * The worker's and the page's logs are read at the end of every run, also one that stops.
  * The checks are offline_test.js's own for these phases; the run's last line is its
  * PASS or FAIL. One difference: before its last check (no page errors) it waits 6 s
  * more, past the page's 5 s update check, so a late update-check error is caught too.
@@ -32,7 +40,9 @@ L.PAGE.need(NAME);
 const FILE = path.basename(L.PAGE.PAGE);
 const SLOW = 8000;
 const T0 = Date.now(), now = () => Date.now() - T0;
-const D = {browser: L.BROWSER, server: [], phases: [], pageErrors: [], beforeSlow: null, afterSlow: null, swLog: [], pageLog: [], checks: []};
+const WAIT_UP = Number(process.env.DIAG_WAIT_AFTER_UP || 0);
+const D = {browser: L.BROWSER, waitAfterUp: WAIT_UP, server: [], phases: [], pageErrors: [], beforeSlow: null, afterSlow: null, swLog: [], pageLog: [], checks: [],
+           requestsFailed: [], navigations: [], consoleErrors: [], crashes: [], afterUpGoto: null};
 const phase = p => { D.phases.push({t: now(), phase: p}); console.log(`  [${now()} ms] phase: ${p}`); };
 
 // every request the test server answers, with the server's mode at that moment
@@ -74,6 +84,10 @@ const chk = (ok, label, detail) => { D.checks.push({t: now(), ok: !!ok, label, d
   const errors = [];
   page.on('pageerror', e => { errors.push(e.message); D.pageErrors.push({t: now(), mode: S.mode, message: e.message}); });
   page.on('dialog', d => d.accept());
+  page.on('requestfailed', r => D.requestsFailed.push({t: now(), mode: S.mode, url: r.url(), type: r.resourceType(), nav: r.isNavigationRequest(), failure: (r.failure() || {}).errorText || ''}));
+  page.on('framenavigated', f => { if(f === page.mainFrame()) D.navigations.push({t: now(), mode: S.mode, url: f.url()}); });
+  page.on('console', m => { if(m.type() === 'error') D.consoleErrors.push({t: now(), mode: S.mode, text: m.text()}); });
+  page.on('crash', () => D.crashes.push({t: now(), mode: S.mode}));
   const appShown = () => page.evaluate(() => document.querySelectorAll('#nav button').length > 3 && typeof QUESTIONS !== 'undefined' && QUESTIONS.length > 0).catch(() => false);
   const waitApp = (ms) => page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3 && typeof QUESTIONS !== 'undefined', null, {timeout: ms}).then(() => true, () => false);
   const workerState = () => page.evaluate(async () => {
@@ -114,7 +128,16 @@ const chk = (ok, label, detail) => { D.checks.push({t: now(), ok: !!ok, label, d
     S.mode = 'ok';
     phase('server ok');
 
-    await page.goto(URL_); await waitApp(10000);
+    if(WAIT_UP) await page.waitForTimeout(WAIT_UP);
+    try { await page.goto(URL_); D.afterUpGoto = {t: now(), ok: true}; }
+    catch(e){
+      D.afterUpGoto = Object.assign({t: now(), ok: false, error: String(e.message || e).split('\n')[0]}, await workerState());
+      chk(false, 'the navigation after the server comes back up works', D.afterUpGoto.error);
+      phase('diagnosis only: one more navigation');
+      try { await page.goto(URL_); D.afterUpGoto.second = {t: now(), ok: true}; }
+      catch(e2){ D.afterUpGoto.second = {t: now(), ok: false, error: String(e2.message || e2).split('\n')[0]}; }
+    }
+    await waitApp(10000);
     S.indexExtra = '<i id="deploy-2"></i>';
     D.beforeSlow = Object.assign({t: now()}, await workerState());
     phase('server slow, reload');
@@ -142,14 +165,15 @@ const chk = (ok, label, detail) => { D.checks.push({t: now(), ok: !!ok, label, d
     S.indexExtra = '';
     await page.waitForTimeout(6000);   // past the update check's 5 s, with the server up
     chk(!errors.length, 'no page errors in the service worker checks', errors.slice(0, 3).join('; '));
+  } finally {
+    S.mode = 'ok';
+    // the worker's log and the page's, read in every run, also one that stopped
     D.swLog = await page.evaluate(async () => {
       const c = await caches.open('diag-log'), out = [];
       for(const k of await c.keys()) out.push(JSON.parse(await (await c.match(k)).text()));
       return out.sort((a, b) => (a.at || 0) - (b.at || 0));
     }).catch(e => [{error: String(e.message || e)}]);
     D.pageLog = await page.evaluate(() => JSON.parse(sessionStorage.getItem('__diag') || '[]')).catch(e => [{error: String(e.message || e)}]);
-  } finally {
-    S.mode = 'ok';
     // times on one clock: the worker's and the page's `at` are epoch ms; T0 is the test's start
     D.T0 = T0;
     console.log('DIAG ' + JSON.stringify(D));
