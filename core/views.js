@@ -449,38 +449,50 @@ function exportProgress(){
 }
 
 /* ---------- Import progress ----------
-   Louis's rules (2026-11-02): a file is read and checked whole before anything
-   is saved; a file of another course is refused; the page shows what is in the
-   file, what this device has and what Import would do, and saves only when the
-   student confirms; progress that would be replaced is kept as a backup that
-   Settings can put back; a file whose answers and this device's each include
-   answers the other lacks goes into a new profile of its own, so neither record
-   is changed (also when the 4,000-answer limit leaves it unclear whether the file
-   continues this device's record); importing the same file again changes
-   nothing; a write the browser refuses, or a saved progress or answer history
-   that could not be read in this visit, means nothing is replaced, and the page
-   says so. This device's appearance and its other preferences stay as they are.
+   Louis's rules (2026-11-02, corrected 2026-11-03): a file is read and checked whole
+   before anything is saved; a file of another course, and a file that names no
+   course, is refused; the page shows what is in the file, what this device has and
+   what Import would do, and saves only when the student confirms; the progress
+   Import replaces is kept, and Settings can put it back; two records are never
+   mixed; whenever it is not established that the file continues this profile's
+   record, the file goes into a new profile of its own and this profile is
+   unchanged; importing the same file again changes nothing; a write the browser
+   refuses, or a saved progress or answer history that could not be read in this
+   visit, means nothing is replaced, and the page says so. This device's appearance
+   and its other preferences stay as they are.
 
-   Two answers are the same answer when their question id and their time (`at`,
-   in milliseconds) agree. What Import does with a file of this course:
-     nothing   every answer and history entry of the file is here already;
-     history   the file adds history entries only: they are merged in, and the
-               progress is unchanged;
-     replace   the file has answers this device lacks and lacks none of this
-               device's answers (or this profile has none): the file's progress
-               replaces this profile's, which is first kept as the backup;
-     separate  each has answers the other lacks: the file's progress goes into
-               a new profile, and this profile's progress is unchanged.
-   With the progress come its settings, the pace and "Ask everything", because
-   the file's review dates were set with them; IMPORT_DEVICE keeps this device's
-   own choice of the others. The answer history is merged, never replaced, so a
-   replace keeps every entry here. A browser that stops between Import's writes
-   leaves either the old progress, or the new progress with the history not yet
-   merged; importing the file again then merges it. */
+   An answer is found by its question id and its time (`at`, in milliseconds), and
+   two copies are the same answer only when every field of the two agrees (the
+   result, the choices picked, the confidence, the count and the rest). Two copies
+   under one key that differ are a conflict, never treated as the same answer.
+   What Import does with a file of this course:
+     nothing   every answer of the file is here, field for field, and every history
+               entry; or the file was imported before into a profile of its own;
+     history   the same, except the file adds history entries: they are merged in,
+               and the progress is unchanged;
+     replace   the file continues this profile's record: this profile has no answers
+               and no concept records, or the file's record has the same origin
+               (`created`) as this one, this device's answer list is complete (its
+               first answer is answer 1), and this device's answers are the file's
+               first answers, field for field, in order. The file's progress then
+               replaces this profile's, which is first kept as a copy;
+     separate  anything else (answers on each side the other lacks, a conflict, a
+               record of another origin, an answer list here that the 4,000-answer
+               limit has cut): the file's progress goes into a new profile, and this
+               profile's progress is unchanged.
+   With the progress come its settings, the pace and "Ask everything", because the
+   file's review dates were set with them; IMPORT_DEVICE keeps this device's own
+   choice of the others. The answer history is merged, never replaced. The copies
+   Import keeps (a list under <ns>:backup:<profile>, newest last) are never deleted
+   by Import or Put back; Settings deletes them only when the student asks. A
+   browser that stops between Import's writes leaves either the old progress, or the
+   new progress with the history not yet merged; importing the file again merges it. */
 const IMPORT_DEVICE = ['eqPick'];          // DB.settings fields that stay with this device
 const RESULTS = ['correct', 'wrong', 'guessed'];
 const backupKey = p => NS + ':backup:' + p;
 const answerKey = a => a.qid + '|' + a.at;
+// every field of an answer, in a fixed order: two copies are the same answer only when these agree
+const answerSig = a => JSON.stringify(Object.keys(a).sort().map(k => [k, a[k]]));
 const logEntryKey = e => e.slice(0, 4).join('|');
 const isObj = v => !!v && typeof v === 'object' && !Array.isArray(v);
 const dateOf = ms => { const d = new Date(ms); return isNaN(d) ? '' : d.toISOString().slice(0, 10); };
@@ -498,11 +510,12 @@ function readProgressFile(text){
   if(j.app !== undefined && j.app !== 'exam-drill') return {why: 'The file was exported by another app, not by this drill.'};
   const db = j.db;
   if(!isObj(db) || !isObj(db.concepts) || !Array.isArray(db.answers)) return {why: 'The file is not a progress export: it holds no progress.'};
-  // the course: the file's own label when it has one ...
-  const labelled = j.ns !== undefined || j.course !== undefined;
+  // the course: the file must name it; question ids alone do not show whose progress a file is
+  if(j.ns === undefined && j.course === undefined)
+    return {why: 'The file names no course (it was exported before this drill labelled its files), so it cannot be told to be this course\'s progress.'};
   if(j.ns !== undefined && ![NS, COURSE.ns, COURSE.ns + '-preview'].includes(j.ns) || j.course !== undefined && j.course !== COURSE.id)
     return {why: `This file is the progress of another course (${String(j.course || j.ns)}), not of ${COURSE.title || COURSE.id}.`};
-  // ... every answer whole ...
+  // every answer whole
   for(let i = 0; i < db.answers.length; i++){
     const a = db.answers[i];
     if(!isObj(a) || typeof a.qid !== 'string' || !a.qid || !Number.isFinite(a.at) || !RESULTS.includes(a.result) || a.qn !== undefined && !Number.isFinite(a.qn))
@@ -522,18 +535,23 @@ function readProgressFile(text){
     if(!Array.isArray(e) || e.length < 3 || !Number.isFinite(e[0]) || typeof e[1] !== 'string' || (e[2] !== 0 && e[2] !== 1))
       return {why: `The file's answer history is damaged: entry ${i + 1} of ${log.length} is not a whole entry.`};
   }
-  // ... and, for a file with no label (the export before the kit core), its questions
   const ids = [...new Set(db.answers.map(a => a.qid))], known = ids.filter(id => byId(id)).length;
-  if(!labelled){
-    if(!ids.length) return {why: 'The file names no course and holds no answers, so it cannot be told to be this course\'s progress.'};
-    if(known < ids.length) return {why: known ? `The file names no course, and ${ids.length - known} of the ${ids.length} questions it answers are not in this drill, so it cannot be told to be this course's progress.`
-                                               : 'The file names no course, and none of the questions it answers is in this drill: it is another course\'s progress.'};
-  }
   let up;
   try { up = upgradeDB(JSON.parse(JSON.stringify(db))); }
   catch(e){ return {why: 'The file\'s progress could not be converted to this drill\'s format.'}; }
   return {db: up, log, profile: typeof j.profile === 'string' ? j.profile : '', exported: typeof j.exported === 'string' ? j.exported : '',
-          unknown: ids.length - known};
+          unknown: ids.length - known, created: db.created};
+}
+
+/* Whether the file's record continues this profile's: see "replace" above. */
+function continuesHere(here, there, fileCreated){
+  const fresh = !here.length && !Object.keys(DB.concepts || {}).length && !(DB.qn > 0);
+  if(fresh) return {ok: true, fresh: true};
+  if(!Number.isFinite(fileCreated) || !Number.isFinite(DB.created) || fileCreated !== DB.created) return {ok: false, why: 'origin'};
+  if(!here.length || here[0].qn !== 1) return {ok: false, why: 'incomplete'};
+  if(there.length < here.length) return {ok: false, why: 'order'};
+  for(let i = 0; i < here.length; i++) if(answerSig(here[i]) !== answerSig(there[i])) return {ok: false, why: 'order'};
+  return {ok: true};
 }
 
 /* What Import would do with a file read whole (readProgressFile), against the
@@ -541,43 +559,49 @@ function readProgressFile(text){
 function importPlan(f){
   if(!canSave()) return {block: LOAD_FAIL};
   const here = DB.answers, there = f.db.answers;
-  const H = new Set(here.map(answerKey)), T = new Set(there.map(answerKey));
+  const H = new Map(here.map(a => [answerKey(a), a])), T = new Map(there.map(a => [answerKey(a), a]));
   const onlyThere = there.filter(a => !H.has(answerKey(a))).length, onlyHere = here.filter(a => !T.has(answerKey(a)));
+  // the same key with different fields: a conflict
+  const conflicts = there.filter(a => H.has(answerKey(a)) && answerSig(H.get(answerKey(a))) !== answerSig(a)).length;
   // history entries the file adds, and entries here the file's copy completes (an
   // entry written before the scheduler fields were added; mergeLog's rule)
   const L = new Map(LOG.map(e => [logEntryKey(e), e]));
   const newLog = f.log.filter(e => !L.has(logEntryKey(e))).length;
   const fill = f.log.filter(e => L.has(logEntryKey(e)) && e.length > L.get(logEntryKey(e)).length).length;
-  const plan = {f, onlyThere, onlyHere: onlyHere.length, newLog, fill};
+  const plan = {f, onlyThere, onlyHere: onlyHere.length, conflicts, newLog, fill};
   // the history here cannot be read: it is never written over, so a file that adds to it is not imported
   const noLog = {block: 'The answer history saved on this device could not be read in this visit, so nothing was imported, and the history is left as it was.'};
   const logChange = newLog || fill;
-  if(!onlyThere){
+  if(!onlyThere && !conflicts){
     plan.action = logChange ? 'history' : 'nothing';
     return logChange && !LOG_OK ? noLog : plan;
   }
-  if(!here.length || !onlyHere.length){ plan.action = 'replace'; return logChange && !LOG_OK ? noLog : plan; }
+  if(!conflicts && !onlyHere.length){
+    const c = continuesHere(here, there, f.created);
+    if(c.ok){ plan.action = 'replace'; plan.fresh = !!c.fresh; return logChange && !LOG_OK ? noLog : plan; }
+    plan.unsure = c.why;
+  }
   plan.action = 'separate';
   // the file keeps only its latest answers: say so when that is why this device's answers are missing from it
-  const first = Math.min(...there.map(a => a.at));
-  plan.trimmed = there.length >= ANSWERS_MAX && onlyHere.every(a => a.at < first);
-  // a profile here that already holds every answer of the file: this file was imported before
-  plan.already = profilesHere().find(p => p.keys && there.every(a => p.keys.has(answerKey(a))));
+  const first = there.length ? Math.min(...there.map(a => a.at)) : 0;
+  plan.trimmed = there.length >= ANSWERS_MAX && onlyHere.length > 0 && onlyHere.every(a => a.at < first);
+  // a profile here that already holds every answer of the file, field for field: this file was imported before
+  plan.already = profilesHere().find(p => p.sigs && there.every(a => p.sigs.get(answerKey(a)) === answerSig(a)));
   if(plan.already) plan.action = 'nothing';
   else plan.name = newProfileName(f.profile);
   return plan;
 }
-/* The profiles saved in this browser for this course, with their answers' keys
-   (null when a profile's progress cannot be read). */
+/* The profiles saved in this browser for this course, with their answers (key ->
+   every field), or null when a profile's progress cannot be read. */
 function profilesHere(){
   const pre = NS + ':data:', out = [];
   try {
     for(let i = 0; i < localStorage.length; i++){
       const k = localStorage.key(i);
       if(!k || !k.startsWith(pre) || k.length === pre.length) continue;
-      let keys = null;
-      try { const d = JSON.parse(localStorage.getItem(k)); if(isObj(d) && Array.isArray(d.answers)) keys = new Set(d.answers.map(answerKey)); } catch(e){}
-      out.push({name: k.slice(pre.length), keys});
+      let sigs = null;
+      try { const d = JSON.parse(localStorage.getItem(k)); if(isObj(d) && Array.isArray(d.answers)) sigs = new Map(d.answers.map(a => [answerKey(a), answerSig(a)])); } catch(e){}
+      out.push({name: k.slice(pre.length), sigs});
     }
   } catch(e){ /* storage unreadable: none */ }
   return out;
@@ -600,11 +624,19 @@ function showImportPlan(plan){
                           : 'Every answer and history entry in this file is on this device already. Nothing changes.',
     history: `The file adds ${nEntries(plan.newLog)} to the answer history` +
              (plan.fill ? ` and completes ${nEntries(plan.fill)} saved here before the scheduler fields were kept` : '') + '. Your progress is unchanged.',
-    replace: `The file has ${nAnswers(plan.onlyThere)} that this device does not have, and every answer this device has is in the file. ` +
+    replace: `The file has ${nAnswers(plan.onlyThere)} that this device does not have, and ` +
+             (plan.fresh ? 'this profile has no progress yet. ' : 'it continues this profile\'s record: every answer this device has is the file\'s, in the same order. ') +
              `Import replaces the progress of "${esc(PROFILE)}" with the file's and adds ${nEntries(plan.newLog)} to its answer history. ` +
              'The progress it replaces is kept, and Settings can put it back.',
-    separate: `The file has ${nAnswers(plan.onlyThere)} that this device does not have, and this device has ${nAnswers(plan.onlyHere)} that the file does not have` +
-              (plan.trimmed ? ` (the file keeps only its latest ${nAnswers(ANSWERS_MAX)}, so it cannot show whether it includes this device's older ones)` : '') +
+    separate: [
+                plan.onlyThere ? `The file has ${nAnswers(plan.onlyThere)} that this device does not have` : '',
+                plan.onlyHere ? `this device has ${nAnswers(plan.onlyHere)} that the file does not have` +
+                  (plan.trimmed ? ` (the file keeps only its latest ${nAnswers(ANSWERS_MAX)}, so it cannot show whether it includes this device's older ones)` : '') : '',
+                plan.conflicts ? `${nAnswers(plan.conflicts)} ${plan.conflicts === 1 ? 'is' : 'are'} in both with a different result, choice or mark` : '',
+                plan.unsure === 'origin' ? 'the file\'s progress was not started from this profile\'s record, so it cannot be shown to continue it' : '',
+                plan.unsure === 'incomplete' ? `this device's answer list does not begin with its first answer (a list keeps only the latest ${nAnswers(ANSWERS_MAX)}), so it cannot be shown that the file continues its record` : '',
+                plan.unsure === 'order' ? 'this device\'s answers are not the file\'s first answers in order, so it cannot be shown that the file continues its record' : '',
+              ].filter(Boolean).join('; ').replace(/^./, c => c.toUpperCase()) +
               `. Import puts the file's progress in a new profile, "${esc(plan.name || '')}", and leaves the progress of "${esc(PROFILE)}" as it is.`,
   }[plan.action];
   const act = plan.action === 'nothing' ? '' : `<button class="btn" id="importGo">${plan.action === 'separate' ? 'Import into a new profile' : 'Import'}</button>`;
@@ -659,8 +691,10 @@ function runImport(plan){
   }
   let text = '';
   if(plan.action === 'replace'){
-    const now = store.get(keyFor(PROFILE));
-    if(now !== null && !store.trySet(backupKey(PROFILE), JSON.stringify({at: Date.now(), data: now})))
+    const now = store.get(keyFor(PROFILE)), before = readCopies();
+    if(before === null) return {text: 'The copies Import kept before cannot be read, so nothing was imported. Your progress is unchanged.'};
+    const copies = now === null ? before : before.concat([{at: Date.now(), data: now, why: 'import'}]);
+    if(now !== null && !store.trySet(backupKey(PROFILE), JSON.stringify(copies)))
       return {text: `${refused} a copy of the progress Import would replace, so nothing was imported. Your progress is unchanged.`};
     const db = JSON.parse(JSON.stringify(f.db));
     db.settings = Object.assign({}, db.settings || {});
@@ -678,30 +712,69 @@ function runImport(plan){
   }
   return {text};
 }
-/* Settings' "Put back": the progress the last import replaced, swapped with the
-   progress now on screen, which becomes the backup in its place. */
+/* The copies Import keeps, newest last: [{at, data, why}], [] for none, or null when
+   what is stored there cannot be read (then nothing writes over it). */
+function readCopies(){
+  const raw = store.get(backupKey(PROFILE));
+  if(raw === null) return [];
+  try {
+    const v = JSON.parse(raw);
+    const list = Array.isArray(v) ? v : [v];
+    return list.every(c => isObj(c) && typeof c.data === 'string') ? list : null;
+  } catch(e){ return null; }
+}
+/* Settings' "Put back": the newest copy Import kept becomes the progress again, and
+   the progress on screen is kept as a copy in its place. Each step is a write the
+   browser keeps or refuses, in an order that holds both records in storage at every
+   point: (1) the progress on screen is added to the copies, (2) the newest copy is
+   written as the progress, (3) that copy is taken off the list. A refusal at (1) or
+   (2) changes nothing; a refusal at (3) leaves that copy on the list as well, and the
+   put-back stands. */
 function restoreBackup(){
   if(!canSave()){ alert(LOAD_FAIL + ' Nothing was put back.'); return; }
-  let b;
-  try { b = JSON.parse(store.get(backupKey(PROFILE))); } catch(e){ b = null; }
-  if(!isObj(b) || typeof b.data !== 'string'){ alert('There is no readable copy to put back.'); return; }
+  const copies = readCopies();
+  if(copies === null){ alert('The copies kept by Import cannot be read, so nothing was put back.'); return; }
+  if(!copies.length){ alert('There is no copy to put back.'); return; }
+  const b = copies[copies.length - 1];
   let db;
   try { const v = JSON.parse(b.data); if(!isObj(v)) throw new Error('not a progress object'); db = upgradeDB(v); }
   catch(e){ alert('The copy kept by Import cannot be read, so nothing was put back.'); return; }
-  if(!confirm(`Put back the progress of "${PROFILE}" from before the import of ${dateOf(b.at)} (${db.answers.length} answers)? The progress now on screen is kept in its place.`)) return;
+  if(!confirm(`Put back the progress of "${PROFILE}" from ${dateOf(b.at)} (${db.answers.length} answers)? The progress now on screen is kept as a copy in its place.`)) return;
+  const refused = 'The browser refused to save (storage is full or blocked), so nothing was put back. Your progress and the copies are unchanged.';
   const now = store.get(keyFor(PROFILE));
-  if(!store.trySet(keyFor(PROFILE), b.data)){ alert('The browser refused to save (storage is full or blocked), so nothing was put back.'); return; }
-  if(now !== null) store.trySet(backupKey(PROFILE), JSON.stringify({at: Date.now(), data: now}));
+  const withNow = now === null ? copies : copies.concat([{at: Date.now(), data: now, why: 'put back'}]);
+  if(now !== null && !store.trySet(backupKey(PROFILE), JSON.stringify(withNow))){ alert(refused); return; }       // (1)
+  if(!store.trySet(keyFor(PROFILE), b.data)){                                                                      // (2)
+    // the list as it was; if that is refused too, the list keeps the extra copy of the progress on screen
+    const undone = now === null || store.trySet(backupKey(PROFILE), JSON.stringify(copies));
+    alert(undone ? refused : 'The browser refused to save (storage is full or blocked), so nothing was put back. Your progress is unchanged; ' +
+                             'the copies kept by Import now also hold a copy of it (the browser refused to take it off the list).');
+    return;
+  }
   clearTimeout(saveTimer); saveTimer = null;
   DB = db; fsFromHistory();
-  alert('The progress from before the import is back.');
+  const kept = withNow.filter(c => c !== b);
+  const listed = store.trySet(backupKey(PROFILE), JSON.stringify(kept));                                          // (3)
+  alert('The progress from ' + dateOf(b.at) + ' is back. The progress that was on screen is kept as a copy' +
+        (listed ? '.' : '; the copy just put back is also still on the list (the browser refused to update it).'));
+  renderSettings();
+}
+/* Settings' "Delete the copies": only when the student asks, after a confirm. */
+function deleteCopies(){
+  if(!canSave()){ alert(LOAD_FAIL + ' Nothing was deleted.'); return; }
+  const copies = readCopies();
+  if(!copies || !copies.length) return;
+  if(!confirm(`Delete the ${copies.length} cop${copies.length === 1 ? 'y' : 'ies'} of earlier progress kept by Import for "${PROFILE}"? This cannot be undone.`)) return;
+  store.del(backupKey(PROFILE));
   renderSettings();
 }
 function backupNote(){
-  let b = null;
-  try { b = JSON.parse(store.get(backupKey(PROFILE))); } catch(e){}
-  if(!isObj(b) || typeof b.data !== 'string') return '';
-  return `<div class="frow" style="margin-top:6px"><button class="btn ghost" id="btnRestore">Put back the progress from before the import of ${esc(dateOf(b.at))}</button></div>`;
+  const copies = readCopies();
+  if(copies === null) return '<p class="meta" style="margin:6px 0 0">The copies of earlier progress kept by Import cannot be read; they are left as they are.</p>';
+  if(!copies.length) return '';
+  const b = copies[copies.length - 1];
+  return `<div class="frow" style="margin-top:6px"><button class="btn ghost" id="btnRestore">Put back the progress from ${esc(dateOf(b.at))}</button>` +
+    `<button class="btn ghost" id="btnDeleteCopies">Delete the ${copies.length} cop${copies.length === 1 ? 'y' : 'ies'} kept by Import</button></div>`;
 }
 
 /* Calendar days to the exam, from an optional ISO `when` on the active exam
@@ -2446,6 +2519,8 @@ function renderSettings(){
   };
   const rb = $('#btnRestore');
   if(rb) rb.onclick = restoreBackup;
+  const dc = $('#btnDeleteCopies');
+  if(dc) dc.onclick = deleteCopies;
   $('#btnReset').onclick = ()=>{
     if(!canSave()){ alert(LOAD_FAIL + ' Nothing was erased.'); return; }
     if(confirm(`Erase all quiz history for "${PROFILE}"? This cannot be undone.`)){

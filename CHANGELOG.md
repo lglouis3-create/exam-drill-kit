@@ -4,7 +4,8 @@ Dated kit changes, newest first.
 
 ## 2026-11-03
 - Import progress shows what a file holds and would change, and saves only when confirmed.
-- Import refuses another course's file or a damaged file, keeps a backup it can put back, and never mixes two records.
+- Import refuses a file of another course or of no course, and replaces progress only with a record that continues it.
+- Import keeps a copy of the progress it replaces; Put back never loses either record.
 - `FEATURES.md`: the focus-switch "Use when" line no longer quotes a professor by name; its source reference is kept.
 - `core/test.js`: two lectures with the same id in `course.js` fail the check.
 - `core/offline_test.js`: "server down" refuses connections; dropped ones broke WebKit's network session at random.

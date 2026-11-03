@@ -34,7 +34,7 @@ that course's repository. Both folders come from the recovered exam-drill templa
 | `offline_test.js` | core | the offline copy: other sites' caches kept, server down (connections refused), server slow |
 | `home_test.js` | core | the Home Screen card for each kind of browser: a closed section in Settings, nothing on Topics |
 | `history_test.js` | core | the answer history: its fields, Export, Import, Erase, a refused write |
-| `import_test.js` | core | Import progress: files of another course or app and damaged files refused; older files converted; a newer file replaces after a confirmed plan, with a backup to put back; an older file changes nothing; a diverged file goes into a new profile; repeats change nothing; refused reads and writes leave everything stored as it was |
+| `import_test.js` | core | Import progress: files of another course or app, files that name no course, and damaged files refused; older files converted; a file replaces this profile only when it continues it, after a confirmed plan, with a copy to put back; conflicting copies of one answer, another origin, a cut answer list or answers out of order go into a new profile; repeats change nothing; Put back and refused reads and writes leave both records stored |
 | `preview_test.js` | core | `build.py --preview`: the live site unchanged, the preview's own namespace |
 | `state_check.js` | core | the course's root `CLAUDE.md` was updated with or after the newest lecture (§7.8) |
 | `state_check_test.js` | core | `state_check.js` on repositories with known histories |
@@ -379,43 +379,75 @@ and handles the progress as "Import progress" below says. Erase my history clear
 dropped and no notice is shown, so the history never stops progress from saving. No
 scheduler reads the history; the progress (`DB`) holds what they schedule from.
 
-**Import progress** (Louis's rules of 2026-11-02; `views.js` `readProgressFile`,
-`importPlan`, `runImport`; `import_test.js`). The file is read and checked whole before
-anything is saved:
-- **Refused:** a file that is not JSON or not a progress export; a file labelled with
-  another course (`course` or `ns`); a file with no label (the export before the kit core,
-  `{profile, db}`) unless every question it answers is in this drill's bank; a BDK quiz
-  export (`app: 'bdk-quiz'`, until a converter for it is built); another app's file; an
-  answer or a history entry that is not whole; the same answer twice. The page says which
-  of these it is.
-- **Converted:** an older progress, as on load (`upgradeDB`).
+**Import progress** (Louis's rules of 2026-11-02, corrected 2026-11-03; `views.js`
+`readProgressFile`, `importPlan`, `continuesHere`, `runImport`, `restoreBackup`;
+`import_test.js`). The file is read and checked whole before anything is saved:
+- **Refused:**
+  - a file that is not JSON or not a progress export;
+  - a file labelled with another course (`course` or `ns`);
+  - a file that names no course, such as the export before the kit core (`{profile, db}`),
+    even when every question it answers is in this drill's bank, since question ids do
+    not show whose progress a file is;
+  - a BDK quiz export (`app: 'bdk-quiz'`, until a converter for it is built);
+  - another app's file;
+  - an answer or a history entry that is not whole;
+  - the same answer twice.
 
-Two answers are the same answer when their question id and their time to the millisecond
-agree. Against the profile on screen, Import then does one of four things:
-- **nothing:** every answer and history entry of the file is here already, also when the
-  file was imported before into a profile of its own;
-- **history:** it adds history entries only, and the progress is unchanged;
-- **replace:** the file has answers this device lacks and lacks none of this device's
-  (or this profile has none);
-- **separate:** each has answers the other lacks. This is also the case when the file
-  keeps only its latest 4,000 answers and so cannot show it includes this device's older
-  ones. The file's progress goes into a new profile, named after the file's profile and
-  the date, and this profile is unchanged.
+  The page says which of these it is.
+- **Converted:** an older progress, in a file that names the course, as on load
+  (`upgradeDB`).
+
+An answer is found by its question id and its time to the millisecond. Two copies are
+the same answer only when every field agrees (result, choices picked, confidence, count
+and the rest). Two copies under one key that differ are a **conflict**. Against the
+profile on screen, Import then does one of four things:
+- **nothing:** every answer of the file is here, field for field, and every history
+  entry; or the file was imported before into a profile of its own;
+- **history:** the same, but the file adds history entries; they are merged in, and the
+  progress is unchanged;
+- **replace:** the file continues this profile's record. Either this profile has no
+  answers and no concept records, or all of these hold:
+  - the file's record has the same origin (`created`) as this one;
+  - this device's answer list is complete (its first answer is answer 1);
+  - this device's answers are the file's first answers, field for field, in order;
+- **separate:** anything else, for example:
+  - answers on each side the other lacks;
+  - a conflict;
+  - a record of another origin;
+  - an answer list here that the 4,000-answer limit has cut;
+  - answers here that are not the file's first answers in order.
+
+  The file's progress goes into a new profile, named after the file's profile and the
+  date, and this profile is unchanged.
 
 Before it saves, the page shows the course, the file's profile and export date, the
 answers and history entries in the file and on this device (with their dates), and what
-Import would do. It saves only on Import; Cancel leaves everything as it was.
+Import would do and why. It saves only on Import; Cancel leaves everything as it was.
 
-A replace keeps the progress it replaces under `<ns>:backup:<profile>`. "Put back the
-progress from before the import" in Settings swaps the two. With the progress come its
-pace and "Ask everything", because the file's review dates were set with them. The
-equation drill's choice (`IMPORT_DEVICE`) stays this device's, and no key outside the
-progress, the history and the backup is touched.
+A replace first adds the progress it replaces to the copies Import keeps (a list under
+`<ns>:backup:<profile>`, newest last). Import and Put back never delete a copy; "Delete
+the copies kept by Import" in Settings does, only when asked and confirmed.
+
+"Put back the progress from <date>" makes the newest copy the progress again, in three
+writes ordered so that both records are in storage at every point:
+1. the progress on screen is added to the copies;
+2. the newest copy is written as the progress;
+3. that copy is taken off the list.
+
+The page says what happened at each refusal:
+- step 1 refused: nothing changes;
+- step 2 refused: the progress stays as it was, and the list is written back as it was;
+  if that write is refused too, the list keeps the extra copy of the progress on screen;
+- step 3 refused: that copy stays on the list as well, and the put-back stands.
+
+With the progress come its pace and "Ask everything", because the file's review dates
+were set with them. The equation drill's choice (`IMPORT_DEVICE`) stays this device's,
+and no key outside the progress, the history and the copies is touched.
 
 Nothing is replaced while the progress, or (for a file that adds to it) the history,
 could not be read in this visit. Every Import write is `store.trySet`: when the browser
 refuses it, nothing changes, not even the copy kept for the visit. A refused write of
-the backup or the progress means nothing is imported. A refused history write leaves the
+the copies or the progress means nothing is imported. A refused history write leaves the
 history stored and in memory as it was (it does not shrink), and importing the file
 again adds the entries. A new profile whose history cannot be saved is not made. A
 browser that stops between the writes leaves either the old progress, or the new
