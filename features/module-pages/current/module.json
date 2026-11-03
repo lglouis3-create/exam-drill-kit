@@ -1,0 +1,14 @@
+{
+ "name": "module-pages",
+ "version": "v1",
+ "does": "A card per module above the topic list on Topics, each opening a page of the module with Concepts (the professor's objectives, each with its concept questions and a Start; with concept-statuses on, each row says how many of its concepts are struggling, improving, mastered), Calculations (every calculation of the module in one pass, then each kind of problem with Single problems and a worked example; with chained-problem-sets on, In parts and the lecture examples asked in parts) and, with worksheets-ink on, Worksheets (the module's documents with Write on it and Practice in the drill). Reads OBJECTIVES and CALC_TYPES from a data file listed in course.js `files` (both optional; questions no objective or kind takes are listed under Other), and a question's module from its own `module` field or its lecture's `module`.",
+ "source": "Basic-Pharmacokinetics src/views.js \"MODULES: CONCEPTS, CALCULATIONS, WORKSHEETS\" (lines 722-854), kindOf (lines 210-219), moduleOfTopic (lines 370-375), the module-page styles in src/shell.html (lines 720-745) and src/review_test.py (lines 110-170) and src/problemset_test.py (lines 33-44), at ac2eb73",
+ "js": ["module-pages.js"],
+ "css": ["module-pages.css"],
+ "step": "step.js",
+ "options": {
+  "modules": {"default": [], "about": "[[module value, heading], ...] in teaching order, the value as the lectures' `module` (or the questions' own `module`) spells it; without it the modules come in the order the lectures name them, headed by the value"},
+  "title": {"default": "Study by module", "about": "the heading over the module cards on Topics"}
+ },
+ "test": "test.js"
+}
