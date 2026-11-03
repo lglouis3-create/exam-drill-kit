@@ -23,8 +23,9 @@ Dated kit changes, newest first.
   run on Basic-Pharmacokinetics questions as well as the course's own (first frame, reload
   timing, Export and Import, storage denied and full, contrast); run on a copy with the
   module's code emptied it fails. Known limit: on a page of 1.5 MB or more a stored Dark can
-  show light for a moment when the page opens (3 of 5 reloads on a 1.88 MB course); the test
-  reports it with its measurement, and the fix needs a core change (a script in `<head>`). `features/theme/ci/oncourse.js` switches it on in the kit's
+  show light for a moment when the page opens, and a stored Light dark (on 2026-11-03, 6 to 10
+  and 4 to 8 of 12 reloads of a 1.6 MB page); the test reports it as a skip labelled KNOWN LIMIT
+  T1 with its count, and the fix needs a core change (a script in `<head>`). `features/theme/ci/oncourse.js` switches it on in the kit's
   CI courses. No course switches it on yet.
 
 ## 2026-11-01
