@@ -31,7 +31,7 @@ that course's repository. Both folders come from the recovered exam-drill templa
 | `draw_test.js` | core | no exam paper carries two wordings of one fact, across pools too |
 | `update_test.js` | core | a newer version is offered; a reload comes back to the same place |
 | `sw.js` | core | the service worker; `build.py` fills in the course's cache prefix and file list and writes it to the root |
-| `offline_test.js` | core | the offline copy: other sites' caches kept, server down, server slow |
+| `offline_test.js` | core | the offline copy: other sites' caches kept, server down (connections refused), server slow |
 | `home_test.js` | core | the Home Screen card for each kind of browser: a closed section in Settings, nothing on Topics |
 | `history_test.js` | core | the answer history: its fields, Export, Import, Erase, a refused write |
 | `preview_test.js` | core | `build.py --preview`: the live site unchanged, the preview's own namespace |

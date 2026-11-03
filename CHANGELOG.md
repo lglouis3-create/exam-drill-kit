@@ -2,6 +2,9 @@
 
 Dated kit changes, newest first.
 
+## 2026-11-03
+- `core/offline_test.js`: "server down" refuses connections; dropped ones broke WebKit's network session at random.
+
 ## 2026-11-02
 - `core/style_check.js`: "given as" in a dose or a problem (given as an IV infusion) is no longer flagged.
 - `core/home_test.js`: answers a select-all question it picks, with its right boxes, so it no longer fails at random.
