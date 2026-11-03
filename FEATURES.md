@@ -290,16 +290,16 @@ Known issues: none open.
 Test: `tests/ui.js` (BDK).
 
 ## pair-up
-Does: a page that pairs confusable items (PH Exam 2 work).
-Use when: lectures produce confusable pairs beyond the tell-apart tables.
-Do not use when: tell-apart tables already cover the pairs.
-Enable: course.js → features.pair-up = { version: 'v1' }
+Does: a Pair up tab: chips dragged or tapped into the box they belong to (one chip per box, or several per box), checked together, each chip shown with where it belongs and why, the wrong ones retried (PH Exam 2 work: receptor → effect, DUMBBELSS, anti-DUMBBELSS, receptor → G protein, drug → receptor).
+Use when: lectures produce sets of pairs or groups (receptor to effect, drug to receptor family) beyond the tell-apart tables.
+Do not use when: tell-apart tables already cover the pairs, or the pairs are few enough for one `match` question in the bank (the core's matching item type, which is graded and scheduled as a bank question).
+Enable: course.js → features['pair-up-drills'] = { version: 'v1' }, with `const PAIR_SETS = [{id, name, cite, bins, pairs: [[chip, box, why], ...]}]` in a data file listed in `files` (module `pair-up-drills`, which also holds table-recall-drill)
 Versions:
-  v1  2026-10-11  from PH (`f4196e2`, `vPair()`)   best for: lecture courses   weaker at: not evaluated   current/
+  v1  2026-10-11  from PH (`f4196e2`, `vPair()`)   best for: lecture courses   weaker at: not evaluated   current/ (ported 2026-11-02 from PH `929cd62` `exam1-drill/src/app.js` into `features/pair-up-drills/`)
 Evidence: none recorded.
-Used by: PH (v1)
-Known issues: none recorded. Overlaps compare-tab; a retro should decide whether one replaces the other.
-Test: none found.
+Used by: PH (v1, its own copy); the kit module: none yet.
+Known issues: none recorded. Overlaps compare-tab; a retro should decide whether one replaces the other. In the kit the best score per set is kept in the progress (`DB.pairup`), not in PH's separate `:pair` key; PH's "See the figure" links (to its own diagrams) are not ported; PH's drug set, which PH builds in the page from its drug list with course-specific patterns, is course data in the kit. A reload in the same moment as Check loses that new best score (the core writes the progress 150 ms after the last change).
+Test: `features/pair-up-drills/current/test.js` (69 checks on the template course with PH's sets and tables as its course data, written by `features/pair-up-drills/ci/oncourse.js`; they include the saved scores and misses through a reload, Export and Import, a profile switch, storage denied and full, and the module options; PH's own tests do not drive Pair up beyond its saved score).
 
 ## explain-one-cards
 Does: a "Why?" button on each table row and an "Explain one" select, with a floating "Back to the explanation" button.
@@ -699,17 +699,17 @@ Known issues: what the core already had: `glossary.js` `GLOSS` and `views.js` `g
 Test: `features/glossary-tap/current/test.js` (PH `exam1-drill/src/browser_test.js` lines 53-56 ported: the glossary shows its terms and figures; the rest written for the kit: 56 checks, including the exam review, links, quotations and storage blocked or full, on scratch copies with 10 PH terms, 4 PH questions and PH guide excerpts; 37 more when `formulas-in-text` is in the course, with 7 PK terms and PK question ws6-i3-2c built in both module orders). The module's own course, written by `features/glossary-tap/ci/oncourse.js`: PH's lectures L04 and L10, their topics and 66 of their questions, the 10 terms and the guide excerpt (prof set to the template's "Professor"), on which `run_checks.sh` passes with only `cite_check.py` NOT RUN; the build step stops the build on a duplicate id or name, a term with no definition, group or source, a figure not in `DIA`, a lecture not in `COURSE.lectures`, and a `notTapped` id that is not a term.
 
 ## table-recall-drill
-Does: recall a course table from written answers, row by row (PH drug ↔ receptor: name the receptor and action, or the drug; PH poisoning table).
+Does: recall a course table row by row: each row asked column from column (PH drug ↔ receptor: name the receptor and action, or the drug; PH poisoning table: the antidote, its mechanism, the poison, the professor's special questions), one tap among answers drawn from the other rows, misses back at the end of the round and first in the next one; and Cover and reveal over the whole table.
 Use when: the professor tests a table as a table.
 Do not use when: no tables to memorise.
-Enable: course.js → features.table-recall-drill = { version: 'v1', table: '<id>' }
+Enable: course.js → features['pair-up-drills'] = { version: 'v1' }, with `const RECALL_TABLES = [{id, tab, title, intro, cite, name, columns, covers, modes, rows}]` in a data file listed in `files` (shapes in `features/pair-up-drills/current/pair-up-drills.js`); one tab per table
 Versions:
-  v1  2026-10-12  from PH (`5a563f4`, `vRxq()`)   best for: drug-receptor tables   weaker at: not evaluated   current/
-  v1-b  2026-10-20  from PH (`96e33bf`, `src/poison_table.js`)   best for: the professor's posted table key   weaker at: not evaluated
+  v1  2026-10-12  from PH (`5a563f4`, `vRxq()`)   best for: drug-receptor tables   weaker at: not evaluated   current/ (ported 2026-11-02 from PH `929cd62` into `features/pair-up-drills/`, with v1-b)
+  v1-b  2026-10-20  from PH (`96e33bf`, `src/poison_table.js`)   best for: the professor's posted table key   weaker at: not evaluated   current/ (same module)
 Evidence: none recorded.
-Used by: PH
-Known issues: content-bound; `share/FEATURES.md` notes a kinetics course would replace it with an equation drill of the same shape.
-Test: none found.
+Used by: PH (its own copy); the kit module: none yet.
+Known issues: content-bound in PH (`share/FEATURES.md` notes a kinetics course would replace it with an equation drill of the same shape); in the kit the module holds no course content: a course gives its rows, and PH's per-row derivations (the receptor line, its flipped twin, the receptor-plus-action key) are written into the rows by `features/pair-up-drills/port_from_ip.js`. Scores and misses are kept in the progress (`DB.pairup`). A tap on an answer or on Skip within 350 ms of a card being drawn is not taken, in every table (PH had this on its poisoning table only). Not ported: PH's antidote diagrams beside the poisoning table, its links to the reference page; PH's variant drill (`pgx_table.js`, Exam 4) has the same shape and can be given as a table.
+Test: `features/pair-up-drills/current/test.js` (PH `exam1-drill/src/browser_test.js` section 12 ported, and the module's items compared with PH's own `ptItems` on its 12-row poisoning table).
 
 ## standalone-diagram-pages
 Does: separate diagram pages built from their own sources, with hashes checked by the main tests.
