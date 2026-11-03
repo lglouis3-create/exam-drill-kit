@@ -143,4 +143,25 @@ if [ $unexpected -gt 0 ]; then
   echo "FAIL: $unexpected check(s) did not run for a reason that is not a documented exclusion" >&2
   exit 1
 fi
+# A module course: each module switched on must have its own test (features/<name>/test.js)
+# PASS, with at least one passed check after its browser started, in the browser this run
+# names (the line check_lib.js's launch prints). A test that passed on checks outside the
+# browser alone, or whose browser checks were all skipped, does not count as run there.
+if [ -n "${order:-}" ]; then
+  want="$(case "$browser" in webkit) echo WebKit;; firefox) echo Firefox;; *) echo Chromium;; esac)"
+  short=0
+  echo; echo "---- each module's own test in $want ----"
+  for m in $order; do
+    c="features/$m/test.js"; f="$logs/${c//\//__}.log"
+    res="$(grep -E "^[A-Z ]+ +features/$m/test.js " "$work/checks.log" | head -n 1 | awk '{print $1}' || true)"
+    n=0
+    if [ -n "$logs" ] && [ -f "$f" ]; then n="$(awk -v b="  browser  $want started" '$0 == b {on = 1; next} on && /^  ok /{k++} END {print k + 0}' "$f")"; fi
+    if [ "$res" = PASS ] && [ "$n" -ge 1 ]; then echo "  $m: PASS, $n check(s) passed in $want"
+    else echo "  $m: ${res:-no result}, $n check(s) passed in $want"; short=$((short + 1)); fi
+  done
+  if [ $short -gt 0 ]; then
+    echo "FAIL: $short module test(s) did not pass at least one check in $want" >&2
+    exit 1
+  fi
+fi
 exit "$status"

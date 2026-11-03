@@ -3,6 +3,7 @@
 Dated kit changes, newest first.
 
 ## 2026-11-03
+- Kit checks on GitHub: each module course the plan selects also runs in WebKit (job "modules-webkit"), and a module course fails unless each module's own test passed at least one check in that job's browser.
 - An answer or a setting changed just before the page is reloaded, closed or hidden is saved at once; it was lost when the 150 ms save had not yet run.
 - `core/test.js` section 7 runs its miss-and-return trial 20 times instead of once, and passes the cool-down by adding to the answer count, so a scheduler that always ignores the different-wording rule is caught in every run, and a topic with few concepts no longer fails it falsely.
 - Standing autonomy (Louis): `KIT_DESIGN.md` §12 decision 10 says which pull requests Claude merges on its own after an independent review, which checks must pass (every applicable `checks.yml` job, with "success", on the final head commit), and Claude's readings; `review/porter-policy.md` follows it; no course update goes live without Louis's reply.

@@ -1,14 +1,16 @@
 # Kit checks: every pull request and every push to main runs core/run_checks.sh on
 # scratch courses built from the kit (core/ci_course.sh), in Chromium, and the
 # template once in WebKit (Safari's engine, not the Safari app). Feature modules are
-# checked on courses of their own (job "modules"): .github/ci_plan.js picks each module
+# checked on courses of their own, in Chromium (job "modules") and in WebKit (job
+# "modules-webkit", since 2026-11-03): .github/ci_plan.js picks each module
 # a pull request changes, the modules that need it, and the combinations in
 # features/ci-combinations.txt; every module on a push to main or a change to core/,
 # template/ or .github/.
 #
 # A job fails on any FAIL and on any NOT RUN that is not a documented exclusion
 # (listed at the top of core/ci_course.sh), so a missing Playwright, browser or
-# pdfplumber fails it. Every job blocks a merge, the WebKit job too (Louis, 2026-11-02; held
+# pdfplumber fails it; a module course's job also fails unless each module's own test
+# passed at least one check in that job's browser. Every job blocks a merge, the WebKit job too (Louis, 2026-11-02; held
 # on 2026-11-03 until the WebKit failures of offline_test.js were diagnosed and fixed in pull
 # request #33, then 21 of 21 repeated WebKit runs of the whole suite on main passed, run
 # 41574234473). WebKit on this Linux runner is not the Safari app: an iPhone and an iPad are
@@ -121,3 +123,35 @@ jobs:
         env:
           COURSE: ${{ matrix.course }}
         run: bash core/ci_course.sh "$COURSE" chromium
+
+  # Each module course the plan selects, in WebKit too (Louis, 2026-11-03: "Yes, build the
+  # additional job"; KIT_DESIGN.md §12 decision 10, Claude's reading 6, which Louis accepted).
+  # ci_course.sh fails the job unless each module's own test passes at least one check after
+  # WebKit started.
+  modules-webkit:
+    name: WebKit · ${{ matrix.course }}
+    needs: plan
+    if: needs.plan.outputs.courses != '[]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        course: ${{ fromJSON(needs.plan.outputs.courses) }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
+        with:
+          python-version: '3.13'
+      - name: Playwright 1.63.0, WebKit and pdfplumber 0.11.10
+        run: |
+          npm install -g playwright@1.63.0
+          npx --yes playwright@1.63.0 install --with-deps webkit
+          python -m pip install pdfplumber==0.11.10
+      - name: Switch the modules on in a template course and run every check in WebKit
+        env:
+          COURSE: ${{ matrix.course }}
+        run: bash core/ci_course.sh "$COURSE" webkit

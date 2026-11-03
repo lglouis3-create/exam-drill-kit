@@ -409,7 +409,9 @@ changes an earlier section, this section is current.
       the pull request's final head commit:
       - always: the Chromium jobs (template, template-unset, Medicinal-chemistry), the
         WebKit template job, and the "Modules to check" plan job;
-      - each module job the plan selects. The plan selects a module only when the plan
+      - each module job the plan selects, in Chromium ("modules") and, since 2026-11-03,
+        in WebKit ("modules-webkit"), which fails unless each module's own test passed
+        at least one check after WebKit started. The plan selects a module only when the plan
         job concluded "success" and lists that module in its `courses` output. A pull
         request that changes `core/`, `template/` or `.github/` selects every module
         (`.github/ci_plan.js`). When a plan that concluded "success" lists no module (its
@@ -492,12 +494,12 @@ changes an earlier section, this section is current.
       5. A run that GitHub refused to start may be started again; that is not rerunning a
          failure, and the refused attempt stays in the record. (This one allows a step
          his text does not name; it applies only to jobs that never started.)
-      6. "WebKit where applicable": `checks.yml` runs WebKit on the template course only,
-         and module courses in Chromium only. For an optional feature module, or a
-         test-only change to a module's tests, merged on Claude's decision, a WebKit run
-         of that module's course (`core/ci_course.sh module:<name> webkit`) concluded
-         "success" on GitHub on the final head commit is also required; until a GitHub
-         job runs it, the merge waits.
+      6. "WebKit where applicable": for an optional feature module, or a test-only change
+         to a module's tests, merged on Claude's decision, a WebKit run of that module's
+         course (`core/ci_course.sh module:<name> webkit`) concluded "success" on GitHub on
+         the final head commit is also required. Since 2026-11-03 the job "modules-webkit"
+         of `checks.yml` runs it for every module course the plan selects (before that,
+         `checks.yml` ran WebKit on the template course only, and the merge waited).
       7. A course session changes a live site only with Louis's approval of that change
          given in the session (the part of "Live courses" above that Louis has not
          confirmed; `CLAUDE.md`, open question 3).
