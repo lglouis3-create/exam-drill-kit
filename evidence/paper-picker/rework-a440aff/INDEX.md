@@ -34,7 +34,7 @@ All results here are agent-run (a rework session, 2026-11-03); none was re-run b
 Reproduction: every candidate put back (`repro/fixture-try1.json.gz`, report `repro/mkfixture-try1.json`),
 written with `writefixture2.js` into `features/paper-picker/current/test_fixture.js` of `b283f2f` plus the
 `ci/oncourse.js` change, then `TMPDIR=... bash core/ci_course.sh module:paper-picker`: log
-`repro/ci_course-module-paper-picker-try1.log`, per-check logs `repro/try1-per-check/` (19 PASS, 7 FAIL, 1 NOT RUN, 1 REPORT;
+`repro/ci_course-module-paper-picker-try1.log`, per-check logs `repro/try1-per-check/` (20 PASS, 7 FAIL, 1 NOT RUN, 1 REPORT;
 output_test.js and checks_test.js fail only because they run test.js). The excluded records, verbatim with their reason:
 `repro/excluded-questions.json`. All faults are in the core (no change to `core/` is allowed in a port):
 
