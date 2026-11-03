@@ -629,6 +629,34 @@ let nfile = 0;
     await o.d.ctx.close();
   }
   {
+    // a tab already stopped as stale stays stopped, also after the site data is cleared
+    const d = await device(); const di = await info(d.page);
+    await answer(d.page, 2, 0);
+    const tab2 = await d.ctx.newPage();
+    tab2.on('dialog', x => x.accept());
+    await tab2.goto(d.page.url());
+    await tab2.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+    await answer(tab2, 3, 2);                                       // the other tab: 5 answers stored
+    await d.page.evaluate(() => record(QUESTIONS[0], 'correct', undefined, 1000));
+    await d.page.waitForTimeout(400);                                // this tab is stopped
+    await d.page.evaluate(() => localStorage.clear());
+    await d.page.evaluate(() => record(QUESTIONS[1], 'correct', undefined, 1000));
+    await d.page.waitForTimeout(400);
+    check(await stored(d.page, di.data) === null && await d.page.evaluate(() => !!document.getElementById('stalewarn')),
+      'a tab stopped as stale writes nothing after the site data is cleared either: its older copy is not written', await stored(d.page, di.data));
+    await d.ctx.close();
+  }
+  {
+    // site data cleared, then Import: the plan saves the page's copy again first
+    const o = await own(3);
+    await o.d.page.evaluate(() => localStorage.clear());
+    const rr = await choose(o.d.page, o.file, false);
+    const back = JSON.parse(await stored(o.d.page, o.di.data) || '{"answers":[]}');
+    check(back.answers.length === 3 && /on this device already/.test(rr.plan),
+      'site data cleared, then Import: the page\'s 3 answers are saved again before the plan, so "on this device already" is true', {n: back.answers.length, plan: rr.plan.slice(0, 120)});
+    await o.d.ctx.close();
+  }
+  {
     // two tabs on one profile: a history import in one, then Import, Erase and Put back in the other
     const d = await device(); const di = await info(d.page);
     await answer(d.page, 3, 0);

@@ -650,8 +650,14 @@ function continuesHere(here, there, fileCreated, fdb){
 
 /* What Import would do with a file read whole (readProgressFile), against the
    profile on screen; or {block} when nothing may be replaced in this visit. */
+/* The browser holds nothing under this profile's progress key (its site data was
+   cleared while this page was open), though the page holds progress. */
+const storedGone = () => { try { return localStorage.getItem(keyFor(PROFILE)) === null && holdsProgress(DB); } catch(e){ return false; } };
 function importPlan(f){
   if(!canSave()) return {block: LOAD_FAIL};
+  // site data cleared while this page was open: the page's copy is saved again first, as
+  // its next save would, so the plan compares the file with what is stored
+  if(storedGone() && !changedElsewhere()){ store.set(keyFor(PROFILE), JSON.stringify(DB)); saveLog(); }
   if(FAILED.has(keyFor(PROFILE))) return {block: UNSAVED};
   if(changedElsewhere()) return {block: ELSEWHERE};
   const here = DB.answers, there = f.db.answers;
@@ -824,7 +830,7 @@ function runImport(plan){
   // an answer given in the last 150 ms is saved first, so the copy kept below holds it
   // the browser's site data cleared while this page was open: the page's copy is
   // written back first, so the copy kept below holds it
-  const cleared = store.get(keyFor(PROFILE)) === null && holdsProgress(DB);
+  const cleared = storedGone();
   if(saveTimer || cleared){
     clearTimeout(saveTimer); saveTimer = null;
     // store.set keeps the refused change on this page and flags it, as any save does

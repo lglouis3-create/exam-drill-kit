@@ -636,8 +636,9 @@ function saveWarn(){
 }
 /* Another tab or window saved this profile after this page read it: this page stops
    saving, so it never writes its older copy over that progress, and says so once. */
-let STALE_WARNED = false;
+let STALE_WARNED = false, STALE = false;   // STALE: this page stays stopped for the rest of the visit
 function staleWarn(){
+  STALE = true;
   if(STALE_WARNED) return;
   if(!document.body){ document.addEventListener('DOMContentLoaded', staleWarn, {once: true}); return; }
   STALE_WARNED = true;
@@ -654,7 +655,7 @@ function staleWarn(){
 const savedElsewhere = (k, seen) => { let now; try { now = localStorage.getItem(k); } catch(e){ return false; } return now !== seen && now !== null && !FAILED.has(k); };
 /* Another tab or window saved this profile, its progress or its history, since this
    page read them: both belong to one record, so neither is written then. */
-const profileSavedElsewhere = () => savedElsewhere(keyFor(PROFILE), SEEN) || savedElsewhere(logKey(), SEEN_LOG);
+const profileSavedElsewhere = () => STALE || savedElsewhere(keyFor(PROFILE), SEEN) || savedElsewhere(logKey(), SEEN_LOG);
 /* The saved progress could not be read (load, below): say so once, in plain
    words, and that nothing is saved during this visit. loadWarn(false) takes
    the notice away again when a later load works (another profile). */

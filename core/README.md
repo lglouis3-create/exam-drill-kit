@@ -418,7 +418,8 @@ could undo an import. Import, Erase my history, Put back, Delete the copies and 
 exam paper's saves have the same guard. A key that is gone is not another tab's save:
 the core never deletes a profile's progress or history, so a missing key means the
 browser's site data was cleared while the page was open, and the page's next save
-writes its copy back (as before 2026-11-03).
+writes its copy back (as before 2026-11-03); Import saves it back before it plans. A
+page that has been stopped stays stopped until it is reloaded, also after a clear.
 
 An answer is found by its question id and its time to the millisecond. Two copies are
 the same answer only when every field agrees (result, choices picked, confidence, count
