@@ -1,0 +1,17 @@
+
+=== Stem check (every stem asks the subject, not "what does the deck say") ===
+  all 23 stems clean
+
+=== Style check (rebuilt questions only) ===
+
+  scanned 23 rebuilt questions
+  no flagged phrasing found
+
+=== Change log ===
+  1 entries, 1 bullets, all within one line
+
+  rebuilt questions whose citation names a slide: 23 of 23
+     by slide number: 23
+     by slide title:  0
+  rebuilt questions with a diagram: 0
+PASS: style_check.js: 23 stems and 23 explanations clean
