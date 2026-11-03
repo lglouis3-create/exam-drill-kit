@@ -14,8 +14,8 @@
  *     q16_module8.js), after the course's own topics;
  *   - the 5 COURSE.lectures entries those questions name (L08 to L12);
  *   - the COURSE.skills entries those questions name that the course does not have.
- * The changes: every `prof` is the template's "Professor", so no personal name is in the
- * kit's course; and the ids (the kit's CI data rule 2), through that file's `const PFX`:
+ * `prof` is the source's own, verbatim (rework 2026-11-03, Louis's policy), and that professor is added
+ * to COURSE.professors when the course lacks it. The change: the ids (the kit's CI data rule 2), through that file's `const PFX`:
  * every question, topic, subtopic and lecture id, and every reference to one (dupOf, topic,
  * sub, lecture), is the course's own with the prefix qpc-, so another module's copy of the
  * same Basic-Pharmacokinetics question never shares an id:
@@ -44,7 +44,7 @@
  * ran on (it runs once per fresh course).
  */
 const fs = require('fs'), path = require('path'), vm = require('vm');
-const NAME = 'quiz-prep-cards', TAG = '/* quiz-prep-cards ci */', FILE = 'q90_qpc_pk.js', PROF = 'Professor';
+const NAME = 'quiz-prep-cards', TAG = '/* quiz-prep-cards ci */', FILE = 'q90_qpc_pk.js';
 function fail(msg){ console.error(`${NAME} ci/oncourse.js: ${msg}`); process.exit(1); }
 const [kit, src] = process.argv.slice(2);
 if(!kit || !src) fail(`usage: node features/${NAME}/ci/oncourse.js <kitDir> <courseSrcDir>`);
@@ -74,7 +74,6 @@ if(text.includes(TAG)) fail(`course.js already switches ${NAME} on (this script 
 if(fs.existsSync(data)) fail(data + ' already exists (this script runs once per course)');
 let COURSE;
 try { COURSE = new Function(text + '\n;return COURSE;')(); } catch(e){ fail('course.js cannot be read: ' + e.message); }
-if(!(COURSE.professors || []).includes(PROF)) fail(`course.js does not list the professor "${PROF}"`);
 if(COURSE.quizzes) fail('course.js already has quizzes');
 const lit = s => { if(!/^[A-Za-z0-9 ._-]+$/.test(String(s))) fail(`"${s}" cannot be written as a literal`); return `'${s}'`; };
 // the course's own questions, topics, equations and ASKS keys, read from its data files
@@ -99,17 +98,19 @@ FIX.qs = FIX.qs.map(q => { const r = Object.assign({}, q);
   if(r.setup !== undefined && !(r.setup && (r.setup.eq === 'none' || EQ.has(r.setup.eq)) && (r.setup.pre || []).every(x => EQ.has(x)))){ delete r.setup; dropped.setup.push(q.id); }
   if(r.asks !== undefined && !AK.has(r.asks)){ delete r.asks; dropped.asks.push(q.id); }
   return r; });
-const bad = FIX.qs.concat(FIX.topics, FIX.lectures).filter(o => o.prof !== PROF).map(o => o.id);
-if(bad.length) fail(`the fixture has a prof other than "${PROF}": ` + bad.join(', '));
-// one question per line, `{id:'…', [type:'…',] prof:'Professor', …}`, as browser_test.js counts them
+// the source's own professor (`prof`, verbatim), added to COURSE.professors when the course lacks it
+const bad = FIX.qs.concat(FIX.topics, FIX.lectures).filter(o => typeof o.prof !== 'string' || !o.prof).map(o => o.id);
+if(bad.length) fail('the fixture has no prof on: ' + bad.join(', '));
+const addProfs = [...new Set(FIX.qs.concat(FIX.topics, FIX.lectures).map(o => o.prof))].filter(p => !(COURSE.professors || []).includes(p));
+// one question per line, `{id:'…', [type:'…',] prof:'…', …}`, as browser_test.js counts them
 const qLine = q => { const rest = Object.assign({}, q); delete rest.id; delete rest.type; delete rest.prof;
-  return `{id:${lit(q.id)},` + (q.type ? ` type:${lit(q.type)},` : '') + ` prof:${lit(PROF)}, ` + JSON.stringify(rest).slice(1) + ','; };
+  return `{id:${lit(q.id)},` + (q.type ? ` type:${lit(q.type)},` : '') + ` prof:${lit(q.prof)}, ` + JSON.stringify(rest).slice(1) + ','; };
 // a lecture as `{id:'qpc-L08', …}`, as state_check.js finds it in course.js
 const lLine = l => { const rest = Object.assign({}, l); delete rest.id; return `{id:${lit(l.id)}, ` + JSON.stringify(rest).slice(1); };
 const skills = FIX.skills.filter(s => !(COURSE.skills || []).some(x => x.id === s.id));
 const body = `/* quiz-prep-cards ci: Basic-Pharmacokinetics (ac2eb73): the topics ${FIX.topics.map(t => t.id).join(', ')} and the
    ${FIX.qs.length} questions of the professor's graded Quiz 4 and Quiz 5 (src/q13_quizzes.js) and those their dupOf names, from the
-   fixture in features/quiz-prep-cards/current/test.js; prof set to "Professor", ids prefixed qpc-, and a setup or asks the course
+   fixture in features/quiz-prep-cards/current/test.js; prof as written, ids prefixed qpc-, and a setup or asks the course
    has no equation or ASKS key for left out; nothing else changed */
 TOPICS.push(${FIX.topics.map(t => JSON.stringify(t)).join(',\n ')});
 QUESTIONS.push(
@@ -119,6 +120,7 @@ ${FIX.qs.map(qLine).join('\n')}
 const line = `\n;${TAG} COURSE.files = (COURSE.files || ['atlas.js', 'diagrams.js', 'q1_topics.js']).concat([${JSON.stringify(FILE)}]); ` +
   `COURSE.lectures = (COURSE.lectures || []).concat([${FIX.lectures.map(lLine).join(', ')}]); ` +
   `COURSE.skills = (COURSE.skills || []).concat(${JSON.stringify(skills)}); ` +
+  `COURSE.professors = (COURSE.professors || []).concat(${JSON.stringify(addProfs)}); ` +
   `COURSE.quizzes = (COURSE.quizzes || []).concat(${JSON.stringify(FIX.quizzes)}); ` +
   `COURSE.features = Object.assign({}, COURSE.features, {${JSON.stringify(NAME)}: ${JSON.stringify({version: meta.version})}});\n`;
 try { fs.writeFileSync(data, body); } catch(e){ fail('cannot write ' + data + ': ' + e.message); }
