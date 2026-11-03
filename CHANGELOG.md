@@ -114,6 +114,15 @@ Dated kit changes, newest first.
   `features/ci-combinations.txt`: terms-variables with equation-drill.
   FEATURES.md: PK added to the `glossary` entry; new entry `terms-variables`. Port queue
   item 3 is partial: Weak spots and a reload during a drill need a core change.
+- New feature module `theme` v1 (`features/theme/`), from Basic-Pharmacokinetics `ac2eb73`
+  (`src/views.js` 6323-6333 and `src/shell.html` 979-1042): dark colours for the whole page
+  (the core has light colours only) and the student's choice of Match device, Light or Dark
+  in the header and in Settings. The choice is kept in the browser under `<ns>:theme` for
+  every profile, not in the progress, so Export does not carry it. Its test has 41 checks,
+  run on Basic-Pharmacokinetics questions as well as the course's own (first frame, reload
+  timing, Export and Import, storage denied and full, contrast); run on a copy with the
+  module's code emptied it fails. `features/theme/ci/oncourse.js` switches it on in the kit's
+  CI courses. No course switches it on yet.
 
 ## 2026-11-01
 - `core/`: an exam with `questions: null` or a pool with `marks: null` no longer breaks the page (`nullexam.js`).

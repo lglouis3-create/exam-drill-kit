@@ -1,0 +1,9 @@
+{
+ "name": "theme",
+ "version": "v1",
+ "does": "Dark colours for the whole page, and the student's own choice of Match device (the default: the phone's or computer's light or dark setting), Light or Dark, in the header and in Settings. The choice is a setting of the device, kept in this browser for every profile and not in the progress. Reads no course data.",
+ "source": "Basic-Pharmacokinetics src/views.js lines 6323-6333 and src/shell.html lines 979-1042, at ac2eb73",
+ "js": ["theme.js"],
+ "css": ["theme.css"],
+ "test": "test.js"
+}
