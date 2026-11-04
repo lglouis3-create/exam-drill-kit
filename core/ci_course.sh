@@ -27,6 +27,9 @@
 # check is NOT RUN that is not one of the documented exclusions below, with the reason
 # given there: a missing Playwright, a browser that did not start, a missing pdfplumber
 # or any other unplanned NOT RUN fails the run instead of passing on NOT RUN lines.
+# On a module course, also 1 when a module's own test (features/<name>/test.js) did not
+# PASS with at least one passed check printed after the browser it started (check_lib.js
+# launch) was the run's browser.
 #
 # Documented exclusions (check, the reason it must give, which courses, why):
 #   cite_check.py    "no lecture PDFs found"     every course   the lecture decks are kept
@@ -36,7 +39,8 @@
 #                                                chemistry      step-through figures
 set -euo pipefail
 kind="${1:?usage: core/ci_course.sh <template|template-unset|medicinal-chemistry|module:<name>|modules:<a>,<b>> [chromium|webkit]}"
-browser="${2:-chromium}"
+browser="${2:-chromium}"; browser="${browser,,}"
+order=""   # the modules switched on (module courses only), never taken from the environment
 kit="$(cd "$(dirname "$0")/.." && pwd)"
 work="$(mktemp -d "${TMPDIR:-/tmp}/kit-ci-XXXXXX")"
 course="$work/course"
@@ -142,5 +146,28 @@ done < <(grep -E '^NOT RUN +[^ ]+ ' "$work/checks.log" || true)
 if [ $unexpected -gt 0 ]; then
   echo "FAIL: $unexpected check(s) did not run for a reason that is not a documented exclusion" >&2
   exit 1
+fi
+# A module course: each module switched on must have its own test (features/<name>/test.js)
+# PASS, with at least one passed check printed after the line check_lib.js's launch prints
+# when the run's browser has started. A test that finished before starting its browser,
+# started none through launch, or passed nothing after it, does not count as run there.
+# (A check printed after that line is counted whether or not it used the page; the kit's
+# module tests do use it.)
+if [ -n "${order:-}" ]; then
+  want="$(case "$browser" in webkit) echo WebKit;; firefox) echo Firefox;; *) echo Chromium;; esac)"
+  short=0
+  echo; echo "---- each module's own test in $want ----"
+  for m in $order; do
+    c="features/$m/test.js"; f="$logs/${c//\//__}.log"
+    res="$(grep -E "^[A-Z ]+ +features/$m/test.js " "$work/checks.log" | head -n 1 | awk '{print $1}' || true)"
+    n=0
+    if [ -n "$logs" ] && [ -f "$f" ]; then n="$(awk -v b="  browser  $want started" '$0 == b {on = 1; next} on && /^  ok /{k++} END {print k + 0}' "$f")"; fi
+    if [ "$res" = PASS ] && [ "$n" -ge 1 ]; then echo "  $m: PASS, $n check(s) passed in $want"
+    else echo "  $m: ${res:-no result}, $n check(s) passed in $want"; short=$((short + 1)); fi
+  done
+  if [ $short -gt 0 ]; then
+    echo "FAIL: $short module test(s) did not pass at least one check in $want" >&2
+    exit 1
+  fi
 fi
 exit "$status"
