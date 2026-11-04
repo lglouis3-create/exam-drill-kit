@@ -724,7 +724,7 @@ function claimProfile(p){
   claimWriter(p, 'try').then(ok => {
     if(PROFILE !== p) return;
     // NEW_LOG keeps entries answered while the lock was asked for: flushWaiting saves them now
-    if(ok){ WRITER = 'held'; WROTE_SINCE_CLAIM = false; flushWaiting(); settlePendingSoon(); }
+    if(ok){ WRITER = 'held'; WROTE_SINCE_CLAIM = false; MARK = 0; flushWaiting(); settlePendingSoon(); }
     else if(WRITER === 'pending'){ WRITER = 'other'; WRITER_WHY = 'other'; EXAM_CLEAR_WAITING = ''; stopWall('other'); }
   });
 }
@@ -831,6 +831,7 @@ if(writerChan) writerChan.addEventListener('message', e => {
    `<ns>:pending-seen:<profile>`, so a reload does not start the wait again. A record that changed
    is checked again; one that cannot be read is left as it is. Without Web Locks no record is kept. */
 let NEW_LOG = [], WROTE_SINCE_CLAIM = false;   // this tab wrote the progress since it took the profile
+let MARK = 0;                                   // when this tab last erased, put back or replaced by Import
 let SETTLING = false;                          // the settling's own writes are not this tab's
 function pendingKey(p, tab){ return NS + ':pending:' + p + ':' + tab; }
 const seenKeyOf = p => NS + ':pending-seen:' + p;
@@ -839,19 +840,32 @@ function pendingAfter(k, v){
     if(WRITER !== 'held' || WRITER_FOR !== PROFILE || k !== keyFor(PROFILE)) return;
     if(!SETTLING) WROTE_SINCE_CLAIM = true;
     if(v === null){ localStorage.removeItem(pendingKey(PROFILE, TAB_ID)); return; }
-    localStorage.setItem(pendingKey(PROFILE, TAB_ID), '{"at":' + Date.now() + ',"db":' + v + ',"log":' + JSON.stringify(NEW_LOG) + '}');
+    localStorage.setItem(pendingKey(PROFILE, TAB_ID), '{"at":' + Date.now() + (MARK ? ',"mark":' + MARK : '') + ',"db":' + v + ',"log":' + JSON.stringify(NEW_LOG) + '}');
   } catch(e){ /* before start-up, or storage full: this save has no record of its own */ }
 }
 /* The other tabs' records of profile p go (Erase, Put back, a replacing Import, Delete the copies). */
 function pendingRetire(){
+  // nothing is deleted: a record seen now is older than what the student chose and is not placed
+  // again while it stays as it is; a record that changes after this (a newer save of a leaving tab
+  // arriving late) is placed as usual, and is kept as a copy, since this tab has written since
+  MARK = Date.now();
   try {
-    const pre = NS + ':pending:' + PROFILE + ':', mine = pendingKey(PROFILE, TAB_ID), ks = [];
-    for(let i = 0; i < localStorage.length; i++){ const k = localStorage.key(i); if(k && k.startsWith(pre) && k !== mine) ks.push(k); }
-    ks.forEach(k => localStorage.removeItem(k));
-    localStorage.removeItem(seenKeyOf(PROFILE));
+    const pre = NS + ':pending:' + PROFILE + ':', mine = pendingKey(PROFILE, TAB_ID);
+    const seen = readSeen();
+    for(let i = 0; i < localStorage.length; i++){
+      const k = localStorage.key(i);
+      if(!k || !k.startsWith(pre) || k === mine) continue;
+      const raw = localStorage.getItem(k);
+      if(raw !== null && !(seen[k] && seen[k].fp === fpOf(raw))) seen[k] = {fp: fpOf(raw), t: Date.now(), done: true};
+    }
+    writeSeen(seen);
     NEW_LOG = [];
   } catch(e){}
 }
+// a record's fingerprint: its length and two hashes over every character (a changed record differs)
+const fpOf = raw => { let h1 = 0, h2 = 5381; for(let i = 0; i < raw.length; i++){ const c = raw.charCodeAt(i); h1 = (h1 * 31 + c) | 0; h2 = ((h2 << 5) + h2 + c) | 0; } return raw.length + ':' + h1 + ':' + h2; };
+function readSeen(){ try { return JSON.parse(storedNow(seenKeyOf(PROFILE)) || '{}') || {}; } catch(e){ return {}; } }
+function writeSeen(seen){ try { if(Object.keys(seen).length) localStorage.setItem(seenKeyOf(PROFILE), JSON.stringify(seen)); else localStorage.removeItem(seenKeyOf(PROFILE)); } catch(e){} }
 const answerSign = a => JSON.stringify(Object.keys(a).sort().map(x => [x, a[x]]));
 const entrySign = e => JSON.stringify(e.map((x, i) => i === 5 ? null : x));   // all but the confidence
 let PENDING_TIMER = 0;
@@ -873,7 +887,14 @@ function settlePending(){
     }
   } catch(e){ return; }
   recs.sort((x, y) => (x.rec.at || 0) - (y.rec.at || 0));   // oldest first: a later record can continue an earlier one
-  for(const r of recs){ try { settleOne(r.k, r.raw, r.rec); } catch(e){ console.error('A tab\'s pending record could not be checked; it is left as it is.', e); } }
+  const seen = readSeen();
+  for(const r of recs){
+    try {
+      const prev = seen[r.k];
+      if(prev && prev.fp === fpOf(r.raw) && prev.done){ pendingDone(r.k, r.raw, r.rec, true); continue; }   // handled before, unchanged
+      settleOne(r.k, r.raw, r.rec);
+    } catch(e){ console.error('A tab\'s pending record could not be checked; it is left as it is.', e); }
+  }
 }
 function storedLogEntries(){ try { const v = JSON.parse(storedNow(logKey()) || '[]'); return Array.isArray(v) ? v : null; } catch(e){ return null; } }
 /* The record's entries the stored history lacks, counted (two identical attempts are two). */
@@ -893,10 +914,18 @@ function placeOf(rec, st){
   const pAns = rec.db.answers, sAns = st && Array.isArray(st.answers) ? st.answers : [];
   const dbStr = JSON.stringify(rec.db), stStr = st ? JSON.stringify(st) : null;
   if(dbStr === stStr) return 'in';
-  if(!pAns.length) return sAns.length ? 'in' : 'conflict';
+  if(!pAns.length) return sAns.length && !rec.mark ? 'in' : 'conflict';
   const last = answerSign(pAns[pAns.length - 1]);
-  const idx = sAns.findIndex(a => answerSign(a) === last);
-  if(idx >= 0) return idx < sAns.length - 1 ? 'in' : 'conflict';
+  let idx = -1;
+  for(let i = sAns.length - 1; i >= 0; i--) if(answerSign(sAns[i]) === last){ idx = i; break; }
+  if(idx >= 0){
+    if(idx === sAns.length - 1) return 'conflict';
+    // the stored progress went on from the record's last answer: nothing to add, unless the record
+    // carries a choice of its own the later progress does not show (a setting; Erase, Put back or
+    // a replacing Import in that tab), which is then kept as a copy
+    if(rec.mark || JSON.stringify(rec.db.settings || {}) !== JSON.stringify((st && st.settings) || {})) return 'apart';
+    return 'in';
+  }
   if(!sAns.length) return 'continues';
   const sLast = answerSign(sAns[sAns.length - 1]);
   return pAns.some(a => answerSign(a) === sLast) ? 'continues' : 'apart';
@@ -944,25 +973,24 @@ function settleOne(k, raw, rec){
 }
 /* The record's key goes only once what is stored holds it (read back), on a later check. */
 const PENDING_WAIT = 60000;
-function pendingDone(k, raw, rec){
+function pendingDone(k, raw, rec, handled){
   let st = null;
   try { const v = storedNow(keyFor(PROFILE)); st = v ? JSON.parse(v) : null; } catch(e){ return; }
   const place = placeOf(rec, st), dbStr = JSON.stringify(rec.db), list = readCopiesList();
-  const progressIn = place === 'in' || (list !== null && list.some(c => c && c.data === dbStr));
+  const progressIn = handled || place === 'in' || (list !== null && list.some(c => c && c.data === dbStr));
   const have = storedLogEntries();
   const logIn = have !== null && missingEntries(Array.isArray(rec.log) ? rec.log.filter(Array.isArray) : [], have).length === 0;
   if(!(progressIn && logIn)) return;
-  let seen = {};
-  try { seen = JSON.parse(storedNow(seenKeyOf(PROFILE)) || '{}') || {}; } catch(e){ seen = {}; }
-  const fp = raw.length + ':' + (rec.at || 0), prev = seen[k];
+  const seen = readSeen();
+  const fp = fpOf(raw), prev = seen[k];
   if(prev && prev.fp === fp && Date.now() - prev.t >= PENDING_WAIT){
     if(storedNow(k) === raw){ try { localStorage.removeItem(k); } catch(e){} }
     delete seen[k];
   } else if(!prev || prev.fp !== fp){
-    seen[k] = {fp, t: Date.now()};
+    seen[k] = {fp, t: Date.now(), done: true};   // handled: not placed again while unchanged
     setTimeout(settlePending, PENDING_WAIT + 1000);
   } else return;
-  try { if(Object.keys(seen).length) localStorage.setItem(seenKeyOf(PROFILE), JSON.stringify(seen)); else localStorage.removeItem(seenKeyOf(PROFILE)); } catch(e){}
+  writeSeen(seen);
 }
 let PENDING_NOTE = null;
 function pendingNotice(text){
@@ -1253,6 +1281,7 @@ function logAnswer(q, result, mode, how){
   LOG.push([Math.round(Date.now() / 1000), cardCode(q.id), result === 'wrong' ? 0 : 1, mode, q.concept, conf, itemType(q),
             how.model || 'concept', how.arm || '', recall]);
   NEW_LOG.push(LOG[LOG.length - 1]);   // the same entry: a later "Not sure" changes it in both
+  MARK = 0;                            // a new last answer places this tab's record from now on
   if(LOG.length > LOG_MAX) LOG.splice(0, LOG.length - LOG_MAX);
   saveLog();
 }

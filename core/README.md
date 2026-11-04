@@ -447,7 +447,12 @@ What this does not cover (the independent review of 4b3b94c; Chromium only):
   - the 60 s wait assumes a save reaches another tab within 60 s, which the HTML Standard does
     not define; if a newer record arrived later than that, an older one verified earlier could
     already be removed;
-  - records of a profile never opened again, and records that cannot be read, stay.
+  - records of a profile never opened again, and records that cannot be read, stay;
+  - an Import that only adds history entries writes no progress, so it is not in the record;
+  - a "Not sure" whose save was written over keeps the stored confidence (history entries are
+    matched without it);
+  - the history merge is not cut to 20,000 entries; the next answer's save cuts it, as the
+    `LOG_MAX` rule does (that rule waits for Louis's decision in #47).
 - A browser without Web Locks (Safari and Safari on iPhone and iPad before 15.4, per
   https://caniuse.com/mdn-api_lockmanager, read 2026-11-03) keeps the comparison guards
   below on their own, and the interval above stays open there. A page opened from disk has
@@ -480,8 +485,10 @@ writes that key. When a tab takes the lock it reads every other tab's record of 
 oldest first, at once, 1.5 s later, and on each storage event for such a key. A record's place in
 the stored progress is found by its last answer, compared on every field (never question and
 time alone), which still works once the oldest answers are cut at 4,000:
-- its last answer is stored, before the stored last answer: the stored progress continued from
-  it, nothing to add;
+- its last answer is stored (its last occurrence), before the stored last answer: the stored
+  progress continued from it, nothing to add, unless the record carries a choice the later
+  progress does not show (different settings, or an Erase, Put back or replacing Import made in
+  that tab, which marks its record): then it is one more copy Import keeps;
 - it is the stored last answer (or the record has no answers): the same progress, nothing to
   add; a different progress at that point (a setting, a module's part): one more copy Import
   keeps (Put back);
@@ -492,8 +499,13 @@ time alone), which still works once the oldest answers are cut at 4,000:
 The record's history entries that the stored history lacks are added; entries are compared on
 every field but the confidence ("Not sure" changes it later), and counted, so two identical
 attempts stay two. Erase, Put back, an Import that replaces the progress and Delete the copies
-retire the other tabs' records of the profile, so none of them brings back what was erased, put
-back, replaced or deleted.
+retire the other tabs' records of the profile: nothing is deleted then, but each record as it
+stands at that moment is noted as handled in `<ns>:pending-seen:<profile>` and is not placed
+again while it stays unchanged, so none of them brings back what was erased, put back, replaced
+or deleted. A record that changes after that (a leaving tab's newer save arriving late) is placed
+as usual, and, since this tab has written since, kept as a copy. A record found handled once
+(placed, copied, or equal to what is stored) is not placed again while it is unchanged, so a
+setting changed here later does not turn an old record into a copy.
 **Cleanup rule:** a record is removed only when what is stored, read back, holds it as above
 (in the progress or a copy, and every history entry), on a later check at least 60 s after that
 was first found, with the record unchanged in between. The first-found time is kept in
