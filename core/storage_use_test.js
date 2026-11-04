@@ -30,7 +30,10 @@ const pad = (c, n) => c.repeat(n);
 // every key and value the browser holds now, read in the page
 const listing = p => p.evaluate(() => { const o = []; for(let i = 0; i < localStorage.length; i++){ const k = localStorage.key(i); o.push([k, localStorage.getItem(k)]); } return o; });
 // the expected figures, from the listing; `core` is the set of namespaces the test seeded as on the core
-function expected(list, ns, core){
+// `ns` is the namespace the page saves under (NS); `twin` the other one of this course: the
+// preview's on the live page, the live drill's on a preview page
+function expected(list, ns, core, twin){
+  twin = twin || ns + '-preview';
   const size = ([k, v]) => k.length + v.length;
   const total = list.reduce((a, kv) => a + size(kv), 0);
   const sum = pre => list.filter(([k]) => k.startsWith(pre)).reduce((a, kv) => a + size(kv), 0);
@@ -42,26 +45,33 @@ function expected(list, ns, core){
   const profileNeed = Math.max(0, ...Object.values(profiles));
   let previewNeed = 0;
   for(const c of core){
+    if(c.endsWith('-preview')) continue;
     if(list.some(([k]) => k.startsWith(c + '-preview:'))) continue;
     previewNeed = Math.max(previewNeed, list.filter(([k]) => k.startsWith(c + ':')).reduce((a, [k, v]) => a + k.length + 8 + v.length, 0));
   }
   let copies = 0;
   for(const [k, v] of list) if(k.startsWith(ns + ':backup:')) copies += JSON.parse(v).length;
-  const progress = sum(ns + ':data:'), history = sum(ns + ':log:'), copiesChars = sum(ns + ':backup:'), preview = sum(ns + '-preview:');
-  return {total, left: LIMIT - total, pct: (100 * total / LIMIT).toFixed(1) + '%', progress, history, preview, copies: copiesChars, ncopies: copies,
-          other: sum(ns + ':') - progress - history - copiesChars, profileNeed, previewNeed, need: Math.max(profileNeed, previewNeed)};
+  const progress = sum(ns + ':data:'), history = sum(ns + ':log:'), copiesChars = sum(ns + ':backup:'), preview = sum(twin + ':'), pending = sum(ns + ':pending:');
+  return {total, left: LIMIT - total, pct: (100 * total / LIMIT).toFixed(1) + '%', progress, history, preview, copies: copiesChars, ncopies: copies, pending,
+          other: sum(ns + ':') - progress - history - copiesChars - pending, profileNeed, previewNeed, need: Math.max(profileNeed, previewNeed)};
 }
 const shown = p => p.evaluate(() => Object.fromEntries([...document.querySelectorAll('#v-settings [data-st]')].map(e => [e.dataset.st, e.textContent.trim()])));
 const settled = p => p.evaluate(() => new Promise(r => setTimeout(r, 30)));   // the Quiz tab's warning follows its pane's drawing (a MutationObserver)
 const warnIn = (p, pane) => p.evaluate(pane => { const w = document.querySelector(`#v-${pane} [data-storage-warn]`); return w ? w.textContent.replace(/\s+/g, ' ') : null; }, pane);
 // a filler key of no drill, sized so that the space left is `left`; `list` is read after the filler is removed
-async function fillTo(p, ns, core, left){
+async function fillTo(p, ns, core, left, twin){
   await p.evaluate(() => localStorage.removeItem('zzfill'));
-  const e = expected(await listing(p), ns, core);
+  const e = expected(await listing(p), ns, core, twin);
   const n = LIMIT - left - e.total - 'zzfill'.length;
   const kept = await p.evaluate(n => { try { localStorage.setItem('zzfill', 'z'.repeat(n)); return true; } catch(e){ return false; } }, n);
   if(!kept){ const r = new Error(`this browser refused to store ${fmt(e.total + n + 'zzfill'.length)} characters in all, below the 5,242,880 the page assumes`); r.refused = true; throw r; }
-  return expected(await listing(p), ns, core);
+  return expected(await listing(p), ns, core, twin);
+}
+// clicks `sel` and reports whether the browser got a file
+async function downloads(p, sel){
+  const got = p.waitForEvent('download', {timeout: 5000}).then(() => true, () => false);
+  await p.click(sel);
+  return got;
 }
 /* A part that needs the site near 5,242,880 characters: in a browser whose limit is lower
    (Safari's is not measured), it is skipped with the reason, never passed. */
@@ -97,6 +107,8 @@ async function both(p){
     localStorage.setItem(ns + ':backup:' + PROFILE, JSON.stringify([{at: now, data: '{"v":2,"answers":[]}', why: 'replace'}]));
     localStorage.setItem(ns + '-preview:profile', 'TestUser');
     localStorage.setItem(ns + '-preview:data:TestUser', '{"v":2,"answers":[]}');
+    // a per-tab record of open pull request #45
+    localStorage.setItem(ns + ':pending:big:tab1', '{"pad":"' + c + c + c + '"}');
     // a drill not on the core: progress with no "v", larger than any profile on the core
     localStorage.setItem('pkold:data:me', '{"concepts":{},"answers":[],"pad":"' + d + '"}');
     localStorage.setItem('kitother:data:me', '{"v":2,"answers":[],"pad":"' + f + '"}');
@@ -111,7 +123,14 @@ async function both(p){
   check(s.progress === fmt(e.progress) && s.history === fmt(e.history), `this drill's progress and history, every profile (${fmt(e.progress)}, ${fmt(e.history)})`, [s.progress, s.history]);
   check(s.preview === fmt(e.preview), `this drill's preview copies (${fmt(e.preview)})`, s.preview);
   check(s.copies === fmt(e.copies) && s.ncopies === '3', `the copies kept by Import: ${fmt(e.copies)} characters, 3 copies in two lists`, [s.copies, s.ncopies]);
-  check(s.other === fmt(e.other), `the rest of this drill's keys (${fmt(e.other)})`, s.other);
+  check(s.pending === fmt(e.pending) && e.pending > 3000, `the records of each writing tab's last save (pending), a line of their own (${fmt(e.pending)})`, s.pending);
+  check(s.other === fmt(e.other), `the rest of this drill's keys, without the pending records (${fmt(e.other)})`, s.other);
+  const names = await p.evaluate(ns => [ns + ':pending:big:tab1', 'pkold:data:me', 'bdk2:log', 'zzfill', ns + ':data:big'].map(k => {
+    const d = document.createElement('div'); d.innerHTML = storeItemName(k); return d.textContent; }), ns);
+  check(names[0] === `records of each writing tab's last save (pending) of "big" (this drill)`, 'a pending record is named as such in the list of the largest items', names[0]);
+  check(names[1] === 'progress of "me" (another drill, the one with the namespace pkold)' && names[2] === 'bdk2:log (another drill, the one with the namespace bdk2)' &&
+        names[3] === 'zzfill (a key with no namespace)' && names[4] === 'progress of "big" (this drill)',
+    'an item of another drill names that drill\'s namespace; a key with no namespace says so', names);
   const {kept, qn} = await p.evaluate(() => ({kept: DB.answers.length, qn: DB.qn}));
   check(kept === 1 && s.kept === '1' && s.qn === fmt(qn) && qn === 5000, 'the profile\'s answers kept (1) and recorded in all (DB.qn, 5,000)', [s.kept, s.qn]);
   check(e.profileNeed > e.previewNeed && new RegExp(`now\\s+${fmt(e.profileNeed)} characters`).test(s.how) && new RegExp(`now ${fmt(e.previewNeed)} characters`).test(s.how),
@@ -119,10 +138,11 @@ async function both(p){
   check(s.how.includes(`${fmt(LIMIT - e.need)} characters stored`), `the warning point (${fmt(LIMIT - e.need)} characters stored)`, s.how);
 
   console.log('\n=== The estimate ===');
-  check(/an estimate/.test(s.estimate) && /number of characters stored/.test(s.estimate) && /bytes a browser writes to disk can differ/.test(s.estimate),
-    'Settings says the figures are an estimate, counted in characters, not bytes', s.estimate);
-  check(/Chromium 153/.test(s.estimate) && s.estimate.includes('5,242,873') && /"up to 5 MiB"/.test(s.estimate) && /Safari's limit has not been measured/.test(s.estimate),
-    'Settings gives the measured Chromium limit, MDN\'s "up to 5 MiB" and that Safari is not measured', s.estimate);
+  check(/an estimate/.test(s.estimate) && /number of characters stored \(UTF-16 units: an emoji counts as 2\)/.test(s.estimate) && /bytes a browser writes to disk can differ/.test(s.estimate),
+    'Settings says the figures are an estimate, counted in characters (UTF-16 units), not bytes', s.estimate);
+  check(/Chromium 153 one origin accepted exactly 5,242,880 characters/.test(s.estimate) && !s.estimate.includes('5,242,873') &&
+        /"up to 5 MiB" of local storage per origin/.test(s.estimate) && !/per site/.test(s.estimate) && /Safari's limit has not been measured/.test(s.estimate),
+    'Settings gives the measured Chromium limit (exactly 5,242,880), MDN\'s "up to 5 MiB" per origin, and that Safari is not measured', s.estimate);
   check(/the warning can come early or late/.test(s.estimate), 'Settings says the warning can come early or late in another browser', s.estimate);
 
   console.log('\n=== The warning at the boundary: the largest profile ===');
@@ -142,7 +162,9 @@ async function both(p){
     const btns = await p.evaluate(() => [...document.querySelectorAll('#v-quiz [data-storage-warn] button')].map(b => b.textContent));
     check(btns[0] === 'Export progress' && btns[1] === 'Delete the 1 copy kept by Import', 'the warning offers Export progress and Delete the copies kept by Import', btns);
     check(await p.evaluate(ns => [':backup:big', ':backup:' + PROFILE, ':data:big', ':log:big'].every(k => localStorage.getItem(ns + k) !== null), ns), 'showing the warning deleted nothing');
-    check(await p.evaluate(() => { document.querySelector('#v-quiz [data-storage-warn] [data-sw-export]').click(); return true; }), 'Export progress in the warning runs');
+    check(await downloads(p, '#v-quiz [data-storage-warn] [data-sw-export]'), 'Export progress in the Quiz tab\'s warning saves a file');
+    await p.evaluate(() => show('settings'));
+    check(await downloads(p, '#v-settings [data-storage-warn] [data-sw-export]'), 'Export progress in Settings\' warning saves a file');
   });
 
   console.log('\n=== The warning at the boundary: a course whose preview has not copied it ===');
@@ -157,7 +179,19 @@ async function both(p){
     check(w.settings !== null && w.quiz !== null, 'a warning when the space left is one character less than the preview need', w);
     check(!!w.quiz && w.quiz.includes(`the first opening of a preview of kitother, which copies its saved keys (${fmt(e.previewNeed)} characters).`), 'the warning names the preview need', w.quiz);
 
-    console.log('\n=== Delete the copies, from the warning ===');
+    console.log('\n=== Delete the copies, from the warning in Settings ===');
+    await p.evaluate(() => { show('settings'); window.__confirm = window.confirm; window.confirm = () => false; });
+    await p.click('#v-settings [data-storage-warn] [data-sw-delete]');   // the question answered No
+    check(await p.evaluate(ns => localStorage.getItem(ns + ':backup:' + PROFILE) !== null, ns), 'Settings: Delete the copies, not confirmed, deletes nothing');
+    await p.evaluate(() => { window.confirm = window.__confirm; });
+    await p.click('#v-settings [data-storage-warn] [data-sw-delete]');
+    const inSet = await p.evaluate(ns => ({mine: localStorage.getItem(ns + ':backup:' + PROFILE), big: localStorage.getItem(ns + ':backup:big'),
+      btn: !!document.querySelector('#v-settings [data-storage-warn] [data-sw-delete]')}), ns);
+    check(inSet.mine === null && inSet.big !== null && !inSet.btn, 'Settings: Delete the copies, confirmed, deletes this profile\'s copies only, and the button goes', inSet);
+    // the copy again, for the Quiz tab's button
+    await p.evaluate(ns => localStorage.setItem(ns + ':backup:' + PROFILE, JSON.stringify([{at: Date.now(), data: '{"v":2,"answers":[]}', why: 'replace'}])), ns);
+
+    console.log('\n=== Delete the copies, from the warning in the Quiz tab ===');
     await p.evaluate(() => { show('quiz'); renderQuiz(); });
     await settled(p);
     await p.evaluate(() => { window.__confirm = window.confirm; window.confirm = () => false; });
@@ -172,6 +206,48 @@ async function both(p){
     check(after.mine === null && after.big !== null, 'Delete the copies, confirmed, deletes this profile\'s copies only', after);
     check(!after.btn, 'the warning then offers no Delete button', after);
   });
+
+  console.log('\n=== A preview page: the copies counted are the copies its button deletes ===');
+  {
+    const path = require('path'), child = require('child_process'), fs = require('fs');
+    const repo = L.scratchRepo(L.PAGE.SRC, 'storage-use-preview');
+    try {
+      const b = child.spawnSync('python3', ['build.py', '--preview'], {cwd: path.join(repo, 'src'), encoding: 'utf8', timeout: 600000});
+      const file = path.join(repo, 'preview', 'index.html');
+      if(b.status !== 0 || !fs.existsSync(file)) check(false, 'build.py --preview builds the preview page', ((b.stdout || '') + (b.stderr || '')).trim().split('\n').slice(-2).join(' | '));
+      else {
+        const {ctx: c3, page: p3, errors: e3} = await L.openPage(browser, file);
+        const pv = await p3.evaluate(() => ({ns: NS, base: COURSE.ns, preview: BUILD.preview}));
+        check(pv.preview && pv.ns === pv.base + '-preview', `the preview page saves under ${pv.base}-preview`, pv);
+        const now = Date.now();
+        await p3.evaluate(({base, ns, now, a}) => {
+          localStorage.setItem(base + ':data:' + PROFILE, '{"v":2,"answers":[]}');
+          localStorage.setItem(base + ':backup:' + PROFILE, JSON.stringify([{at: now - 2, data: '{}', why: 'replace'}, {at: now - 1, data: '{}', why: 'replace'}]));
+          localStorage.setItem(ns + ':backup:' + PROFILE, JSON.stringify([{at: now, data: '{"v":2,"answers":[]}', why: 'replace'}]));
+          localStorage.setItem(ns + ':data:big', '{"v":2,"answers":[],"pad":"' + a + '"}');
+        }, {base: pv.base, ns: pv.ns, now, a: pad('a', 100000)});
+        await p3.evaluate(() => show('settings'));
+        const core3 = [pv.base, pv.ns];
+        let e = expected(await listing(p3), pv.ns, core3, pv.base), s3 = await shown(p3);
+        check(s3.ncopies === '1' && s3.copies === fmt(e.copies), 'the preview counts its own copies (1), not the live drill\'s (2)', [s3.ncopies, s3.copies]);
+        check(s3.preview === fmt(e.preview) && /the live drill \(this page is its preview\)/.test(await p3.textContent('#v-settings')),
+          `the preview's twin line is the live drill's keys (${fmt(e.preview)})`, s3.preview);
+        await nearLimit(p3, 'the preview page\'s Delete button at the boundary', async () => {
+          e = await fillTo(p3, pv.ns, core3, e.need - 1, pv.base);
+          await p3.evaluate(() => show('settings'));
+          const btn = await p3.evaluate(() => { const b = document.querySelector('#v-settings [data-storage-warn] [data-sw-delete]'); return b ? b.textContent : null; });
+          check(btn === 'Delete the 1 copy kept by Import', 'the preview\'s warning offers to delete its 1 copy, the number Settings shows', btn);
+          await p3.click('#v-settings [data-storage-warn] [data-sw-delete]');   // the confirm is accepted (check_lib)
+          const left = await p3.evaluate(({base, ns}) => ({mine: localStorage.getItem(ns + ':backup:' + PROFILE), live: JSON.parse(localStorage.getItem(base + ':backup:' + PROFILE) || 'null')}), pv);
+          s3 = await shown(p3);
+          check(left.mine === null && Array.isArray(left.live) && left.live.length === 2 && s3.ncopies === '0',
+            'it deletes the preview\'s copy, the one Settings counted; the live drill\'s 2 copies stay', {left, shown: s3.ncopies});
+        });
+        check(!e3.length, 'no page errors on the preview page', e3.slice(0, 3));
+        await c3.close();
+      }
+    } finally { fs.rmSync(repo, {recursive: true, force: true}); }
+  }
 
   console.log('\n=== Storage that cannot be read ===');
   await ctx.close();

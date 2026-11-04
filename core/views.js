@@ -1026,10 +1026,13 @@ function backupNote(){
    part of it; the Quiz tab and Settings warn when the space left may not be enough for
    the next large write. Sizes are string lengths (key plus value), what
    localStorage.getItem(k).length returns; the bytes a browser writes to disk can differ.
-   The limit is taken as 5,242,880 characters (5 × 1,048,576, the "up to 5 MiB" per origin
-   MDN gives). In Chromium 153 one origin accepted 5,242,873 characters before setItem
-   threw (review/storage-measure/quota.js); Safari and Firefox were not measured, so the
-   figures and the warning are an estimate there. Nothing here writes or deletes a key:
+   Sizes are UTF-16 code units (an emoji counts as 2), as String.length counts them.
+   The limit is taken as 5,242,880 (5 × 1,048,576, the "up to 5 MiB" per origin MDN
+   gives). In Chromium 153 one origin accepted exactly 5,242,880 units, keys and values
+   together, before setItem threw (the independent review of #46, 2026-11-04, by binary
+   search; review/storage-measure/quota.js's coarse fill had stopped at 5,242,873, a
+   lower bound). Safari and Firefox were not measured, so the figures and the warning are
+   an estimate there. Nothing here writes or deletes a key:
    the warning offers Export progress and the existing "Delete the copies kept by
    Import", which asks first.
    The warning shows when the space left is less than the larger of two needs:
@@ -1043,9 +1046,13 @@ function backupNote(){
    core saved: JSON that starts {"v":<2 or more> (BLANK puts v first, and upgradeDB keeps
    it there); drills not on the core (BDK's bdk2:*, Pharmacokinetics, Intro to
    Pharmacology) save no v and count in the site's total only. The course on screen
-   counts as on the core always. */
+   counts as on the core always.
+   This drill's part is read under NS, the namespace the page saves under: on a preview
+   page that is <ns>-preview, so the copies it counts are the ones its "Delete the copies"
+   deletes (deleteCopies, readCopies, backupKey use NS too); the twin line is then the live
+   drill's keys, and on the live page the preview copies. */
 const STORE_LIMIT = 5 * 1048576;     // 5,242,880: MDN's 5 MiB, in characters as Chromium counts them
-const STORE_MEASURED = 5242873;      // what Chromium 153 accepted (review/storage-usage-proposal.md §1)
+const STORE_MEASURED = 5242880;      // what Chromium 153 accepted, exactly (the review of #46, 2026-11-04)
 const PREVIEW_SUFFIX = '-preview';   // shell.html NS of a preview build
 const nChars = n => n.toLocaleString('en-US');
 /* What localStorage holds now: null when it cannot be read. Read-only. */
@@ -1059,8 +1066,8 @@ function storageUse(){
       keys.push([k, v]);
     }
   } catch(e){ return null; }
-  const base = COURSE.ns, live = base + ':', prev = base + PREVIEW_SUFFIX + ':';
-  const u = {total: 0, items: [], drill: {progress: 0, history: 0, preview: 0, copies: 0, other: 0}, copies: 0, copiesUnread: 0};
+  const base = COURSE.ns, live = NS + ':', prev = (BUILD.preview ? base : base + PREVIEW_SUFFIX) + ':';
+  const u = {total: 0, items: [], drill: {progress: 0, history: 0, preview: 0, copies: 0, pending: 0, other: 0}, copies: 0, copiesUnread: 0};
   const core = new Set([base]), profiles = {}, byNs = {}, hasPreview = new Set();
   for(const [k, v] of keys){
     const n = k.length + v.length;
@@ -1071,6 +1078,7 @@ function storageUse(){
       const what = k.slice(live.length).split(':')[0];
       if(what === 'data' && k.length > live.length + 5) u.drill.progress += n;
       else if(what === 'log' && k.length > live.length + 4) u.drill.history += n;
+      else if(what === 'pending' && k.length > live.length + 8) u.drill.pending += n;   // per-tab records (#45)
       else if(what === 'backup' && k.length > live.length + 7){
         u.drill.copies += n;
         try { const c = JSON.parse(v); u.copies += Array.isArray(c) ? c.length : 1; } catch(e){ u.copiesUnread++; }
@@ -1107,17 +1115,24 @@ function storageUse(){
 }
 const pctOf = n => (100 * n / STORE_LIMIT).toFixed(1) + '%';
 /* A stored key in words, for the list of the largest items. */
+const nsName = ns => ns === COURSE.ns ? 'this drill' : ns === COURSE.ns + PREVIEW_SUFFIX ? 'this drill\'s preview'
+                                     : `another drill, the one with the namespace <code>${esc(ns)}</code>`;
 function storeItemName(k){
-  const m = /^(.+?):(data|log|backup|exam):(.+)$/.exec(k);
-  if(!m) return `<code>${esc(k)}</code>`;
-  const what = {data: 'progress', log: 'answer history', backup: 'copies kept by Import', exam: 'exam paper'}[m[2]];
-  const where = m[1] === COURSE.ns ? 'this drill' : m[1] === COURSE.ns + PREVIEW_SUFFIX ? 'this drill\'s preview copy' : `<code>${esc(m[1])}</code>`;
-  return `${what} of "${esc(m[3])}" (${where})`;
+  const m = /^(.+?):(data|log|backup|exam|pending):(.+)$/.exec(k);
+  if(!m){
+    const c = k.indexOf(':');
+    return `<code>${esc(k)}</code> (${c > 0 ? nsName(k.slice(0, c)) : 'a key with no namespace'})`;
+  }
+  const what = {data: 'progress', log: 'answer history', backup: 'copies kept by Import', exam: 'exam paper',
+                pending: 'records of each writing tab\'s last save (pending)'}[m[2]];
+  const who = m[2] === 'pending' ? m[3].split(':')[0] : m[3];
+  return `${what} of "${esc(who)}" (${nsName(m[1])})`;
 }
-const ESTIMATE = 'These figures are an estimate. Each size is the number of characters stored (the key and its value); ' +
-  'the bytes a browser writes to disk can differ. The limit differs by browser: in Chromium 153 one site accepted ' +
-  `${nChars(STORE_MEASURED)} characters before the browser refused to save more; MDN says browsers can store "up to 5 MiB" ` +
-  `per site, which is ${nChars(STORE_LIMIT)} characters if counted as Chromium counts them; Safari's limit has not been measured. ` +
+const ESTIMATE = 'These figures are an estimate. Each size is the number of characters stored (UTF-16 units: an emoji counts as 2), ' +
+  'the key and its value together; the bytes a browser writes to disk can differ. The limit differs by browser: in Chromium 153 ' +
+  `one origin accepted exactly ${nChars(STORE_MEASURED)} characters before the browser refused to save more; MDN says browsers ` +
+  `can store "up to 5 MiB" of local storage per origin, which is ${nChars(STORE_LIMIT)} characters if counted as Chromium counts them; ` +
+  'Safari\'s limit has not been measured. ' +
   'So in another browser the warning can come early or late, and saving can stop before or after the point these figures show.';
 /* The warning's HTML, or '' when the space left is enough (or storage cannot be read). */
 function storageWarnHtml(u){
@@ -1153,12 +1168,13 @@ function storageSection(){
     ${storageWarnHtml(u)}
     <p style="margin:0 0 6px">This site (every drill at this web address) stores <b data-st="total">${nChars(u.total)}</b> characters in this browser:
       <b data-st="pct">${pctOf(u.total)}</b> of ${nChars(STORE_LIMIT)}. About <span data-st="left">${nChars(Math.max(0, u.left))}</span> characters are left.</p>
-    <p style="margin:0 0 4px">This drill's part:</p>
+    <p style="margin:0 0 4px">${BUILD.preview ? 'This preview\'s part' : 'This drill\'s part'}:</p>
     <ul style="margin:0 0 6px;padding-left:20px;font-size:14px">
       <li>progress, every profile: <span data-st="progress">${nChars(d.progress)}</span> characters</li>
       <li>answer history, every profile: <span data-st="history">${nChars(d.history)}</span> characters</li>
-      <li>preview copies: <span data-st="preview">${nChars(d.preview)}</span> characters</li>
+      <li>${BUILD.preview ? 'the live drill (this page is its preview)' : 'preview copies'}: <span data-st="preview">${nChars(d.preview)}</span> characters</li>
       <li>copies kept by Import: <span data-st="copies">${nChars(d.copies)}</span> characters, <span data-st="ncopies">${nChars(u.copies)}</span> cop${u.copies === 1 ? 'y' : 'ies'}${u.copiesUnread ? ` (${u.copiesUnread} list${u.copiesUnread === 1 ? '' : 's'} could not be read)` : ''}</li>
+      <li>records of each writing tab's last save (pending): <span data-st="pending">${nChars(d.pending)}</span> characters</li>
       <li>other settings of this drill: <span data-st="other">${nChars(d.other)}</span> characters</li>
     </ul>
     <p style="margin:0 0 6px">The profile “${esc(PROFILE)}” keeps <span data-st="kept">${nChars(kept)}</span> answers (at most ${nChars(ANSWERS_MAX)}) of
@@ -1183,6 +1199,9 @@ function quizStorageWarn(){
   if(!html){ if(old) old.remove(); return; }
   const t = document.createElement('div'); t.innerHTML = html;
   const box = t.firstElementChild;
+  // This guard stops a loop: inserting the box is itself a change to the pane, which runs
+  // this watcher again; without the comparison it would replace the box at every run and
+  // never stop (the review of #46, its broken copy M13, hung the page).
   if(old && old.innerHTML === box.innerHTML) return;
   if(old) old.replaceWith(box); else el.insertBefore(box, el.firstChild);
   wireStorageWarn(box, quizStorageWarn);
