@@ -844,6 +844,9 @@ function pendingAfter(k, v){
   } catch(e){ /* before start-up, or storage full: this save has no record of its own */ }
 }
 /* The other tabs' records of profile p go (Erase, Put back, a replacing Import, Delete the copies). */
+/* Erase, Put back and a replacing Import call this before they write, so the record written with
+   that write already carries the mark (the review of c9254dc, P2). */
+function pendingMark(){ MARK = Date.now(); }
 function pendingRetire(){
   // nothing is deleted: a record seen now is older than what the student chose and is not placed
   // again while it stays as it is; a record that changes after this (a newer save of a leaving tab
@@ -977,7 +980,9 @@ function pendingDone(k, raw, rec, handled){
   let st = null;
   try { const v = storedNow(keyFor(PROFILE)); st = v ? JSON.parse(v) : null; } catch(e){ return; }
   const place = placeOf(rec, st), dbStr = JSON.stringify(rec.db), list = readCopiesList();
-  const progressIn = handled || place === 'in' || (list !== null && list.some(c => c && c.data === dbStr));
+  // removed only with proof that its content is stored (in the progress or a copy); "handled" only
+  // stops it being placed again, it is never a reason to remove it (the review of c9254dc)
+  const progressIn = place === 'in' || (list !== null && list.some(c => c && c.data === dbStr));
   const have = storedLogEntries();
   const logIn = have !== null && missingEntries(Array.isArray(rec.log) ? rec.log.filter(Array.isArray) : [], have).length === 0;
   if(!(progressIn && logIn)) return;

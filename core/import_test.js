@@ -2023,6 +2023,25 @@ let nfile = 0;
     await d.ctx.close();
   }
   {
+    // P1: a record whose copy write was refused is not removed after Delete the copies (no proof it is stored)
+    const d = await device(undefined, true); const di = await info(d.page);
+    await answer(d.page, 2, 0); await lockReady(d.page);
+    const base = JSON.parse(await stored(d.page, di.data)), q = base.answers[0];
+    const lost = JSON.parse(JSON.stringify(base)); lost.answers.push(Object.assign({}, q, {at: q.at + 77}));
+    await d.page.evaluate(() => { DB.settings.goal = 3; save(); saveNow(); });      // this tab wrote: the record becomes a copy
+    await refuseKey(d.page, di.backup);
+    await rawRec(d.page, 'gone-p1', lost, []);
+    await d.page.evaluate(() => settlePending());                                 // its copy write refused
+    await refuseKey(d.page, null);
+    await d.page.evaluate(() => { window.confirm = () => true; show('settings'); deleteCopies(); pendingRetire(); });
+    await d.page.evaluate(() => { const sk = NS + ':pending-seen:' + PROFILE; const v = JSON.parse(localStorage.getItem(sk) || '{}'); for(const k in v) v[k].t -= 61000; localStorage.setItem(sk, JSON.stringify(v)); settlePending(); });
+    const k = await d.page.evaluate(() => pendingKey(PROFILE, 'gone-p1'));
+    const still = await stored(d.page, k) !== null;
+    const a = await keptAnywhere(d.page, di, q.at + 77);
+    check(still || a.live || a.copy, 'a record never taken in (its copy refused) is not removed after Delete the copies: its answer is kept somewhere', {still, a});
+    await d.ctx.close();
+  }
+  {
     // Erase without a reload first: this tab's own record (NEW_LOG) does not bring the history back
     const d = await device(undefined, true); const di = await info(d.page);
     await lockReady(d.page);

@@ -879,6 +879,7 @@ function runImport(plan){
     db.settings = Object.assign({}, db.settings || {});
     for(const k of IMPORT_DEVICE){ if(DB.settings && k in DB.settings) db.settings[k] = DB.settings[k]; else delete db.settings[k]; }
     const dbText = JSON.stringify(db);
+    pendingMark();
     if(!store.trySet(keyFor(PROFILE), dbText)){
       // the copy written just before is not needed: the list goes back as it was
       let undone = now === null;
@@ -964,6 +965,7 @@ function restoreBackup(){
   const now = store.get(keyFor(PROFILE));
   const withNow = now === null ? copies : copies.concat([{at: Date.now(), data: now, why: 'put back'}]);
   if(now !== null && !store.trySet(backupKey(PROFILE), JSON.stringify(withNow))){ alert(refused); return; }       // (1)
+  pendingMark();
   if(!store.trySet(keyFor(PROFILE), b.data)){                                                                      // (2)
     // the list as it was; if that is refused too, the list keeps the extra copy of the progress on screen
     const undone = now === null || store.trySet(backupKey(PROFILE), JSON.stringify(copies));

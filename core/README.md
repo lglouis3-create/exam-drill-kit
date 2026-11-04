@@ -452,7 +452,17 @@ What this does not cover (the independent review of 4b3b94c; Chromium only):
   - a "Not sure" whose save was written over keeps the stored confidence (history entries are
     matched without it);
   - the history merge is not cut to 20,000 entries; the next answer's save cuts it, as the
-    `LOG_MAX` rule does (that rule waits for Louis's decision in #47).
+    `LOG_MAX` rule does (that rule waits for Louis's decision in #47);
+  - a record that can never be shown to be stored (handled at an Erase while it held history
+    entries, or its copy refused) stays, costing space, not data;
+  - **the boundary:** localStorage gives no ordering of writes between tabs and no transactions,
+    so every rule here decides "newer or older" and "deliberate or lost" from snapshots of
+    content, and a write still on its way to this tab can be judged from an older view. Four
+    independent reviews (2026-11-04) found that each such rule closes one case and opens a
+    neighbouring one. A sound solution moves the progress (or an append-only log of saves) to
+    IndexedDB, whose read-write transactions on one store run one at a time across tabs (the
+    reviewer's reading of the IndexedDB specification; not confirmed in this session); that is a
+    separate decision for Louis.
 - A browser without Web Locks (Safari and Safari on iPhone and iPad before 15.4, per
   https://caniuse.com/mdn-api_lockmanager, read 2026-11-03) keeps the comparison guards
   below on their own, and the interval above stays open there. A page opened from disk has
@@ -488,7 +498,7 @@ time alone), which still works once the oldest answers are cut at 4,000:
 - its last answer is stored (its last occurrence), before the stored last answer: the stored
   progress continued from it, nothing to add, unless the record carries a choice the later
   progress does not show (different settings, or an Erase, Put back or replacing Import made in
-  that tab, which marks its record): then it is one more copy Import keeps;
+  that tab, which marks the record written with that change): then it is one more copy Import keeps;
 - it is the stored last answer (or the record has no answers): the same progress, nothing to
   add; a different progress at that point (a setting, a module's part): one more copy Import
   keeps (Put back);
@@ -505,7 +515,8 @@ again while it stays unchanged, so none of them brings back what was erased, put
 or deleted. A record that changes after that (a leaving tab's newer save arriving late) is placed
 as usual, and, since this tab has written since, kept as a copy. A record found handled once
 (placed, copied, or equal to what is stored) is not placed again while it is unchanged, so a
-setting changed here later does not turn an old record into a copy.
+setting changed here later does not turn an old record into a copy. "Handled" never removes a
+record: removal needs the proof below.
 **Cleanup rule:** a record is removed only when what is stored, read back, holds it as above
 (in the progress or a copy, and every history entry), on a later check at least 60 s after that
 was first found, with the record unchanged in between. The first-found time is kept in
