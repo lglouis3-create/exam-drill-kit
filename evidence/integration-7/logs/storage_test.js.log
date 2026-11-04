@@ -1,0 +1,41 @@
+  browser  Chromium started
+
+=== Saving refused part-way through a visit ===
+  ok    before the quota fills, the profile is saved (the default, me)
+  ok    the What's new card is on Topics before it is dismissed
+  ok    a dismissed What's new card stays dismissed for the visit when the browser refuses to save
+  ok    an answer is recorded
+  ok    the answer is still there after switching to another profile and back
+  ok    one notice, however many writes were refused (1 shown)
+  ok    the notice says progress was not saved and points to Export progress
+  ok    Settings has the Export progress button the notice names
+  ok    a refused write is read back from memory
+  ok    a later write that succeeds goes to localStorage and is read from there
+  ok    OK closes the notice
+  ok    no page errors with saving refused
+
+=== Saving works ===
+  ok    no notice when saving works
+  ok    the answer is in localStorage
+  ok    no page errors
+
+=== Storage denied outright ===
+  ok    the drill runs and records an answer for the visit
+  ok    the notice is shown
+  ok    no page errors with storage denied
+
+=== The last change before the page goes ===
+  ok    an answer followed at once by a reload is kept (it was still waiting to be saved)
+  ok    an answer followed at once by closing the tab is kept
+  ok    an answer followed by pagehide alone is written at once
+  ok    an answer followed by the page being hidden is written at once
+  ok    no page errors
+
+=== Opening without asking for a name ===
+  ok    a first visit opens the drill without asking for a name
+  ok    a first visit uses the profile "me" and remembers it
+  ok    no page errors on a first visit
+  ok    progress saved under a name, with no name stored, opens without asking
+  ok    of two saved profiles, the one answered most recently opens
+  ok    the Switch button still asks for a name
+PASS: storage_test.js: 29 checks passed
