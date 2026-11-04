@@ -125,12 +125,15 @@ const next = p => p.evaluate(() => { const b = document.getElementById('btnNext'
   const fresh = await L.openFile(browser);
   await fresh.page.click('#nav button[data-v="settings"]');
   await fresh.page.setInputFiles('#fileIn', file);
+  await fresh.page.waitForSelector('#importGo', {timeout: 5000}).then(b => b.click(), () => {});
   await fresh.page.waitForTimeout(600);
   check((await readLog(fresh.page)).length === total, 'Import brings the history across',
     JSON.stringify({imported: await readLog(fresh.page), exported: exported.log}));
   await fresh.page.click('#nav button[data-v="settings"]');
   await fresh.page.setInputFiles('#fileIn', file);
   await fresh.page.waitForTimeout(600);
+  check(!(await fresh.page.$('#importGo')) && /on this device already/.test(await fresh.page.textContent('#importPlan')),
+    'importing the same file again offers nothing to import', await fresh.page.textContent('#importPlan'));
   check((await readLog(fresh.page)).length === total, 'importing the same file twice adds nothing', (await readLog(fresh.page)).length);
   // the older seven-field format: an entry of it merges as it is, and a
   // seven-field copy here gains the fields an imported copy of the same answer carries
@@ -141,6 +144,7 @@ const next = p => p.evaluate(() => { const b = document.getElementById('btnNext'
     fs.writeFileSync(file2, JSON.stringify(Object.assign({}, exported, {log: [old, exported.log[0]]})));
     await fresh.page.click('#nav button[data-v="settings"]');
     await fresh.page.setInputFiles('#fileIn', file2);
+    await fresh.page.waitForSelector('#importGo', {timeout: 5000}).then(b => b.click(), () => {});
     await fresh.page.waitForTimeout(600);
     const after = await readLog(fresh.page);
     const kept = after.find(e => e[1] === 'abcdef01'), filled = after.find(e => e.slice(0, 4).join('|') === cut.slice(0, 4).join('|'));

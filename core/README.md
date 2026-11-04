@@ -34,6 +34,7 @@ that course's repository. Both folders come from the recovered exam-drill templa
 | `offline_test.js` | core | the offline copy: other sites' caches kept, server down (connections refused), server slow |
 | `home_test.js` | core | the Home Screen card for each kind of browser: a closed section in Settings, nothing on Topics |
 | `history_test.js` | core | the answer history: its fields, Export, Import, Erase, a refused write |
+| `import_test.js` | core | Import progress: files of another course or app, files that name no course, and damaged files refused; older files converted; a file replaces this profile only when it continues it or this profile holds no progress, after a confirmed plan, with a copy to put back; conflicting copies of one answer, another origin, a cut answer list, answers out of order, and matching or empty answer lists with other concept progress, settings, scheduling state or module part go into a new profile; repeats change nothing and make no second profile; Put back and refused reads and writes leave both records stored |
 | `preview_test.js` | core | `build.py --preview`: the live site unchanged, the preview's own namespace |
 | `state_check.js` | core | the course's root `CLAUDE.md` was updated with or after the newest lecture (§7.8) |
 | `state_check_test.js` | core | `state_check.js` on repositories with known histories |
@@ -371,12 +372,209 @@ updated it, rounded to 4 decimal places (a design choice, to keep the history sm
 `null` for the concept scheduler, which predicts none. The first seven fields are as they
 were, so entries written before the last three were added still read the same, and BDK's
 four (`[seconds, card code, 1/0, mode]`) are the first four here. Export progress writes
-the progress and the history into one file; Import progress replaces the progress, as
-before, and merges the history without duplicating an answer (an entry here in the older
-seven-field format gains the last three from an imported copy of the same answer); Erase
-my history clears both. When the browser refuses to save the history, the oldest half is
+the progress and the history into one file, labelled with the course (`course`, `ns`).
+Import progress merges the history without duplicating an answer (an entry here in the
+older seven-field format gains the last three from an imported copy of the same answer)
+and handles the progress as "Import progress" below says. Erase my history clears both. When the browser refuses to save the history, the oldest half is
 dropped and no notice is shown, so the history never stops progress from saving. No
 scheduler reads the history; the progress (`DB`) holds what they schedule from.
+
+**Import progress** (Louis's rules of 2026-11-02, corrected twice on 2026-11-03;
+`views.js` `readProgressFile`, `addsTo`, `holdsProgress`, `importPlan`, `continuesHere`,
+`runImport`, `restoreBackup`; `import_test.js`). The file is read and checked whole before anything is saved:
+- **Refused:**
+  - a file that is not JSON or not a progress export;
+  - a file labelled with another course (`course` or `ns`);
+  - a file that names no course, such as the export before the kit core (`{profile, db}`),
+    even when every question it answers is in this drill's bank, since question ids do
+    not show whose progress a file is;
+  - a BDK quiz export (`app: 'bdk-quiz'`, until a converter for it is built);
+  - another app's file;
+  - an answer or a history entry that is not whole;
+  - the same answer twice.
+
+  The page says which of these it is.
+- **Refused as damaged** also: settings that are not a record, or a mode or pace that
+  is not text; an answer count or a concept record's count that is not a number; a
+  concept record's `asked` that is not a list, or `last` or `check` that is not a
+  record; FSRS records that are not lists of cards; a comparison record whose arm is
+  neither `concept` nor `concept-fsrs`. A module's own part is not checked by the core.
+- **Converted:** an older progress, in a file that names the course, as on load
+  (`upgradeDB`).
+
+**One writer per profile (2026-11-03).** localStorage has no locking between tabs, and one
+tab's save reaches another tab of the same browser a moment later. In that moment no
+comparison before a write can see the other tab's save: `import_test.js` ("Two tabs at
+once", with the other tab's save held back from this tab's view and nothing synchronised
+before the action) showed an Import, an ordinary save and Put back each writing over an
+answer another tab had just saved, and Delete the copies deleting a copy another tab's
+import had just kept; that answer or copy was then in no record (7 failed checks on
+0237635). So a profile has one writer at a time: the tab holding the Web Lock
+`<ns>:writer:<profile>` (`navigator.locks`; the browser grants it to one tab at a time and
+frees it when that tab closes).
+- Another tab of the same browser opens that profile read-only. A wall over the page says
+  so; the page takes no answers (`record` returns at once) and writes nothing: no ordinary
+  save, history, Import, Put back, Delete the copies, Erase or exam paper.
+- "Use it here" moves the profile: the writer saves what is waiting, frees the lock, stops,
+  and posts the values it holds stored (BroadcastChannel). The new tab starts writing only
+  once its own view of storage shows those values, so the old writer's last save is in
+  place before the new tab's first; if they have not arrived within 5 s it does not start,
+  and says so.
+- A writer that does not answer within 4 s (asleep in the background) can be taken over
+  ("Take it over anyway", `steal`). It then stops: the browser ends its lock, and before
+  every write a writer checks that `<ns>:writer:<profile>` still names its own tab.
+- An Import that writes another profile (a new one, or the history of the profile that
+  already holds the file) holds that profile's lock while it writes, and writes nothing
+  when a tab using that profile has it.
+- A page that has stopped (read-only, handed over, taken over, or stale below) covers
+  itself with that wall: it takes no answers, offers "Export this page's progress" when it
+  holds answers or settings that are not stored, and asks before a reload would drop them.
+
+What this does not cover (the independent review of 4b3b94c; Chromium only):
+- **A writer that leaves without handing over.** When the writing tab closes, reloads,
+  navigates away or switches profile, no hand-over message is sent. The next tab to take
+  the lock (Use it here, a page opening, or a switch back) reads storage at once, or after
+  a 1-second wait for a hand-over that does not come. If the leaving tab's last save has
+  not reached it by then, its next save writes over that save: the same interval as before,
+  now only at the moment one tab leaves and another takes over. Closing it needs a change
+  to how progress is stored (each tab's answers in a key only it writes, merged by the
+  writer, or IndexedDB transactions, which run one at a time across tabs); that is a
+  separate decision.
+- A browser without Web Locks (Safari and Safari on iPhone and iPad before 15.4, per
+  https://caniuse.com/mdn-api_lockmanager, read 2026-11-03) keeps the comparison guards
+  below on their own, and the interval above stays open there. A page opened from disk has
+  Web Locks in Chromium; in Safari that is NOT RUN.
+- A tab still running a core from before this change writes without the lock until it is
+  reloaded.
+- After a take-over, what the old tab had not saved exists only in that tab. It offers the
+  export; "Use it here" there keeps that progress, with the history entries it had not stored,
+  as one more copy Import keeps (Put back restores the progress and adds those entries to the
+  history; if that history write is refused, the copy stays on the list) before it
+  opens the stored progress, and refuses to take the profile if the browser refuses that copy.
+  Switch, Reload and the new-version bar's Reload ask first while that work has changed since
+  its last export. A tab the system closes while asleep loses it, as any unsaved answer.
+- An exam-paper pick whose write the browser refused before a take-over is not in that copy
+  (the copy holds progress and history); "Use it here" opens the stored paper.
+- "Take it over anyway" reads the copies list at once to add that copy, so an Import the
+  other tab made just before may not be in the list it writes: the same interval as the first
+  item. A truly suspended tab was not
+  tested: NOT RUN.
+- The check of `<ns>:writer:<profile>` before each write reads localStorage too, so it is
+  subject to the same delay between tabs it guards against.
+- The hand-over relies on a value this tab reads from storage having been stored, which is
+  how browsers behave; the HTML Standard does not define the timing of storage between tabs.
+- Two devices never share a lock: moving progress between devices is Import's job.
+
+Import plans and writes nothing while the progress on this page is not what is stored:
+when another tab or window saved the profile after this page read it (`SEEN`, the
+stored value as this page last read it or had the browser keep it; a write the browser
+refuses does not change it, and a profile opened again after a refused write keeps the
+value last kept, `KEPT`), or when the browser refused this visit's last save of it. The page says which, and to reload. An answer still waiting
+to be saved when Import is tapped is saved first; if the browser refuses that save, it
+stays on the page, flagged as not saved, and nothing is imported.
+
+The same check guards every ordinary save, not only Import's: a page whose profile
+another tab or window has saved since (its progress or its answer history, `SEEN` and
+`SEEN_LOG`, kept by every write through `store` and by `saveLog`) stops saving both and
+shows a notice with a Reload button and a pointer to Export progress (`staleWarn`).
+Before 2026-11-03 the older page's next save wrote its copy over the newer one, which
+could undo an import. Import, Erase my history, Put back, Delete the copies and the
+exam paper's saves have the same guard. A key that is gone is not another tab's save:
+the core never deletes a profile's progress or history, so a missing key means the
+browser's site data was cleared while the page was open, and the page's next save
+writes its copy back (as before 2026-11-03); Import saves it back before it plans. A
+page that has been stopped stays stopped until it is reloaded, also after a clear.
+
+An answer is found by its question id and its time to the millisecond. Two copies are
+the same answer only when every field agrees (result, choices picked, confidence, count
+and the rest). Two copies under one key that differ are a **conflict**.
+
+Matching or empty answer lists never show on their own that a file adds nothing (Louis,
+2026-11-03): the concept progress, the pace and the scheduler's state can differ while
+the answers agree. So Import compares every part of the file's progress with this
+profile's (`addsTo`):
+- each answer, field for field;
+- each concept record;
+- each FSRS card and comparison arm, and the answer count;
+- the settings that come with the file (all but this device's own, `IMPORT_DEVICE`);
+- any other part, such as one a feature module keeps.
+
+Not compared: the shape's version, the record's origin `created` (used for continuation
+below), and the FSRS step "I guessed" can undo and the flag that the cards were rebuilt
+(`fsUndo`, `fsHistory`). Against the profile on screen, Import then does one of four
+things:
+- **nothing:** every part of the file's progress is here, field for field, and every
+  history entry; or every part of it and every history entry is in another profile
+  here (a file imported before into a profile of its own). When that profile's history
+  lacks some of the file's entries, the plan is to add them there, and nothing else
+  changes. An older file of this record changes nothing only in that
+  case: when a concept it holds was answered again here, or its pace differs, its
+  answers cannot show that it adds nothing, and it goes into a new profile;
+- **history:** the same, but the file adds history entries; they are merged in, and the
+  progress is unchanged;
+- **replace:** this profile holds no progress (no answers, answer count, concept
+  records, scheduler state or module part; settings alone are not progress) and its
+  answer history holds nothing the file's lacks, or the file continues this profile's
+  record: it has answers this device lacks, and all of these hold:
+  - the file's record has the same origin (`created`) as this one;
+  - this device's answer list is complete (its first answer is answer 1);
+  - this device's answers are the file's first answers, field for field, in order;
+  - every other part of this profile is in the file as it is here, except the concept
+    records, FSRS cards and questions the file's further answers changed, and the
+    settings, which come with the file. A part changed here without an answer (a
+    module's record, such as equation-drill's) is not in a file made elsewhere;
+- **separate:** anything else, for example:
+  - answers on each side the other lacks;
+  - a conflict;
+  - a record of another origin;
+  - an answer list here that the 4,000-answer limit has cut;
+  - answers here that are not the file's first answers in order;
+  - matching (or empty) answer lists with other concept progress, settings, scheduling
+    state or module part;
+  - a part of this profile changed without an answer that the file lacks;
+  - a profile with no progress whose answer history holds entries the file lacks (as a
+    put-back leaves), which would otherwise mix two records' histories.
+
+  The file's progress goes into a new profile, named after the file's profile and the
+  date, and this profile is unchanged.
+
+Before it saves, the page shows the course, the file's profile and export date, the
+answers and history entries in the file and on this device (with their dates), and what
+Import would do and why. It saves only on Import; Cancel leaves everything as it was.
+
+A replace first adds the progress it replaces to the copies Import keeps (a list under
+`<ns>:backup:<profile>`, newest last). Import and Put back never delete a copy; "Delete
+the copies kept by Import" in Settings does, only when asked and confirmed. The copies
+are read from what the browser holds at that moment, not from this page's own copy of
+the key, so copies another tab or window deleted are neither offered nor written back
+here; Put back and "Delete the copies" also do nothing when the copies changed while
+their question was open.
+
+"Put back the progress from <date>" makes the newest copy the progress again, in three
+writes ordered so that both records are in storage at every point:
+1. the progress on screen is added to the copies;
+2. the newest copy is written as the progress;
+3. that copy is taken off the list.
+
+The page says what happened at each refusal:
+- step 1 refused: nothing changes;
+- step 2 refused: the progress stays as it was, and the list is written back as it was;
+  if that write is refused too, the list keeps the extra copy of the progress on screen;
+- step 3 refused: that copy stays on the list as well, and the put-back stands.
+
+With the progress come its pace and "Ask everything", because the file's review dates
+were set with them. The equation drill's choice (`IMPORT_DEVICE`) stays this device's,
+and no key outside the progress, the history and the copies is touched.
+
+Nothing is replaced while the progress, or (for a file that adds to it) the history,
+could not be read in this visit. Every Import write is `store.trySet`: when the browser
+refuses it, nothing changes, not even the copy kept for the visit. A refused write of
+the copies or the progress means nothing is imported. A refused history write leaves the
+history stored and in memory as it was (it does not shrink), and importing the file
+again adds the entries. A new profile whose history cannot be saved is not made. A
+browser that stops between the writes leaves either the old progress, or the new
+progress with the history not yet merged. Combining two records into one is a separate
+proposal (`review/combined-progress-proposal.md`).
 
 The Home Screen card appears only in Settings, as a section that starts closed (a
 `<details>` whose `<summary>` is the card's one-line heading), and never on Topics
