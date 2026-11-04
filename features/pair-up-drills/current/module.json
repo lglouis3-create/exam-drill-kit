@@ -1,0 +1,17 @@
+{
+ "name": "pair-up-drills",
+ "version": "v1",
+ "does": "A Pair up tab: chips dragged or tapped into their boxes (one chip per box, or several per box), checked together, each chip with where it belongs and why, the wrong ones retried; and one tab per course table: each row asked column from column, one tap among answers drawn from the other rows (the row's own near miss first, rows with another right answer left out), misses back at the end of the round and first in the next, the best first-round score kept, and Cover and reveal over the whole table. Reads PAIR_SETS and RECALL_TABLES from a data file listed in course.js `files` (shapes in the module's header).",
+ "source": "Intro-Pharmacology- exam1-drill/src/app.js at 929cd62: Pair up (PAIR_SETS to pairWire), the drug-receptor drill (RX_RECS to rxNext) and the poisoning table drill (PT_MODES to ptAdvance), with their styles in src/shell.html lines 184-193; the port queue's lines 1923-2060 at d0d3d2d",
+ "js": ["pair-up-drills.js"],
+ "css": ["pair-up-drills.css"],
+ "step": "step.js",
+ "options": {
+  "pairLabel": {"default": "Pair up", "about": "the Pair up tab's name in the nav"},
+  "before": {"default": "settings", "about": "the tab the drills' tabs are placed before"},
+  "wholeUpTo": {"default": 9, "about": "a one-chip-per-box set of this many pairs or fewer is served whole"},
+  "pairRound": {"default": 7, "about": "pairs a round from a bigger one-chip-per-box set"},
+  "binRound": {"default": 12, "about": "chips a round from a set with several chips per box"}
+ },
+ "test": "test.js"
+}
