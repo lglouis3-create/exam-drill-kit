@@ -720,6 +720,7 @@ function claimProfile(p){
   if(WRITER === 'held' && WRITER_FOR === p) return;
   if(writerRelease) writerRelease();
   WRITER = 'pending'; WRITER_FOR = '';
+  NEW_LOGS[p] = [];   // a new time on this profile: entries from an earlier time on it are not this record's
   stopWall(null);
   claimWriter(p, 'try').then(ok => {
     if(PROFILE !== p) return;

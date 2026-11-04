@@ -2079,6 +2079,38 @@ let nfile = 0;
     await d.ctx.close();
   }
   {
+    // a tab back on a profile it held before, after another tab erased that history: the erased entries do not come back
+    const d = await device(undefined, true); const di = await info(d.page);
+    await lockReady(d.page);
+    await answerHere(d.page, 1); await answerHere(d.page, 2); await answerHere(d.page, 3);
+    await d.page.evaluate(() => useProfile('bee')); await lockReady(d.page);
+    const t2 = await secondTab(d);
+    await t2.evaluate(n => useProfile(n), di.profile);                 // the profile the first tab left
+    await t2.waitForFunction(n => WRITER === 'held' && PROFILE === n, di.profile, {timeout: 6000}).catch(() => {});
+    const erased = await t2.evaluate(() => { window.confirm = () => true; show('settings'); document.getElementById('btnReset').click(); saveNow(); return true; });
+    await t2.waitForTimeout(300);
+    const afterErase = JSON.parse(await stored(t2, di.log) || '[]').length;
+    await t2.waitForTimeout(300);
+    await t2.close();
+    // the closed tab's lock is freed a moment later: wait until it is, then go back
+    // (a closed tab's lock can stay held for a moment after locks.query shows it free; the switch back is
+    // tried again until this tab holds the profile, so the check below tests the history, not that timing)
+    let back = '', tries = 0;
+    for(; tries < 8 && back !== 'held'; tries++){
+      await d.page.waitForFunction(async n => (await navigator.locks.query()).held.every(l => !l.name.endsWith(':writer:' + n)), di.profile, {timeout: 5000}).catch(() => {});
+      if(tries) { await d.page.evaluate(() => useProfile('bee')); await lockReady(d.page); }
+      await d.page.evaluate(n => useProfile(n), di.profile);
+      await d.page.waitForFunction(n => WRITER !== 'pending' && PROFILE === n, di.profile, {timeout: 6000}).catch(() => {});
+      back = await d.page.evaluate(() => WRITER);
+    }
+    check(back === 'held', 'back on a profile another tab erased meanwhile: this tab holds it again (precondition)', {back, tries});
+    await answerHere(d.page, 4);
+    await reload(d.page); await lockReady(d.page); await d.page.waitForTimeout(1800);
+    const log = JSON.parse(await stored(d.page, di.log) || '[]');
+    check(erased && afterErase === 0 && log.length === 1, 'back on a profile another tab erased meanwhile: only the new entry is in its history after a reload', {afterErase, back, tries, n: log.length});
+    await d.ctx.close();
+  }
+  {
     // Erase without a reload first: this tab's own record (NEW_LOG) does not bring the history back
     const d = await device(undefined, true); const di = await info(d.page);
     await lockReady(d.page);
