@@ -822,6 +822,17 @@ function save(){
     if(canSave()) store.set(keyFor(PROFILE), JSON.stringify(DB));
   },150);
 }
+/* The save still waiting on its 150 ms timer, written now. When the page is hidden or
+   closed (a reload, a closed tab, a phone switching apps) that timer may never fire,
+   and the last answer or setting was lost (finding A1 of review/core-proposals-from-ports.md,
+   pull request #30, 2026-11-03; the stopwatch port lost 2 of 2 answers to a reload 20 ms
+   after a paper was submitted). views.js calls it on pagehide and when the page becomes
+   hidden; askProfile calls it before a switch. */
+function saveNow(){
+  if(!saveTimer) return;
+  clearTimeout(saveTimer); saveTimer = null;
+  if(canSave()) store.set(keyFor(PROFILE), JSON.stringify(DB));
+}
 /* Which profile opens when no choice is stored: the one with saved progress used
    most recently (by its last answer, else when it was created), else 'me'. The
    site opens straight to the drill and never asks for a name on its own (Louis,
@@ -848,7 +859,7 @@ function askProfile(force){
   // A save still waiting on its timer belongs to the profile on screen now. It
   // is written before the switch; left to fire later, it would write the next
   // profile's progress and drop this one's last answer.
-  if(saveTimer && PROFILE){ clearTimeout(saveTimer); saveTimer = null; if(canSave()) store.set(keyFor(PROFILE), JSON.stringify(DB)); }
+  if(PROFILE) saveNow();
   let n = PROFILE;
   if(!force && !n) n = pickProfile();
   if(force){
