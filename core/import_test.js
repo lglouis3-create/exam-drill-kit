@@ -1752,6 +1752,25 @@ let nfile = 0;
     await d.ctx.close();
   }
 
+  console.log('\n=== A profile switch away and straight back ===');
+  {
+    // one tab alone: switching away and straight back leaves it the writer, not read-only
+    const d = await device(undefined, true); const di = await info(d.page);
+    await answer(d.page, 1, 0);
+    await d.page.waitForFunction(() => WRITER === 'held', null, {timeout: 5000}).catch(() => {});
+    await d.page.evaluate(n => { useProfile('away'); useProfile(n); }, di.profile);      // in the same moment
+    await d.page.waitForFunction(() => WRITER !== 'pending', null, {timeout: 5000}).catch(() => {});
+    const w = await d.page.evaluate(() => WRITER), why = await d.page.evaluate(() => (document.getElementById('stopwall') || {dataset: {}}).dataset.why || null);
+    check(w === 'held' && why === null, 'one tab alone, a profile switch away and straight back: it is still the writer, with no wall', {w, why});
+    // with another tab holding that profile, the brief wait ends and the page opens read-only
+    const t2 = await secondTab(d);
+    await t2.waitForFunction(() => WRITER !== 'pending', null, {timeout: 5000}).catch(() => {});
+    await t2.evaluate(n => { useProfile('away'); useProfile(n); }, di.profile);
+    await t2.waitForFunction(() => WRITER !== 'pending', null, {timeout: 6000}).catch(() => {});
+    check(await t2.evaluate(() => WRITER) === 'other' && await d.page.evaluate(() => WRITER) === 'held', 'with another tab holding the profile, a switch back still opens read-only after the brief wait');
+    await d.ctx.close();
+  }
+
   check(!A.errors.length && !B.errors.length, 'no page errors', A.errors.concat(B.errors).slice(0, 2).join('; '));
   await A.ctx.close(); await B.ctx.close();
   await browser.close();

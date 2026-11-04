@@ -2,6 +2,9 @@
 
 Dated kit changes, newest first.
 
+## 2026-11-04
+- A profile switch away and straight back no longer leaves the page read-only behind the "open in another tab" wall.
+
 ## 2026-11-03
 - Import progress shows what a file holds and would change, and saves only when confirmed.
 - Import refuses a file of another course or of no course, and replaces progress only with a record that continues it.

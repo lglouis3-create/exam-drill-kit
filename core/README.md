@@ -423,6 +423,9 @@ frees it when that tab closes).
 - A writer that does not answer within 4 s (asleep in the background) can be taken over
   ("Take it over anyway", `steal`). It then stops: the browser ends its lock, and before
   every write a writer checks that `<ns>:writer:<profile>` still names its own tab.
+- A profile switch away and straight back: the lock this page freed a moment before may
+  not be free yet when it asks again, so it queues for it for at most 2 s instead of opening
+  read-only (when another tab holds it, the page opens read-only after that wait).
 - An Import that writes another profile (a new one, or the history of the profile that
   already holds the file) holds that profile's lock while it writes, and writes nothing
   when a tab using that profile has it.
