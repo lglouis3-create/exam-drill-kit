@@ -397,14 +397,27 @@ so when the browser refuses the write:
 - switching to another profile first tries the refused writes once more; if the progress or
   history is still refused, the page asks whether to export that profile first, then whether
   to switch (Cancel stays). After the switch, every later progress save also tries the history
-  of each profile switched away from (`retryAwayLog`), merged into what is stored there, but
-  only when no tab of this browser holds that profile's writer lock (`navigator.locks.query`;
-  taking the lock itself made a switch back to that profile, at that moment, open read-only);
-  so a reload after the browser has room again no longer loses it (#47's review, M1);
+  of each profile switched away from (`retryAwayLog`), so a reload after the browser has room
+  again no longer loses it (#47's review, M1). It is written only when no tab of this browser
+  holds that profile's writer lock (`navigator.locks.query`; taking the lock itself made a
+  switch back to that profile, at that moment, open read-only), and only when what is stored
+  there is still what this page last knew (`KEPT`): then this page's copy is that plus its own
+  entries and is written as it is. When another tab or window saved or erased that history
+  since, nothing is written or merged (a merge undid another tab's Erase, and made two
+  answers to one question in one second into one: #47's re-review, N1 and N2); the entries
+  stay refused, in memory, and a notice says so once and offers "Export it" (a file for that
+  profile: its stored progress and this page's history, for Import). A tab that opens that
+  profile in the moment between the lock query and the write either reads the written value
+  or, having read before it, stops with the "saved in another tab" wall at its first save;
+  nothing is lost either way;
 - the page counts it as unsaved (`unsavedHere`, now `progUnsavedHere` or `logUnsavedHere`):
   a stop wall offers "Export this page's progress". "Use it here" adds the entries to the stored
   history when only history entries are unsaved (the progress is as stored), so no copy of the
-  progress is made that Put back could roll the progress back to; when the progress is unsaved
+  progress is made that Put back could roll the progress back to. With the stored history still
+  what this page last knew, this page's history is written as it is; changed by the other tab,
+  this page's entries that were never stored are added to it, counted (`withNeverStored`: the
+  same entry twice stays twice; compared on every field but the confidence, index 5, which "Not
+  sure" and "I guessed" change after the answer). When the progress is unsaved
   too, or the browser refuses that history write, it keeps them in the copy it makes (field
   `log`), when the browser has room for the copy (otherwise it does not take the profile, as
   before).
@@ -420,8 +433,9 @@ saving sooner; what is not saved stays on the page and in Export until the page 
 reloaded. `history_test.js` measures it on the template scratch course, with 300 history entries
 stored and the whole site's storage then allowed 1,200 more characters: the `5b19b94` core stored
 the progress of 7 of 7 answers and cut the history to 155 entries (of 307), with no notice; this
-core stored the progress of 2 of 7 answers and 305 of the 307 entries, kept all 307 on the page
-and in Export, and showed the notice (Chromium, 2026-11-04). The reviewer's run gave 2 of 9
+core stored the progress of 2 or 3 of 7 answers and 303 to 306 of the 307 entries in the runs of
+2026-11-04 (it varies with the order the writes are refused in), kept all 307 on the page and in
+Export, and showed the notice (Chromium). The reviewer's run gave 2 of 9
 against 9 of 9, with the history cut from 300 to 156.
 
 **Cuts that stay.** The answers a progress keeps past 4,000 (`ANSWERS_MAX`) and the history

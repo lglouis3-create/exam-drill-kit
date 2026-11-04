@@ -333,16 +333,15 @@ const next = p => p.evaluate(() => { const b = document.getElementById('btnNext'
     await t.close();
     await m.waitForTimeout(300);
     await m.evaluate(() => startQuiz(null, null));
-    await m.evaluate(ANSWER, true);   // that tab closed: the next save writes it, merged
+    await m.evaluate(ANSWER, true);   // that tab closed: what is stored is not what this page last knew there
     await m.waitForTimeout(800);
-    const away = await m.evaluate(([k, a, b]) => { const l = JSON.parse(localStorage.getItem(k) || '[]'), has = x => l.some(e => JSON.stringify(e) === JSON.stringify(x));
-      return {n: l.length, mine: has(a), theirs: has(b), failed: FAILED.has(k), wall: !!document.getElementById('stopwall') || STALE}; }, [me.k, me.last, theirs]);
-    check(away.n === SEED + 2 && away.mine && away.theirs && !away.failed && !away.wall,
-      `once no tab has it, a save of another profile writes the history of the profile switched away from, merged with that tab's entry (${SEED + 2} stored), with no stop`, away);
-    await m.reload();
-    await m.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
-    const after = await m.evaluate(([k, last]) => { const l = JSON.parse(localStorage.getItem(k) || '[]'); return {n: l.length, has: l.some(e => JSON.stringify(e) === JSON.stringify(last))}; }, [me.k, me.last]);
-    check(after.n === SEED + 2 && after.has, 'after a reload the profile switched away from still has every entry, the once-refused one too', after);
+    const away = await m.evaluate(k => ({same: localStorage.getItem(k), failed: FAILED.has(k), notice: (document.querySelector('.awaywarn') || {}).textContent || ''}), me.k);
+    check(away.same === theirsStored && away.failed && /changed in another tab/.test(away.notice),
+      'that tab closed, its save still stored: this page writes nothing over it, keeps its entries refused, and says so', {same: away.same === theirsStored, failed: away.failed, notice: away.notice.slice(0, 80)});
+    const [adl] = await Promise.all([m.waitForEvent('download', {timeout: 5000}).catch(() => null), m.evaluate(() => { const b = document.querySelector('.awaywarn button'); if(b) b.click(); })]);
+    const aex = adl ? JSON.parse(fs.readFileSync(await adl.path(), 'utf8')) : null;
+    check(!!aex && aex.profile === me.p && aex.log.length === SEED + 1 && aex.log.some(e => JSON.stringify(e) === JSON.stringify(me.last)),
+      'that notice\'s "Export it" gives a file for that profile with every entry this page holds, the refused one too', aex && {profile: aex.profile, n: aex.log.length});
     check(!e4.length, 'a profile switched away from: no page errors', e4.slice(0, 2).join('; '));
     await c4.close();
   }
@@ -383,16 +382,83 @@ const next = p => p.evaluate(() => { const b = document.getElementById('btnNext'
     check(!e5.length, 'the whole site\'s storage full: no page errors', e5.slice(0, 2).join('; '));
     await c5.close();
   }
+  // two answers to one question in one second, both refused: alike in their first four fields
+  const twoAlike = pg => pg.evaluate(() => {
+    while(Date.now() % 1000 > 400){ /* early in a second, so both round to the same one */ }
+    const q = QUESTIONS[0];
+    record(q, 'correct', undefined, 1000); record(q, 'correct', undefined, 1000);
+    const a = LOG[LOG.length - 2], b = LOG[LOG.length - 1];
+    return {alike: JSON.stringify(a) === JSON.stringify(b), e: b, n: LOG.length};
+  });
+  const countOf = (pg, k, e) => pg.evaluate(([k, e]) => { const l = JSON.parse(localStorage.getItem(k) || '[]'); return {n: l.length, count: l.filter(x => JSON.stringify(x) === JSON.stringify(e)).length}; }, [k, e]);
   {
+    // a profile switched away from, nothing else changed there: once the browser keeps writes, its
+    // history is written as this page holds it, two alike entries as two (#47's re-review, N2)
+    const {ctx: c7, page: m, errors: e7} = await L.openFile(browser, {}, CAP);
+    await seeded(m, c7);
+    const two = await twoAlike(m);
+    await m.waitForTimeout(400);
+    const k = await m.evaluate(() => logKey()), p0 = await m.evaluate(() => PROFILE);
+    await m.evaluate(() => useProfile('other-one'));
+    await m.waitForFunction(() => WRITER === 'held' || WRITER === 'none', null, {timeout: 5000}).catch(() => {});
+    await m.evaluate(() => { window.__logCap = null; });
+    await m.evaluate(() => startQuiz(null, null));
+    await m.evaluate(ANSWER, true);
+    await m.waitForTimeout(800);
+    const w = await countOf(m, k, two.e);
+    check(two.alike && w.n === SEED + 2 && w.count === 2 && await m.evaluate(k => !FAILED.has(k), k),
+      `a profile switched away from: its history is written as this page holds it, two alike entries as two (${SEED + 2} stored)`, Object.assign({alike: two.alike}, w));
+    await m.reload();
+    await m.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+    const r = await countOf(m, k, two.e);
+    check(r.n === SEED + 2 && r.count === 2, 'and after a reload', r);
+    check(!e7.length, 'a profile switched away from, written: no page errors', e7.slice(0, 2).join('; ') + (p0 ? '' : ''));
+    await c7.close();
+  }
+  {
+    // another tab erases the history of the profile this page left (#47's re-review, N1): this page's
+    // unsaved copy is not written or merged back over the erase; it stays in memory, with a notice
+    const {ctx: c8, page: x, errors: e8} = await L.openFile(browser, {}, CAP);
+    await seeded(x, c8);
+    await x.evaluate(() => startQuiz(null, null));
+    await x.evaluate(ANSWER, true);
+    await x.waitForTimeout(400);
+    const me = await x.evaluate(() => ({p: PROFILE, k: logKey()}));
+    await x.evaluate(() => useProfile('other-one'));
+    await x.waitForFunction(() => WRITER === 'held' || WRITER === 'none', null, {timeout: 5000}).catch(() => {});
+    await x.evaluate(() => { window.__logCap = null; });
+    const y = await c8.newPage();
+    y.on('dialog', d => d.accept());
+    await y.goto(x.url());
+    await y.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+    await y.evaluate(p => useProfile(p), me.p);
+    await y.waitForFunction(() => WRITER === 'held', null, {timeout: 5000}).catch(() => {});
+    await y.evaluate(() => show('settings'));
+    await y.click('#btnReset');
+    await y.waitForTimeout(300);
+    const erased = await y.evaluate(k => localStorage.getItem(k), me.k);
+    await y.close();
+    await x.waitForTimeout(300);
+    await x.evaluate(() => startQuiz(null, null));
+    await x.evaluate(ANSWER, true);
+    await x.waitForTimeout(800);
+    const st = await x.evaluate(k => ({stored: localStorage.getItem(k), failed: FAILED.has(k), mem: JSON.parse(MEM[k] || '[]').length, notice: !!document.querySelector('.awaywarn')}), me.k);
+    check(erased === '[]' && st.stored === '[]' && st.failed && st.mem === SEED + 1 && st.notice,
+      'another tab erased the history of the profile this page left: this page writes nothing back over it, keeps its copy in memory and offers its export', Object.assign({erased}, st, {stored: (st.stored || '').length}));
+    check(!e8.length, 'another tab erased it: no page errors', e8.slice(0, 2).join('; '));
+    await c8.close();
+  }
+  for(const theyAnswer of [false, true]){
     // only history entries unsaved at "Use it here" (the progress as stored), and the browser has
     // room again: they are added to the stored history, and no copy of the progress is made, so
-    // Put back has nothing older to roll the progress back to
+    // Put back has nothing older to roll the progress back to. Two of them alike (one question, one
+    // second) stay two (#47's re-review, N2): with nothing else stored since, the history is written
+    // as this page holds it; with the other tab's answer stored meanwhile, this page's never-stored
+    // entries are added to it, counted
     const {ctx: c6, page: a, errors: e6} = await L.openFile(browser, {}, CAP);
     await seeded(a, c6);
-    await a.evaluate(() => startQuiz(null, null));
-    await a.evaluate(ANSWER, true);
+    const two = await twoAlike(a);
     await a.waitForTimeout(400);
-    const mine = await a.evaluate(() => LOG[LOG.length - 1]);
     const b = await c6.newPage();
     b.on('dialog', x => x.accept());
     await b.goto(a.url());
@@ -400,13 +466,23 @@ const next = p => p.evaluate(() => { const b = document.getElementById('btnNext'
     await b.waitForFunction(() => WRITER === 'other', null, {timeout: 5000}).catch(() => {});
     await b.evaluate(() => takeOver(false));
     await b.waitForFunction(() => WRITER === 'held', null, {timeout: 8000}).catch(() => {});
+    let theirs = null;
+    if(theyAnswer){
+      await b.evaluate(() => startQuiz(null, null));
+      const n1 = await b.evaluate(() => LOG.length);
+      await b.evaluate(ANSWER, true);
+      theirs = await b.evaluate(n => LOG.length > n ? LOG[LOG.length - 1] : null, n1);
+      await b.waitForTimeout(300);
+    }
     await a.waitForFunction(() => !!document.getElementById('stopwall'), null, {timeout: 5000}).catch(() => {});
     await a.evaluate(() => { window.__logCap = null; const x = document.getElementById('stopTake'); if(x) x.click(); });
     await a.waitForFunction(() => WRITER === 'held', null, {timeout: 8000}).catch(() => {});
-    const r = await a.evaluate(m => { const l = JSON.parse(localStorage.getItem(NS + ':log:' + PROFILE) || '[]');
-      return {n: l.length, has: l.some(e => JSON.stringify(e) === JSON.stringify(m)), copies: localStorage.getItem(NS + ':backup:' + PROFILE), held: WRITER}; }, mine);
-    check(r.n === SEED + 1 && r.has && r.copies === null && r.held === 'held',
-      '"Use it here" with only history entries unsaved: they are added to the stored history, and no copy of the progress is made', r);
+    const r = await a.evaluate(([m, t]) => { const l = JSON.parse(localStorage.getItem(NS + ':log:' + PROFILE) || '[]');
+      return {n: l.length, count: l.filter(e => JSON.stringify(e) === JSON.stringify(m)).length, theirs: t ? l.some(e => JSON.stringify(e) === JSON.stringify(t)) : null,
+              seeded: l.filter(e => e[4] === 'seeded').length, copies: localStorage.getItem(NS + ':backup:' + PROFILE), held: WRITER}; }, [two.e, theirs]);
+    const want = SEED + 2 + (theyAnswer ? 1 : 0);
+    check(two.alike && (!theyAnswer || (!!theirs && r.theirs)) && r.n === want && r.count === 2 && r.seeded === SEED && r.copies === null && r.held === 'held',
+      `"Use it here" with only history entries unsaved${theyAnswer ? ', the other tab having answered meanwhile' : ''}: they are added to the stored history, two alike entries as two (${want} stored), and no copy of the progress is made`, Object.assign({alike: two.alike}, r));
     check(!e6.length, '"Use it here" with only history unsaved: no page errors', e6.slice(0, 2).join('; '));
     await c6.close();
   }

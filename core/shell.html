@@ -229,10 +229,10 @@ body.swbar-on{padding-bottom:76px}
 
 /* ---------- the notices shown once when the browser refuses to save, and when
    the saved progress could not be loaded ---------- */
-#savewarn,#loadwarn{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:50;
+#savewarn,#loadwarn,.awaywarn{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:50;
   max-width:720px;margin:0 auto;background:var(--warn-bg);color:var(--text);border:1px solid var(--warn);
   border-radius:8px;padding:10px 12px;font-size:14px;line-height:1.45;box-shadow:0 2px 10px rgba(0,0,0,.25)}
-#savewarn .btn,#loadwarn .btn{margin-left:8px;padding:4px 10px;font-size:13px}
+#savewarn .btn,#loadwarn .btn,.awaywarn .btn{margin-left:8px;padding:4px 10px;font-size:13px}
 /* a page that has stopped saving (another tab has the profile, or saved it since): the
    page takes no answers until it can save again, so nothing is studied unsaved */
 #stopwall,#stalewarn{position:fixed;inset:0;z-index:60;background:rgba(10,16,24,.62);display:flex;align-items:center;
@@ -581,10 +581,10 @@ const NS = COURSE.ns + (BUILD.preview ? '-preview' : '');
    from memory until a write succeeds, so nothing is lost within the visit, and
    the first failure shows one notice that points to Export progress. */
 const MEM = {}, FAILED = new Set();   // FAILED: keys whose last write the browser refused; their value lives in MEM
-const KEPT = {};
+const KEPT = {};   // per key, what this page last read from storage or had the browser keep there (load)
 let SAVE_WARNED = false;   // the "did not save" notice was shown since FAILED was last empty (saveWarn)
 // a key the browser kept: no longer refused; once no key is, a later refusal shows the notice again
-const keptNow = k => { FAILED.delete(k); if(!FAILED.size) SAVE_WARNED = false; };   // per key, what this page last read from storage or had the browser keep there (load)
+const keptNow = k => { FAILED.delete(k); if(!FAILED.size) SAVE_WARNED = false; };
 const store = {
   get(k){
     if(FAILED.has(k)) return MEM[k] === undefined ? null : MEM[k];
@@ -774,9 +774,15 @@ function takeOver(force){
         WRITER = 'held'; WRITER_FOR = p; STALE_WARNED = false;
         let addedLog = false;
         if(logOnly !== null){
-          let base = null;
-          try { const raw = storedNow(NS + ':log:' + p); const v = raw ? JSON.parse(raw) : []; base = Array.isArray(v) ? v : null; } catch(e){ base = null; }
-          if(base !== null && store.trySet(NS + ':log:' + p, JSON.stringify(mergedLog(base, JSON.parse(logOnly))))) addedLog = true;
+          const lk = NS + ':log:' + p, now = storedNow(lk), known = lk in KEPT ? KEPT[lk] : null;
+          let out = null;
+          // stored as this page last knew it: this page's history is that plus its own entries, written as it is
+          if(now === known) out = logOnly;
+          else {
+            // the other tab changed it: this page's never-stored entries are added to what it stored
+            try { const v = now ? JSON.parse(now) : []; if(Array.isArray(v)) out = JSON.stringify(withNeverStored(v, JSON.parse(logOnly), known)); } catch(e){ out = null; }
+          }
+          if(out !== null && store.trySet(lk, out)) addedLog = true;
           else { keepMine = dbHere; keepLog = logOnly; }
         }
         if(keepMine !== null){
@@ -1127,9 +1133,10 @@ function saveLog(){
    refused (#47's review, M1: that history otherwise stayed unwritten, and a reload lost it).
    Another profile's is written only when no tab of this browser holds that profile's writer
    lock (navigator.locks.query: asking for the lock itself would hold it for a moment, and a
-   switch back to that profile in that moment would find it taken and open read-only), and it
-   is merged into what is stored there at that moment (mergedLog), so nothing another tab
-   saved under that profile is written over. */
+   switch back to that profile in that moment would find it taken and open read-only), and
+   only over what this page last knew stored there (retryAwayLog). A tab that opens that
+   profile between the query and the write reads the written value, or, reading before it,
+   stops with the "saved in another tab" wall at its first save; nothing is lost either way. */
 function retryLog(){
   if(FAILED.has(logKey())) saveLog();
   const pre = NS + ':log:';
@@ -1138,14 +1145,64 @@ function retryLog(){
 function retryAwayLog(k, p){
   const write = () => {
     if(!FAILED.has(k) || p === PROFILE) return;   // written meanwhile, or the profile is open again (saveLog writes it)
-    let base, mine;
-    try { const raw = storedNow(k); const v = raw ? JSON.parse(raw) : []; base = Array.isArray(v) ? v : null; mine = JSON.parse(MEM[k]); } catch(e){ return; }
-    if(base === null || !Array.isArray(mine)) return;   // a stored history that cannot be read is never written over
-    store.set(k, JSON.stringify(typeof mergedLog === 'function' ? mergedLog(base, mine) : mine));
+    // written only over what this page last knew stored there (KEPT): this page's copy is that plus its
+    // own entries, so it is written as it is. Changed since (another tab saved or erased that history),
+    // nothing is written or merged (#47's re-review, N1: a merge undid another tab's Erase); it stays
+    // refused, in memory, and a notice offers its export
+    const now = storedNow(k), known = k in KEPT ? KEPT[k] : null;
+    if(now !== known){ awayChanged(k, p); return; }
+    store.set(k, MEM[k]);
   };
   if(WRITER === 'none' || !HAS_LOCKS){ write(); return; }
   // a tab using profile p holds its lock: nothing is written, and the next save tries again
   try { navigator.locks.query().then(q => { if(!(q.held || []).some(l => l.name === writerName(p)) && !(q.pending || []).some(l => l.name === writerName(p))) write(); }).catch(() => {}); } catch(e){}
+}
+/* The entries of `mine` that `known` (the stored history as this page last knew it, a string or
+   null) does not hold, added to `stored`: counted, not merged, so two entries alike (two answers
+   to one question in one second) stay two (#47's re-review, N2). Entries are compared on every
+   field but the confidence (index 5), which "Not sure" and "I guessed" change after the answer. */
+function withNeverStored(stored, mine, known){
+  const key = e => JSON.stringify(e.filter((x, i) => i !== 5));
+  const had = new Map();
+  let base = [];
+  try { const v = known ? JSON.parse(known) : []; base = Array.isArray(v) ? v : []; } catch(e){ base = []; }
+  for(const e of base) if(Array.isArray(e)) had.set(key(e), (had.get(key(e)) || 0) + 1);
+  const out = stored.slice();
+  for(const e of mine){
+    if(!Array.isArray(e)) continue;
+    const n = had.get(key(e)) || 0;
+    if(n > 0) had.set(key(e), n - 1); else out.push(e);
+  }
+  out.sort((x, y) => x[0] - y[0]);   // stable: entries alike keep their order
+  return out.length > LOG_MAX ? out.slice(out.length - LOG_MAX) : out;
+}
+/* The history this page holds for profile p was not written because what is stored there
+   changed in another tab or window since: once per profile, a notice says so and offers a
+   file with it (that profile's stored progress and this page's history), for Import. */
+const AWAY_WARNED = new Set();
+function awayChanged(k, p){
+  if(AWAY_WARNED.has(k) || !document.body) return;
+  AWAY_WARNED.add(k);
+  const d = document.createElement('div');
+  d.className = 'awaywarn'; d.setAttribute('role', 'alert');
+  d.textContent = 'This browser did not save part of the answer history of "' + p + '", and that history was changed in another tab or window since, so this page has not written it. It is kept on this page until it is closed or reloaded. ';
+  const ex = document.createElement('button'); ex.type = 'button'; ex.className = 'btn'; ex.textContent = 'Export it';
+  ex.onclick = () => {
+    try {
+      let db = null;
+      try { const raw = FAILED.has(NS + ':data:' + p) ? MEM[NS + ':data:' + p] : storedNow(NS + ':data:' + p); db = raw ? JSON.parse(raw) : null; } catch(e){ db = null; }
+      const blob = new Blob([JSON.stringify({app: 'exam-drill', course: COURSE.id, ns: NS, exported: new Date().toISOString(),
+        profile: p, db: db || BLANK(), log: JSON.parse(MEM[k])}, null, 1)], {type: 'application/json'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `${COURSE.id}-progress-${p.replace(/\W+/g, '_')}.json`;
+      document.body.appendChild(a); a.click(); a.remove();
+    } catch(e){ alert('The export did not work: ' + (e && e.message || e)); }
+  };
+  const ok = document.createElement('button'); ok.type = 'button'; ok.className = 'btn ghost'; ok.textContent = 'OK';
+  ok.onclick = () => d.remove();
+  d.appendChild(ex); d.appendChild(ok);
+  document.body.appendChild(d);
 }
 const itemType = q => q.type || (q.multi ? 'multi' : 'mc');
 function logAnswer(q, result, mode, how){
