@@ -280,6 +280,16 @@ const build = (label, list) => L.scratchBuild(label, {files: {'qp_test_data.js':
       }
       return DB.answers.length;
     }, quiz);
+    /* A reload the page starts itself (location.reload() inside page.evaluate): the
+       evaluate can return before the old page is gone, and in WebKit the old page
+       still has its nav buttons, so waiting for them alone can pass on the old page
+       and the next evaluate then meets the navigation. The page function sets
+       window.__qpOldPage just before location.reload(); the wait is for a page that
+       does not carry it (the new one) and has its nav buttons. */
+    const reloadedBy = async (page, fn) => {
+      await page.evaluate(fn).catch(e => { if(!/Execution context was destroyed|navigat/i.test(String(e && e.message))) throw e; });
+      await page.waitForFunction(() => !window.__qpOldPage && document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+    };
     const snap = page => page.evaluate(() => ({who: PROFILE, answers: DB.answers.map(a => a.qid + ':' + a.result), concepts: Object.keys(DB.concepts).sort()}));
     {
       const {ctx, page, errors} = await open('2026-10-02T12:00');
@@ -310,8 +320,7 @@ const build = (label, list) => L.scratchBuild(label, {files: {'qp_test_data.js':
             `a profile switch: the other profile has no answers, and switching back brings the ${n} answers back`, {other: other.answers.length, back: again.answers.length});
       check(JSON.stringify(otherCards) === '["q5"]' && JSON.stringify(againCards) === '["q5"]', 'the hidden Quiz 4 card stays hidden in both profiles (one browser)', {otherCards, againCards});
       // reloads right after a change
-      await page.evaluate(async () => { show('topics'); await new Promise(r => setTimeout(r, 30)); document.querySelector('#v-topics button[data-qphide="q5"]').click(); location.reload(); });
-      await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+      await reloadedBy(page, async () => { show('topics'); await new Promise(r => setTimeout(r, 30)); document.querySelector('#v-topics button[data-qphide="q5"]').click(); window.__qpOldPage = true; location.reload(); });
       const fast = await cardIds(page);
       await page.evaluate(async () => { show('settings'); document.getElementById('qpUnhide').click(); show('topics'); await new Promise(r => setTimeout(r, 30)); document.querySelector('#v-topics button[data-qphide="q5"]').click(); });
       await page.waitForTimeout(400);
@@ -321,13 +330,12 @@ const build = (label, list) => L.scratchBuild(label, {files: {'qp_test_data.js':
       check(JSON.stringify(fast) === '[]' && JSON.stringify(slow) === '["q4"]', 'a reload at once (under 150 ms) and 400 ms after Hide keeps the hidden card hidden (Quiz 5 both times; Quiz 4 shows again after Show again)', {fast, slow});
       // the core's 150 ms save: an answer and a reload at once, then one 400 ms later
       const before = (await snap(page)).answers.length;
-      await page.evaluate(async () => { show('settings'); document.getElementById('qpUnhide').click(); show('topics'); await new Promise(r => setTimeout(r, 30));
+      await reloadedBy(page, async () => { show('settings'); document.getElementById('qpUnhide').click(); show('topics'); await new Promise(r => setTimeout(r, 30));
         document.querySelector('#v-topics button[data-qpquiz="q5"][data-how="sweep"]').click();
         const q = Q.current; if(q.type === 'numeric'){ document.getElementById('numIn').value = String(q.answer); document.getElementById('btnCheck').click(); }
         else if(isMulti(q)){ for(const j of correctSet(q)) document.querySelector(`#v-quiz button[data-o="${j}"]`).click(); document.getElementById('btnCheck').click(); }
         else document.querySelector('#v-quiz button[data-o]').click();
-        location.reload(); });
-      await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+        window.__qpOldPage = true; location.reload(); });
       const quick = (await snap(page)).answers.length;
       await page.evaluate(async () => { show('topics'); await new Promise(r => setTimeout(r, 30)); document.querySelector('#v-topics button[data-qpquiz="q5"][data-how="sweep"]').click();
         const q = Q.current; if(q.type === 'numeric'){ document.getElementById('numIn').value = String(q.answer); document.getElementById('btnCheck').click(); }
