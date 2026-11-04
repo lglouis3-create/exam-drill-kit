@@ -1,5 +1,5 @@
 /* Which module courses the kit's GitHub workflow checks (.github/workflows/checks.yml,
- * job "modules"). Prints `courses=<JSON list>` for $GITHUB_OUTPUT, each entry a
+ * jobs "modules", in Chromium, and "modules-webkit", in WebKit). Prints `courses=<JSON list>` for $GITHUB_OUTPUT, each entry a
  * course for core/ci_course.sh, and on stderr why each one runs.
  *
  *     node .github/ci_plan.js <event> [<base commit>]
