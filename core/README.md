@@ -431,15 +431,20 @@ frees it when that tab closes).
   holds answers or settings that are not stored, and asks before a reload would drop them.
 
 What this does not cover (the independent review of 4b3b94c; Chromium only):
-- **A writer that leaves without handing over.** When the writing tab closes, reloads,
-  navigates away or switches profile, no hand-over message is sent. The next tab to take
-  the lock (Use it here, a page opening, or a switch back) reads storage at once, or after
-  a 1-second wait for a hand-over that does not come. If the leaving tab's last save has
-  not reached it by then, its next save writes over that save: the same interval as before,
-  now only at the moment one tab leaves and another takes over. Closing it needs a change
-  to how progress is stored (each tab's answers in a key only it writes, merged by the
-  writer, or IndexedDB transactions, which run one at a time across tabs); that is a
-  separate decision.
+- **A writer that leaves without handing over** (closes, reloads, navigates away or switches
+  profile) sends no hand-over, and the next tab to take the lock may not yet have its last
+  save. Since 2026-11-04 that save is no longer lost to the next tab's writes: every writing
+  tab also keeps what it last stored in `<ns>:pending:<profile>:<tab>`, a key no other tab
+  writes (below, "Each writing tab's last save"). What remains:
+  - the record arrives a moment later too, so for that moment the next tab works on the
+    older progress; when the record arrives (the storage event, or the check 1.5 s after
+    the lock is taken), it becomes the progress if the tab has written nothing since it
+    took the profile, and is kept as a copy (Put back) if it has, so the two are not mixed
+    and the closed tab's answers are in the copy, not in the live progress;
+  - a browser that refuses that record's write (storage full) has no record for that save;
+  - each writing tab's record holds a full copy of its progress (up to about 547,000
+    characters; `review/storage-usage-proposal.md`) and its history entries since it took
+    the profile, until the next writer has read them back as stored and 60 s more have passed.
 - A browser without Web Locks (Safari and Safari on iPhone and iPad before 15.4, per
   https://caniuse.com/mdn-api_lockmanager, read 2026-11-03) keeps the comparison guards
   below on their own, and the interval above stays open there. A page opened from disk has
@@ -464,6 +469,27 @@ What this does not cover (the independent review of 4b3b94c; Chromium only):
 - The hand-over relies on a value this tab reads from storage having been stored, which is
   how browsers behave; the HTML Standard does not define the timing of storage between tabs.
 - Two devices never share a lock: moving progress between devices is Import's job.
+
+**Each writing tab's last save (2026-11-04).** The tab holding the lock writes, with every
+save of the progress or history, `<ns>:pending:<profile>:<tab>` = `{at, db, log}`: `db` is
+the progress exactly as it stored it, `log` the history entries it added since it took the
+profile. When a tab takes the lock it reads every other tab's record of that profile (and
+again 1.5 s later, and on every storage event for such a key). Answers are compared field by
+field (every field of the answer, never question and time alone), and history entries entry
+by entry, so two attempts at one question and two differing records of one attempt both stay:
+- the record is what is stored, or the stored progress has all its answers and more: nothing
+  to add;
+- the stored answers are the record's first answers, field for field, and this tab has written
+  and changed nothing since it took the profile: the record becomes the progress (the save that
+  was written over), with a notice;
+- otherwise (this tab wrote since, an answer differs, settings differ): the record is added to
+  the copies Import keeps (Put back), with a notice, and the live progress is not changed.
+The record's history entries that the stored history lacks are added to it.
+**Cleanup rule:** a record's key is removed only when the stored progress (or a stored copy)
+and the stored history, read back, hold all of it, and only on a later check at least 60 s
+after that was first found, with the record unchanged in between; a record that changed is
+checked again instead. Only the tab holding the lock removes a record, never its own. A record
+that cannot be read is left as it is. Without Web Locks no record is kept.
 
 Import plans and writes nothing while the progress on this page is not what is stored:
 when another tab or window saved the profile after this page read it (`SEEN`, the

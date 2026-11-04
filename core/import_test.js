@@ -1752,6 +1752,92 @@ let nfile = 0;
     await d.ctx.close();
   }
 
+  console.log('\n=== A writer that leaves without handing over: its last save in a key only it writes ===');
+  const keptAnywhere = async (p, di, at) => {                   // in the stored progress or in a kept copy
+    const prog = JSON.parse(await stored(p, di.data) || '{"answers":[]}');
+    const copies = JSON.parse(await stored(p, di.backup) || '[]');
+    const has = db => (db.answers || []).some(a => a.at === at);
+    return {live: has(prog), copy: copies.some(c => { try { return has(JSON.parse(c.data)); } catch(e){ return false; } })};
+  };
+  const leaveWithoutHandOver = async (lagPending) => {
+    // tab 1 writes; tab 2 is read-only and has not yet received tab 1's last save; tab 1 closes
+    const d = await device(undefined, true); const di = await info(d.page);
+    await answer(d.page, 2, 0);
+    const t2 = await secondTab(d);
+    await t2.waitForFunction(() => typeof WRITER !== 'undefined' && WRITER === 'other', null, {timeout: 5000}).catch(() => {});
+    const pk = await d.page.evaluate(() => typeof pendingKey === 'function' ? pendingKey(PROFILE, TAB_ID) : null);
+    await lagView(t2, [di.data, di.log].concat(lagPending && pk ? [pk] : []));
+    const last = await answerHere(d.page, 6);                          // tab 1's last answer, stored
+    await d.page.close();                                              // no hand-over
+    return {d, di, t2, last, pk};
+  };
+  {
+    // the leaving tab's record arrives (it is not held back): the next writer starts from it
+    const {d, di, t2, last} = await leaveWithoutHandOver(false);
+    await t2.evaluate(() => takeOver(false));
+    await t2.waitForFunction(() => WRITER === 'held', null, {timeout: 9000}).catch(() => {});
+    const mine = await answerHere(t2, 7);
+    await unlag(t2);
+    await t2.waitForTimeout(300);
+    const a = await keptAnywhere(t2, di, last), b = await keptAnywhere(t2, di, mine);
+    check(a.live && b.live, 'a writer closes without handing over before its last save reached the next tab: that answer is in the stored progress, with the next tab\'s', {last: a, next: b});
+    await d.ctx.close();
+  }
+  {
+    // the record arrives only after the next tab has answered: the record is kept as a copy, not mixed in
+    const {d, di, t2, last, pk} = await leaveWithoutHandOver(true);
+    await t2.evaluate(() => takeOver(false));
+    await t2.waitForFunction(() => WRITER === 'held', null, {timeout: 9000}).catch(() => {});
+    const mine = await answerHere(t2, 7);
+    await unlag(t2);
+    await t2.evaluate(() => { if(typeof settlePending === 'function') settlePending(); });   // as the storage event does
+    await t2.waitForTimeout(300);
+    const a = await keptAnywhere(t2, di, last), b = await keptAnywhere(t2, di, mine);
+    check((a.live || a.copy) && b.live && !(a.live && b.live && false), 'the record arrives after the next tab answered: the closed tab\'s answer is kept (a copy), and the next tab\'s stays in the progress', {last: a, next: b, pk: !!pk});
+    check(a.copy && !a.live, 'that record is not mixed into the progress: it is a separate copy', a);
+    await d.ctx.close();
+  }
+  {
+    // a record whose answer differs field by field from the stored one at the same question and time,
+    // and one with a second attempt at the same question: neither is merged or dropped
+    const d = await device(undefined, true); const di = await info(d.page);
+    await answer(d.page, 2, 0);
+    await d.page.waitForFunction(() => WRITER === 'held', null, {timeout: 5000}).catch(() => {});
+    const base = JSON.parse(await stored(d.page, di.data));
+    const conflict = JSON.parse(JSON.stringify(base)); conflict.answers[1].result = conflict.answers[1].result === 'correct' ? 'wrong' : 'correct';
+    const attempt = JSON.parse(JSON.stringify(base)); attempt.answers.push(Object.assign({}, base.answers[1], {at: base.answers[1].at + 1}));
+    await d.page.evaluate(([c, a]) => {
+      localStorage.setItem(pendingKey(PROFILE, 'gone-1'), JSON.stringify({at: Date.now(), db: c, log: []}));
+      localStorage.setItem(pendingKey(PROFILE, 'gone-2'), JSON.stringify({at: Date.now(), db: a, log: []}));
+      DB.settings.goal = 13; save(); saveNow();                        // this page has changed something
+      settlePending();
+    }, [JSON.stringify(conflict), JSON.stringify(attempt)]);
+    const copies = JSON.parse(await stored(d.page, di.backup) || '[]').map(c => c.data);
+    const live = JSON.parse(await stored(d.page, di.data));
+    check(copies.includes(JSON.stringify(conflict)) && copies.includes(JSON.stringify(attempt)) && live.answers.length === 2 && live.answers[1].result === base.answers[1].result,
+      'records with a conflicting answer, or a second attempt at the same question, are kept as copies field for field; the live progress is unchanged', {copies: copies.length, live: live.answers.length});
+    // cleanup: a record is removed only on a later check, at least 60 s after it was found stored, unchanged
+    const k1 = await d.page.evaluate(() => pendingKey(PROFILE, 'gone-1'));
+    const before = await stored(d.page, k1);
+    await d.page.evaluate(() => settlePending());
+    const stillThere = await stored(d.page, k1) === before;
+    await d.page.evaluate(k => { if(PENDING_SETTLED[k]) PENDING_SETTLED[k].t -= 61000; settlePending(); }, k1);
+    const gone = await stored(d.page, k1) === null;
+    // a record that changed in between is checked again, not removed
+    const k2 = await d.page.evaluate(() => pendingKey(PROFILE, 'gone-2'));
+    await d.page.evaluate(k => { if(PENDING_SETTLED[k]) PENDING_SETTLED[k].t -= 61000; const r = JSON.parse(localStorage.getItem(k)); r.at += 1; localStorage.setItem(k, JSON.stringify(r)); settlePending(); }, k2);
+    const kept2 = await stored(d.page, k2) !== null;
+    // an older record whose second answer differs field by field from the stored one (same question
+    // and time): it is not taken as stored and dropped; it is kept as a copy
+    const older = JSON.parse(JSON.stringify(base)); older.answers = older.answers.slice(0, 2); older.answers[1].picked = 'other';
+    await answer(d.page, 1, 3);                                        // the stored progress has more answers now
+    await d.page.evaluate(o => { localStorage.setItem(pendingKey(PROFILE, 'gone-3'), JSON.stringify({at: Date.now(), db: o, log: []})); settlePending(); }, JSON.stringify(older));
+    const copies3 = JSON.parse(await stored(d.page, di.backup) || '[]').map(c => c.data);
+    check(copies3.includes(JSON.stringify(older)), 'an older record whose answer differs from the stored one at the same question and time is kept as a copy, not taken as stored', copies3.length);
+    check(stillThere && gone && kept2, 'a record is removed only on a later check, 60 s after it was found stored, and only if it did not change in between', {stillThere, gone, kept2});
+    await d.ctx.close();
+  }
+
   check(!A.errors.length && !B.errors.length, 'no page errors', A.errors.concat(B.errors).slice(0, 2).join('; '));
   await A.ctx.close(); await B.ctx.close();
   await browser.close();

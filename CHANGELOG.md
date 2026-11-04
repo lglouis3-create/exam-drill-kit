@@ -2,6 +2,9 @@
 
 Dated kit changes, newest first.
 
+## 2026-11-04
+- A tab that closes or reloads without handing over its profile no longer loses its last save to the next tab: each writing tab keeps that save in a record only it writes; the next tab starts from it, or keeps it as a copy (Put back) when it has saved since. Records are removed only after they are read back as stored and 60 s have passed.
+
 ## 2026-11-03
 - Import progress shows what a file holds and would change, and saves only when confirmed.
 - Import refuses a file of another course or of no course, and replaces progress only with a record that continues it.
