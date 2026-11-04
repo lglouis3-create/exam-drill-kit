@@ -453,9 +453,16 @@ What this does not cover (the independent review of 4b3b94c; Chromium only):
     matched without it);
   - the history merge is not cut to 20,000 entries; the next answer's save cuts it, as the
     `LOG_MAX` rule does (that rule waits for Louis's decision in #47);
-  - a record that can never be shown to be stored (handled at an Erase while it held history
-    entries, or its copy refused) stays; its answers are in storage but not on screen or in
-    Export, so the student cannot reach them;
+  - a record that was never shown to be stored and was then handled at an Erase, Put back,
+    replacing Import or Delete the copies (for example, because its copy write was refused)
+    stays; its answers are in storage but not on screen or in Export, so the student cannot
+    reach them (a record shown stored before is still removed 60 s on);
+  - a tab that comes back to a profile it wrote before writes its new record under the same key
+    (`<ns>:pending:<profile>:<tab>`), and only other tabs check a record, so its record from the
+    earlier time is not checked before it is overwritten: if that earlier time's last save was
+    written over by the next writer, and that writer closed before the record reached it, that
+    save is lost when this tab saves again (found by the independent review of d325326; not
+    tested; a fix would place this tab's own record as another tab's before its first new save);
   - **the boundary:** localStorage gives no ordering of writes between tabs and no transactions,
     so every rule here decides "newer or older" and "deliberate or lost" from snapshots of
     content, and a write still on its way to this tab can be judged from an older view. Four
