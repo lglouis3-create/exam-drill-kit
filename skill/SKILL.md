@@ -219,7 +219,7 @@ every automated check; only an adversarial review against the sources (Mode 4) f
   `.git/config` (§7.10).
 - A push that changes a live course's site needs Louis's approval of that change: his
   request for it in this session, or his yes to a summary of it (`KIT_DESIGN.md` §12
-  decision 10, 2026-11-03; that reading waits for his confirmation). Until then the work
+  decision 10, reading 7, which Louis accepted on 2026-11-03). Until then the work
   waits at `/preview/` or on a branch. An unattended run (a scheduled task) never
   changes a live site without his reply. With that approval, push to the course repo
   following its own rule in `CLAUDE.md` (course repos merge automatically, decision 1).
