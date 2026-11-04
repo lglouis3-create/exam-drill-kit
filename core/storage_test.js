@@ -14,6 +14,9 @@
  *      clears the key's failure
  *   2. storage works: no notice
  *   3. storage denied outright: the drill runs, answers count, the notice shows
+ *   4. the last change before the page goes: an answer followed at once by a reload,
+ *      and by closing the tab, is kept (saveNow on pagehide), and so is an answer
+ *      when the page is hidden (visibilitychange)
  *
  *     node storage_test.js
  */
@@ -28,6 +31,22 @@ const QUOTA = () => {
   Storage.prototype.setItem = function(k, v){
     if(window.__quota) throw new DOMException('The quota has been exceeded.', 'QuotaExceededError');
     return real.call(this, k, v);
+  };
+};
+// one answer in the page, by clicking as a student does (window.answerNow, for use inside an evaluate)
+const ANSWER_NOW = () => {
+  window.answerNow = () => {
+    // a question answered with option buttons (choice or select-all): the quiz is started again,
+    // topic after topic, until one is on screen (a quiz draws at random, the template also has
+    // numeric and matching questions, and a small pool ends instead of repeating)
+    for(let i = 0; i < 60; i++){
+      startQuiz(TOPICS[i % TOPICS.length].id);
+      if(Q.current && document.querySelector('#v-quiz button[data-o]')) break;
+    }
+    const q = Q.current;
+    if(isMulti(q)){ for(const i of correctSet(q)) document.querySelector(`#v-quiz button[data-o="${i}"]`).click(); document.getElementById('btnCheck').click(); }
+    else document.querySelector('#v-quiz button[data-o]').click();
+    return DB.answers.length;
   };
 };
 const answerOne = page => page.evaluate(() => {
@@ -110,6 +129,66 @@ const answerOne = page => page.evaluate(() => {
     const t = await page.$('#savewarn');
     check(!!t && /Export progress/.test(await t.textContent()), 'the notice is shown');
     check(!errors.length, 'no page errors with storage denied', errors.slice(0, 2).join('; '));
+    await ctx.close();
+  }
+
+  console.log('\n=== The last change before the page goes ===');
+  {
+    // In these pages the 150 ms save timer of save() (shell.html) never fires on its own: its
+    // delay is made an hour, so an answer reaches storage here only through saveNow. (Without
+    // this, a timer that fired before the close or the read let a check pass without saveNow.)
+    // window.__stretched counts the delays made an hour, so a change of save()'s delay shows.
+    const NO_TIMER = () => {
+      const real = window.setTimeout;
+      window.__stretched = 0;
+      window.setTimeout = function(f, d, ...a){ if(d === 150) window.__stretched++; return real.call(this, f, d === 150 ? 3600000 : d, ...a); };
+    };
+    const {ctx, page, errors} = await L.openFile(browser, {}, ANSWER_NOW);
+    await ctx.addInitScript(NO_TIMER);
+    await page.reload();
+    await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+    // an answer, then a reload in the same task
+    // the answer and the reload in one task, well inside the 150 ms the save waits; whether a
+    // save was waiting goes to sessionStorage, which the reload keeps. The reload destroys the
+    // page's context, so evaluate may end with that error (WebKit does; Chromium may return
+    // first); only that error is expected here. window.__before marks the page before the reload,
+    // so the wait below cannot end on it.
+    await page.evaluate(() => { window.__before = 1; answerNow(); sessionStorage.setItem('__waiting', saveTimer && window.__stretched > 0 ? '1' : '0'); location.reload(); })
+      .catch(e => { if(!/Execution context was destroyed|navigat/i.test(e.message)) throw e; });
+    await page.waitForFunction(() => !window.__before && document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+    const {n, waiting} = await page.evaluate(() => ({n: DB.answers.length, waiting: sessionStorage.getItem('__waiting') === '1'}));
+    check(waiting && n === 1, 'an answer followed at once by a reload is kept (it was still waiting to be saved)', {waiting, n});
+    // an answer, then the tab closed at once, with page.close(), which waits for the page to close.
+    // Not page.close({runBeforeUnload: true}): in WebKit that never closed the page (0 of 10 trials
+    // within 10 s, GitHub run 41598578124; an earlier version of this check passed in WebKit only
+    // because the 150 ms timer fired while the page stayed open), and it does not wait for the close
+    // in Chromium either (Playwright's documentation). page.close() closed the page and the waiting
+    // save reached storage in 10 of 10 trials in WebKit and in Chromium, with the timer unable to
+    // fire (the same run), so the closing page writes it.
+    const before = await page.evaluate(() => { answerNow(); return {n: DB.answers.length, waiting: !!saveTimer, stretched: window.__stretched}; });
+    const closed = new Promise(r => page.once('close', r));
+    await page.close();
+    await closed;
+    const p2 = await ctx.newPage();
+    p2.on('pageerror', e => errors.push(e.message));
+    await p2.goto(await L.pageUrl(L.PAGE.PAGE));
+    await p2.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+    const n2 = await p2.evaluate(() => DB.answers.length);
+    check(before.waiting && before.stretched > 0 && n2 === before.n, 'an answer followed at once by closing the tab is kept', {before, n2});
+    // stored progress against the progress on the page, in one evaluate
+    const stored = () => ({timer: !!saveTimer, db: DB.answers.length, stored: (JSON.parse(localStorage.getItem(NS + ':data:' + PROFILE) || '{}').answers || []).length, stretched: window.__stretched});
+    // an answer, then pagehide alone (no visibilitychange first): written at once
+    const ph = await p2.evaluate(f => { answerNow(); const w = !!saveTimer; window.dispatchEvent(new Event('pagehide')); return Object.assign({waiting: w}, (0, eval)(f)()); }, stored.toString());
+    check(ph.waiting && ph.stretched > 0 && !ph.timer && ph.stored === ph.db, 'an answer followed by pagehide alone is written at once', ph);
+    // an answer, then the page hidden (a phone switching apps): written at once
+    const hidden = await p2.evaluate(f => {
+      answerNow(); const w = !!saveTimer;
+      Object.defineProperty(document, 'visibilityState', {configurable: true, get: () => 'hidden'});
+      document.dispatchEvent(new Event('visibilitychange'));
+      return Object.assign({waiting: w}, (0, eval)(f)());
+    }, stored.toString());
+    check(hidden.waiting && hidden.stretched > 0 && !hidden.timer && hidden.stored === hidden.db, 'an answer followed by the page being hidden is written at once', hidden);
+    check(!errors.length, 'no page errors', errors.slice(0, 2).join('; '));
     await ctx.close();
   }
 
