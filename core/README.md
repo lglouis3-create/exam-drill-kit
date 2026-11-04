@@ -26,7 +26,7 @@ that course's repository. Both folders come from the recovered exam-drill templa
 | `run_checks.sh` | core | builds, then runs every check on its own, one line per check |
 | `ci_course.sh` | core | builds a scratch course from the kit (template, template with no count or marks, Medicinal-chemistry, or the template with feature modules switched on) and runs `run_checks.sh` on it in Chromium or WebKit; the GitHub workflow's step |
 | `checks_test.js` | core | the checks' own exit codes, the device lint, `run_checks.sh`, and `test.js` and `render_test.js` on a course with no `DIAGRAMS` list |
-| `storage_test.js` | core | progress when the browser refuses to save |
+| `storage_test.js` | core | progress when the browser refuses to save; the last answer before a reload, a closed tab, `pagehide` or a hidden page is kept, with the 150 ms save timer unable to fire |
 | `startup_test.js` | core | saved progress when a start-up step or the load itself fails: nothing is written over it, and the rest of start-up runs |
 | `draw_test.js` | core | no exam paper carries two wordings of one fact, across pools too |
 | `update_test.js` | core | a newer version is offered; a reload comes back to the same place |
@@ -671,7 +671,13 @@ repository with this core copied in), and in WebKit, Safari's engine, for `templ
 modules switched on by their own `features/<name>/ci/oncourse.js` (the modules they
 `needs` first; `features/README.md`, "Checked on a course of its own"); the workflow runs
 one such course for each module a pull request changes, each module that needs it, and
-the combinations in `features/ci-combinations.txt` (`.github/ci_plan.js`).
+the combinations in `features/ci-combinations.txt` (`.github/ci_plan.js`), in Chromium
+(job "modules") and in WebKit (job "modules-webkit", since #42). On a module course
+`ci_course.sh` also fails unless each module switched on has its own test
+(`features/<name>/test.js`) PASS with at least one passed check printed after the line
+`  browser  <name> started` that `check_lib.js`'s `launch` prints once the run's browser
+has started: a module test that finished before starting its browser, or passed nothing
+after it, does not count as run there.
 `DRILL_BROWSER=webkit` makes `check_lib.js` start WebKit instead of Chromium. A run fails
 on any NOT RUN that is not a documented exclusion with its documented reason, so a
 missing Playwright, a browser that did not start or a missing pdfplumber fails it rather
