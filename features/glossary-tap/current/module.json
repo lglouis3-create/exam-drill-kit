@@ -1,0 +1,16 @@
+{
+ "name": "glossary-tap",
+ "version": "v1",
+ "does": "A Glossary tab over the course's TERMS (a data file listed in course.js `files`): every term with its one-line meaning, definition, a situation that shows it in action, the professor's example, its figure (a key of diagrams.js DIA) and its source, with a search box (names that match first, then terms that only mention the word), a letter bar, by-group or A-Z order and group chips; and, after an answer is shown, the first mention of each term in a question's explanations, and in each section of the Guides, Tell apart and Reference tabs, can be tapped to open its definition under the line. A term the core's glossary.js GLOSS has already defined in brackets there is left to the core.",
+ "source": "Intro-Pharmacology exam1-drill/src/app.js lines 1771-1922 (termLetter, termHTML, glossWire and the glossary branch of vTerms) and shell.html lines 213, 238, 251-253, 295-296, at 929cd62, re-found by function name (the port queue took lines 1769-1922 at d0d3d2d, which the read-only clone does not hold); the tap part is written for the kit",
+ "js": ["glossary-tap.js"],
+ "css": ["glossary-tap.css"],
+ "step": "step.js",
+ "options": {
+  "label": {"default": "Glossary", "about": "the tab's name in the nav"},
+  "before": {"default": "settings", "about": "the tab it is placed before"},
+  "tap": {"default": true, "about": "terms in explanations and reading tabs can be tapped for their definition"},
+  "notTapped": {"default": [], "about": "ids of terms the tap leaves alone (a word the course uses in nearly every sentence, such as 'drug')"}
+ },
+ "test": "test.js"
+}
