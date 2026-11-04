@@ -20,7 +20,10 @@
  * drawn with the mouse kept on its problem and drawn on its canvas, undo, redo, the
  * eraser, a colour returning to the pen, the name line, a pen that switches to Pencil
  * only and then a finger that scrolls, Show solutions, no sideways scroll, Save as PDF
- * with the ink as pictures, Done, the writing and room back after a reload, Clear page
+ * with the ink as pictures (in the print layout: the paper laid out, every problem with
+ * its text, the ink's picture over its problem holding the stroke, the paper rendered in
+ * print media; and, in Chromium only, the PDF's size, since page.pdf is Chromium's
+ * only: in WebKit that line says NOT RUN), Done, the writing and room back after a reload, Clear page
  * and its undo; Scratch paper in the quiz and on an exam paper (stem over 720 px, no
  * solutions, the paper's clock, the old paper's scratch cleared); Hold to snap (line,
  * its end following the pen, ellipse, box, scribble, switch off and its saved choice,
@@ -288,10 +291,29 @@ const countOf = (h, re) => (h.match(re) || []).length;
       const pp = await ev(sel => { const vis = el => !!el && getComputedStyle(el).display !== 'none';
         const im = document.querySelector(sel + ' > img.inkimg'), cv = document.querySelector(sel + ' > canvas.inkcv');
         return [window.__printed || 0, vis(document.querySelector('header')), vis(document.querySelector('.inkbar')), vis(cv), vis(im), !!im && im.complete && im.naturalWidth > 0]; }, calc);
-      const pdf = await page.pdf({format: 'Letter'});
+      /* The printed page, measured in its print layout (every engine): the worksheet's paper is laid out,
+         each problem prints with its text, and the ink's picture sits over its problem holding the stroke.
+         page.pdf below is Chromium's only (Playwright: "PDF generation is only supported for Headless
+         Chromium"), so in WebKit this layout is how the printed worksheet is checked. */
+      const pl = await ev(sel => { const vis = el => !!el && getComputedStyle(el).display !== 'none';
+        const pp = document.querySelector('#ink .inkpaper'), r = pp.getBoundingClientRect(), parts = [...pp.querySelectorAll('.wspart')];
+        const shown = parts.filter(p => { const b = p.getBoundingClientRect(); return vis(p) && b.height > 0 && b.width > 0 && p.innerText.trim().length > 0; });
+        const part = document.querySelector(sel), im = part.querySelector(':scope > img.inkimg'), pb = part.getBoundingClientRect(), ib = im.getBoundingClientRect();
+        const cv = document.createElement('canvas'); cv.width = im.naturalWidth; cv.height = im.naturalHeight;
+        const cx = cv.getContext('2d'); cx.drawImage(im, 0, 0); const d = cx.getImageData(0, 0, cv.width, cv.height).data;
+        let n = 0; for(let i = 3; i < d.length; i += 4) if(d[i] > 0) n++;
+        const over = Math.abs(ib.left - pb.left) < 2 && Math.abs(ib.top - pb.top) < 2 && Math.abs(ib.width - pb.width) < 2 && Math.abs(ib.height - pb.height) < 2;
+        return {w: Math.round(r.width), h: Math.round(r.height), parts: parts.length, shown: shown.length, over, ink: n, z: getComputedStyle(im).zIndex}; }, calc);
+      check(pl.w > 0 && pl.h > 0 && pl.parts > 0 && pl.shown === pl.parts, `in print the worksheet's paper is laid out and every problem prints with its text (${pl.w} x ${pl.h} px, ${pl.shown} of ${pl.parts} problems)`);
+      check(pl.over && pl.ink > 50 && pl.z === '2', `in print the ink's picture covers its problem and holds the stroke (${pl.ink} pixels, over its problem: ${pl.over})`);
+      const shot = await page.locator('#ink .inkpaper').screenshot();
+      check(shot.length > 20000, `the worksheet renders in print media (${Math.round(shot.length / 1024)} KB picture of the paper)`);
+      let pdf = null;
+      if(L.BROWSER === 'chromium') pdf = await page.pdf({format: 'Letter'});
       await page.emulateMedia({media: 'screen'});
       check(JSON.stringify(pp) === JSON.stringify([1, false, false, false, true, true]), `Save as PDF prints the worksheet alone, ink as pictures in place of the canvases ${JSON.stringify(pp)}`);
-      check(pdf.length > 20000, `the printed PDF has the worksheet (${Math.round(pdf.length / 1024)} KB)`);
+      if(pdf) check(pdf.length > 20000, `the printed PDF has the worksheet (${Math.round(pdf.length / 1024)} KB)`);
+      else console.log(`  NOT RUN  the printed PDF's size: page.pdf runs only in Chromium (${L.BROWSER_NAME} here); the printed worksheet is checked by its print layout above`);
       await page.click('#ink [data-inkdone]');
       const lab = await page.innerText(btn);
       check(!(await ev(() => !!document.getElementById('ink'))) && /Continue/.test(lab), `Done closes it and the card says ${JSON.stringify(lab.trim())}`);
