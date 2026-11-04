@@ -117,7 +117,7 @@ concluded "success" on the final head commit; a module job the plan intentionall
 not applicable, and a job that failed, was cancelled, timed out or never started, or no run for the
 final head commit, blocks the merge); for a module, also a WebKit run of its course that concluded
 "success" on GitHub on the final head commit (`core/ci_course.sh module:<name> webkit`; decision 10,
-Claude's reading 6; until a GitHub job runs it, the merge waits); no unresolved findings; and no
+Claude's reading 6; the job "modules-webkit" runs it since #42); no unresolved findings; and no
 unrelated changes. Eligibility is decided per pull request; being
 optional does not by itself make a pull request eligible.
 
