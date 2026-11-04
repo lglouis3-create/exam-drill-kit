@@ -33,7 +33,7 @@ that course's repository. Both folders come from the recovered exam-drill templa
 | `sw.js` | core | the service worker; `build.py` fills in the course's cache prefix and file list and writes it to the root |
 | `offline_test.js` | core | the offline copy: other sites' caches kept, server down (connections refused), server slow |
 | `home_test.js` | core | the Home Screen card for each kind of browser: a closed section in Settings, nothing on Topics |
-| `history_test.js` | core | the answer history: its fields, Export, Import, Erase, a refused write |
+| `history_test.js` | core | the answer history: its fields, Export, Import, Erase; a refused write keeps every entry, shows the notice, is in Export, counts as unsaved on the stop wall and in "Use it here"'s copy, and is written by the next save the browser keeps |
 | `import_test.js` | core | Import progress: files of another course or app, files that name no course, and damaged files refused; older files converted; a file replaces this profile only when it continues it or this profile holds no progress, after a confirmed plan, with a copy to put back; conflicting copies of one answer, another origin, a cut answer list, answers out of order, and matching or empty answer lists with other concept progress, settings, scheduling state or module part go into a new profile; repeats change nothing and make no second profile; Put back and refused reads and writes leave both records stored |
 | `preview_test.js` | core | `build.py --preview`: the live site unchanged, the preview's own namespace |
 | `state_check.js` | core | the course's root `CLAUDE.md` was updated with or after the newest lecture (§7.8) |
@@ -227,7 +227,8 @@ and `ns` comes from `course.js` and never changes during a course. When the brow
 refuses a write (quota full, private window, blocked site data), that key is served
 from memory for the rest of the visit, and the first refusal shows one notice that
 points to Settings → Export progress. A later write that succeeds clears the key's
-failure. Switching profile writes any save still waiting on its timer first.
+failure. Switching profile writes any save still waiting on its timer first. The answer
+history is written through `store` too (since 2026-11-04; "Answer history" below).
 
 **Saved progress from an earlier core** (`upgradeDB` in `shell.html`). The scheduler work
 of 2026-11-01 only added to the progress: question ids, `ns`, and every field a save
@@ -275,7 +276,7 @@ and say so (design choice: a student with an export file can switch to another p
 name and import it there). Switching to a profile whose progress loads takes the notice
 away, and that profile saves as usual. A stored answer history that cannot be read (not
 valid JSON, or not a list) is never written over either; progress still saves, and no
-notice is shown for it, as for a refused history write. Erase my history replaces it.
+notice is shown for it (nothing is written, so nothing is refused). Erase my history replaces it.
 
 **Each later step on its own.** Every start-up step after the load runs in `bootStep`: the
 page title, the tab buttons, the Atlas and Diagrams tabs, the Home Screen section's
@@ -375,9 +376,34 @@ four (`[seconds, card code, 1/0, mode]`) are the first four here. Export progres
 the progress and the history into one file, labelled with the course (`course`, `ns`).
 Import progress merges the history without duplicating an answer (an entry here in the
 older seven-field format gains the last three from an imported copy of the same answer)
-and handles the progress as "Import progress" below says. Erase my history clears both. When the browser refuses to save the history, the oldest half is
-dropped and no notice is shown, so the history never stops progress from saving. No
+and handles the progress as "Import progress" below says. Erase my history clears both. No
 scheduler reads the history; the progress (`DB`) holds what they schedule from.
+
+**A refused history write** (Louis, 2026-11-04: "Replace silent history deletion on a failed
+save with clear feedback and a way to preserve or export the affected work. Keep backups
+until I explicitly delete them."). `saveLog` writes through `store`, as the progress does,
+so when the browser refuses the write:
+- every entry stays in memory (`MEM`); nothing is dropped;
+- the key is marked refused (`FAILED`) and the "did not save" notice shows (`saveWarn`, once
+  per visit), pointing to Export progress, whose file holds every entry (`LOG`);
+- what is stored as this page last knew it (`SEEN_LOG`, through `seenAs`) stays as it was, so
+  the page's own next write is not taken for another tab's save and stops nothing;
+- the next history write (the next answer or confidence button) tries again, and so does the
+  next progress save (`retryLog`); the first one the browser keeps writes every entry;
+- a profile opened again in the same visit (switched away and back) opens the unsaved
+  history, with `SEEN_LOG` from `KEPT`, as `load()` does for the progress;
+- the page counts it as unsaved (`unsavedHere`): a stop wall offers "Export this page's
+  progress", and "Use it here" keeps the entries in the copy it makes (field `log`).
+A reload or a closed tab still loses what was not stored, as for refused progress; the notice
+says so. Before 2026-11-04 `saveLog` wrote past `store` and, refused, dropped the oldest half
+of the history and tried again, with no notice (`review/storage-usage-proposal.md` §2). The
+two cuts that stay by design: the answers a progress keeps past 4,000 (`ANSWERS_MAX`) and the
+history entries past 20,000 (`LOG_MAX`). `history_test.js` ("The browser refuses to save the
+history") checks this with 300 stored entries and a browser that refuses a history longer
+than those. It replaces the check that a refused write showed no notice. Of its 11 checks of this
+behaviour, 10 fail on the `5b19b94` core (which cut the 301 entries to 150); the other (one tab
+alone is not stopped after a refused write and a later save) passes there and fails on a copy
+of this change that moves `SEEN_LOG` on a refused write.
 
 **Import progress** (Louis's rules of 2026-11-02, corrected twice on 2026-11-03;
 `views.js` `readProgressFile`, `addsTo`, `holdsProgress`, `importPlan`, `continuesHere`,
@@ -475,7 +501,7 @@ stays on the page, flagged as not saved, and nothing is imported.
 
 The same check guards every ordinary save, not only Import's: a page whose profile
 another tab or window has saved since (its progress or its answer history, `SEEN` and
-`SEEN_LOG`, kept by every write through `store` and by `saveLog`) stops saving both and
+`SEEN_LOG`, kept by every write through `store` that the browser keeps, `saveLog`'s included) stops saving both and
 shows a notice with a Reload button and a pointer to Export progress (`staleWarn`).
 Before 2026-11-03 the older page's next save wrote its copy over the newer one, which
 could undo an import. Import, Erase my history, Put back, Delete the copies and the

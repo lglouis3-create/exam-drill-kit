@@ -2,6 +2,9 @@
 
 Dated kit changes, newest first.
 
+## 2026-11-04
+- A history write the browser refuses no longer deletes the oldest half of the answer history: every entry is kept on the page, the "did not save" notice points to Export progress (whose file holds them), the page counts them as unsaved (the stop wall's export, the copy "Use it here" keeps), and the next save the browser keeps writes them all (Louis, 2026-11-04).
+
 ## 2026-11-03
 - Import progress shows what a file holds and would change, and saves only when confirmed.
 - Import refuses a file of another course or of no course, and replaces progress only with a record that continues it.

@@ -1,6 +1,9 @@
 /* The answer history: one entry per answer, with the fields the scheduler work
  * needs, carried by Export and Import, cleared by Erase, and never in the way
- * of saving progress. Modeled on BDK's tests/history.js.
+ * of saving progress. A history write the browser refuses keeps every entry,
+ * shows the "did not save" notice, counts as unsaved, and is written by the next
+ * save the browser keeps (since 2026-11-04; before, the oldest half was dropped
+ * with no notice). Modeled on BDK's tests/history.js.
  *
  * An entry is [seconds, question code, right, mode, concept, confidence, item
  * type, scheduler, arm, predicted recall] (shell.html, ANSWER HISTORY); the
@@ -163,22 +166,118 @@ const next = p => p.evaluate(() => { const b = document.getElementById('btnNext'
   await ctx.close();
 
   console.log('\n=== The browser refuses to save the history ===');
+  // Louis, 2026-11-04: "Replace silent history deletion on a failed save with clear feedback and a
+  // way to preserve or export the affected work." Until then a refused history write dropped the
+  // oldest half and tried again, with no notice; these checks replace the one that asserted no notice.
+  // The browser refuses a history write longer than window.__logCap characters, as a nearly full
+  // quota does: the stored history fits, the same history with one more entry does not, and half
+  // of it would (so the core before 2026-11-04 cut it). 300 entries are stored first.
+  const CAP = () => {
+    const set = Storage.prototype.setItem;
+    Storage.prototype.setItem = function(k, v){
+      if(/:log:/.test(k) && typeof window.__logCap === 'number' && String(v).length > window.__logCap)
+        throw new DOMException('The quota has been exceeded.', 'QuotaExceededError');
+      return set.call(this, k, v);
+    };
+  };
+  const SEED = 300;
+  // a page whose profile holds SEED history entries (stored), then the cap set just above them
+  const seeded = async (pg, ctx) => {
+    await pg.evaluate(n => { const t = Math.round(Date.now() / 1000) - 86400; LOG = [];
+      for(let i = 0; i < n; i++) LOG.push([t + i, 'abcdef01', 1, 'quiz', 'seeded', 'knew', 'mc', 'concept', '', null]);
+      saveLog(); }, SEED);
+    await pg.reload();
+    await pg.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+    await pg.waitForFunction(() => WRITER === 'held' || WRITER === 'none', null, {timeout: 5000}).catch(() => {});
+    return pg.evaluate(() => { const raw = localStorage.getItem(NS + ':log:' + PROFILE); window.__logCap = raw.length + 20; return {n: LOG.length, len: raw.length}; });
+  };
+  const storedN = pg => pg.evaluate(() => JSON.parse(localStorage.getItem(NS + ':log:' + PROFILE) || '[]').length);
   {
-    const {ctx: c2, page: q, errors: e2} = await L.openFile(browser, {}, () => {
-      const set = Storage.prototype.setItem;
-      Storage.prototype.setItem = function(k, v){
-        if(/:log:/.test(k)) throw new DOMException('The quota has been exceeded.', 'QuotaExceededError');
-        return set.call(this, k, v);
-      };
-    });
+    const {ctx: c2, page: q, errors: e2} = await L.openFile(browser, {}, CAP);
+    const s0 = await seeded(q, c2);
+    check(s0.n === SEED, `${SEED} history entries are stored and loaded before the browser refuses`, s0.n);
     await q.evaluate(() => startQuiz(null, null));
     await q.evaluate(ANSWER, true);
     await q.waitForTimeout(400);
     const saved = await q.evaluate(() => JSON.parse(localStorage.getItem(NS + ':data:' + PROFILE) || '{"answers":[]}').answers.length);
     check(saved === 1, 'with the history refused, progress still saves', saved);
-    check(!(await q.$('#savewarn')), 'with the history refused, no save notice');
+    const mem = await q.evaluate(() => ({n: LOG.length, seeded: LOG.filter(e => e[4] === 'seeded').length}));
+    check(mem.n === SEED + 1 && mem.seeded === SEED && await storedN(q) === SEED,
+      `a refused history write keeps every entry: ${SEED + 1} in memory (none dropped), the stored ${SEED} as they were`, {mem, stored: await storedN(q)});
+    const warn = await q.evaluate(() => { const w = document.getElementById('savewarn'); return w ? w.textContent : ''; });
+    check(/did not save/.test(warn) && /Export progress/.test(warn), 'a refused history write shows the "did not save" notice, which points to Export progress', warn.slice(0, 120));
+    // a progress save after the refused history write: it saves, tries the history again (refused
+    // again), and the page's own refused write is not taken for another tab's save
+    await q.evaluate(() => { DB.settings.goal = 7; save(); });
+    await q.waitForTimeout(400);
+    const own = await q.evaluate(() => ({goal: (JSON.parse(localStorage.getItem(NS + ':data:' + PROFILE) || 'null') || {settings: {}}).settings.goal, failed: FAILED.has(logKey()),
+      wall: !!document.getElementById('stopwall') || !!document.getElementById('stalewarn') || STALE, n: LOG.length}));
+    check(own.goal === 7 && own.failed && !own.wall && own.n === SEED + 1,
+      'after a refused history write, the next progress save is kept, the history write is tried again (refused again, nothing dropped), and the page is not stopped', own);
+    await q.evaluate(() => show('settings'));
+    const [dl] = await Promise.all([q.waitForEvent('download', {timeout: 5000}).catch(() => null), q.evaluate(() => document.getElementById('btnExport').click())]);
+    const ex = dl ? JSON.parse(fs.readFileSync(await dl.path(), 'utf8')) : {};
+    const last = await q.evaluate(() => LOG[LOG.length - 1]);
+    check(Array.isArray(ex.log) && ex.log.length === SEED + 1 && JSON.stringify(ex.log[ex.log.length - 1]) === JSON.stringify(last),
+      `Export after a refused history write holds every entry, the unsaved one too (${SEED + 1})`, ex.log && ex.log.length);
+    // the profile opened again (switched away and back) opens this visit's unsaved history, as for the progress
+    // (each switch waits for its lock: a switch straight back can find the lock not yet freed and open read-only)
+    const held = () => q.waitForFunction(() => WRITER === 'held' || WRITER === 'none', null, {timeout: 5000}).catch(() => {});
+    await q.evaluate(() => { window.__me = PROFILE; useProfile('away'); }); await held();
+    await q.evaluate(() => useProfile(window.__me)); await held();
+    check(await q.evaluate(() => LOG.length) === SEED + 1, 'a profile switched away and back after a refused history write still holds every entry', await q.evaluate(() => LOG.length));
+    // the browser keeps writes again: the next save writes every entry, and this tab alone is not stopped
+    await q.evaluate(() => { window.__logCap = null; });
+    // a progress save with no answer (a setting) writes the waiting history too
+    await q.evaluate(() => { DB.settings.goal = 8; save(); });
+    await q.waitForTimeout(400);
+    check(await storedN(q) === SEED + 1, `once the browser keeps writes, the next progress save (a setting, no answer) writes the waiting history (${SEED + 1} stored)`, await storedN(q));
+    await q.evaluate(() => { if(!Q || !Q.current) startQuiz(null, null); });
+    await next(q);
+    await q.evaluate(() => { if(!Q || !Q.current) startQuiz(null, null); });
+    await q.evaluate(ANSWER, true);
+    await q.waitForTimeout(400);
+    const after = await storedN(q);
+    check(after === SEED + 2 && await q.evaluate(() => !FAILED.has(logKey())), `the next save the browser keeps writes every entry (${SEED + 2} stored)`, after);
+    const stop = await q.evaluate(() => ({wall: !!document.getElementById('stopwall'), stale: !!document.getElementById('stalewarn'), STALE, unsaved: unsavedHere()}));
+    check(!stop.wall && !stop.stale && !stop.STALE && !stop.unsaved, 'one tab alone, after a refused history write and a later save: no "another tab" stop, and nothing counts as unsaved', stop);
     check(!e2.length, 'with the history refused, no page errors', e2.slice(0, 2).join('; '));
     await c2.close();
+  }
+  {
+    // two tabs: the writer's history write is refused; another tab asks for the profile. The writer's
+    // stop wall counts the refused entries as unsaved (export offered, holding them), and taking the
+    // profile back keeps them in the copy "Use it here" makes (field log)
+    const {ctx: c3, page: a, errors: e3} = await L.openFile(browser, {}, CAP);
+    await seeded(a, c3);
+    await a.evaluate(() => startQuiz(null, null));
+    await a.evaluate(ANSWER, true);
+    await a.waitForTimeout(400);
+    const mine = await a.evaluate(() => LOG[LOG.length - 1]);
+    const b = await c3.newPage();
+    b.on('dialog', x => x.accept());
+    await b.goto(a.url());
+    await b.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+    await b.waitForFunction(() => WRITER === 'other', null, {timeout: 5000}).catch(() => {});
+    await b.evaluate(() => takeOver(false));
+    await b.waitForFunction(() => WRITER === 'held', null, {timeout: 8000}).catch(() => {});
+    await a.waitForFunction(() => !!document.getElementById('stopwall'), null, {timeout: 5000}).catch(() => {});
+    const wallA = await a.evaluate(() => ({why: (document.getElementById('stopwall') || {dataset: {}}).dataset.why, exp: !!document.getElementById('stopExport'),
+      text: (document.getElementById('stopwall') || {}).textContent || ''}));
+    check(wallA.why === 'gave' && wallA.exp && /not saved/.test(wallA.text),
+      'the stop wall of a tab whose history write was refused counts it as unsaved and offers the export', {why: wallA.why, exp: wallA.exp});
+    const [dl] = await Promise.all([a.waitForEvent('download', {timeout: 5000}).catch(() => null), a.evaluate(() => { const x = document.getElementById('stopExport'); if(x) x.click(); })]);
+    const ex = dl ? JSON.parse(fs.readFileSync(await dl.path(), 'utf8')) : null;
+    check(!!ex && ex.log.length === SEED + 1 && ex.log.some(e => JSON.stringify(e) === JSON.stringify(mine)),
+      'the export from that stop wall holds every history entry, the refused one too', ex && ex.log.length);
+    await a.evaluate(() => { const x = document.getElementById('stopTake'); if(x) x.click(); });
+    await a.waitForFunction(() => WRITER === 'held', null, {timeout: 8000}).catch(() => {});
+    const copies = await a.evaluate(() => { try { return JSON.parse(localStorage.getItem(NS + ':backup:' + PROFILE) || '[]'); } catch(e){ return []; } });
+    const withLog = copies.filter(c => typeof c.log === 'string').map(c => JSON.parse(c.log));
+    check(withLog.some(l => l.length === SEED + 1 && l.some(e => JSON.stringify(e) === JSON.stringify(mine))),
+      '"Use it here" on that tab keeps every history entry, the refused one too, in its copy (field log)', copies.map(c => c.log ? JSON.parse(c.log).length : null));
+    check(!e3.length, 'two tabs, with the history refused: no page errors', e3.slice(0, 2).join('; '));
+    await c3.close();
   }
   await browser.close();
   L.finish(NAME);

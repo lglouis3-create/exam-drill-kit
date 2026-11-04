@@ -607,7 +607,7 @@ const store = {
 };
 /* What this page last read under the profile's own progress and history keys, or wrote
    there with the browser keeping it (SEEN, SEEN_LOG, below); kept by every write through
-   `store` that succeeds and by saveLog. A refused write does not change it. A save
+   `store` that succeeds (saveLog writes through `store` too). A refused write does not change it. A save
    finds another value stored when another tab or window of this site saved the profile
    since; it then writes nothing (staleWarn). Called before the profile is known, it does
    nothing. */
@@ -1031,10 +1031,19 @@ function load(){
    The first seven fields are as they were, so entries written before the
    last three were added (and BDK's four) still read the same way.
 
-   The history has its own key per profile, apart from the progress, so it
-   never stops progress from saving: when the browser refuses the write, the
-   oldest half is dropped and no notice is shown for it. DB.answers stays as it
-   was; the scheduler and Weak spots read that, not this. */
+   The history has its own key per profile, apart from the progress, so a
+   refused history write never stops progress from saving. A refused write
+   drops nothing (Louis, 2026-11-04: "Replace silent history deletion on a
+   failed save with clear feedback and a way to preserve or export the affected
+   work"): it goes through `store` like the progress, so every entry stays in
+   memory (MEM), the key is marked refused (FAILED), the "did not save" notice
+   points to Export progress (which writes LOG, every entry), each later save
+   tries again, and a page with a refused history write counts as unsaved
+   (unsavedHere: the stop wall's export, and "Use it here"'s copy, field `log`).
+   Before 2026-11-04 saveLog wrote past `store` and, refused, dropped the oldest
+   half of the history and tried again, with no notice. The only cut left is
+   LOG_MAX, below. DB.answers stays as it was; the scheduler and Weak spots
+   read that, not this. */
 const LOG_MAX = 20000;
 const logKey = () => NS + ':log:' + PROFILE;
 const cardCode = id => {
@@ -1045,26 +1054,36 @@ const cardCode = id => {
 let LOG = [];
 /* LOG_OK is false when a stored history is there but cannot be read (not
    valid JSON, or not a list): it is then never written over, and progress
-   still saves. No notice is shown for it, as for a refused history write. */
+   still saves. No notice is shown for it (nothing is written, so nothing is refused). */
 let LOG_OK = true;
 function loadLog(){
   LOG = []; LOG_OK = true;
+  const k = logKey();
   let raw = null;
   SEEN_LOG = null;
-  try { raw = localStorage.getItem(logKey()); } catch(e){ return; }   // storage unreadable: nothing stored to keep
-  SEEN_LOG = raw;
+  if(FAILED.has(k)){
+    // the browser refused this visit's last write of it: a profile opened again opens this visit's
+    // unsaved history, as load() does the progress, and SEEN_LOG stays what is stored as this page
+    // last knew it (KEPT), so the page's own next save is not taken for another tab's
+    raw = MEM[k] === undefined ? null : MEM[k];
+    SEEN_LOG = k in KEPT ? KEPT[k] : storedNow(k);
+  } else {
+    try { raw = localStorage.getItem(k); } catch(e){ return; }   // storage unreadable: nothing stored to keep
+    SEEN_LOG = raw; KEPT[k] = raw;
+  }
   if(!raw) return;
   try { const v = JSON.parse(raw); if(!Array.isArray(v)) throw new Error('the stored history is not a list'); LOG = v; }
   catch(e){ LOG_OK = false; console.error('The saved answer history could not be loaded; it is not written during this visit.', e); }
 }
+/* Through `store`: kept, SEEN_LOG follows it (seenAs); refused, every entry stays in memory,
+   the key is marked refused, the notice shows once, and SEEN_LOG stays what is stored. */
 function saveLog(){
   if(!canSave() || !LOG_OK) return;
   if(profileSavedElsewhere()){ staleWarn(); return; }
-  for(;;){
-    try { const s = JSON.stringify(LOG); localStorage.setItem(logKey(), s); SEEN_LOG = s; return; }
-    catch(e){ if(LOG.length < 100) return; LOG.splice(0, Math.ceil(LOG.length / 2)); }
-  }
+  store.set(logKey(), JSON.stringify(LOG));
 }
+/* A history write the browser refused is tried again with the next progress save too. */
+const retryLog = () => { if(FAILED.has(logKey())) saveLog(); };
 const itemType = q => q.type || (q.multi ? 'multi' : 'mc');
 function logAnswer(q, result, mode, how){
   const conf = result === 'guessed' ? 'guessed' : (result === 'correct' && mode !== 'exam' ? 'knew' : '');
@@ -1113,6 +1132,7 @@ function save(){
     if(!canSave()) return;
     if(profileSavedElsewhere()){ staleWarn(); return; }
     store.set(keyFor(PROFILE), JSON.stringify(DB));
+    retryLog();
   },150);
 }
 /* The save still waiting on its 150 ms timer, written now. When the page is hidden or
@@ -1129,6 +1149,7 @@ function saveNow(){
   if(!canSave()) return;
   if(profileSavedElsewhere()){ staleWarn(); return; }
   store.set(keyFor(PROFILE), JSON.stringify(DB));
+  retryLog();
 }
 /* Which profile opens when no choice is stored: the one with saved progress used
    most recently (by its last answer, else when it was created), else 'me'. The
