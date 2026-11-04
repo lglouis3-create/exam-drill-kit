@@ -415,11 +415,21 @@ function fixtureFiles(own, have, copies){
       'the browser Back button leaves the drill (it keeps no history of its own); Forward brings the strict paper back at the same question with no Back', Object.assign({away}, r7));
     page.removeAllListeners('dialog');
     let asked = null;
-    page.on('dialog', async d => { asked = d.message(); await page.keyboard.press('ArrowLeft').catch(() => {}); await d.dismiss(); });
+    // The left arrow is pressed while the native box is open and is not awaited before Cancel.
+    // Playwright's Dialog note: while a dialog is open the page is blocked and actions do not
+    // finish until it is handled; a handler that awaited the key before dismiss never reached
+    // dismiss in WebKit (the WebKit job of 2026-11-04, run 41787939006, hung here for 900 s).
+    // The engines differ in where that key goes: Chromium drops it (the page gets 0 left-arrow
+    // keydowns, measured 2026-11-04), WebKit may hand it to the page once the box is closed. Either
+    // way the paper must stay where it was; the page counts the left-arrow keydowns it got and
+    // the count is printed.
+    await ev(() => { window.__scLeft = 0; document.addEventListener('keydown', e => { if(e.key === 'ArrowLeft') window.__scLeft++; }, true); });
+    page.on('dialog', async d => { asked = d.message(); const left = page.keyboard.press('ArrowLeft').catch(() => {}); await page.waitForTimeout(150); await d.dismiss(); await left; });
     await page.keyboard.press('ArrowRight'); await page.waitForTimeout(400);
     page.removeAllListeners('dialog'); page.on('dialog', d => d.accept());
-    const r8 = await ev(() => ({i: EX.i, prev: !!document.getElementById('exPrev')}));
-    check(/cannot come back/.test(asked || '') && r8.i === 1 && !r8.prev,
+    const r8 = await ev(() => ({i: EX.i, prev: !!document.getElementById('exPrev'), left: window.__scLeft}));
+    console.log(`  note  the left arrow pressed while the native box was open reached the page ${r8.left} time(s) in ${L.BROWSER_NAME}`);
+    check(/cannot come back/.test(asked || '') && r8.i === 1 && !r8.prev && (r8.left === 0 || r8.left === 1),
       'on a blank strict question the right arrow asks first; the left arrow pressed while that question is open, then Cancel, leaves the paper where it was', Object.assign({asked}, r8));
     await ev(() => finishExam(true)); await settle();
     await page.click('#exAgain'); await settle();
