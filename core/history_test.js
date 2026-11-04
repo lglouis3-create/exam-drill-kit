@@ -206,6 +206,8 @@ const next = p => p.evaluate(() => { const b = document.getElementById('btnNext'
       `a refused history write keeps every entry: ${SEED + 1} in memory (none dropped), the stored ${SEED} as they were`, {mem, stored: await storedN(q)});
     const warn = await q.evaluate(() => { const w = document.getElementById('savewarn'); return w ? w.textContent : ''; });
     check(/did not save/.test(warn) && /Export progress/.test(warn), 'a refused history write shows the "did not save" notice, which points to Export progress', warn.slice(0, 120));
+    check(/did not save your progress or answer history/.test(warn), 'that notice names the answer history', warn.slice(0, 80));
+    await q.evaluate(() => { const b = document.querySelector('#savewarn button'); if(b) b.click(); });   // dismissed
     // a progress save after the refused history write: it saves, tries the history again (refused
     // again), and the page's own refused write is not taken for another tab's save
     await q.evaluate(() => { DB.settings.goal = 7; save(); });
@@ -241,6 +243,12 @@ const next = p => p.evaluate(() => { const b = document.getElementById('btnNext'
     check(after === SEED + 2 && await q.evaluate(() => !FAILED.has(logKey())), `the next save the browser keeps writes every entry (${SEED + 2} stored)`, after);
     const stop = await q.evaluate(() => ({wall: !!document.getElementById('stopwall'), stale: !!document.getElementById('stalewarn'), STALE, unsaved: unsavedHere()}));
     check(!stop.wall && !stop.stale && !stop.STALE && !stop.unsaved, 'one tab alone, after a refused history write and a later save: no "another tab" stop, and nothing counts as unsaved', stop);
+    // every refused write written since: a new refusal shows the notice again (it was dismissed above)
+    await q.evaluate(() => { window.__logCap = localStorage.getItem(NS + ':log:' + PROFILE).length + 20; });
+    await next(q); await q.evaluate(() => startQuiz(null, null)); await q.evaluate(ANSWER, true);
+    await q.waitForTimeout(300);
+    check(await q.evaluate(() => !!document.getElementById('savewarn') && FAILED.has(logKey())), 'a refusal after every refused write was saved shows the notice again');
+    await q.evaluate(() => { window.__logCap = null; });
     check(!e2.length, 'with the history refused, no page errors', e2.slice(0, 2).join('; '));
     await c2.close();
   }
@@ -275,9 +283,132 @@ const next = p => p.evaluate(() => { const b = document.getElementById('btnNext'
     const copies = await a.evaluate(() => { try { return JSON.parse(localStorage.getItem(NS + ':backup:' + PROFILE) || '[]'); } catch(e){ return []; } });
     const withLog = copies.filter(c => typeof c.log === 'string').map(c => JSON.parse(c.log));
     check(withLog.some(l => l.length === SEED + 1 && l.some(e => JSON.stringify(e) === JSON.stringify(mine))),
-      '"Use it here" on that tab keeps every history entry, the refused one too, in its copy (field log)', copies.map(c => c.log ? JSON.parse(c.log).length : null));
+      '"Use it here" on that tab, with the browser still refusing the history: every entry, the refused one too, is kept in its copy (field log)', copies.map(c => c.log ? JSON.parse(c.log).length : null));
     check(!e3.length, 'two tabs, with the history refused: no page errors', e3.slice(0, 2).join('; '));
     await c3.close();
+  }
+  {
+    // #47's review, M1: a profile switched away from with its history refused. The switch asks first
+    // and offers the export; once the browser keeps writes, a save of the other profile writes the
+    // first profile's history too, so a reload does not lose it
+    const {ctx: c4, page: m, errors: e4} = await L.openFile(browser, {}, CAP);
+    const dialogs = []; m.on('dialog', d => dialogs.push(d.message()));
+    await seeded(m, c4);
+    await m.evaluate(() => startQuiz(null, null));
+    await m.evaluate(ANSWER, true);
+    await m.waitForTimeout(400);
+    const me = await m.evaluate(() => ({p: PROFILE, k: logKey(), last: LOG[LOG.length - 1]}));
+    const heldM = () => m.waitForFunction(() => WRITER === 'held' || WRITER === 'none', null, {timeout: 5000}).catch(() => {});
+    // both questions answered Cancel: the page stays on this profile
+    await m.evaluate(() => { window.__realConfirm = window.confirm; window.confirm = () => false; useProfile('other-one'); window.confirm = window.__realConfirm; });
+    check(await m.evaluate(p => PROFILE === p, me.p), 'switching away with a refused history write, both questions cancelled: the page stays on the profile', await m.evaluate(() => PROFILE));
+    const n0 = dialogs.length;
+    const [dl] = await Promise.all([m.waitForEvent('download', {timeout: 5000}).catch(() => null), m.evaluate(() => useProfile('other-one'))]);
+    await heldM();
+    const asked = dialogs.slice(n0);
+    const ex = dl ? JSON.parse(fs.readFileSync(await dl.path(), 'utf8')) : null;
+    check(asked.length === 2 && /did not save/.test(asked[0]) && /Export/.test(asked[0]) && !!ex && ex.profile === me.p && ex.log.length === SEED + 1,
+      'switching away with a refused history write asks first and exports that profile with every entry when asked to', {asked, exported: ex && ex.log.length});
+    await m.evaluate(() => { window.__logCap = null; });
+    // another tab opens the profile this page left, and answers there: while it has that profile,
+    // this page's saves write nothing under it
+    const t = await c4.newPage();
+    t.on('dialog', x => x.accept());
+    await t.goto(m.url());
+    await t.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+    await t.evaluate(p => useProfile(p), me.p);
+    await t.waitForFunction(() => WRITER === 'held', null, {timeout: 5000}).catch(() => {});
+    await t.evaluate(() => startQuiz(null, null));
+    const n1 = await t.evaluate(() => LOG.length);
+    await t.evaluate(ANSWER, true);
+    const theirs = await t.evaluate(n => LOG.length > n ? LOG[LOG.length - 1] : null, n1);
+    await t.waitForTimeout(300);
+    const theirsStored = await t.evaluate(k => localStorage.getItem(k), me.k);
+    await m.evaluate(() => startQuiz(null, null));
+    await m.evaluate(ANSWER, true);   // this page's answer and save, under the other profile
+    await m.waitForTimeout(800);
+    const held = await m.evaluate(k => ({same: localStorage.getItem(k), failed: FAILED.has(k)}), me.k);
+    check(!!theirs && held.same === theirsStored && held.failed,
+      'while another tab has the profile this page left, this page writes nothing under it (that tab\'s save stays as it is) and keeps its refused entries', {theirs: !!theirs, same: held.same === theirsStored, failed: held.failed});
+    await t.close();
+    await m.waitForTimeout(300);
+    await m.evaluate(() => startQuiz(null, null));
+    await m.evaluate(ANSWER, true);   // that tab closed: the next save writes it, merged
+    await m.waitForTimeout(800);
+    const away = await m.evaluate(([k, a, b]) => { const l = JSON.parse(localStorage.getItem(k) || '[]'), has = x => l.some(e => JSON.stringify(e) === JSON.stringify(x));
+      return {n: l.length, mine: has(a), theirs: has(b), failed: FAILED.has(k), wall: !!document.getElementById('stopwall') || STALE}; }, [me.k, me.last, theirs]);
+    check(away.n === SEED + 2 && away.mine && away.theirs && !away.failed && !away.wall,
+      `once no tab has it, a save of another profile writes the history of the profile switched away from, merged with that tab's entry (${SEED + 2} stored), with no stop`, away);
+    await m.reload();
+    await m.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+    const after = await m.evaluate(([k, last]) => { const l = JSON.parse(localStorage.getItem(k) || '[]'); return {n: l.length, has: l.some(e => JSON.stringify(e) === JSON.stringify(last))}; }, [me.k, me.last]);
+    check(after.n === SEED + 2 && after.has, 'after a reload the profile switched away from still has every entry, the once-refused one too', after);
+    check(!e4.length, 'a profile switched away from: no page errors', e4.slice(0, 2).join('; '));
+    await c4.close();
+  }
+  {
+    // #47's review, M2: the whole site's storage is full (every key counts), not only the history key.
+    // Nothing is cut: the history and the answers stay on the page and in Export, with the notice. The
+    // progress then stops saving sooner than with the cut before 2026-11-04 (the README says so;
+    // Louis decides); the counts stored are printed, not checked.
+    const ORIGIN = () => {
+      const set = Storage.prototype.setItem;
+      Storage.prototype.setItem = function(k, v){
+        if(typeof window.__originCap === 'number'){
+          let t = String(k).length + String(v).length;
+          for(let i = 0; i < this.length; i++){ const kk = this.key(i); if(kk !== k) t += kk.length + this.getItem(kk).length; }
+          if(t > window.__originCap) throw new DOMException('The quota has been exceeded.', 'QuotaExceededError');
+        }
+        return set.call(this, k, v);
+      };
+    };
+    const {ctx: c5, page: o, errors: e5} = await L.openFile(browser, {}, ORIGIN);
+    await seeded(o, c5);
+    await o.evaluate(() => { window.__logCap = null; let t = 0; for(let i = 0; i < localStorage.length; i++){ const k = localStorage.key(i); t += k.length + localStorage.getItem(k).length; } window.__originCap = t + 1200; });
+    let N = 0;   // the answers given (a draw can come up empty in a small bank)
+    for(let i = 0; i < 9; i++){ await next(o); await o.evaluate(() => startQuiz(null, null)); if(await o.evaluate(ANSWER, true)) N++; await o.waitForTimeout(200); }
+    await o.waitForTimeout(300);
+    const st = await o.evaluate(() => { const l = JSON.parse(localStorage.getItem(NS + ':log:' + PROFILE) || '[]'), d = JSON.parse(localStorage.getItem(NS + ':data:' + PROFILE) || '{"answers":[]}');
+      const mine = new Set(LOG.map(e => JSON.stringify(e)));
+      return {log: LOG.length, seeded: LOG.filter(e => e[4] === 'seeded').length, answers: DB.answers.length, storedLog: l.length, storedIn: l.every(e => mine.has(JSON.stringify(e))), storedAnswers: d.answers.length,
+              warn: (document.getElementById('savewarn') || {}).textContent || ''}; });
+    console.log(`  note  whole-site quota: progress stored for ${st.storedAnswers} of ${st.answers} answers; history stored ${st.storedLog} of ${st.log}`);
+    check(N > 0 && st.log === SEED + N && st.seeded === SEED && st.answers === N && st.storedLog >= SEED && st.storedIn,
+      `the whole site's storage full: no history entry is deleted (${SEED + N} on the page, the ${SEED} seeded all there, none dropped from storage) and every answer is on the page`, st);
+    check(/did not save/.test(st.warn) && /Export progress/.test(st.warn), 'the whole site\'s storage full: the notice is shown', st.warn.slice(0, 80));
+    await o.evaluate(() => show('settings'));
+    const [dl] = await Promise.all([o.waitForEvent('download', {timeout: 5000}).catch(() => null), o.evaluate(() => document.getElementById('btnExport').click())]);
+    const ex = dl ? JSON.parse(fs.readFileSync(await dl.path(), 'utf8')) : {};
+    check(Array.isArray(ex.log) && ex.log.length === SEED + N && ex.db && ex.db.answers.length === N, `the whole site's storage full: Export holds every history entry (${SEED + N}) and every answer (${N})`, {log: ex.log && ex.log.length, answers: ex.db && ex.db.answers.length});
+    check(!e5.length, 'the whole site\'s storage full: no page errors', e5.slice(0, 2).join('; '));
+    await c5.close();
+  }
+  {
+    // only history entries unsaved at "Use it here" (the progress as stored), and the browser has
+    // room again: they are added to the stored history, and no copy of the progress is made, so
+    // Put back has nothing older to roll the progress back to
+    const {ctx: c6, page: a, errors: e6} = await L.openFile(browser, {}, CAP);
+    await seeded(a, c6);
+    await a.evaluate(() => startQuiz(null, null));
+    await a.evaluate(ANSWER, true);
+    await a.waitForTimeout(400);
+    const mine = await a.evaluate(() => LOG[LOG.length - 1]);
+    const b = await c6.newPage();
+    b.on('dialog', x => x.accept());
+    await b.goto(a.url());
+    await b.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+    await b.waitForFunction(() => WRITER === 'other', null, {timeout: 5000}).catch(() => {});
+    await b.evaluate(() => takeOver(false));
+    await b.waitForFunction(() => WRITER === 'held', null, {timeout: 8000}).catch(() => {});
+    await a.waitForFunction(() => !!document.getElementById('stopwall'), null, {timeout: 5000}).catch(() => {});
+    await a.evaluate(() => { window.__logCap = null; const x = document.getElementById('stopTake'); if(x) x.click(); });
+    await a.waitForFunction(() => WRITER === 'held', null, {timeout: 8000}).catch(() => {});
+    const r = await a.evaluate(m => { const l = JSON.parse(localStorage.getItem(NS + ':log:' + PROFILE) || '[]');
+      return {n: l.length, has: l.some(e => JSON.stringify(e) === JSON.stringify(m)), copies: localStorage.getItem(NS + ':backup:' + PROFILE), held: WRITER}; }, mine);
+    check(r.n === SEED + 1 && r.has && r.copies === null && r.held === 'held',
+      '"Use it here" with only history entries unsaved: they are added to the stored history, and no copy of the progress is made', r);
+    check(!e6.length, '"Use it here" with only history unsaved: no page errors', e6.slice(0, 2).join('; '));
+    await c6.close();
   }
   await browser.close();
   L.finish(NAME);

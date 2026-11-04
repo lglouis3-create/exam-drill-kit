@@ -3,7 +3,10 @@
 Dated kit changes, newest first.
 
 ## 2026-11-04
-- A history write the browser refuses no longer deletes the oldest half of the answer history: every entry is kept on the page, the "did not save" notice points to Export progress (whose file holds them), the page counts them as unsaved (the stop wall's export, the copy "Use it here" keeps), and the next save the browser keeps writes them all (Louis, 2026-11-04).
+- A history write the browser refuses no longer deletes the oldest half of the answer history: every entry is kept on the page, the "did not save" notice names the answer history and points to Export progress (whose file holds them), the page counts them as unsaved (the stop wall's export; "Use it here" adds them to the saved history, or keeps them in its copy), and the next save the browser keeps writes them all (Louis, 2026-11-04).
+- Switching profile with progress or history the browser refused asks first and offers the export; the history of a profile switched away from is written by a later save once the browser has room.
+- The "did not save" notice shows again for a refusal after everything refused had been saved.
+- With the whole site's storage full, progress now stops saving sooner than before, because the history is no longer cut to make room (for Louis to decide; `core/README.md`).
 
 ## 2026-11-03
 - Import progress shows what a file holds and would change, and saves only when confirmed.
