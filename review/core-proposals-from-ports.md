@@ -17,6 +17,8 @@ after a reload. They are not repeated here, but the ports that wait on them are 
 ## A. Saved progress
 
 **A1. A change made less than 150 ms before the page closes or reloads is lost.** Coordinator-checked.
+- **Fixed on `main`** by kit PR #39 (`34ebc6c`, Louis's yes): the waiting progress is saved when the
+  page is hidden or closed, and core `storage_test.js` checks it. The text below is kept as found.
 - `save()` in `core/shell.html` (lines 817-824) writes the progress 150 ms after the last change.
 - When the page is hidden or closed, the core writes only the student's place on the page, to
   session storage (`placeSave`, `core/views.js` lines 2432-2438, called at lines 2470-2471). A
