@@ -2055,6 +2055,30 @@ let nfile = 0;
     await d.ctx.close();
   }
   {
+    // ChatGPT's review of c9254dc: profile A's history entries do not go into profile B's record after a switch,
+    // nor into B's history when another tab settles that record; B's own entry is kept
+    const d = await device(undefined, true); const di = await info(d.page);
+    await lockReady(d.page);
+    const aAt = await answerHere(d.page, 1);
+    const aEntry = await d.page.evaluate(() => JSON.stringify(LOG[LOG.length - 1]));
+    await d.page.evaluate(() => useProfile('bee'));
+    await lockReady(d.page);
+    await answerHere(d.page, 2);
+    const bEntry = await d.page.evaluate(() => JSON.stringify(LOG[LOG.length - 1]));
+    const rec = await d.page.evaluate(() => JSON.parse(localStorage.getItem(pendingKey('bee', TAB_ID)) || 'null'));
+    const recLog = (rec && rec.log || []).map(e => JSON.stringify(e));
+    const t2 = await secondTab(d);
+    await d.page.evaluate(() => useProfile(PROFILE === 'bee' ? 'other-x' : PROFILE));  // frees "bee"
+    await t2.evaluate(() => useProfile('bee'));
+    await t2.waitForFunction(() => WRITER === 'held' && PROFILE === 'bee', null, {timeout: 6000}).catch(() => {});
+    await t2.evaluate(() => settlePending());
+    const bLog = JSON.parse(await stored(t2, di.ns + ':log:bee') || '[]').map(e => JSON.stringify(e));
+    check(!recLog.includes(aEntry) && recLog.includes(bEntry) && !bLog.includes(aEntry) && bLog.includes(bEntry),
+      'after a profile switch, the other profile\'s history entries are in neither the new profile\'s record nor, once settled, its history; its own entry is kept',
+      {recHasA: recLog.includes(aEntry), recHasB: recLog.includes(bEntry), logHasA: bLog.includes(aEntry), logHasB: bLog.includes(bEntry), aAt});
+    await d.ctx.close();
+  }
+  {
     // Erase without a reload first: this tab's own record (NEW_LOG) does not bring the history back
     const d = await device(undefined, true); const di = await info(d.page);
     await lockReady(d.page);

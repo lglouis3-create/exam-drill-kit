@@ -723,7 +723,7 @@ function claimProfile(p){
   stopWall(null);
   claimWriter(p, 'try').then(ok => {
     if(PROFILE !== p) return;
-    // NEW_LOG keeps entries answered while the lock was asked for: flushWaiting saves them now
+    // this profile's NEW_LOG keeps entries answered while the lock was asked for: flushWaiting saves them now
     if(ok){ WRITER = 'held'; WROTE_SINCE_CLAIM = false; MARK = 0; flushWaiting(); settlePendingSoon(); }
     else if(WRITER === 'pending'){ WRITER = 'other'; WRITER_WHY = 'other'; EXAM_CLEAR_WAITING = ''; stopWall('other'); }
   });
@@ -776,7 +776,7 @@ function takeOver(force){
         // drop it, so the Exam sim tab reads the paper from storage again
         try { if(typeof EX !== 'undefined' && EX){ clearInterval(EX.timer); EX = null; } } catch(e){}
         stopWall(null);
-        NEW_LOG = []; WROTE_SINCE_CLAIM = false; settlePendingSoon();
+        NEW_LOGS[p] = []; WROTE_SINCE_CLAIM = false; settlePendingSoon();
         if(KEPT_COPY){ KEPT_COPY = false; setTimeout(() => alert('The answers and settings this page had not saved are kept as a copy: Settings, "Put back the progress from …". The progress on screen now is the stored one.'), 0); }
         try { if(typeof show === 'function') show(typeof VIEW !== 'undefined' ? VIEW : 'study'); } catch(e){}
         return;
@@ -830,7 +830,11 @@ if(writerChan) writerChan.addEventListener('message', e => {
    that was first found, with the record unchanged in between; the first-found time is kept in
    `<ns>:pending-seen:<profile>`, so a reload does not start the wait again. A record that changed
    is checked again; one that cannot be read is left as it is. Without Web Locks no record is kept. */
-let NEW_LOG = [], WROTE_SINCE_CLAIM = false;   // this tab wrote the progress since it took the profile
+// NEW_LOG: per profile, the history entries this tab added since it took that profile (ChatGPT's review
+// of c9254dc: one list for the tab carried profile A's entries into profile B's record after a switch)
+const NEW_LOGS = {};
+const newLog = () => (NEW_LOGS[PROFILE] = NEW_LOGS[PROFILE] || []);
+let WROTE_SINCE_CLAIM = false;   // this tab wrote the progress since it took the profile
 let MARK = 0;                                   // when this tab last erased, put back or replaced by Import
 let SETTLING = false;                          // the settling's own writes are not this tab's
 function pendingKey(p, tab){ return NS + ':pending:' + p + ':' + tab; }
@@ -840,7 +844,7 @@ function pendingAfter(k, v){
     if(WRITER !== 'held' || WRITER_FOR !== PROFILE || k !== keyFor(PROFILE)) return;
     if(!SETTLING) WROTE_SINCE_CLAIM = true;
     if(v === null){ localStorage.removeItem(pendingKey(PROFILE, TAB_ID)); return; }
-    localStorage.setItem(pendingKey(PROFILE, TAB_ID), '{"at":' + Date.now() + (MARK ? ',"mark":' + MARK : '') + ',"db":' + v + ',"log":' + JSON.stringify(NEW_LOG) + '}');
+    localStorage.setItem(pendingKey(PROFILE, TAB_ID), '{"at":' + Date.now() + (MARK ? ',"mark":' + MARK : '') + ',"db":' + v + ',"log":' + JSON.stringify(newLog()) + '}');
   } catch(e){ /* before start-up, or storage full: this save has no record of its own */ }
 }
 /* The other tabs' records of profile p go (Erase, Put back, a replacing Import, Delete the copies). */
@@ -862,7 +866,7 @@ function pendingRetire(){
       if(raw !== null && !(seen[k] && seen[k].fp === fpOf(raw))) seen[k] = {fp: fpOf(raw), t: Date.now(), done: true};
     }
     writeSeen(seen);
-    NEW_LOG = [];
+    NEW_LOGS[PROFILE] = [];
   } catch(e){}
 }
 // a record's fingerprint: its length and two hashes over every character (a changed record differs)
@@ -1288,7 +1292,7 @@ function logAnswer(q, result, mode, how){
   const recall = typeof how.recall === 'number' && isFinite(how.recall) ? Math.round(how.recall * 10000) / 10000 : null;
   LOG.push([Math.round(Date.now() / 1000), cardCode(q.id), result === 'wrong' ? 0 : 1, mode, q.concept, conf, itemType(q),
             how.model || 'concept', how.arm || '', recall]);
-  NEW_LOG.push(LOG[LOG.length - 1]);   // the same entry: a later "Not sure" changes it in both
+  newLog().push(LOG[LOG.length - 1]);   // the same entry: a later "Not sure" changes it in both
   MARK = 0;                            // a new last answer places this tab's record from now on
   if(LOG.length > LOG_MAX) LOG.splice(0, LOG.length - LOG_MAX);
   saveLog();
