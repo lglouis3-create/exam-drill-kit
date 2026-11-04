@@ -425,7 +425,11 @@ frees it when that tab closes).
   every write a writer checks that `<ns>:writer:<profile>` still names its own tab.
 - A profile switch away and straight back: the lock this page freed a moment before may
   not be free yet when it asks again, so it queues for it for at most 2 s instead of opening
-  read-only (when another tab holds it, the page opens read-only after that wait).
+  read-only. Only the newest of several switches in one moment decides. When another tab has
+  the lock by then, the page opens read-only after that wait. When the other tab lets go during
+  the wait, this page becomes the writer with the progress it read before; if the other tab
+  saved meanwhile, this page's next save finds that and stops (the stale wall), so the other
+  tab's save stays, and an answer given here during the wait is offered for export.
 - An Import that writes another profile (a new one, or the history of the profile that
   already holds the file) holds that profile's lock while it writes, and writes nothing
   when a tab using that profile has it.
