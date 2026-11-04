@@ -1793,7 +1793,7 @@ let nfile = 0;
     await t2.evaluate(() => { if(typeof settlePending === 'function') settlePending(); });   // as the storage event does
     await t2.waitForTimeout(300);
     const a = await keptAnywhere(t2, di, last), b = await keptAnywhere(t2, di, mine);
-    check((a.live || a.copy) && b.live && !(a.live && b.live && false), 'the record arrives after the next tab answered: the closed tab\'s answer is kept (a copy), and the next tab\'s stays in the progress', {last: a, next: b, pk: !!pk});
+    check((a.live || a.copy) && b.live, 'the record arrives after the next tab answered: the closed tab\'s answer is kept (a copy), and the next tab\'s stays in the progress', {last: a, next: b, pk: !!pk});
     check(a.copy && !a.live, 'that record is not mixed into the progress: it is a separate copy', a);
     await d.ctx.close();
   }
@@ -1807,8 +1807,8 @@ let nfile = 0;
     const conflict = JSON.parse(JSON.stringify(base)); conflict.answers[1].result = conflict.answers[1].result === 'correct' ? 'wrong' : 'correct';
     const attempt = JSON.parse(JSON.stringify(base)); attempt.answers.push(Object.assign({}, base.answers[1], {at: base.answers[1].at + 1}));
     await d.page.evaluate(([c, a]) => {
-      localStorage.setItem(pendingKey(PROFILE, 'gone-1'), JSON.stringify({at: Date.now(), db: c, log: []}));
-      localStorage.setItem(pendingKey(PROFILE, 'gone-2'), JSON.stringify({at: Date.now(), db: a, log: []}));
+      localStorage.setItem(pendingKey(PROFILE, 'gone-1'), JSON.stringify({at: Date.now(), db: JSON.parse(c), log: []}));
+      localStorage.setItem(pendingKey(PROFILE, 'gone-2'), JSON.stringify({at: Date.now(), db: JSON.parse(a), log: []}));
       DB.settings.goal = 13; save(); saveNow();                        // this page has changed something
       settlePending();
     }, [JSON.stringify(conflict), JSON.stringify(attempt)]);
@@ -1821,20 +1821,140 @@ let nfile = 0;
     const before = await stored(d.page, k1);
     await d.page.evaluate(() => settlePending());
     const stillThere = await stored(d.page, k1) === before;
-    await d.page.evaluate(k => { if(PENDING_SETTLED[k]) PENDING_SETTLED[k].t -= 61000; settlePending(); }, k1);
+    const age = k => { const sk = NS + ':pending-seen:' + PROFILE; const v = JSON.parse(localStorage.getItem(sk) || '{}'); if(v[k]) v[k].t -= 61000; localStorage.setItem(sk, JSON.stringify(v)); };
+    await d.page.evaluate(`(${age.toString()})(${JSON.stringify(k1)}); settlePending();`);
     const gone = await stored(d.page, k1) === null;
     // a record that changed in between is checked again, not removed
     const k2 = await d.page.evaluate(() => pendingKey(PROFILE, 'gone-2'));
-    await d.page.evaluate(k => { if(PENDING_SETTLED[k]) PENDING_SETTLED[k].t -= 61000; const r = JSON.parse(localStorage.getItem(k)); r.at += 1; localStorage.setItem(k, JSON.stringify(r)); settlePending(); }, k2);
+    await d.page.evaluate(`(${age.toString()})(${JSON.stringify(k2)}); { const r = JSON.parse(localStorage.getItem(${JSON.stringify(k2)})); r.at += 1; localStorage.setItem(${JSON.stringify(k2)}, JSON.stringify(r)); } settlePending();`);
     const kept2 = await stored(d.page, k2) !== null;
     // an older record whose second answer differs field by field from the stored one (same question
     // and time): it is not taken as stored and dropped; it is kept as a copy
     const older = JSON.parse(JSON.stringify(base)); older.answers = older.answers.slice(0, 2); older.answers[1].picked = 'other';
     await answer(d.page, 1, 3);                                        // the stored progress has more answers now
-    await d.page.evaluate(o => { localStorage.setItem(pendingKey(PROFILE, 'gone-3'), JSON.stringify({at: Date.now(), db: o, log: []})); settlePending(); }, JSON.stringify(older));
+    await d.page.evaluate(o => { localStorage.setItem(pendingKey(PROFILE, 'gone-3'), JSON.stringify({at: Date.now(), db: JSON.parse(o), log: []})); settlePending(); }, JSON.stringify(older));
     const copies3 = JSON.parse(await stored(d.page, di.backup) || '[]').map(c => c.data);
     check(copies3.includes(JSON.stringify(older)), 'an older record whose answer differs from the stored one at the same question and time is kept as a copy, not taken as stored', copies3.length);
     check(stillThere && gone && kept2, 'a record is removed only on a later check, 60 s after it was found stored, and only if it did not change in between', {stillThere, gone, kept2});
+    await d.ctx.close();
+  }
+
+  console.log('\n=== Records and deliberate changes: the review of ef82bb6 ===');
+  const rawRec = (p, tab, db, log) => p.evaluate(([tab, db, log]) => localStorage.setItem(pendingKey(PROFILE, tab), JSON.stringify({at: Date.now(), db, log})), [tab, db, log]);
+  const lockReady = p => p.waitForFunction(() => WRITER === 'held', null, {timeout: 5000}).catch(() => {});
+  {
+    // M1, M2: Erase is not undone by this tab's own or an earlier load's record, at once or after a reload
+    const d = await device(undefined, true); const di = await info(d.page);
+    await lockReady(d.page);
+    await answerHere(d.page, 1); await answerHere(d.page, 2); await answerHere(d.page, 3);
+    await reload(d.page); await lockReady(d.page);                      // an earlier load's record stays
+    await d.page.evaluate(() => { window.confirm = () => true; show('settings'); document.getElementById('btnReset').click(); saveNow(); });
+    await d.page.waitForTimeout(300);
+    await reload(d.page); await lockReady(d.page); await d.page.waitForTimeout(1800);
+    const prog = JSON.parse(await stored(d.page, di.data) || '{"answers":[]}'), log = JSON.parse(await stored(d.page, di.log) || '[]');
+    check(prog.answers.length === 0 && log.length === 0, 'Erase, then reloads: the progress and the history stay erased (no record brings them back)', {answers: prog.answers.length, log: log.length});
+    await d.ctx.close();
+  }
+  {
+    // M2: Put back is not undone by an earlier load's record
+    const d = await device(undefined, true); const di = await info(d.page);
+    await answer(d.page, 1, 0);
+    const f = await exportOf(d.page);
+    await choose(d.page, later(f, 2), true);                             // 3 answers, a copy of 1
+    await reload(d.page); await lockReady(d.page);
+    await d.page.evaluate(() => { show('settings'); restoreBackup(); });
+    await reload(d.page); await lockReady(d.page); await d.page.waitForTimeout(1800);
+    const n = JSON.parse(await stored(d.page, di.data)).answers.length;
+    check(n === 1, 'Put back, then a reload: the progress put back stays (an earlier load\'s record does not undo it)', n);
+    await d.ctx.close();
+  }
+  {
+    // M3: Delete the copies is not undone by the later check of a record kept as a copy
+    const d = await device(undefined, true); const di = await info(d.page);
+    await answer(d.page, 2, 0);
+    await lockReady(d.page);
+    const base = JSON.parse(await stored(d.page, di.data));
+    const other = JSON.parse(JSON.stringify(base)); other.settings.goal = 77;
+    await rawRec(d.page, 'gone-x', other, []);
+    await d.page.evaluate(() => settlePending());
+    const made = JSON.parse(await stored(d.page, di.backup) || '[]').length;
+    await d.page.evaluate(() => { window.confirm = () => true; show('settings'); deleteCopies(); });
+    await d.page.evaluate(() => { const sk = NS + ':pending-seen:' + PROFILE; const v = JSON.parse(localStorage.getItem(sk) || '{}'); for(const k in v) v[k].t -= 61000; localStorage.setItem(sk, JSON.stringify(v)); settlePending(); });
+    check(made === 1 && await stored(d.page, di.backup) === null, 'Delete the copies: a record kept as a copy does not bring the copy back at its later check', made);
+    await d.ctx.close();
+  }
+  {
+    // M4: at the 4,000-answer cap, a reload and an answer make no copy
+    const d = await device(undefined, true); const di = await info(d.page);
+    await d.page.evaluate(() => {
+      const t0 = Date.now() - 1e8;
+      for(let i = 0; i < ANSWERS_MAX + 5; i++){ const q = QUESTIONS[i % QUESTIONS.length]; DB.answers.push({qid: q.id, concept: q.concept, result: 'correct', at: t0 + i, qn: i + 1, picked: 0, ms: 1000}); }
+      DB.answers.splice(0, DB.answers.length - ANSWERS_MAX); DB.qn = ANSWERS_MAX + 5;
+      store.set(keyFor(PROFILE), JSON.stringify(DB));
+    });
+    await reload(d.page); await lockReady(d.page);
+    await answerHere(d.page, 4);
+    await reload(d.page); await lockReady(d.page);
+    await answerHere(d.page, 5);
+    await d.page.evaluate(() => settlePending());
+    check(await stored(d.page, di.backup) === null, 'at the 4,000-answer cap, reloads and answers make no copy');
+    await d.ctx.close();
+  }
+  {
+    // M5: a record whose only change is a setting, at the same point as what is stored: kept as a copy, not removed as taken in
+    const d = await device(undefined, true); const di = await info(d.page);
+    await answer(d.page, 2, 0); await lockReady(d.page);
+    const base = JSON.parse(await stored(d.page, di.data));
+    const set = JSON.parse(JSON.stringify(base)); set.settings.goal = 61;
+    await rawRec(d.page, 'gone-s', set, []);
+    await d.page.evaluate(() => settlePending());
+    const copies = JSON.parse(await stored(d.page, di.backup) || '[]');
+    check(copies.some(c => JSON.parse(c.data).settings.goal === 61), 'a record whose only change is a setting is kept as a copy, not taken as stored', copies.length);
+    await d.ctx.close();
+  }
+  {
+    // M6: reloads do not pile records up; the first-found time is kept across reloads
+    const d = await device(undefined, true); const di = await info(d.page);
+    await lockReady(d.page); await answerHere(d.page, 1);
+    for(let i = 0; i < 4; i++){ await reload(d.page); await lockReady(d.page); await answerHere(d.page, 2 + i); }
+    await d.page.evaluate(() => { const sk = NS + ':pending-seen:' + PROFILE; const v = JSON.parse(localStorage.getItem(sk) || '{}'); for(const k in v) v[k].t -= 61000; localStorage.setItem(sk, JSON.stringify(v)); settlePending(); });
+    const n = await d.page.evaluate(() => { let n = 0; for(let i = 0; i < localStorage.length; i++) if(localStorage.key(i).startsWith(NS + ':pending:' + PROFILE + ':')) n++; return n; });
+    check(n === 1, 'after reloads, once the wait has passed, only this tab\'s own record is left', n);
+    await d.ctx.close();
+  }
+  {
+    // history: a "Not sure" on the same entry is one entry; two identical attempts stay two
+    const d = await device(undefined, true); const di = await info(d.page);
+    await answer(d.page, 1, 0); await lockReady(d.page);
+    const log = JSON.parse(await stored(d.page, di.log));
+    const e = log[log.length - 1].slice(), unsure = e.slice(); unsure[5] = 'unsure';
+    const sameAs = (list) => list.filter(x => JSON.stringify(x.map((v, i) => i === 5 ? null : v)) === JSON.stringify(e.map((v, i) => i === 5 ? null : v))).length;
+    await rawRec(d.page, 'gone-h1', JSON.parse(await stored(d.page, di.data)), [unsure]);
+    await d.page.evaluate(() => settlePending());
+    const one = sameAs(JSON.parse(await stored(d.page, di.log)));
+    check(one === 1, 'a record\'s history: the same entry with a changed confidence ("Not sure") is not added a second time', one);
+    await rawRec(d.page, 'gone-h2', JSON.parse(await stored(d.page, di.data)), [e.slice(), e.slice()]);
+    await d.page.evaluate(() => settlePending());
+    const two = sameAs(JSON.parse(await stored(d.page, di.log)));
+    check(two === 2, 'a record\'s history: a second identical attempt is kept (two in all)', two);
+    await d.ctx.close();
+  }
+  for(const order of [['z-old', 'a-new', true], ['a-old', 'z-new', false]]){
+    // several leaving tabs: the newer record, continuing the older, ends as the progress, whatever the
+    // key names and the order they were written in (a tab that has written nothing since it took the profile)
+    const d = await device(undefined, true); const di = await info(d.page);
+    await answer(d.page, 1, 0);
+    await reload(d.page); await lockReady(d.page);
+    const base = JSON.parse(await stored(d.page, di.data)), q = base.answers[0];
+    const r1 = JSON.parse(JSON.stringify(base)); r1.answers.push(Object.assign({}, q, {at: q.at + 10}));
+    const r2 = JSON.parse(JSON.stringify(r1)); r2.answers.push(Object.assign({}, q, {at: q.at + 20}));
+    await d.page.evaluate(([a, b, kOld, kNew, newFirst]) => {
+      const put = (k, at, db) => localStorage.setItem(pendingKey(PROFILE, k), JSON.stringify({at, db, log: []}));
+      if(newFirst){ put(kNew, 2000, b); put(kOld, 1000, a); } else { put(kOld, 1000, a); put(kNew, 2000, b); }
+      settlePending();
+    }, [r1, r2, order[0], order[1], order[2]]);
+    check(JSON.parse(await stored(d.page, di.data)).answers.length === 3 && await stored(d.page, di.backup) === null,
+      `two leaving tabs' records (${order[0]}, ${order[1]}), the newer continuing the older: the newer is the progress, with no copy`);
     await d.ctx.close();
   }
 

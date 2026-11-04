@@ -889,6 +889,7 @@ function runImport(plan){
     }
     clearTimeout(saveTimer); saveTimer = null;
     SEEN = dbText;
+    pendingRetire();   // other tabs' older records of this profile cannot bring back what was replaced
     DB = db;
     try { fsFromHistory(); } catch(e){ FS_ERROR = String(e && e.message || e); }
     text = `Imported: "${esc(PROFILE)}" now has the file's progress (${nAnswers(db.answers.length)}). The progress it replaced is kept; Settings can put it back.`;
@@ -972,6 +973,7 @@ function restoreBackup(){
   }
   clearTimeout(saveTimer); saveTimer = null;
   SEEN = b.data;
+  pendingRetire();
   DB = db;
   try { fsFromHistory(); } catch(e){ FS_ERROR = String(e && e.message || e); }
   // a copy kept by "Use it here" may hold history entries that were never stored: they go into the
@@ -1008,6 +1010,7 @@ function deleteCopies(){
   if(changedElsewhere()){ staleWarn(); alert(elsewhereShort() + ', so nothing was deleted. Reload this page first.'); return; }
   if(storedRaw(backupKey(PROFILE)) !== copiesRaw){ alert(COPIES_CHANGED + ' nothing was deleted. Reload this page first.'); return; }
   store.del(backupKey(PROFILE));
+  pendingRetire();
   renderSettings();
 }
 function backupNote(){
@@ -2775,7 +2778,7 @@ function renderSettings(){
       // the question may have stayed open while another tab or window saved this profile
       if(changedElsewhere()){ staleWarn(); alert(elsewhereShort() + ', so nothing was erased. Reload this page first.'); return; }
       // erasing replaces a stored history that could not be read, too
-      DB = BLANK(); save(); LOG = []; LOG_OK = true; saveLog(); alert('History erased.'); renderSettings();
+      DB = BLANK(); save(); LOG = []; LOG_OK = true; saveLog(); pendingRetire(); alert('History erased.'); renderSettings();
     }
   };
 }
