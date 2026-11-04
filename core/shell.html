@@ -985,14 +985,17 @@ function pendingDone(k, raw, rec, handled){
   const progressIn = place === 'in' || (list !== null && list.some(c => c && c.data === dbStr));
   const have = storedLogEntries();
   const logIn = have !== null && missingEntries(Array.isArray(rec.log) ? rec.log.filter(Array.isArray) : [], have).length === 0;
-  if(!(progressIn && logIn)) return;
   const seen = readSeen();
   const fp = fpOf(raw), prev = seen[k];
+  // once proven stored, the proof stands for that exact record (this tab's later writes move the
+  // stored progress on, and must not keep it for ever; the review of 77e97f2)
+  const proven = (progressIn && logIn) || !!(prev && prev.proven && prev.fp === fp);
+  if(!proven) return;
   if(prev && prev.fp === fp && Date.now() - prev.t >= PENDING_WAIT){
     if(storedNow(k) === raw){ try { localStorage.removeItem(k); } catch(e){} }
     delete seen[k];
-  } else if(!prev || prev.fp !== fp){
-    seen[k] = {fp, t: Date.now(), done: true};   // handled: not placed again while unchanged
+  } else if(!prev || prev.fp !== fp || !prev.proven){
+    seen[k] = {fp, t: prev && prev.fp === fp && prev.proven ? prev.t : Date.now(), done: true, proven: true};   // proven: removed 60 s on if unchanged
     setTimeout(settlePending, PENDING_WAIT + 1000);
   } else return;
   writeSeen(seen);

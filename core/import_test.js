@@ -2042,6 +2042,19 @@ let nfile = 0;
     await d.ctx.close();
   }
   {
+    // records do not pile up when a setting is changed after each load
+    const d = await device(undefined, true); const di = await info(d.page);
+    await answer(d.page, 2, 0);
+    for(let i = 0; i < 3; i++){
+      await reload(d.page); await lockReady(d.page); await d.page.waitForTimeout(1800);
+      await d.page.evaluate(g => { DB.settings.goal = g; save(); saveNow(); }, 20 + i);
+    }
+    for(let i = 0; i < 2; i++) await d.page.evaluate(() => { const sk = NS + ':pending-seen:' + PROFILE; const v = JSON.parse(localStorage.getItem(sk) || '{}'); for(const k in v) v[k].t -= 61000; localStorage.setItem(sk, JSON.stringify(v)); settlePending(); });
+    const n = await d.page.evaluate(() => { let n = 0; for(let i = 0; i < localStorage.length; i++) if(localStorage.key(i).startsWith(NS + ':pending:' + PROFILE + ':')) n++; return n; });
+    check(n === 1 && await stored(d.page, di.backup) === null, 'a setting changed after each of several loads: records do not pile up (only this tab\'s own is left), and no copy is made', n);
+    await d.ctx.close();
+  }
+  {
     // Erase without a reload first: this tab's own record (NEW_LOG) does not bring the history back
     const d = await device(undefined, true); const di = await info(d.page);
     await lockReady(d.page);

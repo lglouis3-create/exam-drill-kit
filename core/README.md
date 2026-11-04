@@ -454,12 +454,13 @@ What this does not cover (the independent review of 4b3b94c; Chromium only):
   - the history merge is not cut to 20,000 entries; the next answer's save cuts it, as the
     `LOG_MAX` rule does (that rule waits for Louis's decision in #47);
   - a record that can never be shown to be stored (handled at an Erase while it held history
-    entries, or its copy refused) stays, costing space, not data;
+    entries, or its copy refused) stays; its answers are in storage but not on screen or in
+    Export, so the student cannot reach them;
   - **the boundary:** localStorage gives no ordering of writes between tabs and no transactions,
     so every rule here decides "newer or older" and "deliberate or lost" from snapshots of
     content, and a write still on its way to this tab can be judged from an older view. Four
-    independent reviews (2026-11-04) found that each such rule closes one case and opens a
-    neighbouring one. A sound solution moves the progress (or an append-only log of saves) to
+    review rounds by one independent reviewer (2026-11-04) found that each such rule closes one
+    case and opens a neighbouring one. A sound solution moves the progress (or an append-only log of saves) to
     IndexedDB, whose read-write transactions on one store run one at a time across tabs (the
     reviewer's reading of the IndexedDB specification; not confirmed in this session); that is a
     separate decision for Louis.
