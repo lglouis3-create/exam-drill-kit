@@ -405,8 +405,9 @@ so when the browser refuses the write:
   entries and is written as it is. When another tab or window saved or erased that history
   since, nothing is written or merged (a merge undid another tab's Erase, and made two
   answers to one question in one second into one: #47's re-review, N1 and N2); the entries
-  stay refused, in memory, and a notice says so once and offers "Export it" (a file for that
-  profile: its stored progress and this page's history, for Import). A tab that opens that
+  stay refused, in memory, and a notice says so once, says the other tab may have erased that
+  history and that importing the file into that profile brings those entries back, and offers
+  "Export it" (a file for that profile: its stored progress and this page's history). A tab that opens that
   profile in the moment between the lock query and the write either reads the written value
   or, having read before it, stops with the "saved in another tab" wall at its first save;
   nothing is lost either way;
@@ -417,7 +418,9 @@ so when the browser refuses the write:
   what this page last knew, this page's history is written as it is; changed by the other tab,
   this page's entries that were never stored are added to it, counted (`withNeverStored`: the
   same entry twice stays twice; compared on every field but the confidence, index 5, which "Not
-  sure" and "I guessed" change after the answer). When the progress is unsaved
+  sure" and "I guessed" change after the answer; an entry stored before whose confidence this
+  page changed since gets this page's confidence, and one it did not change keeps what is
+  stored). When the progress is unsaved
   too, or the browser refuses that history write, it keeps them in the copy it makes (field
   `log`), when the browser has room for the copy (otherwise it does not take the profile, as
   before).

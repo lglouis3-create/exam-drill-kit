@@ -1160,18 +1160,27 @@ function retryAwayLog(k, p){
 /* The entries of `mine` that `known` (the stored history as this page last knew it, a string or
    null) does not hold, added to `stored`: counted, not merged, so two entries alike (two answers
    to one question in one second) stay two (#47's re-review, N2). Entries are compared on every
-   field but the confidence (index 5), which "Not sure" and "I guessed" change after the answer. */
+   field but the confidence (index 5), which "Not sure" and "I guessed" change after the answer.
+   An entry stored before whose confidence this page changed since (its copy differs from
+   `known` there) gets this page's confidence on the stored entry it matches; one this page did
+   not change keeps what is stored (#47's re-review of 86576d2). */
 function withNeverStored(stored, mine, known){
   const key = e => JSON.stringify(e.filter((x, i) => i !== 5));
-  const had = new Map();
+  const had = new Map();   // entry -> the confidences `known` holds for it, one per copy
   let base = [];
   try { const v = known ? JSON.parse(known) : []; base = Array.isArray(v) ? v : []; } catch(e){ base = []; }
-  for(const e of base) if(Array.isArray(e)) had.set(key(e), (had.get(key(e)) || 0) + 1);
-  const out = stored.slice();
+  for(const e of base) if(Array.isArray(e)){ const k = key(e); if(!had.has(k)) had.set(k, []); had.get(k).push(e[5]); }
+  const out = stored.map(e => Array.isArray(e) ? e.slice() : e);
+  const slots = new Map();   // entry -> the indices in `out` that hold it, not yet matched
+  out.forEach((e, i) => { if(Array.isArray(e)){ const k = key(e); if(!slots.has(k)) slots.set(k, []); slots.get(k).push(i); } });
   for(const e of mine){
     if(!Array.isArray(e)) continue;
-    const n = had.get(key(e)) || 0;
-    if(n > 0) had.set(key(e), n - 1); else out.push(e);
+    const k = key(e), confs = had.get(k);
+    if(confs && confs.length){
+      const was = confs.shift(), at = slots.get(k);
+      if(e[5] !== was && at && at.length){ const i = at.shift(); out[i][5] = e[5]; }
+      else if(at && at.length) at.shift();
+    } else out.push(e);
   }
   out.sort((x, y) => x[0] - y[0]);   // stable: entries alike keep their order
   return out.length > LOG_MAX ? out.slice(out.length - LOG_MAX) : out;
@@ -1185,7 +1194,7 @@ function awayChanged(k, p){
   AWAY_WARNED.add(k);
   const d = document.createElement('div');
   d.className = 'awaywarn'; d.setAttribute('role', 'alert');
-  d.textContent = 'This browser did not save part of the answer history of "' + p + '", and that history was changed in another tab or window since, so this page has not written it. It is kept on this page until it is closed or reloaded. ';
+  d.textContent = 'This browser did not save part of the answer history of "' + p + '", and that history was changed in another tab or window since, so this page has not written it. It is kept on this page until it is closed or reloaded. The other tab may have erased that history: importing this file into "' + p + '" brings those entries back. ';
   const ex = document.createElement('button'); ex.type = 'button'; ex.className = 'btn'; ex.textContent = 'Export it';
   ex.onclick = () => {
     try {

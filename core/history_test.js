@@ -338,6 +338,8 @@ const next = p => p.evaluate(() => { const b = document.getElementById('btnNext'
     const away = await m.evaluate(k => ({same: localStorage.getItem(k), failed: FAILED.has(k), notice: (document.querySelector('.awaywarn') || {}).textContent || ''}), me.k);
     check(away.same === theirsStored && away.failed && /changed in another tab/.test(away.notice),
       'that tab closed, its save still stored: this page writes nothing over it, keeps its entries refused, and says so', {same: away.same === theirsStored, failed: away.failed, notice: away.notice.slice(0, 80)});
+    check(/may have erased that history/.test(away.notice) && /brings those entries back/.test(away.notice),
+      'that notice says the other tab may have erased that history, and that importing the file brings those entries back', away.notice.slice(0, 400));
     const [adl] = await Promise.all([m.waitForEvent('download', {timeout: 5000}).catch(() => null), m.evaluate(() => { const b = document.querySelector('.awaywarn button'); if(b) b.click(); })]);
     const aex = adl ? JSON.parse(fs.readFileSync(await adl.path(), 'utf8')) : null;
     check(!!aex && aex.profile === me.p && aex.log.length === SEED + 1 && aex.log.some(e => JSON.stringify(e) === JSON.stringify(me.last)),
@@ -458,6 +460,8 @@ const next = p => p.evaluate(() => { const b = document.getElementById('btnNext'
     const {ctx: c6, page: a, errors: e6} = await L.openFile(browser, {}, CAP);
     await seeded(a, c6);
     const two = await twoAlike(a);
+    // a confidence changed here on an entry stored before ("Not sure" later), refused with the rest
+    const first = await a.evaluate(() => { LOG[0][5] = 'unsure'; saveLog(); return LOG[0]; });
     await a.waitForTimeout(400);
     const b = await c6.newPage();
     b.on('dialog', x => x.accept());
@@ -483,6 +487,9 @@ const next = p => p.evaluate(() => { const b = document.getElementById('btnNext'
     const want = SEED + 2 + (theyAnswer ? 1 : 0);
     check(two.alike && (!theyAnswer || (!!theirs && r.theirs)) && r.n === want && r.count === 2 && r.seeded === SEED && r.copies === null && r.held === 'held',
       `"Use it here" with only history entries unsaved${theyAnswer ? ', the other tab having answered meanwhile' : ''}: they are added to the stored history, two alike entries as two (${want} stored), and no copy of the progress is made`, Object.assign({alike: two.alike}, r));
+    const conf = await a.evaluate(f => { const l = JSON.parse(localStorage.getItem(NS + ':log:' + PROFILE) || '[]');
+      const e = l.find(x => JSON.stringify(x.filter((y, i) => i !== 5)) === JSON.stringify(f.filter((y, i) => i !== 5))); return e ? e[5] : null; }, first);
+    check(conf === 'unsure', `"Use it here"${theyAnswer ? ', the other tab having answered meanwhile' : ''}: a confidence this page changed on an entry stored before is kept on the stored entry`, conf);
     check(!e6.length, '"Use it here" with only history unsaved: no page errors', e6.slice(0, 2).join('; '));
     await c6.close();
   }
