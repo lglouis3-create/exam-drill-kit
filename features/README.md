@@ -108,8 +108,12 @@ loop, or when a script exits non-zero.
 On GitHub, `.github/ci_plan.js` picks the module courses of each pull request: each module
 with a changed file, every module that needs one of them, and each combination in
 `features/ci-combinations.txt` that holds one of them (every module when `core/`,
-`template/` or `.github/` changes, and on every push to `main`). Each runs as its own job,
-in Chromium.
+`template/` or `.github/` changes, and on every push to `main`). Each runs as two jobs of
+its own, in Chromium ("modules") and in WebKit ("modules-webkit"). Each job fails unless
+every module switched on has its own test (`test.js`) PASS with at least one passed check
+printed after its browser started: so a module's test must start its browser through
+`check_lib.js`'s `launch` and check the page there. A module whose test needs no browser
+fails both jobs; an exemption for one would be Louis's decision.
 
 ## The hooks
 
