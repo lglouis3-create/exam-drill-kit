@@ -2,6 +2,11 @@
 
 Dated kit changes, newest first.
 
+## 2026-11-04
+- Settings shows how much this site stores in this browser (every drill, in characters, against 5,242,880), this drill's part (progress, history, preview copies, copies kept by Import and their number) and this profile's answers kept and recorded.
+- A warning in the Quiz tab and in Settings when the space left is less than one more profile of the largest size here, or a first preview of a course here, would need; it names the largest items and offers Export progress and Delete the copies kept by Import. Nothing is deleted automatically. The page says the figures are an estimate and the limit differs by browser.
+- `core/storage_use_test.js` checks the figures, the warning on each side of its boundary and the estimate wording.
+
 ## 2026-11-03
 - Import progress shows what a file holds and would change, and saves only when confirmed.
 - Import refuses a file of another course or of no course, and replaces progress only with a record that continues it.

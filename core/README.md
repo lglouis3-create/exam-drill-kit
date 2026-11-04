@@ -35,6 +35,7 @@ that course's repository. Both folders come from the recovered exam-drill templa
 | `home_test.js` | core | the Home Screen card for each kind of browser: a closed section in Settings, nothing on Topics |
 | `history_test.js` | core | the answer history: its fields, Export, Import, Erase, a refused write |
 | `import_test.js` | core | Import progress: files of another course or app, files that name no course, and damaged files refused; older files converted; a file replaces this profile only when it continues it or this profile holds no progress, after a confirmed plan, with a copy to put back; conflicting copies of one answer, another origin, a cut answer list, answers out of order, and matching or empty answer lists with other concept progress, settings, scheduling state or module part go into a new profile; repeats change nothing and make no second profile; Put back and refused reads and writes leave both records stored |
+| `storage_use_test.js` | core | Settings' storage figures (the site's total against 5,242,880, this drill's progress, history, preview copies and copies kept by Import, the answers kept and recorded) and the warning in Settings and the Quiz tab, absent when the space left equals the need and present one character below it, for each of the two needs; the estimate wording; Delete the copies only after a confirm |
 | `preview_test.js` | core | `build.py --preview`: the live site unchanged, the preview's own namespace |
 | `state_check.js` | core | the course's root `CLAUDE.md` was updated with or after the newest lecture (§7.8) |
 | `state_check_test.js` | core | `state_check.js` on repositories with known histories |
@@ -228,6 +229,43 @@ refuses a write (quota full, private window, blocked site data), that key is ser
 from memory for the rest of the visit, and the first refusal shows one notice that
 points to Settings → Export progress. A later write that succeeds clears the key's
 failure. Switching profile writes any save still waiting on its timer first.
+
+**Storage use in Settings, and its warning** (`views.js` `storageUse`, `storageSection`,
+`storageWarnHtml`, `quizStorageWarn`; `review/storage-usage-proposal.md` §3 items 1 and 2,
+approved by Louis on 2026-11-04). Settings has a section "Storage in this browser" with:
+- the characters the whole site stores (every key of the origin, every drill), against
+  5,242,880 (5 × 1,048,576), as a percentage, and the space left (5,242,880 minus that
+  total);
+- this drill's part: progress (`<ns>:data:*`), answer history (`<ns>:log:*`), preview
+  copies (`<ns>-preview:*`), the copies kept by Import (`<ns>:backup:*`) with their
+  number, and its other keys;
+- this profile's answers kept (`DB.answers`, at most `ANSWERS_MAX`, 4,000) and recorded in
+  all (`DB.qn`).
+
+Every size is a string length, key plus value, as `localStorage.getItem(k).length` gives
+it; the bytes a browser writes to disk can differ. A warning shows at the top of the Quiz
+tab and of that section when the space left is less than the larger of two needs:
+- the largest profile this browser holds on the core: its progress plus its history;
+- for each course on the core whose preview has not yet copied its keys (no key starts
+  `<ns>-preview:`), what that first copy writes: each of its keys under the
+  `<ns>-preview:` name, 8 characters longer.
+
+A course counts as on the core when one of its `<ns>:data:<profile>` keys holds JSON that
+starts `{"v":` with 2 or more (`BLANK` puts `v` first and `upgradeDB` keeps it there); the
+course on screen always counts. Drills not on the core (BDK's `bdk2:*`, Pharmacokinetics,
+Intro to Pharmacology) save no `v`, so they count in the site's total and in neither need.
+The warning names the three largest keys, offers Export progress and, when this profile
+has copies, "Delete the copies kept by Import" (`deleteCopies`, which asks first). The
+page reads storage only; nothing here writes or deletes a key. The Quiz tab's warning is
+put back after each drawing of the pane by a `MutationObserver`, so it also follows
+question types a feature module draws. It is worked out at each drawing, and so reads
+every stored value each time.
+
+The page says that this is an estimate: the limit differs by browser. Chromium 153 accepted
+5,242,873 characters on one origin (`review/storage-measure/quota.js`); MDN says "up to 5
+MiB"; Safari and Firefox were not measured, so there the warning can come early or late.
+`storage_use_test.js` fills the origin to the boundary; in a browser whose limit is below
+it, those parts are skipped with the reason, never passed.
 
 **Saved progress from an earlier core** (`upgradeDB` in `shell.html`). The scheduler work
 of 2026-11-01 only added to the progress: question ids, `ns`, and every field a save
