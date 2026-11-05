@@ -603,6 +603,18 @@ const next = p => p.evaluate(() => { const b = document.getElementById('btnNext'
     const ex = dl ? JSON.parse(fs.readFileSync(await dl.path(), 'utf8')) : {};
     check(ex.profile === me.p && ex.db && ex.db.answers.some(a => a.at === me.at) && Array.isArray(ex.log) && ex.log.length === 2,
       'that profile\'s export holds its answer and history entry that were not saved', {profile: ex.profile, answers: ex.db && ex.db.answers.length, log: ex.log && ex.log.length});
+    if(!o.isClosed()){
+      // room again: that profile's work is stored, and the notice goes (it does not claim the record is off; the review of c2e7d93, N1)
+      await o.evaluate(() => { window.__refuse = null; record(QUESTIONS[3], 'correct', 0, 4000); saveNow(); });
+      await o.waitForTimeout(800);
+      const after = await o.evaluate(m => ({failed: FAILED.size, notice: (document.getElementById('savewarn') || {}).textContent || null, me: JSON.parse(localStorage.getItem(m.dk)).answers.length}), me);
+      check(after.failed === 0 && after.notice === null && after.me === 2, 'room again: that profile\'s work is stored and the notice goes', after);
+      // only a key that is neither progress nor history refused (the profile chosen): the general wording
+      await o.evaluate(() => { window.__refuse = [NS + ':profile']; useProfile('cee-away'); });
+      await o.waitForTimeout(300);
+      const gen = await o.evaluate(() => (document.getElementById('savewarn') || {}).textContent || '');
+      check(/some of this page's data/.test(gen) && !/Storage is full\. Your progress is saved/.test(gen), 'only the profile choice refused: the notice says some of this page\'s data was not saved, not that the record is off', gen.slice(0, 160));
+    }
     if(L.BROWSER === 'chromium'){
       const n2 = said.length;
       await o.close({runBeforeUnload: true}); await new Promise(r => setTimeout(r, 500));

@@ -648,7 +648,8 @@ const saveWarnText = () => (hereRefused() ? 'This browser did not save your prog
   ' (storage is full or blocked). It is kept on this page until you close or reload it; closing or reloading it loses it. Export it to a file to keep it; Import progress adds it back.' +
   (REC_OFF ? ' ' + REC_OFF_TEXT : '')
   : awayRefused().length ? 'This browser did not save some of the progress or answer history of another profile on this page (storage is full or blocked). It is kept on this page until you close or reload it; closing or reloading it loses it. Export it to keep it; Import progress adds it back.'
-  : 'Storage is full. Your progress is saved, but this tab cannot keep the record that protects its last save when it closes without handing over to another open tab of this drill. Export progress keeps a copy in a file.') +
+  : REC_OFF ? 'Storage is full. Your progress is saved, but this tab cannot keep the record that protects its last save when it closes without handing over to another open tab of this drill. Export progress keeps a copy in a file.'
+  : 'This browser did not save some of this page\'s data (storage is full or blocked), such as the profile chosen or an exam paper in progress. It is kept on this page until you close or reload it. Export progress keeps your progress and history in a file.') +
   (hereRefused() && awayRefused().length ? ' Some of the progress or answer history of another profile on this page is not saved either.' : '') +
   (hereRefused() || !awayRefused().length ? ' <button type="button" class="btn" id="savewarnExport">Export progress</button>' : '') +
   awayRefused().map(ap => ' <button type="button" class="btn" data-away="' + esc(ap) + '">Export "' + esc(ap) + '"</button>').join('') +
@@ -673,7 +674,12 @@ function wireSaveWarn(d){
   d.querySelector('button.ghost').onclick = () => d.remove();
 }
 /* The notice on screen, with its text brought up to date (the history, the per-tab record). */
-function refreshSaveWarn(){ const d = document.getElementById('savewarn'); if(d){ d.innerHTML = saveWarnText(); wireSaveWarn(d); } }
+function refreshSaveWarn(){
+  const d = document.getElementById('savewarn'); if(!d) return;
+  // nothing refused any more and the record kept: the notice goes (the review of c2e7d93, N1)
+  if(!FAILED.size && !REC_OFF){ d.remove(); return; }
+  d.innerHTML = saveWarnText(); wireSaveWarn(d);
+}
 function saveWarn(k){
   const isLog = typeof k === 'string' && k.indexOf(':log:') > 0;
   if(SAVE_WARNED){
