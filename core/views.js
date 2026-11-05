@@ -2319,6 +2319,7 @@ const EXAM_COPY_KEY = () => NS + ':exam-copy:' + PROFILE;
 /* The last paper submitted or cleared here, so a tab's copy (or a duplicated tab's) never brings
    it back (the review of 383ba7d, M4). A paper is known by its clock and its questions. */
 const EXAM_DONE_KEY = () => NS + ':exam-done:' + PROFILE;
+const examDoneList = () => { try { const raw = storedNow(EXAM_DONE_KEY()); if(!raw) return []; const v = JSON.parse(raw); return Array.isArray(v) ? v : [String(raw)]; } catch(e){ const raw = storedNow(EXAM_DONE_KEY()); return raw ? [raw] : []; } };
 const paperId = p => { try { return String(p.ends) + '|' + String(p.started) + '|' + (p.ids || []).join(','); } catch(e){ return ''; } };
 /* An untimed paper (nullexam.js starts one when the course sets a count and no
    time limit) has ends: null and `started`, when it began. It keeps its own
@@ -2347,8 +2348,11 @@ function clearExam(){
     let id = '';
     try { const raw = store.get(EXAM_KEY()); if(raw) id = paperId(JSON.parse(raw)); } catch(e){}
     if(!id && EX && EX.qs) id = paperId({ends: EX.ends, started: EX.started, ids: EX.qs.map(q => q.id)});
-    if(id) store.trySet(EXAM_DONE_KEY(), id);   // small; if refused, a duplicated tab's copy could still come back
     store.del(EXAM_KEY()); try { sessionStorage.removeItem(EXAM_COPY_KEY()); } catch(e){}
+    // the last 20 papers submitted or cleared here (a list, so a second submit does not let the first
+    // come back; the review of 8ff9351), written after the delete so it can use the room that frees;
+    // if refused even so, a duplicated tab's copy could still come back
+    if(id){ const done = examDoneList().filter(x => x !== id).concat([id]).slice(-20); store.trySet(EXAM_DONE_KEY(), JSON.stringify(done)); }
     EXAM_COPY_OK = false;
   }
 }
@@ -2362,7 +2366,7 @@ function restoreExam(){
   try {
     const c = JSON.parse(sessionStorage.getItem(EXAM_COPY_KEY()) || 'null');
     if(c && c.paper && c.paper.ids){
-      if(storedNow(EXAM_DONE_KEY()) === paperId(c.paper)) sessionStorage.removeItem(EXAM_COPY_KEY());
+      if(examDoneList().includes(paperId(c.paper))) sessionStorage.removeItem(EXAM_COPY_KEY());
       else if(storedNow(EXAM_KEY()) === c.over){
         j = c.paper;
         // still not stored: it counts as a refused save, so it stays protected and is what Export writes

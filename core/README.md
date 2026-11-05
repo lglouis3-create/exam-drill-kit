@@ -546,8 +546,8 @@ With less room the old core still keeps more progress, because it deletes histor
     (on the page, in Export, asked about) until a save is kept.
   - **"Use it here"** does not keep a refused paper: it asks first, then opens the stored paper and drops
     the tab's copy; it makes no copy of progress that was saved.
-  - **A submitted paper** leaves a small marker (`<ns>:exam-done:<profile>`), so no tab's copy, a duplicated
-    tab's included, brings it back. If the browser refuses even that marker, a duplicated tab's copy could
+  - **A submitted paper** is added to a small list of the last 20 submitted here (`<ns>:exam-done:<profile>`),
+    so no tab's copy, a duplicated tab's included, brings it back. If the browser refuses even that marker, a duplicated tab's copy could
     still come back.
   - **A profile switch** puts the running paper away; it is not carried onto the next profile.
   - **Closing the tab:** while the paper is not exported, the browser's leave question, as for progress

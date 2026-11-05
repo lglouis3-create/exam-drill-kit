@@ -105,7 +105,14 @@ const REFUSE = () => {
     await a.evaluate(() => { window.__refuse = [':exam:']; show('exam'); document.getElementById('startExam').click(); });
     await a.waitForFunction(() => EX && EX.running, null, {timeout: 5000});
     const copy = await a.evaluate(() => { EX.picks[0] = isMulti(EX.qs[0]) ? [0] : 0; saveExam(); const c = sessionStorage.getItem(NS + ':exam-copy:' + PROFILE); return c && JSON.parse(c).over === null ? c : null; });
-    await a.evaluate(() => { window.__refuse = null; finishExam(false); });
+    await a.evaluate(() => { finishExam(false); });
+    // a second paper, also refused, then submitted: the first must still not come back (the review of 8ff9351)
+    const first = await a.evaluate(() => paperId({ends: EX.ends, started: EX.started, ids: EX.qs.map(q => q.id)}));
+    await a.evaluate(() => { EX = null; show('exam'); renderExam(); const b = document.getElementById('startExam'); if(b) b.click(); });
+    await a.waitForFunction(() => EX && EX.running, null, {timeout: 5000}).catch(() => {});
+    const second = await a.evaluate(f => { if(!(EX && EX.running)) return {started: false}; const id = paperId({ends: EX.ends, started: EX.started, ids: EX.qs.map(q => q.id)});
+      EX.picks[0] = isMulti(EX.qs[0]) ? [0] : 0; saveExam(); finishExam(false); window.__refuse = null; return {started: true, different: id !== f}; }, first);
+    check(second.started && second.different, 'precondition: a second, different paper was started and submitted after the first', second);
     const b = await c3.newPage(); b.on('dialog', d => d.accept().catch(() => {}));
     await b.addInitScript(([k, v]) => { if(!sessionStorage.getItem('__dup')){ sessionStorage.setItem('__dup', '1'); sessionStorage.setItem(k, v); } }, [await a.evaluate(() => NS + ':exam-copy:' + PROFILE), copy]);
     await b.goto(a.url()); await b.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
