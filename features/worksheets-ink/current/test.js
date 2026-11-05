@@ -165,6 +165,25 @@ const countOf = (h, re) => (h.match(re) || []).length;
     await page.mouse.up();
   };
   const API = "FX.api('worksheets-ink')";
+  // A file of this progress in the form Export progress writes (exportProgress): since kit PR #32
+  // a file that names no course is refused, so a file the test makes carries the course's labels.
+  const asExport = (page, db) => page.evaluate(db => JSON.stringify({app: 'exam-drill', course: COURSE.id, ns: NS, exported: new Date().toISOString(), profile: PROFILE, db, log: []}), db).then(t => Buffer.from(t));
+  // Import as a student does it since kit PR #32: the file is read and a plan is shown
+  // (#importPlan); it is imported only on #importGo, and the outcome is shown in #importResult.
+  // Returns the plan's button ("Import" replaces this profile, "Import into a new profile"
+  // makes one), its text, and the result; it presses the button only when the plan offers it.
+  const importFile = async (page, buffer, wait = 400) => {
+    await page.setInputFiles('#fileIn', {name: 'progress.json', mimeType: 'application/json', buffer});
+    await page.waitForFunction(() => { const b = document.getElementById('importPlan'); return b && b.textContent.trim(); }, null, {timeout: 5000}).catch(() => {});
+    const plan = await page.evaluate(() => { const g = document.getElementById('importGo'), w = document.getElementById('importWhat'), r = document.getElementById('importResult');
+      return {go: g ? g.textContent.trim() : null, what: w ? w.textContent.replace(/\s+/g, ' ').trim() : null, early: r ? r.textContent.replace(/\s+/g, ' ').trim() : null}; });
+    if(plan.go) await page.click('#importGo');
+    await page.waitForSelector('#importResult', {timeout: 3000}).catch(() => {});
+    await page.waitForTimeout(wait);
+    const result = await page.evaluate(() => { const r = document.getElementById('importResult'); return r ? r.textContent.replace(/\s+/g, ' ').trim() : null; });
+    console.log(`  import  plan: ${plan.go || 'no Import button'} | ${(plan.what || plan.early || '').slice(0, 160)} | result: ${(result || '').slice(0, 160)}`);
+    return {go: plan.go, what: plan.what, result};
+  };
   try {
     { // the plans and who solved each part, against Basic-Pharmacokinetics' own
       const {ctx, page} = await open(1100, 1300);
@@ -346,9 +365,10 @@ const countOf = (h, re) => (h.match(re) || []).length;
         const set = await ev(() => (document.getElementById('inkSize') || {}).textContent || '');
         check(/1 page with writing, 3 strokes/.test(set), `Settings says how much writing is kept (${set.slice(0, 80)})`);
         await ev(() => { DB.ink = {}; save(); renderSettings(); });
-        await page.setInputFiles('#fileIn', {name: 'progress.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify({app: 'exam-drill', db: prog.db, log: []}))});
+        const ir1 = await importFile(page, await asExport(page, prog.db));
         await page.waitForFunction(sid => FX.api('worksheets-ink').inkCount(sid, 'main') === 3, sid, {timeout: 5000}).catch(() => {});
-        check(await ev(sid => FX.api('worksheets-ink').inkCount(sid, 'main'), sid) === 3, 'Import progress brings the writing back');
+        // the profile's writing was cleared and it holds no other progress, so the plan is to replace it (#32)
+        check(ir1.go === 'Import' && !!ir1.result && await ev(() => PROFILE) === first && await ev(sid => FX.api('worksheets-ink').inkCount(sid, 'main'), sid) === 3, 'Import progress brings the writing back', ir1);
         await ev(() => { DB.answers.push({qid: 'wsi-ws1-2-1', concept: 'x', result: 'correct', at: Date.now(), qn: 1}); save(); show('settings'); });
         await page.click('#inkErase'); await page.waitForTimeout(300);
         const er = await ev(sid => [FX.api('worksheets-ink').inkCount(sid, 'main'), DB.answers.length, !!JSON.parse(localStorage.getItem(keyFor(PROFILE))).ink], sid);
@@ -606,11 +626,11 @@ const countOf = (h, re) => (h.match(re) || []).length;
       check(JSON.stringify(j.db.ink) === inkMine, `Export progress holds all the writing (${Object.keys(j.db.ink).length} pages, ${Math.round(file.length / 1024)} KB file)`);
       await ev(() => { window.__name = 'Fresh'; askProfile(true); show('settings'); });
       const fresh0 = await ev(() => [PROFILE, FX.api('worksheets-ink').inkBytes()]);
-      await page.setInputFiles('#fileIn', {name: 'progress.json', mimeType: 'application/json', buffer: Buffer.from(file)});
+      const ir2 = await importFile(page, Buffer.from(file));
       await page.waitForFunction(n => DB.ink && Object.keys(DB.ink).length === n, Object.keys(j.db.ink).length, {timeout: 10000}).catch(() => {});
       await page.waitForTimeout(400);
       const fresh1 = await ev(() => JSON.stringify(DB.ink)), freshStored = JSON.parse(await stored(page)).ink;
-      check(fresh0[0] === 'Fresh' && fresh0[1] === 0 && fresh1 === inkMine && JSON.stringify(freshStored) === inkMine,
+      check(ir2.go === 'Import' && !!ir2.result && await ev(() => PROFILE) === 'Fresh' && fresh0[0] === 'Fresh' && fresh0[1] === 0 && fresh1 === inkMine && JSON.stringify(freshStored) === inkMine,
             `Import into a fresh profile brings the same writing back, and saves it (${fresh0}, ${fresh1 === inkMine}, ${JSON.stringify(freshStored) === inkMine})`);
       // a profile switch: each profile keeps its own
       k = await sheetOpen(page, SID); await drawOn(page, k, 40); await done(page);
@@ -623,10 +643,9 @@ const countOf = (h, re) => (h.match(re) || []).length;
       // an imported progress whose writing is not in the module's shape: those pages are left out, the rest kept
       await ev(() => { window.__name = 'Shape'; askProfile(true); show('settings'); });
       const odd = Object.assign({}, j.db, {ink: {'x|main': {parts: [1, 2]}, 'y|main': null, 'z|main': {room: {}}, [SID + '|main']: j.db.ink[SID + '|main']}});
-      await page.setInputFiles('#fileIn', {name: 'progress.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify({app: 'exam-drill', db: odd, log: []}))});
-      await page.waitForTimeout(400);
+      const ir3 = await importFile(page, await asExport(page, odd));
       const shaped = await ev(() => Object.keys(DB.ink || {}));
-      check(JSON.stringify(shaped) === JSON.stringify([SID + '|main']), `Import leaves out writing that is not in the module's shape and keeps the rest (${JSON.stringify(shaped)})`);
+      check(ir3.go === 'Import' && !!ir3.result && await ev(() => PROFILE) === 'Shape' && JSON.stringify(shaped) === JSON.stringify([SID + '|main']), `Import leaves out writing that is not in the module's shape and keeps the rest (${JSON.stringify(shaped)})`);
       await ev(() => { window.__name = 'Fresh'; askProfile(true); });
       // a reload under 150 ms after a stroke, and over
       k = await sheetOpen(page, SID); await drawOn(page, k, 80);
@@ -717,12 +736,15 @@ const countOf = (h, re) => (h.match(re) || []).length;
       check(JSON.stringify(JSON.parse(file).db.ink) === inkNow, `Export progress works with storage full (${Math.round(file.length / 1024)} KB file)`);
       const mine = await ev(() => PROFILE), mineBefore = await stored(page);
       await ev(() => { window.__name = 'Second'; askProfile(true); show('settings'); });
-      await page.setInputFiles('#fileIn', {name: 'progress.json', mimeType: 'application/json', buffer: Buffer.from(file)});
-      await page.waitForTimeout(600);
-      const imp = await ev(([who]) => ({core: !!document.getElementById('savewarn'), second: localStorage.getItem(keyFor('Second')), first: localStorage.getItem(keyFor(who))}), [mine]);
-      check(imp.core && (!imp.second || imp.second.length < 1000) && imp.first === mineBefore,
-            `an Import that does not fit shows the core's notice and leaves the first profile's saved progress as it was (${imp.core}, ${imp.second ? imp.second.length : null}, ${imp.first === mineBefore})`);
-      console.log('  report  core: the imported progress that did not fit is kept for this visit only; the core says so (#savewarn) and nothing else changes');
+      const ir4 = await importFile(page, Buffer.from(file), 600);
+      const imp = await ev(([who]) => ({profile: PROFILE, answers: DB.answers.length, ink: Object.keys(DB.ink || {}).length, second: localStorage.getItem(keyFor('Second')), first: localStorage.getItem(keyFor(who))}), [mine]);
+      // since kit PR #32 a refused Import write imports nothing, on the page as in storage, and the
+      // plan's result says so (#importResult; core/README.md "Import progress": "A refused write of
+      // the copies or the progress means nothing is imported"); before it, the core's #savewarn said so
+      const told = !!ir4.result && /refused/i.test(ir4.result) && /nothing was imported/i.test(ir4.result);
+      check(ir4.go === 'Import' && told && imp.profile === 'Second' && imp.answers === 0 && imp.ink === 0 && (!imp.second || imp.second.length < 1000) && imp.first === mineBefore,
+            `an Import that does not fit says nothing was imported, imports nothing, and leaves the first profile's saved progress as it was (${told}, ${JSON.stringify([imp.profile, imp.answers, imp.ink])}, ${imp.second ? imp.second.length : null}, ${imp.first === mineBefore})`, ir4.result);
+      console.log('  report  core: the Import that did not fit is not kept, not even for this visit; the plan\'s result says so (#importResult) and nothing else changes');
       await ev(n => { window.__name = n; askProfile(true); }, mine);
       await reload(page);
       const back = await ev(id => [PROFILE, DB.answers.length, Object.keys(DB.ink || {}).length, FX.api('worksheets-ink').inkCount(id, 'main')], SID);
