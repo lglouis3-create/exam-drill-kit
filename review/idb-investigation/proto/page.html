@@ -1,0 +1,164 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>IDB cross-tab prototype</title>
+<script>
+// Every function here is called by run.js through page.evaluate.
+const DBNAME = 'proto';
+
+function openDB(name = DBNAME, version = 1, onVersionChange = 'close') {
+  return new Promise((resolve, reject) => {
+    const r = indexedDB.open(name, version);
+    r.onupgradeneeded = () => {
+      const db = r.result;
+      if (!db.objectStoreNames.contains('kv')) db.createObjectStore('kv');
+      if (!db.objectStoreNames.contains('marks')) db.createObjectStore('marks');
+    };
+    r.onblocked = () => { window.__events = (window.__events || []).concat('blocked'); };
+    r.onsuccess = () => {
+      const db = r.result;
+      db.onversionchange = (e) => {
+        window.__events = (window.__events || []).concat('versionchange ' + e.oldVersion + '->' + e.newVersion);
+        if (onVersionChange === 'close') db.close();
+      };
+      resolve(db);
+    };
+    r.onerror = () => reject(r.error);
+  });
+}
+
+function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
+async function waitUntil(t) { while (Date.now() < t) await sleep(1); }
+
+// One read-modify-write transaction: read 'state', append {tab,i,saw}, increment count.
+// When withMark is true the same transaction also writes marks/<tab>:<i>, so a partial
+// transaction would show up as an entry without a mark or a mark without an entry.
+function rmwTx(db, tab, i, durability, withMark, onEvent) {
+  return new Promise((resolve) => {
+    let tx;
+    try {
+      tx = db.transaction(withMark ? ['kv', 'marks'] : ['kv'], 'readwrite', { durability });
+    } catch (e) { resolve({ i, result: 'throw ' + e.name }); return; }
+    const kv = tx.objectStore('kv');
+    const g = kv.get('state');
+    g.onsuccess = () => {
+      const s = g.result || { count: 0, seq: [] };
+      s.seq.push({ tab, i, saw: s.count });
+      s.count += 1;
+      kv.put(s, 'state');
+      if (withMark) tx.objectStore('marks').put({ tab, i }, tab + ':' + i);
+    };
+    tx.oncomplete = () => { onEvent && onEvent('complete', i); resolve({ i, result: 'complete' }); };
+    tx.onabort = () => { onEvent && onEvent('abort', i); resolve({ i, result: 'abort ' + (tx.error && tx.error.name) }); };
+  });
+}
+
+// Start n transactions from this tab in chunks, all at once after startAt (wall clock).
+async function idbRun(tab, n, startAt, durability = 'default', chunk = 10) {
+  const db = await openDB();
+  await waitUntil(startAt);
+  const ps = [];
+  for (let i = 0; i < n; i++) {
+    ps.push(rmwTx(db, tab, i, durability, false));
+    if (i % chunk === chunk - 1) await sleep(0);
+  }
+  const res = await Promise.all(ps);
+  db.close();
+  const tally = {};
+  for (const r of res) tally[r.result] = (tally[r.result] || 0) + 1;
+  return tally;
+}
+
+async function idbReadAll() {
+  const db = await openDB();
+  const out = await new Promise((resolve, reject) => {
+    const tx = db.transaction(['kv', 'marks'], 'readonly');
+    const st = tx.objectStore('kv').get('state');
+    const mk = tx.objectStore('marks').getAllKeys();
+    tx.oncomplete = () => resolve({ state: st.result || { count: 0, seq: [] }, marks: mk.result });
+    tx.onerror = () => reject(tx.error);
+  });
+  db.close();
+  return out;
+}
+
+async function idbReset() {
+  const db = await openDB();
+  await new Promise((resolve) => {
+    const tx = db.transaction(['kv', 'marks'], 'readwrite');
+    tx.objectStore('kv').clear(); tx.objectStore('marks').clear();
+    tx.oncomplete = resolve;
+  });
+  db.close();
+}
+
+// The page that will be closed mid-way: starts n transactions (with marks), reports each
+// creation and completion on the console so run.js keeps the record after the page closes.
+async function idbCloseVictim(tab, n, chunk = 5) {
+  const db = await openDB();
+  window.__db = db;
+  let created = 0;
+  (async () => {
+    for (let i = 0; i < n; i++) {
+      rmwTx(db, tab, i, 'default', true, (ev, k) => console.log('EV ' + ev + ' ' + k));
+      created++;
+      console.log('EV created ' + i);
+      if (i % chunk === chunk - 1) await sleep(0);
+    }
+  })();
+  return 'started';
+}
+
+// Control: the same read-modify-write in localStorage.
+// gapMs < 0: read, modify and write in one synchronous step.
+// gapMs >= 0: read, wait gapMs (another task runs), then write what was read plus one.
+async function lsRun(tab, n, startAt, gapMs) {
+  await waitUntil(startAt);
+  for (let i = 0; i < n; i++) {
+    if (gapMs < 0) {
+      const s = JSON.parse(localStorage.getItem('ls-state') || '{"count":0,"seq":[]}');
+      s.seq.push({ tab, i, saw: s.count }); s.count += 1;
+      localStorage.setItem('ls-state', JSON.stringify(s));
+      if (i % 10 === 9) await sleep(0);
+    } else {
+      const s = JSON.parse(localStorage.getItem('ls-state') || '{"count":0,"seq":[]}');
+      await sleep(gapMs);
+      s.seq.push({ tab, i, saw: s.count }); s.count += 1;
+      localStorage.setItem('ls-state', JSON.stringify(s));
+    }
+  }
+  return 'done';
+}
+function lsRead() { return JSON.parse(localStorage.getItem('ls-state') || '{"count":0,"seq":[]}'); }
+function lsReset() { localStorage.removeItem('ls-state'); }
+
+function durabilityProbe() {
+  return openDB().then((db) => {
+    const out = {};
+    for (const d of ['default', 'strict', 'relaxed']) {
+      try { out[d] = db.transaction('kv', 'readwrite', { durability: d }).durability; }
+      catch (e) { out[d] = 'throw ' + e.name; }
+    }
+    out.hasCommit = typeof IDBTransaction.prototype.commit === 'function';
+    out.hasLocks = !!(navigator.locks);
+    db.close();
+    return out;
+  });
+}
+
+// versionchange / blocked: open version v here; keep it open (policy 'keep') or close on request.
+async function vcOpen(name, v, policy) {
+  window.__events = [];
+  window.__vdb = await openDB(name, v, policy);
+  return window.__vdb.version;
+}
+function vcOpenAsync(name, v, policy) {
+  window.__events = [];
+  window.__vres = null;
+  openDB(name, v, policy).then((db) => { window.__vres = 'opened v' + db.version; window.__vdb = db; },
+                                 (e) => { window.__vres = 'error ' + e.name; });
+  return 'requested';
+}
+function vcState() { return { events: window.__events || [], res: window.__vres }; }
+function vcClose() { if (window.__vdb) window.__vdb.close(); return 'closed'; }
+</script>
+<p>prototype</p>

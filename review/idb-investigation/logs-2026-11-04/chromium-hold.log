@@ -1,0 +1,9 @@
+2026-11-04T23:56:43Z
+[chromium] T6 rep=1 A created=0 A first request done=+1ms A finished=+1000ms A gets=10424 A=complete | B created=+204ms B first request done=+1000ms B finished=+1000ms B=complete B first request after A finished=true
+[chromium] T6 rep=2 A created=0 A first request done=+1ms A finished=+1000ms A gets=17494 A=complete | B created=+202ms B first request done=+1000ms B finished=+1001ms B=complete B first request after A finished=true
+[chromium] T6 rep=3 A created=0 A first request done=+1ms A finished=+1000ms A gets=26204 A=complete | B created=+207ms B first request done=+1001ms B finished=+1003ms B=complete B first request after A finished=true
+[chromium] T6b readonly in B while A holds readwrite B waited ms=794 B saw={"by":"A","at":1793836607295} A=complete A holding ms=1000
+[chromium] T7 rep=1 A closed while its readwrite tx (with a put) was open B created=+0ms A page.close at=+300ms B read done=+310ms B=complete B saw hold record=undefined
+[chromium] T7 rep=2 A closed while its readwrite tx (with a put) was open B created=+0ms A page.close at=+301ms B read done=+309ms B=complete B saw hold record=undefined
+[chromium] T7 rep=3 A closed while its readwrite tx (with a put) was open B created=+0ms A page.close at=+302ms B read done=+309ms B=complete B saw hold record=undefined
+[chromium] done
