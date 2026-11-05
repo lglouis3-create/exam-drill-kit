@@ -27,7 +27,8 @@
  *   - Settings holds the same choice, kept in step with the header;
  *   - the choice is a device setting: kept under <ns>:theme, the same after a
  *     profile switch, not in the profile's saved progress and not in Export progress
- *     (made after 30 answers); Import progress in a fresh browser brings the answers
+ *     (made after 30 answers); Import progress in a fresh browser (the plan says the file
+ *     replaces that profile, which has no progress; Import is pressed) brings the answers
  *     and leaves that browser's choice as it was;
  *   - a stored value that is not light or dark reads as Match device; a browser that
  *     refuses storage still shows the page and keeps the choice for the visit;
@@ -343,16 +344,26 @@ const LOW = function(){
     {
       const fresh = await open('light');
       await fresh.page.selectOption('#themeSel', 'light'); await fresh.page.waitForTimeout(100);
+      // Import as a student does since kit PR #32: choose the file, wait for the plan (#importPlan),
+      // press Import (#importGo) when the plan offers it, and wait for the outcome (#importResult)
       await fresh.page.evaluate(() => show('settings'));
-      await fresh.page.setInputFiles('#fileIn', file); await fresh.page.waitForTimeout(800);
+      await fresh.page.setInputFiles('#fileIn', file);
+      await fresh.page.waitForFunction(() => { const b = document.getElementById('importPlan'); return b && b.textContent.trim(); }, null, {timeout: 15000}).catch(() => {});
+      const plan = await fresh.page.evaluate(() => { const w = document.getElementById('importWhat');
+        return {go: !!document.getElementById('importGo'), what: w ? w.textContent.replace(/\s+/g, ' ').trim() : ''}; });
+      check(plan.go && /this profile has no progress yet\. Import replaces the progress of "/.test(plan.what),
+        'Import progress in a fresh browser: the plan says the file replaces this profile, which has no progress, and offers Import', plan);
+      if(plan.go){ await fresh.page.click('#importGo', {timeout: 5000}); await fresh.page.waitForSelector('#importResult', {timeout: 15000}).catch(() => {}); }
+      const result = await fresh.page.evaluate(() => { const r = document.getElementById('importResult'); return r ? r.textContent.replace(/\s+/g, ' ').trim() : ''; });
+      await fresh.page.waitForTimeout(800);
       const f = await state(fresh.page);
       const n = await fresh.page.evaluate(() => { try { return JSON.parse(localStorage.getItem(NS + ':log:' + PROFILE) || '[]').length; } catch(e){ return -1; } });
       // the core merges answers by second, question, result and mode (core/shell.html mergeLog), so
       // the same answer to one question twice in a second arrives once
       const exp = JSON.parse(text), distinct = new Set((exp.log || []).map(e => e.slice(0, 4).join('|'))).size;
-      check(distinct >= 10 && n === distinct && f.attr === 'light' && f.stored === 'light',
+      check(!!result && distinct >= 10 && n === distinct && f.attr === 'light' && f.stored === 'light',
         `Import progress in a fresh browser brings the ${distinct} distinct answers of the file (${(exp.log || []).length} entries) and leaves that browser's own choice (Light) as it was`,
-        Object.assign({answers: n, distinct}, f));
+        Object.assign({answers: n, distinct, result}, f));
       allErrors.push(...fresh.errors, ...f.fx.map(e => e.module + ': ' + e.message)); await fresh.ctx.close();
     }
     // Settings: the same choice
