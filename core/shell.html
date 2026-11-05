@@ -643,10 +643,13 @@ if(BUILD.preview){
 let SAVE_WARN_LOG = false;
 let REC_OFF = false;   // storage full: this tab has no per-tab record (#45) of its last save (pendingAfter, dropOwnRecordIfStored)
 const REC_OFF_TEXT = 'While storage is full, this tab cannot keep the record that protects its last save when it closes without handing over to another open tab of this drill.';
-const hereRefused = () => { try { return FAILED.has(keyFor(PROFILE)) || FAILED.has(logKey()); } catch(e){ return FAILED.size > 0; } };
-const saveWarnText = () => (hereRefused() ? 'This browser did not save your progress' + (SAVE_WARN_LOG ? ' or answer history' : '') +
+const hereRefused = () => { try { return FAILED.has(keyFor(PROFILE)) || FAILED.has(logKey()) || FAILED.has(NS + ':exam:' + PROFILE); } catch(e){ return FAILED.size > 0; } };
+const EXAM_REFUSED_TEXT = ' The exam paper in progress was not saved either: its answers are kept on this page, and a copy kept by this tab brings them back after a reload of this tab, but not after the tab is closed. Export progress keeps them in the file.';
+const saveWarnText = () => (hereRefused() ? 'This browser did not save your ' + (FAILED.has(keyFor(PROFILE)) || FAILED.has(logKey()) ? 'progress' + (SAVE_WARN_LOG ? ' or answer history' : '') : 'exam paper in progress') +
   ' (storage is full or blocked). It is kept on this page until you close or reload it; closing or reloading it loses it. Export it to a file to keep it; Import progress adds it back.' +
-  (REC_OFF ? ' ' + REC_OFF_TEXT : '')
+  (REC_OFF ? ' ' + REC_OFF_TEXT : '') +
+  ((FAILED.has(keyFor(PROFILE)) || FAILED.has(logKey())) && FAILED.has(NS + ':exam:' + PROFILE) ? EXAM_REFUSED_TEXT : '') +
+  (!(FAILED.has(keyFor(PROFILE)) || FAILED.has(logKey())) && FAILED.has(NS + ':exam:' + PROFILE) ? ' Its answers are kept on this page, and a copy kept by this tab brings them back after a reload of this tab, but not after the tab is closed. Export progress keeps them in the file.' : '')
   : awayRefused().length ? 'This browser did not save some of the progress or answer history of another profile on this page (storage is full or blocked). It is kept on this page until you close or reload it; closing or reloading it loses it. Export it to keep it; Import progress adds it back.'
   : REC_OFF ? 'Storage is full. Your progress is saved, but this tab cannot keep the record that protects its last save when it closes without handing over to another open tab of this drill. Export progress keeps a copy in a file.'
   : 'This browser did not save some of this page\'s data (storage is full or blocked), such as the profile chosen or an exam paper in progress. It is kept on this page until you close or reload it. Export progress keeps your progress and history in a file.') +
@@ -1143,7 +1146,7 @@ if(typeof window.addEventListener === 'function') window.addEventListener('stora
   try { if(e.key && e.key.startsWith(NS + ':pending:' + PROFILE + ':')) settlePending(); } catch(err){}
 });
 /* What this page holds that is not what it last read from storage or had kept there. */
-function unsavedHere(){ return progUnsavedHere() || logUnsavedHere(); }
+function unsavedHere(){ return progUnsavedHere() || logUnsavedHere() || examUnsavedHere(); }
 /* its two parts: the progress, and the answer history ("Use it here" treats them apart) */
 function progUnsavedHere(){
   try {
@@ -1165,14 +1168,17 @@ function logUnsavedHere(){
 let LEAVE_ASKED = false;   // an in-app Reload asked already (views.js beforeunload)
 let EXPORTED_SNAP = null, KEPT_COPY = false, EXAM_CLEAR_WAITING = '';   // the profile whose paper waits to be cleared
 /* the page's progress and history as they were when they were last exported from the wall */
-const snapHere = () => { try { return JSON.stringify(DB) + '\n' + JSON.stringify(LOG); } catch(e){ return ''; } };
+const snapHere = () => { try { const ek = NS + ':exam:' + PROFILE; return JSON.stringify(DB) + '\n' + JSON.stringify(LOG) + '\n' + (FAILED.has(ek) ? (MEM[ek] || '') : ''); } catch(e){ return ''; } };
+/* An exam paper whose save the browser refused (storage full): its answers are only on this page
+   and in this tab's own copy (sessionStorage, views.js saveExam), Louis, 2026-11-05. */
+const examUnsavedHere = () => { try { return FAILED.has(NS + ':exam:' + PROFILE); } catch(e){ return false; } };
 const exportedHere = () => EXPORTED_SNAP !== null && EXPORTED_SNAP === snapHere();
 /* unsaved work that has not been exported since it last changed: asked about before it is dropped */
 const atRisk = () => unsavedHere() && !exportedHere();
 /* Profiles this page switched away from with a write the browser refused: that work is only in
    this page (MEM) until a later save stores it (the review of b3c9bbe, M1). */
-const awayRefused = () => { const out = new Set(); try { for(const k of FAILED) for(const pre of [NS + ':data:', NS + ':log:']) if(k.startsWith(pre) && k.slice(pre.length) !== PROFILE) out.add(k.slice(pre.length)); } catch(e){} return [...out]; };
-const awaySnap = p => (MEM[NS + ':data:' + p] || '') + '\n' + (MEM[NS + ':log:' + p] || '');
+const awayRefused = () => { const out = new Set(); try { for(const k of FAILED) for(const pre of [NS + ':data:', NS + ':log:', NS + ':exam:']) if(k.startsWith(pre) && k.slice(pre.length) !== PROFILE) out.add(k.slice(pre.length)); } catch(e){} return [...out]; };
+const awaySnap = p => (MEM[NS + ':data:' + p] || '') + '\n' + (MEM[NS + ':log:' + p] || '') + '\n' + (FAILED.has(NS + ':exam:' + p) ? (MEM[NS + ':exam:' + p] || '') : '');
 const AWAY_EXPORTED = {};   // profile -> what this page held for it when it was last exported
 const awayAtRisk = () => awayRefused().some(p => AWAY_EXPORTED[p] !== awaySnap(p));
 /* Anything this page would lose on a reload or a close: the profile on screen, or another one. */
@@ -1596,8 +1602,9 @@ function exportAway(p){
     let db = null, log = [];
     try { const raw = FAILED.has(dk) ? MEM[dk] : storedNow(dk); db = raw ? JSON.parse(raw) : null; } catch(e){ db = null; }
     try { const raw = FAILED.has(lk) && MEM[lk] !== undefined ? MEM[lk] : storedNow(lk); const v = raw ? JSON.parse(raw) : []; log = Array.isArray(v) ? v : []; } catch(e){ log = []; }
-    const blob = new Blob([JSON.stringify({app: 'exam-drill', course: COURSE.id, ns: NS, exported: new Date().toISOString(),
-      profile: p, db: db || BLANK(), log}, null, 1)], {type: 'application/json'});
+    let exam = null; try { const ek = NS + ':exam:' + p, raw = FAILED.has(ek) ? MEM[ek] : storedNow(ek); exam = raw ? JSON.parse(raw) : null; } catch(e){ exam = null; }
+    const blob = new Blob([JSON.stringify(Object.assign({app: 'exam-drill', course: COURSE.id, ns: NS, exported: new Date().toISOString(),
+      profile: p, db: db || BLANK(), log}, exam ? {exam} : {}), null, 1)], {type: 'application/json'});
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = `${COURSE.id}-progress-${p.replace(/\W+/g, '_')}.json`;
@@ -1733,7 +1740,7 @@ function useProfile(n){
     // refused, it would stay only in this page: asked first, with the export offered (#47's review, M1)
     if(FAILED.has(keyFor(PROFILE)) && !profileSavedElsewhere()) store.set(keyFor(PROFILE), JSON.stringify(DB));
     if(FAILED.has(logKey())) saveLog();
-    if(FAILED.has(keyFor(PROFILE)) || FAILED.has(logKey())){
+    if(FAILED.has(keyFor(PROFILE)) || FAILED.has(logKey()) || FAILED.has(NS + ':exam:' + PROFILE)){
       if(confirm('This browser did not save some of the progress or answer history of "' + PROFILE + '" (storage is full or blocked). It is kept on this page until it is closed or reloaded, and saved when the browser has room. Export it to a file before switching?'))
         { try { exportProgress(); } catch(e){ alert('The export did not work: ' + (e && e.message || e)); } }
       if(!confirm('Switch to "' + n + '" now?')) return;

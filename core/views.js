@@ -437,8 +437,12 @@ function refreshHomeCards(){
 /* The progress file: this profile's progress and its answer history, for a
    second device, a Home Screen copy, or a retro that reads the history. */
 function exportProgress(){
-  const blob = new Blob([JSON.stringify({app:'exam-drill', course:COURSE.id, ns:NS, exported:new Date().toISOString(),
-                                         profile:PROFILE, db:DB, log:LOG}, null, 1)], {type:'application/json'});
+  // an exam paper in progress goes in the file too (its answers are not in the progress until it is
+  // submitted); Import does not read it back, the file keeps it (Louis, 2026-11-05)
+  let exam = null;
+  try { const raw = store.get(EXAM_KEY()); exam = raw ? JSON.parse(raw) : null; } catch(e){ exam = null; }
+  const blob = new Blob([JSON.stringify(Object.assign({app:'exam-drill', course:COURSE.id, ns:NS, exported:new Date().toISOString(),
+                                         profile:PROFILE, db:DB, log:LOG}, exam ? {exam} : {}), null, 1)], {type:'application/json'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `${COURSE.id}-progress-${PROFILE.replace(/\W+/g,'_')}.json`;
@@ -2309,6 +2313,9 @@ function drawPaper(){
   return shuffle(parts.flat());
 }
 const EXAM_KEY = () => NS + ':exam:' + PROFILE;
+/* This tab's own copy of a paper whose save the browser refused (sessionStorage, kept per tab and
+   across a reload of that tab, not after it is closed); removed once a save is kept. */
+const EXAM_COPY_KEY = () => NS + ':exam-copy:' + PROFILE;
 /* An untimed paper (nullexam.js starts one when the course sets a count and no
    time limit) has ends: null and `started`, when it began. It keeps its own
    rules whatever the course says later: a course that gains a time limit while
@@ -2322,20 +2329,24 @@ const untimedPaper = () => !!EX && EX.ends === null && typeof EX.started === 'nu
 function saveExam(){
   if(!EX || !EX.running || !canSave()) return;
   if(profileSavedElsewhere()){ staleWarn(); return; }   // never over another tab's paper
-  const paper = {ids:EX.qs.map(q=>q.id), picks:EX.picks, orders:EX.orders, i:EX.i, ends:EX.ends};
+  const paper = {ids:EX.qs.map(q=>q.id), picks:EX.picks, orders:EX.orders, i:EX.i, ends:EX.ends, saved:Date.now()};
   if(untimedPaper()) paper.started = EX.started;
-  store.set(EXAM_KEY(), JSON.stringify(paper));
+  const v = JSON.stringify(paper);
+  if(store.set(EXAM_KEY(), v)){ try { sessionStorage.removeItem(EXAM_COPY_KEY()); } catch(e){} }
+  else { try { sessionStorage.setItem(EXAM_COPY_KEY(), v); } catch(e){} }   // refused: this tab keeps a copy for a reload
 }
 function clearExam(){
   if(!canSave()) return;
   if(WRITER === 'pending'){ EXAM_CLEAR_WAITING = PROFILE; return; }   // cleared once the lock is this page's (flushWaiting)
-  if(!profileSavedElsewhere()) store.del(EXAM_KEY());
+  if(!profileSavedElsewhere()){ store.del(EXAM_KEY()); try { sessionStorage.removeItem(EXAM_COPY_KEY()); } catch(e){} }
 }
 /* A paper saved by an earlier visit is brought back if its clock has not run
    out; otherwise it is submitted as it stands. */
 function restoreExam(){
   let j = null;
   try { j = JSON.parse(store.get(EXAM_KEY()) || 'null'); } catch(e) { j = null; }
+  // this tab's own copy of a refused save, when it is newer than what is stored
+  try { const c = JSON.parse(sessionStorage.getItem(EXAM_COPY_KEY()) || 'null'); if(c && c.ids && (!j || (c.saved || 0) > (j.saved || 0))) j = c; } catch(e){}
   if(!j || !j.ids) return false;
   const qs = j.ids.map(byId); if(qs.some(q => !q)) { clearExam(); return false; }
   EX = {qs, i:Math.min(j.i||0, qs.length-1), picks:j.picks, orders:j.orders, running:true, done:false, ends:j.ends};
@@ -3110,7 +3121,8 @@ function offerReload(text){
     // a stopped page, or one whose writes the browser refused (storage full): what it has not saved
     // is lost on reload, unless exported (#32's review of 4311133; Louis, 2026-11-05)
     if((STALE || WRITER === 'other' || FAILED.size) && atRiskAll() && !confirm('The answers and settings this page has not saved are lost on reload unless you export them first (the button on the notice). Reload anyway?')) return;
-    if(EX && EX.running && !confirm('A paper is running. It is saved and its clock keeps running. Reload now?')) return;
+    // "It is saved" only when it is: a refused paper was asked about above (examUnsavedHere)
+    if(EX && EX.running && !examUnsavedHere() && !confirm('A paper is running. It is saved and its clock keeps running. Reload now?')) return;
     placeSave();
     LEAVE_ASKED = true;   // asked here already: the browser's leave question is not shown again
     location.reload();

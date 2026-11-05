@@ -528,6 +528,20 @@ With less room the old core still keeps more progress, because it deletes histor
   notice says another profile's work is not saved and has an **Export "<profile>"** button for
   each such profile (`exportAway`: the progress and history this page holds for it), and so does
   the stop wall (the review of b3c9bbe, M1).
+- **An exam paper whose save is refused** (`<ns>:exam:<profile>`; Louis, 2026-11-05).
+  - **Counted:** it counts as unsaved (`examUnsavedHere`), for this profile and for a profile
+    switched away from.
+  - **The notice:** it names the exam paper.
+  - **Export:** the file holds the paper (field `exam`). Import does not read the paper back.
+  - **Questions:** the Reload buttons, a profile switch and closing the tab ask as for progress. The
+    "already exported" snapshot includes the paper, so a new answer on it after an export asks again.
+    Exporting one profile does not clear another profile's protection.
+  - **This tab's copy:** a refused paper is also written to this tab's sessionStorage
+    (`<ns>:exam-copy:<profile>`), which a reload of the same tab brings back when it is newer. Closing
+    the tab ends that copy. In Chromium, with localStorage full, sessionStorage still took the copy
+    (`exam_save_test.js`); in Safari that is NOT RUN.
+  - **"It is saved":** the new-version bar's "A paper is running. It is saved…" question is now asked
+    only when the paper is saved.
 - **In-app actions:**
   - **Switching profile** tries the refused writes once more, then asks and offers the export.
   - **The stop wall's Reload** and **the new-version bar's Reload** both ask first while work that is
