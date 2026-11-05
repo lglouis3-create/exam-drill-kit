@@ -1416,11 +1416,12 @@ const CAP_SHOWN = new Set();
 function capNotice(){
   try {
     if(!document.body){ document.addEventListener('DOMContentLoaded', capNotice, {once: true}); return; }
-    if(LOG.length <= LOG_MAX || CAP_SHOWN.has(PROFILE) || !canSave()) return;
+    if(LOG.length <= LOG_MAX || CAP_SHOWN.has(PROFILE) || !canSave() || !mayWrite()) return;   // the tab that writes the profile asks
     CAP_SHOWN.add(PROFILE);
     const old = document.getElementById('capwarn'); if(old) old.remove();
     const d = document.createElement('div');
     d.id = 'capwarn'; d.className = 'awaywarn'; d.setAttribute('role', 'status');
+    d.style.top = '12px'; d.style.bottom = 'auto';   // at the top: the storage notice keeps the bottom (the review of 159ae5c)
     const t = document.createElement('span');
     t.textContent = 'The answer history of "' + PROFILE + '" has ' + LOG.length.toLocaleString('en-US') + ' entries, more than ' + LOG_MAX.toLocaleString('en-US') + '. Nothing is removed unless you choose to; new answers go on being added. Export progress keeps them all in a file. ';
     d.appendChild(t);
@@ -1436,14 +1437,26 @@ function capNotice(){
 function trimOldest(){
   const n = LOG.length - LOG_MAX;
   if(n <= 0) return false;
-  // only the tab that writes this profile removes anything (#32's lock)
-  if(!canSave() || !mayWrite() || STALE){ alert('This profile is open in another tab or window of this browser, which saves it, so nothing was removed. Remove them there, or use "Use it here" first.'); return false; }
-  const day = e => { try { return new Date(e[0] * 1000).toISOString().slice(0, 10); } catch(err){ return '?'; } };
+  // only the tab that writes this profile removes anything (#32's lock), and only over what it last read
+  const elsewhere = () => !canSave() || !mayWrite() || STALE || profileSavedElsewhere();
+  if(elsewhere()){ if(mayWrite() && !STALE) staleWarn(); alert('This profile is open, or was saved, in another tab or window of this browser, so nothing was removed. Reload this page, or use "Use it here", first.'); return false; }
+  // the date on this device (an evening answer is that day's, not the next UTC day's; the review of 159ae5c)
+  const day = e => { try { const d = new Date(e[0] * 1000); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); } catch(err){ return '?'; } };
   if(!confirm('Remove the oldest ' + n.toLocaleString('en-US') + ' entr' + (n === 1 ? 'y' : 'ies') + ' of the answer history of "' + PROFILE + '" from this browser (from ' + day(LOG[0]) + ' to ' + day(LOG[n - 1]) + ')? ' + LOG_MAX.toLocaleString('en-US') + ' entries stay. Export progress first if you want to keep them in a file. This cannot be undone.')) return false;
-  LOG.splice(0, n);
-  NEW_LOGS[PROFILE] = (NEW_LOGS[PROFILE] || []).filter(e => LOG.includes(e));
-  saveLog();
-  return true;
+  if(elsewhere()){ if(mayWrite() && !STALE) staleWarn(); alert('This profile was saved in another tab or window while the question was open, so nothing was removed. Reload this page first.'); return false; }
+  // this tab's per-tab record keeps every entry that was not removed (the review of 159ae5c, M2:
+  // a filter by identity dropped entries that an Import or Put back had copied)
+  const gone = new Set(LOG.splice(0, n));
+  NEW_LOGS[PROFILE] = (NEW_LOGS[PROFILE] || []).filter(e => !gone.has(e));
+  // the shorter history is written even while the progress write is refused (#47 holds history
+  // then): it takes no room and frees some, which goes to the progress first (the review of
+  // 159ae5c, M1: with storage full the removal wrote nothing and still said it had)
+  const ok = store.set(logKey(), JSON.stringify(LOG));
+  if(ok && FAILED.has(keyFor(PROFILE))) saveProgress();
+  if(ok) retryLog();
+  try { refreshSaveWarn(); } catch(e){}
+  if(!ok) alert('The oldest entries are removed on this page, but this browser did not save the shorter history (storage is full or blocked). It is kept on this page until you close or reload it; Export progress keeps it in a file.');
+  return ok;
 }
 const logKey = () => NS + ':log:' + PROFILE;
 const cardCode = id => {
@@ -1486,8 +1499,9 @@ function saveLog(){
   // Export, counted as unsaved) and written after the next progress save the browser keeps
   // (study progress first, Louis, 2026-11-05: "preserving study progress first while explicitly
   // surfacing and offering export for any history that cannot be saved")
-  if(FAILED.has(keyFor(PROFILE))){ const k = logKey(); MEM[k] = JSON.stringify(LOG); FAILED.add(k); saveWarn(k); return; }
+  if(FAILED.has(keyFor(PROFILE))){ const k = logKey(); MEM[k] = JSON.stringify(LOG); FAILED.add(k); saveWarn(k); capNotice(); return; }
   store.set(logKey(), JSON.stringify(LOG));
+  capNotice();   // past LOG_MAX after any history write, an Import's too (the review of 159ae5c)
 }
 /* A history write the browser refused is tried again with the next progress save too, for
    the profile on screen and for every profile this page switched away from with its history

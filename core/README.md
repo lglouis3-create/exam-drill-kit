@@ -545,10 +545,16 @@ With less room the old core still keeps more progress, because it deletes histor
 The answer history is no longer cut at 20,000 entries (`LOG_MAX`; Louis, 2026-11-05):
 - past 20,000 entries a notice gives the count, says nothing is removed unless the student
   chooses, and offers **Export progress**, **Remove the oldest entries…** and **Not now**
-  (`capNotice`; once per visit and profile; also on opening a profile already past the cap);
+  (`capNotice`; once per visit and profile; after any history write past the cap, an Import's
+  too, and on opening a profile already past it; only in the tab that writes the profile; at the
+  top of the screen, so it never covers the storage notice at the bottom);
 - **Remove the oldest entries** asks first: the question names how many entries go (the number
-  past 20,000) and the dates of the first and last of them, says 20,000 stay and that it cannot
-  be undone; only OK removes them (`trimOldest`). Settings shows the history's size and the same
+  past 20,000) and the dates of the first and last of them (this device's calendar), says 20,000
+  stay and that it cannot be undone; only OK removes them (`trimOldest`). It refuses, before and
+  after the question, when another tab has the profile or saved it since. The shorter history is
+  written even while a progress write is refused: it takes no room and frees some, and the
+  progress is tried first with that room. If the browser still refuses it, the page says so. This
+  tab's per-tab record keeps every entry not removed. Settings shows the history's size and the same
   button whenever it is past 20,000;
 - while the decision waits, new answers go on adding entries and nothing is removed: in storage, on
   the page and in Export. If storage then fills, the refused-history rules above apply (held,

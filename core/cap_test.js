@@ -39,6 +39,8 @@ L.PAGE.need(NAME);
   await o.evaluate(() => document.getElementById('capTrim').click());
   const q = said.slice(n0).find(x => /^confirm: Remove the oldest 1 entry/.test(x));
   const s2 = await stored();
+  const localDay = t => { const d = new Date(t * 1000); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+  check(!!q && q.includes('from ' + localDay(s1[0][0]) + ' to ' + localDay(s1[0][0])), 'the question\'s dates are those of the entries it removes, on this device\'s calendar', q);
   check(!!q && /from \d{4}-\d\d-\d\d to \d{4}-\d\d-\d\d/.test(q) && /20,000 entries stay/.test(q) && /cannot be undone/.test(q) && s2.length === 20001 && await o.evaluate(() => !!document.getElementById('capwarn')),
     'Remove the oldest entries asks first, naming how many and their dates; cancelled, nothing is removed and the notice stays', {q, stored: s2.length});
   // Not now: the notice goes; new answers while the decision is pending are kept, nothing removed
@@ -69,8 +71,64 @@ L.PAGE.need(NAME);
   await b2.waitForFunction(() => WRITER !== 'pending', null, {timeout: 8000}).catch(() => {});
   const ro = await b2.evaluate(() => { window.__a = null; window.alert = m => { window.__a = m; }; window.confirm = () => true; const r = trimOldest(); return {r, writer: WRITER, alert: window.__a, n: JSON.parse(localStorage.getItem(NS + ':log:' + PROFILE)).length}; });
   check(HAS_LOCKS_OK(ro) && !ro.r && ro.n === 20001, 'a tab that does not hold the profile removes nothing', ro);
+  const roUI = await b2.evaluate(() => { show('settings'); return {notice: !!document.getElementById('capwarn'), btn: !!document.getElementById('btnCapTrim')}; });
+  check(!roUI.notice && !roUI.btn, 'a tab that does not hold the profile shows neither the notice nor the Settings button', roUI);
+  await b2.close();
+  // the next visit past the cap: the notice again
+  await o.reload(); await o.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+  await o.waitForFunction(() => WRITER === 'held' || WRITER === 'none', null, {timeout: 8000}).catch(() => {});
+  await o.evaluate(() => { record(QUESTIONS[4], 'correct', 0, 4000); saveNow(); });
+  check(await o.evaluate(() => !!document.getElementById('capwarn')), 'the next visit with the history past 20,000: the notice again');
+  // Import's merge does not cut
+  const merged = await o.evaluate(() => { const extra = []; for(let i = 0; i < 5; i++) extra.push([1 + i, 'fffffff' + i, 1, 'quiz', 'x', '', 'mc', 'concept', '', null]); return mergedLog(LOG, extra).length - LOG.length; });
+  check(merged === 5, 'Import\'s merge past 20,000 entries cuts nothing (5 added, 5 more)', merged);
   check(!errors.length, 'no page errors', errors.slice(0, 2).join('; '));
-  await ctx.close(); await browser.close();
+  await ctx.close();
+  {
+    // storage full: the removal frees room, and the progress refused before is then stored; this tab's
+    // per-tab record keeps every remaining entry (after an Import-like copy of the history); the cap
+    // notice does not cover the storage notice (the review of 159ae5c, M1, M2 and the overlap)
+    const ORIGIN = () => {
+      const set = Storage.prototype.setItem;
+      Storage.prototype.setItem = function(k, v){
+        if(typeof window.__originCap === 'number'){
+          let t = String(k).length + String(v).length;
+          for(let i = 0; i < this.length; i++){ const kk = this.key(i); if(kk !== k) t += kk.length + this.getItem(kk).length; }
+          if(t > window.__originCap) throw new DOMException('The quota has been exceeded.', 'QuotaExceededError');
+        }
+        return set.call(this, k, v);
+      };
+    };
+    const {ctx: c2, page: p, errors: e2} = await L.openFile(browser, {}, ORIGIN);
+    p.on('dialog', d => d.accept().catch(() => {}));
+    await p.waitForFunction(() => typeof WRITER === 'undefined' || WRITER === 'held' || WRITER === 'none', null, {timeout: 8000}).catch(() => {});
+    await p.evaluate(() => { const t0 = Math.round(Date.now() / 1000) - 86400 * 400; LOG = [];
+      for(let i = 0; i < LOG_MAX + 4; i++) LOG.push([t0 + i * 60, 'abcdef01', 1, 'quiz', 'seeded', 'knew', 'mc', 'concept', '', null]);
+      saveLog(); record(QUESTIONS[0], 'correct', 0, 4000); saveNow();
+      LOG = LOG.map(e => e.slice());                                   // as a history-only Import or Put back leaves it: copies
+      record(QUESTIONS[1], 'correct', 0, 4000); saveNow(); });
+    // storage full now: the next answer's progress is refused, and its history held
+    // less room than what is stored minus this tab's record: even with the record removed, the progress does not fit
+    await p.evaluate(() => { let t = 0; for(let i = 0; i < localStorage.length; i++){ const k = localStorage.key(i); t += k.length + localStorage.getItem(k).length; }
+      const rk = myPendingKey(), rl = (localStorage.getItem(rk) || '').length + rk.length; window.__originCap = t - rl - 1; record(QUESTIONS[2], 'wrong', 0, 4000); saveNow(); });
+    const before = await p.evaluate(() => ({refused: FAILED.has(keyFor(PROFILE)), page: DB.answers.length, prog: JSON.parse(localStorage.getItem(keyFor(PROFILE))).answers.length,
+      over: !!document.getElementById('capwarn') && !!document.getElementById('savewarn')}));
+    // both notices on screen, the cap notice shown after the storage notice (as when the answer that
+    // passes 20,000 comes after a refused save): the storage notice's Export is not covered
+    const covered = await p.evaluate(() => { const c = document.getElementById('capwarn'); if(c) c.remove(); CAP_SHOWN.delete(PROFILE); capNotice(); const b = document.getElementById('savewarnExport'); if(!b) return 'no export button'; const r = b.getBoundingClientRect(); const el = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return el && el.closest('#savewarn') ? 'visible' : (el ? (el.closest('[id]') || el).id : 'none'); });
+    const r = await p.evaluate(() => { const ok = trimOldest(); return {ok, refused: FAILED.has(keyFor(PROFILE)), stored: JSON.parse(localStorage.getItem(logKey())).length, page: LOG.length,
+      prog: JSON.parse(localStorage.getItem(keyFor(PROFILE))).answers.length, pageAnswers: DB.answers.length}; });
+    check(before.refused && r.ok && !r.refused && r.stored === 20000 && r.prog === r.pageAnswers,
+      'storage full: removing the oldest entries frees room; the shorter history is stored, and the progress refused before is then stored', {before, r});
+    check(before.over && covered === 'visible', 'storage full past the cap: the cap notice does not cover the storage notice\'s Export', {both: before.over, covered});
+    await p.evaluate(() => { window.__originCap = null; record(QUESTIONS[3], 'correct', 0, 4000); saveNow(); });   // room again: the record is written
+    const rec = await p.evaluate(() => { try { const x = JSON.parse(localStorage.getItem(myPendingKey())); return x ? x.log.length : null; } catch(e){ return 'unreadable'; } });
+    const want = await p.evaluate(() => NEW_LOGS[PROFILE].length);
+    check(rec === want && want === 4, 'after a copy of the history and a removal, this tab\'s per-tab record keeps every entry answered since it took the profile (4)', {rec, want});
+    check(!e2.length, 'storage full and the cap: no page errors', e2.slice(0, 2).join('; '));
+    await c2.close();
+  }
+  await browser.close();
   L.finish(NAME);
 })().catch(e => { console.log(e.stack); console.log(`FAIL: ${NAME}: the test stopped: ${String(e.message).split('\n')[0]}`); process.exit(1); });
 function HAS_LOCKS_OK(ro){ return ro.writer === 'other' || ro.writer === 'none'; }
