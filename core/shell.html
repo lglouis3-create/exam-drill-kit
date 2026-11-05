@@ -901,8 +901,35 @@ function pendingAfter(k, v){
     if(WRITER !== 'held' || WRITER_FOR !== PROFILE || k !== keyFor(PROFILE)) return;
     if(!SETTLING) WROTE_SINCE_CLAIM = true;
     if(v === null){ localStorage.removeItem(myPendingKey()); return; }
-    localStorage.setItem(myPendingKey(), '{"at":' + Date.now() + (MARK ? ',"mark":' + MARK : '') + ',"db":' + v + ',"log":' + JSON.stringify(newLog()) + '}');
-  } catch(e){ /* before start-up, or storage full: this save has no record of its own */ }
+    const rec = '{"at":' + Date.now() + (MARK ? ',"mark":' + MARK : '') + ',"db":' + v + ',"log":' + JSON.stringify(newLog()) + '}';
+    try { localStorage.setItem(myPendingKey(), rec); }
+    catch(e){ dropOwnRecordIfStored(); }   // storage full: this save has no record of its own
+  } catch(e){ /* before start-up, or unreadable: this save has no record of its own */ }
+}
+/* Study progress first (Louis, 2026-11-05). With storage full, this tab's own record is removed
+   when what is stored, read back, holds all of it (the stored progress continues it and the stored
+   history has every entry): it then protects nothing (this tab holds the profile, and its newer
+   progress is stored) and only takes the room the next progress save needs. The same proof as the
+   cleanup rule; a record not proven stored is kept. True when it removed one. */
+function dropOwnRecordIfStored(){
+  try {
+    if(WRITER !== 'held' || WRITER_FOR !== PROFILE) return false;
+    const k = myPendingKey(), raw = localStorage.getItem(k), sv = localStorage.getItem(keyFor(PROFILE));
+    if(raw === null || sv === null) return false;
+    const old = JSON.parse(raw), st = JSON.parse(sv), have = storedLogEntries();
+    const logIn = have !== null && missingEntries(Array.isArray(old.log) ? old.log.filter(Array.isArray) : [], have).length === 0;
+    if(!(old && old.db && Array.isArray(old.db.answers)) || placeOf(old, st) !== 'in' || !logIn) return false;
+    if(localStorage.getItem(k) !== raw) return false;
+    localStorage.removeItem(k);
+    return true;
+  } catch(e){ return false; }
+}
+/* The progress write, with one more try when the browser refused it and this tab's own record,
+   proven stored, could be removed to make room. */
+function saveProgress(){
+  const v = JSON.stringify(DB);
+  if(store.set(keyFor(PROFILE), v)) return true;
+  return dropOwnRecordIfStored() && store.set(keyFor(PROFILE), v);
 }
 /* The other tabs' records of profile p go (Erase, Put back, a replacing Import, Delete the copies). */
 /* Erase, Put back and a replacing Import call this before they write, so the record written with
@@ -1368,11 +1395,24 @@ function loadLog(){
 }
 /* Through `store`: kept, SEEN_LOG follows it (seenAs); refused, every entry stays in memory,
    the key is marked refused, the notice shows once, and SEEN_LOG stays what is stored. */
+/* Study progress first: while a progress save waits on its timer, the history write waits too and
+   is written just after that progress save (save, saveNow), so with storage nearly full the room
+   left goes to the progress; a history write then refused keeps every entry on the page, with the
+   notice and the export (Louis, 2026-11-05: "preserving study progress first while explicitly
+   surfacing and offering export for any history that cannot be saved"). */
+let LOG_WAITING = false;
 function saveLog(){
   if(!canSave() || !LOG_OK) return;
+  if(saveTimer){ LOG_WAITING = true; return; }
+  LOG_WAITING = false;
   if(profileSavedElsewhere()){ staleWarn(); return; }
+  // the progress write was refused: the history is not written either, so it cannot take the room
+  // the next progress save needs; it is held as a refused write (on the page, in the notice and in
+  // Export, counted as unsaved) and written after the next progress save the browser keeps
+  if(FAILED.has(keyFor(PROFILE))){ const k = logKey(); MEM[k] = JSON.stringify(LOG); FAILED.add(k); saveWarn(k); return; }
   store.set(logKey(), JSON.stringify(LOG));
 }
+function logAfterProgress(){ if(LOG_WAITING) saveLog(); }
 /* A history write the browser refused is tried again with the next progress save too, for
    the profile on screen and for every profile this page switched away from with its history
    refused (#47's review, M1: that history otherwise stayed unwritten, and a reload lost it).
@@ -1383,6 +1423,7 @@ function saveLog(){
    profile between the query and the write reads the written value, or, reading before it,
    stops with the "saved in another tab" wall at its first save; nothing is lost either way. */
 function retryLog(){
+  if(FAILED.has(keyFor(PROFILE))) return;   // study progress first: nothing else is written while it is refused
   if(FAILED.has(logKey())) saveLog();
   const pre = NS + ':log:';
   for(const k of [...FAILED]) if(k.startsWith(pre) && k !== logKey()) retryAwayLog(k, k.slice(pre.length));
@@ -1499,7 +1540,7 @@ function mergeLog(entries){
   if(LOG.length > LOG_MAX) LOG.splice(0, LOG.length - LOG_MAX);
   saveLog();
 }
-let saveTimer=null;
+var saveTimer=null;   // var: saveLog reads it, and can run before this line during start-up
 function save(){
   if(!canSave()) return;
   clearTimeout(saveTimer);
@@ -1507,7 +1548,8 @@ function save(){
     saveTimer=null;
     if(!canSave()) return;
     if(profileSavedElsewhere()){ staleWarn(); return; }
-    store.set(keyFor(PROFILE), JSON.stringify(DB));
+    saveProgress();
+    logAfterProgress();
     retryLog();
   },150);
 }
@@ -1524,7 +1566,8 @@ function saveNow(){
   clearTimeout(saveTimer); saveTimer = null;
   if(!canSave()) return;
   if(profileSavedElsewhere()){ staleWarn(); return; }
-  store.set(keyFor(PROFILE), JSON.stringify(DB));
+  saveProgress();
+  logAfterProgress();
   retryLog();
 }
 /* Which profile opens when no choice is stored: the one with saved progress used
