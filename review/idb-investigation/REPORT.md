@@ -154,7 +154,7 @@ Still NOT RUN: the Safari app on an iPhone or iPad (`SAFARI_CHECKLIST.md`), Fire
 
 ## 2c. Quota failure and interrupted upgrade (Chromium 153.0.8010.12 in this container, 2026-11-05)
 
-Scripts: `proto/quota.js`, `proto/quota-reclaim.js`, `proto/upgrade.js`, `proto/manual-smoke.js`; page functions in `proto/manual-lab.js`. Logs: `logs-2026-11-05/`. Each script ran twice; the counts below are from both runs. WebKit: NOT RUN here (not installed); `idb-prototype.yml.proposed` adds the runs on GitHub.
+Scripts: `proto/quota.js`, `proto/quota-reclaim.js`, `proto/upgrade.js`, `proto/manual-smoke.js`; page functions in `proto/manual-lab.js`. Logs: `logs-2026-11-05/`. Each script ran twice; the counts below are from both runs. WebKit: not installed here; GitHub's run of `.github/workflows/idb-prototype.yml` gives it (section 2d).
 
 **Specification** (`index.bs` at f9f83f1, cited by section title). "Committing a transaction": "If an error occurs while writing the changes to the database, then run abort a transaction with transaction and an appropriate type for the error, for example a QuotaExceededError". "Connection": if the execution context of a connection "is destroyed (for example due to the user navigating away from that page), the connection is closed"; "Opening a database connection": "If connection was closed, return a newly created "AbortError" DOMException"; "Aborting an upgrade transaction" reverts the version and the object stores. The note on `commit()`: a transaction "will automatically commit when all outstanding requests have been satisfied and no new requests have been made", so an upgrade cannot wait on a timer; `upSlow` fills its gap with chained requests.
 
@@ -173,6 +173,24 @@ Scripts: `proto/quota.js`, `proto/quota-reclaim.js`, `proto/upgrade.js`, `proto/
 - U3, an old tab holding v1 that ignores `versionchange`: the upgrading tab got `blocked 1->2` and copied 0; the old tab got `versionchange 1->2` and could still start a transaction; after the blocked tab was closed, version 1, 2,000 intact. 2 of 2.
 - U4, an old tab that closes on `versionchange`: a transaction on its closed connection threw `InvalidStateError`; its reopen at v1 waited until the upgrading tab was closed mid-upgrade and then opened v1 (after 514 and 522 ms); version 1, 2,000 intact. 2 of 2.
 - U5, the same with the upgrade left to finish: the old tab's reopen at v1 failed with `VersionError` (after 1,934 and 1,943 ms); version 2, `items2` = 2,000. 2 of 2.
+
+## 2d. Quota failure and interrupted upgrade on GitHub (run 41980047245, 2026-11-05, Chromium and WebKit 26.6)
+
+Logs: `logs-ci-41980047245/`. Each script ran twice per engine. WebKit here is Safari's engine on Linux, not the Safari app.
+
+**Chromium:** the job reproduced section 2c. Q1: transaction 5 (2 MB) refused with `QuotaExceededError` after 3.755 MB committed, earlier records 9 of 9 intact, later 1 KB and 1 MB transactions refused. Q2 and Q3: aborted, progress rev 1, log keys [1]. Q4: a 1 KB write in the same database refused, in another database complete, usage then 0.14 MB. U1 to U4 kept version 1 with 2,000 of 2,000 intact in 16 of 16 checks. U4's reopen opened v1 after 512 and 513 ms; U5's failed with `VersionError` after 1,923 and 1,925 ms.
+
+**WebKit, quota:**
+- Q1 to Q3 (forced 5 MB cap): NOT RUN. Playwright 1.63.0 has no quota setting for WebKit (`newCDPSession` is Chromium-only).
+- W1, a fill under WebKit's own quota with a ceiling of 256 MB: no refusal. 27 records committed, 27 of 27 intact, a later 1 KB write completed; `navigator.storage.estimate()` read quota 1,000 MB, usage 287.02 MB after. 2 of 2 runs.
+- W2 (reuse of a refused size): NOT RUN, because W1 had no refusal.
+- So WebKit's behaviour when IndexedDB is refused for quota is not measured. On an iPhone or iPad it is checklist step 7.
+
+**WebKit, interrupted upgrade (the same results as Chromium):**
+- U1 (page closed after 300 copied) and U2 (page reloaded after 300 copied): version 1, stores ["items"], 2,000 of 2,000 intact, no `items2`; a fresh upgrade then completed with `items2` = 2,000. 12 of 12.
+- U3 (old tab ignores `versionchange`): the upgrading tab got `blocked 1->2` and copied 0; the old tab could still start a transaction; version 1, 2,000 intact. 2 of 2.
+- U4 (old tab closes on `versionchange`, upgrading tab closed mid-upgrade): a transaction on the closed connection threw `InvalidStateError`; the reopen at v1 opened after 506 ms in both runs; version 1, 2,000 intact. 2 of 2.
+- U5 (upgrade left to finish): the old tab's reopen at v1 failed with `VersionError` after 1,896 and 1,900 ms; version 2, `items2` = 2,000. 2 of 2.
 
 ## 4. Recommended defaults for the eight decisions (for Louis to approve or change)
 

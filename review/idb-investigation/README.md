@@ -16,7 +16,7 @@ An investigation only: nothing in `core/` uses IndexedDB, and no course changes.
   - `manual-smoke.js`: Chromium only, clicks the buttons of `manual-plus.html`;
   - `server2.js`: the server for those four scripts (`server.js` is unchanged).
 - `logs-2026-11-05/`: the runs of the new scripts in this container (Chromium).
-- `idb-prototype.yml.proposed`: the workflow with the new steps, for the owner's pull request to place in `.github/workflows/`.
+- `logs-ci-41980047245/`: GitHub's run of `.github/workflows/idb-prototype.yml` with the quota and upgrade steps, Chromium and WebKit (REPORT section 2d).
 - `logs-2026-11-04/`: the first runs in this container (Chromium; WebKit could not start there).
 - `SAFARI_CHECKLIST.md`: the steps for real iPhone and iPad Safari.
 - `.github/workflows/idb-prototype.yml`: runs `run.js` twice and `hold.js` in Chromium and WebKit on GitHub when the prototype changes, or by hand. It keeps the logs as an artifact. It is not a kit check.
