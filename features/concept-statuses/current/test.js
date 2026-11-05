@@ -44,7 +44,8 @@
  *     answers there is no section; no page error;
  *   - persistence, with an answer history of 4100 answers and one more answered on the
  *     page (the core keeps the last 4000): the statuses are read from the 4000 kept;
- *     Export progress, then Import progress in a fresh browser profile, gives the same
+ *     Export progress, then Import progress in a fresh browser profile (the plan says the
+ *     file replaces that profile, which has no progress; Import is pressed) gives the same
  *     statuses and the same section; a profile switch keeps each profile's statuses;
  *     a reload 400 ms after an answer keeps it, and what a reload 50 ms after an answer
  *     keeps is reported (the core saves 150 ms after the last change); with storage full
@@ -426,6 +427,19 @@ const SECTION = async page => {
       await ctx.close();
     }
 
+    // Import as a student does since kit PR #32: choose the file, wait for the plan (#importPlan),
+    // press Import (#importGo) when the plan offers it, and wait for the outcome (#importResult)
+    const importFile = async (p, file) => {
+      await p.evaluate(() => show('settings'));
+      await p.setInputFiles('#fileIn', file);
+      await p.waitForFunction(() => { const b = document.getElementById('importPlan'); return b && b.textContent.trim(); }, null, {timeout: 15000}).catch(() => {});
+      const plan = await p.evaluate(() => { const w = document.getElementById('importWhat');
+        return {go: !!document.getElementById('importGo'), what: w ? w.textContent.replace(/\s+/g, ' ').trim() : ''}; });
+      if(plan.go){ await p.click('#importGo', {timeout: 5000}); await p.waitForSelector('#importResult', {timeout: 15000}).catch(() => {}); }
+      const result = await p.evaluate(() => { const r = document.getElementById('importResult'); return r ? r.textContent.replace(/\s+/g, ' ').trim() : ''; });
+      return {...plan, result};
+    };
+
     console.log('\n=== persistence: a history of 4100 answers, then one more on the page ===');
     { const {ctx, page, errors} = await L.openPage(browser, s.page, {viewport: {width: 1100, height: 1000}, acceptDownloads: true});
       const ev = (f, a) => page.evaluate(f, a);
@@ -464,10 +478,12 @@ const SECTION = async page => {
         const fresh = await B.page.evaluate(() => DB.answers.length);
         await B.page.evaluate(() => show('settings'));
         await B.page.waitForTimeout(200);
-        await B.page.setInputFiles('#fileIn', file);
+        const imp = await importFile(B.page, file);
+        check(fresh === 0 && imp.go && /this profile has no progress yet\. Import replaces the progress of "/.test(imp.what),
+              'Import progress in a fresh browser profile: the plan says the file replaces this profile, which has no progress, and offers Import', imp);
         await B.page.waitForFunction(() => DB.answers.length === 4000, null, {timeout: 10000}).catch(() => {});
         const sumB = await B.page.evaluate(SUMMARY), secB = await SECTION(B.page);
-        check(fresh === 0 && sumB === sum0 && secB === sec0, 'Import progress in a fresh browser profile gives the same statuses, counts and Concepts section', {fresh, same: sumB === sum0, sameText: secB === sec0});
+        check(fresh === 0 && imp.result && sumB === sum0 && secB === sec0, 'Import progress in a fresh browser profile gives the same statuses, counts and Concepts section', {fresh, result: imp.result, same: sumB === sum0, sameText: secB === sec0});
         await B.page.waitForTimeout(400);
         await B.page.reload();
         await B.page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
