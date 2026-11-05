@@ -40,7 +40,8 @@
  * Persistence, in a fresh profile: 101 papers submitted keep the 100 newest and
  * show the 12 newest, through a reload; a reload made at once after a choice is
  * reported (the core saves 150 ms after the last change), one made 300 ms after
- * keeps it; Export, then Import into a fresh profile brings the choice and the
+ * keeps it; Export, then Import into a fresh profile (the plan says the file replaces
+ * that profile, which has no progress; Import is pressed) brings the choice and the
  * 100 papers back; each profile keeps its own; storage denied and storage full
  * (QuotaExceededError): the student is told, nothing saved is overwritten, and
  * what was saved loads once storage works again.
@@ -412,12 +413,22 @@ const sameIds = (a, b) => a.length === b.length && a.every((x, i) => x === b[i])
     await P.click('#btnWho'); await wait(100);
     const fresh = await pe(() => ({p: PROFILE, pp: DB.paperPicker || null}));
     await tab('settings');
-    await P.setInputFiles('#fileIn', file); await wait(500);
+    // Import as a student does since kit PR #32: choose the file, wait for the plan (#importPlan),
+    // press Import (#importGo) when the plan offers it, and wait for the outcome (#importResult)
+    await P.setInputFiles('#fileIn', file);
+    await P.waitForFunction(() => { const b = document.getElementById('importPlan'); return b && b.textContent.trim(); }, null, {timeout: 15000}).catch(() => {});
+    const plan = await pe(() => { const w = document.getElementById('importWhat');
+      return {go: !!document.getElementById('importGo'), what: w ? w.textContent.replace(/\s+/g, ' ').trim() : ''}; });
+    check(fresh.p === 'SecondProfile' && fresh.pp === null && plan.go && /this profile has no progress yet\. Import replaces the progress of "SecondProfile"/.test(plan.what),
+          'Import into a fresh profile: the plan says the file replaces "SecondProfile", which has no progress, and offers Import', plan);
+    if(plan.go){ await P.click('#importGo', {timeout: 5000}); await P.waitForSelector('#importResult', {timeout: 15000}).catch(() => {}); }
+    const result = await pe(() => { const r = document.getElementById('importResult'); return r ? r.textContent.replace(/\s+/g, ' ').trim() : ''; });
+    await wait(500);
     const imp = await pe(() => ({p: PROFILE, pp: JSON.parse(JSON.stringify(DB.paperPicker || null))}));
-    check(JSON.stringify(ex.db.paperPicker) === JSON.stringify(mineAll) && fresh.p === 'SecondProfile' && fresh.pp === null &&
+    check(!!result && JSON.stringify(ex.db.paperPicker) === JSON.stringify(mineAll) && fresh.p === 'SecondProfile' && fresh.pp === null &&
           imp.p === 'SecondProfile' && JSON.stringify(imp.pp) === JSON.stringify(mineAll),
           `Export carries the choice and the ${mineAll.papers.length} papers; Import into a fresh profile brings them back`,
-          {exported: ex.db.paperPicker && ex.db.paperPicker.papers.length, fresh, imported: imp.pp && imp.pp.papers.length});
+          {exported: ex.db.paperPicker && ex.db.paperPicker.papers.length, fresh, result, imported: imp.pp && imp.pp.papers.length});
     // each profile keeps its own
     await pe(() => FX.api('paper-picker').choose(1)); await wait(400);
     await pe(n => { window.__name = n; }, me);
