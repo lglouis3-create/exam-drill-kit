@@ -394,10 +394,27 @@ const noAsksLine = " if(COURSE.features && COURSE.features['terms-variables']) d
       await P.click('#btnWho'); await wait(100);
       const fresh = await pe(() => ({p: PROFILE, n: Object.keys(FX.api('plan-the-problem').suStats()).length}));
       await P.click('#nav button[data-v="settings"]'); await wait(60);
-      await P.setInputFiles('#fileIn', file); await wait(500);
+      // Import as a student does it since kit #32: choose the file, read the plan, press its
+      // Import button, wait for the outcome (core/import_test.js lines 1332-1336)
+      const importFile = async f => {
+        await P.setInputFiles('#fileIn', f);
+        await P.waitForFunction(() => { const b = document.getElementById('importPlan'); return b && b.textContent.trim(); }, null, {timeout: 5000}).catch(() => {});
+        const plan = await pe(() => { const g = document.getElementById('importGo'), w = document.getElementById('importWhat');
+          return {go: g ? g.textContent.trim() : null, what: w ? w.textContent.replace(/\s+/g, ' ').trim() : ''}; });
+        await pe(() => { const g = document.getElementById('importGo'); if(g) g.click(); });
+        await P.waitForSelector('#importResult', {timeout: 3000}).catch(() => {});
+        plan.result = await pe(() => { const r = document.getElementById('importResult'); return r ? r.textContent.replace(/\s+/g, ' ').trim() : null; });
+        return plan;
+      };
+      // SecondProfile holds no progress, so under #32 the file replaces it: the plan offers
+      // "Import" (not "Import into a new profile"), says this profile has no progress yet,
+      // and after the outcome the student is still in SecondProfile with the tally back
+      const plan = await importFile(file);
       const imp = await pe(() => ({p: PROFILE, t: JSON.stringify(FX.api('plan-the-problem').suStats())}));
-      check(JSON.stringify(ex.db.setup) === mine && fresh.p === 'SecondProfile' && fresh.n === 0 && imp.p === 'SecondProfile' && imp.t === mine,
-        `Export carries the tally (${sum(mine)} picks); Import into a fresh profile brings it back whole`, {exported: sum(JSON.stringify(ex.db.setup || {})), fresh, imported: sum(imp.t)});
+      check(JSON.stringify(ex.db.setup) === mine && fresh.p === 'SecondProfile' && fresh.n === 0 &&
+        plan.go === 'Import' && /has no progress yet/.test(plan.what) && !!plan.result && imp.p === 'SecondProfile' && imp.t === mine,
+        `Export carries the tally (${sum(mine)} picks); Import into a fresh profile brings it back whole`,
+        {exported: sum(JSON.stringify(ex.db.setup || {})), fresh, plan, p: imp.p, imported: sum(imp.t)});
       // each profile keeps its own
       await P.click('#nav button[data-v="eq"]'); await wait(60);
       const more = await rounds(1); await wait(400);
