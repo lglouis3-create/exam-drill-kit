@@ -643,11 +643,16 @@ if(BUILD.preview){
 let SAVE_WARN_LOG = false;
 let REC_OFF = false;   // storage full: this tab has no per-tab record (#45) of its last save (pendingAfter, dropOwnRecordIfStored)
 const REC_OFF_TEXT = 'While storage is full, this tab cannot keep the record that protects its last save when it closes without handing over to another open tab of this drill.';
-const saveWarnText = () => (FAILED.size ? 'This browser did not save your progress' + (SAVE_WARN_LOG ? ' or answer history' : '') +
+const hereRefused = () => { try { return FAILED.has(keyFor(PROFILE)) || FAILED.has(logKey()); } catch(e){ return FAILED.size > 0; } };
+const saveWarnText = () => (hereRefused() ? 'This browser did not save your progress' + (SAVE_WARN_LOG ? ' or answer history' : '') +
   ' (storage is full or blocked). It is kept on this page until you close or reload it; closing or reloading it loses it. Export it to a file to keep it; Import progress adds it back.' +
   (REC_OFF ? ' ' + REC_OFF_TEXT : '')
+  : awayRefused().length ? 'This browser did not save some of the progress or answer history of another profile on this page (storage is full or blocked). It is kept on this page until you close or reload it; closing or reloading it loses it. Export it to keep it; Import progress adds it back.'
   : 'Storage is full. Your progress is saved, but this tab cannot keep the record that protects its last save when it closes without handing over to another open tab of this drill. Export progress keeps a copy in a file.') +
-  ' <button type="button" class="btn" id="savewarnExport">Export progress</button> <button type="button" class="btn ghost">OK</button>';
+  (hereRefused() && awayRefused().length ? ' Some of the progress or answer history of another profile on this page is not saved either.' : '') +
+  (hereRefused() || !awayRefused().length ? ' <button type="button" class="btn" id="savewarnExport">Export progress</button>' : '') +
+  awayRefused().map(ap => ' <button type="button" class="btn" data-away="' + esc(ap) + '">Export "' + esc(ap) + '"</button>').join('') +
+  ' <button type="button" class="btn ghost">OK</button>';
 /* This tab's per-tab record (#45) could not be kept (storage full): the notice says so, shown even
    when everything else was saved (Louis, 2026-11-05); once a record is written again it goes. */
 function recordOff(off){
@@ -664,6 +669,7 @@ function recordOff(off){
 function wireSaveWarn(d){
   const ex = d.querySelector('#savewarnExport');
   if(ex) ex.onclick = () => { try { exportProgress(); if(typeof snapHere === 'function') EXPORTED_SNAP = snapHere(); } catch(e){ alert('The export did not work: ' + (e && e.message || e)); } };
+  d.querySelectorAll('button[data-away]').forEach(b => { b.onclick = () => exportAway(b.dataset.away); });
   d.querySelector('button.ghost').onclick = () => d.remove();
 }
 /* The notice on screen, with its text brought up to date (the history, the per-tab record). */
@@ -723,6 +729,7 @@ function mayWrite(){
 }
 function writerLost(why){
   WRITER = 'other'; WRITER_WHY = why; WRITER_FOR = '';
+  try { recordOff(false); } catch(e){}
   if(writerRelease) writerRelease();
   stopWall(why);
 }
@@ -761,6 +768,7 @@ function claimProfile(p){
   if(WRITER === 'held' && WRITER_FOR === p) return;
   if(writerRelease){ FREED = {p: WRITER_FOR, at: Date.now()}; writerRelease(); }
   WRITER = 'pending'; WRITER_FOR = '';
+  try { recordOff(false); } catch(e){}   // the record line is about the profile this tab writes
   NEW_LOGS[p] = [];   // a new time on this profile: entries from an earlier time on it are not this record's
   stopWall(null);
   // several switches in one moment start several claims: only the newest decides (an older one
@@ -1155,6 +1163,14 @@ const snapHere = () => { try { return JSON.stringify(DB) + '\n' + JSON.stringify
 const exportedHere = () => EXPORTED_SNAP !== null && EXPORTED_SNAP === snapHere();
 /* unsaved work that has not been exported since it last changed: asked about before it is dropped */
 const atRisk = () => unsavedHere() && !exportedHere();
+/* Profiles this page switched away from with a write the browser refused: that work is only in
+   this page (MEM) until a later save stores it (the review of b3c9bbe, M1). */
+const awayRefused = () => { const out = new Set(); try { for(const k of FAILED) for(const pre of [NS + ':data:', NS + ':log:']) if(k.startsWith(pre) && k.slice(pre.length) !== PROFILE) out.add(k.slice(pre.length)); } catch(e){} return [...out]; };
+const awaySnap = p => (MEM[NS + ':data:' + p] || '') + '\n' + (MEM[NS + ':log:' + p] || '');
+const AWAY_EXPORTED = {};   // profile -> what this page held for it when it was last exported
+const awayAtRisk = () => awayRefused().some(p => AWAY_EXPORTED[p] !== awaySnap(p));
+/* Anything this page would lose on a reload or a close: the profile on screen, or another one. */
+const atRiskAll = () => atRisk() || awayAtRisk();
 const STOP_TEXT = {
   stale: 'This profile was saved in another tab or window after this page opened it, so this page has stopped saving and takes no more answers, to keep that progress. Reload to continue from what is saved.',
   other: 'This profile is open in another tab or window of this browser, and that tab saves it. So that the two never write over each other, this page takes no answers and saves nothing while that tab has it.',
@@ -1187,15 +1203,16 @@ function stopWall(why){
   const row = document.createElement('div'); row.className = 'stoprow';
   const btn = (label, cls, fn, id) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn' + (cls ? ' ' + cls : ''); b.textContent = label; if(id) b.id = id; b.onclick = fn; row.appendChild(b); return b; };
   if(unsaved) btn('Export this page\'s progress', '', () => { try { exportProgress(); EXPORTED_SNAP = snapHere(); } catch(e){ alert('The export did not work: ' + (e && e.message || e)); } }, 'stopExport');
+  if(why !== 'asking') for(const ap of awayRefused()) btn('Export "' + ap + '"', '', () => exportAway(ap)).dataset.away = ap;
   // taking the profile here keeps this page's unsaved progress as a copy (takeOver), then reads the stored one
   if(why === 'other' || why === 'gave' || why === 'taken' || why === 'late' || why === 'nocopy') btn('Use it here', '', () => takeOver(false), 'stopTake');
   if(why === 'other' || why === 'gave' || why === 'taken' || why === 'late' || why === 'nocopy') btn('Switch profile', 'ghost', () => {
-    if(atRisk() && !confirm('The answers and settings this page has not saved are lost when it opens another profile, unless you export them first. Switch anyway?')) return;
+    if(atRiskAll() && !confirm('The answers and settings this page has not saved are lost when it opens another profile, unless you export them first. Switch anyway?')) return;
     try { askProfile(true); if(typeof show === 'function') show(typeof VIEW !== 'undefined' ? VIEW : 'quiz'); } catch(e){}
   }, 'stopSwitch');
   if(why === 'slow') btn('Take it over anyway', '', () => takeOver(true), 'stopSteal');
   if(why !== 'asking') btn('Reload', 'ghost', () => {
-    if(atRisk() && !confirm('The answers and settings this page has not saved are lost on reload unless you export them first. Reload anyway?')) return;
+    if(atRiskAll() && !confirm('The answers and settings this page has not saved are lost on reload unless you export them first. Reload anyway?')) return;
     LEAVE_ASKED = true;   // asked here already: the browser's leave question is not shown again
     location.reload();
   }, 'stopReload');
@@ -1503,10 +1520,11 @@ function retryAwayLog(k, p){
       if(storedNow(dk) !== (dk in KEPT ? KEPT[dk] : null)){ awayChanged(k, p); return; }
       if(!store.set(dk, MEM[dk])) return;
     }
-    if(!FAILED.has(k)) return;   // written meanwhile
+    if(!FAILED.has(k)){ refreshSaveWarn(); return; }   // written meanwhile
     const now = storedNow(k), known = k in KEPT ? KEPT[k] : null;
     if(now !== known){ awayChanged(k, p); return; }
     store.set(k, MEM[k]);
+    refreshSaveWarn();
   };
   if(WRITER === 'none' || !HAS_LOCKS){ write(); return; }
   // a tab using profile p holds its lock: nothing is written, and the next save tries again
@@ -1545,6 +1563,23 @@ function withNeverStored(stored, mine, known){
    changed in another tab or window since: once per profile, a notice says so and offers a
    file with it (that profile's stored progress and this page's history), for Import. */
 const AWAY_WARNED = new Set();
+/* A file for profile p, which this page switched away from: the progress and history this page
+   holds for it where the browser refused them, what is stored otherwise. */
+function exportAway(p){
+  try {
+    const dk = NS + ':data:' + p, lk = NS + ':log:' + p;
+    let db = null, log = [];
+    try { const raw = FAILED.has(dk) ? MEM[dk] : storedNow(dk); db = raw ? JSON.parse(raw) : null; } catch(e){ db = null; }
+    try { const raw = FAILED.has(lk) && MEM[lk] !== undefined ? MEM[lk] : storedNow(lk); const v = raw ? JSON.parse(raw) : []; log = Array.isArray(v) ? v : []; } catch(e){ log = []; }
+    const blob = new Blob([JSON.stringify({app: 'exam-drill', course: COURSE.id, ns: NS, exported: new Date().toISOString(),
+      profile: p, db: db || BLANK(), log}, null, 1)], {type: 'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${COURSE.id}-progress-${p.replace(/\W+/g, '_')}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    AWAY_EXPORTED[p] = awaySnap(p);
+  } catch(e){ alert('The export did not work: ' + (e && e.message || e)); }
+}
 function awayChanged(k, p){
   if(AWAY_WARNED.has(k) || !document.body) return;
   AWAY_WARNED.add(k);
@@ -1552,18 +1587,7 @@ function awayChanged(k, p){
   d.className = 'awaywarn'; d.setAttribute('role', 'alert');
   d.textContent = 'This browser did not save part of the ' + (FAILED.has(NS + ':data:' + p) ? 'progress or ' : '') + 'answer history of "' + p + '", and it was changed in another tab or window since, so this page has not written it. It is kept on this page until it is closed or reloaded. The other tab may have erased that history: importing this file into "' + p + '" brings those entries back. ';
   const ex = document.createElement('button'); ex.type = 'button'; ex.className = 'btn'; ex.textContent = 'Export it';
-  ex.onclick = () => {
-    try {
-      let db = null;
-      try { const raw = FAILED.has(NS + ':data:' + p) ? MEM[NS + ':data:' + p] : storedNow(NS + ':data:' + p); db = raw ? JSON.parse(raw) : null; } catch(e){ db = null; }
-      const blob = new Blob([JSON.stringify({app: 'exam-drill', course: COURSE.id, ns: NS, exported: new Date().toISOString(),
-        profile: p, db: db || BLANK(), log: JSON.parse(MEM[k] !== undefined ? MEM[k] : (storedNow(k) || '[]'))}, null, 1)], {type: 'application/json'});
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = `${COURSE.id}-progress-${p.replace(/\W+/g, '_')}.json`;
-      document.body.appendChild(a); a.click(); a.remove();
-    } catch(e){ alert('The export did not work: ' + (e && e.message || e)); }
-  };
+  ex.onclick = () => exportAway(p);
   const ok = document.createElement('button'); ok.type = 'button'; ok.className = 'btn ghost'; ok.textContent = 'OK';
   ok.onclick = () => d.remove();
   d.appendChild(ex); d.appendChild(ok);
@@ -1694,6 +1718,7 @@ function useProfile(n){
   store.set(NS+':profile', PROFILE);
   load();
   claimProfile(PROFILE);
+  try { refreshSaveWarn(); } catch(e){}   // its text names this profile's or another profile's refused work
   const who = document.getElementById('whoName');
   if(who) who.textContent = PROFILE;
 }
