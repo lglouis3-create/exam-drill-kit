@@ -451,6 +451,60 @@ const next = p => p.evaluate(() => { const b = document.getElementById('btnNext'
     check(!e7.length, 'own record under pressure: no page errors', e7.slice(0, 2).join('; '));
     await c7.close();
   }
+  {
+    // While the progress write is refused, the history is held, not written: the browser refuses only
+    // the progress key here, so a history write would succeed if it were tried.
+    const KEYCAP = () => {
+      const set = Storage.prototype.setItem;
+      Storage.prototype.setItem = function(k, v){ if(window.__refuseKey && k === window.__refuseKey) throw new DOMException('The quota has been exceeded.', 'QuotaExceededError'); return set.call(this, k, v); };
+    };
+    const {ctx: c9, page: o, errors: e9} = await L.openFile(browser, {}, KEYCAP);
+    await o.waitForFunction(() => typeof WRITER === 'undefined' || WRITER === 'held' || WRITER === 'none', null, {timeout: 8000}).catch(() => {});
+    await o.evaluate(() => { record(QUESTIONS[0], 'correct', 0, 4000); saveNow(); });
+    const before = await o.evaluate(() => JSON.parse(localStorage.getItem(NS + ':log:' + PROFILE) || '[]').length);
+    await o.evaluate(() => { window.__refuseKey = NS + ':data:' + PROFILE; record(QUESTIONS[1], 'correct', 0, 4000); saveNow(); record(QUESTIONS[2], 'wrong', 0, 4000); saveNow(); });
+    await o.waitForTimeout(300);
+    const held = await o.evaluate(() => ({stored: JSON.parse(localStorage.getItem(NS + ':log:' + PROFILE) || '[]').length, page: LOG.length, failed: FAILED.has(logKey()),
+      warn: (document.getElementById('savewarn') || {}).textContent || ''}));
+    check(held.stored <= before + 1 && held.page === before + 2 && held.failed && /answer history/.test(held.warn),
+      'progress refused: the history after it is held (not written), named in the notice, and kept on the page', Object.assign({before}, held, {warn: held.warn.slice(0, 50)}));
+    await o.evaluate(() => { window.__refuseKey = null; record(QUESTIONS[3], 'correct', 0, 4000); saveNow(); });
+    await o.waitForTimeout(300);
+    const after = await o.evaluate(() => ({log: JSON.parse(localStorage.getItem(NS + ':log:' + PROFILE) || '[]').length, prog: JSON.parse(localStorage.getItem(NS + ':data:' + PROFILE)).answers.length, page: LOG.length}));
+    check(after.log === after.page && after.prog === 4, 'progress saved again: the held history is written after it, every entry', after);
+    check(!e9.length, 'held history: no page errors', e9.slice(0, 2).join('; '));
+    await c9.close();
+  }
+  {
+    // A refused progress write is tried once more after this tab's own record, proven stored, is
+    // removed: room for a history entry but not for the progress save, which the record's room makes.
+    const ORIGIN2 = () => {
+      const set = Storage.prototype.setItem;
+      Storage.prototype.setItem = function(k, v){
+        if(typeof window.__originCap === 'number'){
+          let t = String(k).length + String(v).length;
+          for(let i = 0; i < this.length; i++){ const kk = this.key(i); if(kk !== k) t += kk.length + this.getItem(kk).length; }
+          if(t > window.__originCap) throw new DOMException('The quota has been exceeded.', 'QuotaExceededError');
+        }
+        return set.call(this, k, v);
+      };
+    };
+    const {ctx: c10, page: o, errors: e10} = await L.openFile(browser, {}, ORIGIN2);
+    await o.waitForFunction(() => typeof WRITER === 'undefined' || WRITER === 'held' || WRITER === 'none', null, {timeout: 8000}).catch(() => {});
+    if(await o.evaluate(() => typeof myPendingKey === 'function' && WRITER === 'held')){
+      for(let i = 0; i < 6; i++) await o.evaluate(i => { record(QUESTIONS[i % QUESTIONS.length], 'correct', 0, 4000); saveNow(); }, i);
+      const r = await o.evaluate(() => {
+        const rk = myPendingKey(), had = localStorage.getItem(rk) !== null;
+        let t = 0; for(let i = 0; i < localStorage.length; i++){ const k = localStorage.key(i); t += k.length + localStorage.getItem(k).length; }
+        window.__originCap = t + 200;
+        record(QUESTIONS[6 % QUESTIONS.length], 'correct', 0, 4000); saveNow();
+        return {had, prog: JSON.parse(localStorage.getItem(NS + ':data:' + PROFILE)).answers.length, page: DB.answers.length, rec: localStorage.getItem(rk) !== null, failed: FAILED.has(keyFor(PROFILE))};
+      });
+      check(r.had && r.prog === r.page && !r.failed, 'storage full: a refused progress write is stored after this tab\'s own proven record is removed to make room', r);
+    } else check(true, 'second progress try not tested (no Web Locks here)');
+    check(!e10.length, 'second progress try: no page errors', e10.slice(0, 2).join('; '));
+    await c10.close();
+  }
   // two answers to one question in one second, both refused: alike in their first four fields
   const twoAlike = pg => pg.evaluate(() => {
     while(Date.now() % 1000 > 400){ /* early in a second, so both round to the same one */ }

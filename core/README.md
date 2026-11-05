@@ -469,7 +469,9 @@ so when the browser refuses the write:
   same entry twice stays twice; compared on every field but the confidence, index 5, which "Not
   sure" and "I guessed" change after the answer; an entry stored before whose confidence this
   page changed since gets this page's confidence, and one it did not change keeps what is
-  stored). When the progress is unsaved
+  stored; an entry this page never stored that the stored history already holds, because the
+  other tab placed this tab's per-tab record, is counted, not added again; two different tabs
+  answering one question in the same second with the same result would be counted as one). When the progress is unsaved
   too, or the browser refuses that history write, it keeps them in the copy it makes (field
   `log`), when the browser has room for the copy (otherwise it does not take the profile, as
   before).
@@ -478,21 +480,40 @@ A reload or a closed tab still loses what was not stored, as for refused progres
 says so. Before 2026-11-04 `saveLog` wrote past `store` and, refused, dropped the oldest half
 of the history and tried again, with no notice (`review/storage-usage-proposal.md` §2).
 
-**The trade-off, for Louis to decide** (#47's review, M2). The halving freed room: when the
-whole site's storage is full (every drill on the origin shares one quota), the old core went on
-saving the progress while it cut the history. This core cuts nothing, so the progress stops
-saving sooner; what is not saved stays on the page and in Export until the page is closed or
-reloaded. `history_test.js` measures it on the template scratch course, with 300 history entries
-stored and the whole site's storage then allowed 1,200 more characters: the `5b19b94` core stored
-the progress of 7 of 7 answers and cut the history to 155 entries (of 307), with no notice; this
-core stored the progress of 2 or 3 of 7 answers and 303 to 306 of the 307 entries in the runs of
-2026-11-04 (it varies with the order the writes are refused in), kept all 307 on the page and in
-Export, and showed the notice (Chromium). The reviewer's run gave 2 of 9
-against 9 of 9, with the history cut from 300 to 156.
+**Study progress first** (Louis, 2026-11-05: "Evaluate preserving study progress first while
+explicitly surfacing and offering export for any history that cannot be saved"). The old core went
+on saving the progress, when the whole site's storage was full, by cutting the history. This core
+cuts nothing; instead:
+- while this profile's progress write is refused, the history is not written either (`saveLog`):
+  it is held as a refused write (in memory, named in the notice, in Export, counted as unsaved) and
+  written after the next progress save the browser keeps; the retry of other profiles' history
+  waits too (`retryLog`). So history cannot take the room the next progress save needs; at most the
+  entry of the answer whose own progress write was the first refused is stored ahead of it (it is
+  written when that answer is given, 150 ms before its progress save);
+- this tab's own per-tab record (#45, about the size of the progress) is removed when the browser
+  refuses to write it, or refuses a progress write, and what is stored, read back, holds all of it
+  (`dropOwnRecordIfStored`, the cleanup rule's proof); a refused progress write is then tried once
+  more (`saveProgress`). Under storage pressure this tab then has no record, so a close without a
+  hand-over can again lose its last save to the next tab (#45's case) until there is room.
+Measured on the template scratch course with `review/storage-measure/quota_repro.js` (run from a
+built course's `src/`; Chromium, 2026-11-05): 300 history entries stored, then 41 answers with the whole site's
+storage allowed a fixed number of characters more:
+
+| Room | Core | Progress stored | History stored | Only on the page and in Export | History deleted |
+|---|---|---|---|---|---|
+| 8,000 | `25c643d` (main) | 41 of 41 | 171 | none | 170, with no notice |
+| 8,000 | #47 merged with #45, before this | 18 | 318 of 341 | 23 answers, 23 entries | none |
+| 8,000 | this core | 41 | 341 of 341 | none | none |
+| 3,000 | `25c643d` (main) | 41 | 184 | none | 157, with no notice |
+| 3,000 | #47 merged with #45, before this | 6 | 308 of 341 | 35 answers, 33 entries | none |
+| 3,000 | this core | 14 | 315 of 341 | 27 answers, 26 entries | none |
+
+With less room the old core still keeps more progress, because it deletes history to make room;
+`history_test.js` with 1,200 characters more stores the progress of 2 or 3 of 7 answers.
 
 **Cuts that stay.** The answers a progress keeps past 4,000 (`ANSWERS_MAX`) and the history
 entries past 20,000 (`LOG_MAX`). `LOG_MAX` still drops the oldest entries with no notice and no
-copy, pending Louis's decision (#47's review, M3).
+copy, pending Louis's decision (#47's review, M3; the options are in the pull request).
 
 **Checks.** `history_test.js` ("The browser refuses to save the history") stores 300 entries
 and makes the browser refuse a history longer than those (and, in one part, any write once the

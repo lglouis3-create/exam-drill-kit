@@ -2,6 +2,10 @@
 
 Dated kit changes, newest first.
 
+## 2026-11-05
+- Study progress first when storage is full: while a progress write is refused, the answer history is held (on the page, named in the notice, in Export) and written after the next progress save; this tab's own per-tab record, proven stored, is removed to make room and the progress write tried once more.
+- "Use it here" with only history unsaved no longer stores an entry twice when the other tab already placed this tab's per-tab record.
+
 ## 2026-11-04
 - Settings shows how much this site stores in this browser (every drill, in characters, against 5,242,880), this drill's part (progress, history, preview copies, copies kept by Import and their number) and this profile's answers kept and recorded.
 - A warning in the Quiz tab and in Settings when the space left is less than one more profile of the largest size here, or a first preview of a course here, would need; it names the largest items and offers Export progress and Delete the copies kept by Import. Nothing is deleted automatically. The page says the figures are an estimate and the limit differs by browser.
