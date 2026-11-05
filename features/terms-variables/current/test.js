@@ -385,11 +385,26 @@ function shapeChecks(label, T, V, ctx){
       const fresh = await L.openPage(browser, s.page);
       const empty = await mine(fresh.page);
       await fresh.page.evaluate(() => show('settings'));
-      await fresh.page.setInputFiles('#fileIn', file);
-      await fresh.page.waitForTimeout(800);
+      // Import as a student does it since kit PR #32: the file is read and a plan is shown
+      // (#importPlan); it is imported only on #importGo, and the outcome is shown in #importResult.
+      // The fresh browser's profile holds no progress, so the plan is to replace it (button
+      // "Import", not "Import into a new profile") and the answers come back in that profile.
+      const importFile = async (pg, f) => {
+        const p0 = await pg.evaluate(() => PROFILE);
+        await pg.setInputFiles('#fileIn', f);
+        await pg.waitForFunction(() => { const b = document.getElementById('importPlan'); return b && b.textContent.trim(); }, null, {timeout: 5000}).catch(() => {});
+        const go = await pg.evaluate(() => { const g = document.getElementById('importGo'); return g ? g.textContent.trim() : null; });
+        if(go) await pg.click('#importGo');
+        await pg.waitForSelector('#importResult', {timeout: 3000}).catch(() => {});
+        await pg.waitForTimeout(400);
+        const r = await pg.evaluate(() => { const b = document.getElementById('importResult'); return {result: b ? b.textContent.replace(/\s+/g, ' ').trim() : null, profile: PROFILE}; });
+        return {go, before: p0, after: r.profile, result: r.result};
+      };
+      const ir = await importFile(fresh.page, file);
       const imported = await mine(fresh.page);
-      check(empty.answers === 0 && imported.answers === base.answers && imported.state === base.state && imported.stored === base.answers && imported.log === base.log,
-            `Export, then Import into a fresh browser profile: the ${base.answers} answers, their scheduling state and history come back`, {empty: empty.answers, imported: Object.assign({}, imported, {state: undefined}), same: imported.state === base.state});
+      check(empty.answers === 0 && ir.go === 'Import' && !!ir.result && ir.after === ir.before &&
+            imported.answers === base.answers && imported.state === base.state && imported.stored === base.answers && imported.log === base.log,
+            `Export, then Import into a fresh browser profile (the plan: replace its empty profile): the ${base.answers} answers, their scheduling state and history come back`, {empty: empty.answers, ir, imported: Object.assign({}, imported, {state: undefined}), same: imported.state === base.state});
       check(!fresh.errors.length, 'no page error on import', fresh.errors.slice(0, 3).join(' | '));
       await fresh.ctx.close();
 
