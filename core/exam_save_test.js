@@ -25,7 +25,13 @@ const REFUSE = () => {
   if(!hasExam){ L.notRun(NAME, 'this course has no exam paper'); }
   // a paper, its first answer stored
   // a course whose exam starts no paper (nullexam.js: the question count not set, a time limit set)
-  if(!(await o.evaluate(() => { show('exam'); return !!document.getElementById('startExam'); }))){ await browser.close(); L.notRun(NAME, 'this course starts no exam paper (its question count is not set)'); }
+  if(!(await o.evaluate(() => { show('exam'); return !!document.getElementById('startExam'); }))){
+    // nothing here can be refused: no paper is written and nothing counts as at risk
+    const st0 = await o.evaluate(() => ({key: localStorage.getItem(NS + ':exam:' + PROFILE), copy: sessionStorage.getItem(NS + ':exam-copy:' + PROFILE), risk: atRiskAll(), ex: !!EX}));
+    check(st0.key === null && st0.copy === null && !st0.risk && !st0.ex, 'a course whose exam starts no paper (its question count is not set): no paper is written, nothing is at risk; the paper cases do not apply', st0);
+    check(!errors.length, 'no page errors', errors.slice(0, 2).join('; '));
+    await ctx.close(); await browser.close(); L.finish(NAME); return;
+  }
   await o.evaluate(() => document.getElementById('startExam').click());
   await o.waitForFunction(() => EX && EX.running, null, {timeout: 5000});
   const pick = (i, v) => o.evaluate(([i, v]) => { const q = EX.qs[i]; EX.picks[i] = isMulti(q) ? [v] : (q.type === 'numeric' ? String(v) : v); saveExam(); return JSON.stringify(EX.picks[i]); }, [i, v]);
