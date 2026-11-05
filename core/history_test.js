@@ -384,6 +384,73 @@ const next = p => p.evaluate(() => { const b = document.getElementById('btnNext'
     check(!e5.length, 'the whole site\'s storage full: no page errors', e5.slice(0, 2).join('; '));
     await c5.close();
   }
+  {
+    // Study progress first (Louis, 2026-11-05). The whole site's storage nearly full; 40 answers.
+    // (1) Once a progress write is refused, no later history entry is stored before the progress is:
+    // at most one entry is ahead of the stored progress (the answer whose own progress write was the
+    // first refused; its entry is written when it is answered, before its progress save 150 ms later).
+    // (2) Nothing is lost: every answer and entry is on the page and in Export, with the notice.
+    // (3) Once there is room, the next save stores the progress and then all the held history.
+    const ORIGIN = () => {
+      const set = Storage.prototype.setItem;
+      Storage.prototype.setItem = function(k, v){
+        if(typeof window.__originCap === 'number'){
+          let t = String(k).length + String(v).length;
+          for(let i = 0; i < this.length; i++){ const kk = this.key(i); if(kk !== k) t += kk.length + this.getItem(kk).length; }
+          if(t > window.__originCap) throw new DOMException('The quota has been exceeded.', 'QuotaExceededError');
+        }
+        return set.call(this, k, v);
+      };
+    };
+    const {ctx: c6, page: o, errors: e6} = await L.openFile(browser, {}, ORIGIN);
+    await seeded(o, c6);
+    await o.evaluate(() => { window.__logCap = null; record(QUESTIONS[0], 'correct', 0, 4000); saveNow(); });
+    await o.waitForTimeout(300);
+    await o.evaluate(() => { let t = 0; for(let i = 0; i < localStorage.length; i++){ const k = localStorage.key(i); t += k.length + localStorage.getItem(k).length; } window.__originCap = t + 3000; });
+    for(let i = 1; i <= 40; i++){ await o.evaluate(i => record(QUESTIONS[i % QUESTIONS.length], i % 4 ? 'correct' : 'wrong', 0, 4000), i); await o.waitForTimeout(220); }
+    await o.waitForTimeout(300);
+    const st = await o.evaluate(() => {
+      const d = JSON.parse(localStorage.getItem(NS + ':data:' + PROFILE) || '{"answers":[]}'), l = JSON.parse(localStorage.getItem(NS + ':log:' + PROFILE) || '[]');
+      return {page: DB.answers.length, prog: d.answers.length, pageLog: LOG.length, log: l.length, newLog: l.filter(e => e[4] !== 'seeded').length,
+              warn: (document.getElementById('savewarn') || {}).textContent || ''};
+    });
+    console.log(`  note  study progress first, 3,000 characters of room: progress stored for ${st.prog} of ${st.page} answers; history stored ${st.log} of ${st.pageLog}`);
+    check(st.prog < st.page && st.newLog <= st.prog + 1, 'storage full: after the first refused progress write, no history is stored ahead of the progress (study progress first)', st);
+    check(st.page === 41 && st.pageLog === SEED + 41 && /did not save/.test(st.warn) && /answer history/.test(st.warn), 'storage full: every answer and entry is on the page, and the notice names the progress and the history', st);
+    await o.evaluate(() => show('settings'));
+    const [dl] = await Promise.all([o.waitForEvent('download', {timeout: 5000}).catch(() => null), o.evaluate(() => document.getElementById('btnExport').click())]);
+    const ex = dl ? JSON.parse(fs.readFileSync(await dl.path(), 'utf8')) : {};
+    check(ex.db && ex.db.answers.length === 41 && Array.isArray(ex.log) && ex.log.length === SEED + 41, 'storage full: Export holds every answer (41) and every entry', {answers: ex.db && ex.db.answers.length, log: ex.log && ex.log.length});
+    await o.evaluate(() => { window.__originCap = null; record(QUESTIONS[1], 'correct', 0, 4000); });
+    await o.waitForTimeout(400);
+    const after = await o.evaluate(() => {
+      const d = JSON.parse(localStorage.getItem(NS + ':data:' + PROFILE) || '{"answers":[]}'), l = JSON.parse(localStorage.getItem(NS + ':log:' + PROFILE) || '[]');
+      return {prog: d.answers.length, log: l.length};
+    });
+    check(after.prog === 42 && after.log === SEED + 42, 'room again: the next save stores the progress and then every held history entry', after);
+    check(!e6.length, 'study progress first: no page errors', e6.slice(0, 2).join('; '));
+    await c6.close();
+  }
+  {
+    // This tab's own per-tab record (#45) is removed under storage pressure only when what is stored,
+    // read back, holds all of it; a record holding a history entry the stored history lacks is kept.
+    const {ctx: c7, page: o, errors: e7} = await L.openFile(browser, {});
+    await o.waitForFunction(() => typeof WRITER === 'undefined' || WRITER === 'held' || WRITER === 'none', null, {timeout: 8000}).catch(() => {});
+    if(await o.evaluate(() => typeof dropOwnRecordIfStored === 'function' && WRITER === 'held')){
+      await o.evaluate(() => { record(QUESTIONS[0], 'correct', 0, 4000); saveNow(); });
+      const proven = await o.evaluate(() => { const k = myPendingKey(), had = localStorage.getItem(k) !== null; const r = dropOwnRecordIfStored(); return {had, r, gone: localStorage.getItem(k) === null}; });
+      await o.evaluate(() => { record(QUESTIONS[1], 'correct', 0, 4000); saveNow(); });
+      const unproven = await o.evaluate(() => {
+        const k = myPendingKey(), rec = JSON.parse(localStorage.getItem(k));
+        rec.log.push([1, 'ffffffff', 1, 'quiz', 'x', '', 'mc', 'concept', '', null]);   // an entry the stored history lacks
+        localStorage.setItem(k, JSON.stringify(rec));
+        const r = dropOwnRecordIfStored(); return {r, kept: localStorage.getItem(k) !== null};
+      });
+      check(proven.had && proven.r && proven.gone && !unproven.r && unproven.kept, 'storage pressure: this tab\'s own record is removed only when the stored progress and history hold all of it', {proven, unproven});
+    } else check(true, 'storage pressure: own-record removal not tested (no Web Locks here)');
+    check(!e7.length, 'own record under pressure: no page errors', e7.slice(0, 2).join('; '));
+    await c7.close();
+  }
   // two answers to one question in one second, both refused: alike in their first four fields
   const twoAlike = pg => pg.evaluate(() => {
     while(Date.now() % 1000 > 400){ /* early in a second, so both round to the same one */ }

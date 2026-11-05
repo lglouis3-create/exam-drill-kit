@@ -1395,24 +1395,17 @@ function loadLog(){
 }
 /* Through `store`: kept, SEEN_LOG follows it (seenAs); refused, every entry stays in memory,
    the key is marked refused, the notice shows once, and SEEN_LOG stays what is stored. */
-/* Study progress first: while a progress save waits on its timer, the history write waits too and
-   is written just after that progress save (save, saveNow), so with storage nearly full the room
-   left goes to the progress; a history write then refused keeps every entry on the page, with the
-   notice and the export (Louis, 2026-11-05: "preserving study progress first while explicitly
-   surfacing and offering export for any history that cannot be saved"). */
-let LOG_WAITING = false;
 function saveLog(){
   if(!canSave() || !LOG_OK) return;
-  if(saveTimer){ LOG_WAITING = true; return; }
-  LOG_WAITING = false;
   if(profileSavedElsewhere()){ staleWarn(); return; }
   // the progress write was refused: the history is not written either, so it cannot take the room
   // the next progress save needs; it is held as a refused write (on the page, in the notice and in
   // Export, counted as unsaved) and written after the next progress save the browser keeps
+  // (study progress first, Louis, 2026-11-05: "preserving study progress first while explicitly
+  // surfacing and offering export for any history that cannot be saved")
   if(FAILED.has(keyFor(PROFILE))){ const k = logKey(); MEM[k] = JSON.stringify(LOG); FAILED.add(k); saveWarn(k); return; }
   store.set(logKey(), JSON.stringify(LOG));
 }
-function logAfterProgress(){ if(LOG_WAITING) saveLog(); }
 /* A history write the browser refused is tried again with the next progress save too, for
    the profile on screen and for every profile this page switched away from with its history
    refused (#47's review, M1: that history otherwise stayed unwritten, and a reload lost it).
@@ -1466,7 +1459,8 @@ function withNeverStored(stored, mine, known){
       const was = confs.shift(), at = slots.get(k);
       if(e[5] !== was && at && at.length){ const i = at.shift(); out[i][5] = e[5]; }
       else if(at && at.length) at.shift();
-    } else out.push(e);
+    } else if(slots.get(k) && slots.get(k).length) slots.get(k).shift();   // stored meanwhile (another tab placed this tab's per-tab record, #45): counted, not added again
+    else out.push(e);
   }
   out.sort((x, y) => x[0] - y[0]);   // stable: entries alike keep their order
   return out.length > LOG_MAX ? out.slice(out.length - LOG_MAX) : out;
@@ -1540,7 +1534,7 @@ function mergeLog(entries){
   if(LOG.length > LOG_MAX) LOG.splice(0, LOG.length - LOG_MAX);
   saveLog();
 }
-var saveTimer=null;   // var: saveLog reads it, and can run before this line during start-up
+let saveTimer=null;
 function save(){
   if(!canSave()) return;
   clearTimeout(saveTimer);
@@ -1549,7 +1543,6 @@ function save(){
     if(!canSave()) return;
     if(profileSavedElsewhere()){ staleWarn(); return; }
     saveProgress();
-    logAfterProgress();
     retryLog();
   },150);
 }
@@ -1567,7 +1560,6 @@ function saveNow(){
   if(!canSave()) return;
   if(profileSavedElsewhere()){ staleWarn(); return; }
   saveProgress();
-  logAfterProgress();
   retryLog();
 }
 /* Which profile opens when no choice is stored: the one with saved progress used
