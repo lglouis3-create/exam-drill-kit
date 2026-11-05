@@ -390,8 +390,11 @@ const build = (label, list) => L.scratchBuild(label, {files: {'qp_test_data.js':
       const during = await page.evaluate(() => ({cards: [...document.querySelectorAll('#v-topics .qpcard')].map(c => c.dataset.qp),
         warn: (document.getElementById('savewarn') || {}).textContent || '', flag4: localStorage.getItem(NS + ':quizhide:q4'), flag5: localStorage.getItem(NS + ':quizhide:q5'),
         answers: JSON.parse(localStorage.getItem(NS + ':data:' + PROFILE)).answers.length}));
-      check(/did not save your progress/.test(during.warn) && JSON.stringify(during.cards) === '[]',
-            `${mode}: Hide shows the notice that nothing was saved, and the card is hidden for this visit`, during);
+      /* The hide flag is this browser's data, not progress: since core PR #47 (cf1cc94) the
+         core's notice for a refused key other than the progress or history says so, and its
+         progress wording is kept for a refused progress or history write. */
+      check(/This browser did not save some of this page's data \(storage is full or blocked\)/.test(during.warn) && !/did not save your progress/.test(during.warn) && JSON.stringify(during.cards) === '[]',
+            `${mode}: Hide shows the notice that this page's data was not saved (not the progress notice: the answers are saved), and the card is hidden for this visit`, during);
       check(saved.flag === '1' && during.flag4 === '1' && during.flag5 === null && during.answers === saved.answers && saved.answers === n,
             `${mode}: the saved Quiz 4 flag and the ${n} saved answers are unchanged`, {saved, during});
       await page.evaluate(() => { window.__deny = null; });
