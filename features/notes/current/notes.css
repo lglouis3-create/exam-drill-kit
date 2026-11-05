@@ -1,0 +1,16 @@
+/* notes v1: the Note box under a card's head, and the Notes tab's cards
+   (Basic-Pharmacokinetics src/views.js lines 5568-5570 and 5623-5633, inline
+   styles there, at ac2eb73) */
+.notebox{margin:6px 0 10px}
+.notebox label{display:block;font-size:13.5px;font-weight:600;margin-bottom:4px}
+.notebox textarea{width:100%;box-sizing:border-box;font:inherit;font-size:16px;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:inherit}
+.notebox small{color:var(--text-dim)}
+.ntbar{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 12px}
+.ntcard{margin-bottom:14px}
+.ntcard .stem{font-size:15.5px}
+.ntopts{margin:6px 0 8px 20px;padding:0}
+.ntmine{margin:4px 0}
+.ntok{color:var(--ok)}
+.ntbad{color:var(--bad)}
+.ntkey{margin:6px 0}
+.ntflag{color:var(--warn);border-color:var(--warn)}
