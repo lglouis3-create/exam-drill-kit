@@ -1,0 +1,165 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IndexedDB prototype, by hand (with storage-full and upgrade steps)</title>
+<style>body{font:16px/1.45 system-ui,sans-serif;margin:16px;max-width:640px}button{font-size:16px;padding:8px 12px;margin:4px 4px 4px 0}pre{white-space:pre-wrap;background:#f3f3f3;padding:8px}</style>
+<h1>IndexedDB prototype, by hand</h1>
+<p>For the steps in SAFARI_CHECKLIST.md. It uses its own database ("proto") on this page only and touches no course's progress.</p>
+<p><button id="probe">Probe</button><button id="run">Run 300</button><button id="run20">Run for 20 s</button><button id="check">Check</button><button id="reset">Reset</button></p>
+<p>This tab: <b id="tab"></b></p>
+<pre id="out"></pre>
+<h2>Storage full and interrupted upgrade</h2>
+<p>These buttons use only the databases "proto-quota", "proto-quota2" and "proto-upgrade".</p>
+<p><button id="qfill">Fill until refused</button><button id="qpair">Both stores at once</button><button id="qclean">Delete quota test data</button></p>
+<p><button id="uprep">Upgrade: prepare v1</button><button id="ustart">Upgrade: start slow</button><button id="ucheck">Upgrade: check</button><button id="ufinish">Upgrade: finish</button></p>
+<p><button id="uhold">Hold v1 (old tab)</button><button id="uholdstate">Old tab: state</button></p>
+<p>Status: <b id="status">idle</b></p>
+<script>
+// The functions below are copied unchanged from page.html (the automated prototype).
+const DBNAME = 'proto';
+
+function openDB(name = DBNAME, version = 1, onVersionChange = 'close') {
+  return new Promise((resolve, reject) => {
+    const r = indexedDB.open(name, version);
+    r.onupgradeneeded = () => {
+      const db = r.result;
+      if (!db.objectStoreNames.contains('kv')) db.createObjectStore('kv');
+      if (!db.objectStoreNames.contains('marks')) db.createObjectStore('marks');
+    };
+    r.onblocked = () => { window.__events = (window.__events || []).concat('blocked'); };
+    r.onsuccess = () => {
+      const db = r.result;
+      db.onversionchange = (e) => {
+        window.__events = (window.__events || []).concat('versionchange ' + e.oldVersion + '->' + e.newVersion);
+        if (onVersionChange === 'close') db.close();
+      };
+      resolve(db);
+    };
+    r.onerror = () => reject(r.error);
+  });
+}
+
+function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
+async function waitUntil(t) { while (Date.now() < t) await sleep(1); }
+
+// One read-modify-write transaction: read 'state', append {tab,i,saw}, increment count.
+// When withMark is true the same transaction also writes marks/<tab>:<i>, so a partial
+// transaction would show up as an entry without a mark or a mark without an entry.
+function rmwTx(db, tab, i, durability, withMark, onEvent) {
+  return new Promise((resolve) => {
+    let tx;
+    try {
+      tx = db.transaction(withMark ? ['kv', 'marks'] : ['kv'], 'readwrite', { durability });
+    } catch (e) { resolve({ i, result: 'throw ' + e.name }); return; }
+    const kv = tx.objectStore('kv');
+    const g = kv.get('state');
+    g.onsuccess = () => {
+      const s = g.result || { count: 0, seq: [] };
+      s.seq.push({ tab, i, saw: s.count });
+      s.count += 1;
+      kv.put(s, 'state');
+      if (withMark) tx.objectStore('marks').put({ tab, i }, tab + ':' + i);
+    };
+    tx.oncomplete = () => { onEvent && onEvent('complete', i); resolve({ i, result: 'complete' }); };
+    tx.onabort = () => { onEvent && onEvent('abort', i); resolve({ i, result: 'abort ' + (tx.error && tx.error.name) }); };
+  });
+}
+
+// Start n transactions from this tab in chunks, all at once after startAt (wall clock).
+async function idbRun(tab, n, startAt, durability = 'default', chunk = 10) {
+  const db = await openDB();
+  await waitUntil(startAt);
+  const ps = [];
+  for (let i = 0; i < n; i++) {
+    ps.push(rmwTx(db, tab, i, durability, false));
+    if (i % chunk === chunk - 1) await sleep(0);
+  }
+  const res = await Promise.all(ps);
+  db.close();
+  const tally = {};
+  for (const r of res) tally[r.result] = (tally[r.result] || 0) + 1;
+  return tally;
+}
+
+async function idbReadAll() {
+  const db = await openDB();
+  const out = await new Promise((resolve, reject) => {
+    const tx = db.transaction(['kv', 'marks'], 'readonly');
+    const st = tx.objectStore('kv').get('state');
+    const mk = tx.objectStore('marks').getAllKeys();
+    tx.oncomplete = () => resolve({ state: st.result || { count: 0, seq: [] }, marks: mk.result });
+    tx.onerror = () => reject(tx.error);
+  });
+  db.close();
+  return out;
+}
+
+async function idbReset() {
+  const db = await openDB();
+  await new Promise((resolve) => {
+    const tx = db.transaction(['kv', 'marks'], 'readwrite');
+    tx.objectStore('kv').clear(); tx.objectStore('marks').clear();
+    tx.oncomplete = resolve;
+  });
+  db.close();
+}
+
+function durabilityProbe() {
+  return openDB().then((db) => {
+    const out = {};
+    for (const d of ['default', 'strict', 'relaxed']) {
+      try { out[d] = db.transaction('kv', 'readwrite', { durability: d }).durability; }
+      catch (e) { out[d] = 'throw ' + e.name; }
+    }
+    out.hasCommit = typeof IDBTransaction.prototype.commit === 'function';
+    out.hasLocks = !!(navigator.locks);
+    db.close();
+    return out;
+  });
+}
+
+
+const TAB = 'T' + Math.random().toString(36).slice(2, 6);
+document.getElementById('tab').textContent = TAB;
+const out = t => { document.getElementById('out').textContent = t + '\n' + document.getElementById('out').textContent; };
+document.getElementById('probe').onclick = async () => {
+  try { out('Probe: ' + JSON.stringify(Object.assign({indexedDB: !!window.indexedDB, ua: navigator.userAgent}, await durabilityProbe()))); }
+  catch(e){ out('Probe failed: ' + e.name + ' ' + e.message); }
+};
+document.getElementById('run').onclick = async () => {
+  out('Run 300 started in ' + TAB + ' ...');
+  try { const t = await idbRun(TAB, 300, Date.now()); out('Run 300 in ' + TAB + ' finished: ' + JSON.stringify(t)); }
+  catch(e){ out('Run failed: ' + e.name + ' ' + e.message); }
+};
+// Runs batches of 50 transactions for 20 seconds, so that runs started in two tabs a few seconds
+// apart overlap (one batch of 300 finishes in under a second; the review of fa9f1f6).
+let RUN20_I = 0;
+document.getElementById('run20').onclick = async () => {
+  out('Run for 20 s started in ' + TAB + ' ...');
+  const end = Date.now() + 20000, tally = {};
+  try {
+    const db = await openDB();
+    while(Date.now() < end){
+      const ps = [];
+      for(let k = 0; k < 50; k++) ps.push(rmwTx(db, TAB, RUN20_I++, 'default', false));
+      for(const r of await Promise.all(ps)) tally[r.result] = (tally[r.result] || 0) + 1;
+      await sleep(20);
+    }
+    db.close();
+    out('Run for 20 s in ' + TAB + ' finished: ' + JSON.stringify(tally));
+  } catch(e){ out('Run failed: ' + e.name + ' ' + e.message); }
+};
+// Check: total is the count the transactions kept; entries the list they appended to. They agree, with
+// no duplicates and "saw = position" for every entry, when no update was lost. "Tab switches" counts
+// the places where the order goes from one tab to another: above 1, the two tabs' runs overlapped.
+document.getElementById('check').onclick = async () => {
+  try {
+    const {state} = await idbReadAll(), seq = state.seq;
+    let saw = 0, dups = 0, switches = 0; const seen = new Set(), perTab = {};
+    seq.forEach((e, k) => { if(e.saw === k) saw++; if(k > 0 && seq[k - 1].tab !== e.tab) switches++; const key = e.tab + ':' + e.i; if(seen.has(key)) dups++; seen.add(key); perTab[e.tab] = (perTab[e.tab] || 0) + 1; });
+    out('Check: total ' + state.count + ', entries ' + seq.length + ', duplicates ' + dups + ', saw = position ' + saw + ' of ' + seq.length + ', tab switches ' + switches + ', per tab ' + JSON.stringify(perTab));
+  } catch(e){ out('Check failed: ' + e.name + ' ' + e.message); }
+};
+document.getElementById('reset').onclick = async () => { try { await idbReset(); out('Reset: the prototype database is empty.'); } catch(e){ out('Reset failed: ' + e.name); } };
+</script>
+<script src="manual-lab.js"></script>

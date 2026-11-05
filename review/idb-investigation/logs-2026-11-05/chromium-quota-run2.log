@@ -1,0 +1,23 @@
+[chromium] launched 153.0.8010.12
+[chromium] serving http://localhost:39631/manual-plus.html
+[chromium] Q0 estimate without override {"usageMB":0,"quotaMB":3072}
+[chromium] override Storage.overrideQuotaForOrigin origin=http://localhost:39631 quotaSize=5242880 bytes (5 MB) accepted
+[chromium] Q0 estimate with override {"usageMB":0,"quotaMB":3072}
+[chromium] Q1 fill rep=1 refused={"transaction":5,"recordMB":2,"putThrew":null,"result":"abort","error":"QuotaExceededError","message":"","committedBeforeMB":3.755,"committedTransactionsBefore":4}
+[chromium] Q1 fill rep=1 baseline=complete committed records=9 failed transaction: pre-<n> stored=false big-<n> stored=false earlier data intact (same connection)=9 of 9 (after reopen)=9 of 9 (after later writes)=9 of 9
+[chromium] Q1 fill rep=1 later 1 KB transaction=abort QuotaExceededError later transaction of half the refused size=1.000 MB: abort QuotaExceededError estimate before={"usageMB":0,"quotaMB":3072} after={"usageMB":5.84,"quotaMB":3077.84}
+[chromium] Q2 two stores, storage nearly full, rep=1 log entry MB=2 baseline=complete | progress first: {"result":"abort","error":"QuotaExceededError","putThrew":null,"after":{"rev":1,"logKeys":[1]}} | log first: {"result":"abort","error":"QuotaExceededError","putThrew":null,"after":{"rev":1,"logKeys":[1]}} | later small both: {"result":"abort","error":"QuotaExceededError","after":{"rev":1,"logKeys":[1]}}
+[chromium] Q1 fill rep=2 refused={"transaction":5,"recordMB":2,"putThrew":null,"result":"abort","error":"QuotaExceededError","message":"","committedBeforeMB":3.755,"committedTransactionsBefore":4}
+[chromium] Q1 fill rep=2 baseline=complete committed records=9 failed transaction: pre-<n> stored=false big-<n> stored=false earlier data intact (same connection)=9 of 9 (after reopen)=9 of 9 (after later writes)=9 of 9
+[chromium] Q1 fill rep=2 later 1 KB transaction=abort QuotaExceededError later transaction of half the refused size=1.000 MB: abort QuotaExceededError estimate before={"usageMB":0,"quotaMB":3072} after={"usageMB":5.84,"quotaMB":3077.84}
+[chromium] Q2 two stores, storage nearly full, rep=2 log entry MB=2 baseline=complete | progress first: {"result":"abort","error":"QuotaExceededError","putThrew":null,"after":{"rev":1,"logKeys":[1]}} | log first: {"result":"abort","error":"QuotaExceededError","putThrew":null,"after":{"rev":1,"logKeys":[1]}} | later small both: {"result":"abort","error":"QuotaExceededError","after":{"rev":1,"logKeys":[1]}}
+[chromium] Q3 two stores, empty storage, log entry larger than the cap log entry MB=6 | progress first: {"result":"abort","error":"QuotaExceededError","putThrew":null,"after":{"rev":1,"logKeys":[1]}} | log first: {"result":"abort","error":"QuotaExceededError","putThrew":null,"after":{"rev":1,"logKeys":[1]}} | later small both: {"result":"abort","error":"QuotaExceededError","after":{"rev":1,"logKeys":[1]}}
+[chromium] Q4 refused write of 6 MB progress first: abort QuotaExceededError later small both (inside quotaPair): abort QuotaExceededError estimate={"usageMB":6.07,"quotaMB":3078.07}
+[chromium] Q4 1 KB writes at once same database: abort QuotaExceededError; another database: complete; estimate={"usageMB":0.14,"quotaMB":3072.14}
+[chromium] Q4 1 KB writes after 10 s same database: complete; another database: complete; estimate={"usageMB":0.14,"quotaMB":3072.14}
+[chromium] Q4 1 KB writes after the page reloaded same database: complete; another database: complete; estimate={"usageMB":0.14,"quotaMB":3072.14}
+[chromium] Q4 1 KB writes from a second page, first page still open same database: complete; another database: complete; estimate={"usageMB":0.14,"quotaMB":3072.14}
+[chromium] Q4 1 KB writes from the second page after the first page closed same database: complete; another database: complete; estimate={"usageMB":0.14,"quotaMB":3072.14}
+[chromium] cleanup {"proto-quota":"deleted","proto-quota2":"deleted","estimate":{"usageMB":0.07,"quotaMB":3072.07},"small":"deleted"}
+[chromium] override removed {"usageMB":0,"quotaMB":3072}
+[chromium] done

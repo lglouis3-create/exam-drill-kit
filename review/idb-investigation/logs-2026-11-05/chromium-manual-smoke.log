@@ -1,0 +1,13 @@
+Probe -> Probe: {"indexedDB":true,"ua":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36","default":"def
+Fill until refused -> Fill: {"db":"proto-quota","estimateBefore":{"usageMB":0.07,"quotaMB":3072.07},"baseline":"complete","refused":{"transaction":3,"recordMB":4,"putThrew":null,"result":"abort","error":"QuotaExceededError","message":"","committedBeforeMB":3.003,"committedTransactionsBefore":2},"committedRecords":5,"failedTxPreStored":false,"failedTxBigStored":false,"intactSameConnection":"5 of 5","intactAfterReopen":"5 of 5","laterSmall1KB":"abort QuotaExceededError","laterHalfOfRefused":"2.000 MB: abort QuotaExceededError","intactAfterLaterWrites":"5 of 5","estimateAfter":{"usageMB":7.16,"quotaMB":3079.16}}
+Both stores at once -> Both stores: {"db":"proto-quota2","bigMB":4,"baseline":"complete","progress first":{"result":"abort","error":"QuotaExceededError","putThrew":null,"after":{"rev":1,"logKeys":[1]}},"log first":{"result":"abort","error":"QuotaExceededError","putThrew":null,"after":{"rev":1,"logKeys":[1]}},"laterSmallBoth":{"result":"abort","error":"QuotaExceededError","after":{"rev":1,"logKeys":[1]}}}
+Delete quota test data -> Delete quota test data: {"proto-quota":"deleted","proto-quota2":"deleted","estimate":{"usageMB":0.07,"quotaMB":3072.07}}
+Upgrade: prepare v1 -> Prepare v1: {"db":"proto-upgrade","version":1,"items":2000,"write":"complete"}
+Hold v1 (old tab), tab 2 -> Old tab: holding v1 policy=keep
+status in tab 1 while tab 2 holds v1 -> requested, copied 0, events ["blocked 1->2"]
+Old tab: state, tab 2 -> Old tab state: {"events":["versionchange 1->2"]}
+status in tab 1 after tab 2 closed -> upgrading 1->2, copied 300, events ["blocked 1->2","upgradeneeded 1->2"]
+Upgrade: check -> Upgrade check: {"listedVersion":1,"version":1,"stores":["items"],"items":2000,"itemsIntact":2000}
+Upgrade: finish -> Upgrade finish: {"openedVersion":2,"events":["upgradeneeded 1->2"],"listedVersion":2,"version":2,"stores":["items","items2"],"items":2000,"itemsIntact":2000,"items2":2000}
+Run for 20 s button present -> true
+page errors -> []
