@@ -331,8 +331,24 @@ function badOptions(S, tables){
     check(JSON.stringify(exported.db.pairup) === snap, `Export progress carries every best score (${Object.keys((exported.db.pairup || {}).best || {}).length}) and every miss list (${Object.keys((exported.db.pairup || {}).miss || {}).length})`);
     await ev2(() => { window.__name = 'Fresh'; askProfile(true); show('settings'); });
     check(await ev2(() => PROFILE === 'Fresh' && !DB.pairup), 'a new profile starts with no Pair up or table progress');
-    await pg.setInputFiles('#fileIn', ef); await wait(600);
-    check(await ev2(() => JSON.stringify(DB.pairup)) === snap, 'Import progress into the new profile brings back the same best scores and misses');
+    // Import as a student does it since kit #32: choose the file, read the plan, press its
+    // Import button, wait for the outcome (core/import_test.js lines 1332-1336)
+    const importFile = async f => {
+      await pg.setInputFiles('#fileIn', f);
+      await pg.waitForFunction(() => { const b = document.getElementById('importPlan'); return b && b.textContent.trim(); }, null, {timeout: 5000}).catch(() => {});
+      const plan = await ev2(() => { const g = document.getElementById('importGo'), w = document.getElementById('importWhat');
+        return {go: g ? g.textContent.trim() : null, what: w ? w.textContent.replace(/\s+/g, ' ').trim() : ''}; });
+      await ev2(() => { const g = document.getElementById('importGo'); if(g) g.click(); });
+      await pg.waitForSelector('#importResult', {timeout: 3000}).catch(() => {});
+      plan.result = await ev2(() => { const r = document.getElementById('importResult'); return r ? r.textContent.replace(/\s+/g, ' ').trim() : null; });
+      return plan;
+    };
+    // "Fresh" holds no progress, so under #32 the file replaces it: the plan offers "Import"
+    // (not "Import into a new profile"), says this profile has no progress yet, and the
+    // student is still in "Fresh" with the module's part back
+    const plan = await importFile(ef);
+    check(plan.go === 'Import' && /has no progress yet/.test(plan.what) && !!plan.result && await ev2(() => PROFILE === 'Fresh' && JSON.stringify(DB.pairup)) === snap,
+      'Import progress into the new profile brings back the same best scores and misses', plan);
     await pg.reload(); await ready();
     check(await ev2(() => PROFILE === 'Fresh' && JSON.stringify(DB.pairup)) === snap, 'the imported progress is saved: it comes back after a reload');
 
