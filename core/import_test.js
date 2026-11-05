@@ -1752,6 +1752,38 @@ let nfile = 0;
     await d.ctx.close();
   }
 
+  console.log('\n=== A profile switch away and straight back ===');
+  {
+    // one tab alone: switching away and straight back leaves it the writer, not read-only
+    const d = await device(undefined, true); const di = await info(d.page);
+    await answer(d.page, 1, 0);
+    await d.page.waitForFunction(() => WRITER === 'held', null, {timeout: 5000}).catch(() => {});
+    await d.page.evaluate(n => { useProfile('away'); useProfile(n); }, di.profile);      // in the same moment
+    await d.page.waitForFunction(() => WRITER !== 'pending', null, {timeout: 5000}).catch(() => {});
+    const w = await d.page.evaluate(() => WRITER), why = await d.page.evaluate(() => (document.getElementById('stopwall') || {dataset: {}}).dataset.why || null);
+    check(w === 'held' && why === null, 'one tab alone, a profile switch away and straight back: it is still the writer, with no wall', {w, why});
+    // six switches in one moment: still the writer, with no wall
+    await d.page.evaluate(n => { for(let i = 0; i < 3; i++){ useProfile('away'); useProfile(n); } }, di.profile);
+    await d.page.waitForFunction(() => WRITER !== 'pending', null, {timeout: 6000}).catch(() => {});
+    await d.page.waitForTimeout(300);
+    const w6 = await d.page.evaluate(() => ({w: WRITER, wall: (document.getElementById('stopwall') || {dataset: {}}).dataset.why || null}));
+    check(w6.w === 'held' && w6.wall === null, 'six switches in one moment: still the writer, with no wall', w6);
+    // another tab queued for that profile's lock when this page frees it: this page waits about 2 s,
+    // then opens read-only, holding no lock, and the other tab has it
+    const t2 = await secondTab(d);
+    await t2.waitForFunction(() => WRITER !== 'pending', null, {timeout: 5000}).catch(() => {});
+    await t2.evaluate(n => { window.__q = navigator.locks.request(NS + ':writer:' + n, () => new Promise(() => {})).catch(() => {}); }, di.profile);   // a raw queued request
+    const t0 = Date.now();
+    await d.page.evaluate(n => { useProfile('away'); useProfile(n); }, di.profile);
+    await d.page.waitForFunction(() => WRITER !== 'pending', null, {timeout: 6000}).catch(() => {});
+    const waited = Date.now() - t0;
+    const after = await d.page.evaluate(() => ({w: WRITER, wall: (document.getElementById('stopwall') || {dataset: {}}).dataset.why || null, held: WRITER_FOR}));
+    const q = await d.page.evaluate(() => navigator.locks.query().then(r => r.held.length));
+    check(after.w === 'other' && after.wall === 'other' && !after.held && waited >= 1500 && q === 1,
+      'another tab queued for the profile when this page frees it: this page waits about 2 s, then opens read-only, and only the other tab holds the lock', {after, waited, q});
+    await d.ctx.close();
+  }
+
   check(!A.errors.length && !B.errors.length, 'no page errors', A.errors.concat(B.errors).slice(0, 2).join('; '));
   await A.ctx.close(); await B.ctx.close();
   await browser.close();
