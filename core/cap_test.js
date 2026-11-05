@@ -77,8 +77,18 @@ L.PAGE.need(NAME);
   // the next visit past the cap: the notice again
   await o.reload(); await o.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
   await o.waitForFunction(() => WRITER === 'held' || WRITER === 'none', null, {timeout: 8000}).catch(() => {});
-  await o.evaluate(() => { record(QUESTIONS[4], 'correct', 0, 4000); saveNow(); });
-  check(await o.evaluate(() => !!document.getElementById('capwarn')), 'the next visit with the history past 20,000: the notice again');
+  await o.waitForTimeout(500);
+  check(await o.evaluate(() => !!document.getElementById('capwarn')), 'the next visit with the history past 20,000: the notice again, before any answer');
+  // a switch to another profile already past the cap: its notice, before any answer
+  await o.evaluate(() => { const t0 = Math.round(Date.now() / 1000) - 86400 * 300; const l = [];
+    for(let i = 0; i < LOG_MAX + 10; i++) l.push([t0 + i * 60, 'abcdef02', 1, 'quiz', 'seeded', 'knew', 'mc', 'concept', '', null]);
+    localStorage.setItem(NS + ':log:other-cap', JSON.stringify(l)); const w = document.getElementById('capwarn'); if(w) w.remove(); useProfile('other-cap'); });
+  await o.waitForFunction(() => PROFILE === 'other-cap' && (WRITER === 'held' || WRITER === 'none'), null, {timeout: 8000}).catch(() => {});
+  await o.waitForTimeout(500);
+  const sw = await o.evaluate(() => { const d = document.getElementById('capwarn'); return d ? d.textContent.slice(0, 80) : null; });
+  check(!!sw && /other-cap/.test(sw) && /20,010 entries/.test(sw), 'a switch to a profile already past 20,000: its notice, before any answer', sw);
+  await o.evaluate(n => useProfile(n), 'me');
+  await o.waitForFunction(() => PROFILE === 'me' && (WRITER === 'held' || WRITER === 'none'), null, {timeout: 8000}).catch(() => {});
   // Import's merge does not cut
   const merged = await o.evaluate(() => { const extra = []; for(let i = 0; i < 5; i++) extra.push([1 + i, 'fffffff' + i, 1, 'quiz', 'x', '', 'mc', 'concept', '', null]); return mergedLog(LOG, extra).length - LOG.length; });
   check(merged === 5, 'Import\'s merge past 20,000 entries cuts nothing (5 added, 5 more)', merged);

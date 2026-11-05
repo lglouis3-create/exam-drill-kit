@@ -789,7 +789,7 @@ function claimProfile(p){
   }).then(ok => {
     if(PROFILE !== p || gen !== claimGen) return;
     // this profile's NEW_LOG keeps entries answered while the lock was asked for: flushWaiting saves them now
-    if(ok){ WRITER = 'held'; newRecordTime(p); WROTE_SINCE_CLAIM = false; MARK = 0; flushWaiting(); settlePendingSoon(); }
+    if(ok){ WRITER = 'held'; newRecordTime(p); WROTE_SINCE_CLAIM = false; MARK = 0; flushWaiting(); settlePendingSoon(); capNotice(); }   // past LOG_MAX: asked once this tab writes the profile (the review of aa8ab12, N1)
     else if(WRITER === 'pending'){ WRITER = 'other'; WRITER_WHY = 'other'; EXAM_CLEAR_WAITING = ''; stopWall('other'); }
   });
 }
@@ -859,7 +859,7 @@ function takeOver(force){
         // drop it, so the Exam sim tab reads the paper from storage again
         try { if(typeof EX !== 'undefined' && EX){ clearInterval(EX.timer); EX = null; } } catch(e){}
         stopWall(null);
-        NEW_LOGS[p] = []; WROTE_SINCE_CLAIM = false; settlePendingSoon();
+        NEW_LOGS[p] = []; WROTE_SINCE_CLAIM = false; settlePendingSoon(); capNotice();
         if(KEPT_COPY){ KEPT_COPY = false; setTimeout(() => alert('The answers and settings this page had not saved are kept as a copy: Settings, "Put back the progress from …". The progress on screen now is the stored one.'), 0); }
         else if(addedLog) setTimeout(() => alert('The answer history entries this page had not saved are added to the saved answer history.'), 0);
         try { if(typeof show === 'function') show(typeof VIEW !== 'undefined' ? VIEW : 'study'); } catch(e){}
@@ -1457,10 +1457,15 @@ function trimOldest(){
   // the shorter history is written even while the progress write is refused (#47 holds history
   // then): it takes no room and frees some, which goes to the progress first (the review of
   // 159ae5c, M1: with storage full the removal wrote nothing and still said it had)
-  const ok = store.set(logKey(), JSON.stringify(LOG));
-  if(ok && FAILED.has(keyFor(PROFILE))) saveProgress();
-  if(ok) retryLog();
+  // only a history no longer than what is stored is written ahead of a refused progress: a longer
+  // one (entries held since storage filled) would take room the progress needs, so it goes through
+  // saveLog's rule instead (the review of aa8ab12)
+  const val = JSON.stringify(LOG), shorter = val.length <= (storedNow(logKey()) || '').length;
+  let ok;
+  if(shorter || !FAILED.has(keyFor(PROFILE))){ ok = store.set(logKey(), val); if(ok && FAILED.has(keyFor(PROFILE))) saveProgress(); if(ok) retryLog(); }
+  else { saveLog(); ok = !FAILED.has(logKey()); }
   try { refreshSaveWarn(); } catch(e){}
+  if(!ok){ const w = document.getElementById('capwarn'); if(w) w.remove(); }   // nothing more to remove here: the page holds 20,000
   if(!ok) alert('The oldest entries are removed on this page, but this browser did not save the shorter history (storage is full or blocked). It is kept on this page until you close or reload it; Export progress keeps it in a file.');
   return ok;
 }
