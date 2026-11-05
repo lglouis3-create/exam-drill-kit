@@ -83,7 +83,7 @@ let nfile = 0;
       sessionStorage.setItem('__seeded', '1');
       for(const [k, v] of Object.entries(s)) localStorage.setItem(k, v);
     } : undefined);
-    if(seed) { await o.page.close(); o.page = await o.ctx.newPage(); o.page.on('pageerror', e => o.errors.push(e.message)); o.page.on('dialog', d => d.accept()); }
+    if(seed) { await o.page.close(); o.page = await o.ctx.newPage(); o.page.on('pageerror', e => o.errors.push(e.message)); o.page.on('dialog', d => d.accept().catch(() => {})); }
     return o;
   };
   // the page with init scripts set before load (open() above seeds through an init script on the context)
@@ -101,7 +101,7 @@ let nfile = 0;
     }, [seed]);
     const page = await ctx.newPage(), errors = [], dialogs = [];
     page.on('pageerror', e => errors.push(e.message));
-    page.on('dialog', d => { dialogs.push(d.message()); d.accept(); });
+    page.on('dialog', d => { dialogs.push(d.message()); d.accept().catch(() => {}); });   // a dialog shown as its page closes cannot be accepted (WebKit, run 41943489826)
     await page.goto(await L.pageUrl(L.PAGE.PAGE));
     await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
     return {ctx, page, errors, dialogs};
@@ -583,7 +583,7 @@ let nfile = 0;
   {
     const d = await device(); const di = await info(d.page);
     const tab2 = await d.ctx.newPage();
-    tab2.on('dialog', x => x.accept());
+    tab2.on('dialog', x => x.accept().catch(() => {}));
     await tab2.goto(d.page.url());
     await tab2.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
     // this tab opened the profile with no progress; the other tab answers 3 and saves
@@ -617,7 +617,7 @@ let nfile = 0;
     const d = await device(); const di = await info(d.page);
     await answer(d.page, 2, 0);
     const tab2 = await d.ctx.newPage();
-    tab2.on('dialog', x => x.accept());
+    tab2.on('dialog', x => x.accept().catch(() => {}));
     await tab2.goto(d.page.url());
     await tab2.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
     const g = later(await exportOf(d.page), 2);
@@ -658,7 +658,7 @@ let nfile = 0;
     const d = await device(); const di = await info(d.page);
     await answer(d.page, 2, 0);
     const tab2 = await d.ctx.newPage();
-    tab2.on('dialog', x => x.accept());
+    tab2.on('dialog', x => x.accept().catch(() => {}));
     await tab2.goto(d.page.url());
     await tab2.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
     await answer(tab2, 3, 2);                                       // the other tab: 5 answers stored
@@ -690,7 +690,7 @@ let nfile = 0;
     await answer(d.page, 3, 0);
     const base = await exportOf(d.page);
     const tab2 = await d.ctx.newPage(); const said2 = [];
-    tab2.on('dialog', x => { said2.push(x.message()); x.accept(); });
+    tab2.on('dialog', x => { said2.push(x.message()); x.accept().catch(() => {}); });
     await tab2.goto(d.page.url());
     await tab2.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
     const H = JSON.parse(JSON.stringify(base)); H.log.push([H.log[2][0] + 11, 'aaaaaaaa', 1, 'quiz']);
@@ -715,7 +715,7 @@ let nfile = 0;
     const d = await device(); const di = await info(d.page);
     await answer(d.page, 2, 0);
     const tab2 = await d.ctx.newPage(); const said2 = [];
-    tab2.on('dialog', x => { said2.push(x.message()); x.accept(); });
+    tab2.on('dialog', x => { said2.push(x.message()); x.accept().catch(() => {}); });
     await tab2.goto(d.page.url());
     await tab2.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
     const rr = await choose(d.page, later(await exportOf(d.page), 2), true);   // this tab replaces; a copy is kept
@@ -984,7 +984,7 @@ let nfile = 0;
   // a second tab of d's browser, on the drill
   const secondTab = async d => {
     const t = await d.ctx.newPage();
-    t.on('dialog', x => x.accept());
+    t.on('dialog', x => x.accept().catch(() => {}));
     await t.goto(d.page.url());
     await t.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
     return t;
@@ -1485,7 +1485,7 @@ let nfile = 0;
     await t2.evaluate(() => takeOver(true));
     await d.page.waitForFunction(() => WRITER === 'other', null, {timeout: 5000}).catch(() => {});
     const n0 = d.dialogs.length;
-    d.page.removeAllListeners('dialog'); d.page.on('dialog', x => { d.dialogs.push(x.message()); x.dismiss(); });
+    d.page.removeAllListeners('dialog'); d.page.on('dialog', x => { d.dialogs.push(x.message()); x.dismiss().catch(() => {}); });
     await d.page.evaluate(() => { const b = document.getElementById('stopReload'); if(b) b.click(); });
     check(/lost on reload unless you export/.test(d.dialogs.slice(n0).join(' ')) && await d.page.evaluate(() => DB.answers.length) === 3,
       'Reload on a stopped page with unsaved answers asks first; cancelled, the page and its answers stay', d.dialogs.slice(n0));
@@ -1618,7 +1618,7 @@ let nfile = 0;
     await t2.evaluate(() => takeOver(true));
     await d.page.waitForFunction(() => WRITER === 'other', null, {timeout: 5000}).catch(() => {});
     const msgs = [];
-    d.page.removeAllListeners('dialog'); d.page.on('dialog', x => { msgs.push(x.message()); x.dismiss(); });
+    d.page.removeAllListeners('dialog'); d.page.on('dialog', x => { msgs.push(x.message()); x.dismiss().catch(() => {}); });
     await d.page.evaluate(() => { offerReload('A new version is ready.'); const b = document.querySelector('#swbar button'); if(b) b.click(); });
     const asked1 = /lost on reload/.test(msgs.join(' ')) && await d.page.evaluate(() => DB.answers.length) === 3;
     // export, then one more unsaved change: Reload asks again
@@ -1999,6 +1999,9 @@ let nfile = 0;
     await t2.waitForFunction(() => WRITER === 'held', null, {timeout: 9000}).catch(() => {});
     const yHeld = await t2.evaluate(() => WRITER);
     await answerHere(t2, 4);                                           // Y writes over X's last save
+    // X's view of storage gets Y's write a moment later (in WebKit in GitHub run 41943489826 it had
+    // not yet when read at once): wait until X's view no longer holds its last answer
+    await d.page.waitForFunction(([k, at]) => { try { return !JSON.parse(localStorage.getItem(k)).answers.some(a => a.at === at); } catch(e){ return false; } }, [di.data, last], {timeout: 5000}).catch(() => {});
     const overwritten = !(await keptAnywhere(d.page, di, last)).live;
     await t2.close();
     let back = '', tries = 0;
