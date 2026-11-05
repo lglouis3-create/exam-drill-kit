@@ -879,6 +879,7 @@ function runImport(plan){
     db.settings = Object.assign({}, db.settings || {});
     for(const k of IMPORT_DEVICE){ if(DB.settings && k in DB.settings) db.settings[k] = DB.settings[k]; else delete db.settings[k]; }
     const dbText = JSON.stringify(db);
+    pendingMark();
     if(!store.trySet(keyFor(PROFILE), dbText)){
       // the copy written just before is not needed: the list goes back as it was
       let undone = now === null;
@@ -889,6 +890,7 @@ function runImport(plan){
     }
     clearTimeout(saveTimer); saveTimer = null;
     SEEN = dbText;
+    pendingRetire();   // other tabs' older records of this profile cannot bring back what was replaced
     DB = db;
     try { fsFromHistory(); } catch(e){ FS_ERROR = String(e && e.message || e); }
     text = `Imported: "${esc(PROFILE)}" now has the file's progress (${nAnswers(db.answers.length)}). The progress it replaced is kept; Settings can put it back.`;
@@ -963,6 +965,7 @@ function restoreBackup(){
   const now = store.get(keyFor(PROFILE));
   const withNow = now === null ? copies : copies.concat([{at: Date.now(), data: now, why: 'put back'}]);
   if(now !== null && !store.trySet(backupKey(PROFILE), JSON.stringify(withNow))){ alert(refused); return; }       // (1)
+  pendingMark();
   if(!store.trySet(keyFor(PROFILE), b.data)){                                                                      // (2)
     // the list as it was; if that is refused too, the list keeps the extra copy of the progress on screen
     const undone = now === null || store.trySet(backupKey(PROFILE), JSON.stringify(copies));
@@ -972,6 +975,7 @@ function restoreBackup(){
   }
   clearTimeout(saveTimer); saveTimer = null;
   SEEN = b.data;
+  pendingRetire();
   DB = db;
   try { fsFromHistory(); } catch(e){ FS_ERROR = String(e && e.message || e); }
   // a copy kept by "Use it here" may hold history entries that were never stored: they go into the
@@ -1008,6 +1012,7 @@ function deleteCopies(){
   if(changedElsewhere()){ staleWarn(); alert(elsewhereShort() + ', so nothing was deleted. Reload this page first.'); return; }
   if(storedRaw(backupKey(PROFILE)) !== copiesRaw){ alert(COPIES_CHANGED + ' nothing was deleted. Reload this page first.'); return; }
   store.del(backupKey(PROFILE));
+  pendingRetire();
   renderSettings();
 }
 function backupNote(){
@@ -2966,7 +2971,7 @@ function renderSettings(){
       // the question may have stayed open while another tab or window saved this profile
       if(changedElsewhere()){ staleWarn(); alert(elsewhereShort() + ', so nothing was erased. Reload this page first.'); return; }
       // erasing replaces a stored history that could not be read, too
-      DB = BLANK(); save(); LOG = []; LOG_OK = true; saveLog(); alert('History erased.'); renderSettings();
+      DB = BLANK(); save(); LOG = []; LOG_OK = true; saveLog(); pendingRetire(); alert('History erased.'); renderSettings();
     }
   };
 }

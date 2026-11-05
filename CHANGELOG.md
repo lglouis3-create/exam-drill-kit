@@ -8,6 +8,7 @@ Dated kit changes, newest first.
 - `core/storage_use_test.js` checks the figures, the warning on each side of its boundary and the estimate wording.
 - Storage in Settings: the Chromium limit is given as measured exactly (5,242,880 characters, UTF-16 units, per origin); each writing tab's pending records have a line of their own; another drill's items name its namespace; a preview page counts and deletes the same copies.
 - A profile switch away and straight back no longer leaves the page read-only behind the "open in another tab" wall.
+- A tab that closes or reloads without handing over its profile no longer loses its last save to the next tab: each writing tab keeps that save in a record only it writes; the next tab starts from it, or keeps it as a copy (Put back) when it has saved since. Records are removed only after they are read back as stored and 60 s have passed.
 
 ## 2026-11-03
 - Import progress shows what a file holds and would change, and saves only when confirmed.

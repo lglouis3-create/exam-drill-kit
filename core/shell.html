@@ -229,10 +229,10 @@ body.swbar-on{padding-bottom:76px}
 
 /* ---------- the notices shown once when the browser refuses to save, and when
    the saved progress could not be loaded ---------- */
-#savewarn,#loadwarn{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:50;
+#savewarn,#loadwarn,#pendingnote{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:50;
   max-width:720px;margin:0 auto;background:var(--warn-bg);color:var(--text);border:1px solid var(--warn);
   border-radius:8px;padding:10px 12px;font-size:14px;line-height:1.45;box-shadow:0 2px 10px rgba(0,0,0,.25)}
-#savewarn .btn,#loadwarn .btn{margin-left:8px;padding:4px 10px;font-size:13px}
+#savewarn .btn,#loadwarn .btn,#pendingnote .btn{margin-left:8px;padding:4px 10px;font-size:13px}
 /* a page that has stopped saving (another tab has the profile, or saved it since): the
    page takes no answers until it can save again, so nothing is studied unsaved */
 #stopwall,#stalewarn{position:fixed;inset:0;z-index:60;background:rgba(10,16,24,.62);display:flex;align-items:center;
@@ -593,15 +593,15 @@ const store = {
   // stored, so a later save by another tab still shows as one
   set(k, v){
     MEM[k] = v;
-    try { localStorage.setItem(k, v); FAILED.delete(k); KEPT[k] = v; seenAs(k, v); return true; }
+    try { localStorage.setItem(k, v); FAILED.delete(k); KEPT[k] = v; seenAs(k, v); pendingAfter(k, v); return true; }
     catch(e){ FAILED.add(k); saveWarn(); return false; }
   },
-  del(k){ delete MEM[k]; FAILED.delete(k); KEPT[k] = null; seenAs(k, null); try { localStorage.removeItem(k); } catch(e){ /* nothing to remove */ } },
+  del(k){ delete MEM[k]; FAILED.delete(k); KEPT[k] = null; seenAs(k, null); try { localStorage.removeItem(k); } catch(e){ /* nothing to remove */ } pendingAfter(k, null); },
   // Import's writes: true when the browser kept it; false when it refused, and then
   // nothing changes, not even the copy kept for this visit, so a refused import
   // leaves the progress on screen and in storage exactly as it was
   trySet(k, v){
-    try { localStorage.setItem(k, v); MEM[k] = v; FAILED.delete(k); KEPT[k] = v; seenAs(k, v); return true; }
+    try { localStorage.setItem(k, v); MEM[k] = v; FAILED.delete(k); KEPT[k] = v; seenAs(k, v); pendingAfter(k, v); return true; }
     catch(e){ return false; }
   },
 };
@@ -723,6 +723,7 @@ function claimProfile(p){
   if(WRITER === 'held' && WRITER_FOR === p) return;
   if(writerRelease){ FREED = {p: WRITER_FOR, at: Date.now()}; writerRelease(); }
   WRITER = 'pending'; WRITER_FOR = '';
+  NEW_LOGS[p] = [];   // a new time on this profile: entries from an earlier time on it are not this record's
   stopWall(null);
   // several switches in one moment start several claims: only the newest decides (an older one
   // finding its request superseded would otherwise draw the wall over a page that writes)
@@ -735,7 +736,8 @@ function claimProfile(p){
     return ok;
   }).then(ok => {
     if(PROFILE !== p || gen !== claimGen) return;
-    if(ok){ WRITER = 'held'; flushWaiting(); }
+    // this profile's NEW_LOG keeps entries answered while the lock was asked for: flushWaiting saves them now
+    if(ok){ WRITER = 'held'; newRecordTime(p); WROTE_SINCE_CLAIM = false; MARK = 0; flushWaiting(); settlePendingSoon(); }
     else if(WRITER === 'pending'){ WRITER = 'other'; WRITER_WHY = 'other'; EXAM_CLEAR_WAITING = ''; stopWall('other'); }
   });
 }
@@ -765,7 +767,7 @@ function takeOver(force){
       const keys = gave ? Object.keys(gave) : [];
       if(keys.every(k => storedNow(k) === gave[k])){
         finish(null);
-        WRITER = 'held'; WRITER_FOR = p; STALE_WARNED = false;
+        WRITER = 'held'; WRITER_FOR = p; STALE_WARNED = false; newRecordTime(p);
         if(keepMine !== null){
           // the two records are not combined: this page's is added to the copies Import keeps
           // (Settings, Put back), then the stored one is opened; refused, nothing is taken over
@@ -787,6 +789,7 @@ function takeOver(force){
         // drop it, so the Exam sim tab reads the paper from storage again
         try { if(typeof EX !== 'undefined' && EX){ clearInterval(EX.timer); EX = null; } } catch(e){}
         stopWall(null);
+        NEW_LOGS[p] = []; WROTE_SINCE_CLAIM = false; settlePendingSoon();
         if(KEPT_COPY){ KEPT_COPY = false; setTimeout(() => alert('The answers and settings this page had not saved are kept as a copy: Settings, "Put back the progress from …". The progress on screen now is the stored one.'), 0); }
         try { if(typeof show === 'function') show(typeof VIEW !== 'undefined' ? VIEW : 'study'); } catch(e){}
         return;
@@ -809,6 +812,236 @@ if(writerChan) writerChan.addEventListener('message', e => {
   if(writerRelease) writerRelease();
   writerChan.postMessage({type: 'gave', p: PROFILE, to: m.from, vals});
   stopWall('gave');
+});
+/* ---------- Each writing tab's last save, in a key only it writes (2026-11-04) ----------
+   The writer lock leaves one gap (core/README.md): a writer that closes, reloads or switches
+   without handing over may have saved last in a moment its save had not reached the tab that
+   takes over, which then writes over it. So with each save of the progress the writing tab also
+   writes `<ns>:pending:<profile>:<tab>` = {at, db, log}: db the progress it stored (an object),
+   log the history entries it added since it took the profile. No other tab writes that key, so
+   a save written over under the profile's own key is still there.
+   The tab that takes the lock reads every other tab's record of its profile, oldest first, at
+   once, 1.5 s later, and on each storage event for such a key. A record's place in the stored
+   progress is found by its last answer, compared field by field (never question and time alone),
+   which also works once the oldest answers are cut at ANSWERS_MAX:
+   - its last answer is in the stored progress, before the stored last answer: the stored
+     progress continued from it (later answers): nothing to add;
+   - it is the stored last answer, or the record has no answers: equal progress, nothing to add;
+     different progress (a setting, a module's part): one more copy Import keeps (Put back);
+   - its last answer is not stored: the save that was written over. If the stored last answer is
+     in the record (the record continues what is stored) and this tab has written and changed
+     nothing since it took the profile, the record becomes the progress; otherwise it is one more
+     copy Import keeps. Either way with a notice; nothing is mixed.
+   The record's history entries that the stored history lacks are added to it; entries are
+   compared on every field but the confidence one ("Not sure" changes that one later), and as
+   many times as they occur, so two identical attempts stay two.
+   Erase, Put back, an Import that replaces the progress and Delete the copies retire the other
+   tabs' records of the profile (their content is older than what the student chose), so none of
+   them can bring back what was erased, put back, replaced or deleted.
+   Cleanup: a record is removed only when what is stored, read back, holds it as above (in the
+   progress or a copy, and every history entry), and only on a later check at least 60 s after
+   that was first found, with the record unchanged in between; the first-found time is kept in
+   `<ns>:pending-seen:<profile>`, so a reload does not start the wait again. A record that changed
+   is checked again; one that cannot be read is left as it is. Without Web Locks no record is kept. */
+// NEW_LOG: per profile, the history entries this tab added since it took that profile (ChatGPT's review
+// of c9254dc: one list for the tab carried profile A's entries into profile B's record after a switch)
+const NEW_LOGS = {};
+const newLog = () => (NEW_LOGS[PROFILE] = NEW_LOGS[PROFILE] || []);
+let WROTE_SINCE_CLAIM = false;   // this tab wrote the progress since it took the profile
+let MARK = 0;                                   // when this tab last erased, put back or replaced by Import
+let SETTLING = false;                          // the settling's own writes are not this tab's
+function pendingKey(p, tab){ return NS + ':pending:' + p + ':' + tab; }
+/* This tab's record key for its present time on a profile. A tab that takes a profile again while a
+   record of its earlier time on it is still stored writes under a new key, so that earlier record is
+   never written over: it is then checked, placed and removed like another tab's record (the review
+   of d325326: a tab back on a profile overwrote its own earlier record unchecked). */
+const REC_KEY = {};
+let REC_N = 0;
+const myPendingKey = () => pendingKey(PROFILE, REC_KEY[PROFILE] || TAB_ID);
+function newRecordTime(p){
+  let kept = true;   // when it cannot be read, the earlier record is assumed to be there
+  try { kept = localStorage.getItem(pendingKey(p, REC_KEY[p] || TAB_ID)) !== null; } catch(e){}
+  if(kept) REC_KEY[p] = TAB_ID + '.' + (++REC_N);
+}
+const seenKeyOf = p => NS + ':pending-seen:' + p;
+function pendingAfter(k, v){
+  try {
+    if(WRITER !== 'held' || WRITER_FOR !== PROFILE || k !== keyFor(PROFILE)) return;
+    if(!SETTLING) WROTE_SINCE_CLAIM = true;
+    if(v === null){ localStorage.removeItem(myPendingKey()); return; }
+    localStorage.setItem(myPendingKey(), '{"at":' + Date.now() + (MARK ? ',"mark":' + MARK : '') + ',"db":' + v + ',"log":' + JSON.stringify(newLog()) + '}');
+  } catch(e){ /* before start-up, or storage full: this save has no record of its own */ }
+}
+/* The other tabs' records of profile p go (Erase, Put back, a replacing Import, Delete the copies). */
+/* Erase, Put back and a replacing Import call this before they write, so the record written with
+   that write already carries the mark (the review of c9254dc, P2). */
+function pendingMark(){ MARK = Date.now(); }
+function pendingRetire(){
+  // nothing is deleted: a record seen now is older than what the student chose and is not placed
+  // again while it stays as it is; a record that changes after this (a newer save of a leaving tab
+  // arriving late) is placed as usual, and is kept as a copy, since this tab has written since
+  MARK = Date.now();
+  try {
+    const pre = NS + ':pending:' + PROFILE + ':', mine = myPendingKey();
+    const seen = readSeen();
+    for(let i = 0; i < localStorage.length; i++){
+      const k = localStorage.key(i);
+      if(!k || !k.startsWith(pre) || k === mine) continue;
+      const raw = localStorage.getItem(k);
+      if(raw !== null && !(seen[k] && seen[k].fp === fpOf(raw))) seen[k] = {fp: fpOf(raw), t: Date.now(), done: true};
+    }
+    writeSeen(seen);
+    NEW_LOGS[PROFILE] = [];
+  } catch(e){}
+}
+// a record's fingerprint: its length and two hashes over every character (a changed record differs)
+const fpOf = raw => { let h1 = 0, h2 = 5381; for(let i = 0; i < raw.length; i++){ const c = raw.charCodeAt(i); h1 = (h1 * 31 + c) | 0; h2 = ((h2 << 5) + h2 + c) | 0; } return raw.length + ':' + h1 + ':' + h2; };
+function readSeen(){ try { return JSON.parse(storedNow(seenKeyOf(PROFILE)) || '{}') || {}; } catch(e){ return {}; } }
+function writeSeen(seen){ try { if(Object.keys(seen).length) localStorage.setItem(seenKeyOf(PROFILE), JSON.stringify(seen)); else localStorage.removeItem(seenKeyOf(PROFILE)); } catch(e){} }
+const answerSign = a => JSON.stringify(Object.keys(a).sort().map(x => [x, a[x]]));
+const entrySign = e => JSON.stringify(e.map((x, i) => i === 5 ? null : x));   // all but the confidence
+let PENDING_TIMER = 0;
+function settlePendingSoon(){
+  settlePending();
+  clearTimeout(PENDING_TIMER);
+  PENDING_TIMER = setTimeout(settlePending, 1500);   // a record that arrives a moment later
+}
+function settlePending(){
+  if(WRITER !== 'held' || WRITER_FOR !== PROFILE || !canSave()) return;
+  const pre = NS + ':pending:' + PROFILE + ':', mine = myPendingKey(), recs = [];
+  try {
+    for(let i = 0; i < localStorage.length; i++){
+      const k = localStorage.key(i);
+      if(!k || !k.startsWith(pre) || k === mine) continue;
+      const raw = localStorage.getItem(k);
+      let rec = null; try { rec = JSON.parse(raw); } catch(e){}
+      if(rec && rec.db && typeof rec.db === 'object' && Array.isArray(rec.db.answers)) recs.push({k, raw, rec});
+    }
+  } catch(e){ return; }
+  recs.sort((x, y) => (x.rec.at || 0) - (y.rec.at || 0));   // oldest first: a later record can continue an earlier one
+  const seen = readSeen();
+  for(const r of recs){
+    try {
+      const prev = seen[r.k];
+      if(prev && prev.fp === fpOf(r.raw) && prev.done){ pendingDone(r.k, r.raw, r.rec, true); continue; }   // handled before, unchanged
+      settleOne(r.k, r.raw, r.rec);
+    } catch(e){ console.error('A tab\'s pending record could not be checked; it is left as it is.', e); }
+  }
+}
+function storedLogEntries(){ try { const v = JSON.parse(storedNow(logKey()) || '[]'); return Array.isArray(v) ? v : null; } catch(e){ return null; } }
+/* The record's entries the stored history lacks, counted (two identical attempts are two). */
+function missingEntries(entries, have){
+  const count = new Map();
+  for(const e of have){ if(Array.isArray(e)){ const s = entrySign(e); count.set(s, (count.get(s) || 0) + 1); } }
+  const out = [];
+  for(const e of entries){ const s = entrySign(e); const n = count.get(s) || 0; if(n > 0) count.set(s, n - 1); else out.push(e); }
+  return out;
+}
+function readCopiesList(){
+  try { const v = storedNow(NS + ':backup:' + PROFILE); const l = v ? JSON.parse(v) : []; return Array.isArray(l) ? l : [l]; } catch(e){ return null; }
+}
+/* Where the record stands against what is stored: 'in', 'conflict' (same point, other progress),
+   'continues' (its last answer missing; the record holds the stored last answer) or 'apart'. */
+function placeOf(rec, st){
+  const pAns = rec.db.answers, sAns = st && Array.isArray(st.answers) ? st.answers : [];
+  const dbStr = JSON.stringify(rec.db), stStr = st ? JSON.stringify(st) : null;
+  if(dbStr === stStr) return 'in';
+  if(!pAns.length) return sAns.length && !rec.mark ? 'in' : 'conflict';
+  const last = answerSign(pAns[pAns.length - 1]);
+  let idx = -1;
+  for(let i = sAns.length - 1; i >= 0; i--) if(answerSign(sAns[i]) === last){ idx = i; break; }
+  if(idx >= 0){
+    if(idx === sAns.length - 1) return 'conflict';
+    // the stored progress went on from the record's last answer: nothing to add, unless the record
+    // carries a choice of its own the later progress does not show (a setting; Erase, Put back or
+    // a replacing Import in that tab), which is then kept as a copy
+    if(rec.mark || JSON.stringify(rec.db.settings || {}) !== JSON.stringify((st && st.settings) || {})) return 'apart';
+    return 'in';
+  }
+  if(!sAns.length) return 'continues';
+  const sLast = answerSign(sAns[sAns.length - 1]);
+  return pAns.some(a => answerSign(a) === sLast) ? 'continues' : 'apart';
+}
+function settleOne(k, raw, rec){
+  // its history entries first: added; a refused write leaves the record for a later check
+  let logOk = true;
+  const entries = Array.isArray(rec.log) ? rec.log.filter(Array.isArray) : [];
+  if(entries.length){
+    const have = storedLogEntries();
+    if(have === null) logOk = false;
+    else {
+      const add = missingEntries(entries, have);
+      if(add.length){
+        const merged = have.concat(add).sort((x, y) => x[0] - y[0]);
+        SETTLING = true;
+        try { if(store.trySet(logKey(), JSON.stringify(merged))) LOG = merged; else logOk = false; } finally { SETTLING = false; }
+      }
+    }
+  }
+  let st = null;
+  try { const v = storedNow(keyFor(PROFILE)); st = v ? JSON.parse(v) : null; } catch(e){ return; }
+  const place = placeOf(rec, st), dbStr = JSON.stringify(rec.db);
+  const unchangedHere = !WROTE_SINCE_CLAIM && JSON.stringify(DB) === (SEEN === null ? LOADED_DB : SEEN) && !FAILED.has(keyFor(PROFILE));
+  if(place === 'continues' && unchangedHere){
+    SETTLING = true;
+    let ok = false;
+    try { ok = store.trySet(keyFor(PROFILE), dbStr); } finally { SETTLING = false; }
+    if(!ok) return;
+    load();
+    pendingNotice('A tab of this profile that closed or reloaded had saved answers this page had not received yet. Its progress is now the progress on screen; nothing was lost.');
+    try { if(typeof show === 'function') show(typeof VIEW !== 'undefined' ? VIEW : 'quiz'); } catch(e){}
+  } else if(place === 'continues' || place === 'apart' || place === 'conflict'){
+    const list = readCopiesList();
+    if(list === null) return;
+    if(!list.some(c => c && c.data === dbStr)){
+      SETTLING = true;
+      let ok = false;
+      try { ok = store.trySet(NS + ':backup:' + PROFILE, JSON.stringify(list.concat([{at: rec.at || Date.now(), data: dbStr, why: 'another tab\'s last save'}]))); } finally { SETTLING = false; }
+      if(!ok) return;
+      pendingNotice('A tab of this profile that closed or reloaded had saved progress that differs from this page\'s. It is kept as a copy: Settings, "Put back the progress from …". Nothing was mixed.');
+    }
+  }
+  if(logOk) pendingDone(k, raw, rec);
+}
+/* The record's key goes only once what is stored holds it (read back), on a later check. */
+const PENDING_WAIT = 60000;
+function pendingDone(k, raw, rec, handled){
+  let st = null;
+  try { const v = storedNow(keyFor(PROFILE)); st = v ? JSON.parse(v) : null; } catch(e){ return; }
+  const place = placeOf(rec, st), dbStr = JSON.stringify(rec.db), list = readCopiesList();
+  // removed only with proof that its content is stored (in the progress or a copy); "handled" only
+  // stops it being placed again, it is never a reason to remove it (the review of c9254dc)
+  const progressIn = place === 'in' || (list !== null && list.some(c => c && c.data === dbStr));
+  const have = storedLogEntries();
+  const logIn = have !== null && missingEntries(Array.isArray(rec.log) ? rec.log.filter(Array.isArray) : [], have).length === 0;
+  const seen = readSeen();
+  const fp = fpOf(raw), prev = seen[k];
+  // once proven stored, the proof stands for that exact record (this tab's later writes move the
+  // stored progress on, and must not keep it for ever; the review of 77e97f2)
+  const proven = (progressIn && logIn) || !!(prev && prev.proven && prev.fp === fp);
+  if(!proven) return;
+  if(prev && prev.fp === fp && Date.now() - prev.t >= PENDING_WAIT){
+    if(storedNow(k) === raw){ try { localStorage.removeItem(k); } catch(e){} }
+    delete seen[k];
+  } else if(!prev || prev.fp !== fp || !prev.proven){
+    seen[k] = {fp, t: prev && prev.fp === fp && prev.proven ? prev.t : Date.now(), done: true, proven: true};   // proven: removed 60 s on if unchanged
+    setTimeout(settlePending, PENDING_WAIT + 1000);
+  } else return;
+  writeSeen(seen);
+}
+let PENDING_NOTE = null;
+function pendingNotice(text){
+  if(!document.body) return;
+  if(PENDING_NOTE) PENDING_NOTE.remove();
+  const d = PENDING_NOTE = document.createElement('div');
+  d.id = 'pendingnote'; d.setAttribute('role', 'status');
+  d.textContent = text + ' ';
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'btn ghost'; b.textContent = 'OK';
+  b.onclick = () => { d.remove(); if(PENDING_NOTE === d) PENDING_NOTE = null; };
+  d.appendChild(b); document.body.appendChild(d);
+}
+if(typeof window.addEventListener === 'function') window.addEventListener('storage', e => {   // absent in the checks run without a browser
+  try { if(e.key && e.key.startsWith(NS + ':pending:' + PROFILE + ':')) settlePending(); } catch(err){}
 });
 /* What this page holds that is not what it last read from storage or had kept there. */
 function unsavedHere(){
@@ -1084,6 +1317,8 @@ function logAnswer(q, result, mode, how){
   const recall = typeof how.recall === 'number' && isFinite(how.recall) ? Math.round(how.recall * 10000) / 10000 : null;
   LOG.push([Math.round(Date.now() / 1000), cardCode(q.id), result === 'wrong' ? 0 : 1, mode, q.concept, conf, itemType(q),
             how.model || 'concept', how.arm || '', recall]);
+  newLog().push(LOG[LOG.length - 1]);   // the same entry: a later "Not sure" changes it in both
+  MARK = 0;                            // a new last answer places this tab's record from now on
   if(LOG.length > LOG_MAX) LOG.splice(0, LOG.length - LOG_MAX);
   saveLog();
 }

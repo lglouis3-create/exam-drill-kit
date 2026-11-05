@@ -83,7 +83,7 @@ let nfile = 0;
       sessionStorage.setItem('__seeded', '1');
       for(const [k, v] of Object.entries(s)) localStorage.setItem(k, v);
     } : undefined);
-    if(seed) { await o.page.close(); o.page = await o.ctx.newPage(); o.page.on('pageerror', e => o.errors.push(e.message)); o.page.on('dialog', d => d.accept()); }
+    if(seed) { await o.page.close(); o.page = await o.ctx.newPage(); o.page.on('pageerror', e => o.errors.push(e.message)); o.page.on('dialog', d => d.accept().catch(() => {})); }
     return o;
   };
   // the page with init scripts set before load (open() above seeds through an init script on the context)
@@ -101,7 +101,7 @@ let nfile = 0;
     }, [seed]);
     const page = await ctx.newPage(), errors = [], dialogs = [];
     page.on('pageerror', e => errors.push(e.message));
-    page.on('dialog', d => { dialogs.push(d.message()); d.accept(); });
+    page.on('dialog', d => { dialogs.push(d.message()); d.accept().catch(() => {}); });   // a dialog shown as its page closes cannot be accepted (WebKit, run 41943489826)
     await page.goto(await L.pageUrl(L.PAGE.PAGE));
     await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
     return {ctx, page, errors, dialogs};
@@ -583,7 +583,7 @@ let nfile = 0;
   {
     const d = await device(); const di = await info(d.page);
     const tab2 = await d.ctx.newPage();
-    tab2.on('dialog', x => x.accept());
+    tab2.on('dialog', x => x.accept().catch(() => {}));
     await tab2.goto(d.page.url());
     await tab2.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
     // this tab opened the profile with no progress; the other tab answers 3 and saves
@@ -617,7 +617,7 @@ let nfile = 0;
     const d = await device(); const di = await info(d.page);
     await answer(d.page, 2, 0);
     const tab2 = await d.ctx.newPage();
-    tab2.on('dialog', x => x.accept());
+    tab2.on('dialog', x => x.accept().catch(() => {}));
     await tab2.goto(d.page.url());
     await tab2.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
     const g = later(await exportOf(d.page), 2);
@@ -658,7 +658,7 @@ let nfile = 0;
     const d = await device(); const di = await info(d.page);
     await answer(d.page, 2, 0);
     const tab2 = await d.ctx.newPage();
-    tab2.on('dialog', x => x.accept());
+    tab2.on('dialog', x => x.accept().catch(() => {}));
     await tab2.goto(d.page.url());
     await tab2.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
     await answer(tab2, 3, 2);                                       // the other tab: 5 answers stored
@@ -690,7 +690,7 @@ let nfile = 0;
     await answer(d.page, 3, 0);
     const base = await exportOf(d.page);
     const tab2 = await d.ctx.newPage(); const said2 = [];
-    tab2.on('dialog', x => { said2.push(x.message()); x.accept(); });
+    tab2.on('dialog', x => { said2.push(x.message()); x.accept().catch(() => {}); });
     await tab2.goto(d.page.url());
     await tab2.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
     const H = JSON.parse(JSON.stringify(base)); H.log.push([H.log[2][0] + 11, 'aaaaaaaa', 1, 'quiz']);
@@ -715,7 +715,7 @@ let nfile = 0;
     const d = await device(); const di = await info(d.page);
     await answer(d.page, 2, 0);
     const tab2 = await d.ctx.newPage(); const said2 = [];
-    tab2.on('dialog', x => { said2.push(x.message()); x.accept(); });
+    tab2.on('dialog', x => { said2.push(x.message()); x.accept().catch(() => {}); });
     await tab2.goto(d.page.url());
     await tab2.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
     const rr = await choose(d.page, later(await exportOf(d.page), 2), true);   // this tab replaces; a copy is kept
@@ -984,7 +984,7 @@ let nfile = 0;
   // a second tab of d's browser, on the drill
   const secondTab = async d => {
     const t = await d.ctx.newPage();
-    t.on('dialog', x => x.accept());
+    t.on('dialog', x => x.accept().catch(() => {}));
     await t.goto(d.page.url());
     await t.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
     return t;
@@ -1485,7 +1485,7 @@ let nfile = 0;
     await t2.evaluate(() => takeOver(true));
     await d.page.waitForFunction(() => WRITER === 'other', null, {timeout: 5000}).catch(() => {});
     const n0 = d.dialogs.length;
-    d.page.removeAllListeners('dialog'); d.page.on('dialog', x => { d.dialogs.push(x.message()); x.dismiss(); });
+    d.page.removeAllListeners('dialog'); d.page.on('dialog', x => { d.dialogs.push(x.message()); x.dismiss().catch(() => {}); });
     await d.page.evaluate(() => { const b = document.getElementById('stopReload'); if(b) b.click(); });
     check(/lost on reload unless you export/.test(d.dialogs.slice(n0).join(' ')) && await d.page.evaluate(() => DB.answers.length) === 3,
       'Reload on a stopped page with unsaved answers asks first; cancelled, the page and its answers stay', d.dialogs.slice(n0));
@@ -1618,7 +1618,7 @@ let nfile = 0;
     await t2.evaluate(() => takeOver(true));
     await d.page.waitForFunction(() => WRITER === 'other', null, {timeout: 5000}).catch(() => {});
     const msgs = [];
-    d.page.removeAllListeners('dialog'); d.page.on('dialog', x => { msgs.push(x.message()); x.dismiss(); });
+    d.page.removeAllListeners('dialog'); d.page.on('dialog', x => { msgs.push(x.message()); x.dismiss().catch(() => {}); });
     await d.page.evaluate(() => { offerReload('A new version is ready.'); const b = document.querySelector('#swbar button'); if(b) b.click(); });
     const asked1 = /lost on reload/.test(msgs.join(' ')) && await d.page.evaluate(() => DB.answers.length) === 3;
     // export, then one more unsaved change: Reload asks again
@@ -1749,6 +1749,449 @@ let nfile = 0;
     const copies = JSON.parse(await stored(d.page, di.backup) || '[]');
     const inCopy = copies.some(c => { try { return JSON.parse(c.data).answers.some(a => a.at === mine); } catch(e){ return false; } });
     check(unsaved && offered && inCopy, 'a refused save, the profile opened again, then taken over: it still counts as unsaved, and taking it back keeps the answer as a copy', {unsaved, offered, inCopy});
+    await d.ctx.close();
+  }
+
+  console.log('\n=== A writer that leaves without handing over: its last save in a key only it writes ===');
+  const keptAnywhere = async (p, di, at) => {                   // in the stored progress or in a kept copy
+    const prog = JSON.parse(await stored(p, di.data) || '{"answers":[]}');
+    const copies = JSON.parse(await stored(p, di.backup) || '[]');
+    const has = db => (db.answers || []).some(a => a.at === at);
+    return {live: has(prog), copy: copies.some(c => { try { return has(JSON.parse(c.data)); } catch(e){ return false; } })};
+  };
+  const leaveWithoutHandOver = async (lagPending) => {
+    // tab 1 writes; tab 2 is read-only and has not yet received tab 1's last save; tab 1 closes
+    const d = await device(undefined, true); const di = await info(d.page);
+    await answer(d.page, 2, 0);
+    const t2 = await secondTab(d);
+    await t2.waitForFunction(() => typeof WRITER !== 'undefined' && WRITER === 'other', null, {timeout: 5000}).catch(() => {});
+    const pk = await d.page.evaluate(() => typeof pendingKey === 'function' ? pendingKey(PROFILE, TAB_ID) : null);
+    await lagView(t2, [di.data, di.log].concat(lagPending && pk ? [pk] : []));
+    const last = await answerHere(d.page, 6);                          // tab 1's last answer, stored
+    await d.page.close();                                              // no hand-over
+    return {d, di, t2, last, pk};
+  };
+  {
+    // the leaving tab's record arrives (it is not held back): the next writer starts from it
+    const {d, di, t2, last} = await leaveWithoutHandOver(false);
+    await t2.evaluate(() => takeOver(false));
+    await t2.waitForFunction(() => WRITER === 'held', null, {timeout: 9000}).catch(() => {});
+    const mine = await answerHere(t2, 7);
+    await unlag(t2);
+    await t2.waitForTimeout(300);
+    const a = await keptAnywhere(t2, di, last), b = await keptAnywhere(t2, di, mine);
+    check(a.live && b.live, 'a writer closes without handing over before its last save reached the next tab: that answer is in the stored progress, with the next tab\'s', {last: a, next: b});
+    await d.ctx.close();
+  }
+  {
+    // the record arrives only after the next tab has answered: the record is kept as a copy, not mixed in
+    const {d, di, t2, last, pk} = await leaveWithoutHandOver(true);
+    await t2.evaluate(() => takeOver(false));
+    await t2.waitForFunction(() => WRITER === 'held', null, {timeout: 9000}).catch(() => {});
+    const mine = await answerHere(t2, 7);
+    await unlag(t2);
+    await t2.evaluate(() => { if(typeof settlePending === 'function') settlePending(); });   // as the storage event does
+    await t2.waitForTimeout(300);
+    const a = await keptAnywhere(t2, di, last), b = await keptAnywhere(t2, di, mine);
+    check((a.live || a.copy) && b.live, 'the record arrives after the next tab answered: the closed tab\'s answer is kept (a copy), and the next tab\'s stays in the progress', {last: a, next: b, pk: !!pk});
+    check(a.copy && !a.live, 'that record is not mixed into the progress: it is a separate copy', a);
+    await d.ctx.close();
+  }
+  {
+    // a record whose answer differs field by field from the stored one at the same question and time,
+    // and one with a second attempt at the same question: neither is merged or dropped
+    const d = await device(undefined, true); const di = await info(d.page);
+    await answer(d.page, 2, 0);
+    await d.page.waitForFunction(() => WRITER === 'held', null, {timeout: 5000}).catch(() => {});
+    const base = JSON.parse(await stored(d.page, di.data));
+    const conflict = JSON.parse(JSON.stringify(base)); conflict.answers[1].result = conflict.answers[1].result === 'correct' ? 'wrong' : 'correct';
+    const attempt = JSON.parse(JSON.stringify(base)); attempt.answers.push(Object.assign({}, base.answers[1], {at: base.answers[1].at + 1}));
+    await d.page.evaluate(([c, a]) => {
+      localStorage.setItem(pendingKey(PROFILE, 'gone-1'), JSON.stringify({at: Date.now(), db: JSON.parse(c), log: []}));
+      localStorage.setItem(pendingKey(PROFILE, 'gone-2'), JSON.stringify({at: Date.now(), db: JSON.parse(a), log: []}));
+      DB.settings.goal = 13; save(); saveNow();                        // this page has changed something
+      settlePending();
+    }, [JSON.stringify(conflict), JSON.stringify(attempt)]);
+    const copies = JSON.parse(await stored(d.page, di.backup) || '[]').map(c => c.data);
+    const live = JSON.parse(await stored(d.page, di.data));
+    check(copies.includes(JSON.stringify(conflict)) && copies.includes(JSON.stringify(attempt)) && live.answers.length === 2 && live.answers[1].result === base.answers[1].result,
+      'records with a conflicting answer, or a second attempt at the same question, are kept as copies field for field; the live progress is unchanged', {copies: copies.length, live: live.answers.length});
+    // cleanup: a record is removed only on a later check, at least 60 s after it was found stored, unchanged
+    const k1 = await d.page.evaluate(() => pendingKey(PROFILE, 'gone-1'));
+    const before = await stored(d.page, k1);
+    await d.page.evaluate(() => settlePending());
+    const stillThere = await stored(d.page, k1) === before;
+    const age = k => { const sk = NS + ':pending-seen:' + PROFILE; const v = JSON.parse(localStorage.getItem(sk) || '{}'); if(v[k]) v[k].t -= 61000; localStorage.setItem(sk, JSON.stringify(v)); };
+    await d.page.evaluate(`(${age.toString()})(${JSON.stringify(k1)}); settlePending();`);
+    const gone = await stored(d.page, k1) === null;
+    // a record that changed in between is checked again, not removed
+    const k2 = await d.page.evaluate(() => pendingKey(PROFILE, 'gone-2'));
+    await d.page.evaluate(`(${age.toString()})(${JSON.stringify(k2)}); { const r = JSON.parse(localStorage.getItem(${JSON.stringify(k2)})); r.at += 1; localStorage.setItem(${JSON.stringify(k2)}, JSON.stringify(r)); } settlePending();`);
+    const kept2 = await stored(d.page, k2) !== null;
+    // an older record whose second answer differs field by field from the stored one (same question
+    // and time): it is not taken as stored and dropped; it is kept as a copy
+    const older = JSON.parse(JSON.stringify(base)); older.answers = older.answers.slice(0, 2); older.answers[1].picked = 'other';
+    await answer(d.page, 1, 3);                                        // the stored progress has more answers now
+    await d.page.evaluate(o => { localStorage.setItem(pendingKey(PROFILE, 'gone-3'), JSON.stringify({at: Date.now(), db: JSON.parse(o), log: []})); settlePending(); }, JSON.stringify(older));
+    const copies3 = JSON.parse(await stored(d.page, di.backup) || '[]').map(c => c.data);
+    check(copies3.includes(JSON.stringify(older)), 'an older record whose answer differs from the stored one at the same question and time is kept as a copy, not taken as stored', copies3.length);
+    check(stillThere && gone && kept2, 'a record is removed only on a later check, 60 s after it was found stored, and only if it did not change in between', {stillThere, gone, kept2});
+    await d.ctx.close();
+  }
+
+  console.log('\n=== Records and deliberate changes: the review of ef82bb6 ===');
+  const rawRec = (p, tab, db, log) => p.evaluate(([tab, db, log]) => localStorage.setItem(pendingKey(PROFILE, tab), JSON.stringify({at: Date.now(), db, log})), [tab, db, log]);
+  const lockReady = p => p.waitForFunction(() => WRITER === 'held', null, {timeout: 5000}).catch(() => {});
+  {
+    // M1, M2: Erase is not undone by this tab's own or an earlier load's record, at once or after a reload
+    const d = await device(undefined, true); const di = await info(d.page);
+    await lockReady(d.page);
+    await answerHere(d.page, 1); await answerHere(d.page, 2); await answerHere(d.page, 3);
+    await reload(d.page); await lockReady(d.page);                      // an earlier load's record stays
+    await d.page.evaluate(() => { window.confirm = () => true; show('settings'); document.getElementById('btnReset').click(); saveNow(); });
+    await d.page.waitForTimeout(300);
+    await reload(d.page); await lockReady(d.page); await d.page.waitForTimeout(1800);
+    const prog = JSON.parse(await stored(d.page, di.data) || '{"answers":[]}'), log = JSON.parse(await stored(d.page, di.log) || '[]');
+    check(prog.answers.length === 0 && log.length === 0, 'Erase, then reloads: the progress and the history stay erased (no record brings them back)', {answers: prog.answers.length, log: log.length});
+    await d.ctx.close();
+  }
+  {
+    // M2: Put back is not undone by an earlier load's record
+    const d = await device(undefined, true); const di = await info(d.page);
+    await answer(d.page, 1, 0);
+    const f = await exportOf(d.page);
+    await choose(d.page, later(f, 2), true);                             // 3 answers, a copy of 1
+    await reload(d.page); await lockReady(d.page);
+    await d.page.evaluate(() => { show('settings'); restoreBackup(); });
+    await reload(d.page); await lockReady(d.page); await d.page.waitForTimeout(1800);
+    const n = JSON.parse(await stored(d.page, di.data)).answers.length;
+    check(n === 1, 'Put back, then a reload: the progress put back stays (an earlier load\'s record does not undo it)', n);
+    await d.ctx.close();
+  }
+  {
+    // M3: Delete the copies is not undone by the later check of a record kept as a copy
+    const d = await device(undefined, true); const di = await info(d.page);
+    await answer(d.page, 2, 0);
+    await lockReady(d.page);
+    const base = JSON.parse(await stored(d.page, di.data));
+    const other = JSON.parse(JSON.stringify(base)); other.settings.goal = 77;
+    await rawRec(d.page, 'gone-x', other, []);
+    await d.page.evaluate(() => settlePending());
+    const made = JSON.parse(await stored(d.page, di.backup) || '[]').length;
+    await d.page.evaluate(() => { window.confirm = () => true; show('settings'); deleteCopies(); });
+    await d.page.evaluate(() => { const sk = NS + ':pending-seen:' + PROFILE; const v = JSON.parse(localStorage.getItem(sk) || '{}'); for(const k in v) v[k].t -= 61000; localStorage.setItem(sk, JSON.stringify(v)); settlePending(); });
+    check(made === 1 && await stored(d.page, di.backup) === null, 'Delete the copies: a record kept as a copy does not bring the copy back at its later check', made);
+    await d.ctx.close();
+  }
+  {
+    // M4: at the 4,000-answer cap, a reload and an answer make no copy
+    const d = await device(undefined, true); const di = await info(d.page);
+    await d.page.evaluate(() => {
+      const t0 = Date.now() - 1e8;
+      for(let i = 0; i < ANSWERS_MAX + 5; i++){ const q = QUESTIONS[i % QUESTIONS.length]; DB.answers.push({qid: q.id, concept: q.concept, result: 'correct', at: t0 + i, qn: i + 1, picked: 0, ms: 1000}); }
+      DB.answers.splice(0, DB.answers.length - ANSWERS_MAX); DB.qn = ANSWERS_MAX + 5;
+      store.set(keyFor(PROFILE), JSON.stringify(DB));
+    });
+    await reload(d.page); await lockReady(d.page);
+    await answerHere(d.page, 4);
+    await reload(d.page); await lockReady(d.page);
+    await answerHere(d.page, 5);
+    await d.page.evaluate(() => settlePending());
+    check(await stored(d.page, di.backup) === null, 'at the 4,000-answer cap, reloads and answers make no copy');
+    await d.ctx.close();
+  }
+  {
+    // M5: a record whose only change is a setting, at the same point as what is stored: kept as a copy, not removed as taken in
+    const d = await device(undefined, true); const di = await info(d.page);
+    await answer(d.page, 2, 0); await lockReady(d.page);
+    const base = JSON.parse(await stored(d.page, di.data));
+    const set = JSON.parse(JSON.stringify(base)); set.settings.goal = 61;
+    await rawRec(d.page, 'gone-s', set, []);
+    await d.page.evaluate(() => settlePending());
+    const copies = JSON.parse(await stored(d.page, di.backup) || '[]');
+    check(copies.some(c => JSON.parse(c.data).settings.goal === 61), 'a record whose only change is a setting is kept as a copy, not taken as stored', copies.length);
+    await d.ctx.close();
+  }
+  {
+    // M6: reloads do not pile records up; the first-found time is kept across reloads
+    const d = await device(undefined, true); const di = await info(d.page);
+    await lockReady(d.page); await answerHere(d.page, 1);
+    for(let i = 0; i < 4; i++){ await reload(d.page); await lockReady(d.page); await answerHere(d.page, 2 + i); }
+    await d.page.evaluate(() => { const sk = NS + ':pending-seen:' + PROFILE; const v = JSON.parse(localStorage.getItem(sk) || '{}'); for(const k in v) v[k].t -= 61000; localStorage.setItem(sk, JSON.stringify(v)); settlePending(); });
+    const n = await d.page.evaluate(() => { let n = 0; for(let i = 0; i < localStorage.length; i++) if(localStorage.key(i).startsWith(NS + ':pending:' + PROFILE + ':')) n++; return n; });
+    check(n === 1, 'after reloads, once the wait has passed, only this tab\'s own record is left', n);
+    await d.ctx.close();
+  }
+  {
+    // history: a "Not sure" on the same entry is one entry; two identical attempts stay two
+    const d = await device(undefined, true); const di = await info(d.page);
+    await answer(d.page, 1, 0); await lockReady(d.page);
+    const log = JSON.parse(await stored(d.page, di.log));
+    const e = log[log.length - 1].slice(), unsure = e.slice(); unsure[5] = 'unsure';
+    const sameAs = (list) => list.filter(x => JSON.stringify(x.map((v, i) => i === 5 ? null : v)) === JSON.stringify(e.map((v, i) => i === 5 ? null : v))).length;
+    await rawRec(d.page, 'gone-h1', JSON.parse(await stored(d.page, di.data)), [unsure]);
+    await d.page.evaluate(() => settlePending());
+    const one = sameAs(JSON.parse(await stored(d.page, di.log)));
+    check(one === 1, 'a record\'s history: the same entry with a changed confidence ("Not sure") is not added a second time', one);
+    await rawRec(d.page, 'gone-h2', JSON.parse(await stored(d.page, di.data)), [e.slice(), e.slice()]);
+    await d.page.evaluate(() => settlePending());
+    const two = sameAs(JSON.parse(await stored(d.page, di.log)));
+    check(two === 2, 'a record\'s history: a second identical attempt is kept (two in all)', two);
+    await d.ctx.close();
+  }
+  for(const order of [['z-old', 'a-new', true], ['a-old', 'z-new', false]]){
+    // several leaving tabs: the newer record, continuing the older, ends as the progress, whatever the
+    // key names and the order they were written in (a tab that has written nothing since it took the profile)
+    const d = await device(undefined, true); const di = await info(d.page);
+    await answer(d.page, 1, 0);
+    await reload(d.page); await lockReady(d.page);
+    const base = JSON.parse(await stored(d.page, di.data)), q = base.answers[0];
+    const r1 = JSON.parse(JSON.stringify(base)); r1.answers.push(Object.assign({}, q, {at: q.at + 10}));
+    const r2 = JSON.parse(JSON.stringify(r1)); r2.answers.push(Object.assign({}, q, {at: q.at + 20}));
+    await d.page.evaluate(([a, b, kOld, kNew, newFirst]) => {
+      const put = (k, at, db) => localStorage.setItem(pendingKey(PROFILE, k), JSON.stringify({at, db, log: []}));
+      if(newFirst){ put(kNew, 2000, b); put(kOld, 1000, a); } else { put(kOld, 1000, a); put(kNew, 2000, b); }
+      settlePending();
+    }, [r1, r2, order[0], order[1], order[2]]);
+    check(JSON.parse(await stored(d.page, di.data)).answers.length === 3 && await stored(d.page, di.backup) === null,
+      `two leaving tabs' records (${order[0]}, ${order[1]}), the newer continuing the older: the newer is the progress, with no copy`);
+    await d.ctx.close();
+  }
+
+  for(const order of [['z-old', 'a-new', true], ['a-old', 'z-new', false]]){
+    // What oldest first is for: the newer record continues the older one and carries a setting changed
+    // after it. Placed oldest first, the older becomes the progress and the newer then continues it, so
+    // the newer is the progress and nothing is copied. Placed newest first, the newer becomes the
+    // progress and the older, now behind it with another setting, is copied though nothing of it is
+    // missing. Either way nothing is lost; the order decides only that no needless copy is made.
+    const d = await device(undefined, true); const di = await info(d.page);
+    await answer(d.page, 1, 0);
+    await reload(d.page); await lockReady(d.page);
+    const base = JSON.parse(await stored(d.page, di.data)), q = base.answers[0];
+    const r1 = JSON.parse(JSON.stringify(base)); r1.answers.push(Object.assign({}, q, {at: q.at + 10}));
+    const r2 = JSON.parse(JSON.stringify(r1)); r2.answers.push(Object.assign({}, q, {at: q.at + 20})); r2.settings = Object.assign({}, r2.settings, {goal: 73});
+    await d.page.evaluate(([a, b, kOld, kNew, newFirst]) => {
+      const put = (k, at, db) => localStorage.setItem(pendingKey(PROFILE, k), JSON.stringify({at, db, log: []}));
+      if(newFirst){ put(kNew, 2000, b); put(kOld, 1000, a); } else { put(kOld, 1000, a); put(kNew, 2000, b); }
+      settlePending();
+    }, [r1, r2, order[0], order[1], order[2]]);
+    const st = JSON.parse(await stored(d.page, di.data));
+    check(st.answers.length === 3 && st.settings.goal === 73 && await stored(d.page, di.backup) === null,
+      `two leaving tabs' records (${order[0]}, ${order[1]}), the newer continuing the older with a setting changed since: the newer is the progress, with no copy`,
+      {n: st.answers.length, goal: st.settings.goal, copies: JSON.parse(await stored(d.page, di.backup) || '[]').length});
+    await d.ctx.close();
+  }
+  {
+    // A tab back on a profile it wrote before: its earlier record is not written over. Tab X's last save
+    // on the profile is written over by tab Y, which never received it (held back) and closes; X comes
+    // back and saves. Before d325326's review that save replaced X's earlier record unchecked, and X's
+    // last answer was in neither the progress nor a copy.
+    const d = await device(undefined, true); const di = await info(d.page);
+    await lockReady(d.page);
+    await answerHere(d.page, 1); await answerHere(d.page, 2);
+    const t2 = await secondTab(d);
+    await t2.waitForFunction(() => WRITER === 'other', null, {timeout: 5000}).catch(() => {});
+    const pk1 = await d.page.evaluate(() => myPendingKey());
+    await lagView(t2, [di.data, di.log, pk1]);
+    const last = await answerHere(d.page, 3);                          // X's last answer here, stored, and in its record
+    await d.page.evaluate(() => useProfile('bee')); await lockReady(d.page);
+    await t2.evaluate(() => takeOver(false));
+    await t2.waitForFunction(() => WRITER === 'held', null, {timeout: 9000}).catch(() => {});
+    const yHeld = await t2.evaluate(() => WRITER);
+    await answerHere(t2, 4);                                           // Y writes over X's last save
+    // X's view of storage gets Y's write a moment later (in WebKit in GitHub run 41943489826 it had
+    // not yet when read at once): wait until X's view no longer holds its last answer
+    await d.page.waitForFunction(([k, at]) => { try { return !JSON.parse(localStorage.getItem(k)).answers.some(a => a.at === at); } catch(e){ return false; } }, [di.data, last], {timeout: 5000}).catch(() => {});
+    const overwritten = !(await keptAnywhere(d.page, di, last)).live;
+    await t2.close();
+    let back = '', tries = 0;
+    for(; tries < 8 && back !== 'held'; tries++){
+      await d.page.waitForFunction(async n => (await navigator.locks.query()).held.every(l => !l.name.endsWith(':writer:' + n)), di.profile, {timeout: 5000}).catch(() => {});
+      if(tries) { await d.page.evaluate(() => useProfile('bee')); await lockReady(d.page); }
+      await d.page.evaluate(n => useProfile(n), di.profile);
+      await d.page.waitForFunction(n => WRITER !== 'pending' && PROFILE === n, di.profile, {timeout: 6000}).catch(() => {});
+      back = await d.page.evaluate(() => WRITER);
+    }
+    check(yHeld === 'held' && overwritten && back === 'held', 'a tab back on a profile it wrote before: the other tab wrote over its last save, and it holds the profile again (precondition)', {yHeld, overwritten, back, tries});
+    await answerHere(d.page, 5);                                       // the save that wrote over the earlier record before
+    await d.page.evaluate(() => settlePending());
+    const a = await keptAnywhere(d.page, di, last);
+    const pk2 = await d.page.evaluate(() => myPendingKey());
+    check(a.live || a.copy, 'a tab back on a profile it wrote before: its earlier last answer, written over by another tab, is kept (progress or a copy) after its next save', Object.assign({sameKey: pk1 === pk2}, a));
+    // cleanup stays safe: the earlier record goes only after the 60 s wait with proof, never before
+    const early = await d.page.evaluate(k => localStorage.getItem(k) !== null, pk1);
+    const age = k => { const sk = NS + ':pending-seen:' + PROFILE; const v = JSON.parse(localStorage.getItem(sk) || '{}'); if(v[k]) v[k].t -= 61000; localStorage.setItem(sk, JSON.stringify(v)); };
+    await d.page.evaluate(`(${age.toString()})(${JSON.stringify(pk1)}); settlePending();`);
+    const gone = await d.page.evaluate(k => localStorage.getItem(k) === null, pk1);
+    const keptAfter = await keptAnywhere(d.page, di, last);
+    const ownStays = await d.page.evaluate(k => localStorage.getItem(k) !== null, pk2);
+    check(pk1 !== pk2 && early && gone && (keptAfter.live || keptAfter.copy) && ownStays,
+      'a tab back on a profile: its new saves go to a new record; the earlier record is removed only after it is proven stored and 60 s have passed, the answer stays kept, and the present record stays',
+      {pk1, pk2, early, gone, keptAfter, ownStays});
+    await d.ctx.close();
+  }
+
+  console.log('\n=== Records: the review of 59b3c50 ===');
+  {
+    // N1: Put back right after taking over must not delete the leaving tab's late record; its answer is kept
+    const {d, di, t2, last} = await leaveWithoutHandOver(true);
+    await t2.evaluate(() => takeOver(false));
+    await t2.waitForFunction(() => WRITER === 'held', null, {timeout: 9000}).catch(() => {});
+    await t2.evaluate(() => { show('settings'); window.confirm = () => true; if(readCopies().length) restoreBackup(); else { DB.settings.goal = 5; save(); saveNow(); pendingRetire(); } });
+    await unlag(t2);
+    await t2.evaluate(() => settlePending());
+    const a = await keptAnywhere(t2, di, last);
+    check(a.live || a.copy, 'a deliberate change right after taking over (Put back) does not delete the leaving tab\'s late record: its last answer is kept', a);
+    await d.ctx.close();
+  }
+  {
+    // N2: a record found equal at the first check is not turned into a copy when this tab changes a setting later
+    const d = await device(undefined, true); const di = await info(d.page);
+    await answer(d.page, 2, 0);
+    await reload(d.page); await lockReady(d.page); await d.page.waitForTimeout(1800);
+    await d.page.evaluate(() => { DB.settings.goal = 44; save(); saveNow(); settlePending(); });
+    check(await stored(d.page, di.backup) === null, 'a record found equal before, unchanged since, makes no copy after this tab changes a setting');
+    await d.ctx.close();
+  }
+  {
+    // N3: a leaving tab's last save is a setting; the next tab answered before the record arrived: the setting is kept as a copy
+    const d = await device(undefined, true); const di = await info(d.page);
+    await answer(d.page, 2, 0);
+    const t2 = await secondTab(d);
+    await t2.waitForFunction(() => WRITER === 'other', null, {timeout: 5000}).catch(() => {});
+    const pk = await d.page.evaluate(() => pendingKey(PROFILE, TAB_ID));
+    await lagView(t2, [di.data, di.log, pk]);
+    await d.page.evaluate(() => { DB.settings.goal = 91; save(); saveNow(); });
+    await d.page.close();
+    await t2.evaluate(() => takeOver(false));
+    await t2.waitForFunction(() => WRITER === 'held', null, {timeout: 9000}).catch(() => {});
+    await answerHere(t2, 8);
+    await unlag(t2);
+    await t2.evaluate(() => settlePending());
+    const copies = JSON.parse(await stored(t2, di.backup) || '[]');
+    check(copies.some(c => { try { return JSON.parse(c.data).settings.goal === 91; } catch(e){ return false; } }), 'a leaving tab\'s last setting, written over by the next tab\'s answer, is kept as a copy', copies.length);
+    await d.ctx.close();
+  }
+  {
+    // a leaving tab's last save is a Put back; the next tab answered before the record arrived: the
+    // put-back progress is kept as a copy, not silently reverted
+    const d = await device(undefined, true); const di = await info(d.page);
+    await answer(d.page, 1, 0);
+    const f = await exportOf(d.page);
+    await choose(d.page, later(f, 2), true);                             // 3 answers, a copy of 1
+    const t2 = await secondTab(d);
+    await t2.waitForFunction(() => WRITER === 'other', null, {timeout: 5000}).catch(() => {});
+    const pk = await d.page.evaluate(() => pendingKey(PROFILE, TAB_ID));
+    await lagView(t2, [di.data, di.log, di.backup, pk]);
+    await d.page.evaluate(() => { show('settings'); restoreBackup(); });   // back to 1 answer
+    await d.page.close();
+    await t2.evaluate(() => takeOver(false));
+    await t2.waitForFunction(() => WRITER === 'held', null, {timeout: 9000}).catch(() => {});
+    await answerHere(t2, 8);
+    await unlag(t2);
+    await t2.evaluate(() => settlePending());
+    const copies = JSON.parse(await stored(t2, di.backup) || '[]');
+    check(copies.some(c => { try { return JSON.parse(c.data).answers.length === 1 && c.why === "another tab's last save"; } catch(e){ return false; } }),
+      'a leaving tab\'s last Put back, written over by the next tab\'s answer, is kept as a copy', copies.map(c => c.why));
+    await d.ctx.close();
+  }
+  {
+    // P1: a record whose copy write was refused is not removed after Delete the copies (no proof it is stored)
+    const d = await device(undefined, true); const di = await info(d.page);
+    await answer(d.page, 2, 0); await lockReady(d.page);
+    const base = JSON.parse(await stored(d.page, di.data)), q = base.answers[0];
+    const lost = JSON.parse(JSON.stringify(base)); lost.answers.push(Object.assign({}, q, {at: q.at + 77}));
+    await d.page.evaluate(() => { DB.settings.goal = 3; save(); saveNow(); });      // this tab wrote: the record becomes a copy
+    await refuseKey(d.page, di.backup);
+    await rawRec(d.page, 'gone-p1', lost, []);
+    await d.page.evaluate(() => settlePending());                                 // its copy write refused
+    await refuseKey(d.page, null);
+    await d.page.evaluate(() => { window.confirm = () => true; show('settings'); deleteCopies(); pendingRetire(); });
+    await d.page.evaluate(() => { const sk = NS + ':pending-seen:' + PROFILE; const v = JSON.parse(localStorage.getItem(sk) || '{}'); for(const k in v) v[k].t -= 61000; localStorage.setItem(sk, JSON.stringify(v)); settlePending(); });
+    const k = await d.page.evaluate(() => pendingKey(PROFILE, 'gone-p1'));
+    const still = await stored(d.page, k) !== null;
+    const a = await keptAnywhere(d.page, di, q.at + 77);
+    check(still || a.live || a.copy, 'a record never taken in (its copy refused) is not removed after Delete the copies: its answer is kept somewhere', {still, a});
+    await d.ctx.close();
+  }
+  {
+    // records do not pile up when a setting is changed after each load
+    const d = await device(undefined, true); const di = await info(d.page);
+    await answer(d.page, 2, 0);
+    for(let i = 0; i < 3; i++){
+      await reload(d.page); await lockReady(d.page); await d.page.waitForTimeout(1800);
+      await d.page.evaluate(g => { DB.settings.goal = g; save(); saveNow(); }, 20 + i);
+    }
+    for(let i = 0; i < 2; i++) await d.page.evaluate(() => { const sk = NS + ':pending-seen:' + PROFILE; const v = JSON.parse(localStorage.getItem(sk) || '{}'); for(const k in v) v[k].t -= 61000; localStorage.setItem(sk, JSON.stringify(v)); settlePending(); });
+    const n = await d.page.evaluate(() => { let n = 0; for(let i = 0; i < localStorage.length; i++) if(localStorage.key(i).startsWith(NS + ':pending:' + PROFILE + ':')) n++; return n; });
+    check(n === 1 && await stored(d.page, di.backup) === null, 'a setting changed after each of several loads: records do not pile up (only this tab\'s own is left), and no copy is made', n);
+    await d.ctx.close();
+  }
+  {
+    // ChatGPT's review of c9254dc: profile A's history entries do not go into profile B's record after a switch,
+    // nor into B's history when another tab settles that record; B's own entry is kept
+    const d = await device(undefined, true); const di = await info(d.page);
+    await lockReady(d.page);
+    const aAt = await answerHere(d.page, 1);
+    const aEntry = await d.page.evaluate(() => JSON.stringify(LOG[LOG.length - 1]));
+    await d.page.evaluate(() => useProfile('bee'));
+    await lockReady(d.page);
+    await answerHere(d.page, 2);
+    const bEntry = await d.page.evaluate(() => JSON.stringify(LOG[LOG.length - 1]));
+    const rec = await d.page.evaluate(() => JSON.parse(localStorage.getItem(pendingKey('bee', TAB_ID)) || 'null'));
+    const recLog = (rec && rec.log || []).map(e => JSON.stringify(e));
+    const t2 = await secondTab(d);
+    await d.page.evaluate(() => useProfile(PROFILE === 'bee' ? 'other-x' : PROFILE));  // frees "bee"
+    await t2.evaluate(() => useProfile('bee'));
+    await t2.waitForFunction(() => WRITER === 'held' && PROFILE === 'bee', null, {timeout: 6000}).catch(() => {});
+    await t2.evaluate(() => settlePending());
+    const bLog = JSON.parse(await stored(t2, di.ns + ':log:bee') || '[]').map(e => JSON.stringify(e));
+    check(!recLog.includes(aEntry) && recLog.includes(bEntry) && !bLog.includes(aEntry) && bLog.includes(bEntry),
+      'after a profile switch, the other profile\'s history entries are in neither the new profile\'s record nor, once settled, its history; its own entry is kept',
+      {recHasA: recLog.includes(aEntry), recHasB: recLog.includes(bEntry), logHasA: bLog.includes(aEntry), logHasB: bLog.includes(bEntry), aAt});
+    await d.ctx.close();
+  }
+  {
+    // a tab back on a profile it held before, after another tab erased that history: the erased entries do not come back
+    const d = await device(undefined, true); const di = await info(d.page);
+    await lockReady(d.page);
+    await answerHere(d.page, 1); await answerHere(d.page, 2); await answerHere(d.page, 3);
+    await d.page.evaluate(() => useProfile('bee')); await lockReady(d.page);
+    const t2 = await secondTab(d);
+    await t2.evaluate(n => useProfile(n), di.profile);                 // the profile the first tab left
+    await t2.waitForFunction(n => WRITER === 'held' && PROFILE === n, di.profile, {timeout: 6000}).catch(() => {});
+    const erased = await t2.evaluate(() => { window.confirm = () => true; show('settings'); document.getElementById('btnReset').click(); saveNow(); return true; });
+    await t2.waitForTimeout(300);
+    const afterErase = JSON.parse(await stored(t2, di.log) || '[]').length;
+    await t2.waitForTimeout(300);
+    await t2.close();
+    // the closed tab's lock is freed a moment later: wait until it is, then go back
+    // (a closed tab's lock can stay held for a moment after locks.query shows it free; the switch back is
+    // tried again until this tab holds the profile, so the check below tests the history, not that timing)
+    let back = '', tries = 0;
+    for(; tries < 8 && back !== 'held'; tries++){
+      await d.page.waitForFunction(async n => (await navigator.locks.query()).held.every(l => !l.name.endsWith(':writer:' + n)), di.profile, {timeout: 5000}).catch(() => {});
+      if(tries) { await d.page.evaluate(() => useProfile('bee')); await lockReady(d.page); }
+      await d.page.evaluate(n => useProfile(n), di.profile);
+      await d.page.waitForFunction(n => WRITER !== 'pending' && PROFILE === n, di.profile, {timeout: 6000}).catch(() => {});
+      back = await d.page.evaluate(() => WRITER);
+    }
+    check(back === 'held', 'back on a profile another tab erased meanwhile: this tab holds it again (precondition)', {back, tries});
+    await answerHere(d.page, 4);
+    await reload(d.page); await lockReady(d.page); await d.page.waitForTimeout(1800);
+    const log = JSON.parse(await stored(d.page, di.log) || '[]');
+    check(erased && afterErase === 0 && log.length === 1, 'back on a profile another tab erased meanwhile: only the new entry is in its history after a reload', {afterErase, back, tries, n: log.length});
+    await d.ctx.close();
+  }
+  {
+    // Erase without a reload first: this tab's own record (NEW_LOG) does not bring the history back
+    const d = await device(undefined, true); const di = await info(d.page);
+    await lockReady(d.page);
+    await answerHere(d.page, 1); await answerHere(d.page, 2); await answerHere(d.page, 3);
+    await d.page.evaluate(() => { window.confirm = () => true; show('settings'); document.getElementById('btnReset').click(); saveNow(); });
+    await reload(d.page); await lockReady(d.page); await d.page.waitForTimeout(1800);
+    const log = JSON.parse(await stored(d.page, di.log) || '[]');
+    check(log.length === 0, 'Erase in the same visit as the answers, then a reload: the history stays erased', log.length);
     await d.ctx.close();
   }
 
