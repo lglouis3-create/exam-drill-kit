@@ -103,7 +103,7 @@ const answerOne = page => page.evaluate(() => {
     });
     check(perKey.refused, 'a refused write is read back from memory', perKey.err || '');
     check(perKey.kept, 'a later write that succeeds goes to localStorage and is read from there', perKey.err || '');
-    if(warns.length){ await page.click('#savewarn button'); }
+    if(warns.length){ await page.click('#savewarn button.ghost'); }   // OK (the notice also has Export progress since 2026-11-05)
     check(!(await page.$('#savewarn')), 'OK closes the notice');
     check(!errors.length, 'no page errors with saving refused', errors.slice(0, 2).join('; '));
     await ctx.close();

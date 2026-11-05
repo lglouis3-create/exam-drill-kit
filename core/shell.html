@@ -641,13 +641,38 @@ if(BUILD.preview){
    refused key was written again shows it again (SAVE_WARNED, keptNow). When a history
    key (`<ns>:log:`) is refused, the notice names the answer history too. */
 let SAVE_WARN_LOG = false;
-const saveWarnText = () => 'This browser did not save your progress' + (SAVE_WARN_LOG ? ' or answer history' : '') +
-  ' (storage is full or blocked). It is kept until you close or reload this page. To keep a copy, open <b>Settings</b> and use <b>Export progress</b>. <button type="button" class="btn ghost">OK</button>';
+let REC_OFF = false;   // storage full: this tab has no per-tab record (#45) of its last save (pendingAfter, dropOwnRecordIfStored)
+const REC_OFF_TEXT = 'While storage is full, this tab cannot keep the record that protects its last save when it closes without handing over to another open tab of this drill.';
+const saveWarnText = () => (FAILED.size ? 'This browser did not save your progress' + (SAVE_WARN_LOG ? ' or answer history' : '') +
+  ' (storage is full or blocked). It is kept on this page until you close or reload it; closing or reloading it loses it. Export it to a file to keep it; Import progress adds it back.' +
+  (REC_OFF ? ' ' + REC_OFF_TEXT : '')
+  : 'Storage is full. Your progress is saved, but this tab cannot keep the record that protects its last save when it closes without handing over to another open tab of this drill. Export progress keeps a copy in a file.') +
+  ' <button type="button" class="btn" id="savewarnExport">Export progress</button> <button type="button" class="btn ghost">OK</button>';
+/* This tab's per-tab record (#45) could not be kept (storage full): the notice says so, shown even
+   when everything else was saved (Louis, 2026-11-05); once a record is written again it goes. */
+function recordOff(off){
+  if(off === REC_OFF) return;
+  REC_OFF = off;
+  const d = document.getElementById('savewarn');
+  if(d){ if(!off && !FAILED.size) d.remove(); else refreshSaveWarn(); return; }
+  if(off && document.body){
+    const n = document.createElement('div'); n.id = 'savewarn'; n.setAttribute('role', 'alert');
+    n.innerHTML = saveWarnText(); wireSaveWarn(n); document.body.appendChild(n);
+  }
+}
+/* The notice's buttons: Export progress (the whole page: progress and every history entry), and OK. */
+function wireSaveWarn(d){
+  const ex = d.querySelector('#savewarnExport');
+  if(ex) ex.onclick = () => { try { exportProgress(); if(typeof snapHere === 'function') EXPORTED_SNAP = snapHere(); } catch(e){ alert('The export did not work: ' + (e && e.message || e)); } };
+  d.querySelector('button.ghost').onclick = () => d.remove();
+}
+/* The notice on screen, with its text brought up to date (the history, the per-tab record). */
+function refreshSaveWarn(){ const d = document.getElementById('savewarn'); if(d){ d.innerHTML = saveWarnText(); wireSaveWarn(d); } }
 function saveWarn(k){
   const isLog = typeof k === 'string' && k.indexOf(':log:') > 0;
   if(SAVE_WARNED){
     // shown already for progress: a history refusal adds the history to the text on screen
-    if(isLog && !SAVE_WARN_LOG){ SAVE_WARN_LOG = true; const d = document.getElementById('savewarn'); if(d){ d.innerHTML = saveWarnText(); d.querySelector('button').onclick = () => d.remove(); } }
+    if(isLog && !SAVE_WARN_LOG){ SAVE_WARN_LOG = true; refreshSaveWarn(); }
     return;
   }
   if(!document.body){ document.addEventListener('DOMContentLoaded', () => saveWarn(k), {once: true}); return; }
@@ -656,7 +681,7 @@ function saveWarn(k){
   const d = document.createElement('div');
   d.id = 'savewarn'; d.setAttribute('role', 'alert');
   d.innerHTML = saveWarnText();
-  d.querySelector('button').onclick = () => d.remove();
+  wireSaveWarn(d);
   document.body.appendChild(d);
 }
 /* ---------- One writer per profile (Web Locks), #32, 2026-11-03 ----------------------
@@ -902,8 +927,8 @@ function pendingAfter(k, v){
     if(!SETTLING) WROTE_SINCE_CLAIM = true;
     if(v === null){ localStorage.removeItem(myPendingKey()); return; }
     const rec = '{"at":' + Date.now() + (MARK ? ',"mark":' + MARK : '') + ',"db":' + v + ',"log":' + JSON.stringify(newLog()) + '}';
-    try { localStorage.setItem(myPendingKey(), rec); }
-    catch(e){ dropOwnRecordIfStored(); }   // storage full: this save has no record of its own
+    try { localStorage.setItem(myPendingKey(), rec); recordOff(false); }
+    catch(e){ dropOwnRecordIfStored(); recordOff(true); }   // storage full: this save has no record of its own
   } catch(e){ /* before start-up, or unreadable: this save has no record of its own */ }
 }
 /* Study progress first (Louis, 2026-11-05). With storage full, this tab's own record is removed
@@ -921,6 +946,7 @@ function dropOwnRecordIfStored(){
     if(!(old && old.db && Array.isArray(old.db.answers)) || placeOf(old, st) !== 'in' || !logIn) return false;
     if(localStorage.getItem(k) !== raw) return false;
     localStorage.removeItem(k);
+    recordOff(true);
     return true;
   } catch(e){ return false; }
 }
@@ -1122,6 +1148,7 @@ function logUnsavedHere(){
     return LOG_OK && JSON.stringify(LOG) !== (SEEN_LOG === null ? '[]' : SEEN_LOG);
   } catch(e){ return false; }
 }
+let LEAVE_ASKED = false;   // an in-app Reload asked already (views.js beforeunload)
 let EXPORTED_SNAP = null, KEPT_COPY = false, EXAM_CLEAR_WAITING = '';   // the profile whose paper waits to be cleared
 /* the page's progress and history as they were when they were last exported from the wall */
 const snapHere = () => { try { return JSON.stringify(DB) + '\n' + JSON.stringify(LOG); } catch(e){ return ''; } };
@@ -1169,6 +1196,7 @@ function stopWall(why){
   if(why === 'slow') btn('Take it over anyway', '', () => takeOver(true), 'stopSteal');
   if(why !== 'asking') btn('Reload', 'ghost', () => {
     if(atRisk() && !confirm('The answers and settings this page has not saved are lost on reload unless you export them first. Reload anyway?')) return;
+    LEAVE_ASKED = true;   // asked here already: the browser's leave question is not shown again
     location.reload();
   }, 'stopReload');
   c.appendChild(row);

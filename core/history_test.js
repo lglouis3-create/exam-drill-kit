@@ -500,6 +500,71 @@ const next = p => p.evaluate(() => { const b = document.getElementById('btnNext'
     await c11.close();
   }
   {
+    // Storage full, what the student sees and can do (Louis, 2026-11-05): the first refused save shows
+    // the notice at once, with an Export button whose file holds every answer and entry; the notice says
+    // when the per-tab record is off; the app's Reload asks first; closing the tab gets the browser's
+    // leave question (Chromium; WebKit's close with runBeforeUnload does not finish, #39)
+    const ORIGIN3 = () => {
+      const set = Storage.prototype.setItem;
+      Storage.prototype.setItem = function(k, v){
+        if(typeof window.__originCap === 'number'){
+          let t = String(k).length + String(v).length;
+          for(let i = 0; i < this.length; i++){ const kk = this.key(i); if(kk !== k) t += kk.length + this.getItem(kk).length; }
+          if(t > window.__originCap) throw new DOMException('The quota has been exceeded.', 'QuotaExceededError');
+        }
+        return set.call(this, k, v);
+      };
+    };
+    const {ctx: c12, page: o, errors: e12} = await L.openFile(browser, {}, ORIGIN3);
+    const said = []; o.removeAllListeners('dialog'); o.on('dialog', d => { said.push(d.type() + ': ' + d.message()); d.dismiss().catch(() => {}); });
+    await o.waitForFunction(() => typeof WRITER === 'undefined' || WRITER === 'held' || WRITER === 'none', null, {timeout: 8000}).catch(() => {});
+    await o.evaluate(() => { for(let i = 0; i < 3; i++){ record(QUESTIONS[i % QUESTIONS.length], 'correct', 0, 4000); saveNow(); } });
+    const noneYet = await o.evaluate(() => !document.getElementById('savewarn'));
+    await o.evaluate(() => { let t = 0; for(let i = 0; i < localStorage.length; i++){ const k = localStorage.key(i); t += k.length + localStorage.getItem(k).length; } window.__originCap = t + 60; });
+    await o.evaluate(() => { record(QUESTIONS[3 % QUESTIONS.length], 'wrong', 0, 4000); saveNow(); });
+    const first = await o.evaluate(() => { const d = document.getElementById('savewarn'); return {shown: !!d, text: d ? d.textContent : '', exportBtn: !!document.getElementById('savewarnExport'), page: DB.answers.length, log: LOG.length}; });
+    check(noneYet && first.shown && /did not save/.test(first.text) && /loses it/.test(first.text) && first.exportBtn,
+      'storage full: the first refused save shows the notice at once, saying a close or reload loses the work, with an Export button', Object.assign({}, first, {text: first.text.slice(0, 120)}));
+    const locksHere = await o.evaluate(() => HAS_LOCKS);
+    check(locksHere ? /cannot keep the record that protects its last save/.test(first.text) : true,
+      'storage full: the notice says the per-tab record that protects a close without hand-over is off', first.text.slice(0, 400));
+    await o.evaluate(() => { record(QUESTIONS[4 % QUESTIONS.length], 'correct', 0, 4000); saveNow(); });
+    const [dl] = await Promise.all([o.waitForEvent('download', {timeout: 5000}).catch(() => null), o.evaluate(() => document.getElementById('savewarnExport').click())]);
+    const ex = dl ? JSON.parse(fs.readFileSync(await dl.path(), 'utf8')) : {};
+    const now = await o.evaluate(() => ({page: DB.answers.length, log: LOG.length}));
+    check(ex.db && ex.db.answers.length === now.page && now.page === 5 && Array.isArray(ex.log) && ex.log.length === now.log,
+      'storage full: the notice\'s Export holds every answer and history entry on the page', {exported: ex.db && ex.db.answers.length, log: ex.log && ex.log.length, now});
+    // a later answer is not exported yet: the app's Reload (the new-version bar) asks first; cancelled, nothing is lost
+    // no room at all from here, so the next answer stays unsaved
+    await o.evaluate(() => { let t = 0; for(let i = 0; i < localStorage.length; i++){ const k = localStorage.key(i); t += k.length + localStorage.getItem(k).length; } window.__originCap = t - 1; });
+    await o.evaluate(() => { record(QUESTIONS[5 % QUESTIONS.length], 'correct', 0, 4000); saveNow(); offerReload('A new version is ready.'); });
+    const unsaved = await o.evaluate(() => ({failed: [...FAILED].length, atRisk: atRisk()}));
+    const n0 = said.length;
+    await o.evaluate(() => document.querySelector('#swbar [data-reload]').click());
+    await o.waitForTimeout(300);
+    const kept = await o.evaluate(() => DB.answers.length);
+    check(unsaved.failed > 0 && unsaved.atRisk && said.slice(n0).some(x => /^confirm: .*lost on reload unless you export/.test(x)) && kept === 6,
+      'storage full: the new-version bar\'s Reload asks first while unexported work is unsaved; cancelled, the page and its work stay', {unsaved, asked: said.slice(n0), kept});
+    // closing the tab: the browser's own leave question (Chromium)
+    if(L.BROWSER === 'chromium'){
+      const n1 = said.length;
+      await o.close({runBeforeUnload: true});
+      await new Promise(r => setTimeout(r, 500));
+      const asked = said.slice(n1);
+      check(asked.some(x => /^beforeunload/.test(x)) && !o.isClosed(), 'storage full: closing the tab with unexported unsaved work gets the browser\'s leave question; dismissed, the tab stays', asked);
+      if(!o.isClosed()){
+        // after an export of everything, closing the tab asks nothing
+        await o.evaluate(() => { EXPORTED_SNAP = snapHere(); });
+        const n2 = said.length;
+        await o.close({runBeforeUnload: true});
+        await new Promise(r => setTimeout(r, 500));
+        check(!said.slice(n2).some(x => /^beforeunload/.test(x)) && o.isClosed(), 'storage full: after the export, closing the tab asks nothing and the tab closes', said.slice(n2));
+      }
+    } else L.skip('closing the tab with unsaved work: the browser\'s leave question', 'WebKit\'s page close with runBeforeUnload does not finish here (#39)');
+    check(!e12.length, 'what the student sees with storage full: no page errors', e12.slice(0, 2).join('; '));
+    await c12.close().catch(() => {});
+  }
+  {
     // A refused progress write is tried once more after this tab's own record, proven stored, is
     // removed: room for a history entry but not for the progress save, which the record's room makes.
     const ORIGIN2 = () => {

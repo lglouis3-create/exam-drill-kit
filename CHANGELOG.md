@@ -5,6 +5,7 @@ Dated kit changes, newest first.
 ## 2026-11-05
 - Study progress first when storage is full: while a progress write is refused, the answer history is held (on the page, named in the notice, in Export) and written after the next progress save; this tab's own per-tab record, proven stored, is removed to make room and the progress write tried once more.
 - "Use it here" with only history unsaved no longer stores an entry twice when the other tab already placed this tab's per-tab record.
+- With storage full: the notice has an Export progress button and says when this tab's per-tab record is off; the new-version bar's Reload asks first when writes are refused; closing the tab while refused work is not exported gets the browser's leave question.
 
 ## 2026-11-04
 - Settings shows how much this site stores in this browser (every drill, in characters, against 5,242,880), this drill's part (progress, history, preview copies, copies kept by Import and their number) and this profile's answers kept and recorded.

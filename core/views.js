@@ -3106,10 +3106,12 @@ function bar(text, action, onAction, hideAfter){
    paper is saved, but its clock keeps running through the reload. */
 function offerReload(text){
   bar(text, 'Reload', () => {
-    // a stopped page: what it has not saved is lost on reload, unless exported (#32's review of 4311133)
-    if((STALE || WRITER === 'other') && atRisk() && !confirm('The answers and settings this page has not saved are lost on reload unless you export them first (the button on the notice). Reload anyway?')) return;
+    // a stopped page, or one whose writes the browser refused (storage full): what it has not saved
+    // is lost on reload, unless exported (#32's review of 4311133; Louis, 2026-11-05)
+    if((STALE || WRITER === 'other' || FAILED.size) && atRisk() && !confirm('The answers and settings this page has not saved are lost on reload unless you export them first (the button on the notice). Reload anyway?')) return;
     if(EX && EX.running && !confirm('A paper is running. It is saved and its clock keeps running. Reload now?')) return;
     placeSave();
+    LEAVE_ASKED = true;   // asked here already: the browser's leave question is not shown again
     location.reload();
   });
 }
@@ -3255,6 +3257,12 @@ bootStep('keeping the place across a reload', () => {
   const gone = () => { try { saveNow(); } finally { placeSave(); } };
   document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'hidden') gone(); });
   window.addEventListener('pagehide', gone);
+  // closing the tab or leaving the page while the browser refused writes and that work is not
+  // exported: the browser asks its own "leave this page?" question (its wording, not this page's;
+  // Louis, 2026-11-05). Not every browser shows it: see core/README.md.
+  window.addEventListener('beforeunload', e => {
+    try { if(!LEAVE_ASKED && FAILED.size && atRisk()){ e.preventDefault(); e.returnValue = ''; } } catch(err){}
+  });
 });
 
 /* The Quiz tab's storage warning follows every drawing of the pane, whichever code drew

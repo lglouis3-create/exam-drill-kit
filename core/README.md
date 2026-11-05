@@ -514,6 +514,28 @@ storage allowed a fixed number of characters more:
 With less room the old core still keeps more progress, because it deletes history to make room;
 `history_test.js` with 1,200 characters more stores the progress of 2 or 3 of 7 answers.
 
+**What the student sees with storage full, and what each action does** (Louis, 2026-11-05;
+`history_test.js` "Storage full, what the student sees and can do"):
+- **The first refused save** shows the "did not save" notice at once. It says the work is kept on
+  this page, that closing or reloading it loses it, and that Export keeps it, and it has an
+  **Export progress** button. The file holds every answer and every history entry on the page.
+- **The per-tab record.** When this tab cannot keep its record (#45) because storage is full, the
+  notice says so: "While storage is full, this tab cannot keep the record that protects its last
+  save when it closes without handing over to another open tab of this drill." It is shown even when
+  the progress itself was saved, and it goes once a record is written again (`recordOff`).
+- **In-app actions:**
+  - **Switching profile** tries the refused writes once more, then asks and offers the export.
+  - **The stop wall's Reload** and **the new-version bar's Reload** both ask first while work that is
+    not saved is not exported. The new-version bar asked only on a stopped page before; it now asks
+    when writes are refused too.
+- **Closing the browser tab, or leaving the page.** While writes are refused and that work is not
+  exported, the page asks the browser for its own "leave this page?" question (`beforeunload`; the
+  wording is the browser's). Chromium shows it; `history_test.js` checks it there. Once everything is
+  exported, closing asks nothing. WebKit's close in the checks does not finish with this question
+  (#39), so it is not checked there. Whether Safari on an iPhone or iPad shows it is NOT RUN. A tab
+  the system closes, for example a phone ending a tab in the background, gets no question, and what
+  was not saved or exported is lost.
+
 **Cuts that stay.** The answers a progress keeps past 4,000 (`ANSWERS_MAX`) and the history
 entries past 20,000 (`LOG_MAX`). `LOG_MAX` still drops the oldest entries with no notice and no
 copy, pending Louis's decision (#47's review, M3). The options, written in pull request #47's
