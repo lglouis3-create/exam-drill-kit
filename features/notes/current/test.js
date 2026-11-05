@@ -246,6 +246,20 @@ const DENY = () => { const orig = Storage.prototype.setItem;
       const {ctx, page, errors} = await L.openPage(browser, s.page, {viewport: {width, height: 900}, acceptDownloads: true}, DENY);
       const ev = (f, a) => page.evaluate(f, a);
       const wait = ms => page.waitForTimeout(ms);
+      /* Import as a student does it since core PR #32: choose the file, read the plan
+         (#importPlan), press its Import button (#importGo), and wait for the outcome
+         (#importResult). Returns the plan's text, the button's label ('' when the plan
+         offers none) and the outcome's text. */
+      const importFile = async (pg, f) => {
+        await pg.evaluate(() => show('settings'));
+        await pg.setInputFiles('#fileIn', f);
+        await pg.waitForFunction(() => { const b = document.getElementById('importPlan'); return b && b.textContent.trim(); }, null, {timeout: 5000});
+        const out = await pg.evaluate(() => { const g = document.getElementById('importGo'), w = document.getElementById('importWhat');
+          return {go: g ? g.textContent.trim() : '', what: (w ? w.textContent : '').replace(/\s+/g, ' ').trim()}; });
+        if(out.go) await pg.click('#importGo');
+        out.result = out.go ? (await pg.waitForSelector('#importResult', {timeout: 3000}).then(e => e.textContent(), () => '')).replace(/\s+/g, ' ').trim() : '';
+        return out;
+      };
       const SC = await ev(() => !!FX.api('study-controls'));
       // a note on a drill question
       await L.quizOn(page, ['nts-cq5-6', 'nts-cq5-6']);
@@ -424,8 +438,11 @@ const DENY = () => { const orig = Storage.prototype.setItem;
         check(JSON.stringify(exported.db.notes) === snap, `Export progress carries every note (${Object.keys(exported.db.notes || {}).length})`);
         await ev(() => { window.__name = 'Fresh'; askProfile(true); show('settings'); });
         check(await ev(() => PROFILE === 'Fresh' && !DB.notes), 'a new profile starts with no notes');
-        await page.setInputFiles('#fileIn', ef); await wait(600);
-        check(await ev(() => JSON.stringify(DB.notes)) === snap, 'Import progress into the new profile brings back the same notes');
+        const plan = await importFile(page, ef);
+        check(plan.go === 'Import' && /this profile has no progress yet/.test(plan.what) && /Import replaces the progress of "Fresh"/.test(plan.what),
+              'the Import plan for the new profile (no progress yet) offers to import the file into it, replacing its progress (core PR #32)', plan);
+        await wait(600);
+        check(await ev(() => PROFILE === 'Fresh' && JSON.stringify(DB.notes)) === snap, 'Import progress into the new profile brings back the same notes, in that profile', plan.result);
         await wait(300);
         await ev(() => { window.__name = 'Other'; askProfile(true); });
         await ev(() => { show('notes'); });
