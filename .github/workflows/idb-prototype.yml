@@ -34,12 +34,14 @@ jobs:
           npx --yes playwright@1.63.0 install --with-deps ${{ matrix.engine }}
       - name: Run the prototype twice, then the hold tests
         working-directory: review/idb-investigation/proto
+        shell: bash   # -o pipefail: a crash under "| tee" fails the job (the review of fa9f1f6)
         run: |
           export NODE_PATH=$(npm root -g)
           mkdir -p ../logs-ci
           node run.js ${{ matrix.engine }} | tee ../logs-ci/${{ matrix.engine }}-run1.log
           node run.js ${{ matrix.engine }} | tee ../logs-ci/${{ matrix.engine }}-run2.log
           node hold.js ${{ matrix.engine }} | tee ../logs-ci/${{ matrix.engine }}-hold.log
+          ! grep -h "LAUNCH FAILED" ../logs-ci/*.log   # a browser that did not start fails the job
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
         if: always()
         with:

@@ -5,7 +5,7 @@
 <style>body{font:16px/1.45 system-ui,sans-serif;margin:16px;max-width:640px}button{font-size:16px;padding:8px 12px;margin:4px 4px 4px 0}pre{white-space:pre-wrap;background:#f3f3f3;padding:8px}</style>
 <h1>IndexedDB prototype, by hand</h1>
 <p>For the steps in SAFARI_CHECKLIST.md. It uses its own database ("proto") on this page only and touches no course's progress.</p>
-<p><button id="probe">Probe</button><button id="run">Run 300</button><button id="check">Check</button><button id="reset">Reset</button></p>
+<p><button id="probe">Probe</button><button id="run">Run 300</button><button id="run20">Run for 20 s</button><button id="check">Check</button><button id="reset">Reset</button></p>
 <p>This tab: <b id="tab"></b></p>
 <pre id="out"></pre>
 <script>
@@ -125,12 +125,33 @@ document.getElementById('run').onclick = async () => {
   try { const t = await idbRun(TAB, 300, Date.now()); out('Run 300 in ' + TAB + ' finished: ' + JSON.stringify(t)); }
   catch(e){ out('Run failed: ' + e.name + ' ' + e.message); }
 };
+// Runs batches of 50 transactions for 20 seconds, so that runs started in two tabs a few seconds
+// apart overlap (one batch of 300 finishes in under a second; the review of fa9f1f6).
+let RUN20_I = 0;
+document.getElementById('run20').onclick = async () => {
+  out('Run for 20 s started in ' + TAB + ' ...');
+  const end = Date.now() + 20000, tally = {};
+  try {
+    const db = await openDB();
+    while(Date.now() < end){
+      const ps = [];
+      for(let k = 0; k < 50; k++) ps.push(rmwTx(db, TAB, RUN20_I++, 'default', false));
+      for(const r of await Promise.all(ps)) tally[r.result] = (tally[r.result] || 0) + 1;
+      await sleep(20);
+    }
+    db.close();
+    out('Run for 20 s in ' + TAB + ' finished: ' + JSON.stringify(tally));
+  } catch(e){ out('Run failed: ' + e.name + ' ' + e.message); }
+};
+// Check: total is the count the transactions kept; entries the list they appended to. They agree, with
+// no duplicates and "saw = position" for every entry, when no update was lost. "Tab switches" counts
+// the places where the order goes from one tab to another: above 1, the two tabs' runs overlapped.
 document.getElementById('check').onclick = async () => {
   try {
     const {state} = await idbReadAll(), seq = state.seq;
-    let saw = 0, dups = 0; const seen = new Set(), perTab = {};
-    seq.forEach((e, k) => { if(e.saw === k) saw++; const key = e.tab + ':' + e.i; if(seen.has(key)) dups++; seen.add(key); perTab[e.tab] = (perTab[e.tab] || 0) + 1; });
-    out('Check: total ' + state.count + ', entries ' + seq.length + ', lost ' + (state.count - seq.length) + ', duplicates ' + dups + ', saw = position ' + saw + ' of ' + seq.length + ', per tab ' + JSON.stringify(perTab));
+    let saw = 0, dups = 0, switches = 0; const seen = new Set(), perTab = {};
+    seq.forEach((e, k) => { if(e.saw === k) saw++; if(k > 0 && seq[k - 1].tab !== e.tab) switches++; const key = e.tab + ':' + e.i; if(seen.has(key)) dups++; seen.add(key); perTab[e.tab] = (perTab[e.tab] || 0) + 1; });
+    out('Check: total ' + state.count + ', entries ' + seq.length + ', duplicates ' + dups + ', saw = position ' + saw + ' of ' + seq.length + ', tab switches ' + switches + ', per tab ' + JSON.stringify(perTab));
   } catch(e){ out('Check failed: ' + e.name + ' ' + e.message); }
 };
 document.getElementById('reset').onclick = async () => { try { await idbReset(); out('Reset: the prototype database is empty.'); } catch(e){ out('Reset failed: ' + e.name); } };

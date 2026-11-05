@@ -1,6 +1,6 @@
 # IndexedDB for the kit core: specification check, cross-tab prototype, migration outline
 
-Investigation only (2026-11-04). No repository was changed. Prototype: `proto/` (server.js, page.html, run.js for T0-T5, hold.js for T6, T6b, T7). Logs: `logs/`. Specification source: `spec/src/index.bs`.
+Investigation only (2026-11-04 and 2026-11-05). No core or course file is changed. Prototype: `proto/` (server.js, page.html, run.js for T0-T5, hold.js for T6, T6b, T7; manual.html for the devices). Logs: `logs-2026-11-04/` (this container) and `logs-ci-2026-11-05/` (GitHub). The specification source `index.bs` was read from w3c/IndexedDB at commit f9f83f196f8501429282ff1747ebcbe35d41381a; it is not copied here.
 
 ## 1. Specification
 
@@ -42,7 +42,7 @@ All pages were in one browser context, so one origin's storage, served from http
 - appends {tab, i, saw: count};
 - writes count+1.
 
-**T1, three tabs doing concurrent read-modify-write** (logs/chromium-run1.log and chromium-run2.log):
+**T1, three tabs doing concurrent read-modify-write** (logs-2026-11-04/chromium-run1.log and chromium-run2.log):
 
 | Run | Durability | Transactions | Lost | Duplicates | saw = position | Tab switches |
 |---|---|---|---|---|---|---|
@@ -53,14 +53,14 @@ All pages were in one browser context, so one origin's storage, served from http
 | 2 | relaxed | 900 | 0 | 0 | 900 | 137 |
 | 2 | strict | 900 | 0 | 0 | 900 | 148 |
 
-**T6, another tab's readwrite transaction waits for the open one** (logs/chromium-hold.log). Tab A held a transaction for 1,000 ms, and tab B created one about 200 ms in. In 3 of 3 repetitions, B's first request finished at +1,000 or +1,001 ms.
+**T6, another tab's readwrite transaction waits for the open one** (logs-2026-11-04/chromium-hold.log). Tab A held a transaction for 1,000 ms, and tab B created one about 200 ms in. In 3 of 3 repetitions, B's first request finished at +1,000 or +1,001 ms.
 
 **T2, a tab closed mid-way while a survivor tab wrote 300 transactions.**
 - Snapshots with a half-done transaction: 0 of 491, 470, 419, 376, 395 and 343 snapshots (2,494 in all).
 - The survivor completed 300 of 300 each time.
-- Every reported `complete` was stored.
+- Every reported `complete` was stored. Some transactions were stored without their `complete` reaching the test before the close: 1 in run 1 repetition 3, 2 in run 2 repetition 3.
 
-**T7, a tab closed with a readwrite transaction open after a put** (logs/chromium-hold.log). In 3 of 3 repetitions the other tab read `undefined`: the open transaction was not committed. That is Chromium's behaviour; the specification does not require it.
+**T7, a tab closed with a readwrite transaction open after a put** (logs-2026-11-04/chromium-hold.log). In 3 of 3 repetitions the other tab read `undefined`: the open transaction was not committed. That is Chromium's behaviour; the specification does not require it.
 
 **T3, the same read-modify-write in localStorage, as a control:**
 - without a gap: 900 writes kept 739 (161 lost) in run 1 and 503 (397 lost) in run 2;
@@ -143,7 +143,7 @@ Still NOT RUN: the Safari app on an iPhone or iPad (`SAFARI_CHECKLIST.md`), Fire
 - The localStorage data left by the move is shown as copies "from before the move" until Louis deletes them.
 
 **Decisions for Louis:**
-1. Whether to move at all, given that WebKit and Safari are untested.
+1. Whether to move at all. WebKit is now run on GitHub (section 2b); the Safari app on an iPhone or iPad is not yet tested (SAFARI_CHECKLIST.md).
 2. Whole progress in IndexedDB, or only an append-only log of saves.
 3. An old-core save after the move: merged, or kept as a copy.
 4. IndexedDB unavailable: fall back with a notice, or silently.
