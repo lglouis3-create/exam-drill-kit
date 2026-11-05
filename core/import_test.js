@@ -1958,6 +1958,76 @@ let nfile = 0;
     await d.ctx.close();
   }
 
+  for(const order of [['z-old', 'a-new', true], ['a-old', 'z-new', false]]){
+    // What oldest first is for: the newer record continues the older one and carries a setting changed
+    // after it. Placed oldest first, the older becomes the progress and the newer then continues it, so
+    // the newer is the progress and nothing is copied. Placed newest first, the newer becomes the
+    // progress and the older, now behind it with another setting, is copied though nothing of it is
+    // missing. Either way nothing is lost; the order decides only that no needless copy is made.
+    const d = await device(undefined, true); const di = await info(d.page);
+    await answer(d.page, 1, 0);
+    await reload(d.page); await lockReady(d.page);
+    const base = JSON.parse(await stored(d.page, di.data)), q = base.answers[0];
+    const r1 = JSON.parse(JSON.stringify(base)); r1.answers.push(Object.assign({}, q, {at: q.at + 10}));
+    const r2 = JSON.parse(JSON.stringify(r1)); r2.answers.push(Object.assign({}, q, {at: q.at + 20})); r2.settings = Object.assign({}, r2.settings, {goal: 73});
+    await d.page.evaluate(([a, b, kOld, kNew, newFirst]) => {
+      const put = (k, at, db) => localStorage.setItem(pendingKey(PROFILE, k), JSON.stringify({at, db, log: []}));
+      if(newFirst){ put(kNew, 2000, b); put(kOld, 1000, a); } else { put(kOld, 1000, a); put(kNew, 2000, b); }
+      settlePending();
+    }, [r1, r2, order[0], order[1], order[2]]);
+    const st = JSON.parse(await stored(d.page, di.data));
+    check(st.answers.length === 3 && st.settings.goal === 73 && await stored(d.page, di.backup) === null,
+      `two leaving tabs' records (${order[0]}, ${order[1]}), the newer continuing the older with a setting changed since: the newer is the progress, with no copy`,
+      {n: st.answers.length, goal: st.settings.goal, copies: JSON.parse(await stored(d.page, di.backup) || '[]').length});
+    await d.ctx.close();
+  }
+  {
+    // A tab back on a profile it wrote before: its earlier record is not written over. Tab X's last save
+    // on the profile is written over by tab Y, which never received it (held back) and closes; X comes
+    // back and saves. Before d325326's review that save replaced X's earlier record unchecked, and X's
+    // last answer was in neither the progress nor a copy.
+    const d = await device(undefined, true); const di = await info(d.page);
+    await lockReady(d.page);
+    await answerHere(d.page, 1); await answerHere(d.page, 2);
+    const t2 = await secondTab(d);
+    await t2.waitForFunction(() => WRITER === 'other', null, {timeout: 5000}).catch(() => {});
+    const pk1 = await d.page.evaluate(() => myPendingKey());
+    await lagView(t2, [di.data, di.log, pk1]);
+    const last = await answerHere(d.page, 3);                          // X's last answer here, stored, and in its record
+    await d.page.evaluate(() => useProfile('bee')); await lockReady(d.page);
+    await t2.evaluate(() => takeOver(false));
+    await t2.waitForFunction(() => WRITER === 'held', null, {timeout: 9000}).catch(() => {});
+    const yHeld = await t2.evaluate(() => WRITER);
+    await answerHere(t2, 4);                                           // Y writes over X's last save
+    const overwritten = !(await keptAnywhere(d.page, di, last)).live;
+    await t2.close();
+    let back = '', tries = 0;
+    for(; tries < 8 && back !== 'held'; tries++){
+      await d.page.waitForFunction(async n => (await navigator.locks.query()).held.every(l => !l.name.endsWith(':writer:' + n)), di.profile, {timeout: 5000}).catch(() => {});
+      if(tries) { await d.page.evaluate(() => useProfile('bee')); await lockReady(d.page); }
+      await d.page.evaluate(n => useProfile(n), di.profile);
+      await d.page.waitForFunction(n => WRITER !== 'pending' && PROFILE === n, di.profile, {timeout: 6000}).catch(() => {});
+      back = await d.page.evaluate(() => WRITER);
+    }
+    check(yHeld === 'held' && overwritten && back === 'held', 'a tab back on a profile it wrote before: the other tab wrote over its last save, and it holds the profile again (precondition)', {yHeld, overwritten, back, tries});
+    await answerHere(d.page, 5);                                       // the save that wrote over the earlier record before
+    await d.page.evaluate(() => settlePending());
+    const a = await keptAnywhere(d.page, di, last);
+    const pk2 = await d.page.evaluate(() => myPendingKey());
+    check(a.live || a.copy, 'a tab back on a profile it wrote before: its earlier last answer, written over by another tab, is kept (progress or a copy) after its next save', Object.assign({sameKey: pk1 === pk2}, a));
+    // cleanup stays safe: the earlier record goes only after the 60 s wait with proof, never before
+    const early = await d.page.evaluate(k => localStorage.getItem(k) !== null, pk1);
+    const age = k => { const sk = NS + ':pending-seen:' + PROFILE; const v = JSON.parse(localStorage.getItem(sk) || '{}'); if(v[k]) v[k].t -= 61000; localStorage.setItem(sk, JSON.stringify(v)); };
+    await d.page.evaluate(`(${age.toString()})(${JSON.stringify(pk1)}); settlePending();`);
+    const gone = await d.page.evaluate(k => localStorage.getItem(k) === null, pk1);
+    const keptAfter = await keptAnywhere(d.page, di, last);
+    const ownStays = await d.page.evaluate(k => localStorage.getItem(k) !== null, pk2);
+    check(pk1 !== pk2 && early && gone && (keptAfter.live || keptAfter.copy) && ownStays,
+      'a tab back on a profile: its new saves go to a new record; the earlier record is removed only after it is proven stored and 60 s have passed, the answer stays kept, and the present record stays',
+      {pk1, pk2, early, gone, keptAfter, ownStays});
+    await d.ctx.close();
+  }
+
   console.log('\n=== Records: the review of 59b3c50 ===');
   {
     // N1: Put back right after taking over must not delete the leaving tab's late record; its answer is kept

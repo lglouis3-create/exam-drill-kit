@@ -457,12 +457,6 @@ What this does not cover (the independent review of 4b3b94c; Chromium only):
     replacing Import or Delete the copies (for example, because its copy write was refused)
     stays; its answers are in storage but not on screen or in Export, so the student cannot
     reach them (a record shown stored before is still removed 60 s on);
-  - a tab that comes back to a profile it wrote before writes its new record under the same key
-    (`<ns>:pending:<profile>:<tab>`), and only other tabs check a record, so its record from the
-    earlier time is not checked before it is overwritten: if that earlier time's last save was
-    written over by the next writer, and that writer closed before the record reached it, that
-    save is lost when this tab saves again (found by the independent review of d325326; not
-    tested; a fix would place this tab's own record as another tab's before its first new save);
   - **the boundary:** localStorage gives no ordering of writes between tabs and no transactions,
     so every rule here decides "newer or older" and "deliberate or lost" from snapshots of
     content, and a write still on its way to this tab can be judged from an older view. Four
@@ -499,8 +493,16 @@ What this does not cover (the independent review of 4b3b94c; Chromium only):
 **Each writing tab's last save (2026-11-04).** With each save of the progress, the tab holding
 the lock also writes `<ns>:pending:<profile>:<tab>` = `{at, db, log}`: `db` is the progress it
 stored (an object), `log` the history entries it added since it took the profile. No other tab
-writes that key. When a tab takes the lock it reads every other tab's record of that profile,
-oldest first, at once, 1.5 s later, and on each storage event for such a key. A record's place in
+writes that key. A tab that takes a profile again while its record from an earlier time on that
+profile is still stored writes under a new key (`<tab>.<n>`), so that earlier record is never
+written over; it is checked, placed and removed as another tab's record would be, by this tab too
+(the independent review of d325326; before, the earlier record was written over unchecked, and its
+last save was lost when another tab had written over that save and closed). When a tab takes the lock it reads every other tab's record of that profile,
+oldest first, at once, 1.5 s later, and on each storage event for such a key. The order does not
+decide whether a record is kept (each one ends in the progress or a copy before it can be removed);
+it decides that a newer record continuing an older one, with a setting changed after it, becomes the
+progress with no needless copy of the older one (newest first, the older would be copied though
+nothing of it is missing). A record's place in
 the stored progress is found by its last answer, compared on every field (never question and
 time alone), which still works once the oldest answers are cut at 4,000:
 - its last answer is stored (its last occurrence), before the stored last answer: the stored

@@ -725,7 +725,7 @@ function claimProfile(p){
   claimWriter(p, 'try').then(ok => {
     if(PROFILE !== p) return;
     // this profile's NEW_LOG keeps entries answered while the lock was asked for: flushWaiting saves them now
-    if(ok){ WRITER = 'held'; WROTE_SINCE_CLAIM = false; MARK = 0; flushWaiting(); settlePendingSoon(); }
+    if(ok){ WRITER = 'held'; newRecordTime(p); WROTE_SINCE_CLAIM = false; MARK = 0; flushWaiting(); settlePendingSoon(); }
     else if(WRITER === 'pending'){ WRITER = 'other'; WRITER_WHY = 'other'; EXAM_CLEAR_WAITING = ''; stopWall('other'); }
   });
 }
@@ -755,7 +755,7 @@ function takeOver(force){
       const keys = gave ? Object.keys(gave) : [];
       if(keys.every(k => storedNow(k) === gave[k])){
         finish(null);
-        WRITER = 'held'; WRITER_FOR = p; STALE_WARNED = false;
+        WRITER = 'held'; WRITER_FOR = p; STALE_WARNED = false; newRecordTime(p);
         if(keepMine !== null){
           // the two records are not combined: this page's is added to the copies Import keeps
           // (Settings, Put back), then the stored one is opened; refused, nothing is taken over
@@ -839,13 +839,25 @@ let WROTE_SINCE_CLAIM = false;   // this tab wrote the progress since it took th
 let MARK = 0;                                   // when this tab last erased, put back or replaced by Import
 let SETTLING = false;                          // the settling's own writes are not this tab's
 function pendingKey(p, tab){ return NS + ':pending:' + p + ':' + tab; }
+/* This tab's record key for its present time on a profile. A tab that takes a profile again while a
+   record of its earlier time on it is still stored writes under a new key, so that earlier record is
+   never written over: it is then checked, placed and removed like another tab's record (the review
+   of d325326: a tab back on a profile overwrote its own earlier record unchecked). */
+const REC_KEY = {};
+let REC_N = 0;
+const myPendingKey = () => pendingKey(PROFILE, REC_KEY[PROFILE] || TAB_ID);
+function newRecordTime(p){
+  let kept = true;   // when it cannot be read, the earlier record is assumed to be there
+  try { kept = localStorage.getItem(pendingKey(p, REC_KEY[p] || TAB_ID)) !== null; } catch(e){}
+  if(kept) REC_KEY[p] = TAB_ID + '.' + (++REC_N);
+}
 const seenKeyOf = p => NS + ':pending-seen:' + p;
 function pendingAfter(k, v){
   try {
     if(WRITER !== 'held' || WRITER_FOR !== PROFILE || k !== keyFor(PROFILE)) return;
     if(!SETTLING) WROTE_SINCE_CLAIM = true;
-    if(v === null){ localStorage.removeItem(pendingKey(PROFILE, TAB_ID)); return; }
-    localStorage.setItem(pendingKey(PROFILE, TAB_ID), '{"at":' + Date.now() + (MARK ? ',"mark":' + MARK : '') + ',"db":' + v + ',"log":' + JSON.stringify(newLog()) + '}');
+    if(v === null){ localStorage.removeItem(myPendingKey()); return; }
+    localStorage.setItem(myPendingKey(), '{"at":' + Date.now() + (MARK ? ',"mark":' + MARK : '') + ',"db":' + v + ',"log":' + JSON.stringify(newLog()) + '}');
   } catch(e){ /* before start-up, or storage full: this save has no record of its own */ }
 }
 /* The other tabs' records of profile p go (Erase, Put back, a replacing Import, Delete the copies). */
@@ -858,7 +870,7 @@ function pendingRetire(){
   // arriving late) is placed as usual, and is kept as a copy, since this tab has written since
   MARK = Date.now();
   try {
-    const pre = NS + ':pending:' + PROFILE + ':', mine = pendingKey(PROFILE, TAB_ID);
+    const pre = NS + ':pending:' + PROFILE + ':', mine = myPendingKey();
     const seen = readSeen();
     for(let i = 0; i < localStorage.length; i++){
       const k = localStorage.key(i);
@@ -884,7 +896,7 @@ function settlePendingSoon(){
 }
 function settlePending(){
   if(WRITER !== 'held' || WRITER_FOR !== PROFILE || !canSave()) return;
-  const pre = NS + ':pending:' + PROFILE + ':', mine = pendingKey(PROFILE, TAB_ID), recs = [];
+  const pre = NS + ':pending:' + PROFILE + ':', mine = myPendingKey(), recs = [];
   try {
     for(let i = 0; i < localStorage.length; i++){
       const k = localStorage.key(i);
