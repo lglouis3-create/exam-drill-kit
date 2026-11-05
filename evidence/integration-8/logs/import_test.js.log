@@ -1,0 +1,333 @@
+  browser  Chromium started
+  ok    Export writes the course, its storage name, the progress and the history
+
+=== Files of another course, of another app, or damaged ===
+  ok    settings that are not a settings record: refused, saying why
+  ok    an answer count that is not a number: refused, saying why
+  ok    a concept record with a count that is not a number: refused, saying why
+  ok    a concept record whose questions asked are not a list: refused, saying why
+  ok    a scheduler record that is not a list of entries: refused, saying why
+  ok    a comparison record with an arm that does not exist: refused, saying why
+  ok    an FSRS record with an entry that is not a card: refused, saying why
+  ok    a setting of the wrong kind: refused, saying why
+  ok    a file labelled with another course: refused, saying why
+  ok    a file labelled with this course's name and another storage name: refused, saying why
+  ok    a file that names no course, every question it answers this drill's: refused, saying why
+  ok    a file that names no course, none of its questions this drill's: refused, saying why
+  ok    a file that names no course, with no answers: refused, saying why
+  ok    a BDK quiz export: refused, saying why
+  ok    another app's file: refused, saying why
+  ok    a file that is not JSON: refused, saying why
+  ok    JSON that is not an object: refused, saying why
+  ok    an object with no progress: refused, saying why
+  ok    an answer that is not whole: refused, saying why
+  ok    an answer with a result the drill does not record: refused, saying why
+  ok    the same answer twice: refused, saying why
+  ok    a history entry that is not whole: refused, saying why
+  ok    a history that is not a list: refused, saying why
+  ok    after each of the 23 refused files every stored key is exactly as it was
+  ok    and the progress on screen is unchanged (3 answers)
+
+=== Older files: a labelled progress from before 2026-11-01 ===
+  ok    the older progress, in a file that names this course, is offered to a profile with none
+  ok    it is converted to the current shape: v 2, every answer kept, each concept's last-shown counts rebuilt
+  ok    a history of seven-field entries is merged as it is
+  ok    no page errors
+
+=== Newer, older and diverged files ===
+  ok    a device with no answers is offered the file, with what the file and the device hold
+  ok    confirmed, the device has the file's 3 answers and 3 history entries
+  ok    a newer file of the same record: the plan says it replaces the progress, keeps the old one, and that the pace comes with it
+  ok    nothing is saved before the plan is confirmed
+  ok    Cancel leaves everything as it was
+  ok    confirmed, the progress is the file's (5 answers), on screen and stored
+  ok    the pace and "Ask everything" come with the file; the equation drill's choice stays this device's
+  ok    keys outside the progress and the history are untouched
+  ok    the replaced progress is kept as a copy, exactly as it was stored
+  ok    the history gains the file's 2 entries (5)
+  ok    after a reload: 5 answers and 5 history entries
+  ok    Settings offers to put back the progress from before the import
+  ok    importing the same file again changes nothing
+  ok    an older file of the same record whose settings differ: the plan offers a new profile, and says why
+  ok    cancelled, nothing is saved
+  ok    Put back restores the progress from before the import, as it was stored
+  ok    and keeps the progress it replaced (5 answers) as the copy in its place; the copy put back is off the list
+  ok    the newer file imports again after a put-back
+  ok    a file and a device that each have answers the other lacks: the plan offers a new profile for the file
+  ok    confirmed, the file's 7 answers are the profile "me (imported 2026-11-05)"
+  ok    with its 7 history entries
+  ok    the progress and history of this profile are unchanged (6 answers)
+  ok    the same file again: it is in the profile it went into, and no second profile is made
+  ok    after a reload the new profile is there and this profile has its 6 answers
+  ok    the new profile opens with the file's 7 answers
+  ok    after that profile was opened, the same file again still makes no second profile
+  ok    a file with the same answers as a profile here but other concept progress is not taken for it: a new profile, holding the file's concept progress
+  ok    that file again makes no further profile
+
+=== The 4,000-answer limit ===
+  ok    a file at the limit that lacks this device's older answers goes into a new profile, and the plan says why
+  ok    nothing is saved before it is confirmed
+
+=== Conflicting answers: the same question and time, different fields ===
+  ok    a different result under the same question and time is a conflict: the plan offers a new profile
+  ok    a different result: the file's answers are a new profile, field for field, and this profile's stored progress is exactly as it was
+  ok    a different choice under the same question and time is a conflict: the plan offers a new profile
+  ok    a different choice: the file's answers are a new profile, field for field, and this profile's stored progress is exactly as it was
+
+=== Replacement only when the file continues this profile's record ===
+  ok    a file of another origin (created) that holds every answer here and one more goes into a new profile
+  ok    another origin: the file's answers are a new profile, field for field, and this profile's stored progress is exactly as it was
+  ok    an answer list here that does not start at answer 1 cannot be shown to be continued: a new profile
+  ok    a cut list here: the file's answers are a new profile, field for field, and this profile's stored progress is exactly as it was
+  ok    a file with an answer before this device's first (not its continuation) goes into a new profile
+  ok    answers out of order: the file's answers are a new profile, field for field, and this profile's stored progress is exactly as it was
+
+=== Progress besides the answers: concept progress, settings, scheduling state ===
+  ok    both answer lists empty, the concept progress different: the plan offers a new profile and says why, not "nothing"
+  ok    empty answer lists, other concept progress: the file's progress is a new profile, part for part, and this profile's stored progress is exactly as it was
+  ok    that file again: no second profile
+  ok    another file with no answers and other concept progress is not taken for it: a new profile
+  ok    a file with no answers whose every part is this profile's changes nothing
+  ok    no page errors
+  ok    the same answers, other concept progress: the plan offers a new profile and says why, not "nothing"
+  ok    the same answers, other concept progress: the file's progress is a new profile, part for part, and this profile's stored progress is exactly as it was
+  ok    the same answers and concept progress, another pace: the plan offers a new profile and says why, not "nothing"
+  ok    the same answers and concept progress, another pace: the file's progress is a new profile, part for part, and this profile's stored progress is exactly as it was
+  ok    the same answers, a scheduling state this profile lacks: the plan offers a new profile and says why, not "nothing"
+  ok    the same answers, a scheduling state this profile lacks: the file's progress is a new profile, part for part, and this profile's stored progress is exactly as it was
+  ok    the same answers, a part a feature module keeps: the plan offers a new profile and says why, not "nothing"
+  ok    the same answers, a part a feature module keeps: the file's progress is a new profile, part for part, and this profile's stored progress is exactly as it was
+  FAIL  and the module's part is in it  — {}
+
+=== Into an empty profile ===
+  ok    a file with concept progress and no answers, into a profile with none: the plan replaces it, not "nothing"
+  ok    confirmed, the profile holds the file's concept progress and pace, and no other profile is made
+  ok    the same file again changes nothing
+  ok    a file with answers, into a profile with none: the profile holds the file's answers and concept progress
+  ok    the same file again changes nothing, and no second profile is made
+  ok    a profile with concept progress and no answers is not taken for an empty one: a file with answers goes into a new profile
+  ok    into a profile with concept progress and no answers: the file's progress is a new profile, part for part, and this profile's stored progress is exactly as it was
+
+=== Older files and repeated imports ===
+  ok    an older file whose every part is here (its concepts not answered since) changes nothing
+  ok    an older file whose concept was answered again here: a new profile, since its answers cannot show that it adds nothing
+  ok    an older file: the file's progress is a new profile, part for part, and this profile's stored progress is exactly as it was
+  ok    that file again: no second profile
+  ok    after a reload, that file again: still no second profile, and this profile as it was
+
+=== Continuation: a part this profile changed without an answer ===
+  ok    a file whose answers continue this profile but which lacks a part changed here without an answer: a new profile, not a replace
+  ok    a part changed here without an answer: the file's answers are a new profile, field for field, and this profile's stored progress is exactly as it was
+  ok    this profile keeps that part, and no copy was needed
+
+=== Another tab of the same browser ===
+  ok    the other tab answered: this tab reads the other tab's save within 5 s
+  ok    a tab whose profile another tab has saved since: Import plans nothing and says so, and the other tab's progress is stored as it was
+  ok    reloaded, the tab plans a file that continues its record
+  ok    the other tab answered again: this tab reads the other tab's save within 5 s
+  ok    the other tab saving after the plan was shown: Import refuses at the click, and nothing is written
+  ok    this tab imports a file that continues its record (4 answers)
+  ok    this tab imported: this tab reads the other tab's save within 5 s
+  ok    the other tab's next save writes neither its progress nor its history over the import, and it says why and offers a reload
+  ok    reloaded, the other tab shows the imported progress (4 answers)
+
+=== Storage cleared while the page is open; stale tabs and the other writes ===
+  ok    site data cleared while the page is open: the next save writes the page's 4 answers and 4 history entries back, with no "another tab" notice
+  ok    the other tab answered: this tab reads the other tab's save within 5 s
+  ok    a tab stopped as stale writes nothing after the site data is cleared either: its older copy is not written
+  ok    site data cleared, then Import: the page's 3 answers are saved again before the plan, so "on this device already" is true
+  ok    the other tab imports a file that adds one history entry
+  ok    the other tab imported history: this tab reads the other tab's save within 5 s
+  ok    this tab, whose history the other tab has saved since, imports nothing: the other tab's entry stays in the history
+  ok    Erase in that tab erases nothing and says so, instead of "History erased."
+  ok    this tab imported: this tab reads the other tab's save within 5 s
+  ok    Put back in a tab another tab has saved over puts nothing back and says so
+
+=== Progress the browser refused to save in this visit ===
+  ok    progress the browser refused to save: Import plans nothing and says what is stored is not what is shown
+  ok    the waiting save refused: nothing is imported, the answer stays on the page, flagged as not saved
+  ok    and Import plans nothing while it is not saved
+
+=== Empty profiles with history, and history for a profile that holds the file ===
+  ok    a profile with no progress but another record's history: the file goes into a new profile, so the two are not mixed
+  ok    confirmed, this profile and its history are as they were
+  ok    the record those entries belong to replaces the empty profile
+  ok    no answers here but other progress, the same origin: a new profile, with that reason (not the 4,000-answer limit)
+  ok    a file whose progress is all in a profile here but which has one more history entry: the plan adds the entry to that profile
+  ok    confirmed, that profile's history gains the entry; no profile is made, and this profile is as it was
+  ok    that file again changes nothing
+
+=== Put back, with a write refused at each step ===
+  ok    set up: the progress has 5 answers, and the 3-answer progress is the one copy
+  ok    step 1 refused (the copy of the progress on screen): nothing changes, and the page says so
+  ok    step 2 refused (the copy written as the progress): the progress is as it was, and the 3-answer copy is still kept
+  ok    after a reload the progress still has 5 answers
+  ok    step 3 refused (the list updated): the 3-answer progress is back, the 5-answer progress is kept as a copy, and the page says the list kept both
+  ok    after a reload: 3 answers, and the 5-answer copy is kept
+  ok    with nothing refused: the newest copy is back, and the progress it replaced is kept as a copy
+  ok    step 2 refused and the list not put back: the progress is as it was, both records are kept, and the page says the list holds the extra copy
+  ok    putting back the extra copy leaves the progress as it was, and the 3-answer copy kept
+  ok    Settings offers to delete the copies kept by Import
+  ok    asked and confirmed, the copies are deleted, and the progress is as it was
+
+=== Refused reads and writes ===
+  ok    a progress that could not be read: Import says the file was not imported, and the stored value is as it was
+  ok    a history that could not be read: nothing is imported, and both stored values are as they were
+  ok    the progress write refused: Import says nothing was imported
+  ok    the stored progress, history and copies are as they were (no copy left behind)
+  ok    the progress and history on screen are as they were
+  ok    a switch to another profile and back shows the same progress, not the file's
+  ok    and after a reload
+  ok    the backup write refused: Import says nothing was imported
+  ok    the stored progress, history and copies are as they were (no copy left behind)
+  ok    the progress and history on screen are as they were
+  ok    a switch to another profile and back shows the same progress, not the file's
+  ok    and after a reload
+  ok    the history write refused: the progress is imported (4 answers) and the page says the history was not added
+  ok    the stored history is as it was, and the history in memory keeps its 3 entries
+  ok    importing the file again adds the entry
+  ok    a new profile whose history cannot be saved is not made: every stored key is as it was
+
+=== A save waiting when the page goes, with another tab (with #39's saveNow) ===
+  ok    this tab answered: this tab reads the other tab's save within 5 s
+  ok    the other tab saved a setting: this tab reads the other tab's save within 5 s
+  ok    the page hidden within 150 ms of an answer, after another tab saved: the other tab's save stays, and this page says why
+  ok    this tab answered: this tab reads the other tab's save within 5 s
+  ok    the other tab saved a setting: this tab reads the other tab's save within 5 s
+  ok    the page closed (pagehide) within 150 ms of an answer, after another tab saved: the other tab's save stays, and this page says why
+
+=== Review of 7dbc054: a new profile's name, Put back with a waiting save, a refused save ===
+  ok    the other tab saved a profile of that name: this tab reads the other tab's save within 5 s
+  ok    a new profile's name taken by another tab after the plan was shown: confirming writes nothing, that profile and this one are as they were, and the page says why
+  ok    the other tab saved a profile of that name: this tab reads the other tab's save within 5 s
+  ok    a new profile's name taken by another tab after the plan was shown, and the history write refused: confirming writes nothing, that profile and this one are as they were, and the page says why
+  ok    Put back while an answer waits on its 150 ms timer: the 3-answer progress is back, and the kept copy of the progress that was on screen holds the waiting answer (6 answers)
+  ok    Put back while an answer waits and its save is refused: nothing is put back, the stored progress and copies are as they were, and the answer stays on the page, flagged as unsaved
+  ok    another tab saves while Put back asks for confirmation: nothing is put back, and that tab's progress and the copies are as they were
+  ok    this tab answered: this tab reads the other tab's save within 5 s
+  ok    the other tab saved a setting: this tab reads the other tab's save within 5 s
+  ok    a save refused in this tab, then another tab saves: this tab's next save writes nothing over it, and says why
+  ok    one tab alone: after a refused save, its next save writes the progress, with no "another tab" notice
+
+=== Review of 2bc1e07: a refused save and the profile opened again; questions left open ===
+  ok    one tab alone: a refused save, the profile opened again, storage working again: the next save writes the progress, with no "another tab" notice
+  ok    this tab answered: this tab reads the other tab's save within 5 s
+  ok    the other tab saved a setting: this tab reads the other tab's save within 5 s
+  ok    a refused save, another tab saves, the profile opened again here: this tab's next save writes nothing over the other tab's, and says why
+  ok    "Delete the copies" while another tab imports (a second copy added): nothing is deleted, and both copies are kept
+  ok    Put back while another tab deletes the copies: nothing is put back, and the copies stay deleted
+  ok    Erase while another tab saves during its question: nothing is erased, the page says so, and the progress on screen stays
+  ok    a name with only a saved history is taken: the plan names another
+  ok    the other tab saved that name's history: this tab reads the other tab's save within 5 s
+  ok    a new profile's name whose history another tab saved after the plan was shown: confirming writes nothing, and that history is as it was
+
+=== Review of 1e6c1d1: copies another tab deleted; a write Import or Put back had kept, then a refused save ===
+  ok    the other tab deleted the copies: this tab reads the other tab's save within 5 s
+  ok    copies another tab deleted: Settings offers no Put back, and Put back puts nothing back and writes no copy
+  ok    then an import that is kept: one copy, of the progress it replaced; the deleted copy is not written back
+  ok    the other tab deleted the copies: this tab reads the other tab's save within 5 s
+  ok    copies another tab deleted, then an import whose progress write is refused: nothing is imported, and the deleted copies are not written back
+  ok    after an Import, a refused save, the profile opened again, storage working again: the next save writes, with no "another tab" notice
+  ok    after a Put back, a refused save, the profile opened again, storage working again: the next save writes, with no "another tab" notice
+
+=== Two tabs at once: another tab's save not yet passed to this tab (no synchronising before the action) ===
+  ok    starting conditions: this tab reads the other tab's save within 5 s
+  ok    the importing tab opened second, Import: the other tab is the writer and its answer is stored
+  ok    the importing tab opened second, Import there while another tab's answer has not reached it: that answer is still in the stored progress or a kept copy
+  ok    starting conditions: this tab reads the other tab's save within 5 s
+  ok    the importing tab opened second, an ordinary save: the other tab is the writer and its answer is stored
+  ok    the importing tab opened second, an ordinary save there while another tab's answer has not reached it: that answer is still in the stored progress or a kept copy
+  ok    starting conditions: this tab reads the other tab's save within 5 s
+  ok    the importing tab opened second, Put back: the other tab is the writer and its answer is stored
+  ok    the importing tab opened second, Put back there while another tab's answer has not reached it: that answer is still in the stored progress or a kept copy
+  ok    starting conditions: this tab reads the other tab's save within 5 s
+  ok    the importing tab opened first, Import: the other tab is read-only and takes no answer
+  ok    the importing tab opened first, Import there while another tab's answer has not reached it: that answer is still in the stored progress or a kept copy
+  ok    starting conditions: this tab reads the other tab's save within 5 s
+  ok    the importing tab opened first, an ordinary save: the other tab is read-only and takes no answer
+  ok    the importing tab opened first, an ordinary save there while another tab's answer has not reached it: that answer is still in the stored progress or a kept copy
+  ok    starting conditions: this tab reads the other tab's save within 5 s
+  ok    the importing tab opened first, Put back: the other tab is read-only and takes no answer
+  ok    the importing tab opened first, Put back there while another tab's answer has not reached it: that answer is still in the stored progress or a kept copy
+  ok    starting conditions: this tab reads the other tab's save within 5 s
+  ok    Delete the copies in a tab another tab's import has not yet reached: a copy that import kept is not deleted
+  ok    the two tabs agree again: this tab reads the other tab's save within 5 s
+  ok    Delete the copies in a tab another tab's import has not yet reached: a copy that import kept is not deleted
+  ok    the two tabs agree again: this tab reads the other tab's save within 5 s
+
+=== One writer per profile: a second tab, the hand-over, a take-over, another profile ===
+  ok    a second tab of a profile another tab has: it shows why it is read-only, takes no answer and writes nothing
+  ok    the stop wall lies over the page, so its buttons cannot be tapped
+  ok    Use it here: the other tab saves its waiting answer and stops; this tab starts saving with that answer in its progress
+  ok    after the hand-over both answers are stored, and the first tab takes no more answers
+  ok    a hand-over whose last save has not reached this tab: it does not start writing on its older view; later, Use it here brings that answer
+  ok    a writer that does not answer: "Take it over anyway" works; the old writer stops, writes nothing, and offers to export its unsaved answer
+  ok    the export from the stop wall holds this page's unsaved answer
+  ok    Reload on a stopped page with unsaved answers asks first; cancelled, the page and its answers stay
+  ok    Import into a profile another tab has open writes nothing and says why; a free name is written
+
+=== One writer per profile: the review of 4b3b94c ===
+  ok    a read-only tab writes no exam paper, and Erase there erases nothing
+  ok    a writer whose tab is no longer named as the writer writes nothing and stops
+  ok    a profile switch frees the old profile's lock
+  ok    the Import button writes no profile another tab has open, and says why
+  ok    after Use it here the page drops the exam paper it restored earlier, so the stored one is read again
+  ok    Use it here on a page with an unsaved answer: that page's progress is kept as a copy (Put back), and the stored progress opens unmixed
+  ok    the page behind the stop wall is inert (no keyboard access)
+  ok    a hand-over whose waiting save is refused: the old tab offers the export, and taking the profile back keeps that answer as a copy
+
+=== One writer per profile: the review of 4311133 ===
+  ok    a stopped page with unsaved work: the new-version bar's Reload asks first, and after an export a later unsaved change is asked about again
+  ok    a paper whose clock ran out is submitted once and cleared, not again on the next reload
+  ok    Use it here keeps the history entries this page had not stored with its copy
+  ok    Put back of that copy adds its history entries to the stored history
+
+=== One writer per profile: ChatGPT's follow-up at f53ac75 ===
+  ok    a never-saved profile with only a changed setting: Reload asks, and taking it back keeps that setting as a copy
+  ok    a blank profile with no change makes no copy when it is taken over
+  ok    after a refused write, taking the profile back opens the stored progress (the other tab's answer active, this tab's branch a copy), and the next save works
+  ok    a refused save, the profile opened again, then taken over: it still counts as unsaved, and taking it back keeps the answer as a copy
+
+=== A writer that leaves without handing over: its last save in a key only it writes ===
+  ok    a writer closes without handing over before its last save reached the next tab: that answer is in the stored progress, with the next tab's
+  ok    the record arrives after the next tab answered: the closed tab's answer is kept (a copy), and the next tab's stays in the progress
+  ok    that record is not mixed into the progress: it is a separate copy
+  ok    records with a conflicting answer, or a second attempt at the same question, are kept as copies field for field; the live progress is unchanged
+  ok    an older record whose answer differs from the stored one at the same question and time is kept as a copy, not taken as stored
+  ok    a record is removed only on a later check, 60 s after it was found stored, and only if it did not change in between
+
+=== Records and deliberate changes: the review of ef82bb6 ===
+  ok    Erase, then reloads: the progress and the history stay erased (no record brings them back)
+  ok    Put back, then a reload: the progress put back stays (an earlier load's record does not undo it)
+  ok    Delete the copies: a record kept as a copy does not bring the copy back at its later check
+  ok    at the 4,000-answer cap, reloads and answers make no copy
+  ok    a record whose only change is a setting is kept as a copy, not taken as stored
+  ok    after reloads, once the wait has passed, only this tab's own record is left
+  ok    a record's history: the same entry with a changed confidence ("Not sure") is not added a second time
+  ok    a record's history: a second identical attempt is kept (two in all)
+  ok    two leaving tabs' records (z-old, a-new), the newer continuing the older: the newer is the progress, with no copy
+  ok    two leaving tabs' records (a-old, z-new), the newer continuing the older: the newer is the progress, with no copy
+  ok    two leaving tabs' records (z-old, a-new), the newer continuing the older with a setting changed since: the newer is the progress, with no copy
+  ok    two leaving tabs' records (a-old, z-new), the newer continuing the older with a setting changed since: the newer is the progress, with no copy
+  ok    a tab back on a profile it wrote before: the other tab wrote over its last save, and it holds the profile again (precondition)
+  ok    a tab back on a profile it wrote before: its earlier last answer, written over by another tab, is kept (progress or a copy) after its next save
+  ok    a tab back on a profile: its new saves go to a new record; the earlier record is removed only after it is proven stored and 60 s have passed, the answer stays kept, and the present record stays
+
+=== Records: the review of 59b3c50 ===
+  ok    a deliberate change right after taking over (Put back) does not delete the leaving tab's late record: its last answer is kept
+  ok    a record found equal before, unchanged since, makes no copy after this tab changes a setting
+  ok    a leaving tab's last setting, written over by the next tab's answer, is kept as a copy
+  ok    a leaving tab's last Put back, written over by the next tab's answer, is kept as a copy
+  ok    a record never taken in (its copy refused) is not removed after Delete the copies: its answer is kept somewhere
+  ok    a setting changed after each of several loads: records do not pile up (only this tab's own is left), and no copy is made
+  ok    after a profile switch, the other profile's history entries are in neither the new profile's record nor, once settled, its history; its own entry is kept
+  ok    back on a profile another tab erased meanwhile: this tab holds it again (precondition)
+  ok    back on a profile another tab erased meanwhile: only the new entry is in its history after a reload
+  ok    Erase in the same visit as the answers, then a reload: the history stays erased
+
+=== A profile switch away and straight back ===
+  ok    one tab alone, a profile switch away and straight back: it is still the writer, with no wall
+  ok    six switches in one moment: still the writer, with no wall
+  ok    another tab queued for the profile when this page frees it: this page waits about 2 s, then opens read-only, and only the other tab holds the lock
+  ok    no page errors
+FAIL: import_test.js: 1 of 273 checks failed: and the module's part is in it
