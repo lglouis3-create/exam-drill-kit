@@ -2329,11 +2329,12 @@ const untimedPaper = () => !!EX && EX.ends === null && typeof EX.started === 'nu
 function saveExam(){
   if(!EX || !EX.running || !canSave()) return;
   if(profileSavedElsewhere()){ staleWarn(); return; }   // never over another tab's paper
-  const paper = {ids:EX.qs.map(q=>q.id), picks:EX.picks, orders:EX.orders, i:EX.i, ends:EX.ends, saved:Date.now()};
+  const paper = {ids:EX.qs.map(q=>q.id), picks:EX.picks, orders:EX.orders, i:EX.i, ends:EX.ends};
   if(untimedPaper()) paper.started = EX.started;
-  const v = JSON.stringify(paper);
-  if(store.set(EXAM_KEY(), v)){ try { sessionStorage.removeItem(EXAM_COPY_KEY()); } catch(e){} }
-  else { try { sessionStorage.setItem(EXAM_COPY_KEY(), v); } catch(e){} }   // refused: this tab keeps a copy for a reload
+  if(store.set(EXAM_KEY(), JSON.stringify(paper))){ try { sessionStorage.removeItem(EXAM_COPY_KEY()); } catch(e){} }
+  // refused: this tab keeps a copy for a reload, with what was stored then (over), so a reload takes
+  // the copy only while nothing newer was stored since
+  else { try { sessionStorage.setItem(EXAM_COPY_KEY(), JSON.stringify({paper, over: storedNow(EXAM_KEY())})); } catch(e){} }
 }
 function clearExam(){
   if(!canSave()) return;
@@ -2346,7 +2347,7 @@ function restoreExam(){
   let j = null;
   try { j = JSON.parse(store.get(EXAM_KEY()) || 'null'); } catch(e) { j = null; }
   // this tab's own copy of a refused save, when it is newer than what is stored
-  try { const c = JSON.parse(sessionStorage.getItem(EXAM_COPY_KEY()) || 'null'); if(c && c.ids && (!j || (c.saved || 0) > (j.saved || 0))) j = c; } catch(e){}
+  try { const c = JSON.parse(sessionStorage.getItem(EXAM_COPY_KEY()) || 'null'); if(c && c.paper && c.paper.ids && storedNow(EXAM_KEY()) === c.over) j = c.paper; } catch(e){}
   if(!j || !j.ids) return false;
   const qs = j.ids.map(byId); if(qs.some(q => !q)) { clearExam(); return false; }
   EX = {qs, i:Math.min(j.i||0, qs.length-1), picks:j.picks, orders:j.orders, running:true, done:false, ends:j.ends};
