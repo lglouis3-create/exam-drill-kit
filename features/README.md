@@ -154,6 +154,7 @@ is off says so on its card and offers the next question.
 | `equation-drill` | v2 | Basic-Pharmacokinetics `ac2eb73` | an Equations tab: every equation with its symbols and conditions, typed or built from pieces; needs `formulas-in-text` |
 | `wrong-number-diagnosis` | v1 | Basic-Pharmacokinetics `ac2eb73` | what a wrong typed number says about the slip behind it, beside the miss chips; converts PK's saved `missKind` |
 | `plan-the-problem` | v1 | Basic-Pharmacokinetics `ac2eb73` | a set-up drill on the Equations tab: pick the line that solves a stem, no arithmetic, and plan the whole problem; needs `formulas-in-text` and `equation-drill` |
+| `glossary-tap` | v1 | Intro-Pharmacology `929cd62` (the tap part written for the kit) | a Glossary tab over the course's `TERMS` (search, letter bar, groups); after an answer, a term in the explanation or a reading section can be tapped for its definition |
 
 `port_from_pk.py` beside a module's `current/` (equation-drill, wrong-number-diagnosis) is the
 script that wrote the module's code from Basic-Pharmacokinetics' files; each of its
