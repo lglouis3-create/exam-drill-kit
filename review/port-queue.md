@@ -21,7 +21,7 @@ item's status to `done`.
 | 3 | terms-variables (Terms tab and variables quiz) | `views.js` 1029-1260, 1072-1147 | listed (PK added to the glossary entry; new entry terms-variables) | partial (left: Weak spots listing these answers and a reload returning to the question, both need a core change; weak-spot marks, term figures and quotes on the cards) |
 | 4 | concept-statuses | `views.js` 2506-2725 | FEATURES.md line 36 wrongly said the core has them (corrected) | partial (left: names and statuses of term and extra-practice concepts, after the Terms and extra-practice ports) |
 | 5 | theme (light and dark) | `views.js` 6323-6383 | none | partial (left: module colours, `views.js` 6334-6383, Tier 3; PK dark rules for classes the core lacks, each with the module that brings the class; WebKit run) |
-| 6 | paper-picker (choose a practice paper, paper history) | `shell.html` 1099-1217; `views.js` 3083-3170 | none | pending |
+| 6 | paper-picker (choose a practice paper, paper history) | `shell.html` 1099-1217; `views.js` 3083-3170 | added | partial (left: the Progress view's list of practice papers; the line saying when the bank holds fewer select-all items than the exam asks; Topics, Weak spots and the weighted pass following the chosen exam, and papers of another length or clock, which need several exams on one site in the core) |
 | 7 | quiz-prep-cards | `views.js` 466-546 | none | pending |
 | 8 | module-pages (Concepts, Calculations by type, Worksheets) | `views.js` 722-854 | none | pending |
 | 9 | stopwatch | `views.js` 1467-1482 | listed | pending |
