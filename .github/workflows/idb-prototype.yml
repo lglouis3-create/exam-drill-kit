@@ -18,7 +18,7 @@ jobs:
   prototype:
     name: IndexedDB prototype · ${{ matrix.engine }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 40
     strategy:
       fail-fast: false
       matrix:
@@ -41,6 +41,23 @@ jobs:
           node run.js ${{ matrix.engine }} | tee ../logs-ci/${{ matrix.engine }}-run1.log
           node run.js ${{ matrix.engine }} | tee ../logs-ci/${{ matrix.engine }}-run2.log
           node hold.js ${{ matrix.engine }} | tee ../logs-ci/${{ matrix.engine }}-hold.log
+      - name: Quota failure and interrupted upgrade
+        working-directory: review/idb-investigation/proto
+        run: |
+          export NODE_PATH=$(npm root -g)
+          set -o pipefail
+          node quota.js ${{ matrix.engine }} 5 256 | tee ../logs-ci/${{ matrix.engine }}-quota-run1.log
+          node quota.js ${{ matrix.engine }} 5 256 | tee ../logs-ci/${{ matrix.engine }}-quota-run2.log
+          node upgrade.js ${{ matrix.engine }} | tee ../logs-ci/${{ matrix.engine }}-upgrade-run1.log
+          node upgrade.js ${{ matrix.engine }} | tee ../logs-ci/${{ matrix.engine }}-upgrade-run2.log
+      - name: Chromium only, the reclaim check and the by-hand page's buttons
+        if: matrix.engine == 'chromium'
+        working-directory: review/idb-investigation/proto
+        run: |
+          export NODE_PATH=$(npm root -g)
+          set -o pipefail
+          node quota-reclaim.js | tee ../logs-ci/chromium-quota-reclaim.log
+          node manual-smoke.js | tee ../logs-ci/chromium-manual-smoke.log
           ! grep -h "LAUNCH FAILED" ../logs-ci/*.log   # a browser that did not start fails the job
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
         if: always()

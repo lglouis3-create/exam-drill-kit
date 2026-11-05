@@ -1,0 +1,5 @@
+immediately abort QuotaExceededError {"usageMB":6.07,"quotaMB":3078.07}
+after 5 s abort QuotaExceededError {"usageMB":6.07,"quotaMB":3078.07}
+after reload abort QuotaExceededError {"usageMB":6.07,"quotaMB":3078.07}
+after 35 s abort QuotaExceededError {"usageMB":6.07,"quotaMB":3078.07}
+new page complete  {"usageMB":0.07,"quotaMB":3072.07}

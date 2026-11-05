@@ -151,3 +151,61 @@ Still NOT RUN: the Safari app on an iPhone or iPad (`SAFARI_CHECKLIST.md`), Fire
 6. Whether the one-writer lock stays.
 7. Going back to an older core shows progress as of the move: accept that, or keep a localStorage copy for a while.
 8. Durability for saves: strict or default.
+
+## 2c. Quota failure and interrupted upgrade (Chromium 153.0.8010.12 in this container, 2026-11-05)
+
+Scripts: `proto/quota.js`, `proto/quota-reclaim.js`, `proto/upgrade.js`, `proto/manual-smoke.js`; page functions in `proto/manual-lab.js`. Logs: `logs-2026-11-05/`. Each script ran twice; the counts below are from both runs. WebKit: not installed here; GitHub's run of `.github/workflows/idb-prototype.yml` gives it (section 2d).
+
+**Specification** (`index.bs` at f9f83f1, cited by section title). "Committing a transaction": "If an error occurs while writing the changes to the database, then run abort a transaction with transaction and an appropriate type for the error, for example a QuotaExceededError". "Connection": if the execution context of a connection "is destroyed (for example due to the user navigating away from that page), the connection is closed"; "Opening a database connection": "If connection was closed, return a newly created "AbortError" DOMException"; "Aborting an upgrade transaction" reverts the version and the object stores. The note on `commit()`: a transaction "will automatically commit when all outstanding requests have been satisfied and no new requests have been made", so an upgrade cannot wait on a timer; `upSlow` fills its gap with chained requests.
+
+**Quota (origin capped at 5 MB with `Storage.overrideQuotaForOrigin`; `navigator.storage.estimate()` still reported 3,072 or 4,096 MB, so the override is not visible to the page).**
+- Q1, records of 0.25, 0.5, 1, 2, 2 MB: transaction 5 (2 MB) refused with `QuotaExceededError` at commit (`put` did not throw), after 3.755 MB committed, in 4 of 4 repetitions. The refused transaction's 1 KB `pre-5` record was not stored (4 of 4). Earlier committed records intact: 9 of 9, read in the same connection, after reopening and after later writes (4 of 4).
+- Q1, a later 1 KB transaction in the same database: refused (`QuotaExceededError`), 4 of 4; a later 1 MB one: refused, 4 of 4. Usage then read 5.84 MB.
+- Q2, two stores in one transaction (progress rev 1 to 2, plus a 2 MB log entry), storage nearly full, in both orders: aborted, progress still rev 1, log keys [1], 8 of 8. The later small two-store transaction: refused, 4 of 4.
+- Q3, the same on empty storage with a 6 MB log entry: aborted, rev 1, log keys [1], 4 of 4; the later small transaction in that database: refused, 2 of 2.
+- Q4 (2 runs), after a refused 6 MB write (usage 6.07 MB): a 1 KB write in the same database refused at once, 2 of 2; a 1 KB write in another database succeeded, 2 of 2, and usage then read 0.14 MB; from then on writes in the same database succeeded (after 10 s, after a reload, from a second page; 2 of 2 each).
+- Reclaim check without the other database's write (`quota-reclaim.js`): 1 KB writes in the same database were refused at once, after 5 s, after a reload and after 35 s, with usage at 6.07 MB, 2 of 2 runs; they succeeded after a second page was opened and the first closed (usage 0.07 MB). Why the refused bytes stay counted, and what clears them, is not known (not read in Chromium's code).
+- `manual-smoke.js` (the buttons, 5 MB cap): Fill refused at a 4 MB record after 3.003 MB, `QuotaExceededError`, 5 of 5 intact; Both stores rev 1, log keys [1]; Delete freed it (usage 0.07 MB).
+
+**Interrupted upgrade (2,000 records of 1 KB; v2 copies them in chunks of 100).**
+- U1, the upgrading page closed after 300 copied: then version 1, stores ["items"], 2,000 of 2,000 intact, no `items2`; a fresh upgrade completed with `items2` = 2,000. 6 of 6.
+- U2, the same with the page reloaded instead of closed: the same results, 6 of 6.
+- U3, an old tab holding v1 that ignores `versionchange`: the upgrading tab got `blocked 1->2` and copied 0; the old tab got `versionchange 1->2` and could still start a transaction; after the blocked tab was closed, version 1, 2,000 intact. 2 of 2.
+- U4, an old tab that closes on `versionchange`: a transaction on its closed connection threw `InvalidStateError`; its reopen at v1 waited until the upgrading tab was closed mid-upgrade and then opened v1 (after 514 and 522 ms); version 1, 2,000 intact. 2 of 2.
+- U5, the same with the upgrade left to finish: the old tab's reopen at v1 failed with `VersionError` (after 1,934 and 1,943 ms); version 2, `items2` = 2,000. 2 of 2.
+
+## 2d. Quota failure and interrupted upgrade on GitHub (run 41980047245, 2026-11-05, Chromium and WebKit 26.6)
+
+Logs: `logs-ci-41980047245/`. Each script ran twice per engine. WebKit here is Safari's engine on Linux, not the Safari app.
+
+**Chromium:** the job reproduced section 2c. Q1: transaction 5 (2 MB) refused with `QuotaExceededError` after 3.755 MB committed, earlier records 9 of 9 intact, later 1 KB and 1 MB transactions refused. Q2 and Q3: aborted, progress rev 1, log keys [1]. Q4: a 1 KB write in the same database refused, in another database complete, usage then 0.14 MB. U1 to U4 kept version 1 with 2,000 of 2,000 intact in 16 of 16 checks. U4's reopen opened v1 after 512 and 513 ms; U5's failed with `VersionError` after 1,923 and 1,925 ms.
+
+**WebKit, quota:**
+- Q1 to Q3 (forced 5 MB cap): NOT RUN. Playwright 1.63.0 has no quota setting for WebKit (`newCDPSession` is Chromium-only).
+- W1, a fill under WebKit's own quota with a ceiling of 256 MB: no refusal. 27 records committed, 27 of 27 intact, a later 1 KB write completed; `navigator.storage.estimate()` read quota 1,000 MB, usage 287.02 MB after. 2 of 2 runs.
+- W2 (reuse of a refused size): NOT RUN, because W1 had no refusal.
+- So WebKit's behaviour when IndexedDB is refused for quota is not measured. On an iPhone or iPad it is checklist step 7.
+
+**WebKit, interrupted upgrade (the same results as Chromium):**
+- U1 (page closed after 300 copied) and U2 (page reloaded after 300 copied): version 1, stores ["items"], 2,000 of 2,000 intact, no `items2`; a fresh upgrade then completed with `items2` = 2,000. 12 of 12.
+- U3 (old tab ignores `versionchange`): the upgrading tab got `blocked 1->2` and copied 0; the old tab could still start a transaction; version 1, 2,000 intact. 2 of 2.
+- U4 (old tab closes on `versionchange`, upgrading tab closed mid-upgrade): a transaction on the closed connection threw `InvalidStateError`; the reopen at v1 opened after 506 ms in both runs; version 1, 2,000 intact. 2 of 2.
+- U5 (upgrade left to finish): the old tab's reopen at v1 failed with `VersionError` after 1,896 and 1,900 ms; version 2, `items2` = 2,000. 2 of 2.
+
+## 4. Recommended defaults for the eight decisions (for Louis to approve or change)
+
+One plan: progress and its log move together into one IndexedDB database per course, in one transaction, with nothing in localStorage deleted, and every refusal shown. The evidence is from the prototype runs only (no student data); no number below is a guess, and every "unverified" item is a gap.
+
+1. **Move at all: yes, but only after the device checklist passes on both the iPhone and the iPad, and course by course, never in a week with that course's quiz or exam.** Reason: localStorage lost updates between tabs in every run (T3: WebKit lost 327 and 475 of 900, Chromium 76 to 397 of 900), IndexedDB lost none (T1: 3,300 of 3,300 per run in both engines). First course: Medicinal Chemistry (live on the core, its exam passed on 9/21, none recorded later). BDK only after its Cumulative on Mon 11/30. Depends on the iPhone and iPad results: steps 2, 3, 4, 6, 7, 8.
+2. **What moves: the whole progress and the answer log, written in the same transaction.** Reason: under quota, a two-store transaction was all or nothing (Q2/Q3: rev 1 and log keys [1] in 12 of 12), so progress and log cannot disagree; keeping progress in localStorage keeps its lost updates (T3). Study progress first: when a save is refused, the core retries the progress alone, keeps the log entry in memory, and says so (Q1 showed a later small write in the same database can also be refused, so the notice must offer Export). Depends on the device results: steps 2, 3 and 8.
+3. **An old-core tab's save after the move: merged with Import's rules, and the old-core save also kept as a backup copy.** Reason: study progress first (its answers count) and keep every backup (the raw save stays until Louis deletes it); the merge is shown in one line, never silent. Does not depend on the device results.
+4. **IndexedDB unavailable or its first write refused: stay on localStorage, with a visible notice, and retry on the next load.** Reason: nothing lost silently. Which Safari modes refuse it is unverified. Depends on the device results: steps 1, 5 and 6.
+5. **The localStorage data left by the move: never deleted by the core; listed as "copies from before the move" with their date, deleted only when Louis presses delete for a copy and confirms.** Reason: keep every backup until he deletes it. The localStorage limit still applies to them; its size in Safari is unverified, and the core's existing notice for a refused localStorage write stays. Does not depend on the device results.
+6. **The one-writer lock stays through the move and while any old-core tab can still be open; removing it is a later, separate decision.** Reason: IndexedDB already orders readwrite transactions across tabs (§2.7.2; T6 3 of 3 in both engines), but old-core tabs write localStorage and only the lock coordinates them with the move. Partly depends on the device results (step 3).
+7. **Going back to an older core: for the first release after the move, each save also writes the progress to its old localStorage key; an old-core save made after a rollback is handled as in decision 3.** Reason: nothing lost silently (a rollback would otherwise show progress as of the move). A refused copy write is shown, not hidden. How long to keep the copy: Louis's choice; no number is recommended without his data. Does not depend on the device results.
+8. **Durability: strict for saves and for the move.** Reason: all three settings are hints (§2.7), crash and power loss are NOT RUN, and in the runs strict cost no more than relaxed (T1 elapsed for 900 transactions: WebKit 928 and 924 ms strict, 915 and 923 ms relaxed; Chromium 912, 1,050, 517, 524 ms strict, 890, 1,557, 533, 523 ms relaxed). Speed on an iPhone is unverified (steps 2 to 4 give it).
+
+**What the new results add to the outline.**
+- The one-time move should run inside the upgrade transaction (`onupgradeneeded`), reading localStorage synchronously: U1/U2 showed an interrupted upgrade keeps version 1 and all data (12 of 12), so an interrupted move leaves nothing half-done and is retried on the next load. The upgrade must not wait on a timer or the network (the auto-commit note on `commit()`).
+- The core's connection must close on `versionchange` and treat `InvalidStateError` or `VersionError` (U4, U5) as "a newer core is open: reload", with a notice.
+- A `QuotaExceededError` on a save is a save not made: the answer stays in memory, the notice says so and offers Export (Q1, Q4).

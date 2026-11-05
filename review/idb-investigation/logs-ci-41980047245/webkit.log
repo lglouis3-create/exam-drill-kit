@@ -1,0 +1,104 @@
+[webkit] launched 26.6
+[webkit] serving http://localhost:35077/page.html
+[webkit] T0 probe {"default":"default","strict":"strict","relaxed":"relaxed","hasCommit":true,"hasLocks":true}
+[webkit] T1 idb durability=default tabs=3 tx per tab=500 results per tab=[{"complete":500},{"complete":500},{"complete":500}] elapsed_ms~1349
+[webkit] T1 idb durability=default count=1500 seq.length=1500 expected=1500 lost=0 saw==position:1500 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=149 per tab={"T0":500,"T2":500,"T1":500}
+[webkit] T1 idb durability=relaxed tabs=3 tx per tab=300 results per tab=[{"complete":300},{"complete":300},{"complete":300}] elapsed_ms~626
+[webkit] T1 idb durability=relaxed count=900 seq.length=900 expected=900 lost=0 saw==position:900 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=89 per tab={"T0":300,"T2":300,"T1":300}
+[webkit] T1 idb durability=strict tabs=3 tx per tab=300 results per tab=[{"complete":300},{"complete":300},{"complete":300}] elapsed_ms~638
+[webkit] T1 idb durability=strict count=900 seq.length=900 expected=900 lost=0 saw==position:900 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=89 per tab={"T1":300,"T2":300,"T0":300}
+[webkit] T2 close rep=1 victim created at close=115 victim complete events at close=100 victim complete events total=100 victim abort events=0 victim entries persisted=100 victim marks persisted=100 complete-but-missing=0 persisted-without-complete-event=0 entry-without-mark=0 mark-without-entry=0 gaps below highest persisted i=0
+[webkit] T2 close rep=1 survivor tx complete=300/300 survivor snapshots=643 snapshots with a half-done transaction=0
+[webkit] T2 close rep=1 count=400 seq.length=400 expected=400 lost=0 saw==position:400 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=25 per tab={"V":100,"S":300}
+[webkit] T2 close rep=2 victim created at close=205 victim complete events at close=200 victim complete events total=200 victim abort events=0 victim entries persisted=200 victim marks persisted=200 complete-but-missing=0 persisted-without-complete-event=0 entry-without-mark=0 mark-without-entry=0 gaps below highest persisted i=0
+[webkit] T2 close rep=2 survivor tx complete=300/300 survivor snapshots=572 snapshots with a half-done transaction=0
+[webkit] T2 close rep=2 count=500 seq.length=500 expected=500 lost=0 saw==position:500 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=61 per tab={"V":200,"S":300}
+[webkit] T2 close rep=3 victim created at close=325 victim complete events at close=300 victim complete events total=300 victim abort events=0 victim entries persisted=300 victim marks persisted=300 complete-but-missing=0 persisted-without-complete-event=0 entry-without-mark=0 mark-without-entry=0 gaps below highest persisted i=0
+[webkit] T2 close rep=3 survivor tx complete=300/300 survivor snapshots=486 snapshots with a half-done transaction=0
+[webkit] T2 close rep=3 count=600 seq.length=600 expected=600 lost=0 saw==position:600 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=102 per tab={"S":300,"V":300}
+[webkit] T3 localStorage gap=none(sync) count=598 seq.length=598 expected=900 lost=302 saw==position:598 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=70 per tab={"T0":260,"T1":218,"T2":120}
+[webkit] T3 localStorage gap=1ms count=100 seq.length=100 expected=300 lost=200 saw==position:100 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=0 per tab={"T2":100}
+[webkit] T4 versionchange old-tab policy=keep old tab events=["versionchange 1->2"] new tab after 700ms: events=["blocked"] result=null
+[webkit] T4 versionchange old-tab policy=keep after old tab close(): new tab events=["blocked"] result=opened v2
+[webkit] T4 versionchange old-tab policy=close old tab events=["versionchange 1->2"] new tab after 700ms: events=[] result=opened v2
+[webkit] T5 old tab page.close() before: events=["blocked"] result=null after: events=["blocked"] result=opened v2
+[webkit] done
+[webkit] launched 26.6
+[webkit] serving http://localhost:38903/page.html
+[webkit] T0 probe {"default":"default","strict":"strict","relaxed":"relaxed","hasCommit":true,"hasLocks":true}
+[webkit] T1 idb durability=default tabs=3 tx per tab=500 results per tab=[{"complete":500},{"complete":500},{"complete":500}] elapsed_ms~1346
+[webkit] T1 idb durability=default count=1500 seq.length=1500 expected=1500 lost=0 saw==position:1500 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=149 per tab={"T2":500,"T1":500,"T0":500}
+[webkit] T1 idb durability=relaxed tabs=3 tx per tab=300 results per tab=[{"complete":300},{"complete":300},{"complete":300}] elapsed_ms~636
+[webkit] T1 idb durability=relaxed count=900 seq.length=900 expected=900 lost=0 saw==position:900 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=107 per tab={"T1":300,"T2":300,"T0":300}
+[webkit] T1 idb durability=strict tabs=3 tx per tab=300 results per tab=[{"complete":300},{"complete":300},{"complete":300}] elapsed_ms~629
+[webkit] T1 idb durability=strict count=900 seq.length=900 expected=900 lost=0 saw==position:900 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=90 per tab={"T0":300,"T1":300,"T2":300}
+[webkit] T2 close rep=1 victim created at close=115 victim complete events at close=100 victim complete events total=100 victim abort events=0 victim entries persisted=100 victim marks persisted=100 complete-but-missing=0 persisted-without-complete-event=0 entry-without-mark=0 mark-without-entry=0 gaps below highest persisted i=0
+[webkit] T2 close rep=1 survivor tx complete=300/300 survivor snapshots=644 snapshots with a half-done transaction=0
+[webkit] T2 close rep=1 count=400 seq.length=400 expected=400 lost=0 saw==position:400 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=20 per tab={"S":300,"V":100}
+[webkit] T2 close rep=2 victim created at close=210 victim complete events at close=200 victim complete events total=200 victim abort events=0 victim entries persisted=200 victim marks persisted=200 complete-but-missing=0 persisted-without-complete-event=0 entry-without-mark=0 mark-without-entry=0 gaps below highest persisted i=0
+[webkit] T2 close rep=2 survivor tx complete=300/300 survivor snapshots=565 snapshots with a half-done transaction=0
+[webkit] T2 close rep=2 count=500 seq.length=500 expected=500 lost=0 saw==position:500 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=60 per tab={"S":300,"V":200}
+[webkit] T2 close rep=3 victim created at close=315 victim complete events at close=300 victim complete events total=300 victim abort events=0 victim entries persisted=300 victim marks persisted=300 complete-but-missing=0 persisted-without-complete-event=0 entry-without-mark=0 mark-without-entry=0 gaps below highest persisted i=0
+[webkit] T2 close rep=3 survivor tx complete=300/300 survivor snapshots=499 snapshots with a half-done transaction=0
+[webkit] T2 close rep=3 count=600 seq.length=600 expected=600 lost=0 saw==position:600 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=104 per tab={"S":300,"V":300}
+[webkit] T3 localStorage gap=none(sync) count=899 seq.length=899 expected=900 lost=1 saw==position:899 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=89 per tab={"T2":300,"T0":299,"T1":300}
+[webkit] T3 localStorage gap=1ms count=100 seq.length=100 expected=300 lost=200 saw==position:100 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=0 per tab={"T0":100}
+[webkit] T4 versionchange old-tab policy=keep old tab events=["versionchange 1->2"] new tab after 700ms: events=["blocked"] result=null
+[webkit] T4 versionchange old-tab policy=keep after old tab close(): new tab events=["blocked"] result=opened v2
+[webkit] T4 versionchange old-tab policy=close old tab events=["versionchange 1->2"] new tab after 700ms: events=[] result=opened v2
+[webkit] T5 old tab page.close() before: events=["blocked"] result=null after: events=["blocked"] result=opened v2
+[webkit] done
+[webkit] T6 rep=1 A created=0 A first request done=+1ms A finished=+1000ms A gets=10813 A=complete | B created=+204ms B first request done=+1000ms B finished=+1000ms B=complete B first request after A finished=true
+[webkit] T6 rep=2 A created=0 A first request done=+1ms A finished=+1000ms A gets=10754 A=complete | B created=+203ms B first request done=+1000ms B finished=+1000ms B=complete B first request after A finished=true
+[webkit] T6 rep=3 A created=0 A first request done=+1ms A finished=+1000ms A gets=10845 A=complete | B created=+201ms B first request done=+1000ms B finished=+1000ms B=complete B first request after A finished=true
+[webkit] T6b readonly in B while A holds readwrite B waited ms=801 B saw={"by":"A","at":1793859911922} A=complete A holding ms=1000
+[webkit] T7 rep=1 A closed while its readwrite tx (with a put) was open B created=+0ms A page.close at=+300ms B read done=+303ms B=complete B saw hold record=undefined
+[webkit] T7 rep=2 A closed while its readwrite tx (with a put) was open B created=+0ms A page.close at=+301ms B read done=+306ms B=complete B saw hold record=undefined
+[webkit] T7 rep=3 A closed while its readwrite tx (with a put) was open B created=+0ms A page.close at=+302ms B read done=+305ms B=complete B saw hold record=undefined
+[webkit] done
+[webkit] launched 26.6
+[webkit] serving http://localhost:39803/manual-plus.html
+[webkit] Q0 estimate without override {"usageMB":0,"quotaMB":1000}
+[webkit] Q1-Q3 forced quota NOT RUN Playwright 1.63.0 has no DevTools-protocol session or quota setting for WebKit (newCDPSession is Chromium-only)
+[webkit] W1 fill under WebKit's own quota, ceiling 256 MB refused="none: stopped at the ceiling of 256 MB without a refusal" committed records=27 intact=27 of 27 later 1 KB=complete estimate before={"usageMB":0,"quotaMB":1000} after={"usageMB":287.02,"quotaMB":1000}
+[webkit] W2 NOT RUN no refusal below the ceiling, so there is no refused size to reuse
+[webkit] cleanup {"proto-quota":"deleted","proto-quota2":"deleted","estimate":{"usageMB":287.02,"quotaMB":1000}}
+[webkit] done
+[webkit] launched 26.6
+[webkit] serving http://localhost:32803/manual-plus.html
+[webkit] Q0 estimate without override {"usageMB":0,"quotaMB":1000}
+[webkit] Q1-Q3 forced quota NOT RUN Playwright 1.63.0 has no DevTools-protocol session or quota setting for WebKit (newCDPSession is Chromium-only)
+[webkit] W1 fill under WebKit's own quota, ceiling 256 MB refused="none: stopped at the ceiling of 256 MB without a refusal" committed records=27 intact=27 of 27 later 1 KB=complete estimate before={"usageMB":0,"quotaMB":1000} after={"usageMB":287.02,"quotaMB":1000}
+[webkit] W2 NOT RUN no refusal below the ceiling, so there is no refused size to reuse
+[webkit] cleanup {"proto-quota":"deleted","proto-quota2":"deleted","estimate":{"usageMB":287.02,"quotaMB":1000}}
+[webkit] done
+[webkit] launched 26.6
+[webkit] serving http://localhost:43057/manual-plus.html
+[webkit] U1 page close mid-upgrade rep=1 setup={"db":"proto-upgrade","version":1,"items":2000,"write":"complete"} | at close: {"state":"upgrading 1->2","copied":300,"chunks":3,"events":["upgradeneeded 1->2"]} | check (took 34 ms): {"listedVersion":1,"version":1,"stores":["items"],"items":2000,"itemsIntact":2000} | fresh upgrade: {"openedVersion":2,"events":["upgradeneeded 1->2"],"listedVersion":2,"version":2,"stores":["items","items2"],"items":2000,"itemsIntact":2000,"items2":2000}
+[webkit] U1 page close mid-upgrade rep=2 setup={"db":"proto-upgrade","version":1,"items":2000,"write":"complete"} | at close: {"state":"upgrading 1->2","copied":300,"chunks":3,"events":["upgradeneeded 1->2"]} | check (took 30 ms): {"listedVersion":1,"version":1,"stores":["items"],"items":2000,"itemsIntact":2000} | fresh upgrade: {"openedVersion":2,"events":["upgradeneeded 1->2"],"listedVersion":2,"version":2,"stores":["items","items2"],"items":2000,"itemsIntact":2000,"items2":2000}
+[webkit] U1 page close mid-upgrade rep=3 setup={"db":"proto-upgrade","version":1,"items":2000,"write":"complete"} | at close: {"state":"upgrading 1->2","copied":300,"chunks":3,"events":["upgradeneeded 1->2"]} | check (took 27 ms): {"listedVersion":1,"version":1,"stores":["items"],"items":2000,"itemsIntact":2000} | fresh upgrade: {"openedVersion":2,"events":["upgradeneeded 1->2"],"listedVersion":2,"version":2,"stores":["items","items2"],"items":2000,"itemsIntact":2000,"items2":2000}
+[webkit] U2 page reload mid-upgrade rep=1 setup={"db":"proto-upgrade","version":1,"items":2000,"write":"complete"} | at reload: {"state":"upgrading 1->2","copied":300,"chunks":3,"events":["upgradeneeded 1->2"]} | check (took 26 ms): {"listedVersion":1,"version":1,"stores":["items"],"items":2000,"itemsIntact":2000} | fresh upgrade: {"openedVersion":2,"events":["upgradeneeded 1->2"],"listedVersion":2,"version":2,"stores":["items","items2"],"items":2000,"itemsIntact":2000,"items2":2000}
+[webkit] U2 page reload mid-upgrade rep=2 setup={"db":"proto-upgrade","version":1,"items":2000,"write":"complete"} | at reload: {"state":"upgrading 1->2","copied":300,"chunks":3,"events":["upgradeneeded 1->2"]} | check (took 36 ms): {"listedVersion":1,"version":1,"stores":["items"],"items":2000,"itemsIntact":2000} | fresh upgrade: {"openedVersion":2,"events":["upgradeneeded 1->2"],"listedVersion":2,"version":2,"stores":["items","items2"],"items":2000,"itemsIntact":2000,"items2":2000}
+[webkit] U2 page reload mid-upgrade rep=3 setup={"db":"proto-upgrade","version":1,"items":2000,"write":"complete"} | at reload: {"state":"upgrading 1->2","copied":300,"chunks":3,"events":["upgradeneeded 1->2"]} | check (took 29 ms): {"listedVersion":1,"version":1,"stores":["items"],"items":2000,"itemsIntact":2000} | fresh upgrade: {"openedVersion":2,"events":["upgradeneeded 1->2"],"listedVersion":2,"version":2,"stores":["items","items2"],"items":2000,"itemsIntact":2000,"items2":2000}
+[webkit] U3 old tab holding v1 policy=keep
+[webkit] U3 after 1,500 ms upgrading tab: {"state":"requested","copied":0,"chunks":0,"events":["blocked 1->2"]} | old tab: {"events":["versionchange 1->2"]} | old tab can still start a transaction: transaction created (readonly)
+[webkit] U3 upgrading tab closed while blocked, then old tab closed its connection check: {"listedVersion":1,"version":1,"stores":["items"],"items":2000,"itemsIntact":2000}
+[webkit] U4 upgrading tab closed mid-upgrade old tab transaction on its connection after versionchange: threw InvalidStateError | old tab reopen v1, 500 ms into the wait: {"events":["versionchange 1->2"],"reopen":"requested"} | upgrading tab: {"state":"upgrading 1->2","copied":200,"chunks":2,"events":["upgradeneeded 1->2"]} | old tab after: {"events":["versionchange 1->2"],"reopen":"opened v1 after 506 ms"} | check: {"listedVersion":1,"version":1,"stores":["items"],"items":2000,"itemsIntact":2000}
+[webkit] U5 upgrade completes old tab transaction on its connection after versionchange: threw InvalidStateError | old tab reopen v1, 500 ms into the wait: {"events":["versionchange 1->2"],"reopen":"requested"} | upgrading tab: {"state":"opened v2","copied":2000,"chunks":20,"events":["upgradeneeded 1->2","upgrade transaction complete"]} | old tab after: {"events":["versionchange 1->2"],"reopen":"error VersionError after 1896 ms"} | check: {"listedVersion":2,"version":2,"stores":["items","items2"],"items":2000,"itemsIntact":2000,"items2":2000}
+[webkit] cleanup deleted
+[webkit] done
+[webkit] launched 26.6
+[webkit] serving http://localhost:38701/manual-plus.html
+[webkit] U1 page close mid-upgrade rep=1 setup={"db":"proto-upgrade","version":1,"items":2000,"write":"complete"} | at close: {"state":"upgrading 1->2","copied":300,"chunks":3,"events":["upgradeneeded 1->2"]} | check (took 30 ms): {"listedVersion":1,"version":1,"stores":["items"],"items":2000,"itemsIntact":2000} | fresh upgrade: {"openedVersion":2,"events":["upgradeneeded 1->2"],"listedVersion":2,"version":2,"stores":["items","items2"],"items":2000,"itemsIntact":2000,"items2":2000}
+[webkit] U1 page close mid-upgrade rep=2 setup={"db":"proto-upgrade","version":1,"items":2000,"write":"complete"} | at close: {"state":"upgrading 1->2","copied":300,"chunks":3,"events":["upgradeneeded 1->2"]} | check (took 30 ms): {"listedVersion":1,"version":1,"stores":["items"],"items":2000,"itemsIntact":2000} | fresh upgrade: {"openedVersion":2,"events":["upgradeneeded 1->2"],"listedVersion":2,"version":2,"stores":["items","items2"],"items":2000,"itemsIntact":2000,"items2":2000}
+[webkit] U1 page close mid-upgrade rep=3 setup={"db":"proto-upgrade","version":1,"items":2000,"write":"complete"} | at close: {"state":"upgrading 1->2","copied":300,"chunks":3,"events":["upgradeneeded 1->2"]} | check (took 35 ms): {"listedVersion":1,"version":1,"stores":["items"],"items":2000,"itemsIntact":2000} | fresh upgrade: {"openedVersion":2,"events":["upgradeneeded 1->2"],"listedVersion":2,"version":2,"stores":["items","items2"],"items":2000,"itemsIntact":2000,"items2":2000}
+[webkit] U2 page reload mid-upgrade rep=1 setup={"db":"proto-upgrade","version":1,"items":2000,"write":"complete"} | at reload: {"state":"upgrading 1->2","copied":300,"chunks":3,"events":["upgradeneeded 1->2"]} | check (took 34 ms): {"listedVersion":1,"version":1,"stores":["items"],"items":2000,"itemsIntact":2000} | fresh upgrade: {"openedVersion":2,"events":["upgradeneeded 1->2"],"listedVersion":2,"version":2,"stores":["items","items2"],"items":2000,"itemsIntact":2000,"items2":2000}
+[webkit] U2 page reload mid-upgrade rep=2 setup={"db":"proto-upgrade","version":1,"items":2000,"write":"complete"} | at reload: {"state":"upgrading 1->2","copied":300,"chunks":3,"events":["upgradeneeded 1->2"]} | check (took 30 ms): {"listedVersion":1,"version":1,"stores":["items"],"items":2000,"itemsIntact":2000} | fresh upgrade: {"openedVersion":2,"events":["upgradeneeded 1->2"],"listedVersion":2,"version":2,"stores":["items","items2"],"items":2000,"itemsIntact":2000,"items2":2000}
+[webkit] U2 page reload mid-upgrade rep=3 setup={"db":"proto-upgrade","version":1,"items":2000,"write":"complete"} | at reload: {"state":"upgrading 1->2","copied":300,"chunks":3,"events":["upgradeneeded 1->2"]} | check (took 32 ms): {"listedVersion":1,"version":1,"stores":["items"],"items":2000,"itemsIntact":2000} | fresh upgrade: {"openedVersion":2,"events":["upgradeneeded 1->2"],"listedVersion":2,"version":2,"stores":["items","items2"],"items":2000,"itemsIntact":2000,"items2":2000}
+[webkit] U3 old tab holding v1 policy=keep
+[webkit] U3 after 1,500 ms upgrading tab: {"state":"requested","copied":0,"chunks":0,"events":["blocked 1->2"]} | old tab: {"events":["versionchange 1->2"]} | old tab can still start a transaction: transaction created (readonly)
+[webkit] U3 upgrading tab closed while blocked, then old tab closed its connection check: {"listedVersion":1,"version":1,"stores":["items"],"items":2000,"itemsIntact":2000}
+[webkit] U4 upgrading tab closed mid-upgrade old tab transaction on its connection after versionchange: threw InvalidStateError | old tab reopen v1, 500 ms into the wait: {"events":["versionchange 1->2"],"reopen":"requested"} | upgrading tab: {"state":"upgrading 1->2","copied":200,"chunks":2,"events":["upgradeneeded 1->2"]} | old tab after: {"events":["versionchange 1->2"],"reopen":"opened v1 after 506 ms"} | check: {"listedVersion":1,"version":1,"stores":["items"],"items":2000,"itemsIntact":2000}
+[webkit] U5 upgrade completes old tab transaction on its connection after versionchange: threw InvalidStateError | old tab reopen v1, 500 ms into the wait: {"events":["versionchange 1->2"],"reopen":"requested"} | upgrading tab: {"state":"opened v2","copied":2000,"chunks":20,"events":["upgradeneeded 1->2","upgrade transaction complete"]} | old tab after: {"events":["versionchange 1->2"],"reopen":"error VersionError after 1900 ms"} | check: {"listedVersion":2,"version":2,"stores":["items","items2"],"items":2000,"itemsIntact":2000,"items2":2000}
+[webkit] cleanup deleted
+[webkit] done

@@ -1,0 +1,134 @@
+[chromium] launched 153.0.8010.12
+[chromium] serving http://localhost:41713/page.html
+[chromium] T0 probe {"default":"default","strict":"strict","relaxed":"relaxed","hasCommit":true,"hasLocks":true}
+[chromium] T1 idb durability=default tabs=3 tx per tab=500 results per tab=[{"complete":500},{"complete":500},{"complete":500}] elapsed_ms~852
+[chromium] T1 idb durability=default count=1500 seq.length=1500 expected=1500 lost=0 saw==position:1500 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=149 per tab={"T2":500,"T1":500,"T0":500}
+[chromium] T1 idb durability=relaxed tabs=3 tx per tab=300 results per tab=[{"complete":300},{"complete":300},{"complete":300}] elapsed_ms~396
+[chromium] T1 idb durability=relaxed count=900 seq.length=900 expected=900 lost=0 saw==position:900 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=132 per tab={"T2":300,"T1":300,"T0":300}
+[chromium] T1 idb durability=strict tabs=3 tx per tab=300 results per tab=[{"complete":300},{"complete":300},{"complete":300}] elapsed_ms~412
+[chromium] T1 idb durability=strict count=900 seq.length=900 expected=900 lost=0 saw==position:900 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=125 per tab={"T0":300,"T1":300,"T2":300}
+[chromium] T2 close rep=1 victim created at close=110 victim complete events at close=100 victim complete events total=100 victim abort events=0 victim entries persisted=100 victim marks persisted=100 complete-but-missing=0 persisted-without-complete-event=0 entry-without-mark=0 mark-without-entry=0 gaps below highest persisted i=0
+[chromium] T2 close rep=1 survivor tx complete=300/300 survivor snapshots=686 snapshots with a half-done transaction=0
+[chromium] T2 close rep=1 count=400 seq.length=400 expected=400 lost=0 saw==position:400 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=30 per tab={"S":300,"V":100}
+[chromium] T2 close rep=2 victim created at close=230 victim complete events at close=200 victim complete events total=200 victim abort events=0 victim entries persisted=200 victim marks persisted=200 complete-but-missing=0 persisted-without-complete-event=0 entry-without-mark=0 mark-without-entry=0 gaps below highest persisted i=0
+[chromium] T2 close rep=2 survivor tx complete=300/300 survivor snapshots=624 snapshots with a half-done transaction=0
+[chromium] T2 close rep=2 count=500 seq.length=500 expected=500 lost=0 saw==position:500 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=68 per tab={"S":300,"V":200}
+[chromium] T2 close rep=3 victim created at close=350 victim complete events at close=300 victim complete events total=300 victim abort events=0 victim entries persisted=300 victim marks persisted=300 complete-but-missing=0 persisted-without-complete-event=0 entry-without-mark=0 mark-without-entry=0 gaps below highest persisted i=0
+[chromium] T2 close rep=3 survivor tx complete=300/300 survivor snapshots=583 snapshots with a half-done transaction=0
+[chromium] T2 close rep=3 count=600 seq.length=600 expected=600 lost=0 saw==position:600 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=118 per tab={"S":300,"V":300}
+[chromium] T3 localStorage gap=none(sync) count=722 seq.length=722 expected=900 lost=178 saw==position:722 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=85 per tab={"T0":290,"T1":290,"T2":142}
+[chromium] T3 localStorage gap=1ms count=100 seq.length=100 expected=300 lost=200 saw==position:100 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=0 per tab={"T2":100}
+[chromium] T4 versionchange old-tab policy=keep old tab events=["versionchange 1->2"] new tab after 700ms: events=["blocked"] result=null
+[chromium] T4 versionchange old-tab policy=keep after old tab close(): new tab events=["blocked"] result=opened v2
+[chromium] T4 versionchange old-tab policy=close old tab events=["versionchange 1->2"] new tab after 700ms: events=[] result=opened v2
+[chromium] T5 old tab page.close() before: events=["blocked"] result=null after: events=["blocked"] result=opened v2
+[chromium] done
+[chromium] launched 153.0.8010.12
+[chromium] serving http://localhost:46089/page.html
+[chromium] T0 probe {"default":"default","strict":"strict","relaxed":"relaxed","hasCommit":true,"hasLocks":true}
+[chromium] T1 idb durability=default tabs=3 tx per tab=500 results per tab=[{"complete":500},{"complete":500},{"complete":500}] elapsed_ms~851
+[chromium] T1 idb durability=default count=1500 seq.length=1500 expected=1500 lost=0 saw==position:1500 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=155 per tab={"T1":500,"T0":500,"T2":500}
+[chromium] T1 idb durability=relaxed tabs=3 tx per tab=300 results per tab=[{"complete":300},{"complete":300},{"complete":300}] elapsed_ms~391
+[chromium] T1 idb durability=relaxed count=900 seq.length=900 expected=900 lost=0 saw==position:900 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=93 per tab={"T2":300,"T1":300,"T0":300}
+[chromium] T1 idb durability=strict tabs=3 tx per tab=300 results per tab=[{"complete":300},{"complete":300},{"complete":300}] elapsed_ms~383
+[chromium] T1 idb durability=strict count=900 seq.length=900 expected=900 lost=0 saw==position:900 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=91 per tab={"T1":300,"T2":300,"T0":300}
+[chromium] T2 close rep=1 victim created at close=110 victim complete events at close=100 victim complete events total=100 victim abort events=0 victim entries persisted=103 victim marks persisted=103 complete-but-missing=0 persisted-without-complete-event=3 entry-without-mark=0 mark-without-entry=0 gaps below highest persisted i=0
+[chromium] T2 close rep=1 survivor tx complete=300/300 survivor snapshots=690 snapshots with a half-done transaction=0
+[chromium] T2 close rep=1 count=403 seq.length=403 expected=403 lost=0 saw==position:403 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=32 per tab={"S":300,"V":103}
+[chromium] T2 close rep=2 victim created at close=220 victim complete events at close=200 victim complete events total=200 victim abort events=0 victim entries persisted=200 victim marks persisted=200 complete-but-missing=0 persisted-without-complete-event=0 entry-without-mark=0 mark-without-entry=0 gaps below highest persisted i=0
+[chromium] T2 close rep=2 survivor tx complete=300/300 survivor snapshots=628 snapshots with a half-done transaction=0
+[chromium] T2 close rep=2 count=500 seq.length=500 expected=500 lost=0 saw==position:500 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=74 per tab={"S":300,"V":200}
+[chromium] T2 close rep=3 victim created at close=337 victim complete events at close=300 victim complete events total=300 victim abort events=0 victim entries persisted=300 victim marks persisted=300 complete-but-missing=0 persisted-without-complete-event=0 entry-without-mark=0 mark-without-entry=0 gaps below highest persisted i=0
+[chromium] T2 close rep=3 survivor tx complete=300/300 survivor snapshots=587 snapshots with a half-done transaction=0
+[chromium] T2 close rep=3 count=600 seq.length=600 expected=600 lost=0 saw==position:600 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=118 per tab={"S":300,"V":300}
+[chromium] T3 localStorage gap=none(sync) count=654 seq.length=654 expected=900 lost=246 saw==position:654 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=82 per tab={"T0":191,"T1":225,"T2":238}
+[chromium] T3 localStorage gap=1ms count=100 seq.length=100 expected=300 lost=200 saw==position:100 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=0 per tab={"T2":100}
+[chromium] T4 versionchange old-tab policy=keep old tab events=["versionchange 1->2"] new tab after 700ms: events=["blocked"] result=null
+[chromium] T4 versionchange old-tab policy=keep after old tab close(): new tab events=["blocked"] result=opened v2
+[chromium] T4 versionchange old-tab policy=close old tab events=["versionchange 1->2"] new tab after 700ms: events=[] result=opened v2
+[chromium] T5 old tab page.close() before: events=["blocked"] result=null after: events=["blocked"] result=opened v2
+[chromium] done
+[chromium] T6 rep=1 A created=0 A first request done=+0ms A finished=+1000ms A gets=18759 A=complete | B created=+203ms B first request done=+1000ms B finished=+1000ms B=complete B first request after A finished=true
+[chromium] T6 rep=2 A created=0 A first request done=+1ms A finished=+1000ms A gets=19469 A=complete | B created=+202ms B first request done=+1000ms B finished=+1000ms B=complete B first request after A finished=true
+[chromium] T6 rep=3 A created=0 A first request done=+1ms A finished=+1000ms A gets=19359 A=complete | B created=+203ms B first request done=+1000ms B finished=+1000ms B=complete B first request after A finished=true
+[chromium] T6b readonly in B while A holds readwrite B waited ms=798 B saw={"by":"A","at":1793859852685} A=complete A holding ms=1000
+[chromium] T7 rep=1 A closed while its readwrite tx (with a put) was open B created=+0ms A page.close at=+301ms B read done=+321ms B=complete B saw hold record=undefined
+[chromium] T7 rep=2 A closed while its readwrite tx (with a put) was open B created=+0ms A page.close at=+300ms B read done=+309ms B=complete B saw hold record=undefined
+[chromium] T7 rep=3 A closed while its readwrite tx (with a put) was open B created=+0ms A page.close at=+300ms B read done=+311ms B=complete B saw hold record=undefined
+[chromium] done
+[chromium] launched 153.0.8010.12
+[chromium] serving http://localhost:38163/manual-plus.html
+[chromium] Q0 estimate without override {"usageMB":0,"quotaMB":3072}
+[chromium] override Storage.overrideQuotaForOrigin origin=http://localhost:38163 quotaSize=5242880 bytes (5 MB) accepted
+[chromium] Q0 estimate with override {"usageMB":0,"quotaMB":3072}
+[chromium] Q1 fill rep=1 refused={"transaction":5,"recordMB":2,"putThrew":null,"result":"abort","error":"QuotaExceededError","message":"","committedBeforeMB":3.755,"committedTransactionsBefore":4}
+[chromium] Q1 fill rep=1 baseline=complete committed records=9 failed transaction: pre-<n> stored=false big-<n> stored=false earlier data intact (same connection)=9 of 9 (after reopen)=9 of 9 (after later writes)=9 of 9
+[chromium] Q1 fill rep=1 later 1 KB transaction=abort QuotaExceededError later transaction of half the refused size=1.000 MB: abort QuotaExceededError estimate before={"usageMB":0,"quotaMB":3072} after={"usageMB":5.84,"quotaMB":3077.84}
+[chromium] Q2 two stores, storage nearly full, rep=1 log entry MB=2 baseline=complete | progress first: {"result":"abort","error":"QuotaExceededError","putThrew":null,"after":{"rev":1,"logKeys":[1]}} | log first: {"result":"abort","error":"QuotaExceededError","putThrew":null,"after":{"rev":1,"logKeys":[1]}} | later small both: {"result":"abort","error":"QuotaExceededError","after":{"rev":1,"logKeys":[1]}}
+[chromium] Q1 fill rep=2 refused={"transaction":5,"recordMB":2,"putThrew":null,"result":"abort","error":"QuotaExceededError","message":"","committedBeforeMB":3.755,"committedTransactionsBefore":4}
+[chromium] Q1 fill rep=2 baseline=complete committed records=9 failed transaction: pre-<n> stored=false big-<n> stored=false earlier data intact (same connection)=9 of 9 (after reopen)=9 of 9 (after later writes)=9 of 9
+[chromium] Q1 fill rep=2 later 1 KB transaction=abort QuotaExceededError later transaction of half the refused size=1.000 MB: abort QuotaExceededError estimate before={"usageMB":0,"quotaMB":3072} after={"usageMB":5.84,"quotaMB":3077.84}
+[chromium] Q2 two stores, storage nearly full, rep=2 log entry MB=2 baseline=complete | progress first: {"result":"abort","error":"QuotaExceededError","putThrew":null,"after":{"rev":1,"logKeys":[1]}} | log first: {"result":"abort","error":"QuotaExceededError","putThrew":null,"after":{"rev":1,"logKeys":[1]}} | later small both: {"result":"abort","error":"QuotaExceededError","after":{"rev":1,"logKeys":[1]}}
+[chromium] Q3 two stores, empty storage, log entry larger than the cap log entry MB=6 | progress first: {"result":"abort","error":"QuotaExceededError","putThrew":null,"after":{"rev":1,"logKeys":[1]}} | log first: {"result":"abort","error":"QuotaExceededError","putThrew":null,"after":{"rev":1,"logKeys":[1]}} | later small both: {"result":"abort","error":"QuotaExceededError","after":{"rev":1,"logKeys":[1]}}
+[chromium] Q4 refused write of 6 MB progress first: abort QuotaExceededError later small both (inside quotaPair): abort QuotaExceededError estimate={"usageMB":6.07,"quotaMB":3078.07}
+[chromium] Q4 1 KB writes at once same database: abort QuotaExceededError; another database: complete; estimate={"usageMB":0.14,"quotaMB":3072.14}
+[chromium] Q4 1 KB writes after 10 s same database: complete; another database: complete; estimate={"usageMB":0.14,"quotaMB":3072.14}
+[chromium] Q4 1 KB writes after the page reloaded same database: complete; another database: complete; estimate={"usageMB":0.14,"quotaMB":3072.14}
+[chromium] Q4 1 KB writes from a second page, first page still open same database: complete; another database: complete; estimate={"usageMB":0.14,"quotaMB":3072.14}
+[chromium] Q4 1 KB writes from the second page after the first page closed same database: complete; another database: complete; estimate={"usageMB":0.14,"quotaMB":3072.14}
+[chromium] cleanup {"proto-quota":"deleted","proto-quota2":"deleted","estimate":{"usageMB":0.07,"quotaMB":3072.07},"small":"deleted"}
+[chromium] override removed {"usageMB":0,"quotaMB":3072}
+[chromium] done
+[chromium] launched 153.0.8010.12
+[chromium] serving http://localhost:39777/manual-plus.html
+[chromium] Q0 estimate without override {"usageMB":0,"quotaMB":3072}
+[chromium] override Storage.overrideQuotaForOrigin origin=http://localhost:39777 quotaSize=5242880 bytes (5 MB) accepted
+[chromium] Q0 estimate with override {"usageMB":0,"quotaMB":3072}
+[chromium] Q1 fill rep=1 refused={"transaction":5,"recordMB":2,"putThrew":null,"result":"abort","error":"QuotaExceededError","message":"","committedBeforeMB":3.755,"committedTransactionsBefore":4}
+[chromium] Q1 fill rep=1 baseline=complete committed records=9 failed transaction: pre-<n> stored=false big-<n> stored=false earlier data intact (same connection)=9 of 9 (after reopen)=9 of 9 (after later writes)=9 of 9
+[chromium] Q1 fill rep=1 later 1 KB transaction=abort QuotaExceededError later transaction of half the refused size=1.000 MB: abort QuotaExceededError estimate before={"usageMB":0,"quotaMB":3072} after={"usageMB":5.84,"quotaMB":3077.84}
+[chromium] Q2 two stores, storage nearly full, rep=1 log entry MB=2 baseline=complete | progress first: {"result":"abort","error":"QuotaExceededError","putThrew":null,"after":{"rev":1,"logKeys":[1]}} | log first: {"result":"abort","error":"QuotaExceededError","putThrew":null,"after":{"rev":1,"logKeys":[1]}} | later small both: {"result":"abort","error":"QuotaExceededError","after":{"rev":1,"logKeys":[1]}}
+[chromium] Q1 fill rep=2 refused={"transaction":5,"recordMB":2,"putThrew":null,"result":"abort","error":"QuotaExceededError","message":"","committedBeforeMB":3.755,"committedTransactionsBefore":4}
+[chromium] Q1 fill rep=2 baseline=complete committed records=9 failed transaction: pre-<n> stored=false big-<n> stored=false earlier data intact (same connection)=9 of 9 (after reopen)=9 of 9 (after later writes)=9 of 9
+[chromium] Q1 fill rep=2 later 1 KB transaction=abort QuotaExceededError later transaction of half the refused size=1.000 MB: abort QuotaExceededError estimate before={"usageMB":0,"quotaMB":3072} after={"usageMB":5.84,"quotaMB":3077.84}
+[chromium] Q2 two stores, storage nearly full, rep=2 log entry MB=2 baseline=complete | progress first: {"result":"abort","error":"QuotaExceededError","putThrew":null,"after":{"rev":1,"logKeys":[1]}} | log first: {"result":"abort","error":"QuotaExceededError","putThrew":null,"after":{"rev":1,"logKeys":[1]}} | later small both: {"result":"abort","error":"QuotaExceededError","after":{"rev":1,"logKeys":[1]}}
+[chromium] Q3 two stores, empty storage, log entry larger than the cap log entry MB=6 | progress first: {"result":"abort","error":"QuotaExceededError","putThrew":null,"after":{"rev":1,"logKeys":[1]}} | log first: {"result":"abort","error":"QuotaExceededError","putThrew":null,"after":{"rev":1,"logKeys":[1]}} | later small both: {"result":"abort","error":"QuotaExceededError","after":{"rev":1,"logKeys":[1]}}
+[chromium] Q4 refused write of 6 MB progress first: abort QuotaExceededError later small both (inside quotaPair): abort QuotaExceededError estimate={"usageMB":6.07,"quotaMB":3078.07}
+[chromium] Q4 1 KB writes at once same database: abort QuotaExceededError; another database: complete; estimate={"usageMB":0.14,"quotaMB":3072.14}
+[chromium] Q4 1 KB writes after 10 s same database: complete; another database: complete; estimate={"usageMB":0.14,"quotaMB":3072.14}
+[chromium] Q4 1 KB writes after the page reloaded same database: complete; another database: complete; estimate={"usageMB":0.14,"quotaMB":3072.14}
+[chromium] Q4 1 KB writes from a second page, first page still open same database: complete; another database: complete; estimate={"usageMB":0.14,"quotaMB":3072.14}
+[chromium] Q4 1 KB writes from the second page after the first page closed same database: complete; another database: complete; estimate={"usageMB":0.14,"quotaMB":3072.14}
+[chromium] cleanup {"proto-quota":"deleted","proto-quota2":"deleted","estimate":{"usageMB":0.07,"quotaMB":3072.07},"small":"deleted"}
+[chromium] override removed {"usageMB":0,"quotaMB":3072}
+[chromium] done
+[chromium] launched 153.0.8010.12
+[chromium] serving http://localhost:37809/manual-plus.html
+[chromium] U1 page close mid-upgrade rep=1 setup={"db":"proto-upgrade","version":1,"items":2000,"write":"complete"} | at close: {"state":"upgrading 1->2","copied":300,"chunks":3,"events":["upgradeneeded 1->2"]} | check (took 43 ms): {"listedVersion":1,"version":1,"stores":["items"],"items":2000,"itemsIntact":2000} | fresh upgrade: {"openedVersion":2,"events":["upgradeneeded 1->2"],"listedVersion":2,"version":2,"stores":["items","items2"],"items":2000,"itemsIntact":2000,"items2":2000}
+[chromium] U1 page close mid-upgrade rep=2 setup={"db":"proto-upgrade","version":1,"items":2000,"write":"complete"} | at close: {"state":"upgrading 1->2","copied":300,"chunks":3,"events":["upgradeneeded 1->2"]} | check (took 46 ms): {"listedVersion":1,"version":1,"stores":["items"],"items":2000,"itemsIntact":2000} | fresh upgrade: {"openedVersion":2,"events":["upgradeneeded 1->2"],"listedVersion":2,"version":2,"stores":["items","items2"],"items":2000,"itemsIntact":2000,"items2":2000}
+[chromium] U1 page close mid-upgrade rep=3 setup={"db":"proto-upgrade","version":1,"items":2000,"write":"complete"} | at close: {"state":"upgrading 1->2","copied":300,"chunks":3,"events":["upgradeneeded 1->2"]} | check (took 43 ms): {"listedVersion":1,"version":1,"stores":["items"],"items":2000,"itemsIntact":2000} | fresh upgrade: {"openedVersion":2,"events":["upgradeneeded 1->2"],"listedVersion":2,"version":2,"stores":["items","items2"],"items":2000,"itemsIntact":2000,"items2":2000}
+[chromium] U2 page reload mid-upgrade rep=1 setup={"db":"proto-upgrade","version":1,"items":2000,"write":"complete"} | at reload: {"state":"upgrading 1->2","copied":300,"chunks":3,"events":["upgradeneeded 1->2"]} | check (took 46 ms): {"listedVersion":1,"version":1,"stores":["items"],"items":2000,"itemsIntact":2000} | fresh upgrade: {"openedVersion":2,"events":["upgradeneeded 1->2"],"listedVersion":2,"version":2,"stores":["items","items2"],"items":2000,"itemsIntact":2000,"items2":2000}
+[chromium] U2 page reload mid-upgrade rep=2 setup={"db":"proto-upgrade","version":1,"items":2000,"write":"complete"} | at reload: {"state":"upgrading 1->2","copied":300,"chunks":3,"events":["upgradeneeded 1->2"]} | check (took 48 ms): {"listedVersion":1,"version":1,"stores":["items"],"items":2000,"itemsIntact":2000} | fresh upgrade: {"openedVersion":2,"events":["upgradeneeded 1->2"],"listedVersion":2,"version":2,"stores":["items","items2"],"items":2000,"itemsIntact":2000,"items2":2000}
+[chromium] U2 page reload mid-upgrade rep=3 setup={"db":"proto-upgrade","version":1,"items":2000,"write":"complete"} | at reload: {"state":"upgrading 1->2","copied":300,"chunks":3,"events":["upgradeneeded 1->2"]} | check (took 44 ms): {"listedVersion":1,"version":1,"stores":["items"],"items":2000,"itemsIntact":2000} | fresh upgrade: {"openedVersion":2,"events":["upgradeneeded 1->2"],"listedVersion":2,"version":2,"stores":["items","items2"],"items":2000,"itemsIntact":2000,"items2":2000}
+[chromium] U3 old tab holding v1 policy=keep
+[chromium] U3 after 1,500 ms upgrading tab: {"state":"requested","copied":0,"chunks":0,"events":["blocked 1->2"]} | old tab: {"events":["versionchange 1->2"]} | old tab can still start a transaction: transaction created (readonly)
+[chromium] U3 upgrading tab closed while blocked, then old tab closed its connection check: {"listedVersion":1,"version":1,"stores":["items"],"items":2000,"itemsIntact":2000}
+[chromium] U4 upgrading tab closed mid-upgrade old tab transaction on its connection after versionchange: threw InvalidStateError | old tab reopen v1, 500 ms into the wait: {"events":["versionchange 1->2"],"reopen":"requested"} | upgrading tab: {"state":"upgrading 1->2","copied":200,"chunks":2,"events":["upgradeneeded 1->2"]} | old tab after: {"events":["versionchange 1->2"],"reopen":"opened v1 after 512 ms"} | check: {"listedVersion":1,"version":1,"stores":["items"],"items":2000,"itemsIntact":2000}
+[chromium] U5 upgrade completes old tab transaction on its connection after versionchange: threw InvalidStateError | old tab reopen v1, 500 ms into the wait: {"events":["versionchange 1->2"],"reopen":"requested"} | upgrading tab: {"state":"opened v2","copied":2000,"chunks":20,"events":["upgradeneeded 1->2","upgrade transaction complete"]} | old tab after: {"events":["versionchange 1->2"],"reopen":"error VersionError after 1923 ms"} | check: {"listedVersion":2,"version":2,"stores":["items","items2"],"items":2000,"itemsIntact":2000,"items2":2000}
+[chromium] cleanup deleted
+[chromium] done
+[chromium] launched 153.0.8010.12
+[chromium] serving http://localhost:42899/manual-plus.html
+[chromium] U1 page close mid-upgrade rep=1 setup={"db":"proto-upgrade","version":1,"items":2000,"write":"complete"} | at close: {"state":"upgrading 1->2","copied":300,"chunks":3,"events":["upgradeneeded 1->2"]} | check (took 47 ms): {"listedVersion":1,"version":1,"stores":["items"],"items":2000,"itemsIntact":2000} | fresh upgrade: {"openedVersion":2,"events":["upgradeneeded 1->2"],"listedVersion":2,"version":2,"stores":["items","items2"],"items":2000,"itemsIntact":2000,"items2":2000}
+[chromium] U1 page close mid-upgrade rep=2 setup={"db":"proto-upgrade","version":1,"items":2000,"write":"complete"} | at close: {"state":"upgrading 1->2","copied":300,"chunks":3,"events":["upgradeneeded 1->2"]} | check (took 43 ms): {"listedVersion":1,"version":1,"stores":["items"],"items":2000,"itemsIntact":2000} | fresh upgrade: {"openedVersion":2,"events":["upgradeneeded 1->2"],"listedVersion":2,"version":2,"stores":["items","items2"],"items":2000,"itemsIntact":2000,"items2":2000}
+[chromium] U1 page close mid-upgrade rep=3 setup={"db":"proto-upgrade","version":1,"items":2000,"write":"complete"} | at close: {"state":"upgrading 1->2","copied":300,"chunks":3,"events":["upgradeneeded 1->2"]} | check (took 43 ms): {"listedVersion":1,"version":1,"stores":["items"],"items":2000,"itemsIntact":2000} | fresh upgrade: {"openedVersion":2,"events":["upgradeneeded 1->2"],"listedVersion":2,"version":2,"stores":["items","items2"],"items":2000,"itemsIntact":2000,"items2":2000}
+[chromium] U2 page reload mid-upgrade rep=1 setup={"db":"proto-upgrade","version":1,"items":2000,"write":"complete"} | at reload: {"state":"upgrading 1->2","copied":300,"chunks":3,"events":["upgradeneeded 1->2"]} | check (took 44 ms): {"listedVersion":1,"version":1,"stores":["items"],"items":2000,"itemsIntact":2000} | fresh upgrade: {"openedVersion":2,"events":["upgradeneeded 1->2"],"listedVersion":2,"version":2,"stores":["items","items2"],"items":2000,"itemsIntact":2000,"items2":2000}
+[chromium] U2 page reload mid-upgrade rep=2 setup={"db":"proto-upgrade","version":1,"items":2000,"write":"complete"} | at reload: {"state":"upgrading 1->2","copied":300,"chunks":3,"events":["upgradeneeded 1->2"]} | check (took 46 ms): {"listedVersion":1,"version":1,"stores":["items"],"items":2000,"itemsIntact":2000} | fresh upgrade: {"openedVersion":2,"events":["upgradeneeded 1->2"],"listedVersion":2,"version":2,"stores":["items","items2"],"items":2000,"itemsIntact":2000,"items2":2000}
+[chromium] U2 page reload mid-upgrade rep=3 setup={"db":"proto-upgrade","version":1,"items":2000,"write":"complete"} | at reload: {"state":"upgrading 1->2","copied":300,"chunks":3,"events":["upgradeneeded 1->2"]} | check (took 46 ms): {"listedVersion":1,"version":1,"stores":["items"],"items":2000,"itemsIntact":2000} | fresh upgrade: {"openedVersion":2,"events":["upgradeneeded 1->2"],"listedVersion":2,"version":2,"stores":["items","items2"],"items":2000,"itemsIntact":2000,"items2":2000}
+[chromium] U3 old tab holding v1 policy=keep
+[chromium] U3 after 1,500 ms upgrading tab: {"state":"requested","copied":0,"chunks":0,"events":["blocked 1->2"]} | old tab: {"events":["versionchange 1->2"]} | old tab can still start a transaction: transaction created (readonly)
+[chromium] U3 upgrading tab closed while blocked, then old tab closed its connection check: {"listedVersion":1,"version":1,"stores":["items"],"items":2000,"itemsIntact":2000}
+[chromium] U4 upgrading tab closed mid-upgrade old tab transaction on its connection after versionchange: threw InvalidStateError | old tab reopen v1, 500 ms into the wait: {"events":["versionchange 1->2"],"reopen":"requested"} | upgrading tab: {"state":"upgrading 1->2","copied":200,"chunks":2,"events":["upgradeneeded 1->2"]} | old tab after: {"events":["versionchange 1->2"],"reopen":"opened v1 after 513 ms"} | check: {"listedVersion":1,"version":1,"stores":["items"],"items":2000,"itemsIntact":2000}
+[chromium] U5 upgrade completes old tab transaction on its connection after versionchange: threw InvalidStateError | old tab reopen v1, 500 ms into the wait: {"events":["versionchange 1->2"],"reopen":"requested"} | upgrading tab: {"state":"opened v2","copied":2000,"chunks":20,"events":["upgradeneeded 1->2","upgrade transaction complete"]} | old tab after: {"events":["versionchange 1->2"],"reopen":"error VersionError after 1925 ms"} | check: {"listedVersion":2,"version":2,"stores":["items","items2"],"items":2000,"itemsIntact":2000,"items2":2000}
+[chromium] cleanup deleted
+[chromium] done
