@@ -421,16 +421,21 @@ function fixtureFiles(own, have, copies){
     // dismiss in WebKit (the WebKit job of 2026-11-04, run 41787939006, hung here for 900 s).
     // The engines differ in where that key goes: Chromium drops it (the page gets 0 left-arrow
     // keydowns, measured 2026-11-04), WebKit may hand it to the page once the box is closed. Either
-    // way the paper must stay where it was; the page counts the left-arrow keydowns it got and
-    // the count is printed.
+    // way the paper must stay where it was. The page counts the left-arrow keydowns it got and the
+    // count is printed as an observation (kit PR #16 review of 4b8748e).
     await ev(() => { window.__scLeft = 0; document.addEventListener('keydown', e => { if(e.key === 'ArrowLeft') window.__scLeft++; }, true); });
-    page.on('dialog', async d => { asked = d.message(); const left = page.keyboard.press('ArrowLeft').catch(() => {}); await page.waitForTimeout(150); await d.dismiss(); await left; });
+    let leftErr = null;
+    page.on('dialog', async d => { asked = d.message(); const left = page.keyboard.press('ArrowLeft').catch(e => { leftErr = String(e.message || e).split('\n')[0]; }); await page.waitForTimeout(150); await d.dismiss(); await left; });
     await page.keyboard.press('ArrowRight'); await page.waitForTimeout(400);
     page.removeAllListeners('dialog'); page.on('dialog', d => d.accept());
     const r8 = await ev(() => ({i: EX.i, prev: !!document.getElementById('exPrev'), left: window.__scLeft}));
-    console.log(`  note  the left arrow pressed while the native box was open reached the page ${r8.left} time(s) in ${L.BROWSER_NAME}`);
-    check(/cannot come back/.test(asked || '') && r8.i === 1 && !r8.prev && (r8.left === 0 || r8.left === 1),
-      'on a blank strict question the right arrow asks first; the left arrow pressed while that question is open, then Cancel, leaves the paper where it was', Object.assign({asked}, r8));
+    // An observation, not a check: whether a key pressed while the native box is open reaches the
+    // page is up to the engine, and this test does not show that the module blocks it (no module
+    // code runs while the box is open). The strict paper's own left-arrow check is the one above
+    // ("... and the left arrow does nothing").
+    console.log(`  note  observation only: the left arrow pressed while the native box was open reached the page ${r8.left} time(s) in ${L.BROWSER_NAME}${leftErr ? '; the key press was refused: ' + leftErr : ''}`);
+    check(/cannot come back/.test(asked || '') && r8.i === 1 && !r8.prev,
+      'on a blank strict question the right arrow opens the native "cannot come back" box, and Cancel keeps the paper on the same question with no Back', Object.assign({asked}, r8));
     await ev(() => finishExam(true)); await settle();
     await page.click('#exAgain'); await settle();
     await page.uncheck('#scStrict');
