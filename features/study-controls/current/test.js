@@ -575,11 +575,27 @@ function fixtureFiles(own, have, copies){
       await P.click('#btnWho'); await wait(100);
       const fresh = await pe(() => ({p: PROFILE, n: Object.keys(DB.flags || {}).length, layout: DB.layout || null}));
       await tab('settings');
-      await P.setInputFiles('#fileIn', file); await wait(500);
+      // Import as a student does it since kit PR #32: the file is read, a plan is shown
+      // (#importPlan), and it is imported only on #importGo; the outcome is #importResult.
+      // SecondProfile holds no progress, so the plan is to replace it (button "Import",
+      // not "Import into a new profile") and the flags come back in this same profile.
+      const runImport = async f => {
+        await P.setInputFiles('#fileIn', f);
+        await P.waitForFunction(() => { const b = document.getElementById('importPlan'); return b && b.textContent.trim(); }, null, {timeout: 5000}).catch(() => {});
+        const plan = await pe(() => { const g = document.getElementById('importGo'), w = document.getElementById('importWhat');
+          return {go: g ? g.textContent.trim() : null, what: w ? w.textContent.replace(/\s+/g, ' ').trim() : null}; });
+        if(plan.go) await P.click('#importGo');
+        await P.waitForSelector('#importResult', {timeout: 3000}).catch(() => {});
+        const result = await pe(() => { const r = document.getElementById('importResult'); return r ? r.textContent.replace(/\s+/g, ' ').trim() : null; });
+        await wait(200);
+        return {plan, result};
+      };
+      const ir = await runImport(file);
       const imp = await pe(() => ({p: PROFILE, n: Object.keys(DB.flags || {}).length, layout: DB.layout}));
+      const impRaw = await rawFlags('SecondProfile');
       check(Object.keys(ex.db.flags || {}).length === mine && ex.db.layout === 'all' && fresh.p === 'SecondProfile' && fresh.n === 0 && fresh.layout !== 'all' &&
-        imp.n === mine && imp.layout === 'all',
-        `Export carries the ${mine} flags and the layout; Import into a fresh profile brings them back`, {exported: Object.keys(ex.db.flags || {}).length, fresh, imp});
+        ir.plan.go === 'Import' && !!ir.result && imp.p === 'SecondProfile' && imp.n === mine && imp.layout === 'all' && impRaw.n === mine && impRaw.layout === 'all',
+        `Export carries the ${mine} flags and the layout; Import into a fresh profile (the plan: replace it) brings them back into that profile, on the page and stored`, {exported: Object.keys(ex.db.flags || {}).length, fresh, ir, imp, stored: {n: impRaw.n, layout: impRaw.layout}});
       // each profile keeps its own
       await tab('topics');
       await P.click('#scClearFlag'); await wait(400);
