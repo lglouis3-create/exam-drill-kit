@@ -3,7 +3,7 @@
 Dated kit changes, newest first.
 
 ## 2026-11-05
-- An exam paper whose save the browser refuses now counts as unsaved: the notice names it, Export holds it, Reload, a profile switch and closing the tab ask first, and a reload of the same tab brings it back from the tab's own copy.
+- An exam paper whose save the browser refuses now counts as unsaved: the notice names it, Export holds it, Reload, a profile switch and closing the tab ask first, and a reload of the same tab brings it back from the tab's own copy. When that copy is refused too, the older copy is removed and the notice says a reload loses the answers; a return to the profile keeps the latest paper.
 - The answer history is no longer cut silently at 20,000 entries: past it a notice offers Export progress and a removal of the oldest entries that names how many and their dates and needs an OK; until then new entries go on being added (`cap_test.js`).
 - Study progress first when storage is full: while a progress write is refused, the answer history is held (on the page, named in the notice, in Export) and written after the next progress save; this tab's own per-tab record, proven stored, is removed to make room and the progress write tried once more.
 - "Use it here" with only history unsaved no longer stores an entry twice when the other tab already placed this tab's per-tab record.

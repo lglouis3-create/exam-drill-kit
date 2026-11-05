@@ -540,6 +540,10 @@ With less room the old core still keeps more progress, because it deletes histor
     (`<ns>:exam-copy:<profile>`), which a reload of the same tab brings back when it is newer. Closing
     the tab ends that copy. In Chromium, with localStorage full, sessionStorage still took the copy
     (`exam_save_test.js`); in Safari that is NOT RUN.
+  - **When the copy is refused too:** the earlier copy is removed, since it lacks the latest answers, and
+    the notice says closing or reloading the page loses them. A reload then brings back the paper as last
+    stored. A return to the profile without a reload keeps this page's latest paper, never an older copy
+    (the review of b6de043).
   - **"It is saved":** the new-version bar's "A paper is running. It is saved…" question is now asked
     only when the paper is saved.
   - **After a reload** that brings the paper back from the tab's copy, the paper still counts as refused

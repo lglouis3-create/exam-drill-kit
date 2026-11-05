@@ -13,7 +13,10 @@ const {check} = L;
 L.PAGE.need(NAME);
 const REFUSE = () => {
   const set = Storage.prototype.setItem;
-  Storage.prototype.setItem = function(k, v){ if(this === window.localStorage && window.__refuse && window.__refuse.some(r => String(k).includes(r))) throw new DOMException('The quota has been exceeded.', 'QuotaExceededError'); return set.call(this, k, v); };
+  Storage.prototype.setItem = function(k, v){
+    if(this === window.localStorage && window.__refuse && window.__refuse.some(r => String(k).includes(r))) throw new DOMException('The quota has been exceeded.', 'QuotaExceededError');
+    if(this === window.sessionStorage && window.__refuseSess && window.__refuseSess.some(r => String(k).includes(r))) throw new DOMException('The quota has been exceeded.', 'QuotaExceededError');
+    return set.call(this, k, v); };
 };
 (async () => {
   const {browser} = await L.launch(NAME);
@@ -168,6 +171,49 @@ const REFUSE = () => {
       'a profile switch puts the paper away: none on the next profile, the first profile\'s refused paper protected and in its export', Object.assign({}, sw, {exported: !!ex.exam}));
     check(!e5.length, 'profile switch with a paper: no page errors', e5.slice(0, 2).join('; '));
     await c5.close();
+  }
+  {
+    // the review of b6de043: a later copy write refused too. The tab's copy then holds an earlier answer;
+    // a return to the profile must keep the latest one, and a reload must not bring the earlier copy back
+    const {ctx: c6, page: a, errors: e6} = await L.openFile(browser, {}, REFUSE);
+    a.on('dialog', d => d.accept().catch(() => {}));
+    await a.waitForFunction(() => typeof WRITER === 'undefined' || WRITER === 'held' || WRITER === 'none', null, {timeout: 8000}).catch(() => {});
+    await a.evaluate(() => { show('exam'); document.getElementById('startExam').click(); });
+    await a.waitForFunction(() => EX && EX.running, null, {timeout: 5000});
+    const set = (i, v) => a.evaluate(([i, v]) => { const q = EX.qs[i]; EX.picks[i] = isMulti(q) ? [v] : (q.type === 'numeric' ? String(v) : v); saveExam(); return JSON.stringify(EX.picks); }, [i, v]);
+    const stored0 = await set(0, 0);                                   // stored normally
+    await a.evaluate(() => { window.__refuse = [':exam:']; });
+    const mid = await set(1, 0);                                       // refused; the tab's copy holds it
+    const pre = await a.evaluate(m => { const c = JSON.parse(sessionStorage.getItem(NS + ':exam-copy:' + PROFILE) || 'null'); return {copy: !!c && JSON.stringify(c.paper.picks) === m}; }, mid);
+    await a.evaluate(() => { window.__refuseSess = [':exam-copy:']; });
+    const latest = await set(1, 1);                                    // refused, and its copy refused too
+    check(pre.copy && latest !== mid, 'precondition: the first refused save left a tab copy, and the second answer differs', Object.assign({}, pre, {latest, mid}));
+    const w = await a.evaluate(m => { const raw = sessionStorage.getItem(NS + ':exam-copy:' + PROFILE); const c = raw ? JSON.parse(raw) : null;
+      return {text: (document.getElementById('savewarn') || {}).textContent || '', copyOk: EXAM_COPY_OK, staleCopy: !!c && JSON.stringify(c.paper.picks) === m}; }, mid);
+    check(/did not save your exam paper in progress/.test(w.text) && /Closing or reloading this page loses them/.test(w.text) && !/brings them back after a reload/.test(w.text) && !w.copyOk && !w.staleCopy,
+      'a refused paper whose tab copy is refused too: the notice says closing or reloading loses its answers, and no earlier copy is left for a reload', Object.assign({}, w, {text: w.text.slice(0, 220)}));
+    const me = await a.evaluate(() => PROFILE);
+    await a.evaluate(() => { let n = 0; window.confirm = () => n++ > 0; useProfile('copy-other'); });
+    await a.waitForTimeout(500);
+    const awayOk = await a.evaluate(() => PROFILE === 'copy-other');
+    await a.evaluate(p => { window.confirm = () => true; useProfile(p); }, me);
+    await a.waitForTimeout(500);
+    await a.evaluate(() => show('exam')); await a.waitForTimeout(300);
+    const ret = await a.evaluate(p => ({on: PROFILE === p, running: !!(EX && EX.running), picks: EX ? JSON.stringify(EX.picks) : null, risk: atRiskAll()}), me);
+    const [dl] = await Promise.all([a.waitForEvent('download', {timeout: 5000}).catch(() => null), a.evaluate(() => exportProgress())]);
+    const ex = dl ? JSON.parse(fs.readFileSync(await dl.path(), 'utf8')) : {};
+    check(awayOk && ret.on && ret.running && ret.picks === latest && ret.risk && ex.exam && JSON.stringify(ex.exam.picks) === latest,
+      'that paper, after a switch to another profile and back: the latest answer is on screen, still at risk, and in Export', Object.assign({}, ret, {awayOk, exported: ex.exam ? JSON.stringify(ex.exam.picks) : null, latest}));
+    // a real reload: what the notice said. The answers after the stored save are lost; the stored paper comes back,
+    // not the earlier copy as if it were the latest
+    await a.evaluate(() => { window.__refuse = null; window.__refuseSess = null; });
+    await a.reload(); await a.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+    await a.evaluate(() => show('exam')); await a.waitForTimeout(300);
+    const rl = await a.evaluate(() => ({running: !!(EX && EX.running), picks: EX ? JSON.stringify(EX.picks) : null, failed: FAILED.has(NS + ':exam:' + PROFILE)}));
+    check(rl.running && rl.picks === stored0 && rl.picks !== mid && !rl.failed,
+      'after a real reload in that state: the stored paper comes back (the refused answers lost, as the notice said), not the earlier tab copy', Object.assign({}, rl, {stored0, mid}));
+    check(!e6.length, 'a refused tab copy: no page errors', e6.slice(0, 2).join('; '));
+    await c6.close();
   }
   // real browser storage: with localStorage full, sessionStorage still takes a write (separate quota)
   {

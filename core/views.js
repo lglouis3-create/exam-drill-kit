@@ -2339,7 +2339,9 @@ function saveExam(){
   if(store.set(EXAM_KEY(), JSON.stringify(paper))){ try { sessionStorage.removeItem(EXAM_COPY_KEY()); } catch(e){} EXAM_COPY_OK = false; }
   // refused: this tab keeps a copy for a reload, with what was stored then (over), so a reload takes
   // the copy only while nothing newer was stored since
-  else { let ok = false; try { sessionStorage.setItem(EXAM_COPY_KEY(), JSON.stringify({paper, over: storedNow(EXAM_KEY())})); ok = true; } catch(e){} if(ok !== EXAM_COPY_OK){ EXAM_COPY_OK = ok; try { refreshSaveWarn(); } catch(e){} } }
+  // copy refused too: the earlier copy is removed, since it lacks these answers and a reload must not
+  // bring it back as if it held them (the review of b6de043); the notice then says a reload loses them
+  else { let ok = false; try { sessionStorage.setItem(EXAM_COPY_KEY(), JSON.stringify({paper, over: storedNow(EXAM_KEY())})); ok = true; } catch(e){ try { sessionStorage.removeItem(EXAM_COPY_KEY()); } catch(e2){} } if(ok !== EXAM_COPY_OK){ EXAM_COPY_OK = ok; try { refreshSaveWarn(); } catch(e){} } }
 }
 function clearExam(){
   if(!canSave()) return;
@@ -2367,6 +2369,9 @@ function restoreExam(){
     const c = JSON.parse(sessionStorage.getItem(EXAM_COPY_KEY()) || 'null');
     if(c && c.paper && c.paper.ids){
       if(examDoneList().includes(paperId(c.paper))) sessionStorage.removeItem(EXAM_COPY_KEY());
+      // this page already holds a refused paper for this profile (a return to it without a reload): that
+      // one is the latest, and the tab's copy is never newer than it (the review of b6de043)
+      else if(FAILED.has(EXAM_KEY())){}
       else if(storedNow(EXAM_KEY()) === c.over){
         j = c.paper;
         // still not stored: it counts as a refused save, so it stays protected and is what Export writes
