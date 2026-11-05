@@ -757,8 +757,11 @@ COURSE.exams.push({id:'zsA', name:'Test exam', date:'12 Nov', when:'2026-11-12T0
       // Import progress converts the same way
       const file = path.join(conv.repo, 'saved-5014f27.json');
       fs.writeFileSync(file, JSON.stringify({app: 'exam-drill', ns, db: F.db, log: F.log}));
-      await p.evaluate(() => { DB = BLANK(); show('settings'); });
+      // into a profile with no progress and no history (Import does not take a profile that
+      // has history of its own for an empty one, so DB = BLANK() alone is not empty)
+      await p.evaluate(() => { useProfile('Fresh'); show('settings'); });
       await p.setInputFiles('#fileIn', file);
+      await p.waitForSelector('#importGo', {timeout: 5000}).then(b => b.click(), () => {});
       await p.waitForTimeout(600);
       db = await p.evaluate(() => JSON.parse(JSON.stringify(DB)));
       check(db.v === 2 && JSON.stringify(strip(db)) === JSON.stringify(F.db) && JSON.stringify(db.concepts.c1.last) === JSON.stringify(lastWant.c1),

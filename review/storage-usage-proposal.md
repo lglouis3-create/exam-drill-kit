@@ -51,7 +51,7 @@ What a profile can take:
 
 What happens when the limit is reached, on `main` today:
 - **Progress:** a save the browser refuses keeps the change on the page and shows the "did not save" notice, which points to Export progress (`saveWarn`).
-- **History:** a refused history write deletes the oldest half of the history and tries again, repeatedly, with no notice (`saveLog`, `core/shell.html:770-776` on `main`). The history is written at once with each answer, while progress waits on a 150 ms timer. So near the limit, history entries can be deleted before any progress save is refused and the notice appears. The history is what fitting the memory model to Louis's own answers will use, and this deletion goes against "keep every backup".
+- **History:** a refused history write deletes the oldest half of the history and tries again, repeatedly, with no notice (`saveLog`, `core/shell.html:770-776` on `main`). Item 3 below, once merged, changes this: a refused history write keeps every entry on the page and in Export and shows the notice; with the whole site's storage full, the progress then stops saving sooner (`core/README.md`, "A refused history write"). The history is written at once with each answer, while progress waits on a 150 ms timer. So near the limit, history entries can be deleted before any progress save is refused and the notice appears. The history is what fitting the memory model to Louis's own answers will use, and this deletion goes against "keep every backup".
 
 ## 3. Recommendation
 

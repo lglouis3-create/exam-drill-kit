@@ -229,10 +229,18 @@ body.swbar-on{padding-bottom:76px}
 
 /* ---------- the notices shown once when the browser refuses to save, and when
    the saved progress could not be loaded ---------- */
-#savewarn,#loadwarn{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:50;
+#savewarn,#loadwarn,.awaywarn,#pendingnote{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:50;
   max-width:720px;margin:0 auto;background:var(--warn-bg);color:var(--text);border:1px solid var(--warn);
   border-radius:8px;padding:10px 12px;font-size:14px;line-height:1.45;box-shadow:0 2px 10px rgba(0,0,0,.25)}
-#savewarn .btn,#loadwarn .btn{margin-left:8px;padding:4px 10px;font-size:13px}
+#savewarn .btn,#loadwarn .btn,.awaywarn .btn,#pendingnote .btn{margin-left:8px;padding:4px 10px;font-size:13px}
+/* a page that has stopped saving (another tab has the profile, or saved it since): the
+   page takes no answers until it can save again, so nothing is studied unsaved */
+#stopwall,#stalewarn{position:fixed;inset:0;z-index:60;background:rgba(10,16,24,.62);display:flex;align-items:center;
+  justify-content:center;padding:16px;overflow:auto}
+#stopwall .stopcard,#stalewarn .stopcard{max-width:560px;width:100%;background:var(--paper);color:var(--text);border:1px solid var(--warn);
+  border-radius:8px;padding:16px;font-size:14.5px;line-height:1.5;box-shadow:0 4px 18px rgba(0,0,0,.35)}
+#stopwall .stopcard p,#stalewarn .stopcard p{margin:0 0 10px}
+#stopwall .stoprow,#stalewarn .stoprow{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 
 /* ---------- misc ---------- */
 .note{background:var(--warn-bg);border:1px solid #E8CFA2;color:#6B4200;border-radius:var(--r);padding:12px 14px;font-size:13.5px;margin-bottom:16px}
@@ -573,6 +581,10 @@ const NS = COURSE.ns + (BUILD.preview ? '-preview' : '');
    from memory until a write succeeds, so nothing is lost within the visit, and
    the first failure shows one notice that points to Export progress. */
 const MEM = {}, FAILED = new Set();   // FAILED: keys whose last write the browser refused; their value lives in MEM
+const KEPT = {};   // per key, what this page last read from storage or had the browser keep there (load)
+let SAVE_WARNED = false;   // the "did not save" notice was shown since FAILED was last empty (saveWarn)
+// a key the browser kept: no longer refused; once no key is, a later refusal shows the notice again
+const keptNow = k => { FAILED.delete(k); if(!FAILED.size) SAVE_WARNED = false; };
 const store = {
   get(k){
     if(FAILED.has(k)) return MEM[k] === undefined ? null : MEM[k];
@@ -580,13 +592,35 @@ const store = {
     catch(e){ return MEM[k] === undefined ? null : MEM[k]; }
   },
   // true when the browser kept it; false when storage is full or blocked (it is then kept for this visit only)
+  // SEEN (seenAs) follows only a write the browser kept: a refused write leaves it at what is
+  // stored, so a later save by another tab still shows as one
   set(k, v){
     MEM[k] = v;
-    try { localStorage.setItem(k, v); FAILED.delete(k); return true; }
-    catch(e){ FAILED.add(k); saveWarn(); return false; }
+    try { localStorage.setItem(k, v); keptNow(k); KEPT[k] = v; seenAs(k, v); pendingAfter(k, v); return true; }
+    catch(e){ FAILED.add(k); saveWarn(k); return false; }
   },
-  del(k){ delete MEM[k]; FAILED.delete(k); try { localStorage.removeItem(k); } catch(e){ /* nothing to remove */ } },
+  del(k){ delete MEM[k]; keptNow(k); KEPT[k] = null; seenAs(k, null); try { localStorage.removeItem(k); } catch(e){ /* nothing to remove */ } pendingAfter(k, null); },
+  // Import's writes: true when the browser kept it; false when it refused, and then
+  // nothing changes, not even the copy kept for this visit, so a refused import
+  // leaves the progress on screen and in storage exactly as it was
+  trySet(k, v){
+    try { localStorage.setItem(k, v); MEM[k] = v; keptNow(k); KEPT[k] = v; seenAs(k, v); pendingAfter(k, v); return true; }
+    catch(e){ return false; }
+  },
 };
+/* What this page last read under the profile's own progress and history keys, or wrote
+   there with the browser keeping it (SEEN, SEEN_LOG, below); kept by every write through
+   `store` that succeeds (saveLog writes through `store` too). A refused write does not change it. A save
+   finds another value stored when another tab or window of this site saved the profile
+   since; it then writes nothing (staleWarn). Called before the profile is known, it does
+   nothing. */
+function seenAs(k, v){
+  try {
+    if(!PROFILE) return;
+    if(k === keyFor(PROFILE)) SEEN = v;
+    else if(k === logKey()) SEEN_LOG = v;
+  } catch(e){ /* during start-up, before these are defined */ }
+}
 /* The first time a preview opens in a browser, it copies the live drill's saved
    keys into its own namespace, so the preview shows the student's real progress.
    It only reads the live keys; it never writes or removes one. */
@@ -603,18 +637,622 @@ if(BUILD.preview){
   } catch(e){ /* storage unreadable: the preview starts empty */ }
 }
 /* Progress that cannot be saved would be lost on reload without a word: say so
-   once, and point to the export. */
-let SAVE_WARNED = false;
-function saveWarn(){
-  if(SAVE_WARNED) return;
-  if(!document.body){ document.addEventListener('DOMContentLoaded', saveWarn, {once: true}); return; }
-  SAVE_WARNED = true;
+   once while writes are refused, and point to the export. A refused write after every
+   refused key was written again shows it again (SAVE_WARNED, keptNow). When a history
+   key (`<ns>:log:`) is refused, the notice names the answer history too. */
+let SAVE_WARN_LOG = false;
+let REC_OFF = false;   // storage full: this tab has no per-tab record (#45) of its last save (pendingAfter, dropOwnRecordIfStored)
+const REC_OFF_TEXT = 'While storage is full, this tab cannot keep the record that protects its last save when it closes without handing over to another open tab of this drill.';
+const hereRefused = () => { try { return FAILED.has(keyFor(PROFILE)) || FAILED.has(logKey()); } catch(e){ return FAILED.size > 0; } };
+const saveWarnText = () => (hereRefused() ? 'This browser did not save your progress' + (SAVE_WARN_LOG ? ' or answer history' : '') +
+  ' (storage is full or blocked). It is kept on this page until you close or reload it; closing or reloading it loses it. Export it to a file to keep it; Import progress adds it back.' +
+  (REC_OFF ? ' ' + REC_OFF_TEXT : '')
+  : awayRefused().length ? 'This browser did not save some of the progress or answer history of another profile on this page (storage is full or blocked). It is kept on this page until you close or reload it; closing or reloading it loses it. Export it to keep it; Import progress adds it back.'
+  : REC_OFF ? 'Storage is full. Your progress is saved, but this tab cannot keep the record that protects its last save when it closes without handing over to another open tab of this drill. Export progress keeps a copy in a file.'
+  : 'This browser did not save some of this page\'s data (storage is full or blocked), such as the profile chosen or an exam paper in progress. It is kept on this page until you close or reload it. Export progress keeps your progress and history in a file.') +
+  (hereRefused() && awayRefused().length ? ' Some of the progress or answer history of another profile on this page is not saved either.' : '') +
+  (hereRefused() || !awayRefused().length ? ' <button type="button" class="btn" id="savewarnExport">Export progress</button>' : '') +
+  awayRefused().map(ap => ' <button type="button" class="btn" data-away="' + esc(ap) + '">Export "' + esc(ap) + '"</button>').join('') +
+  ' <button type="button" class="btn ghost">OK</button>';
+/* This tab's per-tab record (#45) could not be kept (storage full): the notice says so, shown even
+   when everything else was saved (Louis, 2026-11-05); once a record is written again it goes. */
+function recordOff(off){
+  if(off === REC_OFF) return;
+  REC_OFF = off;
+  const d = document.getElementById('savewarn');
+  if(d){ if(!off && !FAILED.size) d.remove(); else refreshSaveWarn(); return; }
+  if(off && document.body){
+    const n = document.createElement('div'); n.id = 'savewarn'; n.setAttribute('role', 'alert');
+    n.innerHTML = saveWarnText(); wireSaveWarn(n); document.body.appendChild(n);
+  }
+}
+/* The notice's buttons: Export progress (the whole page: progress and every history entry), and OK. */
+function wireSaveWarn(d){
+  const ex = d.querySelector('#savewarnExport');
+  if(ex) ex.onclick = () => { try { exportProgress(); if(typeof snapHere === 'function') EXPORTED_SNAP = snapHere(); } catch(e){ alert('The export did not work: ' + (e && e.message || e)); } };
+  d.querySelectorAll('button[data-away]').forEach(b => { b.onclick = () => exportAway(b.dataset.away); });
+  d.querySelector('button.ghost').onclick = () => d.remove();
+}
+/* The notice on screen, with its text brought up to date (the history, the per-tab record). */
+function refreshSaveWarn(){
+  const d = document.getElementById('savewarn'); if(!d) return;
+  // nothing refused any more and the record kept: the notice goes (the review of c2e7d93, N1)
+  if(!FAILED.size && !REC_OFF){ d.remove(); return; }
+  d.innerHTML = saveWarnText(); wireSaveWarn(d);
+}
+function saveWarn(k){
+  const isLog = typeof k === 'string' && k.indexOf(':log:') > 0;
+  if(SAVE_WARNED){
+    // shown already for progress: a history refusal adds the history to the text on screen
+    if(isLog && !SAVE_WARN_LOG){ SAVE_WARN_LOG = true; refreshSaveWarn(); }
+    return;
+  }
+  if(!document.body){ document.addEventListener('DOMContentLoaded', () => saveWarn(k), {once: true}); return; }
+  SAVE_WARNED = true; SAVE_WARN_LOG = isLog;
+  const old = document.getElementById('savewarn'); if(old) old.remove();
   const d = document.createElement('div');
   d.id = 'savewarn'; d.setAttribute('role', 'alert');
-  d.innerHTML = 'This browser did not save your progress (storage is full or blocked). It is kept until you close or reload this page. To keep a copy, open <b>Settings</b> and use <b>Export progress</b>. <button type="button" class="btn ghost">OK</button>';
-  d.querySelector('button').onclick = () => d.remove();
+  d.innerHTML = saveWarnText();
+  wireSaveWarn(d);
   document.body.appendChild(d);
 }
+/* ---------- One writer per profile (Web Locks), #32, 2026-11-03 ----------------------
+   localStorage has no locking between tabs, and one tab's save reaches another tab of the
+   same browser a moment later. In that moment no comparison before a write can see the
+   other tab's save: #32's test showed an Import, an ordinary save, Put back and Delete
+   the copies each writing over an answer or a copy another tab had just saved, which was
+   then in no record. So each profile has one writer at a time: the tab that holds the
+   Web Lock `<ns>:writer:<profile>` (navigator.locks, which the browser grants to one tab
+   at a time and frees when that tab closes). Another tab opens that profile read-only:
+   it takes no answers and writes nothing, and offers "Use it here". Handing over, the
+   writer saves what is waiting, frees the lock, stops, and posts what it holds stored
+   (BroadcastChannel); the new tab starts saving only once its own view of storage shows
+   those values, so the old writer's last save is in place before the new one's first.
+   `<ns>:writer:<profile>` in localStorage names the tab that took the lock last; a writer
+   that finds another tab's name there (a take-over while it was asleep) stops too.
+   A browser without Web Locks keeps the comparison guards below on their own (WRITER
+   'none'). Not covered: a writer that leaves without handing over (closed, reloaded,
+   switched): the next tab reads storage at once, or after 1 s, and the interval stays
+   open at that moment (core/README.md, "What this does not cover"). */
+const HAS_LOCKS = (() => { try { return !!(window.isSecureContext && navigator.locks && navigator.locks.request && window.BroadcastChannel); } catch(e){ return false; } })();
+let WRITER = HAS_LOCKS ? 'pending' : 'none';   // 'held' | 'other' (another tab has it) | 'pending' (asking) | 'none' (no Web Locks)
+let WRITER_FOR = '', WRITER_WHY = 'other', WRITE_WAITING = false, writerRelease = null, writerSeq = 0;
+const TAB_ID = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+const writerName = p => NS + ':writer:' + p;
+let writerChan = null;
+try { if(HAS_LOCKS) writerChan = new BroadcastChannel(NS + ':writer'); } catch(e){ writerChan = null; }
+const storedNow = k => { try { return localStorage.getItem(k); } catch(e){ return null; } };
+function writerNamedHere(){
+  const t = storedNow(writerName(PROFILE));
+  return t === null || t === TAB_ID;
+}
+/* This page may write the profile on screen. */
+function mayWrite(){
+  if(WRITER === 'none') return true;
+  if(WRITER !== 'held' || WRITER_FOR !== PROFILE) return false;
+  if(!writerNamedHere()){ writerLost('taken'); return false; }
+  return true;
+}
+function writerLost(why){
+  WRITER = 'other'; WRITER_WHY = why; WRITER_FOR = '';
+  try { recordOff(false); } catch(e){}
+  if(writerRelease) writerRelease();
+  stopWall(why);
+}
+/* Ask for profile p's lock: how 'try' (only if free), 'wait' (queue behind the holder),
+   'brief' (queue for at most 2 s: a lock this page itself freed a moment ago) or 'steal'. Resolves true once this page holds it. */
+function claimWriter(p, how){
+  const seq = ++writerSeq;
+  return new Promise(done => {
+    // 'brief': queue for at most 2 s (a lock this page itself freed a moment ago)
+    let opts = how === 'steal' ? {steal: true} : how === 'wait' ? {} : {ifAvailable: true};
+    if(how === 'brief'){ try { const c = new AbortController(); setTimeout(() => c.abort(), 2000); opts = {signal: c.signal}; } catch(e){ opts = {ifAvailable: true}; } }
+    try {
+      navigator.locks.request(writerName(p), opts, lock => {
+        if(!lock || seq !== writerSeq || PROFILE !== p){ done(false); return; }
+        if(writerRelease) writerRelease();
+        WRITER_FOR = p;
+        try { localStorage.setItem(writerName(p), TAB_ID); } catch(e){}
+        return new Promise(res => { writerRelease = () => { writerRelease = null; res(); }; done(true); });
+      }).catch(e => {
+        if(e && e.name === 'AbortError' && WRITER_FOR === p && WRITER === 'held') writerLost('taken');   // another tab took it over
+        else if(!(e && e.name === 'AbortError') && seq === writerSeq && WRITER === 'pending'){ WRITER = 'none'; flushWaiting(); }
+        done(false);
+      });
+    } catch(e){ WRITER = 'none'; flushWaiting(); done(false); }
+  });
+}
+function flushWaiting(){
+  if(WRITE_WAITING && mayWrite()){ WRITE_WAITING = false; save(); saveLog(); }
+  // a paper submitted while the lock was being asked for is cleared now (#32's review of 4311133)
+  if(EXAM_CLEAR_WAITING && EXAM_CLEAR_WAITING === PROFILE && mayWrite()){ EXAM_CLEAR_WAITING = ''; try { clearExam(); } catch(e){} }
+}
+/* The profile on screen (just opened by useProfile) gets its writer decided. */
+let FREED = {p: '', at: 0}, claimGen = 0;   // the profile whose lock this page freed last, and when; the newest claim
+function claimProfile(p){
+  if(!HAS_LOCKS || WRITER === 'none') return;
+  if(WRITER === 'held' && WRITER_FOR === p) return;
+  if(writerRelease){ FREED = {p: WRITER_FOR, at: Date.now()}; writerRelease(); }
+  WRITER = 'pending'; WRITER_FOR = '';
+  try { recordOff(false); } catch(e){}   // the record line is about the profile this tab writes
+  NEW_LOGS[p] = [];   // a new time on this profile: entries from an earlier time on it are not this record's
+  stopWall(null);
+  // several switches in one moment start several claims: only the newest decides (an older one
+  // finding its request superseded would otherwise draw the wall over a page that writes)
+  const gen = ++claimGen;
+  claimWriter(p, 'try').then(ok => {
+    if(PROFILE !== p || gen !== claimGen) return;
+    // a switch away and straight back: the lock this page freed a moment ago may not be free
+    // yet when it asks again; it queues for it briefly instead of opening read-only
+    if(!ok && WRITER === 'pending' && FREED.p === p && Date.now() - FREED.at < 2000) return claimWriter(p, 'brief');
+    return ok;
+  }).then(ok => {
+    if(PROFILE !== p || gen !== claimGen) return;
+    // this profile's NEW_LOG keeps entries answered while the lock was asked for: flushWaiting saves them now
+    if(ok){ WRITER = 'held'; newRecordTime(p); WROTE_SINCE_CLAIM = false; MARK = 0; flushWaiting(); settlePendingSoon(); capNotice(); }   // past LOG_MAX: asked once this tab writes the profile (the review of aa8ab12, N1)
+    else if(WRITER === 'pending'){ WRITER = 'other'; WRITER_WHY = 'other'; EXAM_CLEAR_WAITING = ''; stopWall('other'); }
+  });
+}
+/* "Use it here": the tab that has the profile saves, stops and frees it. */
+function takeOver(force){
+  const p = PROFILE;
+  if(!HAS_LOCKS || STALE) return;
+  // progress this page holds but has not stored: kept as a copy before the stored one is read.
+  // When only answer history entries are unsaved (the progress is as stored), they are added to
+  // the stored history instead (logOnly), so no copy of progress is made that Put back could
+  // roll back to; if the browser refuses that, they go into a copy as before
+  const logOnly = !progUnsavedHere() && logUnsavedHere() && LOG_OK ? JSON.stringify(LOG) : null;
+  const dbHere = JSON.stringify(DB);
+  let keepMine = logOnly === null && unsavedHere() ? dbHere : null;
+  let keepLog = keepMine !== null && LOG_OK && JSON.stringify(LOG) !== (storedNow(logKey()) || '[]') ? JSON.stringify(LOG) : null;
+  let gave = null, granted = false, done = false;
+  const onMsg = e => { const m = e.data || {}; if(m.type === 'gave' && m.p === p && m.to === TAB_ID) gave = m.vals; };
+  if(writerChan) writerChan.addEventListener('message', onMsg);
+  const finish = (why) => { done = true; if(writerChan) writerChan.removeEventListener('message', onMsg); if(why){ if(writerRelease) writerRelease(); WRITER = 'other'; WRITER_WHY = why; stopWall(why); } };
+  stopWall('asking');
+  if(!force && writerChan) writerChan.postMessage({type: 'want', p, from: TAB_ID});
+  claimWriter(p, force ? 'steal' : 'wait').then(ok => {
+    if(done) return;
+    if(!ok){ finish('other'); return; }
+    granted = true;
+    // the old writer's last save must be in this page's view of storage before this page writes
+    const t0 = Date.now();
+    const tick = () => {
+      if(done) return;
+      // the values come just after the lock is freed; a tab that closed sends none
+      if(!gave && !force && Date.now() - t0 < 1000){ setTimeout(tick, 20); return; }
+      const keys = gave ? Object.keys(gave) : [];
+      if(keys.every(k => storedNow(k) === gave[k])){
+        finish(null);
+        WRITER = 'held'; WRITER_FOR = p; STALE_WARNED = false; newRecordTime(p);
+        let addedLog = false;
+        if(logOnly !== null){
+          const lk = NS + ':log:' + p, now = storedNow(lk), known = lk in KEPT ? KEPT[lk] : null;
+          let out = null;
+          // stored as this page last knew it: this page's history is that plus its own entries, written as it is
+          if(now === known) out = logOnly;
+          else {
+            // the other tab changed it: this page's never-stored entries are added to what it stored
+            try { const v = now ? JSON.parse(now) : []; if(Array.isArray(v)) out = JSON.stringify(withNeverStored(v, JSON.parse(logOnly), known)); } catch(e){ out = null; }
+          }
+          if(out !== null && store.trySet(lk, out)) addedLog = true;
+          else { keepMine = dbHere; keepLog = logOnly; }
+        }
+        if(keepMine !== null){
+          // the two records are not combined: this page's is added to the copies Import keeps
+          // (Settings, Put back), then the stored one is opened; refused, nothing is taken over
+          let list = [];
+          try { const raw = storedNow(NS + ':backup:' + p); const v = raw ? JSON.parse(raw) : []; list = Array.isArray(v) ? v : [v]; } catch(e){ list = null; }
+          if(list === null || !store.trySet(NS + ':backup:' + p, JSON.stringify(list.concat([Object.assign({at: Date.now(), data: keepMine, why: 'unsaved in a stopped tab'}, keepLog !== null ? {log: keepLog} : {})])))){
+            if(writerRelease) writerRelease();
+            WRITER = 'other'; WRITER_WHY = 'nocopy'; WRITER_FOR = '';
+            stopWall('nocopy');
+            return;
+          }
+          KEPT_COPY = true;
+        }
+        // this page's own refused write is now in a copy: what opens is what is stored, not the
+        // unsaved cache load() keeps for a reopened profile (ChatGPT's follow-up at f53ac75)
+        for(const k of [keyFor(p), NS + ':log:' + p, NS + ':exam:' + p]){ FAILED.delete(k); delete MEM[k]; KEPT[k] = storedNow(k); }
+        load();
+        // the exam paper this page restored when it opened may be older than the stored one:
+        // drop it, so the Exam sim tab reads the paper from storage again
+        try { if(typeof EX !== 'undefined' && EX){ clearInterval(EX.timer); EX = null; } } catch(e){}
+        stopWall(null);
+        NEW_LOGS[p] = []; WROTE_SINCE_CLAIM = false; settlePendingSoon(); capNotice();
+        if(KEPT_COPY){ KEPT_COPY = false; setTimeout(() => alert('The answers and settings this page had not saved are kept as a copy: Settings, "Put back the progress from …". The progress on screen now is the stored one.'), 0); }
+        else if(addedLog) setTimeout(() => alert('The answer history entries this page had not saved are added to the saved answer history.'), 0);
+        try { if(typeof show === 'function') show(typeof VIEW !== 'undefined' ? VIEW : 'study'); } catch(e){}
+        return;
+      }
+      if(Date.now() - t0 > 5000){ finish('late'); return; }
+      setTimeout(tick, 20);
+    };
+    tick();
+  });
+  if(!force) setTimeout(() => { if(!granted && !done){ stopWall('slow'); } }, 4000);
+}
+/* The tab that has the profile, asked by another tab for it. */
+if(writerChan) writerChan.addEventListener('message', e => {
+  const m = e.data || {};
+  if(m.type !== 'want' || m.p !== PROFILE || WRITER !== 'held' || WRITER_FOR !== PROFILE) return;
+  saveNow();
+  const vals = {};
+  for(const k of [keyFor(PROFILE), logKey(), NS + ':backup:' + PROFILE, NS + ':exam:' + PROFILE]) vals[k] = storedNow(k);
+  WRITER = 'other'; WRITER_WHY = 'gave'; WRITER_FOR = '';
+  if(writerRelease) writerRelease();
+  writerChan.postMessage({type: 'gave', p: PROFILE, to: m.from, vals});
+  stopWall('gave');
+});
+/* ---------- Each writing tab's last save, in a key only it writes (2026-11-04) ----------
+   The writer lock leaves one gap (core/README.md): a writer that closes, reloads or switches
+   without handing over may have saved last in a moment its save had not reached the tab that
+   takes over, which then writes over it. So with each save of the progress the writing tab also
+   writes `<ns>:pending:<profile>:<tab>` = {at, db, log}: db the progress it stored (an object),
+   log the history entries it added since it took the profile. No other tab writes that key, so
+   a save written over under the profile's own key is still there.
+   The tab that takes the lock reads every other tab's record of its profile, oldest first, at
+   once, 1.5 s later, and on each storage event for such a key. A record's place in the stored
+   progress is found by its last answer, compared field by field (never question and time alone),
+   which also works once the oldest answers are cut at ANSWERS_MAX:
+   - its last answer is in the stored progress, before the stored last answer: the stored
+     progress continued from it (later answers): nothing to add;
+   - it is the stored last answer, or the record has no answers: equal progress, nothing to add;
+     different progress (a setting, a module's part): one more copy Import keeps (Put back);
+   - its last answer is not stored: the save that was written over. If the stored last answer is
+     in the record (the record continues what is stored) and this tab has written and changed
+     nothing since it took the profile, the record becomes the progress; otherwise it is one more
+     copy Import keeps. Either way with a notice; nothing is mixed.
+   The record's history entries that the stored history lacks are added to it; entries are
+   compared on every field but the confidence one ("Not sure" changes that one later), and as
+   many times as they occur, so two identical attempts stay two.
+   Erase, Put back, an Import that replaces the progress and Delete the copies retire the other
+   tabs' records of the profile (their content is older than what the student chose), so none of
+   them can bring back what was erased, put back, replaced or deleted.
+   Cleanup: a record is removed only when what is stored, read back, holds it as above (in the
+   progress or a copy, and every history entry), and only on a later check at least 60 s after
+   that was first found, with the record unchanged in between; the first-found time is kept in
+   `<ns>:pending-seen:<profile>`, so a reload does not start the wait again. A record that changed
+   is checked again; one that cannot be read is left as it is. Without Web Locks no record is kept. */
+// NEW_LOG: per profile, the history entries this tab added since it took that profile (ChatGPT's review
+// of c9254dc: one list for the tab carried profile A's entries into profile B's record after a switch)
+const NEW_LOGS = {};
+const newLog = () => (NEW_LOGS[PROFILE] = NEW_LOGS[PROFILE] || []);
+let WROTE_SINCE_CLAIM = false;   // this tab wrote the progress since it took the profile
+let MARK = 0;                                   // when this tab last erased, put back or replaced by Import
+let SETTLING = false;                          // the settling's own writes are not this tab's
+function pendingKey(p, tab){ return NS + ':pending:' + p + ':' + tab; }
+/* This tab's record key for its present time on a profile. A tab that takes a profile again while a
+   record of its earlier time on it is still stored writes under a new key, so that earlier record is
+   never written over: it is then checked, placed and removed like another tab's record (the review
+   of d325326: a tab back on a profile overwrote its own earlier record unchecked). */
+const REC_KEY = {};
+let REC_N = 0;
+const myPendingKey = () => pendingKey(PROFILE, REC_KEY[PROFILE] || TAB_ID);
+function newRecordTime(p){
+  let kept = true;   // when it cannot be read, the earlier record is assumed to be there
+  try { kept = localStorage.getItem(pendingKey(p, REC_KEY[p] || TAB_ID)) !== null; } catch(e){}
+  if(kept) REC_KEY[p] = TAB_ID + '.' + (++REC_N);
+}
+const seenKeyOf = p => NS + ':pending-seen:' + p;
+function pendingAfter(k, v){
+  try {
+    if(WRITER !== 'held' || WRITER_FOR !== PROFILE || k !== keyFor(PROFILE)) return;
+    if(!SETTLING) WROTE_SINCE_CLAIM = true;
+    if(v === null){ localStorage.removeItem(myPendingKey()); return; }
+    const rec = '{"at":' + Date.now() + (MARK ? ',"mark":' + MARK : '') + ',"db":' + v + ',"log":' + JSON.stringify(newLog()) + '}';
+    try { localStorage.setItem(myPendingKey(), rec); recordOff(false); }
+    catch(e){ dropOwnRecordIfStored(); recordOff(true); }   // storage full: this save has no record of its own
+  } catch(e){ /* before start-up, or unreadable: this save has no record of its own */ }
+}
+/* Study progress first (Louis, 2026-11-05). With storage full, this tab's own record is removed
+   when what is stored, read back, holds all of it (the stored progress continues it and the stored
+   history has every entry): it then protects nothing (this tab holds the profile, and its newer
+   progress is stored) and only takes the room the next progress save needs. The same proof as the
+   cleanup rule; a record not proven stored is kept. True when it removed one. */
+function dropOwnRecordIfStored(){
+  try {
+    if(WRITER !== 'held' || WRITER_FOR !== PROFILE) return false;
+    const k = myPendingKey(), raw = localStorage.getItem(k), sv = localStorage.getItem(keyFor(PROFILE));
+    if(raw === null || sv === null) return false;
+    const old = JSON.parse(raw), st = JSON.parse(sv), have = storedLogEntries();
+    const logIn = have !== null && missingEntries(Array.isArray(old.log) ? old.log.filter(Array.isArray) : [], have).length === 0;
+    if(!(old && old.db && Array.isArray(old.db.answers)) || placeOf(old, st) !== 'in' || !logIn) return false;
+    if(localStorage.getItem(k) !== raw) return false;
+    localStorage.removeItem(k);
+    recordOff(true);
+    return true;
+  } catch(e){ return false; }
+}
+/* The progress write, with one more try when the browser refused it and this tab's own record,
+   proven stored, could be removed to make room. */
+function saveProgress(){
+  const v = JSON.stringify(DB);
+  if(store.set(keyFor(PROFILE), v)) return true;
+  return dropOwnRecordIfStored() && store.set(keyFor(PROFILE), v);
+}
+/* The other tabs' records of profile p go (Erase, Put back, a replacing Import, Delete the copies). */
+/* Erase, Put back and a replacing Import call this before they write, so the record written with
+   that write already carries the mark (the review of c9254dc, P2). */
+function pendingMark(){ MARK = Date.now(); }
+function pendingRetire(){
+  // nothing is deleted: a record seen now is older than what the student chose and is not placed
+  // again while it stays as it is; a record that changes after this (a newer save of a leaving tab
+  // arriving late) is placed as usual, and is kept as a copy, since this tab has written since
+  MARK = Date.now();
+  try {
+    const pre = NS + ':pending:' + PROFILE + ':', mine = myPendingKey();
+    const seen = readSeen();
+    for(let i = 0; i < localStorage.length; i++){
+      const k = localStorage.key(i);
+      if(!k || !k.startsWith(pre) || k === mine) continue;
+      const raw = localStorage.getItem(k);
+      if(raw !== null && !(seen[k] && seen[k].fp === fpOf(raw))) seen[k] = {fp: fpOf(raw), t: Date.now(), done: true};
+    }
+    writeSeen(seen);
+    NEW_LOGS[PROFILE] = [];
+  } catch(e){}
+}
+// a record's fingerprint: its length and two hashes over every character (a changed record differs)
+const fpOf = raw => { let h1 = 0, h2 = 5381; for(let i = 0; i < raw.length; i++){ const c = raw.charCodeAt(i); h1 = (h1 * 31 + c) | 0; h2 = ((h2 << 5) + h2 + c) | 0; } return raw.length + ':' + h1 + ':' + h2; };
+function readSeen(){ try { return JSON.parse(storedNow(seenKeyOf(PROFILE)) || '{}') || {}; } catch(e){ return {}; } }
+function writeSeen(seen){ try { if(Object.keys(seen).length) localStorage.setItem(seenKeyOf(PROFILE), JSON.stringify(seen)); else localStorage.removeItem(seenKeyOf(PROFILE)); } catch(e){} }
+const answerSign = a => JSON.stringify(Object.keys(a).sort().map(x => [x, a[x]]));
+const entrySign = e => JSON.stringify(e.map((x, i) => i === 5 ? null : x));   // all but the confidence
+let PENDING_TIMER = 0;
+function settlePendingSoon(){
+  settlePending();
+  clearTimeout(PENDING_TIMER);
+  PENDING_TIMER = setTimeout(settlePending, 1500);   // a record that arrives a moment later
+}
+function settlePending(){
+  if(WRITER !== 'held' || WRITER_FOR !== PROFILE || !canSave()) return;
+  const pre = NS + ':pending:' + PROFILE + ':', mine = myPendingKey(), recs = [];
+  try {
+    for(let i = 0; i < localStorage.length; i++){
+      const k = localStorage.key(i);
+      if(!k || !k.startsWith(pre) || k === mine) continue;
+      const raw = localStorage.getItem(k);
+      let rec = null; try { rec = JSON.parse(raw); } catch(e){}
+      if(rec && rec.db && typeof rec.db === 'object' && Array.isArray(rec.db.answers)) recs.push({k, raw, rec});
+    }
+  } catch(e){ return; }
+  recs.sort((x, y) => (x.rec.at || 0) - (y.rec.at || 0));   // oldest first: a later record can continue an earlier one
+  const seen = readSeen();
+  for(const r of recs){
+    try {
+      const prev = seen[r.k];
+      if(prev && prev.fp === fpOf(r.raw) && prev.done){ pendingDone(r.k, r.raw, r.rec, true); continue; }   // handled before, unchanged
+      settleOne(r.k, r.raw, r.rec);
+    } catch(e){ console.error('A tab\'s pending record could not be checked; it is left as it is.', e); }
+  }
+}
+function storedLogEntries(){ try { const v = JSON.parse(storedNow(logKey()) || '[]'); return Array.isArray(v) ? v : null; } catch(e){ return null; } }
+/* The record's entries the stored history lacks, counted (two identical attempts are two). */
+function missingEntries(entries, have){
+  const count = new Map();
+  for(const e of have){ if(Array.isArray(e)){ const s = entrySign(e); count.set(s, (count.get(s) || 0) + 1); } }
+  const out = [];
+  for(const e of entries){ const s = entrySign(e); const n = count.get(s) || 0; if(n > 0) count.set(s, n - 1); else out.push(e); }
+  return out;
+}
+function readCopiesList(){
+  try { const v = storedNow(NS + ':backup:' + PROFILE); const l = v ? JSON.parse(v) : []; return Array.isArray(l) ? l : [l]; } catch(e){ return null; }
+}
+/* Where the record stands against what is stored: 'in', 'conflict' (same point, other progress),
+   'continues' (its last answer missing; the record holds the stored last answer) or 'apart'. */
+function placeOf(rec, st){
+  const pAns = rec.db.answers, sAns = st && Array.isArray(st.answers) ? st.answers : [];
+  const dbStr = JSON.stringify(rec.db), stStr = st ? JSON.stringify(st) : null;
+  if(dbStr === stStr) return 'in';
+  if(!pAns.length) return sAns.length && !rec.mark ? 'in' : 'conflict';
+  const last = answerSign(pAns[pAns.length - 1]);
+  let idx = -1;
+  for(let i = sAns.length - 1; i >= 0; i--) if(answerSign(sAns[i]) === last){ idx = i; break; }
+  if(idx >= 0){
+    if(idx === sAns.length - 1) return 'conflict';
+    // the stored progress went on from the record's last answer: nothing to add, unless the record
+    // carries a choice of its own the later progress does not show (a setting; Erase, Put back or
+    // a replacing Import in that tab), which is then kept as a copy
+    if(rec.mark || JSON.stringify(rec.db.settings || {}) !== JSON.stringify((st && st.settings) || {})) return 'apart';
+    return 'in';
+  }
+  if(!sAns.length) return 'continues';
+  const sLast = answerSign(sAns[sAns.length - 1]);
+  return pAns.some(a => answerSign(a) === sLast) ? 'continues' : 'apart';
+}
+function settleOne(k, raw, rec){
+  // its history entries first: added; a refused write leaves the record for a later check
+  let logOk = true;
+  const entries = Array.isArray(rec.log) ? rec.log.filter(Array.isArray) : [];
+  if(entries.length){
+    const have = storedLogEntries();
+    if(have === null) logOk = false;
+    else {
+      const add = missingEntries(entries, have);
+      if(add.length){
+        const merged = have.concat(add).sort((x, y) => x[0] - y[0]);
+        SETTLING = true;
+        try { if(store.trySet(logKey(), JSON.stringify(merged))) LOG = merged; else logOk = false; } finally { SETTLING = false; }
+      }
+    }
+  }
+  let st = null;
+  try { const v = storedNow(keyFor(PROFILE)); st = v ? JSON.parse(v) : null; } catch(e){ return; }
+  const place = placeOf(rec, st), dbStr = JSON.stringify(rec.db);
+  const unchangedHere = !WROTE_SINCE_CLAIM && JSON.stringify(DB) === (SEEN === null ? LOADED_DB : SEEN) && !FAILED.has(keyFor(PROFILE));
+  if(place === 'continues' && unchangedHere){
+    SETTLING = true;
+    let ok = false;
+    try { ok = store.trySet(keyFor(PROFILE), dbStr); } finally { SETTLING = false; }
+    if(!ok) return;
+    load();
+    pendingNotice('A tab of this profile that closed or reloaded had saved answers this page had not received yet. Its progress is now the progress on screen; nothing was lost.');
+    try { if(typeof show === 'function') show(typeof VIEW !== 'undefined' ? VIEW : 'quiz'); } catch(e){}
+  } else if(place === 'continues' || place === 'apart' || place === 'conflict'){
+    const list = readCopiesList();
+    if(list === null) return;
+    if(!list.some(c => c && c.data === dbStr)){
+      SETTLING = true;
+      let ok = false;
+      try { ok = store.trySet(NS + ':backup:' + PROFILE, JSON.stringify(list.concat([{at: rec.at || Date.now(), data: dbStr, why: 'another tab\'s last save'}]))); } finally { SETTLING = false; }
+      if(!ok) return;
+      pendingNotice('A tab of this profile that closed or reloaded had saved progress that differs from this page\'s. It is kept as a copy: Settings, "Put back the progress from …". Nothing was mixed.');
+    }
+  }
+  if(logOk) pendingDone(k, raw, rec);
+}
+/* The record's key goes only once what is stored holds it (read back), on a later check. */
+const PENDING_WAIT = 60000;
+function pendingDone(k, raw, rec, handled){
+  let st = null;
+  try { const v = storedNow(keyFor(PROFILE)); st = v ? JSON.parse(v) : null; } catch(e){ return; }
+  const place = placeOf(rec, st), dbStr = JSON.stringify(rec.db), list = readCopiesList();
+  // removed only with proof that its content is stored (in the progress or a copy); "handled" only
+  // stops it being placed again, it is never a reason to remove it (the review of c9254dc)
+  const progressIn = place === 'in' || (list !== null && list.some(c => c && c.data === dbStr));
+  const have = storedLogEntries();
+  const logIn = have !== null && missingEntries(Array.isArray(rec.log) ? rec.log.filter(Array.isArray) : [], have).length === 0;
+  const seen = readSeen();
+  const fp = fpOf(raw), prev = seen[k];
+  // once proven stored, the proof stands for that exact record (this tab's later writes move the
+  // stored progress on, and must not keep it for ever; the review of 77e97f2)
+  const proven = (progressIn && logIn) || !!(prev && prev.proven && prev.fp === fp);
+  if(!proven) return;
+  if(prev && prev.fp === fp && Date.now() - prev.t >= PENDING_WAIT){
+    if(storedNow(k) === raw){ try { localStorage.removeItem(k); } catch(e){} }
+    delete seen[k];
+  } else if(!prev || prev.fp !== fp || !prev.proven){
+    seen[k] = {fp, t: prev && prev.fp === fp && prev.proven ? prev.t : Date.now(), done: true, proven: true};   // proven: removed 60 s on if unchanged
+    setTimeout(settlePending, PENDING_WAIT + 1000);
+  } else return;
+  writeSeen(seen);
+}
+let PENDING_NOTE = null;
+function pendingNotice(text){
+  if(!document.body) return;
+  if(PENDING_NOTE) PENDING_NOTE.remove();
+  const d = PENDING_NOTE = document.createElement('div');
+  d.id = 'pendingnote'; d.setAttribute('role', 'status');
+  d.textContent = text + ' ';
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'btn ghost'; b.textContent = 'OK';
+  b.onclick = () => { d.remove(); if(PENDING_NOTE === d) PENDING_NOTE = null; };
+  d.appendChild(b); document.body.appendChild(d);
+}
+if(typeof window.addEventListener === 'function') window.addEventListener('storage', e => {   // absent in the checks run without a browser
+  try { if(e.key && e.key.startsWith(NS + ':pending:' + PROFILE + ':')) settlePending(); } catch(err){}
+});
+/* What this page holds that is not what it last read from storage or had kept there. */
+function unsavedHere(){ return progUnsavedHere() || logUnsavedHere(); }
+/* its two parts: the progress, and the answer history ("Use it here" treats them apart) */
+function progUnsavedHere(){
+  try {
+    // a write the browser refused is unsaved whatever load() opened since (a reopened profile opens
+    // this page's own unsaved copy; #32's review of 9557366)
+    if(FAILED.has(keyFor(PROFILE))) return true;
+    // against what is stored as this page knows it (SEEN), or, for a profile never stored, the
+    // progress as load() opened it: a changed setting with no answer counts too (ChatGPT, f53ac75)
+    const dbNow = JSON.stringify(DB);
+    return SEEN === null ? dbNow !== LOADED_DB : (dbNow !== SEEN && dbNow !== LOADED_DB);
+  } catch(e){ return false; }
+}
+function logUnsavedHere(){
+  try {
+    if(FAILED.has(logKey())) return true;
+    return LOG_OK && JSON.stringify(LOG) !== (SEEN_LOG === null ? '[]' : SEEN_LOG);
+  } catch(e){ return false; }
+}
+let LEAVE_ASKED = false;   // an in-app Reload asked already (views.js beforeunload)
+let EXPORTED_SNAP = null, KEPT_COPY = false, EXAM_CLEAR_WAITING = '';   // the profile whose paper waits to be cleared
+/* the page's progress and history as they were when they were last exported from the wall */
+const snapHere = () => { try { return JSON.stringify(DB) + '\n' + JSON.stringify(LOG); } catch(e){ return ''; } };
+const exportedHere = () => EXPORTED_SNAP !== null && EXPORTED_SNAP === snapHere();
+/* unsaved work that has not been exported since it last changed: asked about before it is dropped */
+const atRisk = () => unsavedHere() && !exportedHere();
+/* Profiles this page switched away from with a write the browser refused: that work is only in
+   this page (MEM) until a later save stores it (the review of b3c9bbe, M1). */
+const awayRefused = () => { const out = new Set(); try { for(const k of FAILED) for(const pre of [NS + ':data:', NS + ':log:']) if(k.startsWith(pre) && k.slice(pre.length) !== PROFILE) out.add(k.slice(pre.length)); } catch(e){} return [...out]; };
+const awaySnap = p => (MEM[NS + ':data:' + p] || '') + '\n' + (MEM[NS + ':log:' + p] || '');
+const AWAY_EXPORTED = {};   // profile -> what this page held for it when it was last exported
+const awayAtRisk = () => awayRefused().some(p => AWAY_EXPORTED[p] !== awaySnap(p));
+/* Anything this page would lose on a reload or a close: the profile on screen, or another one. */
+const atRiskAll = () => atRisk() || awayAtRisk();
+const STOP_TEXT = {
+  stale: 'This profile was saved in another tab or window after this page opened it, so this page has stopped saving and takes no more answers, to keep that progress. Reload to continue from what is saved.',
+  other: 'This profile is open in another tab or window of this browser, and that tab saves it. So that the two never write over each other, this page takes no answers and saves nothing while that tab has it.',
+  gave: 'This profile is now used in another tab or window. This page has stopped and takes no answers while the other tab has the profile.',
+  taken: 'Another tab or window took this profile over, so this page has stopped saving and takes no more answers.',
+  asking: 'Asking the other tab to save and hand this profile over…',
+  slow: 'The other tab does not answer; it may be asleep in the background. "Take it over anyway" stops that tab from saving: anything it had not saved stays on that tab only, which then offers to export it.',
+  late: 'The other tab\'s last save has not reached this page yet, so this page has not started saving. Try again in a moment.',
+  nocopy: 'This page could not keep a copy of its unsaved answers and settings (the browser refused to save), so it has not taken the profile. Export them first.'
+};
+let STOP_WALL = null;
+function stopWall(why){
+  if(STOP_WALL){ STOP_WALL.remove(); STOP_WALL = null; }
+  // the page behind the wall cannot be reached by the keyboard either
+  try { if(document.body) for(const el of document.body.children) if(el.id !== 'stopwall' && el.id !== 'stalewarn') el.inert = !!why; } catch(e){}
+  if(!why) return;
+  if(!document.body){ document.addEventListener('DOMContentLoaded', () => { if(!mayWrite() || STALE) stopWall(why); }, {once: true}); return; }
+  const w = STOP_WALL = document.createElement('div');
+  w.id = why === 'stale' ? 'stalewarn' : 'stopwall';
+  w.setAttribute('role', 'alertdialog'); w.setAttribute('aria-modal', 'true');
+  w.dataset.why = why;
+  const c = document.createElement('div'); c.className = 'stopcard';
+  const p = document.createElement('p'); p.textContent = STOP_TEXT[why] || STOP_TEXT.other; c.appendChild(p);
+  const unsaved = why !== 'asking' && unsavedHere();
+  if(unsaved){
+    const u = document.createElement('p');
+    u.innerHTML = '<b>This page has answers or settings that are not saved.</b> Export them to a file before you reload or leave; Import progress can add them back. "Use it here" keeps them as a copy in Settings (Put back), or, when only answer history entries are not saved, adds them to the saved answer history, before it opens the stored progress.';
+    c.appendChild(u);
+  }
+  const row = document.createElement('div'); row.className = 'stoprow';
+  const btn = (label, cls, fn, id) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn' + (cls ? ' ' + cls : ''); b.textContent = label; if(id) b.id = id; b.onclick = fn; row.appendChild(b); return b; };
+  if(unsaved) btn('Export this page\'s progress', '', () => { try { exportProgress(); EXPORTED_SNAP = snapHere(); } catch(e){ alert('The export did not work: ' + (e && e.message || e)); } }, 'stopExport');
+  if(why !== 'asking') for(const ap of awayRefused()) btn('Export "' + ap + '"', '', () => exportAway(ap)).dataset.away = ap;
+  // taking the profile here keeps this page's unsaved progress as a copy (takeOver), then reads the stored one
+  if(why === 'other' || why === 'gave' || why === 'taken' || why === 'late' || why === 'nocopy') btn('Use it here', '', () => takeOver(false), 'stopTake');
+  if(why === 'other' || why === 'gave' || why === 'taken' || why === 'late' || why === 'nocopy') btn('Switch profile', 'ghost', () => {
+    if(atRiskAll() && !confirm('The answers and settings this page has not saved are lost when it opens another profile, unless you export them first. Switch anyway?')) return;
+    try { askProfile(true); if(typeof show === 'function') show(typeof VIEW !== 'undefined' ? VIEW : 'quiz'); } catch(e){}
+  }, 'stopSwitch');
+  if(why === 'slow') btn('Take it over anyway', '', () => takeOver(true), 'stopSteal');
+  if(why !== 'asking') btn('Reload', 'ghost', () => {
+    if(atRiskAll() && !confirm('The answers and settings this page has not saved are lost on reload unless you export them first. Reload anyway?')) return;
+    LEAVE_ASKED = true;   // asked here already: the browser's leave question is not shown again
+    location.reload();
+  }, 'stopReload');
+  c.appendChild(row);
+  w.appendChild(c);
+  document.body.appendChild(w);
+}
+/* Another tab or window saved this profile after this page read it: this page stops
+   saving, so it never writes its older copy over that progress, and takes no more
+   answers until it is reloaded. */
+let STALE_WARNED = false, STALE = false;   // STALE: this page stays stopped for the rest of the visit
+function staleWarn(){
+  if(WRITER !== 'none' && !(WRITER === 'held' && WRITER_FOR === PROFILE)){
+    // not this page's turn to write: a writer is being asked for, or another tab has the profile
+    if(WRITER === 'pending') WRITE_WAITING = true;
+    else stopWall(WRITER_WHY || 'other');
+    return;
+  }
+  STALE = true;
+  if(STALE_WARNED) return;
+  if(!document.body){ document.addEventListener('DOMContentLoaded', staleWarn, {once: true}); return; }
+  STALE_WARNED = true;
+  stopWall('stale');
+}
+/* The stored value under `k` is not what this page last read or wrote there. A key
+   that is gone is not another tab's save (the core never deletes a profile's progress
+   or history): the browser's site data was cleared while this page was open, and the
+   page's next save writes its copy back. After a refused write, `seen` is still what is
+   stored, so the page's own retry is not taken for another tab's save, and another tab's
+   later save still is (ChatGPT's review of 7dbc054, finding 3). */
+const savedElsewhere = (k, seen) => { let now; try { now = localStorage.getItem(k); } catch(e){ return false; } return now !== seen && now !== null; };
+/* Another tab or window saved this profile, its progress or its history, since this
+   page read them: both belong to one record, so neither is written then. */
+const profileSavedElsewhere = () => !mayWrite() || STALE || savedElsewhere(keyFor(PROFILE), SEEN) || savedElsewhere(logKey(), SEEN_LOG);
 /* The saved progress could not be read (load, below): say so once, in plain
    words, and that nothing is saved during this visit. loadWarn(false) takes
    the notice away again when a later load works (another profile). */
@@ -655,6 +1293,11 @@ const BLANK = () => ({
   created:Date.now()
 });
 let DB = BLANK();
+/* The stored progress of the profile on screen as this tab last read or wrote it.
+   Import compares it with what is stored now, so it never plans or writes over a
+   change another tab or window saved (views.js changedElsewhere). */
+let SEEN = null, SEEN_LOG = null;
+const ANSWERS_MAX = 4000;   // the answers a progress keeps (record); the answer history keeps LOG_MAX
 /* Whether the saved progress of the profile on screen was read in this visit.
    Every write of the progress, the answer history and the exam paper asks
    canSave() first, and nothing is written while it is false: before load()
@@ -666,6 +1309,7 @@ let DB = BLANK();
    that one answer over the saved progress (startup_test.js shows it on the
    core of that date). */
 let LOADED = '';        // the profile whose saved progress load() read in this visit; '' for none
+let LOADED_DB = null;   // the progress as load() opened it (unsavedHere)
 const canSave = () => !!PROFILE && LOADED === PROFILE;
 
 /* Saved progress from an earlier core. The scheduler work of 2026-11-01 only
@@ -693,14 +1337,19 @@ function load(){
   LOADED = '';
   if(!PROFILE) return;
   try{
-    const raw = store.get(keyFor(PROFILE));
+    const k = keyFor(PROFILE), raw = store.get(k);   // after a refused write: this visit's unsaved copy
+    // SEEN is what is stored as this page last knew it, not the unsaved copy: after a refused
+    // write, the value from before it (KEPT), so the page's own next save is not taken for
+    // another tab's, and another tab's later save still is (#32's review of 2bc1e07, M1)
+    if(FAILED.has(k) && k in KEPT) SEEN = KEPT[k];
+    else { let st = null; try { st = localStorage.getItem(k); } catch(e){ st = null; } SEEN = st; KEPT[k] = st; }
     let db = BLANK();
     if(raw){
       const v = JSON.parse(raw);
       if(!v || typeof v !== 'object' || Array.isArray(v)) throw new Error('the stored value is not a progress object');
       db = upgradeDB(v);
     }
-    DB = db; LOADED = PROFILE;
+    DB = db; LOADED = PROFILE; LOADED_DB = JSON.stringify(db);
   }catch(e){
     DB = BLANK();
     console.error('The saved progress could not be loaded; nothing is saved during this visit.', e);
@@ -743,11 +1392,83 @@ function load(){
    The first seven fields are as they were, so entries written before the
    last three were added (and BDK's four) still read the same way.
 
-   The history has its own key per profile, apart from the progress, so it
-   never stops progress from saving: when the browser refuses the write, the
-   oldest half is dropped and no notice is shown for it. DB.answers stays as it
-   was; the scheduler and Weak spots read that, not this. */
+   The history has its own key per profile, apart from the progress. A refused
+   history write drops nothing (Louis, 2026-11-04: "Replace silent history
+   deletion on a failed save with clear feedback and a way to preserve or export
+   the affected work"): it goes through `store` like the progress, so every entry
+   stays in memory (MEM), the key is marked refused (FAILED), the "did not save"
+   notice names the answer history and points to Export progress (which writes
+   LOG, every entry), each later save tries again (retryLog, also for a profile
+   switched away from), a switch away while it is refused asks first and offers
+   the export, and a page with a refused history write counts as unsaved
+   (unsavedHere: the stop wall's export; "Use it here" adds the entries to the
+   stored history, or keeps them in its copy, field `log`, when the progress is
+   unsaved too or that write is refused).
+   Before 2026-11-04 saveLog wrote past `store` and, refused, dropped the oldest
+   half of the history and tried again, with no notice.
+   The trade-off, for Louis to decide (#47's review, M2): when the whole site's
+   storage is full, that cut freed room, so the progress went on saving while the
+   history shrank; now nothing is cut, so the progress stops saving sooner (both
+   are kept on the page and in Export until it is closed or reloaded).
+   LOG_MAX, below, is no longer a silent cut (Louis, 2026-11-05): past 20,000 entries the
+   page offers Export and lets the student remove the oldest entries, after a confirmation
+   that names how many and from when (capNotice, trimOldest). Until then nothing is removed
+   and new entries go on being added. DB.answers stays as it was; the scheduler and Weak
+   spots read that, not this. */
 const LOG_MAX = 20000;
+/* The history is past LOG_MAX: a notice once per visit and profile ("Not now" hides it until the
+   next visit); Settings shows the same choice at any time. */
+const CAP_SHOWN = new Set();
+function capNotice(){
+  try {
+    if(!document.body){ document.addEventListener('DOMContentLoaded', capNotice, {once: true}); return; }
+    if(LOG.length <= LOG_MAX || CAP_SHOWN.has(PROFILE) || !canSave() || !mayWrite()) return;   // the tab that writes the profile asks
+    CAP_SHOWN.add(PROFILE);
+    const old = document.getElementById('capwarn'); if(old) old.remove();
+    const d = document.createElement('div');
+    d.id = 'capwarn'; d.className = 'awaywarn'; d.setAttribute('role', 'status');
+    d.style.top = '12px'; d.style.bottom = 'auto';   // at the top: the storage notice keeps the bottom (the review of 159ae5c)
+    const t = document.createElement('span');
+    t.textContent = 'The answer history of "' + PROFILE + '" has ' + LOG.length.toLocaleString('en-US') + ' entries, more than ' + LOG_MAX.toLocaleString('en-US') + '. Nothing is removed unless you choose to; new answers go on being added. Export progress keeps them all in a file. ';
+    d.appendChild(t);
+    const b = (label, cls, fn) => { const x = document.createElement('button'); x.type = 'button'; x.className = 'btn' + (cls ? ' ' + cls : ''); x.textContent = label; x.onclick = fn; d.appendChild(x); return x; };
+    b('Export progress', '', () => { try { exportProgress(); } catch(e){ alert('The export did not work: ' + (e && e.message || e)); } }).id = 'capExport';
+    b('Remove the oldest entries…', 'ghost', () => { if(trimOldest()) d.remove(); }).id = 'capTrim';
+    b('Not now', 'ghost', () => d.remove()).id = 'capLater';
+    document.body.appendChild(d);
+  } catch(e){}
+}
+/* Removes the oldest entries down to LOG_MAX, only after a confirmation that names how many and
+   their dates. True when it removed them. */
+function trimOldest(){
+  const n = LOG.length - LOG_MAX;
+  if(n <= 0) return false;
+  // only the tab that writes this profile removes anything (#32's lock), and only over what it last read
+  const elsewhere = () => !canSave() || !mayWrite() || STALE || profileSavedElsewhere();
+  if(elsewhere()){ if(mayWrite() && !STALE) staleWarn(); alert('This profile is open, or was saved, in another tab or window of this browser, so nothing was removed. Reload this page, or use "Use it here", first.'); return false; }
+  // the date on this device (an evening answer is that day's, not the next UTC day's; the review of 159ae5c)
+  const day = e => { try { const d = new Date(e[0] * 1000); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); } catch(err){ return '?'; } };
+  if(!confirm('Remove the oldest ' + n.toLocaleString('en-US') + ' entr' + (n === 1 ? 'y' : 'ies') + ' of the answer history of "' + PROFILE + '" from this browser (from ' + day(LOG[0]) + ' to ' + day(LOG[n - 1]) + ')? ' + LOG_MAX.toLocaleString('en-US') + ' entries stay. Export progress first if you want to keep them in a file. This cannot be undone.')) return false;
+  if(elsewhere()){ if(mayWrite() && !STALE) staleWarn(); alert('This profile was saved in another tab or window while the question was open, so nothing was removed. Reload this page first.'); return false; }
+  // this tab's per-tab record keeps every entry that was not removed (the review of 159ae5c, M2:
+  // a filter by identity dropped entries that an Import or Put back had copied)
+  const gone = new Set(LOG.splice(0, n));
+  NEW_LOGS[PROFILE] = (NEW_LOGS[PROFILE] || []).filter(e => !gone.has(e));
+  // the shorter history is written even while the progress write is refused (#47 holds history
+  // then): it takes no room and frees some, which goes to the progress first (the review of
+  // 159ae5c, M1: with storage full the removal wrote nothing and still said it had)
+  // only a history no longer than what is stored is written ahead of a refused progress: a longer
+  // one (entries held since storage filled) would take room the progress needs, so it goes through
+  // saveLog's rule instead (the review of aa8ab12)
+  const val = JSON.stringify(LOG), shorter = val.length <= (storedNow(logKey()) || '').length;
+  let ok;
+  if(shorter || !FAILED.has(keyFor(PROFILE))){ ok = store.set(logKey(), val); if(ok && FAILED.has(keyFor(PROFILE))) saveProgress(); if(ok) retryLog(); }
+  else { saveLog(); ok = !FAILED.has(logKey()); }
+  try { refreshSaveWarn(); } catch(e){}
+  if(!ok){ const w = document.getElementById('capwarn'); if(w) w.remove(); }   // nothing more to remove here: the page holds 20,000
+  if(!ok) alert('The oldest entries are removed on this page, but this browser did not save the shorter history (storage is full or blocked). It is kept on this page until you close or reload it; Export progress keeps it in a file.');
+  return ok;
+}
 const logKey = () => NS + ':log:' + PROFILE;
 const cardCode = id => {
   let h = 0x811c9dc5;
@@ -757,22 +1478,145 @@ const cardCode = id => {
 let LOG = [];
 /* LOG_OK is false when a stored history is there but cannot be read (not
    valid JSON, or not a list): it is then never written over, and progress
-   still saves. No notice is shown for it, as for a refused history write. */
+   still saves. No notice is shown for it (nothing is written, so nothing is refused). */
 let LOG_OK = true;
 function loadLog(){
   LOG = []; LOG_OK = true;
+  const k = logKey();
   let raw = null;
-  try { raw = localStorage.getItem(logKey()); } catch(e){ return; }   // storage unreadable: nothing stored to keep
+  SEEN_LOG = null;
+  if(FAILED.has(k)){
+    // the browser refused this visit's last write of it: a profile opened again opens this visit's
+    // unsaved history, as load() does the progress, and SEEN_LOG stays what is stored as this page
+    // last knew it (KEPT), so the page's own next save is not taken for another tab's
+    raw = MEM[k] === undefined ? null : MEM[k];
+    SEEN_LOG = k in KEPT ? KEPT[k] : storedNow(k);
+  } else {
+    try { raw = localStorage.getItem(k); } catch(e){ return; }   // storage unreadable: nothing stored to keep
+    SEEN_LOG = raw; KEPT[k] = raw;
+  }
   if(!raw) return;
   try { const v = JSON.parse(raw); if(!Array.isArray(v)) throw new Error('the stored history is not a list'); LOG = v; }
   catch(e){ LOG_OK = false; console.error('The saved answer history could not be loaded; it is not written during this visit.', e); }
+  setTimeout(capNotice, 0);   // past LOG_MAX: the choice is offered (Louis, 2026-11-05)
 }
+/* Through `store`: kept, SEEN_LOG follows it (seenAs); refused, every entry stays in memory,
+   the key is marked refused, the notice shows once, and SEEN_LOG stays what is stored. */
 function saveLog(){
   if(!canSave() || !LOG_OK) return;
-  for(;;){
-    try { localStorage.setItem(logKey(), JSON.stringify(LOG)); return; }
-    catch(e){ if(LOG.length < 100) return; LOG.splice(0, Math.ceil(LOG.length / 2)); }
+  if(profileSavedElsewhere()){ staleWarn(); return; }
+  // the progress write was refused: the history is not written either, so it cannot take the room
+  // the next progress save needs; it is held as a refused write (on the page, in the notice and in
+  // Export, counted as unsaved) and written after the next progress save the browser keeps
+  // (study progress first, Louis, 2026-11-05: "preserving study progress first while explicitly
+  // surfacing and offering export for any history that cannot be saved")
+  if(FAILED.has(keyFor(PROFILE))){ const k = logKey(); MEM[k] = JSON.stringify(LOG); FAILED.add(k); saveWarn(k); capNotice(); return; }
+  store.set(logKey(), JSON.stringify(LOG));
+  capNotice();   // past LOG_MAX after any history write, an Import's too (the review of 159ae5c)
+}
+/* A history write the browser refused is tried again with the next progress save too, for
+   the profile on screen and for every profile this page switched away from with its history
+   refused (#47's review, M1: that history otherwise stayed unwritten, and a reload lost it).
+   Another profile's is written only when no tab of this browser holds that profile's writer
+   lock (navigator.locks.query: asking for the lock itself would hold it for a moment, and a
+   switch back to that profile in that moment would find it taken and open read-only), and
+   only over what this page last knew stored there (retryAwayLog). A tab that opens that
+   profile between the query and the write reads the written value, or, reading before it,
+   stops with the "saved in another tab" wall at its first save; nothing is lost either way. */
+function retryLog(){
+  if(FAILED.has(keyFor(PROFILE))) return;   // study progress first: nothing else is written while it is refused
+  if(FAILED.has(logKey())) saveLog();
+  // the profiles switched away from with a refused write: their progress first, then their history
+  const away = new Set();
+  for(const k of FAILED) for(const pre of [NS + ':data:', NS + ':log:']) if(k.startsWith(pre) && k.slice(pre.length) !== PROFILE) away.add(k.slice(pre.length));
+  for(const p of away) retryAwayLog(NS + ':log:' + p, p);
+}
+function retryAwayLog(k, p){
+  const dk = NS + ':data:' + p;
+  const write = () => {
+    if(p === PROFILE) return;   // the profile is open again (save and saveLog write it)
+    // written only over what this page last knew stored there (KEPT): this page's copy is that plus its
+    // own entries, so it is written as it is. Changed since (another tab saved or erased that history),
+    // nothing is written or merged (#47's re-review, N1: a merge undid another tab's Erase); it stays
+    // refused, in memory, and a notice offers its export. The progress goes first, under the same
+    // rule; while it is refused, that profile's history is not written either (study progress first;
+    // the review of c2b0238, M1)
+    if(FAILED.has(dk)){
+      if(storedNow(dk) !== (dk in KEPT ? KEPT[dk] : null)){ awayChanged(k, p); return; }
+      if(!store.set(dk, MEM[dk])) return;
+    }
+    if(!FAILED.has(k)){ refreshSaveWarn(); return; }   // written meanwhile
+    const now = storedNow(k), known = k in KEPT ? KEPT[k] : null;
+    if(now !== known){ awayChanged(k, p); return; }
+    store.set(k, MEM[k]);
+    refreshSaveWarn();
+  };
+  if(WRITER === 'none' || !HAS_LOCKS){ write(); return; }
+  // a tab using profile p holds its lock: nothing is written, and the next save tries again
+  try { navigator.locks.query().then(q => { if(!(q.held || []).some(l => l.name === writerName(p)) && !(q.pending || []).some(l => l.name === writerName(p))) write(); }).catch(() => {}); } catch(e){}
+}
+/* The entries of `mine` that `known` (the stored history as this page last knew it, a string or
+   null) does not hold, added to `stored`: counted, not merged, so two entries alike (two answers
+   to one question in one second) stay two (#47's re-review, N2). Entries are compared on every
+   field but the confidence (index 5), which "Not sure" and "I guessed" change after the answer.
+   An entry stored before whose confidence this page changed since (its copy differs from
+   `known` there) gets this page's confidence on the stored entry it matches; one this page did
+   not change keeps what is stored (#47's re-review of 86576d2). */
+function withNeverStored(stored, mine, known){
+  const key = e => JSON.stringify(e.filter((x, i) => i !== 5));
+  const had = new Map();   // entry -> the confidences `known` holds for it, one per copy
+  let base = [];
+  try { const v = known ? JSON.parse(known) : []; base = Array.isArray(v) ? v : []; } catch(e){ base = []; }
+  for(const e of base) if(Array.isArray(e)){ const k = key(e); if(!had.has(k)) had.set(k, []); had.get(k).push(e[5]); }
+  const out = stored.map(e => Array.isArray(e) ? e.slice() : e);
+  const slots = new Map();   // entry -> the indices in `out` that hold it, not yet matched
+  out.forEach((e, i) => { if(Array.isArray(e)){ const k = key(e); if(!slots.has(k)) slots.set(k, []); slots.get(k).push(i); } });
+  for(const e of mine){
+    if(!Array.isArray(e)) continue;
+    const k = key(e), confs = had.get(k);
+    if(confs && confs.length){
+      const was = confs.shift(), at = slots.get(k);
+      if(e[5] !== was && at && at.length){ const i = at.shift(); out[i][5] = e[5]; }
+      else if(at && at.length) at.shift();
+    } else if(slots.get(k) && slots.get(k).length) slots.get(k).shift();   // stored meanwhile (another tab placed this tab's per-tab record, #45): counted, not added again
+    else out.push(e);
   }
+  out.sort((x, y) => x[0] - y[0]);   // stable: entries alike keep their order
+  return out;   // no cut at LOG_MAX: the student decides (capNotice)
+}
+/* The history this page holds for profile p was not written because what is stored there
+   changed in another tab or window since: once per profile, a notice says so and offers a
+   file with it (that profile's stored progress and this page's history), for Import. */
+const AWAY_WARNED = new Set();
+/* A file for profile p, which this page switched away from: the progress and history this page
+   holds for it where the browser refused them, what is stored otherwise. */
+function exportAway(p){
+  try {
+    const dk = NS + ':data:' + p, lk = NS + ':log:' + p;
+    let db = null, log = [];
+    try { const raw = FAILED.has(dk) ? MEM[dk] : storedNow(dk); db = raw ? JSON.parse(raw) : null; } catch(e){ db = null; }
+    try { const raw = FAILED.has(lk) && MEM[lk] !== undefined ? MEM[lk] : storedNow(lk); const v = raw ? JSON.parse(raw) : []; log = Array.isArray(v) ? v : []; } catch(e){ log = []; }
+    const blob = new Blob([JSON.stringify({app: 'exam-drill', course: COURSE.id, ns: NS, exported: new Date().toISOString(),
+      profile: p, db: db || BLANK(), log}, null, 1)], {type: 'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${COURSE.id}-progress-${p.replace(/\W+/g, '_')}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    AWAY_EXPORTED[p] = awaySnap(p);
+  } catch(e){ alert('The export did not work: ' + (e && e.message || e)); }
+}
+function awayChanged(k, p){
+  if(AWAY_WARNED.has(k) || !document.body) return;
+  AWAY_WARNED.add(k);
+  const d = document.createElement('div');
+  d.className = 'awaywarn'; d.setAttribute('role', 'alert');
+  d.textContent = 'This browser did not save part of the ' + (FAILED.has(NS + ':data:' + p) ? 'progress or ' : '') + 'answer history of "' + p + '", and it was changed in another tab or window since, so this page has not written it. It is kept on this page until it is closed or reloaded. The other tab may have erased that history: importing this file into "' + p + '" brings those entries back. ';
+  const ex = document.createElement('button'); ex.type = 'button'; ex.className = 'btn'; ex.textContent = 'Export it';
+  ex.onclick = () => exportAway(p);
+  const ok = document.createElement('button'); ok.type = 'button'; ok.className = 'btn ghost'; ok.textContent = 'OK';
+  ok.onclick = () => d.remove();
+  d.appendChild(ex); d.appendChild(ok);
+  document.body.appendChild(d);
 }
 const itemType = q => q.type || (q.multi ? 'multi' : 'mc');
 function logAnswer(q, result, mode, how){
@@ -781,8 +1625,10 @@ function logAnswer(q, result, mode, how){
   const recall = typeof how.recall === 'number' && isFinite(how.recall) ? Math.round(how.recall * 10000) / 10000 : null;
   LOG.push([Math.round(Date.now() / 1000), cardCode(q.id), result === 'wrong' ? 0 : 1, mode, q.concept, conf, itemType(q),
             how.model || 'concept', how.arm || '', recall]);
-  if(LOG.length > LOG_MAX) LOG.splice(0, LOG.length - LOG_MAX);
+  newLog().push(LOG[LOG.length - 1]);   // the same entry: a later "Not sure" changes it in both
+  MARK = 0;                            // a new last answer places this tab's record from now on
   saveLog();
+  capNotice();
 }
 /* "Not sure" and "I guessed" come after the answer is logged; they change the
    confidence on that answer's entry. */
@@ -810,8 +1656,8 @@ function mergeLog(entries){
     else if(e.length > mine.length) for(let i = mine.length; i < e.length; i++) mine.push(e[i]);
   }
   LOG.sort((x, y) => x[0] - y[0]);
-  if(LOG.length > LOG_MAX) LOG.splice(0, LOG.length - LOG_MAX);
   saveLog();
+  capNotice();
 }
 let saveTimer=null;
 function save(){
@@ -819,7 +1665,10 @@ function save(){
   clearTimeout(saveTimer);
   saveTimer=setTimeout(()=>{
     saveTimer=null;
-    if(canSave()) store.set(keyFor(PROFILE), JSON.stringify(DB));
+    if(!canSave()) return;
+    if(profileSavedElsewhere()){ staleWarn(); return; }
+    saveProgress();
+    retryLog();
   },150);
 }
 /* The save still waiting on its 150 ms timer, written now. When the page is hidden or
@@ -827,11 +1676,16 @@ function save(){
    and the last answer or setting was lost (finding A1 of review/core-proposals-from-ports.md,
    pull request #30, 2026-11-03; the stopwatch port lost 2 of 2 answers to a reload 20 ms
    after a paper was submitted). views.js calls it on pagehide and when the page becomes
-   hidden; askProfile calls it before a switch. */
+   hidden; askProfile and useProfile call it before a switch. Like the timer, it writes
+   nothing when another tab or window saved this profile since (profileSavedElsewhere):
+   written at once, an older copy would still replace that tab's newer progress. */
 function saveNow(){
   if(!saveTimer) return;
   clearTimeout(saveTimer); saveTimer = null;
-  if(canSave()) store.set(keyFor(PROFILE), JSON.stringify(DB));
+  if(!canSave()) return;
+  if(profileSavedElsewhere()){ staleWarn(); return; }
+  saveProgress();
+  retryLog();
 }
 /* Which profile opens when no choice is stored: the one with saved progress used
    most recently (by its last answer, else when it was created), else 'me'. The
@@ -869,9 +1723,27 @@ function askProfile(force){
       'Nothing is sent anywhere — it stays on this device.', PROFILE||'') || '').trim();
     if(!n) n = PROFILE || 'me';
   }
+  useProfile(n);
+}
+/* Open profile n: the profile chosen with Switch, or the one Import put a file in. */
+function useProfile(n){
+  if(PROFILE) saveNow();
+  if(PROFILE && n !== PROFILE && canSave() && mayWrite() && !STALE){
+    // what this profile's last writes left refused is tried once more before it is left; still
+    // refused, it would stay only in this page: asked first, with the export offered (#47's review, M1)
+    if(FAILED.has(keyFor(PROFILE)) && !profileSavedElsewhere()) store.set(keyFor(PROFILE), JSON.stringify(DB));
+    if(FAILED.has(logKey())) saveLog();
+    if(FAILED.has(keyFor(PROFILE)) || FAILED.has(logKey())){
+      if(confirm('This browser did not save some of the progress or answer history of "' + PROFILE + '" (storage is full or blocked). It is kept on this page until it is closed or reloaded, and saved when the browser has room. Export it to a file before switching?'))
+        { try { exportProgress(); } catch(e){ alert('The export did not work: ' + (e && e.message || e)); } }
+      if(!confirm('Switch to "' + n + '" now?')) return;
+    }
+  }
   PROFILE = n;
   store.set(NS+':profile', PROFILE);
   load();
+  claimProfile(PROFILE);
+  try { refreshSaveWarn(); } catch(e){}   // its text names this profile's or another profile's refused work
   const who = document.getElementById('whoName');
   if(who) who.textContent = PROFILE;
 }
@@ -1170,6 +2042,8 @@ function isDue(s){
 // result: 'correct' | 'wrong' | 'guessed'; mode: 'exam' from a paper, otherwise
 // read off the quiz on screen (a fixed pass is a sweep)
 function record(q, result, picked, ms, mode){
+  // a page that has stopped saving takes no answers (it would show them as studied, unsaved)
+  if(STALE || (WRITER === 'other')){ staleWarn(); return; }
   const s = st(q.concept);
   const now = Date.now();
   // the scheduler fields of the answer history, read before this answer
@@ -1207,7 +2081,7 @@ function record(q, result, picked, ms, mode){
   // the FSRS models step their card on every answer (the box above is still
   // kept: Weak spots and mastery read it)
   if(arm !== 'concept') fsAnswer(q, arm, result === 'correct', now);
-  if(DB.answers.length > 4000) DB.answers.splice(0, DB.answers.length-4000);
+  if(DB.answers.length > ANSWERS_MAX) DB.answers.splice(0, DB.answers.length - ANSWERS_MAX);
   save();
   logAnswer(q, result, mode || (typeof Q !== 'undefined' && Q && Q.sweep ? 'sweep' : 'quiz'), how);
 }
