@@ -101,9 +101,10 @@ const REFUSE = () => {
     const {ctx: c3, page: a, errors: e3} = await L.openFile(browser, {}, REFUSE);
     a.on('dialog', d => d.accept().catch(() => {}));
     await a.waitForFunction(() => typeof WRITER === 'undefined' || WRITER === 'held' || WRITER === 'none', null, {timeout: 8000}).catch(() => {});
-    await a.evaluate(() => { show('exam'); document.getElementById('startExam').click(); });
+    // refused from its first save, so no paper was ever stored (the copy's "over" is null, the reviewer's case)
+    await a.evaluate(() => { window.__refuse = [':exam:']; show('exam'); document.getElementById('startExam').click(); });
     await a.waitForFunction(() => EX && EX.running, null, {timeout: 5000});
-    const copy = await a.evaluate(() => { window.__refuse = [':exam:']; EX.picks[0] = isMulti(EX.qs[0]) ? [0] : 0; saveExam(); return sessionStorage.getItem(NS + ':exam-copy:' + PROFILE); });
+    const copy = await a.evaluate(() => { EX.picks[0] = isMulti(EX.qs[0]) ? [0] : 0; saveExam(); const c = sessionStorage.getItem(NS + ':exam-copy:' + PROFILE); return c && JSON.parse(c).over === null ? c : null; });
     await a.evaluate(() => { window.__refuse = null; finishExam(false); });
     const b = await c3.newPage(); b.on('dialog', d => d.accept().catch(() => {}));
     await b.addInitScript(([k, v]) => { if(!sessionStorage.getItem('__dup')){ sessionStorage.setItem('__dup', '1'); sessionStorage.setItem(k, v); } }, [await a.evaluate(() => NS + ':exam-copy:' + PROFILE), copy]);
