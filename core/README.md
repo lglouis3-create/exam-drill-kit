@@ -542,6 +542,17 @@ With less room the old core still keeps more progress, because it deletes histor
     (`exam_save_test.js`); in Safari that is NOT RUN.
   - **"It is saved":** the new-version bar's "A paper is running. It is saved…" question is now asked
     only when the paper is saved.
+  - **After a reload** that brings the paper back from the tab's copy, the paper still counts as refused
+    (on the page, in Export, asked about) until a save is kept.
+  - **"Use it here"** does not keep a refused paper: it asks first, then opens the stored paper and drops
+    the tab's copy; it makes no copy of progress that was saved.
+  - **A submitted paper** leaves a small marker (`<ns>:exam-done:<profile>`), so no tab's copy, a duplicated
+    tab's included, brings it back. If the browser refuses even that marker, a duplicated tab's copy could
+    still come back.
+  - **A profile switch** puts the running paper away; it is not carried onto the next profile.
+  - **Closing the tab:** while the paper is not exported, the browser's leave question, as for progress
+    (Chromium checked; WebKit not checkable here, #39; Safari NOT RUN). A tab the system closes gets no
+    question, and its copy ends with it.
 - **In-app actions:**
   - **Switching profile** tries the refused writes once more, then asks and offers the export.
   - **The stop wall's Reload** and **the new-version bar's Reload** both ask first while work that is

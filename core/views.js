@@ -2316,6 +2316,10 @@ const EXAM_KEY = () => NS + ':exam:' + PROFILE;
 /* This tab's own copy of a paper whose save the browser refused (sessionStorage, kept per tab and
    across a reload of that tab, not after it is closed); removed once a save is kept. */
 const EXAM_COPY_KEY = () => NS + ':exam-copy:' + PROFILE;
+/* The last paper submitted or cleared here, so a tab's copy (or a duplicated tab's) never brings
+   it back (the review of 383ba7d, M4). A paper is known by its clock and its questions. */
+const EXAM_DONE_KEY = () => NS + ':exam-done:' + PROFILE;
+const paperId = p => { try { return String(p.ends) + '|' + String(p.started) + '|' + (p.ids || []).join(','); } catch(e){ return ''; } };
 /* An untimed paper (nullexam.js starts one when the course sets a count and no
    time limit) has ends: null and `started`, when it began. It keeps its own
    rules whatever the course says later: a course that gains a time limit while
@@ -2331,15 +2335,22 @@ function saveExam(){
   if(profileSavedElsewhere()){ staleWarn(); return; }   // never over another tab's paper
   const paper = {ids:EX.qs.map(q=>q.id), picks:EX.picks, orders:EX.orders, i:EX.i, ends:EX.ends};
   if(untimedPaper()) paper.started = EX.started;
-  if(store.set(EXAM_KEY(), JSON.stringify(paper))){ try { sessionStorage.removeItem(EXAM_COPY_KEY()); } catch(e){} }
+  if(store.set(EXAM_KEY(), JSON.stringify(paper))){ try { sessionStorage.removeItem(EXAM_COPY_KEY()); } catch(e){} EXAM_COPY_OK = false; }
   // refused: this tab keeps a copy for a reload, with what was stored then (over), so a reload takes
   // the copy only while nothing newer was stored since
-  else { try { sessionStorage.setItem(EXAM_COPY_KEY(), JSON.stringify({paper, over: storedNow(EXAM_KEY())})); } catch(e){} }
+  else { let ok = false; try { sessionStorage.setItem(EXAM_COPY_KEY(), JSON.stringify({paper, over: storedNow(EXAM_KEY())})); ok = true; } catch(e){} if(ok !== EXAM_COPY_OK){ EXAM_COPY_OK = ok; try { refreshSaveWarn(); } catch(e){} } }
 }
 function clearExam(){
   if(!canSave()) return;
   if(WRITER === 'pending'){ EXAM_CLEAR_WAITING = PROFILE; return; }   // cleared once the lock is this page's (flushWaiting)
-  if(!profileSavedElsewhere()){ store.del(EXAM_KEY()); try { sessionStorage.removeItem(EXAM_COPY_KEY()); } catch(e){} }
+  if(!profileSavedElsewhere()){
+    let id = '';
+    try { const raw = store.get(EXAM_KEY()); if(raw) id = paperId(JSON.parse(raw)); } catch(e){}
+    if(!id && EX && EX.qs) id = paperId({ends: EX.ends, started: EX.started, ids: EX.qs.map(q => q.id)});
+    if(id) store.trySet(EXAM_DONE_KEY(), id);   // small; if refused, a duplicated tab's copy could still come back
+    store.del(EXAM_KEY()); try { sessionStorage.removeItem(EXAM_COPY_KEY()); } catch(e){}
+    EXAM_COPY_OK = false;
+  }
 }
 /* A paper saved by an earlier visit is brought back if its clock has not run
    out; otherwise it is submitted as it stands. */
@@ -2347,7 +2358,19 @@ function restoreExam(){
   let j = null;
   try { j = JSON.parse(store.get(EXAM_KEY()) || 'null'); } catch(e) { j = null; }
   // this tab's own copy of a refused save, when it is newer than what is stored
-  try { const c = JSON.parse(sessionStorage.getItem(EXAM_COPY_KEY()) || 'null'); if(c && c.paper && c.paper.ids && storedNow(EXAM_KEY()) === c.over) j = c.paper; } catch(e){}
+  // (never a paper submitted since, in this tab or a duplicate of it: the marker clearExam leaves)
+  try {
+    const c = JSON.parse(sessionStorage.getItem(EXAM_COPY_KEY()) || 'null');
+    if(c && c.paper && c.paper.ids){
+      if(storedNow(EXAM_DONE_KEY()) === paperId(c.paper)) sessionStorage.removeItem(EXAM_COPY_KEY());
+      else if(storedNow(EXAM_KEY()) === c.over){
+        j = c.paper;
+        // still not stored: it counts as a refused save, so it stays protected and is what Export writes
+        // (the review of 383ba7d, M1); the next save tries the browser again
+        const k = EXAM_KEY(); MEM[k] = JSON.stringify(c.paper); FAILED.add(k); EXAM_COPY_OK = true; saveWarn(k);
+      }
+    }
+  } catch(e){}
   if(!j || !j.ids) return false;
   const qs = j.ids.map(byId); if(qs.some(q => !q)) { clearExam(); return false; }
   EX = {qs, i:Math.min(j.i||0, qs.length-1), picks:j.picks, orders:j.orders, running:true, done:false, ends:j.ends};

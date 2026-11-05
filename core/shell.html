@@ -644,12 +644,15 @@ let SAVE_WARN_LOG = false;
 let REC_OFF = false;   // storage full: this tab has no per-tab record (#45) of its last save (pendingAfter, dropOwnRecordIfStored)
 const REC_OFF_TEXT = 'While storage is full, this tab cannot keep the record that protects its last save when it closes without handing over to another open tab of this drill.';
 const hereRefused = () => { try { return FAILED.has(keyFor(PROFILE)) || FAILED.has(logKey()) || FAILED.has(NS + ':exam:' + PROFILE); } catch(e){ return FAILED.size > 0; } };
-const EXAM_REFUSED_TEXT = ' The exam paper in progress was not saved either: its answers are kept on this page, and a copy kept by this tab brings them back after a reload of this tab, but not after the tab is closed. Export progress keeps them in the file.';
-const saveWarnText = () => (hereRefused() ? 'This browser did not save your ' + (FAILED.has(keyFor(PROFILE)) || FAILED.has(logKey()) ? 'progress' + (SAVE_WARN_LOG ? ' or answer history' : '') : 'exam paper in progress') +
-  ' (storage is full or blocked). It is kept on this page until you close or reload it; closing or reloading it loses it. Export it to a file to keep it; Import progress adds it back.' +
+let EXAM_COPY_OK = false;   // this tab's sessionStorage copy of the refused paper was written (views.js saveExam)
+const examCopyText = () => EXAM_COPY_OK ? ' A copy kept by this tab brings them back after a reload of this tab; closing the tab loses them.' : ' Closing or reloading this page loses them.';
+const EXAM_REFUSED_TEXT_ = () => ' The exam paper in progress was not saved either: its answers are kept on this page.' + examCopyText() + ' Export progress keeps them in the file (Import does not read a paper back).';
+const progLogRefused = () => { try { return FAILED.has(keyFor(PROFILE)) || FAILED.has(logKey()); } catch(e){ return false; } };
+const saveWarnText = () => (hereRefused() ? (progLogRefused() ? 'This browser did not save your progress' + (SAVE_WARN_LOG ? ' or answer history' : '') +
+  ' (storage is full or blocked). It is kept on this page until you close or reload it; closing or reloading it loses it. Export it to a file to keep it; Import progress adds it back.'
+  : 'This browser did not save your exam paper in progress (storage is full or blocked). Its answers are kept on this page.' + examCopyText() + ' Export progress keeps them in a file (Import does not read a paper back).') +
   (REC_OFF ? ' ' + REC_OFF_TEXT : '') +
-  ((FAILED.has(keyFor(PROFILE)) || FAILED.has(logKey())) && FAILED.has(NS + ':exam:' + PROFILE) ? EXAM_REFUSED_TEXT : '') +
-  (!(FAILED.has(keyFor(PROFILE)) || FAILED.has(logKey())) && FAILED.has(NS + ':exam:' + PROFILE) ? ' Its answers are kept on this page, and a copy kept by this tab brings them back after a reload of this tab, but not after the tab is closed. Export progress keeps them in the file.' : '')
+  (progLogRefused() && FAILED.has(NS + ':exam:' + PROFILE) ? EXAM_REFUSED_TEXT_() : '')
   : awayRefused().length ? 'This browser did not save some of the progress or answer history of another profile on this page (storage is full or blocked). It is kept on this page until you close or reload it; closing or reloading it loses it. Export it to keep it; Import progress adds it back.'
   : REC_OFF ? 'Storage is full. Your progress is saved, but this tab cannot keep the record that protects its last save when it closes without handing over to another open tab of this drill. Export progress keeps a copy in a file.'
   : 'This browser did not save some of this page\'s data (storage is full or blocked), such as the profile chosen or an exam paper in progress. It is kept on this page until you close or reload it. Export progress keeps your progress and history in a file.') +
@@ -800,13 +803,16 @@ function claimProfile(p){
 function takeOver(force){
   const p = PROFILE;
   if(!HAS_LOCKS || STALE) return;
+  // a refused exam paper is not kept by "Use it here": the stored paper opens instead (asked first)
+  if(examUnsavedHere() && !exportedHere() && !confirm('The exam paper in progress on this page was not saved. "Use it here" opens the stored paper instead, and this page\'s unsaved answers on it are lost unless you export them first. Continue?')) return;
   // progress this page holds but has not stored: kept as a copy before the stored one is read.
   // When only answer history entries are unsaved (the progress is as stored), they are added to
   // the stored history instead (logOnly), so no copy of progress is made that Put back could
   // roll back to; if the browser refuses that, they go into a copy as before
   const logOnly = !progUnsavedHere() && logUnsavedHere() && LOG_OK ? JSON.stringify(LOG) : null;
   const dbHere = JSON.stringify(DB);
-  let keepMine = logOnly === null && unsavedHere() ? dbHere : null;
+  // the paper is not in this copy: only unsaved progress or history makes one (the review of 383ba7d, M2)
+  let keepMine = logOnly === null && (progUnsavedHere() || logUnsavedHere()) ? dbHere : null;
   let keepLog = keepMine !== null && LOG_OK && JSON.stringify(LOG) !== (storedNow(logKey()) || '[]') ? JSON.stringify(LOG) : null;
   let gave = null, granted = false, done = false;
   const onMsg = e => { const m = e.data || {}; if(m.type === 'gave' && m.p === p && m.to === TAB_ID) gave = m.vals; };
@@ -861,6 +867,8 @@ function takeOver(force){
         // the exam paper this page restored when it opened may be older than the stored one:
         // drop it, so the Exam sim tab reads the paper from storage again
         try { if(typeof EX !== 'undefined' && EX){ clearInterval(EX.timer); EX = null; } } catch(e){}
+        // the stored paper opens: this tab's copy of a refused one goes too (asked first, above)
+        try { sessionStorage.removeItem(NS + ':exam-copy:' + p); EXAM_COPY_OK = false; } catch(e){}
         stopWall(null);
         NEW_LOGS[p] = []; WROTE_SINCE_CLAIM = false; settlePendingSoon(); capNotice();
         if(KEPT_COPY){ KEPT_COPY = false; setTimeout(() => alert('The answers and settings this page had not saved are kept as a copy: Settings, "Put back the progress from …". The progress on screen now is the stored one.'), 0); }
@@ -1209,7 +1217,8 @@ function stopWall(why){
   const unsaved = why !== 'asking' && unsavedHere();
   if(unsaved){
     const u = document.createElement('p');
-    u.innerHTML = '<b>This page has answers or settings that are not saved.</b> Export them to a file before you reload or leave; Import progress can add them back. "Use it here" keeps them as a copy in Settings (Put back), or, when only answer history entries are not saved, adds them to the saved answer history, before it opens the stored progress.';
+    u.innerHTML = '<b>This page has answers or settings that are not saved.</b> Export them to a file before you reload or leave; Import progress can add them back. "Use it here" keeps them as a copy in Settings (Put back), or, when only answer history entries are not saved, adds them to the saved answer history, before it opens the stored progress.' +
+      (examUnsavedHere() ? ' <b>The exam paper in progress is not saved either.</b> Export keeps its answers in the file; "Use it here" opens the stored paper, and Import does not read a paper back.' : '');
     c.appendChild(u);
   }
   const row = document.createElement('div'); row.className = 'stoprow';
@@ -1741,11 +1750,15 @@ function useProfile(n){
     if(FAILED.has(keyFor(PROFILE)) && !profileSavedElsewhere()) store.set(keyFor(PROFILE), JSON.stringify(DB));
     if(FAILED.has(logKey())) saveLog();
     if(FAILED.has(keyFor(PROFILE)) || FAILED.has(logKey()) || FAILED.has(NS + ':exam:' + PROFILE)){
-      if(confirm('This browser did not save some of the progress or answer history of "' + PROFILE + '" (storage is full or blocked). It is kept on this page until it is closed or reloaded, and saved when the browser has room. Export it to a file before switching?'))
+      const what = [FAILED.has(keyFor(PROFILE)) || FAILED.has(logKey()) ? 'some of the progress or answer history' : '', FAILED.has(NS + ':exam:' + PROFILE) ? 'the exam paper in progress' : ''].filter(Boolean).join(' and ');
+      if(confirm('This browser did not save ' + what + ' of "' + PROFILE + '" (storage is full or blocked). It is kept on this page until it is closed or reloaded, and saved when the browser has room. Export it to a file before switching?'))
         { try { exportProgress(); } catch(e){ alert('The export did not work: ' + (e && e.message || e)); } }
       if(!confirm('Switch to "' + n + '" now?')) return;
     }
   }
+  // a running paper belongs to its profile: it is put away (its stored, or refused and held, paper
+  // comes back when that profile opens), not carried onto the next one (the review of 383ba7d)
+  try { if(n !== PROFILE && typeof EX !== 'undefined' && EX){ clearInterval(EX.timer); EX = null; } } catch(e){}
   PROFILE = n;
   store.set(NS+':profile', PROFILE);
   load();
