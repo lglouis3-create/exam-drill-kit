@@ -35,6 +35,7 @@ that course's repository. Both folders come from the recovered exam-drill templa
 | `home_test.js` | core | the Home Screen card for each kind of browser: a closed section in Settings, nothing on Topics |
 | `history_test.js` | core | the answer history: its fields, Export, Import, Erase; a refused write keeps every entry, shows the notice, is in Export, counts as unsaved on the stop wall and in "Use it here", asks before a switch, and is written by the next save the browser keeps, also for a profile switched away from; the whole site's storage full |
 | `import_test.js` | core | Import progress: files of another course or app, files that name no course, and damaged files refused; older files converted; a file replaces this profile only when it continues it or this profile holds no progress, after a confirmed plan, with a copy to put back; conflicting copies of one answer, another origin, a cut answer list, answers out of order, and matching or empty answer lists with other concept progress, settings, scheduling state or module part go into a new profile; repeats change nothing and make no second profile; Put back and refused reads and writes leave both records stored |
+| `storage_use_test.js` | core | Settings' storage figures (the site's total against 5,242,880, this drill's progress, history, preview copies and copies kept by Import, the answers kept and recorded) and the warning in Settings and the Quiz tab (its Export and Delete buttons in each), absent when the space left equals the need and present one character below it, for each of the two needs; the estimate wording; Delete the copies only after a confirm; the pending records' own line; another drill named by its namespace; on a preview build, the copies counted are the ones its button deletes |
 | `preview_test.js` | core | `build.py --preview`: the live site unchanged, the preview's own namespace |
 | `state_check.js` | core | the course's root `CLAUDE.md` was updated with or after the newest lecture (§7.8) |
 | `state_check_test.js` | core | `state_check.js` on repositories with known histories |
@@ -229,6 +230,54 @@ from memory for the rest of the visit, and the first refusal shows one notice th
 points to Settings → Export progress. A later write that succeeds clears the key's
 failure. Switching profile writes any save still waiting on its timer first. The answer
 history is written through `store` too (since 2026-11-04; "Answer history" below).
+
+**Storage use in Settings, and its warning** (`views.js` `storageUse`, `storageSection`,
+`storageWarnHtml`, `quizStorageWarn`; `review/storage-usage-proposal.md` §3 items 1 and 2,
+approved by Louis on 2026-11-04). Settings has a section "Storage in this browser" with:
+- the characters the whole site stores (every key of the origin, every drill), against
+  5,242,880 (5 × 1,048,576), as a percentage, and the space left (5,242,880 minus that
+  total);
+- this drill's part: progress (`<ns>:data:*`), answer history (`<ns>:log:*`), preview
+  copies (`<ns>-preview:*`), the copies kept by Import (`<ns>:backup:*`) with their
+  number, the records of each writing tab's last save (`<ns>:pending:<profile>:<tab>`,
+  the per-tab records of open pull request #45; "pending"), and its other keys;
+- this profile's answers kept (`DB.answers`, at most `ANSWERS_MAX`, 4,000) and recorded in
+  all (`DB.qn`).
+
+Every size is a string length, key plus value, as `localStorage.getItem(k).length` gives
+it: characters as UTF-16 units (an emoji counts as 2); the bytes a browser writes to disk
+can differ. On a preview page this drill's part is read under the preview's own namespace
+(`NS`, `<ns>-preview`), the one `readCopies` and "Delete the copies" use, so the copies it
+counts are the copies its button deletes; its other line is then the live drill's keys.
+`storage_use_test.js` checks this on a preview build. A warning shows at the top of the Quiz
+tab and of that section when the space left is less than the larger of two needs:
+- the largest profile this browser holds on the core: its progress plus its history;
+- for each course on the core whose preview has not yet copied its keys (no key starts
+  `<ns>-preview:`), what that first copy writes: each of its keys under the
+  `<ns>-preview:` name, 8 characters longer.
+
+A course counts as on the core when one of its `<ns>:data:<profile>` keys holds JSON that
+starts `{"v":` with 2 or more (`BLANK` puts `v` first and `upgradeDB` keeps it there); the
+course on screen always counts. Drills not on the core (BDK's `bdk2:*`, Pharmacokinetics,
+Intro to Pharmacology) save no `v`, so they count in the site's total and in neither need.
+A course on the core whose saved progress predates `v` (saved before 2026-11-01) counts in
+neither need until its page saves that progress again. The warning names the three largest
+keys (an item of another drill with that drill's namespace), offers Export progress and, when this profile
+has copies, "Delete the copies kept by Import" (`deleteCopies`, which asks first). The
+page reads storage only; nothing here writes or deletes a key. The warning cannot be
+closed while the space left is short, by design, so that it is not missed. The Quiz tab's warning is
+put back after each drawing of the pane by a `MutationObserver`, so it also follows
+question types a feature module draws; it replaces the box only when its text changed,
+since each insertion runs the observer again. It is worked out at each drawing, and so
+reads every stored value each time.
+
+The page says that this is an estimate: the limit differs by browser. Chromium 153 accepted
+exactly 5,242,880 units on one origin, keys and values together (measured by binary search
+in the independent review of #46, 2026-11-04; `review/storage-measure/quota.js`'s coarser
+fill had stopped at 5,242,873, a lower bound); MDN says "up to 5 MiB" of local storage per
+origin; Safari and Firefox were not measured, so there the warning can come early or late.
+`storage_use_test.js` fills the origin to the boundary; in a browser whose limit is below
+it, those parts are skipped with the reason, never passed.
 
 **Saved progress from an earlier core** (`upgradeDB` in `shell.html`). The scheduler work
 of 2026-11-01 only added to the progress: question ids, `ns`, and every field a save
@@ -499,6 +548,13 @@ frees it when that tab closes).
 - A writer that does not answer within 4 s (asleep in the background) can be taken over
   ("Take it over anyway", `steal`). It then stops: the browser ends its lock, and before
   every write a writer checks that `<ns>:writer:<profile>` still names its own tab.
+- A profile switch away and straight back: the lock this page freed a moment before may
+  not be free yet when it asks again, so it queues for it for at most 2 s instead of opening
+  read-only. Only the newest of several switches in one moment decides. When another tab has
+  the lock by then, the page opens read-only after that wait. When the other tab lets go during
+  the wait, this page becomes the writer with the progress it read before; if the other tab
+  saved meanwhile, this page's next save finds that and stops (the stale wall), so the other
+  tab's save stays, and an answer given here during the wait is offered for export.
 - An Import that writes another profile (a new one, or the history of the profile that
   already holds the file) holds that profile's lock while it writes, and writes nothing
   when a tab using that profile has it.
@@ -507,15 +563,40 @@ frees it when that tab closes).
   holds answers or settings that are not stored, and asks before a reload would drop them.
 
 What this does not cover (the independent review of 4b3b94c; Chromium only):
-- **A writer that leaves without handing over.** When the writing tab closes, reloads,
-  navigates away or switches profile, no hand-over message is sent. The next tab to take
-  the lock (Use it here, a page opening, or a switch back) reads storage at once, or after
-  a 1-second wait for a hand-over that does not come. If the leaving tab's last save has
-  not reached it by then, its next save writes over that save: the same interval as before,
-  now only at the moment one tab leaves and another takes over. Closing it needs a change
-  to how progress is stored (each tab's answers in a key only it writes, merged by the
-  writer, or IndexedDB transactions, which run one at a time across tabs); that is a
-  separate decision.
+- **A writer that leaves without handing over** (closes, reloads, navigates away or switches
+  profile) sends no hand-over, and the next tab to take the lock may not yet have its last
+  save. Since 2026-11-04 that save is no longer lost to the next tab's writes: every writing
+  tab also keeps what it last stored in `<ns>:pending:<profile>:<tab>`, a key no other tab
+  writes (below, "Each writing tab's last save"). What remains:
+  - the record arrives a moment later too, so for that moment the next tab works on the older
+    progress; when the record arrives it becomes the progress if the tab has written nothing
+    since it took the profile, and is kept as a copy (Put back) if it has, so the closed tab's
+    answers are then in the copy, not in the live progress;
+  - a browser that refuses that record's write (storage full) has no record for that save;
+  - the exam paper and the copies Import keeps are not in the record: a paper pick or a copy
+    written in that last moment is not covered, and a copy this tab adds from a record is
+    written from its own view of the copies list;
+  - the 60 s wait assumes a save reaches another tab within 60 s, which the HTML Standard does
+    not define; if a newer record arrived later than that, an older one verified earlier could
+    already be removed;
+  - records of a profile never opened again, and records that cannot be read, stay;
+  - an Import that only adds history entries writes no progress, so it is not in the record;
+  - a "Not sure" whose save was written over keeps the stored confidence (history entries are
+    matched without it);
+  - the history merge is not cut to 20,000 entries; the next answer's save cuts it, as the
+    `LOG_MAX` rule does (that rule waits for Louis's decision in #47);
+  - a record that was never shown to be stored and was then handled at an Erase, Put back,
+    replacing Import or Delete the copies (for example, because its copy write was refused)
+    stays; its answers are in storage but not on screen or in Export, so the student cannot
+    reach them (a record shown stored before is still removed 60 s on);
+  - **the boundary:** localStorage gives no ordering of writes between tabs and no transactions,
+    so every rule here decides "newer or older" and "deliberate or lost" from snapshots of
+    content, and a write still on its way to this tab can be judged from an older view. Four
+    review rounds by one independent reviewer (2026-11-04) found that each such rule closes one
+    case and opens a neighbouring one. A sound solution moves the progress (or an append-only log of saves) to
+    IndexedDB, whose read-write transactions on one store run one at a time across tabs (the
+    reviewer's reading of the IndexedDB specification; not confirmed in this session); that is a
+    separate decision for Louis.
 - A browser without Web Locks (Safari and Safari on iPhone and iPad before 15.4, per
   https://caniuse.com/mdn-api_lockmanager, read 2026-11-03) keeps the comparison guards
   below on their own, and the interval above stays open there. A page opened from disk has
@@ -542,6 +623,53 @@ What this does not cover (the independent review of 4b3b94c; Chromium only):
 - The hand-over relies on a value this tab reads from storage having been stored, which is
   how browsers behave; the HTML Standard does not define the timing of storage between tabs.
 - Two devices never share a lock: moving progress between devices is Import's job.
+
+**Each writing tab's last save (2026-11-04).** With each save of the progress, the tab holding
+the lock also writes `<ns>:pending:<profile>:<tab>` = `{at, db, log}`: `db` is the progress it
+stored (an object), `log` the history entries it added since it took the profile. No other tab
+writes that key. A tab that takes a profile again while its record from an earlier time on that
+profile is still stored writes under a new key (`<tab>.<n>`), so that earlier record is never
+written over; it is checked, placed and removed as another tab's record would be, by this tab too
+(the independent review of d325326; before, the earlier record was written over unchecked, and its
+last save was lost when another tab had written over that save and closed). When a tab takes the lock it reads every other tab's record of that profile,
+oldest first, at once, 1.5 s later, and on each storage event for such a key. The order does not
+decide whether a record is kept (each one ends in the progress or a copy before it can be removed);
+it decides that a newer record continuing an older one, with a setting changed after it, becomes the
+progress with no needless copy of the older one (newest first, the older would be copied though
+nothing of it is missing). A record's place in
+the stored progress is found by its last answer, compared on every field (never question and
+time alone), which still works once the oldest answers are cut at 4,000:
+- its last answer is stored (its last occurrence), before the stored last answer: the stored
+  progress continued from it, nothing to add, unless the record carries a choice the later
+  progress does not show (different settings, or an Erase, Put back or replacing Import made in
+  that tab, which marks the record written with that change): then it is one more copy Import keeps;
+- it is the stored last answer (or the record has no answers): the same progress, nothing to
+  add; a different progress at that point (a setting, a module's part): one more copy Import
+  keeps (Put back);
+- its last answer is not stored: the save that was written over. If the record holds the
+  stored last answer (it continues what is stored) and this tab has written and changed nothing
+  since it took the profile, the record becomes the progress; otherwise it is one more copy
+  Import keeps. Either way the page says so, and nothing is mixed.
+The record's history entries that the stored history lacks are added; entries are compared on
+every field but the confidence ("Not sure" changes it later), and counted, so two identical
+attempts stay two. Erase, Put back, an Import that replaces the progress and Delete the copies
+retire the other tabs' records of the profile: nothing is deleted then, but each record as it
+stands at that moment is noted as handled in `<ns>:pending-seen:<profile>` and is not placed
+again while it stays unchanged, so none of them brings back what was erased, put back, replaced
+or deleted. A record that changes after that (a leaving tab's newer save arriving late) is placed
+as usual, and, since this tab has written since, kept as a copy. A record found handled once
+(placed, copied, or equal to what is stored) is not placed again while it is unchanged, so a
+setting changed here later does not turn an old record into a copy. "Handled" never removes a
+record: removal needs the proof below.
+**Cleanup rule:** a record is removed only when what is stored, read back, holds it as above
+(in the progress or a copy, and every history entry), on a later check at least 60 s after that
+was first found, with the record unchanged in between. The first-found time is kept in
+`<ns>:pending-seen:<profile>`, so reloads do not start the wait again. Only the tab holding the
+lock removes records, never its own. A record that changed is checked again; one that cannot be
+read is left as it is. Without Web Locks no record is kept.
+**Cost:** each progress save writes the record too, about the size of the progress (about 547,000
+characters at 4,000 answers, `review/storage-usage-proposal.md`), and each writing tab keeps one
+record until the next writer has checked it and 60 s have passed.
 
 Import plans and writes nothing while the progress on this page is not what is stored:
 when another tab or window saved the profile after this page read it (`SEEN`, the
