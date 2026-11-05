@@ -762,6 +762,66 @@ const next = p => p.evaluate(() => { const b = document.getElementById('btnNext'
     check(!e6.length, '"Use it here" with only history unsaved: no page errors', e6.slice(0, 2).join('; '));
     await c6.close();
   }
+  for(const which of ['history', 'progress']){
+    // #47's review of 5519a49 (comment 6647518091): a departing tab's per-tab record settled while this
+    // page holds history the browser refused. The browser takes a history write only up to the stored
+    // history plus the departing tab's one entry, so a write of the stored history plus that entry would
+    // fit, and the page's held entries would then be lost from the page and from Export. With the
+    // progress refused (which="progress"), settling writes no history at all (study progress first).
+    const CAP = () => {
+      const set = Storage.prototype.setItem;
+      Storage.prototype.setItem = function(k, v){
+        if(window.__refuseData && k === NS + ':data:' + PROFILE) throw new DOMException('The quota has been exceeded.', 'QuotaExceededError');
+        if(window.__logCap && k === NS + ':log:' + PROFILE && v.length > window.__logCap) throw new DOMException('The quota has been exceeded.', 'QuotaExceededError');
+        return set.call(this, k, v);
+      };
+    };
+    const {ctx: cs, page: o, errors: es} = await L.openFile(browser, {}, CAP);
+    await o.waitForFunction(() => typeof WRITER === 'undefined' || WRITER === 'held' || WRITER === 'none', null, {timeout: 8000}).catch(() => {});
+    if(!(await o.evaluate(() => typeof WRITER !== 'undefined' && WRITER === 'held'))){
+      check(false, `settling with ${which} refused: this page holds the profile (a precondition; no Web Locks here)`); await cs.close(); continue;
+    }
+    const pre = await o.evaluate(which => {
+      record(QUESTIONS[0], 'correct', 0, 4000); saveNow(); record(QUESTIONS[1], 'wrong', 0, 4000); saveNow();
+      const stored = localStorage.getItem(logKey()), base = JSON.parse(stored);
+      const dep = base[0].slice(0, 7); dep[0] = base[0][0] - 5000; dep[1] = 'deadbeef';   // an entry this page does not hold, in the older seven-field form (shorter than a new entry)
+      // the cap: the stored history plus the departing entry, and not one entry more
+      window.__logCap = JSON.stringify(base.concat([dep]).sort((x, y) => x[0] - y[0])).length;
+      if(which === 'progress') window.__refuseData = true;
+      record(QUESTIONS[2], 'correct', 0, 4000); saveNow(); record(QUESTIONS[3], 'correct', 0, 4000); saveNow();
+      const held = LOG.slice(base.length);
+      const rec = {at: Date.now() - 2000, db: JSON.parse(localStorage.getItem(keyFor(PROFILE))), log: [dep]};
+      const pk = NS + ':pending:' + PROFILE + ':departed-tab';
+      localStorage.setItem(pk, JSON.stringify(rec));
+      return {stored: base.length, held, dep, pk, failedLog: FAILED.has(logKey()), failedData: FAILED.has(keyFor(PROFILE))};
+    }, which);
+    await o.evaluate(() => settlePending());
+    await o.waitForTimeout(200);
+    const has = (l, e) => l.some(x => JSON.stringify(x) === JSON.stringify(e));
+    const st = await o.evaluate(() => ({page: LOG.slice(), stored: JSON.parse(localStorage.getItem(logKey()) || '[]'), failedLog: FAILED.has(logKey()),
+      pending: localStorage.getItem(NS + ':pending:' + PROFILE + ':departed-tab') !== null, mem: MEM[logKey()] ? JSON.parse(MEM[logKey()]).length : null}));
+    check(pre.held.length === 2 && pre.failedLog && (which !== 'progress' || pre.failedData),
+      `settling with ${which} refused: a precondition, this page holds 2 entries the browser refused`, {held: pre.held.length, failedLog: pre.failedLog, failedData: pre.failedData});
+    check(pre.held.every(e => has(st.page, e)) && has(st.page, pre.dep) && st.failedLog,
+      `settling a departing tab's record with ${which} refused: the page keeps its own held entries and adds the departing one, still counted as unsaved`, {page: st.page.length, failedLog: st.failedLog, held: pre.held.every(e => has(st.page, e)), dep: has(st.page, pre.dep)});
+    check(which !== 'progress' || st.stored.length === pre.stored, 'progress refused: settling writes no history (study progress first)', {stored: st.stored.length, before: pre.stored});
+    check(st.pending, `settling with ${which} refused: the departing tab's record stays until what it holds is stored`, st.pending);
+    await o.evaluate(() => show('settings'));
+    const [dl] = await Promise.all([o.waitForEvent('download', {timeout: 5000}).catch(() => null), o.evaluate(() => document.getElementById('btnExport').click())]);
+    const ex = dl ? JSON.parse(fs.readFileSync(await dl.path(), 'utf8')) : {};
+    check(Array.isArray(ex.log) && pre.held.every(e => has(ex.log, e)) && has(ex.log, pre.dep),
+      `settling with ${which} refused: Export holds the held entries and the departing one`, ex.log && ex.log.length);
+    // room again: the next save stores the progress and both sets of entries
+    await o.evaluate(() => { window.__logCap = null; window.__refuseData = false; record(QUESTIONS[4 % QUESTIONS.length], 'correct', 0, 4000); saveNow(); });
+    await o.waitForTimeout(400);
+    await o.evaluate(() => settlePending());
+    const fin = await o.evaluate(() => ({stored: JSON.parse(localStorage.getItem(logKey()) || '[]'), prog: JSON.parse(localStorage.getItem(keyFor(PROFILE))).answers.length,
+      failed: FAILED.has(logKey()) || FAILED.has(keyFor(PROFILE))}));
+    check(pre.held.every(e => has(fin.stored, e)) && has(fin.stored, pre.dep) && fin.prog === 5 && !fin.failed,
+      `with room again after settling with ${which} refused: the progress, the held entries and the departing entry are all stored`, {stored: fin.stored.length, prog: fin.prog, failed: fin.failed, held: pre.held.every(e => has(fin.stored, e)), dep: has(fin.stored, pre.dep)});
+    check(!es.length, `settling with ${which} refused: no page errors`, es.slice(0, 2).join('; '));
+    await cs.close();
+  }
   await browser.close();
   L.finish(NAME);
 })().catch(e => { console.log(e.stack); console.log(`FAIL: ${NAME}: the test stopped: ${String(e.message).split('\n')[0]}`); process.exit(1); });

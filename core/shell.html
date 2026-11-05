@@ -1068,7 +1068,23 @@ function settleOne(k, raw, rec){
   if(entries.length){
     const have = storedLogEntries();
     if(have === null) logOk = false;
-    else {
+    else if(FAILED.has(keyFor(PROFILE)) || FAILED.has(logKey()) || (LOG_OK && JSON.stringify(LOG) !== JSON.stringify(have))){
+      // this page holds history the browser has not stored (a refused write, or the progress refused):
+      // the record's missing entries join the page's history, held with it (on the page, in the notice
+      // and in Export), and nothing is written now. A write of the stored history plus the record's
+      // entries could fit where the page's own cannot, and would then replace the page's held entries
+      // (#47's review of 5519a49, comment 6647518091); with the progress refused, no history is
+      // written before it (study progress first). The record stays until its entries are stored.
+      logOk = false;
+      if(LOG_OK){
+        const add = missingEntries(entries, LOG);
+        if(add.length){
+          LOG = LOG.concat(add).sort((x, y) => x[0] - y[0]);
+          const k = logKey(); MEM[k] = JSON.stringify(LOG); FAILED.add(k); saveWarn(k);
+          if(!FAILED.has(keyFor(PROFILE))) saveLog();   // the progress is stored: the whole history is tried once
+        }
+      }
+    } else {
       const add = missingEntries(entries, have);
       if(add.length){
         const merged = have.concat(add).sort((x, y) => x[0] - y[0]);
