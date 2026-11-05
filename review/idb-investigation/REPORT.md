@@ -35,7 +35,7 @@ https://www.w3.org/TR/IndexedDB/ was also read through a scraper on 2026-11-04. 
 
 **Not read:** the Storage Standard (quota sizes, eviction, storage keys); Safari and Firefox notes.
 
-## 2. Prototype (Chromium 153.0.8010.12 headless; WebKit NOT RUN: "Executable doesn't exist at /opt/pw-browsers/webkit-2359/pw_run.sh")
+## 2. Prototype in the cloud container (Chromium 153.0.8010.12 headless; WebKit could not start there: "Executable doesn't exist at /opt/pw-browsers/webkit-2359/pw_run.sh"; see 2b for WebKit)
 
 All pages were in one browser context, so one origin's storage, served from http://localhost. Each transaction:
 - reads `kv/state`;
@@ -78,6 +78,36 @@ All pages were in one browser context, so one origin's storage, served from http
 - crash or power loss;
 - frozen background tabs, bfcache, reload and navigation;
 - separate windows.
+
+## 2b. WebKit (GitHub run 41952037061, 2026-11-05)
+
+The workflow in this pull request ran `run.js` twice and `hold.js` once in each engine on GitHub's Ubuntu runners. WebKit reported version 26.6 (Safari's engine on Linux, not the Safari app); Chromium 153.0.8010.12. Logs: `logs-ci-2026-11-05/`.
+
+| Test | WebKit | Chromium |
+|---|---|---|
+| T0 probe | durability default/strict/relaxed accepted; commit(); Web Locks present | the same |
+| T1, three tabs, read-modify-write (both runs) | 3,300 transactions per run (1,500 default, 900 relaxed, 900 strict), lost 0, duplicates 0, saw = position for all | the same |
+| T2, a tab closed mid-way (3 repetitions, both runs) | 0 snapshots with a half-done transaction (1,388 and 1,387 snapshots); every reported `complete` stored | 0 (1,732 and 1,738); in one repetition 1 transaction committed without its `complete` reaching the test |
+| T6, a second tab's readwrite waits for the open one | 3 of 3 (B's first request at +1,000 ms, A finished at +1,000 ms) | 3 of 3 |
+| T6b, a readonly in B while A holds readwrite | waited 796 ms, read A's committed value | waited 797 ms, the same |
+| T7, a tab closed with its readwrite open (after a put) | not committed, 3 of 3 | not committed, 3 of 3 |
+| T3, the same in localStorage (control) | lost 327 and 475 of 900 (no gap); 200 of 300 with 1 ms gap, both runs | lost 76 and 214 of 900; 200 of 300 |
+| T4/T5 versionchange | an old connection left open blocks the upgrade until it closes or its page closes; closing on versionchange avoids `blocked` | the same |
+
+Sums checked: WebKit T2 snapshots 530 + 455 + 403 = 1,388 and 529 + 455 + 403 = 1,387; Chromium 629 + 567 + 536 = 1,732 and 627 + 570 + 541 = 1,738.
+
+Still NOT RUN: the Safari app on an iPhone or iPad (`SAFARI_CHECKLIST.md`), Firefox, storage full, crash or power loss, background tabs frozen by the system.
+
+## Decisions for Louis before any production storage change (summary of section 3)
+
+1. Whether to move at all, and for which courses, after the iPhone and iPad checklist.
+2. What moves: the whole progress, or only an append-only log of saves beside today's localStorage.
+3. A save that an old-core tab makes after the move: merged into the live progress, or kept as a copy.
+4. IndexedDB unavailable (private mode, an old Safari): stay on localStorage with a notice, or silently.
+5. The localStorage data left after the move (kept until you delete it): how it is shown and deleted, since it still counts against the localStorage limit.
+6. Whether the one-writer lock stays once saves are checked inside transactions.
+7. Going back to an older core after the move shows the progress as of the move: accept, or keep writing a localStorage copy for a while.
+8. The durability setting for saves: strict or default.
 
 ## 3. Migration and recovery outline (not implemented)
 
