@@ -688,12 +688,14 @@ function writerLost(why){
   if(writerRelease) writerRelease();
   stopWall(why);
 }
-/* Ask for profile p's lock: how 'try' (only if free), 'wait' (queue behind the holder) or
-   'steal'. Resolves true once this page holds it. */
+/* Ask for profile p's lock: how 'try' (only if free), 'wait' (queue behind the holder),
+   'brief' (queue for at most 2 s: a lock this page itself freed a moment ago) or 'steal'. Resolves true once this page holds it. */
 function claimWriter(p, how){
   const seq = ++writerSeq;
   return new Promise(done => {
-    const opts = how === 'steal' ? {steal: true} : how === 'wait' ? {} : {ifAvailable: true};
+    // 'brief': queue for at most 2 s (a lock this page itself freed a moment ago)
+    let opts = how === 'steal' ? {steal: true} : how === 'wait' ? {} : {ifAvailable: true};
+    if(how === 'brief'){ try { const c = new AbortController(); setTimeout(() => c.abort(), 2000); opts = {signal: c.signal}; } catch(e){ opts = {ifAvailable: true}; } }
     try {
       navigator.locks.request(writerName(p), opts, lock => {
         if(!lock || seq !== writerSeq || PROFILE !== p){ done(false); return; }
@@ -715,15 +717,25 @@ function flushWaiting(){
   if(EXAM_CLEAR_WAITING && EXAM_CLEAR_WAITING === PROFILE && mayWrite()){ EXAM_CLEAR_WAITING = ''; try { clearExam(); } catch(e){} }
 }
 /* The profile on screen (just opened by useProfile) gets its writer decided. */
+let FREED = {p: '', at: 0}, claimGen = 0;   // the profile whose lock this page freed last, and when; the newest claim
 function claimProfile(p){
   if(!HAS_LOCKS || WRITER === 'none') return;
   if(WRITER === 'held' && WRITER_FOR === p) return;
-  if(writerRelease) writerRelease();
+  if(writerRelease){ FREED = {p: WRITER_FOR, at: Date.now()}; writerRelease(); }
   WRITER = 'pending'; WRITER_FOR = '';
   NEW_LOGS[p] = [];   // a new time on this profile: entries from an earlier time on it are not this record's
   stopWall(null);
+  // several switches in one moment start several claims: only the newest decides (an older one
+  // finding its request superseded would otherwise draw the wall over a page that writes)
+  const gen = ++claimGen;
   claimWriter(p, 'try').then(ok => {
-    if(PROFILE !== p) return;
+    if(PROFILE !== p || gen !== claimGen) return;
+    // a switch away and straight back: the lock this page freed a moment ago may not be free
+    // yet when it asks again; it queues for it briefly instead of opening read-only
+    if(!ok && WRITER === 'pending' && FREED.p === p && Date.now() - FREED.at < 2000) return claimWriter(p, 'brief');
+    return ok;
+  }).then(ok => {
+    if(PROFILE !== p || gen !== claimGen) return;
     // this profile's NEW_LOG keeps entries answered while the lock was asked for: flushWaiting saves them now
     if(ok){ WRITER = 'held'; newRecordTime(p); WROTE_SINCE_CLAIM = false; MARK = 0; flushWaiting(); settlePendingSoon(); }
     else if(WRITER === 'pending'){ WRITER = 'other'; WRITER_WHY = 'other'; EXAM_CLEAR_WAITING = ''; stopWall('other'); }

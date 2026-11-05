@@ -1024,6 +1024,194 @@ function backupNote(){
     `<button class="btn ghost" id="btnDeleteCopies">Delete the ${copies.length} cop${copies.length === 1 ? 'y' : 'ies'} kept by Import</button></div>`;
 }
 
+/* ---------- Storage use and its warning (review/storage-usage-proposal.md §3 items 1
+   and 2; Louis approved them on 2026-11-04) ----------
+   Every drill on lglouis3-create.github.io shares one origin, and so one localStorage
+   limit. Settings shows what the whole site stores in this browser and this drill's
+   part of it; the Quiz tab and Settings warn when the space left may not be enough for
+   the next large write. Sizes are string lengths (key plus value), what
+   localStorage.getItem(k).length returns; the bytes a browser writes to disk can differ.
+   Sizes are UTF-16 code units (an emoji counts as 2), as String.length counts them.
+   The limit is taken as 5,242,880 (5 × 1,048,576, the "up to 5 MiB" per origin MDN
+   gives). In Chromium 153 one origin accepted exactly 5,242,880 units, keys and values
+   together, before setItem threw (the independent review of #46, 2026-11-04, by binary
+   search; review/storage-measure/quota.js's coarse fill had stopped at 5,242,873, a
+   lower bound). Safari and Firefox were not measured, so the figures and the warning are
+   an estimate there. Nothing here writes or deletes a key:
+   the warning offers Export progress and the existing "Delete the copies kept by
+   Import", which asks first.
+   The warning shows when the space left is less than the larger of two needs:
+     - profile: the largest profile this browser holds on the core (its progress plus its
+       answer history), the most that one more profile (a file Import puts in a profile
+       of its own) or a copy can take;
+     - preview: for each course on the core whose preview has not yet copied its keys (no
+       key starts <ns>-preview:), what the preview's first opening copies: every key of
+       the course under the name <ns>-preview:..., 8 characters longer each.
+   A course is on the core when one of its <ns>:data:<profile> keys holds a progress the
+   core saved: JSON that starts {"v":<2 or more> (BLANK puts v first, and upgradeDB keeps
+   it there); drills not on the core (BDK's bdk2:*, Pharmacokinetics, Intro to
+   Pharmacology) save no v and count in the site's total only. The course on screen
+   counts as on the core always.
+   This drill's part is read under NS, the namespace the page saves under: on a preview
+   page that is <ns>-preview, so the copies it counts are the ones its "Delete the copies"
+   deletes (deleteCopies, readCopies, backupKey use NS too); the twin line is then the live
+   drill's keys, and on the live page the preview copies. */
+const STORE_LIMIT = 5 * 1048576;     // 5,242,880: MDN's 5 MiB, in characters as Chromium counts them
+const STORE_MEASURED = 5242880;      // what Chromium 153 accepted, exactly (the review of #46, 2026-11-04)
+const PREVIEW_SUFFIX = '-preview';   // shell.html NS of a preview build
+const nChars = n => n.toLocaleString('en-US');
+/* What localStorage holds now: null when it cannot be read. Read-only. */
+function storageUse(){
+  let keys;
+  try {
+    keys = [];
+    for(let i = 0; i < localStorage.length; i++){
+      const k = localStorage.key(i); if(k === null) continue;
+      const v = localStorage.getItem(k); if(v === null) continue;
+      keys.push([k, v]);
+    }
+  } catch(e){ return null; }
+  const base = COURSE.ns, live = NS + ':', prev = (BUILD.preview ? base : base + PREVIEW_SUFFIX) + ':';
+  const u = {total: 0, items: [], drill: {progress: 0, history: 0, preview: 0, copies: 0, pending: 0, other: 0}, copies: 0, copiesUnread: 0};
+  const core = new Set([base]), profiles = {}, byNs = {}, hasPreview = new Set();
+  for(const [k, v] of keys){
+    const n = k.length + v.length;
+    u.total += n;
+    u.items.push([k, n]);
+    if(k.startsWith(prev)) u.drill.preview += n;
+    else if(k.startsWith(live)){
+      const what = k.slice(live.length).split(':')[0];
+      if(what === 'data' && k.length > live.length + 5) u.drill.progress += n;
+      else if(what === 'log' && k.length > live.length + 4) u.drill.history += n;
+      else if(what === 'pending' && k.length > live.length + 8) u.drill.pending += n;   // per-tab records (#45)
+      else if(what === 'backup' && k.length > live.length + 7){
+        u.drill.copies += n;
+        try { const c = JSON.parse(v); u.copies += Array.isArray(c) ? c.length : 1; } catch(e){ u.copiesUnread++; }
+      }
+      else u.drill.other += n;
+    }
+    const m = /^(.+?):(data|log):(.+)$/.exec(k);
+    if(m){
+      if(m[2] === 'data'){ const vm = /^\{"v":([0-9]+)[,}]/.exec(v); if(vm && Number(vm[1]) >= 2) core.add(m[1]); }
+      const p = (profiles[m[1] + '\n' + m[3]] = profiles[m[1] + '\n' + m[3]] || {ns: m[1], name: m[3], size: 0});
+      p.size += n;
+    }
+    const c = k.indexOf(':');
+    if(c > 0){
+      const ns = k.slice(0, c);
+      (byNs[ns] = byNs[ns] || []).push(k.length + PREVIEW_SUFFIX.length + v.length);
+      if(ns.endsWith(PREVIEW_SUFFIX)) hasPreview.add(ns.slice(0, -PREVIEW_SUFFIX.length));
+    }
+  }
+  u.left = STORE_LIMIT - u.total;
+  u.profileNeed = 0; u.profileName = null;
+  for(const p of Object.values(profiles))
+    if(core.has(p.ns) && p.size > u.profileNeed){ u.profileNeed = p.size; u.profileName = p; }
+  u.previewNeed = 0; u.previewNs = null;
+  for(const ns of core){
+    if(ns.endsWith(PREVIEW_SUFFIX) || hasPreview.has(ns)) continue;
+    const need = (byNs[ns] || []).reduce((a, b) => a + b, 0);
+    if(need > u.previewNeed){ u.previewNeed = need; u.previewNs = ns; }
+  }
+  u.need = Math.max(u.profileNeed, u.previewNeed);
+  u.warn = u.left < u.need;
+  u.items.sort((a, b) => b[1] - a[1]);
+  return u;
+}
+const pctOf = n => (100 * n / STORE_LIMIT).toFixed(1) + '%';
+/* A stored key in words, for the list of the largest items. */
+const nsName = ns => ns === COURSE.ns ? 'this drill' : ns === COURSE.ns + PREVIEW_SUFFIX ? 'this drill\'s preview'
+                                     : `another drill, the one with the namespace <code>${esc(ns)}</code>`;
+function storeItemName(k){
+  const m = /^(.+?):(data|log|backup|exam|pending):(.+)$/.exec(k);
+  if(!m){
+    const c = k.indexOf(':');
+    return `<code>${esc(k)}</code> (${c > 0 ? nsName(k.slice(0, c)) : 'a key with no namespace'})`;
+  }
+  const what = {data: 'progress', log: 'answer history', backup: 'copies kept by Import', exam: 'exam paper',
+                pending: 'records of each writing tab\'s last save (pending)'}[m[2]];
+  const who = m[2] === 'pending' ? m[3].split(':')[0] : m[3];
+  return `${what} of "${esc(who)}" (${nsName(m[1])})`;
+}
+const ESTIMATE = 'These figures are an estimate. Each size is the number of characters stored (UTF-16 units: an emoji counts as 2), ' +
+  'the key and its value together; the bytes a browser writes to disk can differ. The limit differs by browser: in Chromium 153 ' +
+  `one origin accepted exactly ${nChars(STORE_MEASURED)} characters before the browser refused to save more; MDN says browsers ` +
+  `can store "up to 5 MiB" of local storage per origin, which is ${nChars(STORE_LIMIT)} characters if counted as Chromium counts them; ` +
+  'Safari\'s limit has not been measured. ' +
+  'So in another browser the warning can come early or late, and saving can stop before or after the point these figures show.';
+/* The warning's HTML, or '' when the space left is enough (or storage cannot be read). */
+function storageWarnHtml(u){
+  u = u === undefined ? storageUse() : u;
+  if(!u || !u.warn) return '';
+  const copies = readCopies();
+  const top = u.items.slice(0, 3).map(([k, n]) => `<li>${storeItemName(k)}: ${nChars(n)} characters</li>`).join('');
+  const needs = [];
+  if(u.profileNeed > u.left) needs.push(`one more profile the size of the largest one here (${nChars(u.profileNeed)} characters)`);
+  if(u.previewNeed > u.left) needs.push(`the first opening of a preview of <code>${esc(u.previewNs)}</code>, which copies its saved keys (${nChars(u.previewNeed)} characters)`);
+  return `<div class="note" data-storage-warn role="status">
+    <p style="margin:0 0 6px"><b>Storage for this site in this browser may run short.</b>
+    This site stores ${nChars(u.total)} characters here (${pctOf(u.total)} of ${nChars(STORE_LIMIT)}), so about ${nChars(Math.max(0, u.left))} are left.
+    That is less than the space needed by ${needs.join(' or by ')}. This is an estimate: the limit differs by browser (see Settings, "Storage in this browser").</p>
+    <p style="margin:0 0 4px">The largest items stored:</p><ul style="margin:0 0 6px;padding-left:20px">${top}</ul>
+    <p style="margin:0 0 6px">Export your progress to keep a copy of it outside the browser. Nothing is deleted unless you choose to delete it.</p>
+    <div class="frow"><button class="btn" data-sw-export>Export progress</button>${copies && copies.length
+      ? `<button class="btn ghost" data-sw-delete>Delete the ${copies.length} cop${copies.length === 1 ? 'y' : 'ies'} kept by Import</button>` : ''}</div>
+  </div>`;
+}
+function wireStorageWarn(box, after){
+  box.querySelectorAll('[data-sw-export]').forEach(b => b.onclick = exportProgress);
+  box.querySelectorAll('[data-sw-delete]').forEach(b => b.onclick = () => { deleteCopies(); if(after) after(); });
+}
+/* Settings' section: the figures, how the warning point is set, and the warning. */
+function storageSection(){
+  const u = storageUse();
+  if(!u) return `<h3 id="storage">Storage in this browser</h3>
+  <div class="filters"><p class="meta" style="margin:0">This page cannot read the browser's storage, so how much it holds is not shown.</p></div>`;
+  const d = u.drill, kept = (DB.answers || []).length;
+  return `<h3 id="storage">Storage in this browser</h3>
+  <div class="filters" data-storage>
+    ${storageWarnHtml(u)}
+    <p style="margin:0 0 6px">This site (every drill at this web address) stores <b data-st="total">${nChars(u.total)}</b> characters in this browser:
+      <b data-st="pct">${pctOf(u.total)}</b> of ${nChars(STORE_LIMIT)}. About <span data-st="left">${nChars(Math.max(0, u.left))}</span> characters are left.</p>
+    <p style="margin:0 0 4px">${BUILD.preview ? 'This preview\'s part' : 'This drill\'s part'}:</p>
+    <ul style="margin:0 0 6px;padding-left:20px;font-size:14px">
+      <li>progress, every profile: <span data-st="progress">${nChars(d.progress)}</span> characters</li>
+      <li>answer history, every profile: <span data-st="history">${nChars(d.history)}</span> characters</li>
+      <li>${BUILD.preview ? 'the live drill (this page is its preview)' : 'preview copies'}: <span data-st="preview">${nChars(d.preview)}</span> characters</li>
+      <li>copies kept by Import: <span data-st="copies">${nChars(d.copies)}</span> characters, <span data-st="ncopies">${nChars(u.copies)}</span> cop${u.copies === 1 ? 'y' : 'ies'}${u.copiesUnread ? ` (${u.copiesUnread} list${u.copiesUnread === 1 ? '' : 's'} could not be read)` : ''}</li>
+      <li>records of each writing tab's last save (pending): <span data-st="pending">${nChars(d.pending)}</span> characters</li>
+      <li>other settings of this drill: <span data-st="other">${nChars(d.other)}</span> characters</li>
+    </ul>
+    <p style="margin:0 0 6px">The profile “${esc(PROFILE)}” keeps <span data-st="kept">${nChars(kept)}</span> answers (at most ${nChars(ANSWERS_MAX)}) of
+      <span data-st="qn">${nChars(DB.qn || 0)}</span> recorded in all. The answer history keeps the latest ${nChars(LOG_MAX)} entries.</p>
+    <p style="font-size:13.5px;color:var(--text-dim);margin:4px 0 0" data-st="how">
+      How the warning point is set: a warning shows here and in the Quiz tab when the space left is less than the larger of two amounts.
+      One is the size of the largest profile this browser holds for a drill on this engine (its progress plus its answer history), now
+      ${nChars(u.profileNeed)} characters: Import can put a file into a new profile of its own, which can need that much.
+      The other is what the first opening of a course's preview copies (every saved key of that course, for a course whose preview has
+      not been opened in this browser), now ${nChars(u.previewNeed)} characters. The warning point is therefore
+      ${nChars(STORE_LIMIT - u.need)} characters stored. It is worked out from what is stored, not from a fixed percentage.
+      Drills not on this engine count in the site's total only.</p>
+    <p style="font-size:13.5px;color:var(--text-dim);margin:6px 0 0" data-st="estimate">${ESTIMATE}</p>
+  </div>`;
+}
+/* The Quiz tab's warning: put first in the pane after each drawing of it (any renderer,
+   feature modules too), and only while the space left is short. */
+function quizStorageWarn(){
+  const el = document.getElementById('v-quiz'); if(!el) return;
+  const old = el.querySelector(':scope > [data-storage-warn]');
+  const html = storageWarnHtml();
+  if(!html){ if(old) old.remove(); return; }
+  const t = document.createElement('div'); t.innerHTML = html;
+  const box = t.firstElementChild;
+  // This guard stops a loop: inserting the box is itself a change to the pane, which runs
+  // this watcher again; without the comparison it would replace the box at every run and
+  // never stop (the review of #46, its broken copy M13, hung the page).
+  if(old && old.innerHTML === box.innerHTML) return;
+  if(old) old.replaceWith(box); else el.insertBefore(box, el.firstChild);
+  wireStorageWarn(box, quizStorageWarn);
+}
+
 /* Calendar days to the exam, from an optional ISO `when` on the active exam
    (`date` is the human string shown in the header). Counted as whole days
    rather than hours rounded up, so the morning of the exam says "today". */
@@ -2717,6 +2905,7 @@ function renderSettings(){
     ${backupNote()}
     <div id="importPlan"></div>
   </div>
+  ${storageSection()}
   ${homeCard()}
 
   <h3>Start over</h3>
@@ -2773,6 +2962,8 @@ function renderSettings(){
   if(rb) rb.onclick = restoreBackup;
   const dc = $('#btnDeleteCopies');
   if(dc) dc.onclick = deleteCopies;
+  const sw = $('#v-settings [data-storage-warn]');
+  if(sw) wireStorageWarn(sw);
   $('#btnReset').onclick = ()=>{
     if(!canSave()){ alert(LOAD_FAIL + ' Nothing was erased.'); return; }
     if(changedElsewhere()){ staleWarn(); alert(elsewhereShort() + ', so nothing was erased. Reload this page first.'); return; }
@@ -3066,6 +3257,15 @@ bootStep('keeping the place across a reload', () => {
   window.addEventListener('pagehide', gone);
 });
 
+/* The Quiz tab's storage warning follows every drawing of the pane, whichever code drew
+   it (quizStorageWarn). */
+bootStep('the storage warning in the Quiz tab', () => {
+  const el = document.getElementById('v-quiz');
+  if(!el || typeof MutationObserver === 'undefined') return;
+  new MutationObserver(() => { try { quizStorageWarn(); } catch(e){ console.error('The storage warning could not be drawn.', e); } })
+    .observe(el, {childList: true});
+  quizStorageWarn();
+});
 /* A running paper comes back first (restoreExam); otherwise the place saved
    before the reload, otherwise Topics. A paper or a place that cannot be
    brought back leaves the next one to open. */
