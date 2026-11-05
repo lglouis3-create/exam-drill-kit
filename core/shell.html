@@ -1387,10 +1387,47 @@ function load(){
    storage is full, that cut freed room, so the progress went on saving while the
    history shrank; now nothing is cut, so the progress stops saving sooner (both
    are kept on the page and in Export until it is closed or reloaded).
-   LOG_MAX, below, still drops the oldest entries past 20,000 with no notice,
-   pending Louis's decision. DB.answers stays as it was; the scheduler and Weak
+   LOG_MAX, below, is no longer a silent cut (Louis, 2026-11-05): past 20,000 entries the
+   page offers Export and lets the student remove the oldest entries, after a confirmation
+   that names how many and from when (capNotice, trimOldest). Until then nothing is removed
+   and new entries go on being added. DB.answers stays as it was; the scheduler and Weak
    spots read that, not this. */
 const LOG_MAX = 20000;
+/* The history is past LOG_MAX: a notice once per visit and profile ("Not now" hides it until the
+   next visit); Settings shows the same choice at any time. */
+const CAP_SHOWN = new Set();
+function capNotice(){
+  try {
+    if(!document.body){ document.addEventListener('DOMContentLoaded', capNotice, {once: true}); return; }
+    if(LOG.length <= LOG_MAX || CAP_SHOWN.has(PROFILE) || !canSave()) return;
+    CAP_SHOWN.add(PROFILE);
+    const old = document.getElementById('capwarn'); if(old) old.remove();
+    const d = document.createElement('div');
+    d.id = 'capwarn'; d.className = 'awaywarn'; d.setAttribute('role', 'status');
+    const t = document.createElement('span');
+    t.textContent = 'The answer history of "' + PROFILE + '" has ' + LOG.length.toLocaleString('en-US') + ' entries, more than ' + LOG_MAX.toLocaleString('en-US') + '. Nothing is removed unless you choose to; new answers go on being added. Export progress keeps them all in a file. ';
+    d.appendChild(t);
+    const b = (label, cls, fn) => { const x = document.createElement('button'); x.type = 'button'; x.className = 'btn' + (cls ? ' ' + cls : ''); x.textContent = label; x.onclick = fn; d.appendChild(x); return x; };
+    b('Export progress', '', () => { try { exportProgress(); } catch(e){ alert('The export did not work: ' + (e && e.message || e)); } }).id = 'capExport';
+    b('Remove the oldest entries…', 'ghost', () => { if(trimOldest()) d.remove(); }).id = 'capTrim';
+    b('Not now', 'ghost', () => d.remove()).id = 'capLater';
+    document.body.appendChild(d);
+  } catch(e){}
+}
+/* Removes the oldest entries down to LOG_MAX, only after a confirmation that names how many and
+   their dates. True when it removed them. */
+function trimOldest(){
+  const n = LOG.length - LOG_MAX;
+  if(n <= 0) return false;
+  // only the tab that writes this profile removes anything (#32's lock)
+  if(!canSave() || !mayWrite() || STALE){ alert('This profile is open in another tab or window of this browser, which saves it, so nothing was removed. Remove them there, or use "Use it here" first.'); return false; }
+  const day = e => { try { return new Date(e[0] * 1000).toISOString().slice(0, 10); } catch(err){ return '?'; } };
+  if(!confirm('Remove the oldest ' + n.toLocaleString('en-US') + ' entr' + (n === 1 ? 'y' : 'ies') + ' of the answer history of "' + PROFILE + '" from this browser (from ' + day(LOG[0]) + ' to ' + day(LOG[n - 1]) + ')? ' + LOG_MAX.toLocaleString('en-US') + ' entries stay. Export progress first if you want to keep them in a file. This cannot be undone.')) return false;
+  LOG.splice(0, n);
+  NEW_LOGS[PROFILE] = (NEW_LOGS[PROFILE] || []).filter(e => LOG.includes(e));
+  saveLog();
+  return true;
+}
 const logKey = () => NS + ':log:' + PROFILE;
 const cardCode = id => {
   let h = 0x811c9dc5;
@@ -1420,6 +1457,7 @@ function loadLog(){
   if(!raw) return;
   try { const v = JSON.parse(raw); if(!Array.isArray(v)) throw new Error('the stored history is not a list'); LOG = v; }
   catch(e){ LOG_OK = false; console.error('The saved answer history could not be loaded; it is not written during this visit.', e); }
+  setTimeout(capNotice, 0);   // past LOG_MAX: the choice is offered (Louis, 2026-11-05)
 }
 /* Through `store`: kept, SEEN_LOG follows it (seenAs); refused, every entry stays in memory,
    the key is marked refused, the notice shows once, and SEEN_LOG stays what is stored. */
@@ -1501,7 +1539,7 @@ function withNeverStored(stored, mine, known){
     else out.push(e);
   }
   out.sort((x, y) => x[0] - y[0]);   // stable: entries alike keep their order
-  return out.length > LOG_MAX ? out.slice(out.length - LOG_MAX) : out;
+  return out;   // no cut at LOG_MAX: the student decides (capNotice)
 }
 /* The history this page holds for profile p was not written because what is stored there
    changed in another tab or window since: once per profile, a notice says so and offers a
@@ -1540,8 +1578,8 @@ function logAnswer(q, result, mode, how){
             how.model || 'concept', how.arm || '', recall]);
   newLog().push(LOG[LOG.length - 1]);   // the same entry: a later "Not sure" changes it in both
   MARK = 0;                            // a new last answer places this tab's record from now on
-  if(LOG.length > LOG_MAX) LOG.splice(0, LOG.length - LOG_MAX);
   saveLog();
+  capNotice();
 }
 /* "Not sure" and "I guessed" come after the answer is logged; they change the
    confidence on that answer's entry. */
@@ -1569,8 +1607,8 @@ function mergeLog(entries){
     else if(e.length > mine.length) for(let i = mine.length; i < e.length; i++) mine.push(e[i]);
   }
   LOG.sort((x, y) => x[0] - y[0]);
-  if(LOG.length > LOG_MAX) LOG.splice(0, LOG.length - LOG_MAX);
   saveLog();
+  capNotice();
 }
 let saveTimer=null;
 function save(){

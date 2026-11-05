@@ -824,7 +824,7 @@ function mergedLog(base, entries){
     else if(e.length > mine.length) for(let i = mine.length; i < e.length; i++) mine.push(e[i]);
   }
   out.sort((x, y) => x[0] - y[0]);
-  return out.length > LOG_MAX ? out.slice(out.length - LOG_MAX) : out;
+  return out;   // no cut at LOG_MAX: the student decides (capNotice)
 }
 /* Carry out a plan. Every write is one the browser either keeps or refuses
    (store.trySet), and a refused one leaves what it would have replaced as it was. */
@@ -1183,7 +1183,7 @@ function storageSection(){
       <li>other settings of this drill: <span data-st="other">${nChars(d.other)}</span> characters</li>
     </ul>
     <p style="margin:0 0 6px">The profile “${esc(PROFILE)}” keeps <span data-st="kept">${nChars(kept)}</span> answers (at most ${nChars(ANSWERS_MAX)}) of
-      <span data-st="qn">${nChars(DB.qn || 0)}</span> recorded in all. The answer history keeps the latest ${nChars(LOG_MAX)} entries.</p>
+      <span data-st="qn">${nChars(DB.qn || 0)}</span> recorded in all. The answer history has ${nChars(LOG.length)} entries${LOG.length > LOG_MAX ? `, more than ${nChars(LOG_MAX)}: nothing is removed unless you choose to <button class="btn ghost" id="btnCapTrim" type="button">Remove the oldest ${nChars(LOG.length - LOG_MAX)}…</button>` : ''}.</p>
     <p style="font-size:13.5px;color:var(--text-dim);margin:4px 0 0" data-st="how">
       How the warning point is set: a warning shows here and in the Quiz tab when the space left is less than the larger of two amounts.
       One is the size of the largest profile this browser holds for a drill on this engine (its progress plus its answer history), now
@@ -2962,6 +2962,7 @@ function renderSettings(){
   if(rb) rb.onclick = restoreBackup;
   const dc = $('#btnDeleteCopies');
   if(dc) dc.onclick = deleteCopies;
+  const ct = $('#btnCapTrim'); if(ct) ct.onclick = () => { if(trimOldest()){ const w = document.getElementById('capwarn'); if(w) w.remove(); renderSettings(); } };
   const sw = $('#v-settings [data-storage-warn]');
   if(sw) wireStorageWarn(sw);
   $('#btnReset').onclick = ()=>{
