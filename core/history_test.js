@@ -476,6 +476,30 @@ const next = p => p.evaluate(() => { const b = document.getElementById('btnNext'
     await c9.close();
   }
   {
+    // A profile switched away from with both its progress and its history refused: once there is room,
+    // its progress is written first and then its history, never its history alone (the review of
+    // c2b0238, M1: the history was written and the progress never tried again)
+    const KEYS = () => {
+      const set = Storage.prototype.setItem;
+      Storage.prototype.setItem = function(k, v){ if(window.__refuse && window.__refuse.includes(k)) throw new DOMException('The quota has been exceeded.', 'QuotaExceededError'); return set.call(this, k, v); };
+    };
+    const {ctx: c11, page: o, errors: e11} = await L.openFile(browser, {}, KEYS);
+    await o.waitForFunction(() => typeof WRITER === 'undefined' || WRITER === 'held' || WRITER === 'none', null, {timeout: 8000}).catch(() => {});
+    const me = await o.evaluate(() => { record(QUESTIONS[0], 'correct', 0, 4000); saveNow();
+      window.__refuse = [keyFor(PROFILE), logKey()]; record(QUESTIONS[1], 'correct', 0, 4000); saveNow();
+      return {p: PROFILE, dk: keyFor(PROFILE), lk: logKey(), refused: FAILED.has(keyFor(PROFILE)) && FAILED.has(logKey())}; });
+    await o.evaluate(() => { let n = 0; window.__realConfirm = window.confirm; window.confirm = () => n++ > 0; useProfile('other-two'); window.confirm = window.__realConfirm; });
+    await o.waitForFunction(() => PROFILE === 'other-two' && (WRITER === 'held' || WRITER === 'none'), null, {timeout: 6000}).catch(() => {});
+    await o.evaluate(() => { window.__refuse = null; record(QUESTIONS[2], 'correct', 0, 4000); saveNow(); });
+    await o.waitForTimeout(800);
+    const st = await o.evaluate(m => ({on: PROFILE, prog: JSON.parse(localStorage.getItem(m.dk) || '{"answers":[]}').answers.length,
+      log: JSON.parse(localStorage.getItem(m.lk) || '[]').length, failedData: FAILED.has(m.dk), failedLog: FAILED.has(m.lk)}), me);
+    check(me.refused && st.on === 'other-two' && st.prog === 2 && st.log === 2 && !st.failedData && !st.failedLog,
+      'a profile switched away from with progress and history refused: with room again, its progress is written, then its history', st);
+    check(!e11.length, 'away progress first: no page errors', e11.slice(0, 2).join('; '));
+    await c11.close();
+  }
+  {
     // A refused progress write is tried once more after this tab's own record, proven stored, is
     // removed: room for a history entry but not for the progress save, which the record's room makes.
     const ORIGIN2 = () => {

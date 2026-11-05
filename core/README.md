@@ -487,7 +487,10 @@ cuts nothing; instead:
 - while this profile's progress write is refused, the history is not written either (`saveLog`):
   it is held as a refused write (in memory, named in the notice, in Export, counted as unsaved) and
   written after the next progress save the browser keeps; the retry of other profiles' history
-  waits too (`retryLog`). So history cannot take the room the next progress save needs; at most the
+  waits too (`retryLog`). A profile switched away from with its progress refused has its progress
+  retried first, under the same rule as its history (no tab holds that profile, and what is stored
+  there is what this page last knew), and its history only once that progress is stored (the
+  independent review of c2b0238, M1: its history was written and its progress never tried again). So history cannot take the room the next progress save needs; at most the
   entry of the answer whose own progress write was the first refused is stored ahead of it (it is
   written when that answer is given, 150 ms before its progress save);
 - this tab's own per-tab record (#45, about the size of the progress) is removed when the browser
@@ -502,7 +505,7 @@ storage allowed a fixed number of characters more:
 | Room | Core | Progress stored | History stored | Only on the page and in Export | History deleted |
 |---|---|---|---|---|---|
 | 8,000 | `25c643d` (main) | 41 of 41 | 171 | none | 170, with no notice |
-| 8,000 | #47 merged with #45, before this | 18 | 318 of 341 | 23 answers, 23 entries | none |
+| 8,000 | #47 merged with #45, before this | 18 (17 in the reviewer's run) | 318 of 341 (317) | 23 answers, 23 entries (24, 24) | none |
 | 8,000 | this core | 41 | 341 of 341 | none | none |
 | 3,000 | `25c643d` (main) | 41 | 184 | none | 157, with no notice |
 | 3,000 | #47 merged with #45, before this | 6 | 308 of 341 | 35 answers, 33 entries | none |
@@ -513,7 +516,10 @@ With less room the old core still keeps more progress, because it deletes histor
 
 **Cuts that stay.** The answers a progress keeps past 4,000 (`ANSWERS_MAX`) and the history
 entries past 20,000 (`LOG_MAX`). `LOG_MAX` still drops the oldest entries with no notice and no
-copy, pending Louis's decision (#47's review, M3; the options are in the pull request).
+copy, pending Louis's decision (#47's review, M3). The options, written in pull request #47's
+description: an explicit choice at the cap (recommended: no silent cut; at 20,000 entries a notice
+offers Export and a button that removes the oldest entries only after a confirmation), no cap, or
+the silent cut as now.
 
 **Checks.** `history_test.js` ("The browser refuses to save the history") stores 300 entries
 and makes the browser refuse a history longer than those (and, in one part, any write once the

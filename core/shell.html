@@ -1418,16 +1418,26 @@ function saveLog(){
 function retryLog(){
   if(FAILED.has(keyFor(PROFILE))) return;   // study progress first: nothing else is written while it is refused
   if(FAILED.has(logKey())) saveLog();
-  const pre = NS + ':log:';
-  for(const k of [...FAILED]) if(k.startsWith(pre) && k !== logKey()) retryAwayLog(k, k.slice(pre.length));
+  // the profiles switched away from with a refused write: their progress first, then their history
+  const away = new Set();
+  for(const k of FAILED) for(const pre of [NS + ':data:', NS + ':log:']) if(k.startsWith(pre) && k.slice(pre.length) !== PROFILE) away.add(k.slice(pre.length));
+  for(const p of away) retryAwayLog(NS + ':log:' + p, p);
 }
 function retryAwayLog(k, p){
+  const dk = NS + ':data:' + p;
   const write = () => {
-    if(!FAILED.has(k) || p === PROFILE) return;   // written meanwhile, or the profile is open again (saveLog writes it)
+    if(p === PROFILE) return;   // the profile is open again (save and saveLog write it)
     // written only over what this page last knew stored there (KEPT): this page's copy is that plus its
     // own entries, so it is written as it is. Changed since (another tab saved or erased that history),
     // nothing is written or merged (#47's re-review, N1: a merge undid another tab's Erase); it stays
-    // refused, in memory, and a notice offers its export
+    // refused, in memory, and a notice offers its export. The progress goes first, under the same
+    // rule; while it is refused, that profile's history is not written either (study progress first;
+    // the review of c2b0238, M1)
+    if(FAILED.has(dk)){
+      if(storedNow(dk) !== (dk in KEPT ? KEPT[dk] : null)){ awayChanged(k, p); return; }
+      if(!store.set(dk, MEM[dk])) return;
+    }
+    if(!FAILED.has(k)) return;   // written meanwhile
     const now = storedNow(k), known = k in KEPT ? KEPT[k] : null;
     if(now !== known){ awayChanged(k, p); return; }
     store.set(k, MEM[k]);
@@ -1474,14 +1484,14 @@ function awayChanged(k, p){
   AWAY_WARNED.add(k);
   const d = document.createElement('div');
   d.className = 'awaywarn'; d.setAttribute('role', 'alert');
-  d.textContent = 'This browser did not save part of the answer history of "' + p + '", and that history was changed in another tab or window since, so this page has not written it. It is kept on this page until it is closed or reloaded. The other tab may have erased that history: importing this file into "' + p + '" brings those entries back. ';
+  d.textContent = 'This browser did not save part of the ' + (FAILED.has(NS + ':data:' + p) ? 'progress or ' : '') + 'answer history of "' + p + '", and it was changed in another tab or window since, so this page has not written it. It is kept on this page until it is closed or reloaded. The other tab may have erased that history: importing this file into "' + p + '" brings those entries back. ';
   const ex = document.createElement('button'); ex.type = 'button'; ex.className = 'btn'; ex.textContent = 'Export it';
   ex.onclick = () => {
     try {
       let db = null;
       try { const raw = FAILED.has(NS + ':data:' + p) ? MEM[NS + ':data:' + p] : storedNow(NS + ':data:' + p); db = raw ? JSON.parse(raw) : null; } catch(e){ db = null; }
       const blob = new Blob([JSON.stringify({app: 'exam-drill', course: COURSE.id, ns: NS, exported: new Date().toISOString(),
-        profile: p, db: db || BLANK(), log: JSON.parse(MEM[k])}, null, 1)], {type: 'application/json'});
+        profile: p, db: db || BLANK(), log: JSON.parse(MEM[k] !== undefined ? MEM[k] : (storedNow(k) || '[]'))}, null, 1)], {type: 'application/json'});
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
       a.download = `${COURSE.id}-progress-${p.replace(/\W+/g, '_')}.json`;
