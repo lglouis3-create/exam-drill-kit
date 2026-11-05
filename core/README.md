@@ -541,12 +541,28 @@ With less room the old core still keeps more progress, because it deletes histor
   the system closes, for example a phone ending a tab in the background, gets no question, and what
   was not saved or exported is lost.
 
-**Cuts that stay.** The answers a progress keeps past 4,000 (`ANSWERS_MAX`) and the history
-entries past 20,000 (`LOG_MAX`). `LOG_MAX` still drops the oldest entries with no notice and no
-copy, pending Louis's decision (#47's review, M3). The options, written in pull request #47's
-description: an explicit choice at the cap (recommended: no silent cut; at 20,000 entries a notice
-offers Export and a button that removes the oldest entries only after a confirmation), no cap, or
-the silent cut as now.
+**Cuts.** The answers a progress keeps past 4,000 (`ANSWERS_MAX`) are still cut, as before.
+The answer history is no longer cut at 20,000 entries (`LOG_MAX`; Louis, 2026-11-05):
+- past 20,000 entries a notice gives the count, says nothing is removed unless the student
+  chooses, and offers **Export progress**, **Remove the oldest entries…** and **Not now**
+  (`capNotice`; once per visit and profile; after any history write past the cap, an Import's
+  too, and on opening a profile already past it; only in the tab that writes the profile; at the
+  top of the screen, so it never covers the storage notice at the bottom);
+- **Remove the oldest entries** asks first: the question names how many entries go (the number
+  past 20,000) and the dates of the first and last of them (this device's calendar), says 20,000
+  stay and that it cannot be undone; only OK removes them (`trimOldest`). It refuses, before and
+  after the question, when another tab has the profile or saved it since. The shorter history is
+  written even while a progress write is refused: it takes no room and frees some, and the
+  progress is tried first with that room. If the browser still refuses it, the page says so. This
+  tab's per-tab record keeps every entry not removed. Settings shows the history's size and the same
+  button whenever it is past 20,000;
+- while the decision waits, new answers go on adding entries and nothing is removed: in storage, on
+  the page and in Export. If storage then fills, the refused-history rules above apply (held,
+  named in the notice, in Export);
+- only the tab that writes the profile removes anything; another tab's button says so and removes
+  nothing; Import's merge no longer cuts either.
+At 86.249 characters per entry (`review/storage-usage-proposal.md`), 20,000 entries are 1,724,980
+characters, about a third of the 5,242,880 a Chromium origin stores. `cap_test.js` checks it.
 
 **Checks.** `history_test.js` ("The browser refuses to save the history") stores 300 entries
 and makes the browser refuse a history longer than those (and, in one part, any write once the
@@ -637,8 +653,8 @@ What this does not cover (the independent review of 4b3b94c; Chromium only):
   - an Import that only adds history entries writes no progress, so it is not in the record;
   - a "Not sure" whose save was written over keeps the stored confidence (history entries are
     matched without it);
-  - the history merge is not cut to 20,000 entries; the next answer's save cuts it, as the
-    `LOG_MAX` rule does (that rule waits for Louis's decision in #47);
+  - the history merge is not cut at 20,000 entries, and nothing else cuts it: past 20,000 the
+    student chooses (`capNotice`, "Cuts" above);
   - a record that was never shown to be stored and was then handled at an Erase, Put back,
     replacing Import or Delete the copies (for example, because its copy write was refused)
     stays; its answers are in storage but not on screen or in Export, so the student cannot
