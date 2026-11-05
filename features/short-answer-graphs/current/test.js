@@ -383,8 +383,25 @@ const build = (label, own, opts) => L.scratchBuild(label, {files: fixtureFiles(o
       const fresh = await saPage();
       check(await pev(() => PROFILE === 'Fresh' && !DB.sa) && fresh.text === '' && fresh.head === '0 checked', 'a new profile starts with no saved short answers', fresh);
       await pev(() => show('settings'));
-      await pp.setInputFiles('#fileIn', ef); await wait(600);
-      check(await pev(() => JSON.stringify(DB.sa)) === snap, 'Import progress into the new profile brings back the same short answers');
+      // Import as a student does it since kit #32: choose the file, read the plan, press its
+      // Import button, wait for the outcome (core/import_test.js lines 1332-1336)
+      const importFile = async f => {
+        await pp.setInputFiles('#fileIn', f);
+        await pp.waitForFunction(() => { const b = document.getElementById('importPlan'); return b && b.textContent.trim(); }, null, {timeout: 5000}).catch(() => {});
+        const plan = await pev(() => { const g = document.getElementById('importGo'), w = document.getElementById('importWhat');
+          return {go: g ? g.textContent.trim() : null, what: w ? w.textContent.replace(/\s+/g, ' ').trim() : ''}; });
+        await pev(() => { const g = document.getElementById('importGo'); if(g) g.click(); });
+        await pp.waitForSelector('#importResult', {timeout: 3000}).catch(() => {});
+        plan.result = await pev(() => { const r = document.getElementById('importResult'); return r ? r.textContent.replace(/\s+/g, ' ').trim() : null; });
+        return plan;
+      };
+      // "Fresh" holds no progress, so under #32 the file replaces it: the plan offers "Import"
+      // (not "Import into a new profile"), says this profile has no progress yet, and the
+      // student is still in "Fresh" with the module's part and the answers back
+      const plan = await importFile(ef);
+      check(plan.go === 'Import' && /has no progress yet/.test(plan.what) && !!plan.result &&
+            await pev(n => PROFILE === 'Fresh' && DB.answers.length === n, big.answers) && await pev(() => JSON.stringify(DB.sa)) === snap,
+            'Import progress into the new profile brings back the same short answers', plan);
       check(JSON.stringify(await cards()) === JSON.stringify(cards0), 'and the figure cards show the same counts as in the profile exported');
       await wait(300);
 
