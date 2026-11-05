@@ -33,7 +33,7 @@ that course's repository. Both folders come from the recovered exam-drill templa
 | `sw.js` | core | the service worker; `build.py` fills in the course's cache prefix and file list and writes it to the root |
 | `offline_test.js` | core | the offline copy: other sites' caches kept, server down (connections refused), server slow |
 | `home_test.js` | core | the Home Screen card for each kind of browser: a closed section in Settings, nothing on Topics |
-| `history_test.js` | core | the answer history: its fields, Export, Import, Erase, a refused write |
+| `history_test.js` | core | the answer history: its fields, Export, Import, Erase; a refused write keeps every entry, shows the notice, is in Export, counts as unsaved on the stop wall and in "Use it here", asks before a switch, and is written by the next save the browser keeps, also for a profile switched away from; the whole site's storage full |
 | `import_test.js` | core | Import progress: files of another course or app, files that name no course, and damaged files refused; older files converted; a file replaces this profile only when it continues it or this profile holds no progress, after a confirmed plan, with a copy to put back; conflicting copies of one answer, another origin, a cut answer list, answers out of order, and matching or empty answer lists with other concept progress, settings, scheduling state or module part go into a new profile; repeats change nothing and make no second profile; Put back and refused reads and writes leave both records stored |
 | `storage_use_test.js` | core | Settings' storage figures (the site's total against 5,242,880, this drill's progress, history, preview copies and copies kept by Import, the answers kept and recorded) and the warning in Settings and the Quiz tab (its Export and Delete buttons in each), absent when the space left equals the need and present one character below it, for each of the two needs; the estimate wording; Delete the copies only after a confirm; the pending records' own line; another drill named by its namespace; on a preview build, the copies counted are the ones its button deletes |
 | `preview_test.js` | core | `build.py --preview`: the live site unchanged, the preview's own namespace |
@@ -228,7 +228,8 @@ and `ns` comes from `course.js` and never changes during a course. When the brow
 refuses a write (quota full, private window, blocked site data), that key is served
 from memory for the rest of the visit, and the first refusal shows one notice that
 points to Settings → Export progress. A later write that succeeds clears the key's
-failure. Switching profile writes any save still waiting on its timer first.
+failure. Switching profile writes any save still waiting on its timer first. The answer
+history is written through `store` too (since 2026-11-04; "Answer history" below).
 
 **Storage use in Settings, and its warning** (`views.js` `storageUse`, `storageSection`,
 `storageWarnHtml`, `quizStorageWarn`; `review/storage-usage-proposal.md` §3 items 1 and 2,
@@ -324,7 +325,7 @@ and say so (design choice: a student with an export file can switch to another p
 name and import it there). Switching to a profile whose progress loads takes the notice
 away, and that profile saves as usual. A stored answer history that cannot be read (not
 valid JSON, or not a list) is never written over either; progress still saves, and no
-notice is shown for it, as for a refused history write. Erase my history replaces it.
+notice is shown for it (nothing is written, so nothing is refused). Erase my history replaces it.
 
 **Each later step on its own.** Every start-up step after the load runs in `bootStep`: the
 page title, the tab buttons, the Atlas and Diagrams tabs, the Home Screen section's
@@ -424,9 +425,138 @@ four (`[seconds, card code, 1/0, mode]`) are the first four here. Export progres
 the progress and the history into one file, labelled with the course (`course`, `ns`).
 Import progress merges the history without duplicating an answer (an entry here in the
 older seven-field format gains the last three from an imported copy of the same answer)
-and handles the progress as "Import progress" below says. Erase my history clears both. When the browser refuses to save the history, the oldest half is
-dropped and no notice is shown, so the history never stops progress from saving. No
+and handles the progress as "Import progress" below says. Erase my history clears both. No
 scheduler reads the history; the progress (`DB`) holds what they schedule from.
+
+**A refused history write** (Louis, 2026-11-04: "Replace silent history deletion on a failed
+save with clear feedback and a way to preserve or export the affected work. Keep backups
+until I explicitly delete them."). `saveLog` writes through `store`, as the progress does,
+so when the browser refuses the write:
+- every entry stays in memory (`MEM`); nothing is dropped;
+- the key is marked refused (`FAILED`) and the "did not save" notice shows (`saveWarn`),
+  naming the answer history ("did not save your progress or answer history") and pointing
+  to Export progress, whose file holds every entry (`LOG`). It shows once while writes are
+  refused; a refusal after every refused key was written again shows it again;
+- what is stored as this page last knew it (`SEEN_LOG`, through `seenAs`) stays as it was, so
+  the page's own next write is not taken for another tab's save and stops nothing;
+- the next history write (the next answer or confidence button) tries again, and so does the
+  next progress save (`retryLog`); the first one the browser keeps writes every entry;
+- a profile opened again in the same visit (switched away and back) opens the unsaved
+  history, with `SEEN_LOG` from `KEPT`, as `load()` does for the progress;
+- switching to another profile first tries the refused writes once more; if the progress or
+  history is still refused, the page asks whether to export that profile first, then whether
+  to switch (Cancel stays). After the switch, every later progress save also tries the history
+  of each profile switched away from (`retryAwayLog`), so a reload after the browser has room
+  again no longer loses it (#47's review, M1). It is written only when no tab of this browser
+  holds that profile's writer lock (`navigator.locks.query`; taking the lock itself made a
+  switch back to that profile, at that moment, open read-only), and only when what is stored
+  there is still what this page last knew (`KEPT`): then this page's copy is that plus its own
+  entries and is written as it is. When another tab or window saved or erased that history
+  since, nothing is written or merged (a merge undid another tab's Erase, and made two
+  answers to one question in one second into one: #47's re-review, N1 and N2); the entries
+  stay refused, in memory, and a notice says so once, says the other tab may have erased that
+  history and that importing the file into that profile brings those entries back, and offers
+  "Export it" (a file for that profile: its stored progress and this page's history). A tab that opens that
+  profile in the moment between the lock query and the write either reads the written value
+  or, having read before it, stops with the "saved in another tab" wall at its first save;
+  nothing is lost either way;
+- the page counts it as unsaved (`unsavedHere`, now `progUnsavedHere` or `logUnsavedHere`):
+  a stop wall offers "Export this page's progress". "Use it here" adds the entries to the stored
+  history when only history entries are unsaved (the progress is as stored), so no copy of the
+  progress is made that Put back could roll the progress back to. With the stored history still
+  what this page last knew, this page's history is written as it is; changed by the other tab,
+  this page's entries that were never stored are added to it, counted (`withNeverStored`: the
+  same entry twice stays twice; compared on every field but the confidence, index 5, which "Not
+  sure" and "I guessed" change after the answer; an entry stored before whose confidence this
+  page changed since gets this page's confidence, and one it did not change keeps what is
+  stored; an entry this page never stored that the stored history already holds, because the
+  other tab placed this tab's per-tab record, is counted, not added again; two different tabs
+  answering one question in the same second with the same result would be counted as one). When the progress is unsaved
+  too, or the browser refuses that history write, it keeps them in the copy it makes (field
+  `log`), when the browser has room for the copy (otherwise it does not take the profile, as
+  before).
+
+A reload or a closed tab still loses what was not stored, as for refused progress; the notice
+says so. Before 2026-11-04 `saveLog` wrote past `store` and, refused, dropped the oldest half
+of the history and tried again, with no notice (`review/storage-usage-proposal.md` §2).
+
+**Study progress first** (Louis, 2026-11-05: "Evaluate preserving study progress first while
+explicitly surfacing and offering export for any history that cannot be saved"). The old core went
+on saving the progress, when the whole site's storage was full, by cutting the history. This core
+cuts nothing; instead:
+- while this profile's progress write is refused, the history is not written either (`saveLog`):
+  it is held as a refused write (in memory, named in the notice, in Export, counted as unsaved) and
+  written after the next progress save the browser keeps; the retry of other profiles' history
+  waits too (`retryLog`). A profile switched away from with its progress refused has its progress
+  retried first, under the same rule as its history (no tab holds that profile, and what is stored
+  there is what this page last knew), and its history only once that progress is stored (the
+  independent review of c2b0238, M1: its history was written and its progress never tried again). So history cannot take the room the next progress save needs; at most the
+  entry of the answer whose own progress write was the first refused is stored ahead of it (it is
+  written when that answer is given, 150 ms before its progress save);
+- this tab's own per-tab record (#45, about the size of the progress) is removed when the browser
+  refuses to write it, or refuses a progress write, and what is stored, read back, holds all of it
+  (`dropOwnRecordIfStored`, the cleanup rule's proof); a refused progress write is then tried once
+  more (`saveProgress`). Under storage pressure this tab then has no record, so a close without a
+  hand-over can again lose its last save to the next tab (#45's case) until there is room.
+Measured on the template scratch course with `review/storage-measure/quota_repro.js` (run from a
+built course's `src/`; Chromium, 2026-11-05): 300 history entries stored, then 41 answers with the whole site's
+storage allowed a fixed number of characters more:
+
+| Room | Core | Progress stored | History stored | Only on the page and in Export | History deleted |
+|---|---|---|---|---|---|
+| 8,000 | `25c643d` (main) | 41 of 41 | 171 | none | 170, with no notice |
+| 8,000 | #47 merged with #45, before this | 18 (17 in the reviewer's run) | 318 of 341 (317) | 23 answers, 23 entries (24, 24) | none |
+| 8,000 | this core | 41 | 341 of 341 | none | none |
+| 3,000 | `25c643d` (main) | 41 | 184 | none | 157, with no notice |
+| 3,000 | #47 merged with #45, before this | 6 | 308 of 341 | 35 answers, 33 entries | none |
+| 3,000 | this core | 14 | 315 of 341 | 27 answers, 26 entries | none |
+
+With less room the old core still keeps more progress, because it deletes history to make room;
+`history_test.js` with 1,200 characters more stores the progress of 2 or 3 of 7 answers.
+
+**What the student sees with storage full, and what each action does** (Louis, 2026-11-05;
+`history_test.js` "Storage full, what the student sees and can do"):
+- **The first refused save** shows the "did not save" notice at once. It says the work is kept on
+  this page, that closing or reloading it loses it, and that Export keeps it, and it has an
+  **Export progress** button. The file holds every answer and every history entry on the page.
+- **The per-tab record.** When this tab cannot keep its record (#45) because storage is full, the
+  notice says so: "While storage is full, this tab cannot keep the record that protects its last
+  save when it closes without handing over to another open tab of this drill." It is shown even when
+  the progress itself was saved, and it goes once a record is written again (`recordOff`).
+- **Another profile's refused work.** Work refused for a profile this page switched away from is
+  only on this page until a later save stores it. It counts as at risk too (`atRiskAll`). The
+  notice says another profile's work is not saved and has an **Export "<profile>"** button for
+  each such profile (`exportAway`: the progress and history this page holds for it), and so does
+  the stop wall (the review of b3c9bbe, M1).
+- **In-app actions:**
+  - **Switching profile** tries the refused writes once more, then asks and offers the export.
+  - **The stop wall's Reload** and **the new-version bar's Reload** both ask first while work that is
+    not saved is not exported. The new-version bar asked only on a stopped page before; it now asks
+    when writes are refused too.
+- **Closing the browser tab, or leaving the page.** While writes are refused and that work is not
+  exported, the page asks the browser for its own "leave this page?" question (`beforeunload`; the
+  wording is the browser's). Chromium shows it; `history_test.js` checks it there. Once everything is
+  exported, closing asks nothing. WebKit's close in the checks does not finish with this question
+  (#39), so it is not checked there. Whether Safari on an iPhone or iPad shows it is NOT RUN. A tab
+  the system closes, for example a phone ending a tab in the background, gets no question, and what
+  was not saved or exported is lost.
+
+**Cuts that stay.** The answers a progress keeps past 4,000 (`ANSWERS_MAX`) and the history
+entries past 20,000 (`LOG_MAX`). `LOG_MAX` still drops the oldest entries with no notice and no
+copy, pending Louis's decision (#47's review, M3). The options, written in pull request #47's
+description: an explicit choice at the cap (recommended: no silent cut; at 20,000 entries a notice
+offers Export and a button that removes the oldest entries only after a confirmation), no cap, or
+the silent cut as now.
+
+**Checks.** `history_test.js` ("The browser refuses to save the history") stores 300 entries
+and makes the browser refuse a history longer than those (and, in one part, any write once the
+whole site holds 1,200 characters more). It replaces the check that a refused write showed no
+notice. Every one of its checks of this behaviour fails on the `5b19b94` core, on the `3b6e0d7`
+core (the first version of this change), or on a copy of this change with one part broken (the
+change's report lists which). One clause has no check: `FAILED.has(logKey())`
+in `logUnsavedHere`. In every state tried, a refused history write also leaves `LOG` different
+from `SEEN_LOG`, so the comparison after it already counts it, and removing the clause changes
+no result.
 
 **Import progress** (Louis's rules of 2026-11-02, corrected twice on 2026-11-03;
 `views.js` `readProgressFile`, `addsTo`, `holdsProgress`, `importPlan`, `continuesHere`,
@@ -529,8 +659,10 @@ What this does not cover (the independent review of 4b3b94c; Chromium only):
   reloaded.
 - After a take-over, what the old tab had not saved exists only in that tab. It offers the
   export; "Use it here" there keeps that progress, with the history entries it had not stored,
-  as one more copy Import keeps (Put back restores the progress and adds those entries to the
-  history; if that history write is refused, the copy stays on the list) before it
+  as one more copy Import keeps, when the browser has room for the copy (Put back restores the
+  progress and adds those entries to the history; if that history write is refused, the copy
+  stays on the list); when only history entries are unsaved, it adds them to the stored history
+  instead ("A refused history write" above), before it
   opens the stored progress, and refuses to take the profile if the browser refuses that copy.
   Switch, Reload and the new-version bar's Reload ask first while that work has changed since
   its last export. A tab the system closes while asleep loses it, as any unsaved answer.
@@ -603,7 +735,7 @@ stays on the page, flagged as not saved, and nothing is imported.
 
 The same check guards every ordinary save, not only Import's: a page whose profile
 another tab or window has saved since (its progress or its answer history, `SEEN` and
-`SEEN_LOG`, kept by every write through `store` and by `saveLog`) stops saving both and
+`SEEN_LOG`, kept by every write through `store` that the browser keeps, `saveLog`'s included) stops saving both and
 shows a notice with a Reload button and a pointer to Export progress (`staleWarn`).
 Before 2026-11-03 the older page's next save wrote its copy over the newer one, which
 could undo an import. Import, Erase my history, Put back, Delete the copies and the

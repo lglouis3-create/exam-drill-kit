@@ -2,6 +2,11 @@
 
 Dated kit changes, newest first.
 
+## 2026-11-05
+- Study progress first when storage is full: while a progress write is refused, the answer history is held (on the page, named in the notice, in Export) and written after the next progress save; this tab's own per-tab record, proven stored, is removed to make room and the progress write tried once more.
+- "Use it here" with only history unsaved no longer stores an entry twice when the other tab already placed this tab's per-tab record.
+- With storage full: the notice has an Export progress button and says when this tab's per-tab record is off; the new-version bar's Reload asks first when writes are refused; closing the tab while refused work is not exported gets the browser's leave question.
+
 ## 2026-11-04
 - Settings shows how much this site stores in this browser (every drill, in characters, against 5,242,880), this drill's part (progress, history, preview copies, copies kept by Import and their number) and this profile's answers kept and recorded.
 - A warning in the Quiz tab and in Settings when the space left is less than one more profile of the largest size here, or a first preview of a course here, would need; it names the largest items and offers Export progress and Delete the copies kept by Import. Nothing is deleted automatically. The page says the figures are an estimate and the limit differs by browser.
@@ -9,6 +14,10 @@ Dated kit changes, newest first.
 - Storage in Settings: the Chromium limit is given as measured exactly (5,242,880 characters, UTF-16 units, per origin); each writing tab's pending records have a line of their own; another drill's items name its namespace; a preview page counts and deletes the same copies.
 - A profile switch away and straight back no longer leaves the page read-only behind the "open in another tab" wall.
 - A tab that closes or reloads without handing over its profile no longer loses its last save to the next tab: each writing tab keeps that save in a record only it writes; the next tab starts from it, or keeps it as a copy (Put back) when it has saved since. Records are removed only after they are read back as stored and 60 s have passed.
+- A history write the browser refuses no longer deletes the oldest half of the answer history: every entry is kept on the page, the "did not save" notice names the answer history and points to Export progress (whose file holds them), the page counts them as unsaved (the stop wall's export; "Use it here" adds them to the saved history, or keeps them in its copy), and the next save the browser keeps writes them all (for a profile switched away from, once no tab holds that profile; Louis, 2026-11-04).
+- Switching profile with progress or history the browser refused asks first and offers the export; the history of a profile switched away from is written by a later save once the browser has room and no tab holds that profile, and only if no other tab changed that history meanwhile (otherwise a notice offers its export).
+- The "did not save" notice shows again for a refusal after everything refused had been saved.
+- With the whole site's storage full, progress now stops saving sooner than before, because the history is no longer cut to make room (for Louis to decide; `core/README.md`).
 
 ## 2026-11-03
 - Import progress shows what a file holds and would change, and saves only when confirmed.

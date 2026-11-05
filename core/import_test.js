@@ -1753,6 +1753,15 @@ let nfile = 0;
   }
 
   console.log('\n=== A writer that leaves without handing over: its last save in a key only it writes ===');
+  // the take-over finished before the test answers there (a precondition, its own check): in WebKit a
+  // take-over has taken longer than 9 s, and an answer recorded before it finished is replaced by the
+  // stored progress the take-over opens (the page is under the "asking" wall then, so a student cannot)
+  const tookOver = async (t, what) => {
+    await t.waitForFunction(() => WRITER === 'held', null, {timeout: 20000}).catch(() => {});
+    const w = await t.evaluate(() => WRITER);
+    if(w !== 'held') check(false, 'precondition: the take-over finished (' + what + ')', w);
+    return w === 'held';
+  };
   const keptAnywhere = async (p, di, at) => {                   // in the stored progress or in a kept copy
     const prog = JSON.parse(await stored(p, di.data) || '{"answers":[]}');
     const copies = JSON.parse(await stored(p, di.backup) || '[]');
@@ -1775,7 +1784,7 @@ let nfile = 0;
     // the leaving tab's record arrives (it is not held back): the next writer starts from it
     const {d, di, t2, last} = await leaveWithoutHandOver(false);
     await t2.evaluate(() => takeOver(false));
-    await t2.waitForFunction(() => WRITER === 'held', null, {timeout: 9000}).catch(() => {});
+    await tookOver(t2, 'section A, take-over 1');
     const mine = await answerHere(t2, 7);
     await unlag(t2);
     await t2.waitForTimeout(300);
@@ -1787,7 +1796,7 @@ let nfile = 0;
     // the record arrives only after the next tab has answered: the record is kept as a copy, not mixed in
     const {d, di, t2, last, pk} = await leaveWithoutHandOver(true);
     await t2.evaluate(() => takeOver(false));
-    await t2.waitForFunction(() => WRITER === 'held', null, {timeout: 9000}).catch(() => {});
+    await tookOver(t2, 'section A, take-over 2');
     const mine = await answerHere(t2, 7);
     await unlag(t2);
     await t2.evaluate(() => { if(typeof settlePending === 'function') settlePending(); });   // as the storage event does
@@ -1996,7 +2005,7 @@ let nfile = 0;
     const last = await answerHere(d.page, 3);                          // X's last answer here, stored, and in its record
     await d.page.evaluate(() => useProfile('bee')); await lockReady(d.page);
     await t2.evaluate(() => takeOver(false));
-    await t2.waitForFunction(() => WRITER === 'held', null, {timeout: 9000}).catch(() => {});
+    await tookOver(t2, 'section A, take-over 3');
     const yHeld = await t2.evaluate(() => WRITER);
     await answerHere(t2, 4);                                           // Y writes over X's last save
     // X's view of storage gets Y's write a moment later (in WebKit in GitHub run 41943489826 it had
@@ -2036,7 +2045,7 @@ let nfile = 0;
     // N1: Put back right after taking over must not delete the leaving tab's late record; its answer is kept
     const {d, di, t2, last} = await leaveWithoutHandOver(true);
     await t2.evaluate(() => takeOver(false));
-    await t2.waitForFunction(() => WRITER === 'held', null, {timeout: 9000}).catch(() => {});
+    await tookOver(t2, 'section A, take-over 4');
     await t2.evaluate(() => { show('settings'); window.confirm = () => true; if(readCopies().length) restoreBackup(); else { DB.settings.goal = 5; save(); saveNow(); pendingRetire(); } });
     await unlag(t2);
     await t2.evaluate(() => settlePending());
@@ -2064,7 +2073,7 @@ let nfile = 0;
     await d.page.evaluate(() => { DB.settings.goal = 91; save(); saveNow(); });
     await d.page.close();
     await t2.evaluate(() => takeOver(false));
-    await t2.waitForFunction(() => WRITER === 'held', null, {timeout: 9000}).catch(() => {});
+    await tookOver(t2, 'section A, take-over 5');
     await answerHere(t2, 8);
     await unlag(t2);
     await t2.evaluate(() => settlePending());
@@ -2086,7 +2095,7 @@ let nfile = 0;
     await d.page.evaluate(() => { show('settings'); restoreBackup(); });   // back to 1 answer
     await d.page.close();
     await t2.evaluate(() => takeOver(false));
-    await t2.waitForFunction(() => WRITER === 'held', null, {timeout: 9000}).catch(() => {});
+    await tookOver(t2, 'section A, take-over 6');
     await answerHere(t2, 8);
     await unlag(t2);
     await t2.evaluate(() => settlePending());
