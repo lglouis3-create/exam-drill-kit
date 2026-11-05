@@ -523,6 +523,11 @@ With less room the old core still keeps more progress, because it deletes histor
   notice says so: "While storage is full, this tab cannot keep the record that protects its last
   save when it closes without handing over to another open tab of this drill." It is shown even when
   the progress itself was saved, and it goes once a record is written again (`recordOff`).
+- **Another profile's refused work.** Work refused for a profile this page switched away from is
+  only on this page until a later save stores it. It counts as at risk too (`atRiskAll`). The
+  notice says another profile's work is not saved and has an **Export "<profile>"** button for
+  each such profile (`exportAway`: the progress and history this page holds for it), and so does
+  the stop wall (the review of b3c9bbe, M1).
 - **In-app actions:**
   - **Switching profile** tries the refused writes once more, then asks and offers the export.
   - **The stop wall's Reload** and **the new-version bar's Reload** both ask first while work that is

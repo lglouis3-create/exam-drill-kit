@@ -565,6 +565,53 @@ const next = p => p.evaluate(() => { const b = document.getElementById('btnNext'
     await c12.close().catch(() => {});
   }
   {
+    // Refused work of a profile switched away from (the review of b3c9bbe, M1): it counts as at risk,
+    // the notice names it and exports it, and the app's Reload and closing the tab ask first
+    const KEYS2 = () => {
+      const set = Storage.prototype.setItem;
+      Storage.prototype.setItem = function(k, v){ if(window.__refuse && window.__refuse.includes(k)) throw new DOMException('The quota has been exceeded.', 'QuotaExceededError'); return set.call(this, k, v); };
+    };
+    const {ctx: c13, page: o, errors: e13} = await L.openFile(browser, {}, KEYS2);
+    const said = []; o.removeAllListeners('dialog');
+    o.on('dialog', d => { said.push(d.type() + ': ' + d.message()); d.dismiss().catch(() => {}); });
+    await o.waitForFunction(() => typeof WRITER === 'undefined' || WRITER === 'held' || WRITER === 'none', null, {timeout: 8000}).catch(() => {});
+    const me = await o.evaluate(() => { record(QUESTIONS[0], 'correct', 0, 4000); saveNow();
+      window.__refuse = [keyFor(PROFILE), logKey()]; record(QUESTIONS[1], 'wrong', 0, 4000); saveNow();
+      return {p: PROFILE, dk: keyFor(PROFILE), lk: logKey(), at: DB.answers[DB.answers.length - 1].at}; });
+    // the switch asks twice: export? (no), switch? (yes)
+    await o.evaluate(() => { let n = 0; window.__rc = window.confirm; window.confirm = () => n++ > 0; useProfile('bee-away'); window.confirm = window.__rc; });
+    await o.waitForFunction(() => PROFILE === 'bee-away' && (WRITER === 'held' || WRITER === 'none'), null, {timeout: 6000}).catch(() => {});
+    await o.evaluate(() => { record(QUESTIONS[2], 'correct', 0, 4000); saveNow(); });   // bee saves; me stays refused (__refuse holds me's keys)
+    await o.waitForTimeout(300);
+    const st = await o.evaluate(m => ({on: PROFILE, risk: atRiskAll(), here: atRisk(), away: awayRefused(), btn: !!document.querySelector('#savewarn button[data-away="' + m.p + '"]'),
+      text: (document.getElementById('savewarn') || {}).textContent || ''}), me);
+    check(st.on === 'bee-away' && st.risk && !st.here && st.away.includes(me.p) && st.btn && /another profile on this page/.test(st.text),
+      'a profile switched away from with refused work: it counts as at risk, and the notice names another profile and offers its export', Object.assign({}, st, {text: st.text.slice(0, 120)}));
+    // the new-version bar's Reload asks (cancelled: nothing lost)
+    const n0 = said.length;
+    await o.evaluate(() => { offerReload('A new version is ready.'); document.querySelector('#swbar [data-reload]').click(); });
+    await o.waitForTimeout(300);
+    check(said.slice(n0).some(x => /^confirm: .*lost on reload unless you export/.test(x)) && await o.evaluate(() => PROFILE === 'bee-away'),
+      'that profile\'s refused work: the new-version bar\'s Reload asks first; cancelled, the page stays', said.slice(n0));
+    if(L.BROWSER === 'chromium'){
+      const n1 = said.length;
+      await o.close({runBeforeUnload: true}); await new Promise(r => setTimeout(r, 500));
+      check(said.slice(n1).some(x => /^beforeunload/.test(x)) && !o.isClosed(), 'that profile\'s refused work: closing the tab gets the browser\'s leave question', said.slice(n1));
+    } else L.skip('closing the tab with another profile\'s refused work', 'WebKit\'s page close with runBeforeUnload does not finish here (#39)');
+    // its export holds that profile's unsaved answer and entry; afterwards closing asks nothing
+    const [dl] = await Promise.all([o.waitForEvent('download', {timeout: 5000}).catch(() => null), o.evaluate(p => document.querySelector('#savewarn button[data-away="' + p + '"]').click(), me.p)]);
+    const ex = dl ? JSON.parse(fs.readFileSync(await dl.path(), 'utf8')) : {};
+    check(ex.profile === me.p && ex.db && ex.db.answers.some(a => a.at === me.at) && Array.isArray(ex.log) && ex.log.length === 2,
+      'that profile\'s export holds its answer and history entry that were not saved', {profile: ex.profile, answers: ex.db && ex.db.answers.length, log: ex.log && ex.log.length});
+    if(L.BROWSER === 'chromium'){
+      const n2 = said.length;
+      await o.close({runBeforeUnload: true}); await new Promise(r => setTimeout(r, 500));
+      check(!said.slice(n2).some(x => /^beforeunload/.test(x)) && o.isClosed(), 'after that export, closing the tab asks nothing and the tab closes', said.slice(n2));
+    }
+    check(!e13.length, 'another profile\'s refused work: no page errors', e13.slice(0, 2).join('; '));
+    await c13.close().catch(() => {});
+  }
+  {
     // A refused progress write is tried once more after this tab's own record, proven stored, is
     // removed: room for a history entry but not for the progress save, which the record's room makes.
     const ORIGIN2 = () => {
