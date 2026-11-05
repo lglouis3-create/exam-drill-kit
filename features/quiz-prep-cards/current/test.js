@@ -290,6 +290,21 @@ const build = (label, list) => L.scratchBuild(label, {files: {'qp_test_data.js':
       await page.evaluate(fn).catch(e => { if(!/Execution context was destroyed|navigat/i.test(String(e && e.message))) throw e; });
       await page.waitForFunction(() => !window.__qpOldPage && document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
     };
+    /* Import as a student does it since core PR #32: choose the file, read the plan
+       (#importPlan), press its Import button (#importGo), and wait for the outcome
+       (#importResult). Returns the profile on screen before the Import, the plan's text,
+       the button's label ('' when the plan offers none) and the outcome's text. */
+    const importFile = async (page, f) => {
+      const profile = await page.evaluate(() => { show('settings'); return PROFILE; });
+      await page.setInputFiles('#fileIn', f);
+      await page.waitForFunction(() => { const b = document.getElementById('importPlan'); return b && b.textContent.trim(); }, null, {timeout: 5000});
+      const out = await page.evaluate(() => { const g = document.getElementById('importGo'), w = document.getElementById('importWhat');
+        return {go: g ? g.textContent.trim() : '', what: (w ? w.textContent : '').replace(/\s+/g, ' ').trim()}; });
+      out.profile = profile;
+      if(out.go) await page.click('#importGo');
+      out.result = out.go ? (await page.waitForSelector('#importResult', {timeout: 3000}).then(e => e.textContent(), () => '')).replace(/\s+/g, ' ').trim() : '';
+      return out;
+    };
     const snap = page => page.evaluate(() => ({who: PROFILE, answers: DB.answers.map(a => a.qid + ':' + a.result), concepts: Object.keys(DB.concepts).sort()}));
     {
       const {ctx, page, errors} = await open('2026-10-02T12:00');
@@ -353,11 +368,13 @@ const build = (label, list) => L.scratchBuild(label, {files: {'qp_test_data.js':
       // Import into a fresh browser: the answers come back; the hide flag does not travel
       const fresh = await open('2026-10-02T12:00', 'window.__name = "Fresh";');
       await fresh.page.click('#nav button[data-v="settings"]');
-      await fresh.page.setInputFiles('#fileIn', file);
+      const plan = await importFile(fresh.page, file);
+      check(plan.go === 'Import' && /this profile has no progress yet/.test(plan.what) && plan.what.includes(`Import replaces the progress of "${plan.profile}"`),
+            'the Import plan in the fresh browser (a profile with no progress) offers to import the file into this profile, replacing its progress (core PR #32)', plan);
       await fresh.page.waitForFunction(n => DB.answers.length === n, n, {timeout: 5000}).catch(() => {});
       const got = await snap(fresh.page), freshCards = await cardIds(fresh.page);
-      check(JSON.stringify(got.answers) === JSON.stringify(mine.answers) && JSON.stringify(got.concepts) === JSON.stringify(mine.concepts),
-            `Import into a fresh browser brings the same ${mine.answers.length} answers and ${mine.concepts.length} concepts back`, {got: got.answers.length, concepts: got.concepts.length});
+      check(JSON.stringify(got.answers) === JSON.stringify(mine.answers) && JSON.stringify(got.concepts) === JSON.stringify(mine.concepts) && got.who === plan.profile,
+            `Import into a fresh browser brings the same ${mine.answers.length} answers and ${mine.concepts.length} concepts back, into the profile on screen, not a new one`, {got: got.answers.length, concepts: got.concepts.length, who: got.who, result: plan.result});
       check(JSON.stringify(freshCards) === '["q5","q4"]', 'in the fresh browser both cards show: a hidden card is hidden on its own browser only', freshCards);
       await fresh.ctx.close();
     }
