@@ -332,14 +332,16 @@ L.PAGE.need(NAME);
     {
       const q = await plant(INK);
       const rq = await f.page.evaluate(k => {
-        const real = Storage.prototype.setItem, bk = NS + ':backup:' + PROFILE;
-        Storage.prototype.setItem = function(key, v){ if(key === bk) throw new DOMException('full', 'QuotaExceededError'); return real.call(this, key, v); };
-        const before = localStorage.getItem(bk);
+        // the copy list's write is refused while the record is stored, as when only the record's own room
+        // would let the copy fit: code that removed the record first would then store the copy and fail here
+        const real = Storage.prototype.setItem, get = Storage.prototype.getItem, bk = NS + ':backup:' + PROFILE;
+        Storage.prototype.setItem = function(key, v){ if(key === bk && get.call(this, k) !== null) throw new DOMException('full', 'QuotaExceededError'); return real.call(this, key, v); };
+        const before = localStorage.getItem(bk), raw = localStorage.getItem(k);
         try { pendingRetire(); } finally { Storage.prototype.setItem = real; }
         const n = document.getElementById('pendingnote');
-        return {kept: localStorage.getItem(k) !== null, listUnchanged: localStorage.getItem(bk) === before, note: n ? n.textContent : ''};
+        return {kept: localStorage.getItem(k) === raw, listUnchanged: localStorage.getItem(bk) === before, note: n ? n.textContent : ''};
       }, q.k);
-      check(rq.kept && rq.listUnchanged, 'the copy refused: the record stays in storage and no copy is written', rq);
+      check(rq.kept && rq.listUnchanged, 'the copy refused while the record is stored: the record stays in storage unchanged and no copy is written', rq);
       check(/storage is full or blocked/.test(rq.note) && /stays stored in this browser/.test(rq.note) && /Export progress does not include it/.test(rq.note) && /next time this drill opens/.test(rq.note),
         'the copy refused: the notice says the work is still stored in this browser, that Export does not include it, and when it becomes a copy', rq.note);
       const rq2 = await after(q.k);

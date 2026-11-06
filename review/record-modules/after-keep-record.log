@@ -29,7 +29,7 @@
   ok    Erase meeting a record not yet placed with DB.ink: the record becomes a copy
   ok    the filler leaves too little room for the copy beside the record (the copy alone is refused)
   ok    storage full (real quota filler): the record, the only stored copy of its DB.ink, stays in storage (whether or not the browser accepted its copy)
-  ok    the copy refused: the record stays in storage and no copy is written
+  ok    the copy refused while the record is stored: the record stays in storage unchanged and no copy is written
   ok    the copy refused: the notice says the work is still stored in this browser, that Export does not include it, and when it becomes a copy
   ok    the copy refused, then accepted at a later check: the record becomes a copy and goes after the wait
   ok    storage full, then room again: a later check makes the record a copy with its DB.ink, and the record goes after the wait
