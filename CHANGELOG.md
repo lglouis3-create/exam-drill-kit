@@ -2,6 +2,27 @@
 
 Dated kit changes, newest first.
 
+## 2026-11-06
+- The improvement coordinator (`coordinator/`):
+  - records each course's whole exam schedule apart from what its site has released;
+  - classifies each course's lifecycle from that schedule in America/Chicago;
+  - plans reviews by lifecycle and by what changed since the last reviewed commit;
+  - checks that a site lists only released exams;
+  - keeps an improvement registry;
+  - shows "Show my Exam Drill Dashboard" in Claude Code (`.claude/skills/exam-drill-dashboard/`).
+
+  `coordinator/coord_test.js` runs in Kit checks. DEENT is registered in `COURSES.md` and
+  `coordinator/courses.json`, with its published and unreleased question counts labelled by
+  branch.
+- The coordinator reads a course file as text and never runs it. It reads the release state at the commit GitHub Pages last deployed, or says the live revision is unknown. Credentials are removed from every shown or cached error. Approvals come from an "Approval:" line in each pull request. A final exam with no date no longer stops it.
+- The kit-update run reads each course from the branch Pages serves (`pagesBranch`), never
+  the default branch, and skips the kit-update preview of a course whose `kitUpdate` is
+  paused while keeping its read-only checks (`coord.js kitupdate`). DEENT is paused until
+  its pending release is resolved (Louis, 2026-11-06).
+- A coordinator run records improvements and prepares none, and writes a retrospective only
+  when Louis asks; preparing improvements and automatic retrospectives are a separate
+  proposal.
+
 ## 2026-11-05
 - The answer history is no longer cut silently at 20,000 entries: past it a notice offers Export progress and a removal of the oldest entries that names how many and their dates and needs an OK; until then new entries go on being added (`cap_test.js`).
 - Study progress first when storage is full: while a progress write is refused, the answer history is held (on the page, named in the notice, in Export) and written after the next progress save; this tab's own per-tab record, proven stored, is removed to make room and the progress write tried once more.
