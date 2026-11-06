@@ -219,12 +219,10 @@ const ANSWER = right => {
         out.planPanels = el.querySelectorAll('.panel.plan').length;
         out.stems = ids.map(byId).filter(q => plan.includes(q.stem.slice(0, 60))).map(q => q.id);
         // the pool cards: concept counts and their buttons
-        const filt = f => q => Object.entries(f).every(([k, v]) => { const x = (k === 'exam' || k === 'module') ? (lecOf(q) || {})[k] : k === 'lecture' ? (lecOf(q) || {}).id : q[k];
-          return Array.isArray(v) ? v.includes(x) : x === v; });
         out.cards = [...el.querySelectorAll('.nextcard')].map((c, i) => {
           const p = EXAM.pools[i];
-          return {shown: +((/(\d+) concepts/.exec(c.querySelector('.nexthead').textContent) || [])[1]),
-                  want: p && p.filter ? cs(req.filter(filt(p.filter))) : null};
+          return {shown: +((/(\d+) concepts?/.exec((c.querySelector('.nexthead span') || {}).textContent || '') || [])[1]),
+                  want: p ? cs(req.filter(p.test)) : null};
         });
         out.next = [];
         const nb = document.querySelectorAll('#v-gaps [data-next]').length;

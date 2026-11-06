@@ -605,10 +605,11 @@ const TOPICS = /*__TOPICS__*/[];
    so papers, the exam-weighted pass, the readiness cards and mark weights; What to
    review next and the mastered count) and carry no exam label; opening the topic,
    one of its subtopics or a drill of its own reaches them. A course with no
-   optional topic is unchanged: REQUIRED_QS is then every question. */
+   optional topic is unchanged: requiredQs() is then every question. */
 const OPTIONAL_TOPICS = new Set(TOPICS.filter(t => t && t.optional).map(t => t.id));
 const isOptional = q => !!q && OPTIONAL_TOPICS.has(q.topic);
-const REQUIRED_QS = OPTIONAL_TOPICS.size ? QUESTIONS.filter(q => !isOptional(q)) : QUESTIONS;
+// read from QUESTIONS at each call, so a check that replaces the bank in place is followed
+const requiredQs = () => OPTIONAL_TOPICS.size ? QUESTIONS.filter(q => !isOptional(q)) : QUESTIONS;
 /* Which exam the simulator and the weighted pass follow, and its pools. A pool
    filter is an object of field:value; an array value means "one of". */
 const EXAM = COURSE.exams.find(e => e.id === COURSE.activeExam) || COURSE.exams[0];
@@ -2064,7 +2065,7 @@ function examConcepts(ex){
   let set = EXAM_SCOPE.get(ex);
   if(!set){
     const tests = (ex.pools || []).map(p => poolFilter(p.filter || {}));
-    set = new Set(REQUIRED_QS.filter(q => tests.some(t => t(q))).map(q => q.concept));
+    set = new Set(requiredQs().filter(q => tests.some(t => t(q))).map(q => q.concept));
     EXAM_SCOPE.set(ex, set);
   }
   return set;
@@ -2270,7 +2271,7 @@ const lecIndex = q => { const l = lecOf(q); return l ? COURSE.lectures.indexOf(l
 function earlierDue(pool){
   const top = Math.max(-1, ...pool.map(lecIndex));
   const inPool = new Set(pool.map(q => q.id));
-  return REQUIRED_QS.filter(q => !inPool.has(q.id) && lecIndex(q) >= 0 && lecIndex(q) < top);
+  return requiredQs().filter(q => !inPool.has(q.id) && lecIndex(q) >= 0 && lecIndex(q) < top);
 }
 function pickNext(pool, justAsked){
   let cands = [];

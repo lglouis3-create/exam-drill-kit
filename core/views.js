@@ -1325,7 +1325,7 @@ function renderTopics(){
   let h = `<h2>Pick a topic</h2>
   <p class="sub">${esc(EXAM.name)}: ${EXAM.questions} questions, ${EXAM.minutes} minutes${EXAM.date ? ', ' + esc(EXAM.date) : ''}.
   ${EXAM.blurb ? esc(EXAM.blurb) + '. ' : ''}Question bank: ${QUESTIONS.length} across ${conceptsIn(QUESTIONS).length} concepts${
-    REQUIRED_QS.length < QUESTIONS.length ? `, ${QUESTIONS.length - REQUIRED_QS.length} of them in optional topics outside ${esc(EXAM.name)}` : ''}.
+    requiredQs().length < QUESTIONS.length ? `, ${QUESTIONS.length - requiredQs().length} of them in optional topics outside ${esc(EXAM.name)}` : ''}.
   ${examCountdown() ? '<b>' + esc(examCountdown()) + '</b>' : ''}</p>
   ${startHere(poolFor(null, null).length)}
   <p class="stamp">Built ${esc(BUILD.stamp || '')}${(BUILD.changelog||[]).length ? ' · <a href="#" id="whatsnew">all changes</a>' : ''}</p>
@@ -1340,7 +1340,7 @@ function renderTopics(){
   // and samples the others in the paper's own proportion. Both whole-bank
   // passes come after the topic list: the Start here block above is the way in
   // for a first visit, and these are the advanced route.
-  const nAll = REQUIRED_QS.length, nFiltered = poolFor(null, null).length;
+  const REQ = requiredQs(), nAll = REQ.length, nFiltered = poolFor(null, null).length;
   const wp = weightedPool();
   // filters that select nothing: say why and offer to clear them, and offer no
   // Start, since every one would open an empty set or quietly ignore the filters
@@ -1352,7 +1352,7 @@ function renderTopics(){
       <small>Every question from the ${mainPool().marks}-mark pool, plus the other pools in the paper's ${EXAM.pools.map(p=>p.marks).join(' : ')} proportion. Shuffled, each once.</small></span>
       <button id="sweepWeighted">Start</button></div>
     <div class="subrow"><span class="sname"><b>All ${nAll} questions, one pass</b>
-      <small>Everything in the bank${REQUIRED_QS.length < QUESTIONS.length ? ' outside the optional topics' : ''}, shuffled, each asked once, nothing held back by scheduling</small></span>
+      <small>Everything in the bank${nAll < QUESTIONS.length ? ' outside the optional topics' : ''}, shuffled, each asked once, nothing held back by scheduling</small></span>
       <button id="sweepAll" class="ghost">Start</button></div>
     ${nFiltered < nAll ? `<div class="subrow"><span class="sname"><b>All ${nFiltered} under the current filters</b>
       <small>The same straight pass, limited to what the chips above select</small></span>
@@ -1459,9 +1459,9 @@ function startQuiz(topicId, subId){
 const mainPool = () => EXAM.pools.reduce((a, b) => b.marks > a.marks ? b : a, EXAM.pools[0]);
 function weightedPool(){
   const main = mainPool();
-  const anchor = REQUIRED_QS.filter(main.test);
+  const anchor = requiredQs().filter(main.test);
   const rest = EXAM.pools.filter(p => p !== main).flatMap(p => {
-    const pool = REQUIRED_QS.filter(p.test);
+    const pool = requiredQs().filter(p.test);
     return drawN(pool, Math.min(pool.length, Math.round(anchor.length * p.marks / main.marks)));
   });
   return [...anchor, ...rest];
@@ -1469,7 +1469,7 @@ function weightedPool(){
 function startSweep(scope){
   const pool = scope === 'filtered' ? poolFor(null, null)
              : scope === 'weighted' ? weightedPool()
-             : REQUIRED_QS.slice();
+             : requiredQs().slice();
   if(!pool.length){ alert('No questions match those filters.'); return; }
   Q = {pool,
        label: scope === 'filtered' ? 'Every question under these filters'
@@ -1551,8 +1551,9 @@ function renderQuiz(){
     return;
   }
   if(!Q.current && Q.sweep){
-    const n = Q.repeat ? (Q.repeat === 'all' ? REQUIRED_QS.length : Q.pool.length) : Q.pool.length;
-    const whole = Q.pool.length >= REQUIRED_QS.length;
+    const nReq = requiredQs().length;
+    const n = Q.repeat ? (Q.repeat === 'all' ? nReq : Q.pool.length) : Q.pool.length;
+    const whole = Q.pool.length >= nReq;
     el.innerHTML = `<div class="empty">
       <p><b>That is every question in this set — ${n === 1 ? 'its 1 question' : `all ${n} of them`}.</b></p>
       <p style="margin:10px 0 16px">Everything you answered is recorded, so Weak spots now
@@ -1560,7 +1561,7 @@ function renderQuiz(){
       <p style="display:flex;gap:9px;flex-wrap:wrap;justify-content:center">
         <button class="btn" id="goGaps">See weak spots</button>
         <button class="btn ghost" id="goAgain">${Q.repeat === 'weighted' ? 'A new exam-weighted pass' : `Same ${n === 1 ? 'question' : 'questions'} again, reshuffled`} (${n})</button>
-        ${whole ? '' : `<button class="btn ghost" id="goWhole">Whole bank, one pass (${REQUIRED_QS.length})</button>`}
+        ${whole ? '' : `<button class="btn ghost" id="goWhole">Whole bank, one pass (${nReq})</button>`}
         <button class="btn ghost" onclick="show('topics')">Back to topics</button>
       </p></div>`;
     document.getElementById('goGaps').onclick = () => show('gaps');
@@ -1951,7 +1952,7 @@ function renderGaps(){
   // every other right answer counts as "Knew it", an exam paper's too (it asks no rating)
   const knew = right - shaky;
   // mastered, What to review next and the pool cards count the exam's questions only
-  const m = masteryOf(REQUIRED_QS);
+  const m = masteryOf(requiredQs());
 
   let h = `<h2>Weak spots</h2>
   <p class="sub">Every answer you have logged, weighted by what it is worth on the paper.</p>
@@ -2008,7 +2009,7 @@ function renderGaps(){
     const r = (recent[q.id] || []).slice(-3);
     return r.length ? r.filter(solidEntry).length / r.length : null;
   };
-  const notSolid = REQUIRED_QS.filter(q => { const s = scoreOf(q); return s !== null && s < 1; });
+  const notSolid = requiredQs().filter(q => { const s = scoreOf(q); return s !== null && s < 1; });
   const topicName = id => (TOPICS.find(t => t.id === id) || {}).name || id;
   const areas = {};
   notSolid.forEach(q => {
@@ -2427,7 +2428,7 @@ function bpCat(q){
   return bp.rest || 'other';
 }
 function drawBlueprint(bp){
-  const elig = REQUIRED_QS.filter(q => !q.lowYield && !q.type);
+  const elig = requiredQs().filter(q => !q.lowYield && !q.type);
   const by = {};
   elig.forEach(q => (by[bpCat(q)] ||= []).push(q));
   // `used` holds the families on the paper (familyOf), the same rule as drawN
@@ -2469,7 +2470,7 @@ function drawBlueprint(bp){
 function drawPaper(){
   if(EXAM.blueprint && Array.isArray(EXAM.blueprint.parts) && EXAM.blueprint.parts.length)
     return drawBlueprint(EXAM.blueprint);
-  const examQ = REQUIRED_QS.filter(q => !q.lowYield && !q.type);
+  const examQ = requiredQs().filter(q => !q.lowYield && !q.type);
   const total = EXAM.pools.reduce((n, p) => n + p.marks, 0) || 1;
   const main = mainPool();
   let sataLeft = EXAM_SATA;
