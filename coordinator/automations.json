@@ -1,13 +1,86 @@
 {
   "about": "Every automation that touches the kit or a course, with what it does and what has been verified. 'active' means it is configured and has fired; 'proposed' means it is not configured. lastRun copies the scheduled task's own record: for a task that wakes an existing session, SUCCEEDED means the wake was delivered, not that the session's work succeeded. Read 2026-11-06 from list_triggers and GitHub; a coordinator run updates it.",
   "automations": [
-    {"name": "Kit checks", "kind": "GitHub Actions workflow (.github/workflows/checks.yml)", "responsibility": "run_checks.sh on template, template-unset, Medicinal-chemistry and module courses, Chromium and WebKit, on every pull request and push to main", "schedule": "every pull request, every push to main, by hand", "state": "active", "lastRun": "run 42137813349 on 737bd71, 13 of 13 success (2026-11-06)", "verified": "yes: runs and results on GitHub; WebKit jobs cancelled at the 45-minute limit when the WebKit install is slow (2026-11-06)"},
-    {"name": "Kit feature port", "kind": "scheduled task trig_017nw2kiZvgqCKkgWcKuvA8V, wakes session 'Kit feature porter'", "responsibility": "ports queued features from course repositories into the kit as pull requests (review/port-queue.md, review/porter-policy.md)", "schedule": "daily 00:45 America/Chicago", "state": "active", "lastRun": "2026-11-05 06:45 UTC: SUCCEEDED (wake delivered)", "verified": "yes: draft port PRs #11, #13-#22, #24-#26 and merged #36 came from it"},
-    {"name": "Kit update run", "kind": "scheduled task trig_01QduqhookGDD8HxANEbLq4w, wakes session 'Kit updater'", "responsibility": "builds and checks a /preview/ of each kit course behind the kit's main; never makes it live without Louis's reply 'approve updates for <course>'", "schedule": "daily 02:47 America/Chicago", "state": "active", "lastRun": "2026-11-05 08:47 UTC: SUCCEEDED (wake delivered)", "verified": "yes: Medicinal-chemistry previews built and promoted after Louis's approval (COURSES.md)"},
-    {"name": "BDK daily review", "kind": "scheduled task trig_01VZfFupWhJzsgL7Q4f7mU2a, fresh session each time", "responsibility": "BDK review on a branch daily-review/<date> with a pull request; never publishes", "schedule": "daily 05:45 America/Chicago", "state": "active", "lastRun": "2026-11-05 11:46-11:57 UTC: SUCCEEDED", "verified": "yes: last run finished; its output is in the BDK repository"},
-    {"name": "ChatGPT GitHub review", "kind": "external (ChatGPT), not run by the kit", "responsibility": "reviews pull requests in the kit and its branches", "schedule": "about 05:00, 10:00, 15:00, 20:00 America/Chicago", "state": "active (external)", "lastRun": "not recorded by the kit", "verified": "schedule from Louis; its comments appear on pull requests (for example #47 comment 6647518091)"},
-    {"name": "Reminder: Sikazwe slides-to-avoid list", "kind": "one-time scheduled task trig_01FdGD737ZiCduLsqHkGF1sb, wakes the DEENT session", "responsibility": "reminds Louis to send Dr. Sikazwe's list; then the DEENT session adjusts the bank with his approval", "schedule": "once, 2026-11-07 18:00 UTC", "state": "active (one-time)", "lastRun": "not yet fired", "verified": "no"},
-    {"name": "Intro Pharmacology tasks (3)", "kind": "scheduled tasks trig_015Ydzai2tWjR1pXazQeheCR, trig_01EGDpPWTdmKWSZhHG1m1PMt, trig_01Do5qcWTAPDPqi3rDVYJvuK", "responsibility": "daily polish, nightly ingest, reading reminder for Exam 4", "schedule": "disabled since 2026-11-02 (Exam 4 passed)", "state": "disabled", "lastRun": "2026-11-02", "verified": "—"},
-    {"name": "Kit coordinator daily", "kind": "scheduled task (proposed), would wake session 'Kit updater'", "responsibility": "coordinator/RUN.md: plan by lifecycle and change, review what is due, record outcomes, prepare improvements on branches, never publish", "schedule": "proposed: daily 04:13 America/Chicago", "state": "proposed (not configured)", "lastRun": "never", "verified": "no"}
+    {
+      "name": "Kit checks",
+      "kind": "GitHub Actions workflow (.github/workflows/checks.yml)",
+      "responsibility": "run_checks.sh on template, template-unset, Medicinal-chemistry and module courses, Chromium and WebKit, on every pull request and push to main",
+      "schedule": "every pull request, every push to main, by hand",
+      "state": "active",
+      "lastRun": "run 42137813349 on 737bd71, 13 of 13 success (2026-11-06)",
+      "verified": "yes: runs and results on GitHub; WebKit jobs cancelled at the 45-minute limit when the WebKit install is slow (2026-11-06)"
+    },
+    {
+      "name": "Kit feature port",
+      "kind": "scheduled task trig_017nw2kiZvgqCKkgWcKuvA8V, wakes session 'Kit feature porter'",
+      "responsibility": "ports queued features from course repositories into the kit as pull requests (review/port-queue.md, review/porter-policy.md)",
+      "schedule": "daily 00:45 America/Chicago",
+      "state": "active",
+      "lastRun": "2026-11-05 06:45 UTC: SUCCEEDED (wake delivered)",
+      "verified": "yes: draft port PRs #11, #13-#22, #24-#26 and merged #36 came from it"
+    },
+    {
+      "name": "Kit update run",
+      "kind": "scheduled task trig_01QduqhookGDD8HxANEbLq4w, wakes session 'Kit updater'",
+      "responsibility": "builds and checks a /preview/ of each kit course behind the kit's main; never makes it live without Louis's reply 'approve updates for <course>'",
+      "schedule": "daily 02:47 America/Chicago",
+      "state": "active",
+      "lastRun": "2026-11-05 08:47 UTC: SUCCEEDED (wake delivered)",
+      "verified": "yes: Medicinal-chemistry previews built and promoted after Louis's approval (COURSES.md)"
+    },
+    {
+      "name": "Kit porter feedback check",
+      "kind": "scheduled task trig_013q6ZcmPDygMRdnkeUqCbDr, wakes session 'Kit feature porter'",
+      "responsibility": "triages new non-Claude comments and reviews on the porter's PRs and on #57, against a checkpoint on branch porter/feedback-checkpoint; small authorized fixes only, larger work left to the nightly port run",
+      "schedule": "05:30, 10:30, 15:30, 20:30 America/Chicago (about 30 minutes after each ChatGPT review window)",
+      "state": "active (created 2026-11-06 04:12 UTC)",
+      "lastRun": "not yet fired (read 2026-11-06 04:23 UTC)",
+      "verified": "no: configured, not yet run"
+    },
+    {
+      "name": "BDK daily review",
+      "kind": "scheduled task trig_01VZfFupWhJzsgL7Q4f7mU2a, fresh session each time",
+      "responsibility": "BDK review on a branch daily-review/<date> with a pull request; never publishes",
+      "schedule": "daily 05:45 America/Chicago",
+      "state": "active",
+      "lastRun": "2026-11-05 11:46-11:57 UTC: SUCCEEDED",
+      "verified": "yes: last run finished; its output is in the BDK repository"
+    },
+    {
+      "name": "ChatGPT GitHub review",
+      "kind": "external (ChatGPT), not run by the kit",
+      "responsibility": "reviews pull requests in the kit and its branches",
+      "schedule": "about 05:00, 10:00, 15:00, 20:00 America/Chicago",
+      "state": "active (external)",
+      "lastRun": "not recorded by the kit",
+      "verified": "schedule from Louis; its comments appear on pull requests (for example #47 comment 6647518091)"
+    },
+    {
+      "name": "Reminder: Sikazwe slides-to-avoid list",
+      "kind": "one-time scheduled task trig_01FdGD737ZiCduLsqHkGF1sb, wakes the DEENT session",
+      "responsibility": "reminds Louis to send Dr. Sikazwe's list; then the DEENT session adjusts the bank with his approval",
+      "schedule": "once, 2026-11-07 18:00 UTC",
+      "state": "active (one-time)",
+      "lastRun": "not yet fired",
+      "verified": "no"
+    },
+    {
+      "name": "Intro Pharmacology tasks (3)",
+      "kind": "scheduled tasks trig_015Ydzai2tWjR1pXazQeheCR, trig_01EGDpPWTdmKWSZhHG1m1PMt, trig_01Do5qcWTAPDPqi3rDVYJvuK",
+      "responsibility": "daily polish, nightly ingest, reading reminder for Exam 4",
+      "schedule": "disabled since 2026-11-02 (Exam 4 passed)",
+      "state": "disabled",
+      "lastRun": "2026-11-02",
+      "verified": "—"
+    },
+    {
+      "name": "Kit coordinator daily",
+      "kind": "scheduled task (proposed), would wake session 'Kit updater'",
+      "responsibility": "coordinator/RUN.md: plan by lifecycle and change, review what is due, record outcomes, prepare improvements on branches, never publish",
+      "schedule": "proposed: daily 04:13 America/Chicago",
+      "state": "proposed (not configured)",
+      "lastRun": "never",
+      "verified": "no"
+    }
   ]
 }
