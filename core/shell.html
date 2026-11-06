@@ -509,6 +509,10 @@ input[type=text]{font:inherit;padding:8px 11px;border:1px solid var(--line);bord
   padding:14px max(14px,env(safe-area-inset-right)) 18px max(14px,env(safe-area-inset-left))}
 .fig.big svg{max-height:calc(100vh - 170px);max-height:calc(100dvh - 170px)}
 body.figbig{overflow:hidden}
+/* the placeholder that holds an enlarged figure's place (views.js figBig); neither
+   it nor the figure may anchor the browser's scroll, which would move the page by
+   the placeholder's margin */
+.figph,.fig.big{overflow-anchor:none}
 
 /* ---------- Diagrams tab ---------- */
 .diagrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:12px;margin:8px 0 22px}
