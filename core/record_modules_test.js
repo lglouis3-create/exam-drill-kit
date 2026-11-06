@@ -184,8 +184,6 @@ L.PAGE.need(NAME);
       settlePending();
       const st = JSON.parse(localStorage.getItem(keyFor(PROFILE)));
       const copies = JSON.parse(localStorage.getItem(NS + ':backup:' + PROFILE) || '[]');
-      // this closed page's own writing, not any copy with ink: the stored ink equal to it, its record
-      // unchanged, or a copy whose progress is exactly that record's
       // the copy's progress is exactly the record's, and each of the record's history entries is in the copy
       // or already in the stored history (a copy carries only the entries the stored history lacks)
       const entries = (JSON.parse(recRaw).log || []).filter(Array.isArray), m = copies.find(c => c && c.data === recDb);
