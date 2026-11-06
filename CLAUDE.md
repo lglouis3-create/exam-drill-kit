@@ -3,7 +3,7 @@
 Read `KIT_DESIGN.md` §3, §7 and §12 first, in full; §12 lists the changes Louis approved
 after Phase 1 and overrides earlier sections where they differ. Read its other sections when
 the task touches them: §1-§2 goal and first sources, §4 layout, §5-§6 entry formats, §8
-capabilities, §9 skill modes, §10 known findings, §11 work plan. Read the whole file for a
+capabilities (always for a release or a change to a check), §9 skill modes, §10 known findings, §11 work plan. Read the whole file for a
 change to the design, a policy or an approval rule.
 
 ## Where the work stands (2026-11-01; additions to 2026-11-03)
@@ -237,13 +237,15 @@ change to the design, a policy or an approval rule.
   check whose inputs did not change; work on the scope a change affects. An unchanged head
   does not end open work: an unresolved finding, a review that says what it did not cover, or
   the note's next action continues. A run with nothing changed and nothing open ends with one
-  line and posts nothing. With no note yet, establish the baseline once (heads, runs, reviews,
+  line and posts nothing on the pull request; a log entry or checkpoint that a mode or
+  `coordinator/RUN.md` requires of every run is still written. With no note yet, establish the baseline once (heads, runs, reviews,
   open findings, approvals), not the project's history. Required checks and independent
   reviews on the final head are never skipped on this ground (decision 10).
 - **A handoff is a summary, not evidence.** Verify a claim in a note before acting on it, and
   always one that decides a merge, a live change or a progress-storage risk: a check against
   its Actions run, a review against the pull request, an approval against Louis's own message.
-  A message Claude drafted or quoted is not his approval. A session or agent that stops working
+  A message Claude drafted or quoted is not his approval until he sends it or says yes to it
+  himself. A session or agent that stops working
   on a pull request posts one note when an input changed since the last one, and does not
   restate repository history in it.
 - **Agents and reviews.** Start a subagent only for independent work or a search across many
@@ -251,9 +253,15 @@ change to the design, a policy or an approval rule.
   already-reviewed scope is not started. An additional independent review, focused on its
   reason, is started for an unresolved consequential defect, new evidence, coverage an earlier
   review did not reach, a high-risk change (progress storage, import or recovery, scheduling, a
-  live course), or Louis's request. Run agents in parallel only for items that share no branch,
-  worktree or module. The coordinator's own checkpoints (`coordinator/state.json`,
-  `coordinator/RUN.md`) are its baseline for course reviews.
+  live course), or Louis's request. For a merge under decision 10, the independent reviews
+  posted must together cover the whole diff of the final head against the current base; a
+  review of a delta counts only with an earlier review of its parent head, and a base change
+  since that review is reviewed as its own delta. Run agents in parallel only for items that
+  share no branch, worktree or module. The coordinator's own checkpoints
+  (`coordinator/state.json`, `coordinator/RUN.md`) are its baseline for course reviews, and
+  the porter's feedback checkpoint (`porter/feedback-checkpoint`, `review/porter-policy.md`
+  §11) is its baseline; where one of them and a handoff note differ, the stricter reading
+  applies.
 
 ## Access confirmed
 
