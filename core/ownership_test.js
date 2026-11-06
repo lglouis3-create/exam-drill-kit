@@ -306,11 +306,12 @@ const startAndPick = page => page.evaluate(() => {
     await switchTo(page, 'A');
     const started = await startAndPick(page);
     await page.evaluate(() => { const m = QUESTIONS.find(x => x.options && x.options.length); if(m) drillList([m], 'Missed concepts');
-      window.__park = parkSession; window.__resume = resumeSession;
-      parkSession = () => { throw new Error('probe: parkSession fails'); }; resumeSession = () => { throw new Error('probe: resumeSession fails'); }; });
+      // a core with no such steps (before #58) is checked as it is: the switch must still leave B clean
+      if(typeof parkSession === 'function'){ window.__park = parkSession; parkSession = () => { throw new Error('probe: parkSession fails'); }; }
+      if(typeof resumeSession === 'function'){ window.__resume = resumeSession; resumeSession = () => { throw new Error('probe: resumeSession fails'); }; } });
     await switchTo(page, 'B');
     const r = await page.evaluate(() => ({ex: !!EX, q: !!Q}));
-    await page.evaluate(() => { parkSession = window.__park; resumeSession = window.__resume; });
+    await page.evaluate(() => { if(window.__park) parkSession = window.__park; if(window.__resume) resumeSession = window.__resume; });
     const v = await examView(page);
     check(!r.ex && !r.q && !v.running, 'B starts with no paper and no quiz session of A', JSON.stringify({r, v}));
     if(started !== null){
