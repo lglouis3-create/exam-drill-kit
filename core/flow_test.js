@@ -161,6 +161,60 @@ const fresh = async browser => {
     await ctx.close();
   }
 
+  console.log('\n=== 1b. "I was sure of that" inside a targeted set stays inside it ===');
+  {
+    const {ctx, page, errors} = await fresh(browser);
+    // a sibling question on the same concept, outside the set (a copy with its own id)
+    const ids = await page.evaluate(() => {
+      const q = QUESTIONS.find(q => !q.type && !isMulti(q) && armOf(q.concept) === 'concept');
+      if(!q) return null;
+      const sib = Object.assign({}, q, {id: q.id + '-outside'});
+      QUESTIONS.push(sib); BY_CONCEPT[q.concept].push(sib);
+      const other = QUESTIONS.find(x => x.concept !== q.concept && !x.type && !isMulti(x) && x.id !== sib.id);
+      return {q: q.id, sib: sib.id, other: other.id};
+    });
+    if(!ids) L.skip('the retry inside a targeted set', 'no single-answer question on the concept model');
+    else{
+      // targeted: the missed question and one unrelated question
+      await L.quizOn(page, [ids.q, ids.other]);
+      await answerAs(page, 'wrong');
+      await page.evaluate(() => document.getElementById('btnSure').click());
+      const note = await text(page, '#sureNote');
+      await next(page);
+      const seen = [];
+      for(let k = 0; k < 4; k++){
+        const cur = await page.evaluate(() => Q.current ? Q.current.id : null);
+        if(!cur) break;
+        seen.push(cur);
+        await answerAs(page, 'knew'); await next(page);
+      }
+      check(!seen.includes(ids.sib), 'in a targeted set, "I was sure of that" never brings in a question from outside the set', seen);
+      check(seen.length === 1 && seen[0] === ids.other, 'the set goes on with its own remaining question', seen);
+      check(!/different question/i.test(note), 'the note under the button does not promise a different question', note);
+      // with the sibling inside the set, it comes next as before
+      await L.quizOn(page, [ids.q, ids.other, ids.sib]);
+      await page.evaluate(id => { Q.sweep = [id, ...Q.sweep.filter(x => x !== id)]; Q.i = 0; nextQuestion(); }, ids.q);
+      await answerAs(page, 'wrong');
+      await page.evaluate(() => document.getElementById('btnSure').click());
+      await next(page);
+      const nx = await page.evaluate(() => Q.current && Q.current.id);
+      check(nx === ids.sib, 'a sibling inside the set still comes straight after (rule 8 kept)', nx);
+      // the adaptive runner (here on a two-question pool without the sibling) still reaches the rest of the bank
+      const ad = await page.evaluate(ids => {
+        const q = byId(ids.q);
+        Q = {pool: [q, byId(ids.other)], label: 'adaptive check', current: q, answered: 0, lastId: null, examMode: false, picked: null, revealed: false};
+        Q.order = q.options.map((o, i) => i); renderQuiz();
+        answer(q.options.findIndex(o => !o.correct));
+        document.getElementById('btnSure').click();
+        document.getElementById('btnNext').click();
+        return Q.current && Q.current.id;
+      }, ids);
+      check(ad === ids.sib, 'the adaptive runner still takes the retry from the rest of the bank (unchanged)', ad);
+    }
+    check(!errors.length, 'no page errors', errors);
+    await ctx.close();
+  }
+
   console.log('\n=== 2. A partial exam names its denominators ===');
   {
     const {ctx, page} = await fresh(browser);

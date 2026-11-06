@@ -1487,11 +1487,16 @@ function repeatSet(){
   nextQuestion();
 }
 
+/* A targeted set: a fixed list asked once each (every sweep but a pass of
+   everything and the exam-weighted pass). Its retry after "I was sure of that"
+   stays inside the set; the broad passes and the adaptive runner keep reaching the
+   rest of the bank for one. */
+const targetedSet = () => !!(Q && Q.sweep && !Q.repeat);
 function nextQuestion(){
   let q = null;
   // after "I was sure of that": a different question on the same concept comes
   // next (scheduler rule 8); retryConcept is set only when there is one
-  const retry = Q.retryConcept ? retryQuestion(Q.retryConcept, Q.retryNot, Q.pool) : null;
+  const retry = Q.retryConcept ? retryQuestion(Q.retryConcept, Q.retryNot, Q.pool, targetedSet()) : null;
   Q.retryConcept = Q.retryNot = null;
   if(Q.sweep){
     if(retry){
@@ -1738,7 +1743,7 @@ function wireConfidence(){
     const q = Q.current;
     if(!markSure(q)) return;
     const concept = armOf(q.concept) === 'concept';
-    const other = concept ? retryQuestion(q.concept, q.id, Q.pool) : null;
+    const other = concept ? retryQuestion(q.concept, q.id, Q.pool, targetedSet()) : null;
     if(other){ Q.retryConcept = q.concept; Q.retryNot = q.id; }
     Q.sureLogged = other ? 'retry' : concept ? 'later' : 'fsrs';
     bu.textContent = 'Marked as sure'; bu.disabled = true;

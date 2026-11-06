@@ -2,13 +2,38 @@
 
 Dated kit changes, newest first.
 
-## 2026-11-06
+## 2026-11-06 (study pages, #70)
 - The Topics tab opens with a short Start here block: Learn a topic, Start practice, Review weak concepts, Practice exam (existing views only). The whole-bank passes move below the topic list.
 - On a narrow screen: a wide reading table keeps its first column in view while the rest scrolls, with a line that says which side has more columns; the tab bar shows a chevron on the side with more tabs and scrolls the opened tab into view; the tab bar no longer slides under a header that wraps to two lines.
 - Step-through figures: every control and dot is a 44 px touch target, the current dot is ringed, the step is announced, the arrow keys step, and Enlarge shows the figure across the screen (Close or Escape).
 - Atlas: course.js `atlasTitle`, `atlasNoun` and `atlasExampleLabel` set its heading, its noun and the "e.g." label (defaults unchanged); a Reveal name button per tile with aria-expanded; in Hide names mode no drawing label, board heading, intro, section label or note names a structure; the count leaves out tiles a class hides; "Back to the atlas" after a jump out of it.
 - `test.js` accepts read links to any view this course shows (the Atlas's `at-<board>`, Diagrams' `dg-<key>`) and fails a link whose anchor its view does not draw. New check: `ux_test.js`.
 - Review of #70: an enlarged figure keeps Tab inside it, returns focus to Enlarge, and closes before another tab or a redraw (no scroll lock left); a table with a rowspan or colspan keeps no fixed column; the tab-bar chevrons cover the bar's edge; the Atlas's narrowed count reads "n of N" as before unless `atlasNoun` is set; Start practice says it follows the filters, and the whole-bank passes sit under "Mixed drills and whole-bank passes".
+
+## 2026-11-06 (checks)
+- `import_test.js` "a profile switch frees the old profile's lock": the second tab now asks for the lock until it is granted or 2000 ms have passed, instead of once straight after the switch. The page frees the lock by resolving its lock callback's promise and the browser frees it after that; the lock was still held at the single request in job 127949917972. Before the switch the check now confirms that the second tab is read-only and that the browser lists exactly one held lock under the name it waits on, so a wrong lock name on either side fails it. A lock still held after 2000 ms fails the check and says how many holders remain (`review/lock-test/`).
+- A check can report one case as NOT RUN (`check_lib.js` `notRunCase`). It is counted apart from passes and skips, named in the check's summary, and listed by `run_checks.sh`. `ci_course.sh` accepts exactly one such case, listed in `core/ci_exclusions.sh`: the worksheets-ink PDF's size in WebKit (Louis, 2026-11-06). Any other NOT RUN case, and the same case in Chromium, fails the run. When worksheets-ink is on, its PDF check (Chromium) and its four print-layout checks (Chromium and WebKit) must each appear as a passing line in its log (`REQUIRED_PASSES`; `notruncase_test.js`).
+
+## 2026-11-06
+- The improvement coordinator (`coordinator/`):
+  - records each course's whole exam schedule apart from what its site has released;
+  - classifies each course's lifecycle from that schedule in America/Chicago;
+  - plans reviews by lifecycle and by what changed since the last reviewed commit;
+  - checks that a site lists only released exams;
+  - keeps an improvement registry;
+  - shows "Show my Exam Drill Dashboard" in Claude Code (`.claude/skills/exam-drill-dashboard/`).
+
+  `coordinator/coord_test.js` runs in Kit checks. DEENT is registered in `COURSES.md` and
+  `coordinator/courses.json`, with its published and unreleased question counts labelled by
+  branch.
+- The coordinator reads a course file as text and never runs it. It reads the release state at the commit GitHub Pages last deployed, or says the live revision is unknown. Credentials are removed from every shown or cached error. Approvals come from an "Approval:" line in each pull request. A final exam with no date no longer stops it.
+- The kit-update run reads each course from the branch Pages serves (`pagesBranch`), never
+  the default branch, and skips the kit-update preview of a course whose `kitUpdate` is
+  paused while keeping its read-only checks (`coord.js kitupdate`). DEENT is paused until
+  its pending release is resolved (Louis, 2026-11-06).
+- A coordinator run records improvements and prepares none, and writes a retrospective only
+  when Louis asks; preparing improvements and automatic retrospectives are a separate
+  proposal.
 
 ## 2026-11-05
 - The answer history is no longer cut silently at 20,000 entries: past it a notice offers Export progress and a removal of the oldest entries that names how many and their dates and needs an OK; until then new entries go on being added (`cap_test.js`).
