@@ -2363,7 +2363,10 @@ function clearExam(){
     let id = '';
     try { const raw = store.get(EXAM_KEY()); if(raw) id = paperId(JSON.parse(raw)); } catch(e){}
     if(!id && EX && EX.qs) id = paperId({ends: EX.ends, started: EX.started, ids: EX.qs.map(q => q.id)});
+    const wasRefused = FAILED.has(EXAM_KEY());
     store.del(EXAM_KEY()); try { sessionStorage.removeItem(EXAM_COPY_KEY()); } catch(e){}
+    // a refused paper submitted here: the notice no longer names it (the review of 7d0cc07)
+    if(wasRefused){ try { refreshSaveWarn(); } catch(e){} }
     // the last 20 papers submitted or cleared here (a list, so a second submit does not let the first
     // come back; the review of 8ff9351), written after the delete so it can use the room that frees;
     // if refused even so, a duplicated tab's copy could still come back

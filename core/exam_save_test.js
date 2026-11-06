@@ -357,6 +357,25 @@ const REFUSE = () => {
     await rb.ctx.close();
   }
   {
+    // the review of 7d0cc07: this page submits its own refused paper; the notice no longer names the paper,
+    // (1) with only the paper refused, (2) with every write refused (the progress notice's paper sentence)
+    for(const all of [false, true]){
+      const {ctx: cx, page: a, errors: ex} = await H.open();
+      await H.start(a); await H.set(a, 0, 0);
+      await a.evaluate(all => { window.__refuse = all ? [':exam:', ':data:', ':log:'] : [':exam:']; if(all){ record(QUESTIONS[0], 'correct', 0, 4000); saveNow(); } }, all);
+      await H.set(a, 1, 1);
+      const before = await H.text(a);
+      await a.evaluate(() => finishExam(false)); await a.waitForTimeout(300);
+      const after = await a.evaluate(() => ({text: (document.getElementById('savewarn') || {}).textContent || '', notice: !!document.getElementById('savewarn'), failed: [...FAILED].map(k => k.split(':')[1])}));
+      const named = t => /exam paper in progress/.test(t) || SAYS_COPY.test(t);
+      check(named(before) && !named(after.text) && (all ? after.notice : !after.notice),
+        all ? 'every write refused, then this page submits its paper: the notice stays for the progress but no longer names the paper'
+            : 'only the paper refused, then this page submits it: the notice goes', {before: before.slice(0, 160), after: after.text.slice(0, 200), notice: after.notice, failed: after.failed});
+      check(!ex.length, 'submitting a refused paper here' + (all ? ' (every write refused)' : '') + ': no page errors', ex.slice(0, 2).join('; '));
+      await cx.close();
+    }
+  }
+  {
     // M3, at the save itself: another writer (a tab without Web Locks, or one that wrote while this page was not
     // looking) stores a different paper while this page's paper runs; this page's next answer writes nothing over it
     const {ctx: c10, page: a, errors: e10} = await H.open();

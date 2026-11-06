@@ -562,7 +562,9 @@ With less room the old core still keeps more progress, because it deletes histor
     the return itself, once this page holds the profile's lock (N1). That wall offers Export and Reload;
     its text names "Use it here" only on the walls that have that button.
   - **Stored at last:** once a refused paper is stored, the notice is redrawn at once, and goes when nothing
-    else is refused (S1). "Use it here" redraws it too, once it has cleared the refused writes.
+    else is refused (S1). "Use it here" redraws it too, once it has cleared the refused writes, and so does
+    submitting a refused paper here: the notice then no longer names the paper (it stays for refused
+    progress or history).
   - **"It is saved":** the new-version bar's "A paper is running. It is saved…" question is now asked
     only when the paper is saved.
   - **After a reload** that brings the paper back from the tab's copy, the paper still counts as refused
