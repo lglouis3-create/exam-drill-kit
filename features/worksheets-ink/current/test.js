@@ -46,6 +46,14 @@
  * writing): the page says on screen that the writing was not saved, nothing saved before is overwritten, an
  * answer given after a refused stroke is still saved, and after a reload, or once Erase all writing makes
  * room, the answers and the writing saved before load and new writing is saved.
+ * The core's save path (kit PR #17, F1, 2026-11-06): ink is written through the core's save() and saveNow(), so
+ * after ink an answer, a second stroke, a flag (a module's own part, as study-controls keeps it) and a setting on
+ * the same page are stored with no stale-page wall, and survive a reload, also after ink on an exam paper's
+ * Scratch paper; two tabs of one profile, without Web Locks (tab B saves, then a stroke in tab A: A shows the
+ * stale-page wall and writes nothing over B) and with them (B opens read-only, takes the profile with Use it
+ * here and saves; a stroke in A writes nothing over B); ink stored before the change (DB.ink in the progress)
+ * opens with the answers, a flag and a setting and is kept beside new writing; with storage full the core's
+ * notice, which is allowed there, must say the progress is saved, and with storage denied that it is not.
  *
  *     node features/worksheets-ink/test.js
  */
@@ -592,7 +600,8 @@ const countOf = (h, re) => (h.match(re) || []).length;
     const reload = async page => { await page.reload(); await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000}); };
     const warnInfo = page => page.evaluate(() => { const w = document.querySelector('#ink .inkwarn'), r = w && w.getBoundingClientRect();
       return {shown: !!w && !w.hidden && r.width > 0 && r.bottom <= innerHeight && r.top >= 0 && r.left >= 0 && r.right <= innerWidth, text: w ? w.textContent : '',
-              state: FX.api('worksheets-ink').state() && FX.api('worksheets-ink').state().saved, core: !!document.getElementById('savewarn')}; });
+              state: FX.api('worksheets-ink').state() && FX.api('worksheets-ink').state().saved, core: !!document.getElementById('savewarn'),
+              coreText: (document.getElementById('savewarn') || {}).textContent || ''}; });
     // pages of strokes shaped like the module's own (60 points each, 4 decimals), added straight to the progress
     const BULK = ([pages, per, tag]) => {
       const ids = QUESTIONS.map(q => q.id), mk = (seed, n) => { const p = []; for(let i = 0; i < n; i++) p.push(+(0.05 + ((seed * 7 + i * 13) % 900) / 1000).toFixed(4), +(0.05 + ((seed * 11 + i * 17) % 900) / 1000).toFixed(4)); return {t: 'pen', c: '#111111', w: 0.00305, p}; };
@@ -624,6 +633,16 @@ const countOf = (h, re) => (h.match(re) || []).length;
       const file = fs.readFileSync(await dl.path(), 'utf8'), j = JSON.parse(file);
       console.log(`  size  the export file of that progress: ${file.length} characters`);
       check(JSON.stringify(j.db.ink) === inkMine, `Export progress holds all the writing (${Object.keys(j.db.ink).length} pages, ${Math.round(file.length / 1024)} KB file)`);
+      /* Since the F1 fix the module's writes go through the core's save, which also keeps this tab's per-tab record
+         (#45, about the size of the progress). After the reload above, the record of the page before the reload stays
+         until the core retires it, 60 s on (core/README.md, "Each writing tab's last save"), so for that minute this
+         much writing is stored three times and an Import of it into a second profile does not fit (the core then
+         says nothing was imported and keeps everything; diag-records log of the F1 fix). The Import below is made
+         once only one record of this profile is left; the wait is printed. */
+      const recs = () => ev(() => Object.keys(localStorage).filter(x => x.startsWith(NS + ':pending:' + PROFILE + ':')).length);
+      const r0 = await recs(), t0 = Date.now();
+      await page.waitForFunction(() => Object.keys(localStorage).filter(x => x.startsWith(NS + ':pending:' + PROFILE + ':')).length <= 1, null, {timeout: 90000, polling: 1000}).catch(() => {});
+      console.log(`  report  core: ${r0} per-tab records of this profile after the reload; ${await recs()} left after ${Math.round((Date.now() - t0) / 1000)} s, before the Import`);
       await ev(() => { window.__name = 'Fresh'; askProfile(true); show('settings'); });
       const fresh0 = await ev(() => [PROFILE, FX.api('worksheets-ink').inkBytes()]);
       const ir2 = await importFile(page, Buffer.from(file));
@@ -665,6 +684,131 @@ const countOf = (h, re) => (h.match(re) || []).length;
       await ctx.close();
     }
 
+
+    /* ---- the core's save path (kit PR #17, F1; Louis's approval of 2026-11-06) ----
+       The module writes ink through the core's save() and saveNow(), never with localStorage.setItem itself.
+       Before that, the core's next save took the module's own write for another tab's save and stopped the page
+       (the stale-page wall, #stalewarn), and nothing done on the page afterwards was saved (integration run 8:
+       the study-controls flag set after ink was lost on reload). */
+    console.log('\n=== ink through the core\'s save path: later saves, two tabs, failed saves, ink kept from before ===');
+    const NOLOCKS = () => { try { Object.defineProperty(Navigator.prototype, 'locks', {get: () => undefined, configurable: true}); } catch(e){} };
+    const writerReady = page => page.waitForFunction(() => typeof WRITER !== 'undefined' && (WRITER === 'held' || WRITER === 'none'), null, {timeout: 10000}).catch(() => {});
+    const wall = page => page.evaluate(() => { const w = document.getElementById('stalewarn') || document.getElementById('stopwall'); return w ? (w.id + ':' + (w.dataset.why || '')) : null; });
+    const tabOf = async (ctx, url) => { const p = await ctx.newPage(), errs = []; p.on('pageerror', e => errs.push(e.message)); p.on('dialog', d => d.accept().catch(() => {}));
+      await p.goto(url); await p.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000}); return {page: p, errors: errs}; };
+    // a mark on the scratch paper's canvas by synthetic pointer events (they reach the canvas under a wall too)
+    const penMark = (page, k) => page.evaluate(k => { const c = document.querySelector(`#ink .wspart[data-ink="${k}"] > canvas.inkcv`), r = c.getBoundingClientRect();
+      const e = (type, x, y) => c.dispatchEvent(new PointerEvent(type, {pointerType: 'mouse', clientX: r.left + x, clientY: r.top + y, pointerId: 71, bubbles: true, cancelable: true, isPrimary: true, buttons: 1}));
+      e('pointerdown', 30, r.height - 120); for(let i = 1; i <= 12; i++) e('pointermove', 30 + i * 12, r.height - 120 + i * 3); e('pointerup', 30 + 144, r.height - 84);
+      return (FX.api('worksheets-ink').state().data.parts[k] || []).length; }, k);
+    const QA = pre('ws1-2-1'), QB = pre('ws1-2-2');
+    { // writing ink does not block later saves on the same page
+      const {ctx, page, errors} = await openWith(820, 1180);
+      const ev = (f, a) => page.evaluate(f, a);
+      await writerReady(page);
+      let k = await sheetOpen(page, SID); await drawOn(page, k); await done(page);
+      await ev(id => record(byId(id), 'correct', undefined, 1000), QA);
+      k = await sheetOpen(page, SID); await drawOn(page, k, 40); await done(page);
+      // a study-controls-style change: a module's own part of the progress, saved by the core's save()
+      await ev(id => { DB.flags = Object.assign({}, DB.flags || {}, {[id]: Date.now()}); save(); }, QB);
+      await ev(() => { DB.settings.goal = 17; save(); });
+      await page.waitForTimeout(400);
+      const st1 = await ev(() => ({wall: !!document.getElementById('stalewarn') || !!document.getElementById('stopwall'), STALE, saved: FX.api('worksheets-ink').state() ? FX.api('worksheets-ink').state().saved : null}));
+      const s1 = JSON.parse(await stored(page)), sum1 = summary(await stored(page), SID);
+      check(!st1.wall && !st1.STALE && sum1.page === 2 && sum1.answers === 1 && !!(s1.flags && s1.flags[QB]) && s1.settings.goal === 17,
+            `after writing ink, an answer, a second stroke, a module's own part (a flag) and a setting on the same page are all stored, and no stale-page wall appears (${JSON.stringify([st1, sum1.page, sum1.answers, !!(s1.flags && s1.flags[QB]), s1.settings.goal])})`);
+      await reload(page);
+      const b1 = await ev(([id, qb]) => [FX.api('worksheets-ink').inkCount(id, 'main'), DB.answers.length, !!(DB.flags && DB.flags[qb]), DB.settings.goal, !!document.getElementById('stalewarn')], [SID, QB]);
+      check(JSON.stringify(b1) === JSON.stringify([2, 1, true, 17, false]), `they survive a reload: 2 strokes, 1 answer, the flag, the setting ${JSON.stringify(b1)}`);
+      // on an exam paper's scratch paper, as in integration run 8 and test.js's exam section
+      await ev(id => { show('exam'); const b = document.getElementById('startExam'); if(b) b.click();
+        let i = EX.qs.findIndex(q => q.type === 'numeric'); if(i < 0){ i = 0; EX.qs[0] = byId(id); EX.orders[0] = []; EX.picks[0] = null; } EX.i = i; renderExamQ(); }, NUM);
+      await page.waitForTimeout(300);
+      await page.locator('#v-exam .inkscratch').first().click(); await page.waitForSelector('#ink .inkpaper .wsdoc');
+      await stroke(page, '#ink .wspart[data-ink="work"]', 60, 260, 260, 300); await page.click('#ink [data-inkdone]');
+      await ev(id => { DB.flags = Object.assign({}, DB.flags || {}, {[id]: Date.now()}); save(); }, QA);
+      await page.waitForTimeout(400);
+      const e1 = await ev(qa => ({wall: !!document.getElementById('stalewarn'), flag: !!(JSON.parse(localStorage.getItem(keyFor(PROFILE))).flags || {})[qa]}), QA);
+      check(!e1.wall && e1.flag, `after ink on an exam paper's Scratch paper, a flag set next is stored and no stale-page wall appears (${JSON.stringify(e1)})`);
+      check(!errors.length, 'no page or console errors with ink, answers and flags on one page', errors.slice(0, 3).join('; '));
+      await ctx.close();
+    }
+    { // a genuine second-tab conflict, without Web Locks (the core's comparison guards on their own)
+      const {ctx, page, errors} = await openWith(820, 1180, NOLOCKS);
+      const ev = (f, a) => page.evaluate(f, a);
+      await writerReady(page);
+      let k = await sheetOpen(page, SID); await drawOn(page, k);
+      const b = await tabOf(ctx, page.url());
+      await b.page.evaluate(id => record(byId(id), 'correct', undefined, 1000), QA); await b.page.waitForTimeout(400);
+      const theirs = await stored(b.page);
+      await page.waitForFunction(v => localStorage.getItem(keyFor(PROFILE)) === v, theirs, {timeout: 5000}).catch(() => {});
+      const n = await penMark(page, k); await page.waitForTimeout(300);
+      const w = await warnInfo(page), now = await stored(page), wl = await wall(page);
+      check(wl === 'stalewarn:stale' && now === theirs && JSON.parse(now).answers.length === 1 && n === 2,
+            `no Web Locks: after tab B saves, a stroke in tab A shows the core's stale-page wall in tab A and writes nothing over B's progress (${JSON.stringify({wall: wl, keptB: now === theirs, strokes: n})})`);
+      check(w.state === 'stopped' && /stopped saving/.test(w.text), `tab A's writing notice says the change was not saved (${JSON.stringify([w.state, w.text.slice(0, 80)])})`);
+      check(!errors.length && !b.errors.length, 'no page errors in either tab (no Web Locks)', errors.concat(b.errors).slice(0, 3).join('; '));
+      await ctx.close();
+    }
+    { // a genuine second-tab conflict, with Web Locks: tab B takes the profile ("Use it here") and saves
+      const {ctx, page, errors} = await openWith(820, 1180);
+      const ev = (f, a) => page.evaluate(f, a);
+      await writerReady(page);
+      if(!(await ev(() => HAS_LOCKS))) L.skip('two tabs with Web Locks', `NOT RUN: ${L.BROWSER_NAME} gives this page no Web Locks`);
+      else {
+        let k = await sheetOpen(page, SID); await drawOn(page, k);
+        const b = await tabOf(ctx, page.url());
+        const ro = await wall(b.page);
+        await b.page.click('#stopTake').catch(() => {});
+        await b.page.waitForFunction(() => WRITER === 'held', null, {timeout: 10000}).catch(() => {});
+        await b.page.evaluate(id => record(byId(id), 'correct', undefined, 1000), QA); await b.page.waitForTimeout(400);
+        const theirs = await stored(b.page);
+        await page.waitForFunction(v => localStorage.getItem(keyFor(PROFILE)) === v, theirs, {timeout: 5000}).catch(() => {});
+        const n = await penMark(page, k); await page.waitForTimeout(300);
+        const now = await stored(page), wl = await wall(page), w = await warnInfo(page);
+        check(ro === 'stopwall:other' && /^stopwall:(gave|taken)$/.test(wl || '') && now === theirs && JSON.parse(now).answers.length === 1 && n === 2 && w.state === 'stopped',
+              `with Web Locks: tab B opens read-only, takes the profile and saves; a stroke then drawn in tab A writes nothing over B's progress, and tab A shows the core's wall (${JSON.stringify({b: ro, a: wl, keptB: now === theirs, strokes: n, state: w.state})})`);
+        check(!errors.length && !b.errors.length, 'no page errors in either tab (Web Locks)', errors.concat(b.errors).slice(0, 3).join('; '));
+      }
+      await ctx.close();
+    }
+    { // ink stored before this change (in the progress, DB.ink, under the same key) is kept, with the rest
+      const o = await openWith(820, 1180);
+      await writerReady(o.page);
+      await o.page.evaluate(id => record(byId(id), 'correct', undefined, 1000), QA);
+      // the progress as the module's old inkWrite stored it: JSON.stringify(DB) under keyFor(PROFILE), with localStorage.setItem
+      const seed = await o.page.evaluate(([sid, qb]) => { const d = JSON.parse(JSON.stringify(DB));
+        d.ink = {[sid + '|main']: {parts: {head: [{t: 'pen', c: '#111111', w: 0.003, p: [0.1, 0.03, 0.4, 0.03]}]}, room: {}, at: 1},
+                 ['q:' + qb + '|scratch']: {parts: {work: [{t: 'pen', c: '#1E56C8', w: 0.003, p: [0.1, 0.1, 0.3, 0.2, 0.5, 0.1]}]}, room: {work: 240}, at: 2}};
+        d.flags = {[qb]: 3}; d.settings.goal = 23;
+        return {[keyFor(PROFILE)]: JSON.stringify(d), [NS + ':profile']: PROFILE}; }, [SID, QB]);
+      await o.ctx.close();
+      const SEED = s => { if(sessionStorage.getItem('__seeded')) return; sessionStorage.setItem('__seeded', '1'); for(const [k, v] of Object.entries(s)) localStorage.setItem(k, v); };
+      const ctx = await browser.newContext(Object.assign({}, L.OPEN_CTX, {viewport: {width: 820, height: 1180}}));
+      await ctx.addInitScript(() => { window.prompt = () => (window.__name || 'TestUser'); });
+      await ctx.addInitScript(INIT); await ctx.addInitScript(SEED, seed);
+      const {page, errors} = await tabOf(ctx, await L.pageUrl(s.page));
+      const ev = (f, a) => page.evaluate(f, a);
+      await writerReady(page);
+      const old = JSON.parse(Object.values(seed)[0]);
+      const got = await ev(([sid, qb]) => ({ink: JSON.stringify(DB.ink), n: FX.api('worksheets-ink').inkCount(sid, 'main'), q: FX.api('worksheets-ink').inkCount('q:' + qb, 'scratch'), answers: DB.answers.length, flag: DB.flags && DB.flags[qb], goal: DB.settings.goal}), [SID, QB]);
+      check(got.ink === JSON.stringify(old.ink) && got.n === 1 && got.q === 1 && got.answers === 1 && got.flag === 3 && got.goal === 23,
+            `ink stored the old way (DB.ink in the progress) opens with the new code, with the answers, the flag and the setting (${JSON.stringify(Object.assign({}, got, {ink: got.ink === JSON.stringify(old.ink)}))})`);
+      await ev(() => show('sheets'));
+      const lab = await ev(sid => { const b = document.querySelector(`#v-sheets [data-ink="${sid}"][data-var="main"]`); return b ? b.textContent : ''; }, SID);
+      const k = await sheetOpen(page, SID); await page.waitForTimeout(200);
+      const px = await ev(() => { const c = document.querySelector('#ink .wshead > canvas.inkcv'), d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let n = 0; for(let i = 3; i < d.length; i += 4) if(d[i] > 0) n++; return n; });
+      await drawOn(page, k); await done(page); await page.waitForTimeout(300);
+      const after = JSON.parse(await stored(page));
+      const keptAll = after.ink['q:' + QB + '|scratch'] && JSON.stringify(after.ink['q:' + QB + '|scratch']) === JSON.stringify(old.ink['q:' + QB + '|scratch']) &&
+        (after.ink[SID + '|main'].parts.head || []).length === 1 && (after.ink[SID + '|main'].parts[k] || []).length === 1 && after.answers.length === 1 && after.flags[QB] === 3 && after.settings.goal === 23;
+      check(/Continue/.test(lab) && px > 20 && keptAll && !(await wall(page)),
+            `the card says Continue writing, the old name-line stroke is drawn (${px} pixels), and a new stroke is saved beside the old writing, the answers, the flag and the setting`,
+            {lab, px, keptAll: !!keptAll});
+      check(!errors.length, 'no page errors with ink stored before the change', errors.slice(0, 3).join('; '));
+      await ctx.close();
+    }
+
     for(const [W, H] of [[820, 1180], [390, 844]]){ // storage denied: setItem throws
       console.log(`\n--- storage denied at ${W} px ---`);
       const {ctx, page, errors} = await openWith(W, H, DENY);
@@ -677,7 +821,8 @@ const countOf = (h, re) => (h.match(re) || []).length;
       const w = await warnInfo(page), mem = await ev(id => FX.api('worksheets-ink').state().data.parts, SID);
       await answer(page, pre('ws1-2-2')); await page.waitForTimeout(300);
       const during = await stored(page);
-      check(w.shown && w.state === 'off' && /not saving/.test(w.text) && w.core, `with storage denied the page says the writing is not being saved, on screen (${JSON.stringify(w)})`);
+      check(w.shown && w.state === 'off' && /not saving/.test(w.text) && w.core && /did not save your progress/.test(w.coreText),
+            `with storage denied the page says the writing is not being saved, on screen, and the core's notice says the progress was not saved (${JSON.stringify({shown: w.shown, state: w.state, text: w.text.slice(0, 70), coreText: w.coreText.slice(0, 80)})})`);
       check(during === before && summary(during, SID).page === 1 && summary(during, SID).answers === 1 && Object.values(mem).reduce((a, l) => a + l.length, 0) === 2,
             `nothing saved before is overwritten, and the new stroke stays on screen (${JSON.stringify(summary(during, SID))})`);
       await done(page); await reload(page);   // storage works again (the page starts without the refusal)
@@ -723,7 +868,13 @@ const countOf = (h, re) => (h.match(re) || []).length;
       const w = await warnInfo(page);
       const st = await ev(([id, k]) => { const I = FX.api('worksheets-ink').state(); return [(I.data.parts[k] || []).length, !!(DB.ink[id + '|main'])]; }, [SID, k]);
       const kept = await stored(page);
-      check(w.shown && w.state === 'refused' && /not saved/.test(w.text) && !w.core, `when the stroke would make the progress too big, the page says it was not saved, on screen (${JSON.stringify(w)})`);
+      /* F2 (kit PR #17, 2026-11-05): with storage full the core shows its own notice (#savewarn) on purpose when this
+         tab cannot keep its per-tab record (recordOff; core/README.md "The per-tab record", Louis, 2026-11-05). It is
+         allowed, and must be accurate: the progress was saved again without the stroke, so it may not say that the
+         progress was not saved; the module's own notice says that the last change was not saved. */
+      const coreOk = !w.core || (!/did not save your progress/.test(w.coreText) && /Your progress is saved/.test(w.coreText));
+      check(w.shown && w.state === 'refused' && /last change on this page was not saved/.test(w.text) && coreOk,
+            `when the stroke would make the progress too big, the page says it was not saved, on screen, and the core's notice, when shown, says the progress is saved (${JSON.stringify({shown: w.shown, state: w.state, text: w.text.slice(0, 70), core: w.core, coreText: w.coreText.slice(0, 120)})})`);
       check(kept === before && st[0] === 1 && !st[1], `the saved progress is left as it was, and the stroke stays on screen only (${kept === before}, ${JSON.stringify(st)})`);
       await done(page);
       await answer(page, pre('ws1-2-2')); await page.waitForTimeout(300);

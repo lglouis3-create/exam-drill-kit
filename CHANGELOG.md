@@ -2,6 +2,12 @@
 
 Dated kit changes, newest first.
 
+## 2026-11-06
+- `worksheets-ink` (kit PR #17, draft): the writing is saved through the core's own save (`save()`, `saveNow()`, `store`)
+  instead of a direct browser-storage write, which had made the core stop the page with its "saved in another tab"
+  wall after writing, so nothing done on the page afterwards was saved. A second tab's newer progress is not written
+  over by ink, a failed save's notices say what was and was not saved, and ink saved before is kept as it was.
+
 ## 2026-11-05
 - The answer history is no longer cut silently at 20,000 entries: past it a notice offers Export progress and a removal of the oldest entries that names how many and their dates and needs an OK; until then new entries go on being added (`cap_test.js`).
 - Study progress first when storage is full: while a progress write is refused, the answer history is held (on the page, named in the notice, in Export) and written after the next progress save; this tab's own per-tab record, proven stored, is removed to make room and the progress write tried once more.

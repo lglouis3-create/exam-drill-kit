@@ -40,7 +40,8 @@
 
    Where the writing is kept: in this profile's progress (DB.ink), so Export
    progress copies it, Import progress brings it back and Erase my history
-   removes it, and each profile keeps its own. A stroke is stored in its
+   removes it, and each profile keeps its own. The progress is written through
+   the core's save() and saveNow() (inkWrite), as every other part of it. A stroke is stored in its
    problem's own coordinates, as fractions of the problem's width, rounded to
    4 decimals. The pen's colour, size and the two switches are a choice of
    this device and are kept under their own key (NS + ':ink-prefs').
@@ -371,23 +372,35 @@ const inkLoad = (id, v) => { const all = inkStore(), d = all && all[inkKey(id, v
 const strokeCount = d => Object.values(d.parts || {}).reduce((n, a) => n + (Array.isArray(a) ? a.length : 0), 0);
 const inkCount = (id, v) => strokeCount(inkLoad(id, v));
 const inkBytes = () => { const all = inkStore(); return all ? JSON.stringify(all).length : 0; };
-/* The progress, written now rather than 150 ms later (Basic-Pharmacokinetics wrote each stroke at once):
-   'ok' when the browser kept it, 'full' when it refused it, 'off' when nothing may be written (the saved
-   progress was not loaded in this visit). The first try goes to localStorage itself, so a refusal that the
-   module then handles does not raise the core's "did not save your progress" notice. */
+/* The progress, written now rather than 150 ms later (Basic-Pharmacokinetics wrote each stroke at once), through
+   the core's own save: save() and then saveNow(), so the write goes through `store` with the core's guards (the
+   stale-page guard and the one writer per profile, core/README.md "One writer per profile"), the record of what
+   this page last stored (`seenAs`) and this tab's per-tab record (#45), as every other part of the progress.
+   Kit PR #17, F1 (2026-11-05): before this, the module wrote with localStorage.setItem itself, which the core did
+   not record, so the core's next save took that write for another tab's save and stopped the page (Louis's
+   approval of the fix, 2026-11-06). Gives
+   'ok'      the browser kept it (what is stored is this progress);
+   'full'    the browser refused it (storage full or blocked; the core then holds it in memory and shows its notice);
+   'wait'    this page is still being given the profile (Web Locks): the core writes it once it has the profile;
+   'stopped' the core wrote nothing because another tab or window has the profile or saved it since (its wall is up);
+   'off'     nothing may be written (the saved progress was not loaded in this visit). */
 function inkWrite(){
   if(!canSave()) return 'off';
   const k = keyFor(PROFILE), v = JSON.stringify(DB);
-  try { localStorage.setItem(k, v); } catch(e){ return 'full'; }
-  if(typeof FAILED !== 'undefined' && FAILED.has(k)) store.set(k, v);   // a write that works again: the core's store stops serving its copy in memory
-  return 'ok';
+  save(); saveNow();
+  if(FAILED.has(k)) return 'full';
+  let now = null; try { now = localStorage.getItem(k); } catch(e){ now = null; }
+  if(now === v) return 'ok';
+  return typeof WRITER !== 'undefined' && WRITER === 'pending' && !STALE ? 'wait' : 'stopped';
 }
 /* The writing on the page open now, into the progress; a page with no writing and no extra room is not kept.
    The progress is written whole, so writing that makes it too big for the browser's storage would stop every
    later save, answers included. When the browser refuses it, this page goes back to its last saved writing in
    the progress, the progress is written again without the change, and the page says the change was not saved
    (the writing stays on screen until the page closes). When even that write is refused, nothing is being saved
-   at all: the change stays in the progress in memory, and the page says the browser is not saving. */
+   at all: the change stays in the progress in memory, and the page says the browser is not saving. The core's
+   notice ("did not save", #savewarn) is brought up to date after the second write (refreshSaveWarn), so it does
+   not go on saying that the progress was not saved once it was. */
 function inkSave(){
   if(!INK) return;
   const k = inkKey(INK.id, INK.variant), empty = !strokeCount(INK.data) && !Object.values(INK.data.room).some(v => v > 0);
@@ -397,8 +410,10 @@ function inkSave(){
   if(state === 'full'){
     const now = DB.ink && DB.ink[k];
     if(INK.good){ if(!inkStore()) DB.ink = {}; DB.ink[k] = JSON.parse(INK.good); } else if(DB.ink) delete DB.ink[k];
-    if(store.set(keyFor(PROFILE), JSON.stringify(DB))) state = 'refused';
-    else { if(now){ if(!inkStore()) DB.ink = {}; DB.ink[k] = now; } else if(DB.ink) delete DB.ink[k]; state = 'off'; }
+    const again = inkWrite();
+    if(again === 'ok') state = 'refused';
+    else { if(now){ if(!inkStore()) DB.ink = {}; DB.ink[k] = now; } else if(DB.ink) delete DB.ink[k]; state = again === 'full' ? 'off' : again; }
+    if(typeof refreshSaveWarn === 'function') refreshSaveWarn();
   }
   if(state === 'ok'){ const d = inkStore() && DB.ink[k]; INK.good = d ? JSON.stringify(d) : null; }
   INK.saved = state;
@@ -406,10 +421,11 @@ function inkSave(){
 }
 const INK_WARN = {
   refused: "This browser's storage is full, so the last change on this page was not saved. The writing saved before and your answers are kept. Save as PDF to keep this page, or use Erase all writing in Settings to make room.",
+  stopped: 'This page has stopped saving (the notice over the page says why), so the last change on this page was not saved. Save as PDF to keep it.',
   off: 'This browser is not saving: the writing lasts only until the page closes. Save as PDF to keep it.'};
 function inkWarn(){
   const w = document.querySelector('#ink .inkwarn'); if(!w || !INK) return;
-  w.hidden = INK.saved === 'ok';
+  w.hidden = INK.saved === 'ok' || INK.saved === 'wait';
   if(!w.hidden) w.textContent = INK_WARN[INK.saved] || INK_WARN.off;
 }
 // the Write on it buttons say Continue writing where writing is kept
