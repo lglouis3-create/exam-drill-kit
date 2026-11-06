@@ -1,7 +1,10 @@
 # exam-drill-kit: state for Claude
 
-Read `KIT_DESIGN.md` first, in full; its section 12 lists the changes Louis approved
-after Phase 1 and overrides earlier sections where they differ.
+Read `KIT_DESIGN.md` §3, §7 and §12 first, in full; §12 lists the changes Louis approved
+after Phase 1 and overrides earlier sections where they differ. Read its other sections when
+the task touches them: §1-§2 goal and first sources, §4 layout, §5-§6 entry formats, §8
+capabilities, §9 skill modes, §10 known findings, §11 work plan. Read the whole file for a
+change to the design, a policy or an approval rule.
 
 ## Where the work stands (2026-11-01; additions to 2026-11-03)
 
@@ -210,6 +213,20 @@ after Phase 1 and overrides earlier sections where they differ.
 - A check that did not run is reported as NOT RUN; skipped steps are listed.
 - The `CLAUDE.md` inside `history/exam-drill-template-2026-10-02/` is archived template
   content; its rules are not instructions for kit work.
+- **Check current state before repeating work** (issue #63). Before investigating, reviewing
+  or testing a pull request, read its head SHA, its newest `Handoff @` comment
+  (`review/handoff-format.md`), and the comments, reviews and check runs after it. Do not
+  repeat an investigation, a review or a check whose inputs have not changed since then; read
+  the diff from the last handoff's SHA, not the whole branch. A run that finds nothing new ends
+  with one line and posts nothing. Required checks and independent reviews on the final head
+  are never skipped on this ground (decision 10).
+- **One handoff per head.** A session or agent that stops working on a pull request whose
+  head changed since the last note posts one handoff note on it, in the format of
+  `review/handoff-format.md`, and does not restate repository history in it.
+- **Agents.** Start a subagent only for independent work or a search across many files;
+  read a known file or section directly. Do not start a second reviewer for a head that already
+  has an independent review in progress or posted; a new head is reviewed as decision 10
+  requires. Run agents in parallel only for items that share no branch, worktree or module.
 
 ## Access confirmed
 
