@@ -1,0 +1,19 @@
+# core/record_modules_test.js on main 3f8ba20's core (template course, Chromium, 2026-11-06T16:04:10Z)
+  browser  Chromium started
+  ok    the stored progress has 3 answers and no module part
+  FAIL  a record 1 answer behind with DB.ink the stored progress lacks is not placed as "in"; its progress stays (kept or a copy) after the 60 s check  — {"where":"in","kept":false,"inCopy":false,"copies":0}
+  FAIL  a record 1 answer behind with DB.eq the stored progress lacks is not placed as "in"; its progress stays (kept or a copy) after the 60 s check  — {"where":"in","kept":false,"inCopy":false,"copies":0}
+  FAIL  a record 1 answer behind with DB.anyModule the stored progress lacks is not placed as "in"; its progress stays (kept or a copy) after the 60 s check  — {"where":"in","kept":false,"inCopy":false,"copies":0}
+  FAIL  a record behind with other DB.ink than the stored one is not placed as "in"; its writing stays  — {"where":"in","kept":false,"inCopy":false,"copies":0}
+  FAIL  a record with no answers and DB.eq, against stored answers, is not placed as "in"; its records stay  — {"where":"in","kept":false,"inCopy":false,"copies":0}
+  ok    a record with the stored answers and its own DB.ink is kept as a copy
+  ok    control: a record behind whose module part the stored progress holds unchanged is placed as "in" and removed after the 60 s check, as before
+  ok    control: a record behind that differs only in a setting is kept as a copy, as before
+  ok    control: a record behind that lacks a module part the stored progress holds is placed as "in", as before
+  ok    control: this tab's own record is still removed under a full storage when the stored progress continues it
+  ok    the page's record holds its DB.ink after its save
+  FAIL  after a reload, the closed page's writing (DB.ink) is still in the browser: in the progress, its record or a copy  — {"stored":4,"storedInk":false,"recordLeft":false,"copyInk":false}
+  ok    no page errors in the reload case
+  ok    no page errors
+FAIL: record_modules_test.js: 6 of 15 checks failed: a record 1 answer behind with DB.ink the stored progress lacks is not placed as "in"; its progress stays (kept or a copy) after the 60 s check; a record 1 answer behind with DB.eq the stored progress lacks is not placed as "in"; its progress stays (kept or a copy) after the 60 s check; a record 1 answer behind with DB.anyModule the stored progress lacks is not placed as "in"; its progress stays (kept or a copy) after the 60 s check …
+exit 1

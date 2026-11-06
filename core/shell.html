@@ -896,7 +896,8 @@ if(writerChan) writerChan.addEventListener('message', e => {
    progress is found by its last answer, compared field by field (never question and time alone),
    which also works once the oldest answers are cut at ANSWERS_MAX:
    - its last answer is in the stored progress, before the stored last answer: the stored
-     progress continued from it (later answers): nothing to add;
+     progress continued from it (later answers): nothing to add, unless the record holds a setting,
+     a mark or a module's part (moduleAhead) the stored progress does not show: then a copy;
    - it is the stored last answer, or the record has no answers: equal progress, nothing to add;
      different progress (a setting, a module's part): one more copy Import keeps (Put back);
    - its last answer is not stored: the save that was written over. If the stored last answer is
@@ -957,7 +958,7 @@ function dropOwnRecordIfStored(){
     if(raw === null || sv === null) return false;
     const old = JSON.parse(raw), st = JSON.parse(sv), have = storedLogEntries();
     const logIn = have !== null && missingEntries(Array.isArray(old.log) ? old.log.filter(Array.isArray) : [], have).length === 0;
-    if(!(old && old.db && Array.isArray(old.db.answers)) || placeOf(old, st) !== 'in' || !logIn) return false;
+    if(!(old && old.db && Array.isArray(old.db.answers)) || placeOf(old, st, true) !== 'in' || !logIn) return false;
     if(localStorage.getItem(k) !== raw) return false;
     localStorage.removeItem(k);
     recordOff(true);
@@ -1039,13 +1040,29 @@ function missingEntries(entries, have){
 function readCopiesList(){
   try { const v = storedNow(NS + ':backup:' + PROFILE); const l = v ? JSON.parse(v) : []; return Array.isArray(l) ? l : [l]; } catch(e){ return null; }
 }
+/* A module's part of the progress (worksheets-ink's DB.ink, equation-drill's DB.eq, any key
+   outside the core's own parts: views.js NOT_COMPARED and ENTRY_MAPS, as Import decides) that the
+   record holds and the stored progress does not hold the same. A module changes its part without
+   an answer, so answers the stored progress went on from do not show that it holds the record's
+   part (the review of kit #66, 2026-11-06: such a record was removed and the part lost). */
+function moduleAhead(db, st){
+  const skip = typeof NOT_COMPARED !== 'undefined' ? NOT_COMPARED : ['v', 'created', 'fsUndo', 'fsHistory', 'answers', 'qn', 'settings'];
+  const maps = typeof ENTRY_MAPS !== 'undefined' ? ENTRY_MAPS : {concepts: 1, arms: 1, fsrsQ: 1, fsrsC: 1};
+  const empty = v => v === undefined || v === null || v === '' || v === 0 || v === false ||
+    (Array.isArray(v) && !v.length) || (typeof v === 'object' && !Array.isArray(v) && !Object.keys(v).length);
+  const canonOf = v => JSON.stringify(v, (k, x) => x && typeof x === 'object' && !Array.isArray(x) ? Object.keys(x).sort().reduce((o, key) => (o[key] = x[key], o), {}) : x);
+  return Object.keys(db).some(k => !skip.includes(k) && !(k in maps) && !empty(db[k]) && canonOf(db[k]) !== canonOf(st ? st[k] : undefined));
+}
 /* Where the record stands against what is stored: 'in', 'conflict' (same point, other progress),
-   'continues' (its last answer missing; the record holds the stored last answer) or 'apart'. */
-function placeOf(rec, st){
+   'continues' (its last answer missing; the record holds the stored last answer) or 'apart'.
+   own: this tab's own record, whose stored progress is this tab's own later write (a module part
+   it changed since is newer there), checked by dropOwnRecordIfStored. */
+function placeOf(rec, st, own){
   const pAns = rec.db.answers, sAns = st && Array.isArray(st.answers) ? st.answers : [];
   const dbStr = JSON.stringify(rec.db), stStr = st ? JSON.stringify(st) : null;
   if(dbStr === stStr) return 'in';
-  if(!pAns.length) return sAns.length && !rec.mark ? 'in' : 'conflict';
+  const ahead = !own && moduleAhead(rec.db, st);
+  if(!pAns.length) return sAns.length && !rec.mark && !ahead ? 'in' : 'conflict';
   const last = answerSign(pAns[pAns.length - 1]);
   let idx = -1;
   for(let i = sAns.length - 1; i >= 0; i--) if(answerSign(sAns[i]) === last){ idx = i; break; }
@@ -1054,7 +1071,7 @@ function placeOf(rec, st){
     // the stored progress went on from the record's last answer: nothing to add, unless the record
     // carries a choice of its own the later progress does not show (a setting; Erase, Put back or
     // a replacing Import in that tab), which is then kept as a copy
-    if(rec.mark || JSON.stringify(rec.db.settings || {}) !== JSON.stringify((st && st.settings) || {})) return 'apart';
+    if(rec.mark || ahead || JSON.stringify(rec.db.settings || {}) !== JSON.stringify((st && st.settings) || {})) return 'apart';
     return 'in';
   }
   if(!sAns.length) return 'continues';

@@ -2,6 +2,9 @@
 
 Dated kit changes, newest first.
 
+## 2026-11-06 (records)
+- A tab's last save (the per-tab record) keeps a feature module's part of the progress. When the stored progress went on from the record's answers, or the record has no answers, a module part in the record that the stored progress does not hold the same (worksheets-ink's `DB.ink`, equation-drill's `DB.eq`, any key outside the core's own parts, as Import decides) now makes the record a copy (Settings, "Put back the progress from …"), never removed while that part is in neither. Before, only the settings were compared and the record was removed 60 s later. This tab's own record under a full storage is still removed when the stored progress continues it (`placeOf` `own`). New check `core/record_modules_test.js`; its run on main 3f8ba20 failing 6 of 15 checks is `review/record-modules/before-main-3f8ba20.log`. equation-drill and worksheets-ink stay off in every course until this merges (Louis, 2026-11-06).
+
 ## 2026-11-06 (checks)
 - A check can report one case as NOT RUN (`check_lib.js` `notRunCase`). It is counted apart from passes and skips, named in the check's summary, and listed by `run_checks.sh`. `ci_course.sh` accepts exactly one such case, listed in `core/ci_exclusions.sh`: the worksheets-ink PDF's size in WebKit (Louis, 2026-11-06). Any other NOT RUN case, and the same case in Chromium, fails the run. When worksheets-ink is on, its PDF check (Chromium) and its four print-layout checks (Chromium and WebKit) must each appear as a passing line in its log (`REQUIRED_PASSES`; `notruncase_test.js`).
 
