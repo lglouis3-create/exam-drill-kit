@@ -824,7 +824,7 @@ function mergedLog(base, entries){
     else if(e.length > mine.length) for(let i = mine.length; i < e.length; i++) mine.push(e[i]);
   }
   out.sort((x, y) => x[0] - y[0]);
-  return out.length > LOG_MAX ? out.slice(out.length - LOG_MAX) : out;
+  return out;   // no cut at LOG_MAX: the student decides (capNotice)
 }
 /* Carry out a plan. Every write is one the browser either keeps or refuses
    (store.trySet), and a refused one leaves what it would have replaced as it was. */
@@ -907,7 +907,7 @@ function runImport(plan){
   if(plan.newLog || plan.fill){
     if(!LOG_OK) return {text: text + ' The answer history saved here could not be read in this visit, so the file\'s entries were not added to it.'};
     const log = mergedLog(LOG, f.log);
-    if(store.trySet(logKey(), JSON.stringify(log))){ LOG = log; text += (text ? ' ' : '') + `${nEntries(plan.newLog)} added to the answer history` + (plan.fill ? `, ${plan.fill} completed` : '') + '.'; }
+    if(store.trySet(logKey(), JSON.stringify(log))){ LOG = log; text += (text ? ' ' : '') + `${nEntries(plan.newLog)} added to the answer history` + (plan.fill ? `, ${plan.fill} completed` : '') + '.'; setTimeout(capNotice, 0); }
     else text += (text ? ' ' : '') + `${refused} the answer history, so the file's ${nEntries(plan.newLog)} were not added; the history here is unchanged. Importing the file again adds them.`;
   }
   return {text};
@@ -987,7 +987,7 @@ function restoreBackup(){
       if(!LOG_OK) logIn = false;
       else if(Array.isArray(extra) && extra.length){
         const merged = mergedLog(LOG, extra);
-        if(store.trySet(logKey(), JSON.stringify(merged))){ LOG = merged; SEEN_LOG = JSON.stringify(merged); }
+        if(store.trySet(logKey(), JSON.stringify(merged))){ LOG = merged; SEEN_LOG = JSON.stringify(merged); setTimeout(capNotice, 0); }
         else logIn = false;
       }
     } catch(e){ logIn = false; }
@@ -1183,7 +1183,7 @@ function storageSection(){
       <li>other settings of this drill: <span data-st="other">${nChars(d.other)}</span> characters</li>
     </ul>
     <p style="margin:0 0 6px">The profile “${esc(PROFILE)}” keeps <span data-st="kept">${nChars(kept)}</span> answers (at most ${nChars(ANSWERS_MAX)}) of
-      <span data-st="qn">${nChars(DB.qn || 0)}</span> recorded in all. The answer history keeps the latest ${nChars(LOG_MAX)} entries.</p>
+      <span data-st="qn">${nChars(DB.qn || 0)}</span> recorded in all. The answer history has ${nChars(LOG.length)} entries${LOG.length > LOG_MAX && mayWrite() ? `, more than ${nChars(LOG_MAX)}: nothing is removed unless you choose to <button class="btn ghost" id="btnCapTrim" type="button">Remove the oldest ${nChars(LOG.length - LOG_MAX)}…</button>` : ''}.</p>
     <p style="font-size:13.5px;color:var(--text-dim);margin:4px 0 0" data-st="how">
       How the warning point is set: a warning shows here and in the Quiz tab when the space left is less than the larger of two amounts.
       One is the size of the largest profile this browser holds for a drill on this engine (its progress plus its answer history), now
@@ -2962,6 +2962,7 @@ function renderSettings(){
   if(rb) rb.onclick = restoreBackup;
   const dc = $('#btnDeleteCopies');
   if(dc) dc.onclick = deleteCopies;
+  const ct = $('#btnCapTrim'); if(ct) ct.onclick = () => { if(trimOldest()){ const w = document.getElementById('capwarn'); if(w) w.remove(); renderSettings(); } };
   const sw = $('#v-settings [data-storage-warn]');
   if(sw) wireStorageWarn(sw);
   $('#btnReset').onclick = ()=>{
@@ -3106,10 +3107,12 @@ function bar(text, action, onAction, hideAfter){
    paper is saved, but its clock keeps running through the reload. */
 function offerReload(text){
   bar(text, 'Reload', () => {
-    // a stopped page: what it has not saved is lost on reload, unless exported (#32's review of 4311133)
-    if((STALE || WRITER === 'other') && atRisk() && !confirm('The answers and settings this page has not saved are lost on reload unless you export them first (the button on the notice). Reload anyway?')) return;
+    // a stopped page, or one whose writes the browser refused (storage full): what it has not saved
+    // is lost on reload, unless exported (#32's review of 4311133; Louis, 2026-11-05)
+    if((STALE || WRITER === 'other' || FAILED.size) && atRiskAll() && !confirm('The answers and settings this page has not saved are lost on reload unless you export them first (the button on the notice). Reload anyway?')) return;
     if(EX && EX.running && !confirm('A paper is running. It is saved and its clock keeps running. Reload now?')) return;
     placeSave();
+    LEAVE_ASKED = true;   // asked here already: the browser's leave question is not shown again
     location.reload();
   });
 }
@@ -3255,6 +3258,12 @@ bootStep('keeping the place across a reload', () => {
   const gone = () => { try { saveNow(); } finally { placeSave(); } };
   document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'hidden') gone(); });
   window.addEventListener('pagehide', gone);
+  // closing the tab or leaving the page while the browser refused writes and that work is not
+  // exported: the browser asks its own "leave this page?" question (its wording, not this page's;
+  // Louis, 2026-11-05). Not every browser shows it: see core/README.md.
+  window.addEventListener('beforeunload', e => {
+    try { if(!LEAVE_ASKED && FAILED.size && atRiskAll()){ e.preventDefault(); e.returnValue = ''; } } catch(err){}
+  });
 });
 
 /* The Quiz tab's storage warning follows every drawing of the pane, whichever code drew

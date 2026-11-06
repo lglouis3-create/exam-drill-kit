@@ -479,7 +479,9 @@ let nfile = 0;
     ['the same answers, other concept progress', f => { const c = Object.keys(f.db.concepts)[0]; f.db.concepts[c].box += 1; f.db.concepts[c].dueAt += 86400000; }, /the file's concept progress differs from this profile's/i],
     ['the same answers and concept progress, another pace', f => { f.db.settings = Object.assign({}, f.db.settings, {mode: 'normal', pace: 'semester'}); }, /the file's settings differ from this profile's/i],
     ['the same answers, a scheduling state this profile lacks', f => { f.db.arms = {[Object.keys(f.db.concepts)[0]]: 'concept-fsrs'}; }, /the file's scheduling state differs from this profile's/i],
-    ['the same answers, a part a feature module keeps', f => { f.db.notes = {[I.ids[0]]: 'a note'}; }, /the file's other saved progress differs from this profile's/i],
+    // a note in the form the notes module saves it ({t: text, at: when typed}): that module, when a
+    // course has it, keeps only notes of that form in an imported progress
+    ['the same answers, a part a feature module keeps', f => { f.db.notes = {[I.ids[0]]: {t: 'a note', at: 1762300000000}}; }, /the file's other saved progress differs from this profile's/i],
   ]){
     const o = await own(3);
     const f = JSON.parse(JSON.stringify(o.file));
@@ -491,7 +493,7 @@ let nfile = 0;
     const name = await keptWhole(o.d.page, o.di, rr, f, o.data, label);
     if(f.db.notes){
       const theirs = JSON.parse(await stored(o.d.page, I.ns + ':data:' + name) || '{}');
-      check(JSON.stringify(theirs.notes) === JSON.stringify(f.db.notes), 'and the module\'s part is in it', theirs.notes);
+      check(JSON.stringify(theirs.notes) === JSON.stringify(f.db.notes), 'and the module\'s part is in it, the whole note (text and time)', theirs.notes);
     }
     await o.d.ctx.close();
   }
@@ -981,6 +983,19 @@ let nfile = 0;
     await H.ctx.close();
   }
 
+  // in tab t, ask for the lock named name with ifAvailable until it is granted or 2000 ms (ms) have
+  // passed; when it is not granted by then, say how many holders the browser still lists for it
+  const waitWriterFree = (t, name, ms) => t.evaluate(async ([name, ms]) => {
+    const t0 = Date.now();
+    for(;;){
+      if(await navigator.locks.request(name, {ifAvailable: true}, l => !!l)) return {free: true, ms: Date.now() - t0};
+      if(Date.now() - t0 >= ms){
+        const q = await navigator.locks.query();
+        return {free: false, ms: Date.now() - t0, stillHeld: (q.held || []).filter(l => l.name === name).length};
+      }
+      await new Promise(r => setTimeout(r, 20));
+    }
+  }, [name, ms]);
   // a second tab of d's browser, on the drill
   const secondTab = async d => {
     const t = await d.ctx.newPage();
@@ -1530,10 +1545,22 @@ let nfile = 0;
     const d = await device(undefined, true);
     await answer(d.page, 2, 0);
     const t2 = await secondTab(d);
-    await t2.waitForFunction(() => WRITER === 'other', null, {timeout: 5000}).catch(() => {});
+    // before the switch: t2 is read-only, and the browser lists exactly one held lock under the
+    // name t2 will wait on (a wrong name on either side would let the wait below pass at once)
+    const readOnly = await t2.waitForFunction(() => WRITER === 'other', null, {timeout: 5000}).then(() => true, () => false);
+    const name = await t2.evaluate(() => NS + ':writer:' + PROFILE);
+    const before = await t2.evaluate(async name => {
+      const q = await navigator.locks.query();
+      return {writer: WRITER, heldUnderName: (q.held || []).filter(l => l.name === name).length, held: (q.held || []).map(l => l.name)};
+    }, name);
     await d.page.evaluate(() => useProfile('elsewhere'));
-    const free = await t2.evaluate(() => navigator.locks.request(NS + ':writer:' + PROFILE, {ifAvailable: true}, l => !!l));
-    check(free === true, 'a profile switch frees the old profile\'s lock', free);
+    // the page frees the lock by resolving its lock callback's promise and the browser frees it
+    // after that, so t2 asks until it is granted or 2000 ms have passed (the core's own 'brief'
+    // window); a lock still held then fails the check (the lock was still held at the single
+    // request in job 127949917972; review/lock-test/)
+    const free = await waitWriterFree(t2, name, 2000);
+    check(readOnly && before.writer === 'other' && before.heldUnderName === 1 && free.free === true,
+      'a profile switch frees the old profile\'s lock', JSON.stringify({readOnly, name, before, after: free}));
     await d.ctx.close();
   }
   {
@@ -1753,6 +1780,15 @@ let nfile = 0;
   }
 
   console.log('\n=== A writer that leaves without handing over: its last save in a key only it writes ===');
+  // the take-over finished before the test answers there (a precondition, its own check): in WebKit a
+  // take-over has taken longer than 9 s, and an answer recorded before it finished is replaced by the
+  // stored progress the take-over opens (the page is under the "asking" wall then, so a student cannot)
+  const tookOver = async (t, what) => {
+    await t.waitForFunction(() => WRITER === 'held', null, {timeout: 20000}).catch(() => {});
+    const w = await t.evaluate(() => WRITER);
+    if(w !== 'held') check(false, 'precondition: the take-over finished (' + what + ')', w);
+    return w === 'held';
+  };
   const keptAnywhere = async (p, di, at) => {                   // in the stored progress or in a kept copy
     const prog = JSON.parse(await stored(p, di.data) || '{"answers":[]}');
     const copies = JSON.parse(await stored(p, di.backup) || '[]');
@@ -1775,7 +1811,7 @@ let nfile = 0;
     // the leaving tab's record arrives (it is not held back): the next writer starts from it
     const {d, di, t2, last} = await leaveWithoutHandOver(false);
     await t2.evaluate(() => takeOver(false));
-    await t2.waitForFunction(() => WRITER === 'held', null, {timeout: 9000}).catch(() => {});
+    await tookOver(t2, 'section A, take-over 1');
     const mine = await answerHere(t2, 7);
     await unlag(t2);
     await t2.waitForTimeout(300);
@@ -1787,7 +1823,7 @@ let nfile = 0;
     // the record arrives only after the next tab has answered: the record is kept as a copy, not mixed in
     const {d, di, t2, last, pk} = await leaveWithoutHandOver(true);
     await t2.evaluate(() => takeOver(false));
-    await t2.waitForFunction(() => WRITER === 'held', null, {timeout: 9000}).catch(() => {});
+    await tookOver(t2, 'section A, take-over 2');
     const mine = await answerHere(t2, 7);
     await unlag(t2);
     await t2.evaluate(() => { if(typeof settlePending === 'function') settlePending(); });   // as the storage event does
@@ -1996,7 +2032,7 @@ let nfile = 0;
     const last = await answerHere(d.page, 3);                          // X's last answer here, stored, and in its record
     await d.page.evaluate(() => useProfile('bee')); await lockReady(d.page);
     await t2.evaluate(() => takeOver(false));
-    await t2.waitForFunction(() => WRITER === 'held', null, {timeout: 9000}).catch(() => {});
+    await tookOver(t2, 'section A, take-over 3');
     const yHeld = await t2.evaluate(() => WRITER);
     await answerHere(t2, 4);                                           // Y writes over X's last save
     // X's view of storage gets Y's write a moment later (in WebKit in GitHub run 41943489826 it had
@@ -2036,7 +2072,7 @@ let nfile = 0;
     // N1: Put back right after taking over must not delete the leaving tab's late record; its answer is kept
     const {d, di, t2, last} = await leaveWithoutHandOver(true);
     await t2.evaluate(() => takeOver(false));
-    await t2.waitForFunction(() => WRITER === 'held', null, {timeout: 9000}).catch(() => {});
+    await tookOver(t2, 'section A, take-over 4');
     await t2.evaluate(() => { show('settings'); window.confirm = () => true; if(readCopies().length) restoreBackup(); else { DB.settings.goal = 5; save(); saveNow(); pendingRetire(); } });
     await unlag(t2);
     await t2.evaluate(() => settlePending());
@@ -2064,7 +2100,7 @@ let nfile = 0;
     await d.page.evaluate(() => { DB.settings.goal = 91; save(); saveNow(); });
     await d.page.close();
     await t2.evaluate(() => takeOver(false));
-    await t2.waitForFunction(() => WRITER === 'held', null, {timeout: 9000}).catch(() => {});
+    await tookOver(t2, 'section A, take-over 5');
     await answerHere(t2, 8);
     await unlag(t2);
     await t2.evaluate(() => settlePending());
@@ -2086,7 +2122,7 @@ let nfile = 0;
     await d.page.evaluate(() => { show('settings'); restoreBackup(); });   // back to 1 answer
     await d.page.close();
     await t2.evaluate(() => takeOver(false));
-    await t2.waitForFunction(() => WRITER === 'held', null, {timeout: 9000}).catch(() => {});
+    await tookOver(t2, 'section A, take-over 6');
     await answerHere(t2, 8);
     await unlag(t2);
     await t2.evaluate(() => settlePending());
