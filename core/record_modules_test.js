@@ -186,10 +186,17 @@ L.PAGE.need(NAME);
       const copies = JSON.parse(localStorage.getItem(NS + ':backup:' + PROFILE) || '[]');
       // this closed page's own writing, not any copy with ink: the stored ink equal to it, its record
       // unchanged, or a copy whose progress is exactly that record's
+      // the copy's progress is exactly the record's, and each of the record's history entries is in the copy
+      // or already in the stored history (a copy carries only the entries the stored history lacks)
+      const entries = (JSON.parse(recRaw).log || []).filter(Array.isArray), m = copies.find(c => c && c.data === recDb);
+      let hist = []; try { hist = JSON.parse(localStorage.getItem(logKey()) || '[]'); } catch(e){}
+      let inCopy = []; try { inCopy = m && m.log ? JSON.parse(m.log) : []; } catch(e){}
+      const have = new Set(hist.concat(inCopy).map(x => JSON.stringify(x)));
+      const missing = entries.filter(x => !have.has(JSON.stringify(x))).length;
       return {stored: st.answers.length, storedInk: JSON.stringify(st.ink) === ink, recordLeft: localStorage.getItem(k) === recRaw,
-              copyExact: copies.some(c => c && c.data === recDb), copies: copies.length};
+              copyExact: !!m && missing === 0, entries: entries.length, missing, copies: copies.length};
     }, [before.k, before.recRaw, before.recDb, before.ink]);
-    check(r.storedInk || r.recordLeft || r.copyExact, 'after a reload, the closed page\'s own writing (its DB.ink) is still in the browser: in the progress, its record unchanged, or a copy of exactly that record', r);
+    check(r.storedInk || r.recordLeft || r.copyExact, 'after a reload, the closed page\'s own writing (its DB.ink) is still in the browser: in the progress, its record unchanged, or a copy of exactly that record\'s progress and history', r);
     check(!e.errors.length, 'no page errors in the reload case', e.errors);
     await e.ctx.close();
   }
@@ -417,11 +424,14 @@ L.PAGE.need(NAME);
       const tag = JSON.parse(pq.data).ink.tag;
       const rpq = await f.page.evaluate(([k, tag]) => {
         const real = Storage.prototype.setItem, get = Storage.prototype.getItem, bk = NS + ':backup:' + PROFILE;
-        Storage.prototype.setItem = function(key, v){ if(key === bk && String(v).includes(tag) && get.call(this, k) !== null) throw new DOMException('full', 'QuotaExceededError'); return real.call(this, key, v); };
+        const list = JSON.parse(localStorage.getItem(bk) || '[]'), want = list.length ? list[list.length - 1].data : null;
+        let refused = 0;
+        Storage.prototype.setItem = function(key, v){ if(key === bk && String(v).includes(tag) && get.call(this, k) !== null){ refused++; throw new DOMException('full', 'QuotaExceededError'); } return real.call(this, key, v); };
         try { window.confirm = () => true; window.alert = () => {}; show('settings'); restoreBackup(); } finally { Storage.prototype.setItem = real; }
-        return {putBack: JSON.parse(localStorage.getItem(keyFor(PROFILE))).answers.length};
+        return {refused, putBackDone: want !== null && localStorage.getItem(keyFor(PROFILE)) === want};
       }, [pq.k, tag]);
       const now3 = await exact(pq);
+      check(rpq.putBackDone && rpq.refused >= 1, 'Put back with the record\'s copy refused: Put back itself took effect, and the record\'s copy write was refused', rpq);
       check(now3.kept && !now3.copyExact, 'Put back with the record\'s copy refused: the record stays in storage unchanged and no copy of it is written', {now3, rpq});
       const r9b = await after(pq);
       check(r9b.copyExact && r9b.logExact && r9b.recordGone, 'Put back with the copy refused, then accepted at a later check: that record becomes a copy of exactly its progress and history, and goes after the wait', r9b);
