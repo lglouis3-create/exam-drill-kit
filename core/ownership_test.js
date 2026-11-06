@@ -46,12 +46,13 @@ const stored = (page, p) => page.evaluate(p => {
   try { exam = JSON.parse(localStorage.getItem(NS + ':exam:' + p) || 'null'); } catch(e){ exam = 'unreadable'; }
   return {answers: a, log: l, exam};
 }, p);
-// the Exam tab as drawn now
+// the Exam tab as drawn now. A chosen option is counted by aria-pressed, with the class names the
+// engine has used for it (pick-ok, exsel since #59, on for select-all); each button counts once
 const examView = page => page.evaluate(() => {
   show('exam');
   const v = document.getElementById('v-exam');
   return {running: !!v.querySelector('#exClock'), start: !!v.querySelector('#startExam'),
-          picked: v.querySelectorAll('.opt.pick-ok, .opt.on').length, submit: !!v.querySelector('#exEnd'),
+          picked: v.querySelectorAll('.opt[aria-pressed="true"], .opt.pick-ok, .opt.exsel, .opt.on').length, submit: !!v.querySelector('#exEnd'),
           result: /Exam simulation —/.test(v.textContent)};
 });
 // A starts a paper and picks the first option of its first question; returns the option index picked
