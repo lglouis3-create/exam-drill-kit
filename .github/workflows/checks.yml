@@ -36,6 +36,7 @@ concurrency:
 
 jobs:
   chromium:
+    if: false
     name: Chromium · ${{ matrix.course }}
     runs-on: ubuntu-24.04
     timeout-minutes: 45
@@ -77,9 +78,10 @@ jobs:
       # failure, with every check NOT RUN. The checks are never retried.
       - name: Playwright 1.63.0, WebKit and pdfplumber 0.11.10
         id: install
-        timeout-minutes: 6
+        timeout-minutes: 1
         continue-on-error: true
         run: |
+          echo "verification only: this first attempt is held past its limit"; sleep 120
           npm install -g playwright@1.63.0
           npx --yes playwright@1.63.0 install --with-deps webkit
           python -m pip install pdfplumber==0.11.10
@@ -112,6 +114,7 @@ jobs:
         run: bash core/ci_course.sh template webkit
 
   coordinator:
+    if: false
     # The improvement coordinator's records and logic (coordinator/README.md): lifecycle,
     # review planning, the published-content check, the dashboard. No network, no browser.
     name: Coordinator records and logic
@@ -126,6 +129,7 @@ jobs:
         run: node coordinator/coord_test.js
 
   plan:
+    if: false
     name: Modules to check
     runs-on: ubuntu-24.04
     timeout-minutes: 5
@@ -143,9 +147,9 @@ jobs:
         run: node .github/ci_plan.js "$EVENT" "$BASE" >> "$GITHUB_OUTPUT"
 
   modules:
+    if: false
     name: Chromium · ${{ matrix.course }}
     needs: plan
-    if: needs.plan.outputs.courses != '[]'
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     strategy:
@@ -175,15 +179,13 @@ jobs:
   # the job unless each module's own test passes at least one check printed after WebKit
   # started.
   modules-webkit:
-    name: WebKit · ${{ matrix.course }}
-    needs: plan
-    if: needs.plan.outputs.courses != '[]'
+    name: WebKit · ${{ matrix.course }} (forced, both attempts)
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
-        course: ${{ fromJSON(needs.plan.outputs.courses) }}
+        course: ['module:formulas-in-text']
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
@@ -198,18 +200,20 @@ jobs:
       # failure, with every check NOT RUN. The checks are never retried.
       - name: Playwright 1.63.0, WebKit and pdfplumber 0.11.10
         id: install
-        timeout-minutes: 6
+        timeout-minutes: 1
         continue-on-error: true
         run: |
+          echo "verification only: this first attempt is held past its limit"; sleep 120
           npm install -g playwright@1.63.0
           npx --yes playwright@1.63.0 install --with-deps webkit
           python -m pip install pdfplumber==0.11.10
       - name: Playwright 1.63.0, WebKit and pdfplumber 0.11.10 (second attempt, after the first failed or passed 6 minutes)
         id: install2
         if: steps.install.outcome == 'failure'
-        timeout-minutes: 6
+        timeout-minutes: 1
         run: |
           # what the timed-out first attempt left: its processes, an interrupted dpkg
+          echo "verification only: this second attempt is held past its limit too"; sleep 600
           sudo pkill -f 'playwright@1.63.0 install' || true
           sudo pkill -x apt-get || true
           sudo dpkg --configure -a || true
