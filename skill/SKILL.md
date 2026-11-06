@@ -46,6 +46,7 @@ Reusable logic goes to the kit; one course's data stays in its repo.
 | "approve updates for <course>" | 7 Update a drill (make the waiting preview live) |
 | "undo the last kit update for <course>" | 7 Update a drill (revert it) |
 | "exam <N> outcome for <course>" | 8 Exam outcome |
+| "Show my Exam Drill Dashboard" / "run the coordinator" | 9 Coordinator and dashboard |
 
 If the request names no mode, ask which one in one line.
 
@@ -235,6 +236,14 @@ every automated check; only an adversarial review against the sources (Mode 4) f
   in the course's `CLAUDE.md`; report any difference.
 - Design changes are built at `/preview/` on the course's own site and replace the live
   page only after Louis approves them (decision 6).
+- **Known is not released.** The coordinator's `coordinator/courses.json` holds every exam the
+  syllabus names, each with a release status (`planned`, `collecting-material`,
+  `in-development`, `ready-for-review`, `approved`, `published`). Only a `published` exam
+  goes into `course.js` `exams`, and `activeExam` names a published one; never add an
+  empty future exam to the site, and never release one because its date has passed.
+  Earlier exams stay on the site when later ones are cumulative. After a release goes live
+  and its deploy is confirmed, set that exam to `published` (and its `siteId`) in the same
+  kit pull request that updates `COURSES.md`; `coord.js published` checks the two agree.
 
 ## State
 
@@ -262,7 +271,8 @@ The checks fail the build when `CLAUDE.md` was not updated after the newest lect
    new course" says) and the approved features into the repo, fill
    `course.js` from the syllabus, propose the skill taxonomy and the exam/module map and
    confirm both, ingest the first lecture (Mode 2), build, run the checks, publish, add
-   the course to `COURSES.md` by kit pull request, and offer a daily review (Mode 5).
+   the course to `COURSES.md` and to `coordinator/courses.json` (its whole exam schedule,
+   each exam's release status) by kit pull request, and offer a daily review (Mode 5).
    Tell Louis to attach the new repository to the "Kit updater" session with one
    message there ("attach lglouis3-create/<repo> to this session with push access"),
    so the daily kit-update run can reach it.
@@ -343,7 +353,8 @@ at 2:47 AM Central. A scheduled task that starts a fresh session each time canno
 work, because a session's repositories are chosen when it starts and such a session
 starts with none (tested 2026-11-01). Each run:
 0. **Preflight.** The run compares the course repositories in `COURSES.md` with the
-   ones attached to the session. A course that is listed but not attached (a new
+   ones attached to the session, ignoring letter case (GitHub treats `DEENT` and `deent` as
+   one repository). A course that is listed but not attached (a new
    course) is skipped in that run, and Louis gets a push notification naming it and the
    message to send in the session: "attach lglouis3-create/<repo> to this session with
    push access". The session does not attach it itself: the permission system requires
@@ -351,8 +362,32 @@ starts with none (tested 2026-11-01). Each run:
    branch name, and `gh api 'repos/<owner>/<repo>/actions/runs?per_page=1'`; and Node,
    Python and Chromium start. If any of these fails, nothing goes live in this run; the
    run reports FAILED with the failing step and its output.
-Then it compares every course's `kit` pins in `course.js` with the kit's `main`. For each
-course that is behind:
+Then it reads each course's `course.js` from the branch GitHub Pages serves
+(`coordinator/courses.json` `pagesBranch`; `main` for every course today), at the commit
+Pages last deployed from it, or at its head when the deployment cannot be read, as the
+coordinator does; never from the repository's default branch, which can hold unreleased work
+(DEENT's default branch is its working branch). It compares the `kit` pins there with the
+kit's `main`, and reads the kit-update state of each course: `node coordinator/coord.js
+kitupdate --json` on the kit's `origin/main`. A course in `COURSES.md` with no entry in
+`coordinator/courses.json` has no pause recorded and is active. If that command fails, exits
+non-zero, or reports any course as "invalid", or the kit's `main` has no `coordinator/`, the
+run builds no kit-update preview for any course in that run and reports FAILED with the
+command's output; its read-only checks still run.
+- **Paused** (`kitUpdate.previews` "paused"; DEENT since 2026-11-06): the run makes no
+  branch, build, `/preview/`, commit or log entry in that course, and changes neither its
+  working branch nor its existing preview. Its read-only checks go on: the preflight
+  above, the pin on the Pages branch against the kit's `main`, the Pages branch's head and
+  its latest "pages build and deployment" run. The run reports, in its one line for the
+  course, "kit-update preview paused since <since>: <reason>", the pin and how far it is
+  behind. A paused course behind the kit is not a failure and sends no notification on its
+  own.
+- **Lifting a pause** (the record's `liftWhen`): after the pending release is resolved, a
+  kit session verifies the approved course baseline on the Pages branch (its head, its
+  question count and its confirmed Pages deploy) and that no pending preview, on the Pages
+  branch or the working branch, would be overwritten. Only then does it set `previews` to
+  "active" in a bookkeeping pull request, and the next run prepares a separate kit-update
+  preview. The run itself never lifts a pause.
+For each course that is behind and not paused:
 1. Build the update at `/preview/`, run every check, and append the result to the
    course's `reviews/LOG.md`.
 2. Leave the preview waiting and send Louis a summary: what changed in plain words,
@@ -394,6 +429,26 @@ the previous pins in `course.js`, confirms the deploy, and logs it in `reviews/L
 Record Louis's feedback in `COURSES.md`: the score if he gives it, the question types
 that appeared, and what the drill missed. Compare it with the drill's coverage and the
 answer log, and turn what it shows into improvement proposals.
+
+## Mode 9: coordinator and dashboard
+
+- **"Show my Exam Drill Dashboard"**: follow the project skill
+  `.claude/skills/exam-drill-dashboard/SKILL.md` in the kit. It runs
+  `node coordinator/coord.js dashboard` and shows the result in the conversation. It changes
+  nothing.
+- **"Run the coordinator"** (or its scheduled task): follow `coordinator/RUN.md`.
+- The coordinator plans reviews by each course's lifecycle, from its whole schedule in
+  America/Chicago, never from `activeExam`:
+  - exam-approaching and active: daily;
+  - recently completed: weekly;
+  - completed: monthly, with a quarterly deep audit;
+  - archived: only on change.
+- It skips unchanged code and records every improvement it finds in
+  `coordinator/improvements.json`. Preparing improvements (branches, pull requests, port-queue
+  entries) and starting retrospectives on its own are a separate proposal for Louis's yes or
+  no; until it is merged, a run prepares nothing and a retrospective happens only when Louis
+  asks for one (Mode 6).
+- It never publishes a course site or merges a course repository's main.
 
 ## The scheduler
 
