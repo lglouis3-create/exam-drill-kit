@@ -189,7 +189,7 @@ Claude feedback-check task below is the one he asked for on 2026-11-06.
   (`coordinator/improvements.json`) exists only in coordinator PR #57, which is not merged. Until it
   is, each optional improvement is recorded on the pull request it concerns, with its student benefit
   and acceptance criteria, and sent to the main kit session for the registry. The gap is reported to
-  Louis.
+  Louis. (Claude's stopgap, not Louis's rule.)
 - **Three statuses, reported apart:**
   - tests passing;
   - intended source functionality fully ported;
@@ -206,8 +206,8 @@ Claude feedback-check task below is the one he asked for on 2026-11-06.
   duplicated. (Claude's design, not Louis's rule: the task fires into the porter session, like the
   nightly run, so the two never run at the same time.) Each check:
   1. reads new comments and reviews on the porter's open pull requests and on relevant core
-     dependencies. Its watch list also holds coordinator PR #57, because Louis routes course
-     oversight through it;
+     dependencies. Its watch list also holds coordinator PR #57 (Claude's reading of Louis's
+     line routing course oversight through #57);
   2. compares them with the last processed comments and commits, kept as a durable checkpoint
      (branch `porter/feedback-checkpoint`, `feedback/check.py`), so unchanged discussions are not
      processed again and a new commit counts as a change;
@@ -219,8 +219,8 @@ Claude feedback-check task below is the one he asked for on 2026-11-06.
   5. ends promptly when nothing material changed: no tests rerun and no message to Louis.
 
   Triage aims at about five minutes; that is a planning budget, not a cutoff. Substantial
-  implementation continues through the existing work process (§2: the nightly run and the porter's
-  standing autonomy).
+  implementation continues through the existing work process (the nightly run and §2's standing
+  autonomy).
 - **No concurrent edits.** No two tasks or agents edit the same branch or worktree. When necessary,
   a handoff is left for the active implementing session, and fixes are not duplicated across
   sessions.
