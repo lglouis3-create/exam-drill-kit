@@ -255,9 +255,11 @@ const answerOne = async page => {
   {
     const {ctx, page, errors} = await L.openFile(browser, {}, ANSWER_NOW);
     const r = await page.evaluate(() => { const n0 = DB.answers.length; const n = answerNow('multi'); return n === null ? null : {n0, n, id: Q.current && Q.current.id, multi: !!(Q.current && isMulti(Q.current))}; });
-    if(r === null) console.log('  note  this course has no select-all question answered with option buttons: the helper\'s select-all path was not run here');
-    else check(r.multi && r.n === r.n0 + 1, 'the helper answers a select-all question (its correct options, then Check answer) and one answer is recorded', JSON.stringify(r));
-    check(!errors.length, 'select-all answer: no page errors', errors.slice(0, 2).join('; '));
+    if(r === null) L.skip('the helper answers a select-all question', 'this course has no select-all question answered with option buttons');
+    else {
+      check(r.multi && r.n === r.n0 + 1, 'the helper answers a select-all question (its correct options, then Check answer) and one answer is recorded', JSON.stringify(r));
+      check(!errors.length, 'select-all answer: no page errors', errors.slice(0, 2).join('; '));
+    }
     await ctx.close();
   }
   await browser.close();
