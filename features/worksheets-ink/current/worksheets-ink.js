@@ -663,11 +663,14 @@ function inkClose(){
 function inkPrint(){
   const ov = document.getElementById('ink'); if(!ov) return;
   ov.querySelectorAll('img.inkimg').forEach(i => i.remove());
-  ov.querySelectorAll('canvas.inkcv').forEach(c => { const im = new Image(); im.className = 'inkimg'; im.alt = ''; im.src = c.toDataURL('image/png'); c.after(im); });
+  const ims = [...ov.querySelectorAll('canvas.inkcv')].map(c => { const im = new Image(); im.className = 'inkimg'; im.alt = ''; im.src = c.toDataURL('image/png'); c.after(im); return im; });
   // the page prints at its width on screen, scaled to the paper, so text and ink keep their places
   const pp = ov.querySelector('.inkpaper'), w = pp.getBoundingClientRect().width;
   pp.style.setProperty('--inkpw', w + 'px'); pp.style.setProperty('--inkzoom', String(Math.min(1, 700 / w)));
-  setTimeout(() => window.print(), 60);
+  // the print dialog opens once every picture is decoded, so none prints blank (kit PR #17, F3: a WebKit job read 0 ink
+  // pixels from a picture that was loaded); a picture that cannot be decoded does not hold the print back
+  const go = () => setTimeout(() => window.print(), 60);
+  Promise.all(ims.map(im => (im.decode ? im.decode() : Promise.resolve()).catch(() => null))).then(go, go);
 }
 function onClick(e){
   const o = e.target.closest && e.target.closest('[data-ink][data-var]');

@@ -322,17 +322,25 @@ const countOf = (h, re) => (h.match(re) || []).length;
          each problem prints with its text, and the ink's picture sits over its problem holding the stroke.
          page.pdf below is Chromium's only (Playwright: "PDF generation is only supported for Headless
          Chromium"), so in WebKit this layout is how the printed worksheet is checked. */
-      const pl = await ev(sel => { const vis = el => !!el && getComputedStyle(el).display !== 'none';
+      /* F3 (kit PR #17): one WebKit job counted 0 pixels in the picture although it was loaded (complete, with its
+         size). The picture is decoded before it is read (HTMLImageElement.decode), and the canvas it was taken from
+         and the picture's own size are printed with the result, so a failure says which of the two was empty. */
+      const pl = await ev(async sel => { const vis = el => !!el && getComputedStyle(el).display !== 'none';
         const pp = document.querySelector('#ink .inkpaper'), r = pp.getBoundingClientRect(), parts = [...pp.querySelectorAll('.wspart')];
         const shown = parts.filter(p => { const b = p.getBoundingClientRect(); return vis(p) && b.height > 0 && b.width > 0 && p.innerText.trim().length > 0; });
         const part = document.querySelector(sel), im = part.querySelector(':scope > img.inkimg'), pb = part.getBoundingClientRect(), ib = im.getBoundingClientRect();
+        let dec = 'ok'; try { if(im.decode) await im.decode(); } catch(e){ dec = 'failed: ' + (e && e.name); }
+        const src = part.querySelector(':scope > canvas.inkcv'), sd = src.getContext('2d').getImageData(0, 0, src.width, src.height).data;
+        let ns = 0; for(let i = 3; i < sd.length; i += 4) if(sd[i] > 0) ns++;
         const cv = document.createElement('canvas'); cv.width = im.naturalWidth; cv.height = im.naturalHeight;
         const cx = cv.getContext('2d'); cx.drawImage(im, 0, 0); const d = cx.getImageData(0, 0, cv.width, cv.height).data;
         let n = 0; for(let i = 3; i < d.length; i += 4) if(d[i] > 0) n++;
         const over = Math.abs(ib.left - pb.left) < 2 && Math.abs(ib.top - pb.top) < 2 && Math.abs(ib.width - pb.width) < 2 && Math.abs(ib.height - pb.height) < 2;
-        return {w: Math.round(r.width), h: Math.round(r.height), parts: parts.length, shown: shown.length, over, ink: n, z: getComputedStyle(im).zIndex}; }, calc);
+        return {w: Math.round(r.width), h: Math.round(r.height), parts: parts.length, shown: shown.length, over, ink: n, z: getComputedStyle(im).zIndex,
+                why: {decode: dec, canvasNow: ns, canvas: src.width + 'x' + src.height, picture: im.naturalWidth + 'x' + im.naturalHeight, src: im.src.length}}; }, calc);
       check(pl.w > 0 && pl.h > 0 && pl.parts > 0 && pl.shown === pl.parts, `in print the worksheet's paper is laid out and every problem prints with its text (${pl.w} x ${pl.h} px, ${pl.shown} of ${pl.parts} problems)`);
-      check(pl.over && pl.ink > 50 && pl.z === '2', `in print the ink's picture covers its problem and holds the stroke (${pl.ink} pixels, over its problem: ${pl.over})`);
+      check(pl.over && pl.ink > 50 && pl.z === '2', `in print the ink's picture covers its problem and holds the stroke (${pl.ink} pixels, over its problem: ${pl.over})`, pl.why);
+      console.log(`  print  the picture: ${JSON.stringify(pl.why)}`);
       const shot = await page.locator('#ink .inkpaper').screenshot();
       check(shot.length > 20000, `the worksheet renders in print media (${Math.round(shot.length / 1024)} KB picture of the paper)`);
       let pdf = null;
