@@ -161,55 +161,79 @@ const fresh = async browser => {
     await ctx.close();
   }
 
-  console.log('\n=== 1b. "I was sure of that" inside a targeted set stays inside it ===');
+  console.log('\n=== 1b. "I was sure of that" inside a set the student chose stays inside it ===');
   {
     const {ctx, page, errors} = await fresh(browser);
-    // a sibling question on the same concept, outside the set (a copy with its own id)
+    // a sibling on the same concept as a question of the first topic, placed in another
+    // topic, subtopic and professor, so every narrowed session leaves it out
     const ids = await page.evaluate(() => {
-      const q = QUESTIONS.find(q => !q.type && !isMulti(q) && armOf(q.concept) === 'concept');
-      if(!q) return null;
-      const sib = Object.assign({}, q, {id: q.id + '-outside'});
+      const t = TOPICS.find(t => t.subs.length && QUESTIONS.some(q => q.topic === t.id && !q.type && !isMulti(q) && armOf(q.concept) === 'concept'));
+      if(!t) return null;
+      const q = QUESTIONS.find(q => q.topic === t.id && !q.type && !isMulti(q) && armOf(q.concept) === 'concept');
+      const t2 = TOPICS.find(x => x.id !== t.id);
+      if(!t2) return null;
+      const sib = Object.assign({}, q, {id: q.id + '-outside', topic: t2.id, sub: t2.subs[0].id, prof: 'Outside Prof', types: []});
       QUESTIONS.push(sib); BY_CONCEPT[q.concept].push(sib);
-      const other = QUESTIONS.find(x => x.concept !== q.concept && !x.type && !isMulti(x) && x.id !== sib.id);
-      return {q: q.id, sib: sib.id, other: other.id};
+      const other = QUESTIONS.find(x => x.topic === t.id && x.concept !== q.concept && !x.type && !isMulti(x));
+      return {q: q.id, sib: sib.id, other: other ? other.id : null, topic: t.id, sub: q.sub, prof: q.prof};
     });
-    if(!ids) L.skip('the retry inside a targeted set', 'no single-answer question on the concept model');
+    if(!ids) L.skip('the retry inside a chosen set', 'no topic with a single-answer question on the concept model');
     else{
-      // targeted: the missed question and one unrelated question
-      await L.quizOn(page, [ids.q, ids.other]);
-      await answerAs(page, 'wrong');
-      await page.evaluate(() => document.getElementById('btnSure').click());
-      const note = await text(page, '#sureNote');
-      await next(page);
-      const seen = [];
-      for(let k = 0; k < 4; k++){
-        const cur = await page.evaluate(() => Q.current ? Q.current.id : null);
-        if(!cur) break;
-        seen.push(cur);
-        await answerAs(page, 'knew'); await next(page);
-      }
-      check(!seen.includes(ids.sib), 'in a targeted set, "I was sure of that" never brings in a question from outside the set', seen);
-      check(seen.length === 1 && seen[0] === ids.other, 'the set goes on with its own remaining question', seen);
-      check(!/different question/i.test(note), 'the note under the button does not promise a different question', note);
-      // with the sibling inside the set, it comes next as before
-      await L.quizOn(page, [ids.q, ids.other, ids.sib]);
-      await page.evaluate(id => { Q.sweep = [id, ...Q.sweep.filter(x => x !== id)]; Q.i = 0; nextQuestion(); }, ids.q);
-      await answerAs(page, 'wrong');
-      await page.evaluate(() => document.getElementById('btnSure').click());
-      await next(page);
-      const nx = await page.evaluate(() => Q.current && Q.current.id);
-      check(nx === ids.sib, 'a sibling inside the set still comes straight after (rule 8 kept)', nx);
-      // the adaptive runner (here on a two-question pool without the sibling) still reaches the rest of the bank
-      const ad = await page.evaluate(ids => {
-        const q = byId(ids.q);
-        Q = {pool: [q, byId(ids.other)], label: 'adaptive check', current: q, answered: 0, lastId: null, examMode: false, picked: null, revealed: false};
-        Q.order = q.options.map((o, i) => i); renderQuiz();
+      // put q on screen in the session just opened, miss it, tap "I was sure of that", go on
+      const sureThenNext = () => page.evaluate(id => {
+        const q = byId(id);
+        if(!Q.pool.some(x => x.id === id)) return {inPool: false};
+        if(Q.sweep){ Q.sweep = [id, ...Q.sweep.filter(x => x !== id)]; Q.i = 0; nextQuestion(); }
+        else { Q.current = q; Q.picked = null; Q.revealed = false; Q.order = q.options.map((o, i) => i); renderQuiz(); }
         answer(q.options.findIndex(o => !o.correct));
         document.getElementById('btnSure').click();
+        const note = (document.getElementById('sureNote') || {}).textContent || '';
         document.getElementById('btnNext').click();
-        return Q.current && Q.current.id;
-      }, ids);
-      check(ad === ids.sib, 'the adaptive runner still takes the retry from the rest of the bank (unchanged)', ad);
+        return {inPool: true, targeted: (typeof targetedSet === 'function' ? targetedSet() : null), note, next: Q.current ? Q.current.id : null,
+                nextInPool: !Q.current || Q.pool.some(x => x.id === Q.current.id)};
+      }, ids.q);
+      const entries = [
+        ['a subtopic button', async () => { await go(page, 'topics');
+          await page.evaluate(() => { const d = document.querySelectorAll('#v-topics details.topic'); d.forEach(x => x.open = true); });
+          await page.click(`#v-topics button[data-t="${ids.topic}"][data-s="${ids.sub}"]`); }],
+        ['a topic drill', async () => { await go(page, 'topics');
+          await page.evaluate(() => { document.querySelectorAll('#v-topics details.topic').forEach(x => x.open = true); });
+          await page.click(`#v-topics button[data-t="${ids.topic}"][data-s=""]`); }],
+        ['a filtered "Everything, adaptive"', async () => { await go(page, 'topics');
+          await page.evaluate(p => { FILTER.prof = p; renderTopics(); }, ids.prof);
+          await page.click('#v-topics button[data-t=""][data-s=""]'); }],
+        ['a filtered pass (startSweep)', async () => { await page.evaluate(p => { FILTER.prof = p; startSweep('filtered'); }, ids.prof); }],
+        ['its repeat (repeatSet)', async () => { await page.evaluate(p => { FILTER.prof = p; startSweep('filtered'); FILTER.prof = 'all';
+          Q.i = Q.sweep.length; nextQuestion(); document.getElementById('goAgain').click(); }, ids.prof); }],
+        ['a weak-spot drill (drillList)', async () => { await page.evaluate(ids => drillList([byId(ids.q)].concat(ids.other ? [byId(ids.other)] : []), 'check'), ids); }],
+      ];
+      for(const [name, open] of entries){
+        await page.evaluate(() => { FILTER.prof = FILTER.tier = FILTER.tag = 'all'; });
+        await open();
+        const r = await sureThenNext();
+        await page.evaluate(() => { FILTER.prof = FILTER.tier = FILTER.tag = 'all'; });
+        if(!r.inPool){ check(false, `${name}: the session holds the question`, r); continue; }
+        check(r.targeted, `${name} counts as a chosen set`, r);
+        check(r.next !== ids.sib && r.nextInPool, `${name}: "I was sure of that" brings in no question from outside the session`, r);
+        check(!/different question/i.test(r.note), `${name}: the note promises no different question`, r.note);
+      }
+      // with the sibling inside the set, it still comes straight after (rule 8 kept)
+      await L.quizOn(page, [ids.q, ids.sib].concat(ids.other ? [ids.other] : []));
+      const inSet = await sureThenNext();
+      check(inSet.next === ids.sib, 'a sibling inside the set still comes straight after', inSet);
+      // broad sessions: unchanged
+      const broad = await page.evaluate(() => {
+        const out = {};
+        startQuiz(null, null); out.everything = (typeof targetedSet === 'function' ? targetedSet() : null);
+        startSweep('all'); out.all = (typeof targetedSet === 'function' ? targetedSet() : null);
+        startSweep('weighted'); out.weighted = (typeof targetedSet === 'function' ? targetedSet() : null);
+        return out;
+      });
+      check(!broad.everything && !broad.all && !broad.weighted,
+        '"Everything, adaptive" with no filter, the pass of everything and the exam-weighted pass stay broad', broad);
+      await page.evaluate(() => startQuiz(null, null));
+      const ev = await sureThenNext();
+      check(ev.next === ids.sib, 'the unfiltered adaptive runner still takes the retry from the rest of the bank', ev);
     }
     check(!errors.length, 'no page errors', errors);
     await ctx.close();
