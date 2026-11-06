@@ -100,9 +100,36 @@ times.
    - It is the larger change. Keep it for the case where option 2's second attempt also proves
      slow.
 
+## The retry path, shown on a scratch branch
+
+This was run 42248694033, on branch `claude/elegant-ptolemy-pqxb8y-verify-webkit-install`
+(aa41b65), which is not for merging. Its first attempt was held past a 1-minute limit, and the
+other jobs were switched off. Excerpts are in `logs/verify-<job>.txt`.
+
+- **Job 127997632041 (WebKit · template):** the first attempt shows "has timed out after 1
+  minutes" at 16:04:15.
+  - The second attempt printed the mirror list:
+    `http://azure.archive.ubuntu.com/ubuntu/ priority:1`,
+    `https://archive.ubuntu.com/ubuntu/ priority:2` and
+    `https://security.ubuntu.com/ubuntu/ priority:3`.
+  - It dropped the first line, and fetched all 200 package downloads from
+    `archive.ubuntu.com`: "Fetched 114 MB in 10s (11.4 MB/s)".
+  - The checks then gave "29 PASS, 0 FAIL, 1 NOT RUN, 1 REPORT, 0 NOT RUN case(s)"; the one
+    NOT RUN is `cite_check.py`, the documented exclusion.
+  - The job succeeded.
+- **Job 127997632542 (one module course, both attempts held):** both attempts timed out, at
+  16:04:18 and 16:05:31.
+  - The step "NOT RUN: the WebKit install failed twice, so no check ran" printed its line and
+    "Process completed with exit code 1".
+  - The checks step was skipped, and the job failed.
+
+This shows the mechanics and that `archive.ubuntu.com` served the packages once, on a runner
+that was not slow. It does not show the retry on a slow runner.
+
+The same commit's normal path is PR #67's run 42248641607. In all 5 WebKit jobs the first
+attempt passed in 39 to 67 s, and the second attempt and the NOT RUN step were skipped.
+
 ## What is not known
 
-- The contents of `/etc/apt/apt-mirrors.txt` on these runners. The second attempt prints it,
-  so the first retry shows whether another host is listed.
-- Whether a second attempt on the same runner is faster. No run has shown it yet.
+- Whether `archive.ubuntu.com` is fast on a runner where `azure.archive.ubuntu.com` is slow.
 - The container image's pull time.
