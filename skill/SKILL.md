@@ -353,7 +353,8 @@ at 2:47 AM Central. A scheduled task that starts a fresh session each time canno
 work, because a session's repositories are chosen when it starts and such a session
 starts with none (tested 2026-11-01). Each run:
 0. **Preflight.** The run compares the course repositories in `COURSES.md` with the
-   ones attached to the session. A course that is listed but not attached (a new
+   ones attached to the session, ignoring letter case (GitHub treats `DEENT` and `deent` as
+   one repository). A course that is listed but not attached (a new
    course) is skipped in that run, and Louis gets a push notification naming it and the
    message to send in the session: "attach lglouis3-create/<repo> to this session with
    push access". The session does not attach it itself: the permission system requires
@@ -362,11 +363,16 @@ starts with none (tested 2026-11-01). Each run:
    Python and Chromium start. If any of these fails, nothing goes live in this run; the
    run reports FAILED with the failing step and its output.
 Then it reads each course's `course.js` from the branch GitHub Pages serves
-(`coordinator/courses.json` `pagesBranch`; `main` for every course today), never from the
-repository's default branch, which can hold unreleased work (DEENT's default branch is its
-working branch). It compares the `kit` pins there with the kit's `main`, and reads the
-kit-update state of each course: `node coordinator/coord.js kitupdate` on the kit's
-`origin/main`.
+(`coordinator/courses.json` `pagesBranch`; `main` for every course today), at the commit
+Pages last deployed from it, or at its head when the deployment cannot be read, as the
+coordinator does; never from the repository's default branch, which can hold unreleased work
+(DEENT's default branch is its working branch). It compares the `kit` pins there with the
+kit's `main`, and reads the kit-update state of each course: `node coordinator/coord.js
+kitupdate --json` on the kit's `origin/main`. A course in `COURSES.md` with no entry in
+`coordinator/courses.json` has no pause recorded and is active. If that command fails, exits
+non-zero, or reports any course as "invalid", or the kit's `main` has no `coordinator/`, the
+run builds no kit-update preview for any course in that run and reports FAILED with the
+command's output; its read-only checks still run.
 - **Paused** (`kitUpdate.previews` "paused"; DEENT since 2026-11-06): the run makes no
   branch, build, `/preview/`, commit or log entry in that course, and changes neither its
   working branch nor its existing preview. Its read-only checks go on: the preflight

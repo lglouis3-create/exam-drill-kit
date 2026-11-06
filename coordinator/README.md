@@ -89,7 +89,7 @@ that release and its Pages deploy was confirmed (Mode 7, decision 10).
 |---|---|---|
 | exam-approaching | an exam starts within 7 days, or is in progress | daily, highest priority: coverage, stability, missing material, regressions; no redesign before the exam |
 | active | an exam or material remains | daily |
-| recently-completed | the final ended within 21 days | weekly: retrospective, exam feedback, reusable improvements |
+| recently-completed | the final ended within 21 days | weekly: a retrospective marked as due (written only when Louis asks, Mode 6), exam feedback, reusable improvements recorded |
 | completed | the final ended 21 to 365 days ago | monthly light maintenance; a deep cross-course and usability audit every 91 days |
 | archived | more than 365 days, or by override | only when the repository changes |
 
@@ -105,7 +105,7 @@ counts and the dashboard says so.
 
 - `review`: due and changed since the last reviewed commit (or never reviewed);
 - `light`: due but unchanged: open items, release check, readiness; no full review of unchanged code;
-- `retrospective`: a recently completed course's weekly retrospective;
+- `retrospective`: a recently completed course's weekly retrospective is due; the run reports it and writes it only when Louis asks (Mode 6);
 - `deep-audit`: a completed course's quarterly audit;
 - `skip`: due and unchanged for a completed or archived course;
 - `essential-check`: an archived course that changed;

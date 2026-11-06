@@ -76,7 +76,7 @@
     {
       "name": "Kit coordinator daily",
       "kind": "scheduled task (proposed), would wake session 'Kit updater'",
-      "responsibility": "coordinator/RUN.md: plan by lifecycle and change, review what is due, record outcomes, prepare improvements on branches, never publish",
+      "responsibility": "coordinator/RUN.md: plan by lifecycle and change, review what is due, record outcomes, record improvements (prepares none; preparing them is proposed in #61), never publish",
       "schedule": "proposed: daily 04:13 America/Chicago",
       "state": "proposed (not configured)",
       "lastRun": "never",

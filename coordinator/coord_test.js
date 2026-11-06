@@ -206,6 +206,11 @@ for(const [k, v] of Object.entries(FAKE)){
   const out = C.redact(`error: request to ${v} failed`);
   check(C.hasSecret(v) && !C.hasSecret(out), `a ${k} credential is redacted`, out);
 }
+for(const v of ['GITHUB_TOKEN=abcdefabcdefabcdef', 'GH_ENTERPRISE_TOKEN=x9y8z7w6', 'password=hunter2hunter2', 'Password: correcthorse', 'API_KEY=Zm9vYmFy', 'gh' + 'p_shortABC123']){
+  const out = C.redact(`failed: ${v} rejected`);
+  check(C.hasSecret(v) && !C.hasSecret(out) && /\[redacted\]/.test(out), `redacted: ${v.replace(/=.*/, '=…').replace(/: .*/, ': …').replace(/_short.*/, '_…')}`, out);
+}
+check(C.redact('the records hold no tokens: scores and grades are absent') === 'the records hold no tokens: scores and grades are absent', 'ordinary text that mentions tokens is not redacted');
 check(C.sanitize('a\n  b ' + FAKE.gho).length <= 240 && !C.hasSecret(C.sanitize('a ' + FAKE.gho)), 'sanitized errors are redacted, on one line and short');
 {
   const cache = path.join(TMP, 'cache.json');
@@ -330,6 +335,56 @@ check(au.every(a => a.name && a.state && a.verified), 'every automation records 
 const blob = ['courses.json', 'state.json', 'improvements.json', 'automations.json', 'README.md', 'RUN.md'].map(f => fs.readFileSync(path.join(__dirname, f), 'utf8')).join('\n');
 check(!C.hasSecret(blob) && !/"score"|"grade"|"answers"\s*:/.test(blob), 'the records hold no credentials, scores, grades or answer histories');
 
+console.log('\n=== The release check fails closed: a file it cannot read completely is never OK ===');
+{
+  const E1 = "{id:'exam1', name:'Exam 1'}", E2 = "{id:'exam2', name:'Exam 2'}";
+  const plain = `const COURSE = {id:'deent', exams:[${E1}], activeExam:'exam1', kit:{core:'25c643d'}};`;
+  const base = C.checkPublished(deent, C.parseCourse(plain));
+  check(base.ok === true, 'a plain literal listing only Exam 1 passes', base);
+  const cases = [
+    ['exams from a variable', `const EX = [${E1}, ${E2}]; const COURSE = {exams: EX, activeExam:'exam1'};`],
+    ['shorthand exams', `const exams = [${E1}, ${E2}]; const COURSE = {exams, activeExam:'exam1'};`],
+    ['spread of a base object', `const BASE = {exams:[${E1}, ${E2}]}; const COURSE = {...BASE, activeExam:'exam1'};`],
+    ['computed exams key', `const COURSE = {['exams']: [${E1}, ${E2}], activeExam:'exam1'};`],
+    ['getter for exams', `const COURSE = {get exams(){ return [${E1}, ${E2}]; }, activeExam:'exam1'};`],
+    ['a spread entry in the array', `const MORE = [${E2}]; const COURSE = {exams:[${E1}, ...MORE], activeExam:'exam1'};`],
+    ['a variable entry in the array', `const X = ${E2}; const COURSE = {exams:[${E1}, X], activeExam:'exam1'};`],
+    ['a computed id', `const COURSE = {exams:[${E1}, {id:'exam'+2}], activeExam:'exam1'};`],
+    ['a template id', "const n = 2; const COURSE = {exams:[" + E1 + ", {id:`exam${n}`}], activeExam:'exam1'};"],
+    ['activeExam computed', `const COURSE = {exams:[${E1}], activeExam:['exam2'][0]};`],
+    ['two activeExam keys', `const COURSE = {exams:[${E1}], activeExam:'exam1', activeExam:'exam2'};`],
+    ['a repeated exams key', `const COURSE = {exams:[${E1}], exams:[${E1}, ${E2}], activeExam:'exam1'};`],
+    ['a repeated quoted exams key', `const COURSE = {exams:[${E1}], 'exams':[${E1}, ${E2}], activeExam:'exam1'};`],
+    ['a repeated id in an exam', `const COURSE = {exams:[{id:'exam1', id:'exam2'}], activeExam:'exam1'};`],
+    ['push after the literal', `${plain}\nCOURSE.exams.push(${E2});`],
+    ['activeExam set after the literal', `${plain}\nCOURSE.activeExam = 'exam2';`],
+    ['Object.assign after the literal', `${plain}\nObject.assign(COURSE, {exams:[${E1}, ${E2}]});`],
+    ['window.COURSE replaced later', `${plain}\nwindow.COURSE = {exams:[${E1}, ${E2}], activeExam:'exam2'};`],
+    ['a second COURSE literal', `${plain}\nCOURSE = {exams:[${E2}], activeExam:'exam2'};`],
+    ['concat on the array', `const COURSE = {exams:[${E1}].concat([${E2}]), activeExam:'exam1'};`],
+    ['getter for activeExam', `const COURSE = {exams:[${E1}], get activeExam(){ return 'exam2'; }};`],
+    ['an alias that changes an exam', `${plain}\n{ const E = COURSE.exams[0]; E.id = 'exam2'; }`],
+    ['an HTML-comment decoy before the real literal', `<!-- COURSE = {exams:[${E1}], activeExam:'exam1'} -->\nconst COURSE = {exams:[${E1}, ${E2}], activeExam:'exam2'};`],
+    ['the literal used in an expression', `const COURSE = {exams:[${E1}], activeExam:'exam1'} || {exams:[${E2}]};`],
+    ['no exams property', `const COURSE = {activeExam:'exam1'};`]
+  ];
+  for(const [label, src] of cases){
+    let r;
+    try { r = C.checkPublished(deent, C.parseCourse(src)); } catch(e){ r = {ok: null, threw: e.message}; }
+    check(r.ok !== true, `not OK: ${label}`, r);
+  }
+  const unread = C.checkPublished(deent, C.parseCourse(`${plain}\nCOURSE.activeExam = 'exam2';`));
+  check(unread.ok === null && unread.notChecked === true && unread.problems.some(p => /not checked/.test(p)), 'a file that may change COURSE after the literal is "not checked" (ok: null), with the reason', unread);
+  // the kit's own files: the template passes; template-unset (which changes an exam after the literal) is not checked
+  const tpl = fs.readFileSync(path.join(__dirname, '..', 'template', 'course.js'), 'utf8');
+  const tco = C.parseCourse(tpl);
+  check(tco.incomplete.length === 0 && tco.exams.length > 0, 'the kit template course.js reads completely', tco.incomplete);
+  const tun = C.parseCourse(tpl + "\n;{ const E = COURSE.exams[0]; E.questions = null; E.pools.forEach(p => { p.marks = null; }); }\n");
+  check(tun.incomplete.some(x => /referenced/.test(x)), 'the template-unset course (which changes an exam after the literal) is not checked: it is a CI scratch course, never a registered one', tun.incomplete);
+  let threw = false; try { C.parseCourse('const X = 1;'); } catch(e){ threw = /no object literal/.test(e.message); }
+  check(threw, 'a file with no COURSE literal is an error the callers report, not OK');
+}
+
 console.log('\n=== Kit-update previews: a pause for one course ===');
 const kp = cfg.courses.map(C.kitUpdatePolicy);
 const kd = kp.find(x => x.course === 'deent');
@@ -355,6 +410,21 @@ const kj = JSON.parse(cp.execFileSync(process.execPath, [path.join(__dirname, 'c
 check(kj.length === cfg.courses.length && kj.filter(x => x.previews === 'paused').map(x => x.course).join() === 'deent', '`coord.js kitupdate --json` lists every course, with only DEENT paused', kj.map(x => x.course + ':' + x.previews));
 const kt = cp.execFileSync(process.execPath, [path.join(__dirname, 'coord.js'), 'kitupdate'], {encoding: 'utf8'});
 check(/deent\s+kit-update previews paused since 2026-11-06/.test(kt) && /reason: /.test(kt) && /lifted: /.test(kt), '`coord.js kitupdate` prints the pause with its reason and how it is lifted');
+const badRec = clone(deent); badRec.kitUpdate.previews = 'Paused';
+const bst = C.kitUpdateState(badRec);
+check(bst.previews === 'invalid' && /must be one of/.test(bst.error), 'an invalid kitUpdate record is reported as invalid for its course, not thrown', bst);
+{
+  // the command on a copy of the records with one invalid record: it names that course, still lists the others, and exits 1
+  const dir = fs.mkdtempSync(path.join(TMP, 'kitupdate-'));
+  for(const f of ['coord.js', 'state.json', 'improvements.json', 'automations.json']) fs.copyFileSync(path.join(__dirname, f), path.join(dir, f));
+  const bad = clone(cfg); bad.courses.find(c => c.id === 'deent').kitUpdate.previews = 'Paused';
+  fs.writeFileSync(path.join(dir, 'courses.json'), JSON.stringify(bad));
+  const r = cp.spawnSync(process.execPath, [path.join(dir, 'coord.js'), 'kitupdate', '--json'], {encoding: 'utf8'});
+  const k = (() => { try { return JSON.parse(r.stdout); } catch(e){ return null; } })();
+  check(r.status === 1 && k && k.length === cfg.courses.length && k.find(x => x.course === 'deent').previews === 'invalid' && k.filter(x => x.course !== 'deent').every(x => x.previews === 'active'), '`coord.js kitupdate` with an invalid record: that course invalid, the others listed, exit 1 (the run then builds no preview)', {status: r.status, k});
+  const d = C.dashboard(T('2026-11-06T15:00:00Z'), {offline: true, cache: null, io: {}});
+  check(d.courses.length === cfg.courses.length, 'the dashboard still lists every course');
+}
 const ddOff = C.dashboard(T('2026-11-06T15:00:00Z'), {offline: true, cache: null});
 check(ddOff.courses.find(c => c.id === 'deent').kitUpdate.previews === 'paused' && /kit-update previews paused since 2026-11-06/.test(C.md(ddOff)), 'the dashboard\'s DEENT row says kit-update previews are paused');
 check(ddOff.courses.filter(c => c.id !== 'deent').every(c => c.kitUpdate.previews === 'active') && (C.md(ddOff).match(/kit-update previews paused/g) || []).length === 1, 'the dashboard shows no pause for the other courses');

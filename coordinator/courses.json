@@ -82,7 +82,7 @@
             "status": "published",
             "source": "DEENT src/course.js exams[0] ('Mon 11/09, 9:00–10:30 AM') and DEENT syllabus SyllabusF26---PHAR-4346---PT-III-DEENT.pdf, 'Tentative exam dates' table, as recorded in DEENT reviews/COURSE_STATUS.json at 3ce3c20 (read 2026-11-06); dates also from Louis, 2026-11-06",
             "coverage": "Lectures 1-4",
-            "cumulative": false,
+            "cumulative": null,
             "questions": 50
           },
           {
@@ -108,7 +108,7 @@
             "status": "planned",
             "source": "DEENT syllabus SyllabusF26---PHAR-4346---PT-III-DEENT.pdf, 'Tentative exam dates' table, as recorded in DEENT reviews/COURSE_STATUS.json at 3ce3c20 (read 2026-11-06); dates also from Louis, 2026-11-06",
             "coverage": "Lectures 9-13",
-            "cumulative": false,
+            "cumulative": null,
             "questions": 50
           },
           {
@@ -129,7 +129,7 @@
         "uncertain": "the syllabus calls these dates tentative and subject to change"
       },
       "inDevelopment": [
-        "Exam 1: Atlas refinement and the sun-exposure lecture wait on the working branch claude/jolly-bell-k7ur5m for Louis's approval (DEENT CLAUDE.md, 2026-11-06); read 2026-11-06: 14 commits ahead of main, which Pages last deployed at b2c2523; not authorization to deploy",
+        "Exam 1: Atlas refinement and the sun-exposure lecture wait on the working branch claude/jolly-bell-k7ur5m for Louis's approval (DEENT CLAUDE.md, 2026-11-06); read 2026-11-06: 16 commits ahead of main and 3 behind (GitHub compare), which Pages last deployed at b2c2523; not authorization to deploy",
         "Kit pin 25c643d, 32 core commits behind the kit's main (read 2026-11-06): an update goes through the Kit update run's preview and Louis's 'approve updates for DEENT'; this record authorizes no update",
         "Exam 1: Dr. Sikazwe's list of slides to avoid, promised by 11/06 (reminder task set)"
       ],

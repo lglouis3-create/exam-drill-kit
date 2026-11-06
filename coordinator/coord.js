@@ -33,19 +33,22 @@ const SECRET_PATTERNS = [
   /\b(authorization|proxy-authorization)\s*[:=]\s*\S+(\s+\S+)?/gi,
   /\b(bearer|token|basic)\s+(?=[A-Za-z0-9._~+\/=-]*\d)[A-Za-z0-9._~+\/=-]{16,}/gi,
   /([?&](access_token|token|key|sig|signature|password)=)[^&\s]+/gi,
-  /\b(sk-ant-[A-Za-z0-9_-]{10,}|sk-[A-Za-z0-9]{20,}|AKIA[0-9A-Z]{16}|xox[abprs]-[A-Za-z0-9-]{10,})\b/g
+  /\b(sk-ant-[A-Za-z0-9_-]{10,}|sk-[A-Za-z0-9]{20,}|AKIA[0-9A-Z]{16}|xox[abprs]-[A-Za-z0-9-]{10,})\b/g,
+  /\b([A-Za-z0-9_]*(?:TOKEN|SECRET|PASSWORD|PASSWD|API_?KEY)[A-Za-z0-9_]*\s*=\s*|password\s*:\s*)(?!\[redacted\])[^\s&]+/gi,   // NAME_TOKEN=..., password=..., password: ...
+  /\bgh[pousr]_[A-Za-z0-9]{8,15}\b/g                         // short or truncated GitHub tokens
 ];
 function redact(s){
   let t = String(s == null ? '' : s);
   t = t.replace(SECRET_PATTERNS[0], '[redacted]').replace(SECRET_PATTERNS[1], '[redacted]')
        .replace(SECRET_PATTERNS[2], '$1:[redacted]@').replace(SECRET_PATTERNS[3], '$1[redacted]@')
        .replace(SECRET_PATTERNS[4], (m, h) => `${h}: [redacted]`).replace(SECRET_PATTERNS[5], (m, w) => `${w} [redacted]`)
-       .replace(SECRET_PATTERNS[6], '$1[redacted]').replace(SECRET_PATTERNS[7], '[redacted]');
+       .replace(SECRET_PATTERNS[6], '$1[redacted]').replace(SECRET_PATTERNS[7], '[redacted]')
+       .replace(SECRET_PATTERNS[8], '$1[redacted]').replace(SECRET_PATTERNS[9], '[redacted]');
   return t;
 }
 const sanitize = s => redact(s).replace(/\s+/g, ' ').trim().slice(0, 240);
 // true when a text still holds something that looks like a credential (used by the checks)
-const hasSecret = s => /gh[pousr]_[A-Za-z0-9]{16,}|github_pat_[A-Za-z0-9_]{20,}|(x-access-token|x-oauth-basic|oauth2):(?!\[redacted\])[^@\s\/]+@|:\/\/[^\/\s:@]+:(?!\[redacted\])[^\/\s@]+@|(authorization|proxy-authorization)\s*[:=]\s*(?!\[redacted\])\S|\b(bearer|token|basic)\s+(?!\[redacted\])(?=[A-Za-z0-9._~+\/=-]*\d)[A-Za-z0-9._~+\/=-]{16,}|[?&](access_token|token|key|sig|signature|password)=(?!\[redacted\])[^&\s]|sk-ant-[A-Za-z0-9_-]{10,}|AKIA[0-9A-Z]{16}|xox[abprs]-[A-Za-z0-9-]{10,}/i.test(String(s));
+const hasSecret = s => /gh[pousr]_[A-Za-z0-9]{16,}|github_pat_[A-Za-z0-9_]{20,}|(x-access-token|x-oauth-basic|oauth2):(?!\[redacted\])[^@\s\/]+@|:\/\/[^\/\s:@]+:(?!\[redacted\])[^\/\s@]+@|(authorization|proxy-authorization)\s*[:=]\s*(?!\[redacted\])\S|\b(bearer|token|basic)\s+(?!\[redacted\])(?=[A-Za-z0-9._~+\/=-]*\d)[A-Za-z0-9._~+\/=-]{16,}|[?&](access_token|token|key|sig|signature|password)=(?!\[redacted\])[^&\s]|sk-ant-[A-Za-z0-9_-]{10,}|AKIA[0-9A-Z]{16}|xox[abprs]-[A-Za-z0-9-]{10,}|\b[A-Za-z0-9_]*(?:TOKEN|SECRET|PASSWORD|PASSWD|API_?KEY)[A-Za-z0-9_]*\s*=\s*(?!\[redacted\])[^\s&]|\bpassword\s*:\s*(?!\[redacted\])\S|\bgh[pousr]_[A-Za-z0-9]{8,}/i.test(String(s));
 const redactDeep = v => typeof v === 'string' ? redact(v) : Array.isArray(v) ? v.map(redactDeep) : v && typeof v === 'object' ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, redactDeep(x)])) : v;
 
 /* ---------- dates and time in the course's time zone ---------- */
@@ -233,30 +236,44 @@ function closeOf(toks, k){
   }
   return toks.length - 1;
 }
-// the top-level properties of the object literal between toks[a] ('{') and its close
+// the top-level properties of the object literal between toks[a] ('{') and its close.
+// As in JavaScript, a repeated key keeps its last value; repeated keys are listed in
+// out.duplicates. An entry that is not `key: value` (a spread, a shorthand property, a
+// computed key, a getter, setter or method) is listed in out.irregular: what it adds or
+// replaces cannot be read without running the code.
 function props(toks, a){
   const out = new Map(), b = closeOf(toks, a);
+  out.duplicates = new Set(); out.irregular = [];
+  const valueEnd = vs => {
+    let ve = vs;
+    // a value runs to the next comma at this level
+    while(ve < b){
+      const t = toks[ve];
+      if(t.t === 'p' && /[{[(]/.test(t.v)){ ve = closeOf(toks, ve) + 1; continue; }
+      if(t.t === 'p' && t.v === ',') break;
+      ve++;
+    }
+    return ve;
+  };
   let j = a + 1;
   while(j < b){
     const k = toks[j];
+    if(k.t === 'p' && k.v === ','){ j++; continue; }
     if((k.t === 'id' || k.t === 'str' || k.t === 'num') && toks[j + 1] && toks[j + 1].t === 'p' && toks[j + 1].v === ':'){
-      const vs = j + 2;
-      let ve = vs;
-      // the value runs to the next comma at this level
-      while(ve < b){
-        const t = toks[ve];
-        if(t.t === 'p' && /[{[(]/.test(t.v)){ ve = closeOf(toks, ve) + 1; continue; }
-        if(t.t === 'p' && t.v === ',') break;
-        ve++;
-      }
-      if(!out.has(String(k.v))) out.set(String(k.v), {s: vs, e: ve});
+      const vs = j + 2, ve = valueEnd(vs), key = String(k.v);
+      if(out.has(key)) out.duplicates.add(key);
+      out.set(key, {s: vs, e: ve});
       j = ve + 1; continue;
     }
-    if(k.t === 'p' && /[{[(]/.test(k.v)){ j = closeOf(toks, j) + 1; continue; }
-    j++;
+    // anything else is an entry whose effect is not literal
+    const ve = valueEnd(j);
+    out.irregular.push(toks.slice(j, Math.min(ve, j + 3)).map(t => t.v === undefined ? t.t : String(t.v)).join(' '));
+    j = ve + 1;
   }
   return out;
 }
+// the value range r is exactly one bracketed literal opened by `open` ({ or [), with nothing after it
+const wholeBracket = (toks, r, open) => r && toks[r.s] && toks[r.s].t === 'p' && toks[r.s].v === open && closeOf(toks, r.s) + 1 === r.e;
 // a literal value (string, number, true, false, null), or undefined when it is anything else
 function literal(toks, r){
   if(!r || r.e - r.s !== 1) return undefined;
@@ -268,37 +285,60 @@ function literal(toks, r){
 }
 function parseCourse(text){
   const toks = tokenize(String(text));
-  const warnings = [];
+  // incomplete: reasons the file cannot be checked without running it. Any one of them makes
+  // the release check "not checked" (ok: null), never ok: the check fails closed.
+  const incomplete = [];
   // COURSE = {   (const/let/var COURSE, window.COURSE, globalThis.COURSE)
-  let at = -1;
+  const decl = [];
   for(let j = 0; j + 2 < toks.length; j++){
-    if(toks[j].t === 'id' && toks[j].v === 'COURSE' && toks[j + 1].t === 'p' && toks[j + 1].v === '=' && toks[j + 2].t === 'p' && toks[j + 2].v === '{'){ at = j + 2; break; }
+    if(toks[j].t === 'id' && toks[j].v === 'COURSE' && toks[j + 1].t === 'p' && toks[j + 1].v === '=' && toks[j + 2].t === 'p' && toks[j + 2].v === '{') decl.push(j);
   }
-  if(at < 0) throw new Error('no object literal assigned to COURSE');
+  if(!decl.length) throw new Error('no object literal assigned to COURSE');
+  if(decl.length > 1) incomplete.push(`COURSE is assigned ${decl.length} times: not checked`);
+  const at = decl[0] + 2, close = closeOf(toks, at);
+  // the literal must stand alone: nothing such as .concat(...) or ||  applied to it
+  const after = toks[close + 1];
+  if(after && !(after.t === 'p' && after.v === ';') && !(after.t === 'id' && /^(const|let|var|function|class|if|for|while|window|globalThis|COURSE)$/.test(after.v))) incomplete.push(`the COURSE literal is followed by "${after.v === undefined ? after.t : after.v}": not checked`);
+  // any other mention of COURSE can change it (COURSE.exams.push(...), COURSE.activeExam = ...,
+  // Object.assign(COURSE, ...), an alias): the file is not checked
+  const declNames = new Set(decl);
+  const others = [];
+  for(let j = 0; j < toks.length; j++) if(toks[j].t === 'id' && toks[j].v === 'COURSE' && !declNames.has(j)) others.push(j);
+  if(others.length) incomplete.push(`COURSE is referenced ${others.length} time${others.length > 1 ? 's' : ''} outside its declaration (it may change after the literal): not checked`);
   const top = props(toks, at);
+  if(top.irregular.length) incomplete.push(`COURSE has entries that are not key: value (${top.irregular.slice(0, 3).join('; ')}): not checked`);
+  for(const k of ['exams', 'activeExam']) if(top.duplicates.has(k)) incomplete.push(`COURSE.${k} is given more than once: not checked`);
   const exams = [];
   const ex = top.get('exams');
-  if(!ex) warnings.push('COURSE has no exams property');
-  else if(!(toks[ex.s].t === 'p' && toks[ex.s].v === '[')) warnings.push('COURSE.exams is not an array literal: not checked');
+  if(!ex) incomplete.push('COURSE has no exams property: not checked');
+  else if(!wholeBracket(toks, ex, '[')) incomplete.push('COURSE.exams is not a single array literal: not checked');
   else {
     const end = closeOf(toks, ex.s);
     for(let j = ex.s + 1; j < end; j++){
+      if(toks[j].t === 'p' && toks[j].v === ','){ continue; }
       if(toks[j].t === 'p' && toks[j].v === '{'){
+        const ce = closeOf(toks, j), nx = toks[ce + 1];
+        if(nx && !(nx.t === 'p' && (nx.v === ',' || (nx.v === ']' && ce + 1 === end)))) incomplete.push('an entry of COURSE.exams is not a plain object literal: not checked');
         const p = props(toks, j), idr = p.get('id'), id = literal(toks, idr);
-        if(id === undefined) warnings.push(`an exam's id is not a literal: not checked`);
+        if(p.irregular.length) incomplete.push(`an exam has entries that are not key: value (${p.irregular.slice(0, 3).join('; ')}): not checked`);
+        if(p.duplicates.has('id')) incomplete.push(`an exam's id is given more than once: not checked`);
+        if(id === undefined) incomplete.push(`an exam's id is not a literal: not checked`);
         else exams.push({id});
-        j = closeOf(toks, j);
-      }else if(toks[j].t === 'p' && /[[(]/.test(toks[j].v)) j = closeOf(toks, j);
-      else if(!(toks[j].t === 'p' && toks[j].v === ',')) warnings.push('an entry of COURSE.exams is not an object literal: not checked');
+        j = ce;
+        continue;
+      }
+      incomplete.push('an entry of COURSE.exams is not an object literal: not checked');
+      // skip to the next entry
+      while(j < end && !(toks[j].t === 'p' && toks[j].v === ',')){ if(toks[j].t === 'p' && /[{[(]/.test(toks[j].v)) j = closeOf(toks, j); j++; }
     }
   }
   let activeExam;
   const ae = top.get('activeExam');
-  if(ae){ activeExam = literal(toks, ae); if(activeExam === undefined) warnings.push('COURSE.activeExam is not a literal: not checked'); }
+  if(ae){ activeExam = literal(toks, ae); if(activeExam === undefined) incomplete.push('COURSE.activeExam is not a literal: not checked'); }
   let kitCore = null;
   const kit = top.get('kit');
-  if(kit && toks[kit.s].t === 'p' && toks[kit.s].v === '{'){ const c = literal(toks, props(toks, kit.s).get('core')); if(typeof c === 'string') kitCore = c; }
-  return {exams, activeExam: activeExam === undefined ? null : activeExam, kit: kitCore ? {core: kitCore} : null, warnings};
+  if(kit && wholeBracket(toks, kit, '{')){ const c = literal(toks, props(toks, kit.s).get('core')); if(typeof c === 'string') kitCore = c; }
+  return {exams, activeExam: activeExam === undefined ? null : activeExam, kit: kitCore ? {core: kitCore} : null, incomplete, warnings: incomplete};
 }
 
 /* ---------- published-content separation ---------- */
@@ -306,7 +346,7 @@ function parseCourse(text){
 // when its schedule entry is published; the exam the site opens on must be published; a
 // published exam missing from the site is reported so the record can be corrected.
 function checkPublished(course, courseObj){
-  const problems = [], notes = [...(courseObj.warnings || [])];
+  const problems = [], notes = [];
   const sched = (course.schedule && course.schedule.exams) || [];
   const bySite = new Map(sched.filter(e => e.siteId != null).map(e => [String(e.siteId), e]));
   const siteExams = (courseObj.exams || []).map(e => String(e.id));
@@ -323,6 +363,9 @@ function checkPublished(course, courseObj){
     if(e.status === 'published' && !siteExams.includes(String(e.siteId))) notes.push(`${e.name} is recorded as published but the site does not list it: update the record or the site`);
   }
   const hidden = sched.filter(e => e.status !== 'published').map(e => `${e.name} (${e.status})`);
+  // a file that could not be read completely is never reported as ok
+  const incomplete = courseObj.incomplete || [];
+  if(incomplete.length) return {ok: null, notChecked: true, problems: [...incomplete, ...problems], notes, siteExams, activeExam: active == null ? null : active, knownNotReleased: hidden};
   return {ok: !problems.length, problems, notes, siteExams, activeExam: active == null ? null : active, knownNotReleased: hidden};
 }
 
@@ -532,7 +575,7 @@ function dashboard(now, opts){
       published: sched.filter(e => e.status === 'published').map(e => e.name),
       knownFuture: sched.filter(e => e.status !== 'published').map(e => `${e.name} ${e.date || 'date not recorded'} (${e.status})`),
       developing: c.inDevelopment || [], lastReview: p.lastReviewAt, nextAction: `${p.action}: ${p.reason}`, head: headRead[c.repo],
-      deployed: dep, kitPin: pin, kitBehind: behind, kitUpdate: kitUpdatePolicy(c), preview, ahead, publication: pub, flags: lc.flags, openProblems: open.map(i => i.id)};
+      deployed: dep, kitPin: pin, kitBehind: behind, kitUpdate: kitUpdateState(c), preview, ahead, publication: pub, flags: lc.flags, openProblems: open.map(i => i.id)};
   });
   const approvals = [];
   for(const repo of [cfg.kitRepo, ...cfg.courses.map(c => c.repo)]){
@@ -568,7 +611,7 @@ function md(d){
     const pvTxt = pv.state === 'ok' ? (pv.value ? 'yes' : 'no') : pv.state === 'unavailable' ? `${UNAVAILABLE}${lastTxt(pv.last)}${pv.last ? ': ' + (pv.last.value ? 'yes' : 'no') : ''}` : '—';
     const pinTxt = c.kitPin ? c.kitPin + (c.kitBehind != null ? ` (${c.kitBehind} core commits behind)` : '') : c.siteKind === 'kit' ? (pb && pb.last && pb.last.value && pb.last.value.pin ? `${pb.last.value.pin}${lastTxt(pb.last)}` : 'not read') : 'not a kit course';
     const ah = c.ahead && c.ahead.state === 'ok' && c.ahead.value.ahead > 0 ? `; working branch \`${c.ahead.value.defaultBranch}\` ${c.ahead.value.ahead} commits ahead of the live branch` : c.ahead && c.ahead.state === 'unavailable' ? `; working branch: ${UNAVAILABLE}` : '';
-    const kp = c.kitUpdate && c.kitUpdate.previews === 'paused' ? `; kit-update previews paused since ${c.kitUpdate.since}` : '';
+    const kp = c.kitUpdate && c.kitUpdate.previews === 'paused' ? `; kit-update previews paused since ${c.kitUpdate.since}` : c.kitUpdate && c.kitUpdate.previews === 'invalid' ? `; kitUpdate record invalid (${c.kitUpdate.error})` : '';
     const nextRev = c.head && c.head.state === 'unavailable' ? `${UNAVAILABLE} (repository head)${lastTxt(c.head.last)}` : c.nextAction;
     L.push(`| [${cell(c.code)}](https://github.com/${c.repo}) ${cell(c.name)}, ${cell(c.term)} | ${c.status}: ${cell(c.why)} | ${cell(c.next)} | ${cell(c.final)} | ${cell(c.published.join(', ') || 'none')} | ${cell(c.knownFuture.join('; ') || 'none')} | ${cell(depTxt)} | ${cell(pinTxt + kp)} | ${cell(pvTxt + ah)} | ${cell(nextRev)} | ${cell(probs)} |`);
   }
@@ -625,6 +668,13 @@ function kitUpdatePolicy(course){
   return Object.assign(base, {previews: k.previews, since: k.since || null, reason: k.reason || null, liftWhen: k.liftWhen || null, source: k.source || null});
 }
 
+// for the dashboard and `kitupdate`: an invalid record is reported for its course, never
+// thrown, so one bad record does not hide every other course
+function kitUpdateState(course){
+  try { return kitUpdatePolicy(course); }
+  catch(e){ return {course: course.id, repo: course.repo, pagesBranch: course.pagesBranch || 'main', previews: 'invalid', error: sanitize(e.message)}; }
+}
+
 /* ---------- command line ---------- */
 if(require.main === module){
   const argv = process.argv.slice(2), cmd = argv[0];
@@ -648,18 +698,23 @@ if(require.main === module){
       const dep = liveDeployed(c.repo), ref = dep.state === 'ok' && dep.value ? dep.value.sha : (c.pagesBranch || 'main');
       const f = liveFile(c.repo, c.courseFile, ref);
       if(f.state !== 'ok') return {course: c.id, ok: null, at: ref, problems: [f.state === 'missing' ? `${c.courseFile} not found at ${ref}` : `${UNAVAILABLE}: ${f.why}`]};
-      return Object.assign({course: c.id, at: ref, deployedKnown: !!(dep.state === 'ok' && dep.value)}, checkPublished(c, parseCourse(f.text)));
+      let co;
+      try { co = parseCourse(f.text); }
+      catch(e){ return {course: c.id, ok: null, at: ref, problems: [`${c.courseFile} at ${ref} could not be read: ${sanitize(e.message)}: not checked`]}; }
+      return Object.assign({course: c.id, at: ref, deployedKnown: !!(dep.state === 'ok' && dep.value)}, checkPublished(c, co));
     });
     out(json ? res : res.map(r => `${r.course} (at ${String(r.at).slice(0, 12)}${r.deployedKnown === false ? ', live revision unknown' : ''}): ${r.ok === null ? 'NOT RUN' : r.ok ? 'OK' : 'PROBLEM'}${r.problems.length ? ' — ' + r.problems.join('; ') : ''}${r.knownNotReleased && r.knownNotReleased.length ? `\n  known, not released (hidden from students): ${r.knownNotReleased.join('; ')}` : ''}`).join('\n'));
     if(res.some(r => r.ok === false)) process.exitCode = 1;
   }
   else if(cmd === 'dashboard'){ const d = dashboard(now, {offline: argv.includes('--offline'), cache}); out(json ? d : md(d)); }
   else if(cmd === 'kitupdate'){
-    const k = cfg.courses.map(kitUpdatePolicy);
-    out(json ? k : k.map(x => `${x.course.padEnd(22)} kit-update previews ${x.previews}${x.previews === 'paused' ? ` since ${x.since} (Pages branch ${x.pagesBranch})\n  reason: ${x.reason}\n  lifted: ${x.liftWhen}` : ''}`).join('\n'));
+    const k = cfg.courses.map(kitUpdateState);
+    out(json ? k : k.map(x => `${x.course.padEnd(22)} kit-update previews ${x.previews}${x.previews === 'paused' ? ` since ${x.since} (Pages branch ${x.pagesBranch})\n  reason: ${x.reason}\n  lifted: ${x.liftWhen}` : x.previews === 'invalid' ? `: ${x.error}` : ''}`).join('\n'));
+    // a run that cannot read every course's state builds no kit-update preview (skill/SKILL.md Mode 7)
+    if(k.some(x => x.previews === 'invalid')) process.exitCode = 1;
   }
   else if(cmd === 'lastseen'){ const d = dashboard(now, {offline: false, cache}); console.log(redact(JSON.stringify(d.lastSeen, null, 1))); }
   else { console.error('usage: coord.js status|plan|published|dashboard|lastseen|kitupdate [--now ISO] [--json] [--offline]'); process.exit(2); }
 }
-module.exports = {kitUpdatePolicy, KIT_PREVIEWS, dashboard, lastSeenStore, UNAVAILABLE, zonedInstant, examSpan, lifecycle, plan, checkPublished, parseCourse, tokenize,
+module.exports = {kitUpdatePolicy, kitUpdateState, KIT_PREVIEWS, dashboard, lastSeenStore, UNAVAILABLE, zonedInstant, examSpan, lifecycle, plan, checkPublished, parseCourse, tokenize,
   approvalStatus, approvalsFrom, md, redact, sanitize, hasSecret, run, validDate, STATUSES, RELEASE};
