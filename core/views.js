@@ -2168,8 +2168,43 @@ function renderGaps(){
    EXAM SIMULATION — a paper drawn to the blueprint in course.js
    ========================================================================== */
 let EX = null;
+/* ---- A paper or a quiz session belongs to the profile that started it ----------------
+   An independent review of the live DEENT site (core 25c643d, 2026-11-06) found that EX
+   (the exam paper) and Q (the quiz or targeted-review session) stayed in place when the
+   profile changed: profile B saw A's paper with A's picks, a pick on it wrote A's paper
+   into B's stored paper, and submitting it, or its clock running out, recorded A's answers
+   in B's history. useProfile (shell.html) now calls parkSession before the switch and
+   resumeSession after the next profile's progress is loaded (ownership_test.js).
+   A running paper is saved under its own profile and put away; the Exam tab reads it back
+   from storage on the return, as after a reload, so a paper that ran out meanwhile is
+   submitted then, under its own profile. The page keeps the paper itself only where
+   storage cannot hold it: a submitted paper (its result screen) and a paper of a visit that
+   saves nothing (canSave false). The quiz session is kept for the visit, with the time
+   already spent on an unanswered question, so the time away is not counted as answer time.
+   Nothing new is stored. */
+const PARKED = {};   // profile -> {Q, EX, qElapsed}: what this page put away when it left that profile
+const examOwned = () => !!EX && (!EX.owner || EX.owner === PROFILE);
+function parkSession(from){
+  if(EX && EX.running && examOwned()) saveExam();   // PROFILE is still `from` here
+  if(EX) clearInterval(EX.timer);
+  const keepEX = !!EX && EX.owner === from && (EX.done || (EX.running && !canSave()));
+  const p = {Q, EX: keepEX ? EX : null};
+  if(Q && Q.current && !Q.revealed && typeof Q.startedAt === 'number') p.qElapsed = Date.now() - Q.startedAt;
+  PARKED[from] = p;
+  Q = null; EX = null;
+}
+function resumeSession(to){
+  const p = PARKED[to]; delete PARKED[to];
+  Q = null; EX = null;
+  if(!p) return;
+  Q = p.Q || null;
+  if(Q && typeof p.qElapsed === 'number') Q.startedAt = Date.now() - p.qElapsed;
+  if(p.EX){ EX = p.EX; if(EX.running) startClock(); }
+}
 function renderExam(){
   const el = $('#v-exam');
+  // a paper of another profile is never drawn, saved or submitted here
+  if(EX && !examOwned()){ clearInterval(EX.timer); EX = null; }
   if(!EX) restoreExam();
   if(EX && EX.running){ renderExamQ(); return; }
   if(EX && EX.done){ renderExamResult(); return; }
@@ -2321,6 +2356,8 @@ const untimedPaper = () => !!EX && EX.ends === null && typeof EX.started === 'nu
 // written, and removed, only when the saved progress was loaded (canSave in shell.html)
 function saveExam(){
   if(!EX || !EX.running || !canSave()) return;
+  if(!EX.owner) EX.owner = PROFILE;
+  if(EX.owner !== PROFILE) return;   // never under another profile's key
   if(profileSavedElsewhere()){ staleWarn(); return; }   // never over another tab's paper
   const paper = {ids:EX.qs.map(q=>q.id), picks:EX.picks, orders:EX.orders, i:EX.i, ends:EX.ends};
   if(untimedPaper()) paper.started = EX.started;
@@ -2338,7 +2375,7 @@ function restoreExam(){
   try { j = JSON.parse(store.get(EXAM_KEY()) || 'null'); } catch(e) { j = null; }
   if(!j || !j.ids) return false;
   const qs = j.ids.map(byId); if(qs.some(q => !q)) { clearExam(); return false; }
-  EX = {qs, i:Math.min(j.i||0, qs.length-1), picks:j.picks, orders:j.orders, running:true, done:false, ends:j.ends};
+  EX = {qs, i:Math.min(j.i||0, qs.length-1), picks:j.picks, orders:j.orders, running:true, done:false, ends:j.ends, owner:PROFILE};
   if(j.ends === null && typeof j.started === 'number') EX.started = j.started;   // untimed: never expires
   else if(Date.now() >= EX.ends){ finishExam(true); return true; }
   startClock();
@@ -2347,15 +2384,19 @@ function restoreExam(){
 const tookText = () => fmt(Date.now() - EX.started) + ' taken';
 function startClock(){
   clearInterval(EX.timer);
+  if(!EX.owner) EX.owner = PROFILE;
+  // each clock stops itself once its own paper is no longer the one on this page (a profile
+  // switch, a new paper), so it can never submit a paper under another profile
+  const mine = EX;
   if(untimedPaper()){
-    EX.timer = setInterval(()=>{
-      if(!EX || !EX.running) return clearInterval(EX && EX.timer);
+    mine.timer = setInterval(()=>{
+      if(EX !== mine || !mine.running) return clearInterval(mine.timer);
       const c = document.getElementById('exClock'); if(c) c.textContent = tookText();
     }, 1000);
     return;
   }
-  EX.timer = setInterval(()=>{
-    if(!EX || !EX.running) return clearInterval(EX.timer);
+  mine.timer = setInterval(()=>{
+    if(EX !== mine || !mine.running || mine.owner !== PROFILE) return clearInterval(mine.timer);
     if(Date.now() >= EX.ends){ finishExam(true); return; }
     const c = document.getElementById('exClock');
     if(c){ const l = EX.ends - Date.now();
@@ -2421,6 +2462,9 @@ const examBlank = (q, p) => isMulti(q) ? !(Array.isArray(p) && p.length) : (p ==
 /* partial: blank items are left out of the history rather than logged as
    misses, for a paper that could not be finished. */
 function finishExam(partial){
+  // once per paper, and only under its own profile: a second submit (a handler run twice, a
+  // clock firing as the paper is submitted) records nothing more
+  if(!EX || !EX.running || !examOwned()) return;
   clearInterval(EX.timer);
   if(untimedPaper()) EX.took = Date.now() - EX.started;
   EX.running = false; EX.done = true; EX.partial = !!partial;

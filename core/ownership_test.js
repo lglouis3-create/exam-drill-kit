@@ -1,0 +1,249 @@
+/* A running exam paper, quiz session or targeted review belongs to the profile that
+ * started it.
+ *
+ * Found by an independent review of the live DEENT site (core 25c643d), 2026-11-06:
+ * profile A starts an exam paper and picks an answer, the student switches to profile
+ * B, and A's paper is still on screen with A's pick; submitting it records the pick in
+ * B's history. The exam paper (EX) and the quiz session (Q) were page globals that a
+ * profile switch left in place.
+ *
+ *   1. exam: A picks an answer, then a switch to B: B sees no paper and no pick, a click
+ *      on the exam view writes nothing under B, B cannot submit A's paper, nothing is
+ *      recorded or stored under B; back to A, A's paper comes back with its pick
+ *   2. reload with A's paper while B is active: B still has no paper, and A's comes back
+ *   3. the clock: A's paper runs out while B is on the Exam tab: nothing is recorded
+ *      under B; back to A, the paper is submitted under A
+ *   4. a submit run twice records each answer once, and a reload straight after a
+ *      submit brings no paper back and keeps the answers once
+ *   5. quiz and targeted review: a question A is part-way through, and a review list A
+ *      started, are not on B's screen; back to A, they come back as A left them
+ *   6. both profiles' saved histories hold only their own answers
+ *
+ *     node ownership_test.js
+ */
+const L = require('./check_lib');
+const NAME = 'ownership_test.js';
+const {check, skip} = L;
+L.PAGE.need(NAME);
+
+const switchTo = async (page, name) => {
+  await page.evaluate(n => { window.__name = n; }, name);
+  await page.click('#btnWho');
+  await page.waitForFunction(n => document.getElementById('whoName').textContent === n, name, {timeout: 5000});
+  await page.waitForTimeout(300);   // the lock and the 150 ms save
+};
+// what is stored for profile p: answers in its progress, entries in its history, its paper
+const stored = (page, p) => page.evaluate(p => {
+  let a = 0, l = 0, exam = null;
+  try { const d = JSON.parse(localStorage.getItem(NS + ':data:' + p) || 'null'); a = d && Array.isArray(d.answers) ? d.answers.length : 0; } catch(e){ a = -1; }
+  try { const v = JSON.parse(localStorage.getItem(NS + ':log:' + p) || '[]'); l = Array.isArray(v) ? v.length : -1; } catch(e){ l = -1; }
+  try { exam = JSON.parse(localStorage.getItem(NS + ':exam:' + p) || 'null'); } catch(e){ exam = 'unreadable'; }
+  return {answers: a, log: l, exam};
+}, p);
+// the Exam tab as drawn now
+const examView = page => page.evaluate(() => {
+  show('exam');
+  const v = document.getElementById('v-exam');
+  return {running: !!v.querySelector('#exClock'), start: !!v.querySelector('#startExam'),
+          picked: v.querySelectorAll('.opt.pick-ok, .opt.on').length, submit: !!v.querySelector('#exEnd'),
+          result: /Exam simulation —/.test(v.textContent)};
+});
+// A starts a paper and picks the first option of its first question; returns the option index picked
+const startAndPick = page => page.evaluate(() => {
+  show('exam');
+  const s = document.getElementById('startExam'); if(!s) return null;
+  s.click();
+  const b = document.querySelector('#v-exam .opt'); if(!b) return null;
+  const oi = +b.dataset.o; b.click();
+  return oi;
+});
+
+(async () => {
+  const {browser} = await L.launch(NAME);
+
+  console.log('\n=== 1. An exam paper stays with the profile that started it ===');
+  let examOn = true;
+  {
+    const {ctx, page, errors} = await L.openFile(browser);
+    await switchTo(page, 'A');
+    const oi = await startAndPick(page);
+    if(oi === null){
+      examOn = false;
+      skip('the exam cases', 'this course starts no exam paper (no question count, or no paper drawn)');
+    } else {
+      await page.waitForTimeout(300);
+      const a0 = await stored(page, 'A');
+      check(a0.exam && Array.isArray(a0.exam.picks) && a0.exam.picks[0] !== null && a0.exam.picks[0] !== undefined,
+        "A's paper is stored under A with A's pick", JSON.stringify(a0.exam && a0.exam.picks));
+      await switchTo(page, 'B');
+      const v = await examView(page);
+      check(!v.running && v.picked === 0 && !v.submit, "after the switch to B, B's Exam tab shows no running paper and no pick", JSON.stringify(v));
+      check(v.start, "B's Exam tab offers B a paper of its own", JSON.stringify(v));
+      // whatever is on B's screen: a click on an option, and a submit, record nothing under B
+      await page.evaluate(() => {
+        const o = document.querySelector('#v-exam .opt'); if(o) o.click();
+        const e = document.getElementById('exEnd'); if(e) e.click();
+      });
+      await page.waitForTimeout(400);
+      const b1 = await stored(page, 'B'), live = await page.evaluate(() => DB.answers.length);
+      check(b1.exam === null, "nothing of A's paper is stored under B", JSON.stringify(b1.exam && b1.exam.picks));
+      check(live === 0 && b1.answers === 0 && b1.log === 0, "B cannot submit A's paper: B's progress and history hold no answer",
+        JSON.stringify({live, b1}));
+      await switchTo(page, 'A');
+      const back = await examView(page);
+      const picks = await page.evaluate(() => EX && EX.picks);
+      check(back.running && back.picked === 1, "back on A, A's paper is running again with A's pick on screen", JSON.stringify(back));
+      check(Array.isArray(picks) && picks[0] === oi, "A's pick is the one A made", JSON.stringify({picks, oi}));
+      const a1 = await stored(page, 'A');
+      check(a1.answers === 0 && a1.log === 0, 'nothing was recorded under A by the switches', JSON.stringify(a1));
+    }
+    check(!errors.length, 'no page error in case 1', errors.join(' | '));
+    await ctx.close();
+  }
+
+  if(examOn){
+    console.log('\n=== 2. A reload while B is active ===');
+    const {ctx, page, errors} = await L.openFile(browser);
+    await switchTo(page, 'A');
+    const oi = await startAndPick(page);
+    await page.waitForTimeout(300);
+    await switchTo(page, 'B');
+    // a student who clicks on whatever the Exam tab shows
+    await page.evaluate(() => { show('exam'); const o = document.querySelector('#v-exam .opt'); if(o) o.click(); });
+    await page.waitForTimeout(300);
+    await page.reload();
+    await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+    const who = await page.evaluate(() => document.getElementById('whoName').textContent);
+    const v = await examView(page);
+    check(who === 'B' && !v.running && v.picked === 0, 'after a reload with B active, B has no paper', JSON.stringify({who, v}));
+    check((await stored(page, 'B')).exam === null, 'no paper is stored under B', '');
+    await switchTo(page, 'A');
+    const back = await examView(page);
+    const picks = await page.evaluate(() => EX && EX.picks);
+    check(back.running && Array.isArray(picks) && picks[0] === oi, "back on A after the reload, A's paper and pick are there", JSON.stringify({back, picks, oi}));
+    check(!errors.length, 'no page error in case 2', errors.join(' | '));
+    await ctx.close();
+  }
+
+  if(examOn){
+    console.log("\n=== 3. A's clock runs out while B is on the Exam tab ===");
+    const {ctx, page, errors} = await L.openFile(browser);
+    await switchTo(page, 'A');
+    await startAndPick(page);
+    // the paper ends 1.5 s from now (stored so, as a paper near its end is)
+    await page.evaluate(() => { EX.ends = Date.now() + 1500; saveExam(); });
+    await switchTo(page, 'B');
+    await examView(page);
+    await page.waitForTimeout(3000);
+    const b = await stored(page, 'B'), live = await page.evaluate(() => DB.answers.length);
+    check(b.answers === 0 && b.log === 0 && live === 0, "A's paper running out records nothing under B", JSON.stringify({b, live}));
+    await switchTo(page, 'A');
+    const v = await examView(page);
+    await page.waitForTimeout(400);
+    const a = await stored(page, 'A');
+    check(v.result && !v.running, "back on A, the paper that ran out is submitted and its result shown", JSON.stringify(v));
+    check(a.answers === 1 && a.log === 1 && a.exam === null, "the one answered item is recorded under A, once, and A's paper is cleared", JSON.stringify(a));
+    check(!errors.length, 'no page error in case 3', errors.join(' | '));
+    await ctx.close();
+  }
+
+  if(examOn){
+    console.log('\n=== 4. A submit run twice, and a reload straight after a submit ===');
+    const {ctx, page, errors} = await L.openFile(browser);
+    await switchTo(page, 'A');
+    await startAndPick(page);
+    // the submit button's handler, run twice (a double tap that reaches the handler twice, or a
+    // timer that fires as the paper is submitted)
+    const n = await page.evaluate(() => {
+      const h = document.getElementById('exEnd').onclick;
+      h(); try { h(); } catch(e){} try { finishExam(true); } catch(e){}
+      return DB.answers.length;
+    });
+    check(n === 1, 'a paper submitted twice records its one answered item once', 'recorded ' + n);
+    await page.reload();
+    await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+    const v = await examView(page);
+    const a = await stored(page, 'A');
+    check(!v.running && a.exam === null, 'after a reload straight after the submit, no paper comes back', JSON.stringify({v, exam: a.exam}));
+    check(a.answers === 1 && a.log === 1, 'the answers are stored once after the reload', JSON.stringify(a));
+    check(!errors.length, 'no page error in case 4', errors.join(' | '));
+    await ctx.close();
+  }
+
+  console.log('\n=== 5. A quiz question and a targeted review stay with their profile ===');
+  {
+    const {ctx, page, errors} = await L.openFile(browser);
+    await switchTo(page, 'A');
+    // a select-all question part-way answered (one option ticked, not checked), else a choice question shown
+    const q = await page.evaluate(() => {
+      const m = QUESTIONS.find(x => isMulti(x) && x.options && x.options.length) || QUESTIONS.find(x => x.options && x.options.length);
+      if(!m) return null;
+      Q = {pool: [m], label: 'check', sweep: [m.id], i: 0, current: null, answered: 0, lastId: null, examMode: false, picked: null, revealed: false};
+      nextQuestion(); show('quiz');
+      if(isMulti(m)) document.querySelector('#v-quiz button[data-o]').click();
+      return {id: m.id, multi: isMulti(m), picked: Q.picked};
+    });
+    if(!q){ skip('the quiz case', 'this course has no question answered with option buttons'); }
+    else {
+      await switchTo(page, 'B');
+      const onB = await page.evaluate(() => { show('quiz'); const v = document.getElementById('v-quiz');
+        return {current: Q && Q.current ? Q.current.id : null, opts: v.querySelectorAll('button[data-o]').length, text: v.textContent.trim().slice(0, 40)}; });
+      check(onB.current === null && onB.opts === 0, "B's Quiz tab does not show the question A was answering", JSON.stringify(onB));
+      // whatever B's screen holds: clicking it records nothing under B
+      await page.evaluate(() => { const o = document.querySelector('#v-quiz button[data-o]'); if(o) o.click(); const c = document.getElementById('btnCheck'); if(c) c.click(); });
+      await page.waitForTimeout(300);
+      const b = await stored(page, 'B');
+      check(b.answers === 0 && b.log === 0, 'nothing is recorded under B from the quiz', JSON.stringify(b));
+      await switchTo(page, 'A');
+      const onA = await page.evaluate(() => { show('quiz'); return {current: Q && Q.current ? Q.current.id : null, picked: Q && Q.picked}; });
+      check(onA.current === q.id && JSON.stringify(onA.picked) === JSON.stringify(q.picked), "back on A, A's question comes back as A left it", JSON.stringify({onA, q}));
+    }
+    // a targeted review list (Weak spots' "drill these"), started by A
+    const ids = await page.evaluate(() => { const pool = QUESTIONS.filter(x => x.options && x.options.length).slice(0, 2);
+      if(!pool.length) return null; drillList(pool, 'Missed concepts'); return pool.map(x => x.id); });
+    if(ids){
+      await switchTo(page, 'B');
+      const onB = await page.evaluate(() => { show('quiz'); return {label: Q && Q.label, current: Q && Q.current ? Q.current.id : null}; });
+      check(onB.label !== 'Missed concepts' && onB.current === null, "A's targeted review is not B's session", JSON.stringify(onB));
+      await switchTo(page, 'A');
+      const onA = await page.evaluate(() => ({label: Q && Q.label, current: Q && Q.current ? Q.current.id : null}));
+      check(onA.label === 'Missed concepts' && ids.includes(onA.current), "back on A, A's targeted review is A's session again", JSON.stringify(onA));
+      // A answers it: recorded under A only
+      await page.evaluate(() => { show('quiz'); const q = Q.current;
+        if(isMulti(q)){ for(const i of correctSet(q)) document.querySelector(`#v-quiz button[data-o="${i}"]`).click(); document.getElementById('btnCheck').click(); }
+        else document.querySelector('#v-quiz button[data-o]').click(); });
+      await page.waitForTimeout(400);
+      const a = await stored(page, 'A'), b = await stored(page, 'B');
+      check(a.answers === 1 && a.log === 1 && b.answers === 0 && b.log === 0, "A's review answer is in A's history and not in B's", JSON.stringify({a, b}));
+    }
+    check(!errors.length, 'no page error in case 5', errors.join(' | '));
+    await ctx.close();
+  }
+
+  if(examOn){
+    console.log("\n=== 6. Each profile's own paper and history, both kept ===");
+    const {ctx, page, errors} = await L.openFile(browser);
+    await switchTo(page, 'A');
+    await startAndPick(page);
+    await switchTo(page, 'B');
+    const oiB = await startAndPick(page);
+    check(oiB !== null, 'B starts a paper of its own', '');
+    await page.evaluate(() => finishExam(true));   // B submits B's paper: one answered item
+    await page.waitForTimeout(400);
+    await switchTo(page, 'A');
+    const v = await examView(page);
+    check(v.running && v.picked === 1, "A's paper is untouched by B's paper and submit", JSON.stringify(v));
+    await page.evaluate(() => finishExam(true));
+    await page.waitForTimeout(400);
+    const a = await stored(page, 'A'), b = await stored(page, 'B');
+    check(a.answers === 1 && a.log === 1 && b.answers === 1 && b.log === 1 && a.exam === null && b.exam === null,
+      'each profile has its own one answer in its progress and history, and no paper left', JSON.stringify({a, b}));
+    const modes = await page.evaluate(() => [NS + ':log:A', NS + ':log:B'].map(k => (JSON.parse(localStorage.getItem(k) || '[]')[0] || [])[3]));
+    check(modes[0] === 'exam' && modes[1] === 'exam', 'both entries are exam entries', JSON.stringify(modes));
+    check(!errors.length, 'no page error in case 6', errors.join(' | '));
+    await ctx.close();
+  }
+
+  await browser.close();
+  L.finish(NAME);
+})().catch(e => { console.log('FAIL: ' + NAME + ': ' + (e && e.stack || e)); process.exit(1); });
