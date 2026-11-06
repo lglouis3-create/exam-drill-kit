@@ -37,7 +37,7 @@
   ok    Put back, storage full: the filler leaves too little room for the DB.ink copy beside the record
   ok    Put back, storage full (real quota filler): the record goes first and its DB.ink copy is on the list Put back leaves
   ok    Put back, storage full: once there is room again, the DB.ink copy is still on the list
-  ok    no answers, only a device setting differs (IMPORT_DEVICE): held, so no extra copy
+  ok    no answers, only a device setting differs (IMPORT_DEVICE): kept as a copy, since it was this device's own choice in another tab
   ok    control: no answers, an ordinary setting of its own: kept apart as a copy
   ok    every write refused: the copy is kept on this page for this visit and the "did not save" notice shows
   ok    no page errors (retire)

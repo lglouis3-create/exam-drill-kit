@@ -1107,11 +1107,7 @@ function placeOf(rec, st, own){
   // stored progress lacks); a setting of its own makes it a copy, as behind the stored answers
   if(!pAns.length){
     if(!sAns.length || rec.mark || ahead) return 'conflict';
-    // a setting that stays with each device (views.js IMPORT_DEVICE, as Import leaves it) is not one of its own
-    const dev = typeof IMPORT_DEVICE !== 'undefined' ? IMPORT_DEVICE : [];
-    const ps = rec.db.settings || {}, ss = (st && st.settings) || {}, cmp = typeof canon === "function" ? canon : JSON.stringify;
-    const ownKept = Object.keys(Object.assign({}, ps, ss)).some(k => !dev.includes(k) && cmp(ps[k]) !== cmp(ss[k]));
-    return ownKept && !own ? 'apart' : 'in';
+    return ownSettings && !own ? 'apart' : 'in';
   }
   const last = answerSign(pAns[pAns.length - 1]);
   let idx = -1;

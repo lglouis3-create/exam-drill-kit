@@ -386,7 +386,8 @@ L.PAGE.need(NAME);
     await f.page.evaluate(() => { localStorage.removeItem('__filler'); for(let n = 0; n < 500; n++) localStorage.removeItem('__f' + n); });
     const r8 = await after(pb2.k);
     check(r8.copyInk, 'Put back, storage full: once there is room again, the DB.ink copy is still on the list', r8);
-    // no answers, a device-only setting of its own (views.js IMPORT_DEVICE): held, not one more copy
+    // no answers, a device-only setting of its own (views.js IMPORT_DEVICE): every per-tab record is on this
+    // device, so another tab's choice is this device's own and is kept as a copy, not dropped (the review of fd2aea1)
     {
       const r9 = await f.page.evaluate(() => {
         const st = JSON.parse(localStorage.getItem(keyFor(PROFILE)));
@@ -394,7 +395,7 @@ L.PAGE.need(NAME);
         const own = Object.assign({}, st, {answers: [], settings: Object.assign({}, st.settings, {goal: 4242})});
         return {device: placeOf({at: Date.now(), db: dev}, st, false), own: placeOf({at: Date.now(), db: own}, st, false)};
       });
-      check(r9.device === 'in', 'no answers, only a device setting differs (IMPORT_DEVICE): held, so no extra copy', r9);
+      check(r9.device === 'apart', 'no answers, only a device setting differs (IMPORT_DEVICE): kept as a copy, since it was this device\'s own choice in another tab', r9);
       check(r9.own === 'apart', 'control: no answers, an ordinary setting of its own: kept apart as a copy', r9);
     }
     // both refused (every write refused): the copy is kept on the page and the notice shows

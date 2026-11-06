@@ -10,8 +10,7 @@ Dated kit changes, newest first.
   - **A record not yet placed, met by Erase, Put back, a replacing Import or Delete the copies:** if it holds a module part the stored progress lacks, it becomes a copy with its history entries. Under a full storage the record goes first and the copy takes its room. If the copy still does not fit, the record is written back and tried again later. If the write-back is refused too, the copy stays on the page for this visit, with the "did not save" notice.
   - **This tab's own record under a full storage:** still removed when the stored progress continues it (`placeOf` `own`).
   - **Put back:** the per-tab records are retired after Put back writes its copy list, so a record's module part kept as a copy stays on that list, with storage full or not (the review of #69, N1). Before, Put back's own list write dropped that copy, and with storage full the record had already been removed: the module part was lost.
-  - **A record with no answers that differs only in a setting kept per device** (`views.js` `IMPORT_DEVICE`, as Import leaves it): held, not kept as one more copy.
-- New check `core/record_modules_test.js`. On main 3f8ba20 it fails 17 of 36 checks (`review/record-modules/before-main-3f8ba20.log`). The Put back and device-setting checks (43 in all) fail 4 of 43 on adbcb82 (`review/record-modules/before-putback-fix-adbcb82.log`) and pass 43 of 43 with this change (`after-putback-fix.log`).
+- New check `core/record_modules_test.js`. On main 3f8ba20 it fails 17 of 36 checks (`review/record-modules/before-main-3f8ba20.log`). The Put back checks fail 3 of 43 on adbcb82 (`review/record-modules/before-putback-fix-adbcb82.log`) and pass 43 of 43 with this change (`after-putback-fix.log`).
 - equation-drill and worksheets-ink stay off in every course until this merges (Louis, 2026-11-06).
 
 ## 2026-11-06 (checks)
