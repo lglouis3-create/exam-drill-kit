@@ -163,3 +163,94 @@ merged as `4e0fae4`.
 - Notify him promptly about confirmed progress-loss risks, live-site problems, or decisions that
   genuinely block progress. The approval requests of section 7 are asked as before. Do not ask
   again about unchanged pull requests.
+
+## 11. Coordination with ChatGPT, feedback checks and status (Louis, 2026-11-06)
+
+Louis's message of 2026-11-06 adds these rules; where they are stricter than the sections above,
+they apply.
+
+- **GitHub is the handoff with ChatGPT.**
+  - The shared ChatGPT review automation covers main-kit work and porter drafts: correctness, missing
+    functionality, and focused student-experience improvements. No other ChatGPT review task is
+    created.
+  - Read new comments and reviews before continuing the affected work.
+  - Evaluate each finding independently and address the valid ones.
+  - Reply on the same pull request with the reasoning, the exact tested commit and the evidence.
+  - Continue unrelated authorized work while waiting.
+- **Priorities.** Complete the drafts' declared missing functionality and resolve their dependencies
+  first. Keep useful source behaviour, without requiring each module to reproduce unrelated features
+  of its source course. Weigh optimization suggestions, but confirmed defects, progress preservation
+  and agreed functionality come first.
+- **Optional improvements** go in the existing improvement registry (`coordinator/improvements.json`,
+  coordinator PR #57 or its successor, once merged). Each entry is checked for duplicates and says
+  its student benefit and acceptance criteria.
+- **Three statuses, reported apart:**
+  - tests passing;
+  - intended source functionality fully ported;
+  - feature available in a live course.
+
+  State whether evidence covers a kit fixture, a module course, a real course build or a live site.
+  Passing kit tests are not proof that a live course received an update. A course repository that
+  could not be read is reported as unreviewed.
+- **Feedback checks.** The scheduled task "Kit porter feedback check" runs at about 5:30, 10:30,
+  15:30 and 20:30 America/Chicago, daylight-saving included, 30 minutes after ChatGPT's review
+  windows. Neither schedule guarantees completion. It fires into the porter session, so it never
+  runs at the same time as the nightly "Kit feature port" run. It:
+  1. reads new comments and reviews on the porter's open pull requests and on watched core or
+     coordinator pull requests;
+  2. compares them with a durable checkpoint (branch `porter/feedback-checkpoint`,
+     `feedback/check.py`), so unchanged discussions are not processed again;
+  3. assesses new findings, addresses the valid ones within existing authorization, or records a
+     specific approval request;
+  4. replies on the pull request with one disposition per finding: fixed, rejected with evidence,
+     awaiting clarification, blocked, or awaiting Louis. The reply gives the reasoning, the exact
+     commit and the validation;
+  5. ends at once when nothing material changed: no tests and no message to Louis.
+
+  Triage aims at about five minutes; that is a planning budget, not a cutoff. Substantial
+  implementation goes through the nightly run.
+- **No concurrent edits.** No two tasks or agents edit the same branch or worktree. An active
+  implementing agent is recorded in a handoff note, and fixes are not duplicated across sessions.
+- **Review requests.** Before requesting another review, give the exact commit, what changed, the
+  specific questions and the existing evidence. Request another full review only when code, evidence
+  or an unresolved substantive question warrants it. Do not rerun the full suite only because a
+  feedback window arrived.
+- **Responsibilities.**
+  - The porter session owns the feature ports and their reviews.
+  - Shared core dependencies and GitHub workflow changes are coordinated with the main kit session.
+  - Broader course oversight goes through coordinator PR #57 or its successor, without duplicating
+    it or assuming proposed work is already running.
+- **Communication.** Send Louis consolidated updates for material progress, batched approval
+  decisions or genuine blockers. Each gives the remaining functionality, dependencies, final
+  commits, evidence and the decisions actually needed. Routine acknowledgements and unchanged
+  status belong on GitHub. Confirmed progress-loss risks and live-site failures are reported to him
+  promptly.
+- **No new permission.** This schedule grants no merge, course-repository write or deployment
+  permission. Every other approval requirement stays.
+
+### Decisions on kit PR #17, worksheets-ink (Louis, 2026-11-06)
+
+1. **Ink saving.**
+   - Louis authorizes the fix that makes worksheets-ink save through the core's supported storage
+     path. He prefers it to a direct browser-storage write followed by bookkeeping that only
+     suppresses the stale-page warning.
+   - The path must be confirmed independently to handle ink correctly. A consequential core design
+     change beyond integrating the module with the existing path is explained to him separately
+     before it is made.
+   - Existing ink and other progress are kept.
+   - Tests show that:
+     - writing ink does not block later saves;
+     - genuine second-tab conflicts stay protected;
+     - a failed save gives an accurate warning without deleting saved work.
+   - The keyboard interaction and the WebKit print failure are rechecked.
+2. **PDF-size check.**
+   - Louis approves documenting it as Chromium-only, because the test's PDF-generation API is not
+     available in WebKit.
+   - Meaningful WebKit print-layout checks of worksheet content and ink placement are kept.
+   - The PDF-size check is reported explicitly as NOT RUN in WebKit under this approved exclusion. It
+     is never hidden through output formatting or counted as passed.
+   - Real Safari, iPhone, iPad and Apple Pencil testing remain required.
+
+These decisions authorize the implementation and this one testing exclusion. They do not approve
+merging #17 or publishing a course update. The final revision, its independent review, the required
+check results and the remaining limitations go back to Louis for merge approval.
