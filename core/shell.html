@@ -1027,9 +1027,10 @@ function retireToCopy(k, raw){
   let stored = false;
   try { stored = store.trySet(bk, text); } finally { SETTLING = false; }
   // the record is the only stored copy of that work: it is never removed to make room for the copy
-  // (Louis, 2026-11-06). Refused, it stays in storage as it is, and a later check, once there is room,
-  // makes it a copy; either way the record itself goes only after the usual proof and wait.
-  if(!stored && !RETIRE_NOTED.has(k + ' ' + fpOf(raw)) && RETIRE_NOTED.add(k + ' ' + fpOf(raw))) pendingNotice('A tab of this profile that closed or reloaded saved work (writing or an equation drill) that is not in this profile\'s progress. Storage is full, so it is not yet a copy that Settings can put back. It stays stored in this browser, and becomes a copy, under Settings, "Put back the progress from …", once there is room (Export progress, then delete copies you do not need).');
+  // (Louis, 2026-11-06). Refused, it stays in storage as it is, and the next check with room (the drill
+  // opened or reloaded, copies deleted here, a take-over, a profile switch) makes it a copy; the record
+  // itself goes only once a check finds its copy stored, at least 60 s after it was first seen.
+  if(!stored && !RETIRE_NOTED.has(k + ' ' + fpOf(raw)) && RETIRE_NOTED.add(k + ' ' + fpOf(raw))) pendingNotice('A tab of this profile that closed or reloaded saved work (writing or an equation drill) that is not in this profile\'s progress. The browser refused to store a copy of it (storage is full or blocked), so Settings cannot put it back yet, and Export progress does not include it. It stays stored in this browser as it is. It becomes a copy, under Settings, "Put back the progress from …", the next time this drill opens or copies are deleted here while there is room; deleting copies you do not need makes room.');
   return false;
 }
 // a record's fingerprint: its length and two hashes over every character (a changed record differs)

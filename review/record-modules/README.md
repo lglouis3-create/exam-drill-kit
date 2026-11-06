@@ -44,10 +44,10 @@ The same rule applies to Erase: Erase is one of the four retiring actions, and t
 
 Under a full storage (Louis, 2026-11-06): the record is the only stored copy of that work, so it is never removed to make room for the copy.
 1. The copy is written beside the record.
-2. If that write is refused, the record stays in storage as it is. A notice tells the student the work is still stored in this browser but is not yet a copy that Settings can put back, and that it becomes one once there is room. The notice shows once per record per visit.
-3. A later check (after a reload, a switch back to the profile, or the next settle) tries the copy again. Once the copy is stored, the record goes after the usual proof and wait.
+2. If that write is refused, the record stays in storage as it is. A notice, once per record per visit, tells the student: the browser refused to store a copy (storage full or blocked); Settings cannot put it back yet and Export progress does not include it; it stays stored in this browser; and it becomes a copy the next time the drill opens, or copies are deleted here, while there is room.
+3. The copy is tried again at each later check: the drill opened or reloaded, copies deleted on this page, a take-over, a profile switch, or a storage event for a per-tab record. Freeing room some other way does not by itself start a check. Once a check finds the copy stored, the record is removed, at least 60 s after it was first seen (that may be at once, if it was first seen more than 60 s earlier).
 
-While storage stays full, the work is in storage but cannot be put back from Settings. Nothing is lost if the page closes or the browser refuses every later write; a reload finds the record unchanged.
+While storage stays full, the work is in storage but cannot be put back from Settings, and an export does not carry it. Nothing is lost if the page closes or the browser refuses every later write; a reload finds the record unchanged.
 
 Evidence (`core/ci_course.sh template chromium`, 46-check test): ced9806, the earlier remove-first code, fails 5 of 46 (`before-keep-record-ced9806.log`). There, with the backup write and every later write refused, the record was gone before and after a reload. This revision passes 46 of 46 (`after-keep-record.log`); the run gave 30 PASS, 0 FAIL, 1 NOT RUN (`cite_check.py`, an allowed exclusion), 1 REPORT.
 

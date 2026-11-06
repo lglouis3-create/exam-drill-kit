@@ -327,7 +327,8 @@ L.PAGE.need(NAME);
     check(fill.refusedAlongside, 'the filler leaves too little room for the copy beside the record (the copy alone is refused)', fill);
     const note3 = await f.page.evaluate(() => { const n = document.getElementById('pendingnote'); return n ? n.textContent : ''; });
     check(r3.kept && !r3.copyInk, 'storage full (real quota filler): the record, the only stored copy of its DB.ink, stays in storage; no copy yet', {r3, fill, sizes});
-    check(/Storage is full/.test(note3) && /stays stored in this browser/.test(note3), 'storage full: the notice says the work is still stored in this browser and becomes a copy once there is room', note3);
+    check(/storage is full or blocked/.test(note3) && /stays stored in this browser/.test(note3) && /Export progress does not include it/.test(note3) && /next time this drill opens/.test(note3),
+      'storage full: the notice says the work is still stored in this browser, that Export does not include it, and when it becomes a copy', note3);
     await f.page.evaluate(() => { localStorage.removeItem('__filler'); for(let n = 0; n < 500; n++) localStorage.removeItem('__f' + n); });
     await after(c.k);
     const r3b = await after(c.k);
