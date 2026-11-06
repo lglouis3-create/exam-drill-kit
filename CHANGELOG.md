@@ -2,6 +2,9 @@
 
 Dated kit changes, newest first.
 
+## 2026-11-06 (WebKit install)
+- In the WebKit jobs the install of Playwright, WebKit and pdfplumber has its own limit of 6 minutes, apart from the checks' 30. One that passes 6 minutes is tried once more. Before that second attempt, any process the first left behind is stopped, an interrupted dpkg run is finished, and the mirror list is printed; if the list names hosts other than `azure.archive.ubuntu.com`, that host is left out. A second failure fails the job through a step named "NOT RUN: the WebKit install failed twice, so no check ran". The checks are never retried. Diagnosis: `review/ci/webkit-install-2026-11-06.md`.
+
 ## 2026-11-06 (checks)
 - A check can report one case as NOT RUN (`check_lib.js` `notRunCase`). It is counted apart from passes and skips, named in the check's summary, and listed by `run_checks.sh`. `ci_course.sh` accepts exactly one such case, listed in `core/ci_exclusions.sh`: the worksheets-ink PDF's size in WebKit (Louis, 2026-11-06). Any other NOT RUN case, and the same case in Chromium, fails the run. When worksheets-ink is on, its PDF check (Chromium) and its four print-layout checks (Chromium and WebKit) must each appear as a passing line in its log (`REQUIRED_PASSES`; `notruncase_test.js`).
 

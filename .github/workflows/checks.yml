@@ -71,12 +71,44 @@ jobs:
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
         with:
           python-version: '3.13'
+      # The install has its own limits, apart from the checks' (review/ci/webkit-install-2026-11-06.md):
+      # 21 installs took 36-110 s; in three jobs a slow mirror held it for 38 to 44 minutes. A first attempt
+      # that passes 6 minutes is tried once more; a second that does too fails the job as an install
+      # failure, with every check NOT RUN. The checks are never retried.
       - name: Playwright 1.63.0, WebKit and pdfplumber 0.11.10
+        id: install
+        timeout-minutes: 6
+        continue-on-error: true
         run: |
           npm install -g playwright@1.63.0
           npx --yes playwright@1.63.0 install --with-deps webkit
           python -m pip install pdfplumber==0.11.10
+      - name: Playwright 1.63.0, WebKit and pdfplumber 0.11.10 (second attempt, after the first failed or passed 6 minutes)
+        id: install2
+        if: steps.install.outcome == 'failure'
+        timeout-minutes: 6
+        run: |
+          # what the timed-out first attempt left: its processes, an interrupted dpkg
+          sudo pkill -f 'playwright@1.63.0 install' || true
+          sudo pkill -x apt-get || true
+          sudo dpkg --configure -a || true
+          # all three slow installs fetched only from azure.archive.ubuntu.com; when the image's own
+          # mirror list names other hosts, this attempt uses them
+          echo "apt mirror list:"; cat /etc/apt/apt-mirrors.txt || true
+          if [ -f /etc/apt/apt-mirrors.txt ] && grep -qv 'azure\.archive\.ubuntu\.com' /etc/apt/apt-mirrors.txt; then
+            sudo sed -i '/azure\.archive\.ubuntu\.com/d' /etc/apt/apt-mirrors.txt
+            echo "second attempt, without azure.archive.ubuntu.com:"; cat /etc/apt/apt-mirrors.txt
+          fi
+          npm install -g playwright@1.63.0
+          npx --yes playwright@1.63.0 install --with-deps webkit
+          python -m pip install pdfplumber==0.11.10
+      - name: "NOT RUN: the WebKit install failed twice, so no check ran"
+        if: failure() && steps.install.outcome == 'failure' && steps.install2.outcome != 'success'
+        run: |
+          echo "NOT RUN: the install of Playwright, WebKit and pdfplumber failed or passed 6 minutes twice; no check ran (an install failure, not a test failure)" | tee -a "$GITHUB_STEP_SUMMARY"
+          exit 1
       - name: Build the course and run every check in WebKit
+        timeout-minutes: 30
         run: bash core/ci_course.sh template webkit
 
   coordinator:
@@ -160,12 +192,44 @@ jobs:
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
         with:
           python-version: '3.13'
+      # The install has its own limits, apart from the checks' (review/ci/webkit-install-2026-11-06.md):
+      # 21 installs took 36-110 s; in three jobs a slow mirror held it for 38 to 44 minutes. A first attempt
+      # that passes 6 minutes is tried once more; a second that does too fails the job as an install
+      # failure, with every check NOT RUN. The checks are never retried.
       - name: Playwright 1.63.0, WebKit and pdfplumber 0.11.10
+        id: install
+        timeout-minutes: 6
+        continue-on-error: true
         run: |
           npm install -g playwright@1.63.0
           npx --yes playwright@1.63.0 install --with-deps webkit
           python -m pip install pdfplumber==0.11.10
+      - name: Playwright 1.63.0, WebKit and pdfplumber 0.11.10 (second attempt, after the first failed or passed 6 minutes)
+        id: install2
+        if: steps.install.outcome == 'failure'
+        timeout-minutes: 6
+        run: |
+          # what the timed-out first attempt left: its processes, an interrupted dpkg
+          sudo pkill -f 'playwright@1.63.0 install' || true
+          sudo pkill -x apt-get || true
+          sudo dpkg --configure -a || true
+          # all three slow installs fetched only from azure.archive.ubuntu.com; when the image's own
+          # mirror list names other hosts, this attempt uses them
+          echo "apt mirror list:"; cat /etc/apt/apt-mirrors.txt || true
+          if [ -f /etc/apt/apt-mirrors.txt ] && grep -qv 'azure\.archive\.ubuntu\.com' /etc/apt/apt-mirrors.txt; then
+            sudo sed -i '/azure\.archive\.ubuntu\.com/d' /etc/apt/apt-mirrors.txt
+            echo "second attempt, without azure.archive.ubuntu.com:"; cat /etc/apt/apt-mirrors.txt
+          fi
+          npm install -g playwright@1.63.0
+          npx --yes playwright@1.63.0 install --with-deps webkit
+          python -m pip install pdfplumber==0.11.10
+      - name: "NOT RUN: the WebKit install failed twice, so no check ran"
+        if: failure() && steps.install.outcome == 'failure' && steps.install2.outcome != 'success'
+        run: |
+          echo "NOT RUN: the install of Playwright, WebKit and pdfplumber failed or passed 6 minutes twice; no check ran (an install failure, not a test failure)" | tee -a "$GITHUB_STEP_SUMMARY"
+          exit 1
       - name: Switch the modules on in a template course and run every check in WebKit
+        timeout-minutes: 30
         env:
           COURSE: ${{ matrix.course }}
         run: bash core/ci_course.sh "$COURSE" webkit
