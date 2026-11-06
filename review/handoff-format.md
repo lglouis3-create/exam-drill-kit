@@ -51,8 +51,11 @@ Compare each of these with the note:
    the note;
 5. the sources and dependencies the note lists: a course repository's commit, a dependent pull
    request's head or state, a Drive file's modified time;
-6. project instructions on the base branch: `CLAUDE.md`, `KIT_DESIGN.md` §12,
-   `review/porter-policy.md`, `skill/SKILL.md`, `coordinator/RUN.md`;
+6. project instructions on the base branch: `CLAUDE.md`, `KIT_DESIGN.md` §3, §7 and §12,
+   `review/porter-policy.md`, `review/standing-autonomy-2026-11-03.md`, `skill/SKILL.md`,
+   `coordinator/RUN.md`, and the files that define the required checks
+   (`.github/workflows/checks.yml`, `.github/ci_plan.js`); and the stored instructions of the
+   scheduled tasks concerned, which are not in the repository, so a base SHA does not show them;
 7. Louis's decisions and approvals given since the note;
 8. dates that change priorities: an exam within 7 days in `coordinator/courses.json` or the
    course's `course.js`, or a deadline Louis set.
@@ -60,8 +63,9 @@ Compare each of these with the note:
 ## Reading one before starting work
 
 1. Read the newest `Handoff @` note and compare the eight inputs above with it.
-2. Nothing changed and the note's next action is not this session's: end with one line, post
-   nothing.
+2. Nothing changed and the note's next action is not this session's: end with one line and
+   post nothing on the pull request. A log entry or checkpoint that a mode or
+   `coordinator/RUN.md` requires of every run is still written.
 3. Nothing changed and work is still open (the next action is this session's, a finding is
    unresolved, a review says what it did not cover): do that open work only. Do not repeat the
    investigations, reviews or checks the note records as done.
@@ -69,7 +73,7 @@ Compare each of these with the note:
    `git diff <note SHA>..<head>`; for a new base, the base's commits since the note's base SHA and
    any conflict; for a new comment, that comment. Rerun the checks whose inputs changed. Decision
    10 still requires the required checks on the final head before any merge.
-5. Verify a consequential claim in the note before acting on it: a check result against the
+5. Verify a claim in the note before acting on it: a check result against the
    Actions run, a review against the pull request, an approval against Louis's own message, a file
    state against the repository. Claims that decide a merge, a live change or a progress-storage
    risk are always verified.
@@ -91,7 +95,10 @@ and is not started. An additional independent review, focused on its reason, is 
 - the change is high-risk: progress storage, import or recovery, scheduling, a live course;
 - Louis asks for one.
 
-Decision 10's requirement of an independent review before an automatic merge is unchanged.
+Decision 10's requirement of an independent review before an automatic merge is unchanged. For a
+merge under decision 10, the independent reviews posted must together cover the whole diff of the
+final head against the current base; a review of a delta counts only with an earlier review of its
+parent head, and a base change since that review is reviewed as its own delta.
 
 ## Examples
 

@@ -25,18 +25,25 @@ Reusable logic goes to the kit; one course's data stays in its repo.
    the kit is refused, stop and tell Louis; do not continue without the kit.
 2. **Read from the kit:** in every mode, `KIT_DESIGN.md` §7 and §12 (the standing
    principles and the approved design changes) and the `COURSES.md` entry of the course
-   the mode names; Mode 9 reads what `coordinator/RUN.md` says instead. Then, by task:
+   the mode names (`COURSES.md` in full in Modes 1 and 6). Mode 9 reads §7 and §12 and,
+   in place of one course's entry, what `coordinator/RUN.md` names; a coordinator step
+   that performs another mode (a retrospective is Mode 6, a prepared improvement is Mode
+   1 or 2's design check) also reads that mode's list. Then, by task:
    - `FEATURES.md` in full in Modes 1, 2 (design check) and 6, where features are chosen
      or compared, together with any registry this file says to read beside it; in other
      modes, the entries of the features the course's `course.js` switches on and of any
-     feature the task names.
+     feature the task names, and a search of `FEATURES.md` before any proposal names a
+     feature (§7.2).
    - `core/README.md`: its section list (`grep -n '^## ' core/README.md`) and each section
-     the task touches. Read "Storage", "Start-up and the saved progress" and "Answer
-     history and the Home Screen card" in full for any change that touches progress
-     storage, import, recovery or history, and "The scheduler" for any scheduling change.
-     Mode 1, and moving a course onto the core, read the whole file.
-   - Mode 7: the `CHANGELOG.md` entries since the course's kit pin, and the
-     `core/README.md` sections they concern.
+     the task touches. Read "Storage", "Start-up and the saved progress", "Offline", "A
+     newer version, and the place after a reload" and "Answer history and the Home Screen
+     card" in full for any change to `core/` code, to `ns`, question ids or `files`, or
+     that touches progress storage, import, recovery, caches or history; and "The
+     scheduler" for any scheduling change. Mode 1, and moving a course onto the core,
+     read the whole file.
+   - Mode 7: the `CHANGELOG.md` entries since the course's kit pin, `git log --stat
+     <pin>..origin/main -- core/ features/ template/`, and the `core/README.md` sections
+     they concern.
    - Before repeating an investigation, review or check, read the newest handoff note on
      the pull request concerned and compare the inputs it lists (`review/handoff-format.md`):
      not only the head, also the base, comments, runs, sources, instructions and Louis's
