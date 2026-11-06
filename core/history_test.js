@@ -781,6 +781,8 @@ const next = p => p.evaluate(() => { const b = document.getElementById('btnNext'
     if(!(await o.evaluate(() => typeof WRITER !== 'undefined' && WRITER === 'held'))){
       check(false, `settling with ${which} refused: this page holds the profile (a precondition; no Web Locks here)`); await cs.close(); continue;
     }
+    // the check after taking the profile (settlePendingSoon's 1.5 s timer) is cancelled, so only what the code under test schedules can settle the record
+    await o.evaluate(() => clearTimeout(PENDING_TIMER));
     const pre = await o.evaluate(which => {
       record(QUESTIONS[0], 'correct', 0, 4000); saveNow(); record(QUESTIONS[1], 'wrong', 0, 4000); saveNow();
       const stored = localStorage.getItem(logKey()), base = JSON.parse(stored);
@@ -813,13 +815,61 @@ const next = p => p.evaluate(() => { const b = document.getElementById('btnNext'
       `settling with ${which} refused: Export holds the held entries and the departing one`, ex.log && ex.log.length);
     // room again: the next save stores the progress and both sets of entries
     await o.evaluate(() => { window.__logCap = null; window.__refuseData = false; record(QUESTIONS[4 % QUESTIONS.length], 'correct', 0, 4000); saveNow(); });
-    await o.waitForTimeout(400);
-    await o.evaluate(() => settlePending());
-    const fin = await o.evaluate(() => ({stored: JSON.parse(localStorage.getItem(logKey()) || '[]'), prog: JSON.parse(localStorage.getItem(keyFor(PROFILE))).answers.length,
-      failed: FAILED.has(logKey()) || FAILED.has(keyFor(PROFILE))}));
+    // no settlePending() by hand: the save that stores the held history settles the record again
+    await o.waitForFunction(pk => { const s = readSeen()[pk]; return !!(s && s.proven); }, pre.pk, {timeout: 4000}).catch(() => {});
+    const fin = await o.evaluate(pk => ({stored: JSON.parse(localStorage.getItem(logKey()) || '[]'), prog: JSON.parse(localStorage.getItem(keyFor(PROFILE))).answers.length,
+      failed: FAILED.has(logKey()) || FAILED.has(keyFor(PROFILE)), proven: !!(readSeen()[pk] && readSeen()[pk].proven)}), pre.pk);
     check(pre.held.every(e => has(fin.stored, e)) && has(fin.stored, pre.dep) && fin.prog === 5 && !fin.failed,
       `with room again after settling with ${which} refused: the progress, the held entries and the departing entry are all stored`, {stored: fin.stored.length, prog: fin.prog, failed: fin.failed, held: pre.held.every(e => has(fin.stored, e)), dep: has(fin.stored, pre.dep)});
+    check(fin.proven, `with room again after settling with ${which} refused: the departing tab's record is settled again and proven stored, with no reload, switch or take-over`, fin.proven);
     check(!es.length, `settling with ${which} refused: no page errors`, es.slice(0, 2).join('; '));
+    await cs.close();
+  }
+  {
+    // the review of 7e832f3: S1, a record whose entries are all stored, settled while this page holds
+    // refused history, goes on to the proof (it is not kept for ever); N1, a record whose progress
+    // differs, settled while the progress write is refused, writes no copy until the progress is stored
+    const CAP = () => {
+      const set = Storage.prototype.setItem;
+      Storage.prototype.setItem = function(k, v){
+        if(window.__refuseData && k === NS + ':data:' + PROFILE) throw new DOMException('The quota has been exceeded.', 'QuotaExceededError');
+        if(window.__refuseLog && k === NS + ':log:' + PROFILE) throw new DOMException('The quota has been exceeded.', 'QuotaExceededError');
+        return set.call(this, k, v);
+      };
+    };
+    const {ctx: cs, page: o, errors: es} = await L.openFile(browser, {}, CAP);
+    await o.waitForFunction(() => typeof WRITER === 'undefined' || WRITER === 'held' || WRITER === 'none', null, {timeout: 8000}).catch(() => {});
+    if(!(await o.evaluate(() => typeof WRITER !== 'undefined' && WRITER === 'held'))) check(false, 'records settled under refusal: this page holds the profile (a precondition; no Web Locks here)');
+    else {
+      await o.evaluate(() => clearTimeout(PENDING_TIMER));   // only what the code under test schedules can settle a record
+      const s1 = await o.evaluate(() => {
+        record(QUESTIONS[0], 'correct', 0, 4000); saveNow(); record(QUESTIONS[1], 'wrong', 0, 4000); saveNow();
+        const stored = JSON.parse(localStorage.getItem(logKey()));
+        window.__refuseLog = true; record(QUESTIONS[2], 'correct', 0, 4000); saveNow();
+        const pk = NS + ':pending:' + PROFILE + ':stored-tab';
+        localStorage.setItem(pk, JSON.stringify({at: Date.now() - 2000, db: JSON.parse(localStorage.getItem(keyFor(PROFILE))), log: [stored[0]]}));
+        settlePending();
+        const seen = readSeen()[pk];
+        return {held: FAILED.has(logKey()), proven: !!(seen && seen.proven)};
+      });
+      check(s1.held && s1.proven, 'history held: a closed tab\'s record whose progress and entries are all stored is recorded as proven (removed 60 s on), not kept for ever', s1);
+      const n1 = await o.evaluate(() => {
+        window.__refuseLog = false; window.__refuseData = true; record(QUESTIONS[3], 'correct', 0, 4000); saveNow();
+        const st = JSON.parse(localStorage.getItem(keyFor(PROFILE)));
+        const other = JSON.parse(JSON.stringify(st)); other.answers = [Object.assign({}, st.answers[0], {elsewhere: 1})];
+        const pk = NS + ':pending:' + PROFILE + ':other-tab';
+        localStorage.setItem(pk, JSON.stringify({at: Date.now() - 1000, db: other, log: []}));
+        const before = localStorage.getItem(NS + ':backup:' + PROFILE);
+        settlePending();
+        return {pk, refused: FAILED.has(keyFor(PROFILE)), copyWritten: localStorage.getItem(NS + ':backup:' + PROFILE) !== before, stays: localStorage.getItem(pk) !== null};
+      });
+      check(n1.refused && !n1.copyWritten && n1.stays, 'progress refused: a closed tab\'s record with other progress writes no copy (study progress first) and stays', n1);
+      await o.evaluate(() => { window.__refuseData = false; record(QUESTIONS[4 % QUESTIONS.length], 'correct', 0, 4000); saveNow(); });
+      await o.waitForFunction(() => (JSON.parse(localStorage.getItem(NS + ':backup:' + PROFILE) || '[]') || []).length > 0, null, {timeout: 4000}).catch(() => {});
+      const n1b = await o.evaluate(() => { const l = JSON.parse(localStorage.getItem(NS + ':backup:' + PROFILE) || '[]'); return {copies: l.length, other: l.some(c => c && /elsewhere/.test(c.data))}; });
+      check(n1b.other, 'with the progress stored again, that record is settled again and kept as a copy, with no reload, switch or take-over', n1b);
+    }
+    check(!es.length, 'records settled under refusal: no page errors', es.slice(0, 2).join('; '));
     await cs.close();
   }
   await browser.close();

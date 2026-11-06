@@ -596,7 +596,8 @@ const store = {
   // stored, so a later save by another tab still shows as one
   set(k, v){
     MEM[k] = v;
-    try { localStorage.setItem(k, v); keptNow(k); KEPT[k] = v; seenAs(k, v); pendingAfter(k, v); return true; }
+    const was = FAILED.has(k);
+    try { localStorage.setItem(k, v); keptNow(k); KEPT[k] = v; seenAs(k, v); pendingAfter(k, v); if(was) settleAfterKept(k); return true; }
     catch(e){ FAILED.add(k); saveWarn(k); return false; }
   },
   del(k){ delete MEM[k]; keptNow(k); KEPT[k] = null; seenAs(k, null); try { localStorage.removeItem(k); } catch(e){ /* nothing to remove */ } pendingAfter(k, null); },
@@ -608,6 +609,12 @@ const store = {
     catch(e){ return false; }
   },
 };
+/* A refused write of this profile's progress or history that the browser now keeps: the other tabs'
+   records held back while it was refused are settled again (the review of 7e832f3, S2: they stayed
+   unproven until a reload, a switch or a take-over). */
+function settleAfterKept(k){
+  try { if(PROFILE && (k === keyFor(PROFILE) || k === logKey())) setTimeout(settlePendingSoon, 0); } catch(e){}
+}
 /* What this page last read under the profile's own progress and history keys, or wrote
    there with the browser keeping it (SEEN, SEEN_LOG, below); kept by every write through
    `store` that succeeds (saveLog writes through `store` too). A refused write does not change it. A save
@@ -1074,14 +1081,16 @@ function settleOne(k, raw, rec){
       // and in Export), and nothing is written now. A write of the stored history plus the record's
       // entries could fit where the page's own cannot, and would then replace the page's held entries
       // (#47's review of 5519a49, comment 6647518091); with the progress refused, no history is
-      // written before it (study progress first). The record stays until its entries are stored.
-      logOk = false;
+      // written before it (study progress first). The record stays until its entries are stored;
+      // one whose entries are all stored already goes on to the proof (pendingDone checks it again).
+      // The held history is written by the next save the browser keeps, which then settles again
+      // (store.set: settleAfterKept); settling itself writes nothing here.
+      logOk = missingEntries(entries, have).length === 0;
       if(LOG_OK){
         const add = missingEntries(entries, LOG);
         if(add.length){
           LOG = LOG.concat(add).sort((x, y) => x[0] - y[0]);
           const k = logKey(); MEM[k] = JSON.stringify(LOG); FAILED.add(k); saveWarn(k);
-          if(!FAILED.has(keyFor(PROFILE))) saveLog();   // the progress is stored: the whole history is tried once
         }
       }
     } else {
@@ -1106,6 +1115,9 @@ function settleOne(k, raw, rec){
     pendingNotice('A tab of this profile that closed or reloaded had saved answers this page had not received yet. Its progress is now the progress on screen; nothing was lost.');
     try { if(typeof show === 'function') show(typeof VIEW !== 'undefined' ? VIEW : 'quiz'); } catch(e){}
   } else if(place === 'continues' || place === 'apart' || place === 'conflict'){
+    // while this profile's progress write is refused, no copy is written either (study progress
+    // first): the record stays, and the next progress save the browser keeps settles it again
+    if(FAILED.has(keyFor(PROFILE))) return;
     const list = readCopiesList();
     if(list === null) return;
     if(!list.some(c => c && c.data === dbStr)){
