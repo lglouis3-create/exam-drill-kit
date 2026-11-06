@@ -983,6 +983,19 @@ let nfile = 0;
     await H.ctx.close();
   }
 
+  // in tab t, ask for this profile's writer lock with ifAvailable until it is granted, for at most
+  // ms; when it is not granted by then, say how many holders the browser still lists for it
+  const waitWriterFree = (t, ms) => t.evaluate(async ms => {
+    const name = NS + ':writer:' + PROFILE, t0 = Date.now();
+    for(;;){
+      if(await navigator.locks.request(name, {ifAvailable: true}, l => !!l)) return {free: true, ms: Date.now() - t0};
+      if(Date.now() - t0 >= ms){
+        const q = await navigator.locks.query();
+        return {free: false, ms: Date.now() - t0, stillHeld: (q.held || []).filter(l => l.name === name).length};
+      }
+      await new Promise(r => setTimeout(r, 20));
+    }
+  }, ms);
   // a second tab of d's browser, on the drill
   const secondTab = async d => {
     const t = await d.ctx.newPage();
@@ -1534,8 +1547,12 @@ let nfile = 0;
     const t2 = await secondTab(d);
     await t2.waitForFunction(() => WRITER === 'other', null, {timeout: 5000}).catch(() => {});
     await d.page.evaluate(() => useProfile('elsewhere'));
-    const free = await t2.evaluate(() => navigator.locks.request(NS + ':writer:' + PROFILE, {ifAvailable: true}, l => !!l));
-    check(free === true, 'a profile switch frees the old profile\'s lock', free);
+    // the page frees the lock by resolving its lock callback's promise; the browser frees it after
+    // that, so t2 asks until it is granted, for at most 2000 ms (the core's own 'brief' window), and
+    // a lock still held then fails the check (WebKit freed it later than the first request: job
+    // 127949917972; review/lock-test/)
+    const free = await waitWriterFree(t2, 2000);
+    check(free.free === true, 'a profile switch frees the old profile\'s lock', JSON.stringify(free));
     await d.ctx.close();
   }
   {
