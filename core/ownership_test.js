@@ -18,6 +18,12 @@
  *   5. quiz and targeted review: a question A is part-way through, and a review list A
  *      started, are not on B's screen; back to A, they come back as A left them
  *   6. both profiles' saved histories hold only their own answers
+ *   7. two tabs: tab 1 on A in a review, tab 2 switches the shared profile to B, tab 1
+ *      reloads as B: the place brought back holds none of A's quiz (the review of #58)
+ *   8. the steps that put the session away and bring the next back both throw: B still
+ *      starts with none of A's
+ *   9. a pick that saveExam could not store (the profile saved in another window) is
+ *      kept on the page for A across a switch
  *
  *     node ownership_test.js
  */
@@ -241,6 +247,100 @@ const startAndPick = page => page.evaluate(() => {
     const modes = await page.evaluate(() => [NS + ':log:A', NS + ':log:B'].map(k => (JSON.parse(localStorage.getItem(k) || '[]')[0] || [])[3]));
     check(modes[0] === 'exam' && modes[1] === 'exam', 'both entries are exam entries', JSON.stringify(modes));
     check(!errors.length, 'no page error in case 6', errors.join(' | '));
+    await ctx.close();
+  }
+
+  console.log('\n=== 7. A reload after another tab switched the profile (the place before a reload) ===');
+  {
+    const {ctx, page, errors} = await L.openFile(browser);
+    await switchTo(page, 'A');
+    // tab 1 on A: a review list with a select-all question part-way answered, else a choice question shown
+    const q = await page.evaluate(() => {
+      const m = QUESTIONS.find(x => isMulti(x) && x.options && x.options.length) || QUESTIONS.find(x => x.options && x.options.length);
+      if(!m) return null;
+      drillList([m], 'Missed concepts'); show('quiz');
+      if(isMulti(m)) document.querySelector('#v-quiz button[data-o]').click();
+      placeSave();
+      return {id: Q.current.id, picked: Q.picked};
+    });
+    if(!q) skip('the two-tab reload case', 'this course has no question answered with option buttons');
+    else {
+      // tab 2 of the same browser switches the profile (shared by every tab) to B
+      const p2 = await ctx.newPage(); p2.on('dialog', d => d.accept());
+      await p2.goto(page.url());
+      await p2.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+      // tab 2 opened on A, which tab 1 holds, so it shows the stop wall; its Switch profile button switches
+      await p2.evaluate(() => { window.__name = 'B'; const w = document.getElementById('stopSwitch'); if(w) w.click(); else { askProfile(true); show(VIEW); } });
+      await p2.waitForFunction(() => document.getElementById('whoName').textContent === 'B', null, {timeout: 5000});
+      await p2.waitForTimeout(300);
+      check(await page.evaluate(() => localStorage.getItem(NS + ':profile')) === 'B', 'tab 2 made B the chosen profile', '');
+      await p2.close();
+      await page.reload();
+      await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+      await page.waitForTimeout(400);
+      const r = await page.evaluate(() => ({who: PROFILE, cur: Q && Q.current ? Q.current.id : null, label: Q && Q.label,
+        opts: document.querySelectorAll('#v-quiz:not(.hide) button[data-o]').length}));
+      check(r.who === 'B' && r.cur === null && r.label !== 'Missed concepts' && r.opts === 0,
+        "tab 1 reloads as B without A's question, ticks or review list", JSON.stringify(r));
+      await page.evaluate(() => { const c = document.getElementById('btnCheck'); if(c) c.click(); });
+      await page.waitForTimeout(400);
+      const b = await stored(page, 'B');
+      check(b.answers === 0 && b.log === 0, 'nothing is recorded under B after that reload', JSON.stringify(b));
+      // the same reload on the same profile still brings the place back
+      await switchTo(page, 'A');
+      await page.evaluate(() => { drillList(QUESTIONS.filter(x => x.options && x.options.length).slice(0, 1), 'Missed concepts'); show('quiz'); placeSave(); });
+      await page.reload();
+      await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+      await page.waitForTimeout(400);
+      const same = await page.evaluate(() => ({who: PROFILE, view: VIEW, label: Q && Q.label}));
+      check(same.who === 'A' && same.view === 'quiz' && same.label === 'Missed concepts', "a reload on A itself still brings A's review back", JSON.stringify(same));
+    }
+    check(!errors.length, 'no page error in case 7', errors.join(' | '));
+    await ctx.close();
+  }
+
+  console.log('\n=== 8. The steps that put the session away and bring the next one back throw ===');
+  {
+    const {ctx, page, errors} = await L.openFile(browser);
+    await switchTo(page, 'A');
+    const started = await startAndPick(page);
+    await page.evaluate(() => { const m = QUESTIONS.find(x => x.options && x.options.length); if(m) drillList([m], 'Missed concepts');
+      window.__park = parkSession; window.__resume = resumeSession;
+      parkSession = () => { throw new Error('probe: parkSession fails'); }; resumeSession = () => { throw new Error('probe: resumeSession fails'); }; });
+    await switchTo(page, 'B');
+    const r = await page.evaluate(() => ({ex: !!EX, q: !!Q}));
+    await page.evaluate(() => { parkSession = window.__park; resumeSession = window.__resume; });
+    const v = await examView(page);
+    check(!r.ex && !r.q && !v.running, 'B starts with no paper and no quiz session of A', JSON.stringify({r, v}));
+    if(started !== null){
+      await page.waitForTimeout(400);
+      check((await stored(page, 'B')).exam === null, 'nothing of A is stored under B', '');
+      await switchTo(page, 'A');
+      const back = await examView(page);
+      check(back.running && back.picked === 1, "A's stored paper still comes back on A", JSON.stringify(back));
+    }
+    await ctx.close();
+  }
+
+  if(examOn){
+    console.log('\n=== 9. A pick that could not be saved (the profile was saved elsewhere) survives a switch ===');
+    const {ctx, page, errors} = await L.openFile(browser);
+    await switchTo(page, 'A');
+    await startAndPick(page);
+    // another window saves A's progress: this page then stores nothing under A (saveExam stops)
+    await page.evaluate(() => { const k = NS + ':data:A'; const d = JSON.parse(localStorage.getItem(k) || JSON.stringify(BLANK())); d.elsewhere = Date.now(); localStorage.setItem(k, JSON.stringify(d)); });
+    const pick2 = await page.evaluate(() => { const b = document.querySelectorAll('#v-exam .opt')[1]; if(!b) return null; const oi = +b.dataset.o; b.click(); return {oi, savedElsewhere: profileSavedElsewhere()}; });
+    const storedPick = ((await stored(page, 'A')).exam || {}).picks;
+    check(pick2 && pick2.savedElsewhere && storedPick && storedPick[0] !== pick2.oi, 'the second pick was not stored (the profile was saved elsewhere)', JSON.stringify({pick2, storedPick}));
+    await page.evaluate(() => { window.__name = 'B'; askProfile(true); show(VIEW); });
+    await page.waitForTimeout(300);
+    const onB = await examView(page);
+    check(!onB.running, 'B has no paper', JSON.stringify(onB));
+    await page.evaluate(() => { window.__name = 'A'; askProfile(true); show(VIEW); });
+    await page.waitForTimeout(300);
+    const picks = await page.evaluate(() => EX && EX.picks);
+    check(Array.isArray(picks) && pick2 && picks[0] === pick2.oi, "back on A, the pick this page could not store is still on A's paper", JSON.stringify({picks, pick2}));
+    check(!errors.length, 'no page error in case 9', errors.join(' | '));
     await ctx.close();
   }
 

@@ -3,7 +3,7 @@
 Dated kit changes, newest first.
 
 ## 2026-11-06
-- A running exam paper, quiz session or targeted review now belongs to the profile that started it. Before, a profile switch left it on screen: the next profile saw the paper and its picks, a pick saved it under the next profile, and submitting it, or its clock running out, recorded the answers in the next profile's history. A switch now saves the paper under its own profile and puts it and the quiz session away; switching back brings both back as they were. A paper is submitted at most once (`ownership_test.js`). Nothing new is stored.
+- A running exam paper, quiz session or targeted review now belongs to the profile that started it. Before, a profile switch left it on screen: the next profile saw the paper and its picks, a pick saved it under the next profile, and submitting it, or its clock running out, recorded the answers in the next profile's history. A switch now saves the paper under its own profile and puts it and the quiz session away; switching back brings both back as they were. A paper is submitted at most once. A reload brings the quiz place back only for the profile it was saved under, so a reload after another tab switched the profile does not carry the question over; that place record (per tab, sessionStorage) now names its profile (`ownership_test.js`). No progress, history or paper format changes.
 
 ## 2026-11-05
 - The answer history is no longer cut silently at 20,000 entries: past it a notice offers Export progress and a removal of the oldest entries that names how many and their dates and needs an OK; until then new entries go on being added (`cap_test.js`).

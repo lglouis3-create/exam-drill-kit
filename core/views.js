@@ -2187,7 +2187,11 @@ const examOwned = () => !!EX && (!EX.owner || EX.owner === PROFILE);
 function parkSession(from){
   if(EX && EX.running && examOwned()) saveExam();   // PROFILE is still `from` here
   if(EX) clearInterval(EX.timer);
-  const keepEX = !!EX && EX.owner === from && (EX.done || (EX.running && !canSave()));
+  // kept in memory where saveExam stores nothing: a visit that saves nothing, or a profile another
+  // tab or window saved since (saveExam then stops at staleWarn), so the picks are not lost
+  let unstored = false;
+  try { unstored = !canSave() || profileSavedElsewhere(); } catch(e){ unstored = true; }
+  const keepEX = !!EX && EX.owner === from && (EX.done || (EX.running && unstored));
   const p = {Q, EX: keepEX ? EX : null};
   if(Q && Q.current && !Q.revealed && typeof Q.startedAt === 'number') p.qElapsed = Date.now() - Q.startedAt;
   PARKED[from] = p;
@@ -3264,7 +3268,8 @@ function placeSave(){
   if(!PLACE_READY || !VIEW) return;
   const pane = document.getElementById('v-' + VIEW); if(!pane) return;
   const pl = {v: VIEW, at: Date.now(), y: window.scrollY, a: placeAnchor(pane), open: detKeys(pane).filter(([d]) => d.open).map(([, k]) => k)};
-  if(VIEW === 'quiz' && Q && Q.current) pl.quiz = quizSnap();
+  // the quiz session belongs to its profile: the profile goes in the record (placeRestore)
+  if(VIEW === 'quiz' && Q && Q.current){ pl.quiz = quizSnap(); pl.p = PROFILE; }
   SS.set(PLACE_KEY, JSON.stringify(pl));
 }
 const placeSoon = () => { clearTimeout(PLACE_T); PLACE_T = setTimeout(placeSave, 400); };
@@ -3283,7 +3288,12 @@ function placeScroll(pl){
 }
 function placeRestore(pl){
   try {
-    if(pl.v === 'quiz'){ Q = quizFrom(pl.quiz); if(!Q) pl.v = 'topics'; }
+    // a quiz place is brought back only for the profile it was saved under. The tab's place is per tab
+    // (sessionStorage) but the chosen profile is shared by every tab (localStorage): another tab that
+    // switched the profile meanwhile makes this reload open another profile, which must not get the
+    // question, ticks and label of the one before (the review of #58). A record with no profile was
+    // written by a build before this check and is read as before.
+    if(pl.v === 'quiz'){ Q = pl.p === undefined || pl.p === PROFILE ? quizFrom(pl.quiz) : null; if(!Q) pl.v = 'topics'; }
     show(pl.v);
     const pane = document.getElementById('v-' + pl.v), open = new Set(pl.open || []);
     detKeys(pane).forEach(([d, k]) => { if(d.open !== open.has(k)) d.open = open.has(k); });

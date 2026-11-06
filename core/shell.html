@@ -1741,12 +1741,14 @@ function useProfile(n){
   }
   // the paper and quiz session on screen belong to the profile being left (views.js parkSession)
   const from = PROFILE, moving = !!from && n !== from;
-  if(moving){ try { if(typeof parkSession === 'function') parkSession(from); } catch(e){} }
+  // a step that throws still leaves no session of the profile being left on the page
+  const dropSession = () => { try { if(typeof EX !== 'undefined' && EX){ clearInterval(EX.timer); EX = null; } } catch(e){} try { if(typeof Q !== 'undefined') Q = null; } catch(e){} };
+  if(moving){ try { if(typeof parkSession === 'function') parkSession(from); else dropSession(); } catch(e){ dropSession(); } }
   PROFILE = n;
   store.set(NS+':profile', PROFILE);
   load();
   claimProfile(PROFILE);
-  if(moving){ try { if(typeof resumeSession === 'function') resumeSession(n); } catch(e){} }
+  if(moving){ try { if(typeof resumeSession === 'function') resumeSession(n); } catch(e){ dropSession(); } }
   try { refreshSaveWarn(); } catch(e){}   // its text names this profile's or another profile's refused work
   const who = document.getElementById('whoName');
   if(who) who.textContent = PROFILE;
