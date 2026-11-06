@@ -132,7 +132,7 @@ compressed `db`).
 - **Quota:** with the ratios above, about 1.15 to 1.17 times the progress for ink and 1.10 for
   answers, instead of 2. In the minute after a reload, about 1.3 instead of 3.
   - The record then fits up to about 5,242,859 / 1.165 = 4,500,308 characters of progress in
-    steady state, and 5,242,859 / 1.33 = 3,942,000 during a reload's minute (both checked; the
+    steady state, and 5,242,859 / 1.33 = 3,941,999 during a reload's minute (both checked; the
     random-walk ink ratio).
   - A refused record write is handled exactly as now.
 - **Reload, profile switch, closing without handing over:** the same rules as A. Placement, the
