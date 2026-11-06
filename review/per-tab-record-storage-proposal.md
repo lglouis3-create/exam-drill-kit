@@ -270,6 +270,62 @@ alternative).
   record. That gives F's mixed-tab and rollback limits, plus a second storage area to clear on
   Erase and Reset.
 
+### Save time and responsiveness in a real page
+
+Measured on 2026-11-06 in Chromium with `latency_measure.js` (`logs/latency-measure.log`), on a
+scratch template course built from `main` at `3f8ba20`. Each row covers 8 saves of one sample
+placed into the page's progress. After each change the script sent 10 clicks, 40 ms apart, to a
+button that repaints, and read the Event Timing API (time from the click to the next paint) and
+long tasks (over 50 ms). Rates 4 and 6 are Chrome DevTools Protocol CPU throttling of this
+container's desktop CPU. They are a stand-in for a slower device, not a phone. Each figure is
+from one run.
+
+- **A:** today's save: the progress and this tab's full record.
+- **F:** the same save with the record compressed in the page (fflate 0.8.2 `deflateSync`
+  level 6, then the bytes packed 15 bits to a character). This is a test harness injected into the
+  scratch page only. It is not in `core/`, and its record cannot be placed by the core, so one
+  tab was open.
+- **W:** the same compression in a Worker. The page writes the record when the Worker answers.
+
+Two progress sizes are 17 characters larger than in the tables above (1,563,721 against
+1,563,704; 526,751 against 526,734), because the harness's probe setting is part of the page's
+progress by then. The porter sample, measured first, is the same size (1,355,486).
+
+| Sample (progress characters) | Rate | A save, median ms | F save, median ms | F compress and pack, median ms | W save, median ms | Longest task, ms (A / F / W) | Slowest click to next paint, ms (A / F / W) | W: record stored after the progress, median ms |
+|---|---|---|---|---|---|---|---|---|
+| ink, porter (1,355,486) | 1 | 25 | 179 | 157 | 20 | 0 / 218 / 0 | 24 / 200 / 16 | 176 |
+| ink, porter (1,355,486) | 4 | 115 | 671 | 556 | 85 | 143 / 696 / 133 | 120 / 696 / 128 | 178 |
+| ink, porter (1,355,486) | 6 | 150 | 972 | 835 | 133 | 240 / 1064 / 190 | 224 / 1040 / 168 | 170 |
+| ink, random walk (1,563,721) | 1 | 28 | 141 | 118 | 22 | 82 / 174 / 0 | 64 / 160 / 24 | 125 |
+| ink, random walk (1,563,721) | 4 | 127 | 609 | 498 | 95 | 140 / 642 / 123 | 120 / 632 / 104 | 163 |
+| ink, random walk (1,563,721) | 6 | 162 | 894 | 730 | 149 | 189 / 980 / 185 | 168 / 976 / 168 | 145 |
+| answers (526,751) | 1 | 6 | 28 | 23 | 5 | 0 / 0 / 0 | 16 / 16 / 16 | 25 |
+| answers (526,751) | 4 | 22 | 127 | 102 | 24 | 0 / 181 / 0 | 32 / 152 / 32 | 32 |
+| answers (526,751) | 6 | 37 | 193 | 153 | 39 | 57 / 209 / 62 | 32 / 200 / 48 | 36 |
+
+- "Longest task" 0 means no task over 50 ms was recorded. A click with no Event Timing entry took
+  under 16 ms (the API's lowest threshold).
+- The 75th percentile of the 80 clicks per row was 16 ms or less in every row, because most
+  clicks arrived while no save was running. The slowest click is the figure that differs between
+  A, F and W.
+- **F on the ink samples:** at rate 4 the save blocked the page for 609 to 671 ms per save, and a
+  click waited up to 632 to 696 ms for its next paint. At rate 6 it was 894 to 972 ms per save,
+  and a click waited up to 976 to 1,040 ms. The compression and packing were 498 to 835 ms of
+  that.
+- **A on the ink samples:** today's save alone already took 115 to 162 ms at rates 4 and 6, and
+  at rate 6 a click waited up to 168 to 224 ms.
+- **W:** the page's work stayed close to A's, and the record reached storage 125 to 178 ms after
+  the progress on the ink samples. During that window the record holds the previous save. A tab
+  closed in that window leaves the previous save's record, which is the case kit #30's A1 fix
+  exists for.
+
+**A threshold for comparison.** web.dev's guidance on Interaction to Next Paint calls a page's
+responsiveness good when its INP is 200 ms or less, needing improvement above 200 ms up to
+500 ms, and poor above 500 ms, measured at the 75th percentile of page loads in the field.[1]
+That is a site-wide field measure, not a limit for one save; it is given here as a commonly used
+point of comparison. At rates 4 and 6, F's slowest click on the ink samples was above 500 ms in
+every row.
+
 ## Recommendation
 
 **F, the compressed record, written only when three full copies would not fit, as a separate
@@ -286,7 +342,8 @@ decision; if it is approved first, F is not needed.
 **The gate, before any production pull request:**
 - Time fflate's deflate, the 15-bit packing and one full save, at 1,475,679 characters of ink
   progress, on a real iPhone or iPad in Safari and on an Android phone.
-- Compare the times with a per-save limit Louis sets: ____ ms. (Question for Louis: what is the
+- Compare the times with a per-save limit Louis sets: ____ ms. The figures for choosing it are in
+  "Save time and responsiveness in a real page" above. (Question for Louis: what is the
   longest pause per answer or stroke you accept on a large worksheet profile?)
 - **If a phone exceeds the limit:** F is dropped and A stays. Worksheets-ink (#17) stays off for
   every course until G or another approved design covers large ink progress.
@@ -348,8 +405,16 @@ The review reproduced this, in one page with planted records. It is present on `
 
 - WebKit, and Safari on an iPhone or iPad; Android; Firefox's localStorage counting.
 - A real phone's compression and save time. Rate 4 throttling is a slowed desktop CPU.
-- The 15-bit packing step's time (its size is computed from the byte count).
+- The 15-bit packing step's time alone: `latency_measure.js` times compression and packing
+  together.
+- Page latency in WebKit, and with more than one tab open (the F and W harnesses write a record
+  the core cannot place).
 - F or H implemented inside the core; whether an IndexedDB write started at `pagehide` completes.
 - The module-part gap under real two-tab lag (the review used planted records in one page).
 - Records written by an older core in a mixed-tab test.
 - `history_test.js` and `storage_test.js` on the D prototype.
+
+## References
+
+1. Wagner J. Interaction to Next Paint (INP). web.dev. Published May 6, 2022. Updated
+   September 2, 2025. Accessed November 6, 2026. https://web.dev/articles/inp
