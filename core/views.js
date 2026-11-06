@@ -2171,12 +2171,13 @@ let EX = null;
 function renderExam(){
   const el = $('#v-exam');
   if(!EX) restoreExam();
-  if(EX && EX.running){ renderExamQ(); return; }
+  if(EX && EX.running){ if(EX.review) renderExamReview(); else renderExamQ(); return; }
   if(EX && EX.done){ renderExamResult(); return; }
+  const nSata = examSataDrawn();
   el.innerHTML = `<h2>Exam simulation</h2>
   <p class="sub">${EXAM.questions} questions drawn at the blueprint of ${esc(EXAM.name)}${EXAM.blurb ? ' — ' + esc(EXAM.blurb) : ''} —
-  with a ${EXAM.minutes}-minute clock. The paper mixes single-answer and select-all items, so
-  this draw does too: about ${EXAM_SATA} of the ${EXAM.questions} are select-all, marked all-or-nothing.
+  with a ${EXAM.minutes}-minute clock. ${nSata ? `About ${nSata} of the ${EXAM.questions} are select-all (tick every right option),
+  marked all-or-nothing; the others have one best answer.` : 'This paper has no select-all items: each multiple-choice item has one best answer.'}
   No explanations until you finish, same as the real thing.</p>
   <div class="note"><b>Answers are logged when you submit.</b> The paper is saved as you go, so a
   reload or a switch to another app does not lose it, and "Submit what I have answered" logs a
@@ -2224,6 +2225,26 @@ function drawN(pool, n, blocked){
    this many, taken in proportion to each pool's share of the paper, and falls
    back to whatever the bank holds if a pool has fewer. */
 const EXAM_SATA = EXAM.sata || 0;
+/* How many select-all items the draw puts on a paper, for the opening page: the
+   target (the blueprint's, or EXAM_SATA split across the pools as drawPaper
+   splits it), capped by the select-all items each pool really holds, so the
+   page never promises a format the bank cannot supply (DEENT, 2026-11-06: "about
+   0 of the 50 are select-all" beside a paper that held none). */
+function examSataDrawn(){
+  try {
+    const n = EXAM.questions || 0, elig = QUESTIONS.filter(q => !q.lowYield && !q.type);
+    const bp = EXAM.blueprint && Array.isArray(EXAM.blueprint.parts) && EXAM.blueprint.parts.length ? EXAM.blueprint : null;
+    if(bp) return Math.min(bp.sata || 0, elig.filter(isMulti).length, n);
+    const total = EXAM.pools.reduce((s, p) => s + p.marks, 0) || 1, main = mainPool();
+    let left = EXAM_SATA, got = 0;
+    EXAM.pools.filter(p => p !== main).forEach(p => {
+      const s = Math.round(EXAM_SATA * p.marks / total); left -= s;
+      got += Math.min(s, elig.filter(q => p.test(q) && isMulti(q)).length);
+    });
+    got += Math.min(Math.max(0, left), elig.filter(q => main.test(q) && isMulti(q)).length);
+    return Math.min(got, n);
+  } catch(e){ return 0; }
+}
 
 /* Draw n from a pool with a target number of select-all items in it. Select-all
    questions are drawn first so they are never crowded out, then single-answer
@@ -2374,6 +2395,7 @@ const fmt = ms => { const s = Math.max(0, Math.round(ms/1000));
   return String(Math.floor(s/60)).padStart(2,'0') + ':' + String(s%60).padStart(2,'0'); };
 
 function renderExamQ(){
+  EX.review = false;   // a question is on screen: the Exam tab reopens on it, not on the overview
   const el = $('#v-exam'), q = EX.qs[EX.i], order = EX.orders[EX.i];
   const answered = EX.picks.filter(p => Array.isArray(p) ? p.length > 0 : p !== null).length;
   const multi = isMulti(q);
@@ -2388,14 +2410,15 @@ function renderExamQ(){
   if(q.fg) h += fgShow(q.fg);
   order.forEach((oi,n)=>{
     const sel = multi ? EX.picks[EX.i].includes(oi) : EX.picks[EX.i] === oi;
-    h += `<button class="opt${multi?' multi':''}${sel?(multi?' on':' pick-ok'):''}" data-o="${oi}" aria-pressed="${sel}">
+    // chosen, not graded: the neutral selection colour (exsel), never the right-answer green
+    h += `<button class="opt${multi?' multi':''}${sel?(multi?' on':' exsel'):''}" data-o="${oi}" aria-pressed="${sel}">
       <span class="k">${multi ? (sel ? '\u2611' : '\u2610') : LETTERS[n]}</span><span>${esc(q.options[oi].t)}</span></button>`;
   });
   h += `</div><div class="qfoot">
     <button class="btn ghost" id="exPrev"${EX.i===0?' disabled':''}>Back</button>
-    <button class="btn" id="exNext">${EX.i===EX.qs.length-1?'Review':'Next'}</button>
+    <button class="btn" id="exNext">${EX.i===EX.qs.length-1?'Review answers':'Next'}</button>
     <span class="spacer" style="flex:1"></span>
-    <button class="btn ghost" id="exEnd">${answered < EX.qs.length ? 'Submit what I have answered' : 'Submit paper'}</button>
+    <button class="btn ghost" id="exEnd">${submitLabel()}</button>
   </div></div>`;
   el.innerHTML = h;
   el.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
@@ -2404,12 +2427,53 @@ function renderExamQ(){
     else EX.picks[EX.i] = oi;
     saveExam(); renderExamQ(); });
   $('#exPrev').onclick = ()=>{ if(EX.i>0){EX.i--; saveExam(); renderExamQ();} };
-  $('#exNext').onclick = ()=>{ if(EX.i<EX.qs.length-1){EX.i++; saveExam(); renderExamQ();} else finishExam(false); };
-  $('#exEnd').onclick  = ()=>{
-    const blank = EX.qs.filter((q,i)=> examBlank(q, EX.picks[i])).length;
-    if(!blank){ if(confirm('Submit the paper and see your score?')) finishExam(false); return; }
-    if(confirm(`${blank} item${blank===1?' is':'s are'} still blank.\n\nOK: submit what you have answered (blank items are not logged).\nCancel: keep going.`)) finishExam(true);
-  };
+  // the last question's Review opens the overview: it grades, records and finishes nothing (DEENT, 2026-11-06)
+  $('#exNext').onclick = ()=>{ if(EX.i<EX.qs.length-1){EX.i++; saveExam(); renderExamQ();} else renderExamReview(); };
+  $('#exEnd').onclick  = askSubmitExam;
+}
+const examAnsweredN = () => EX.qs.filter((q,i)=> !examBlank(q, EX.picks[i])).length;
+const submitLabel = () => examAnsweredN() < EX.qs.length ? 'Submit what I have answered' : 'Submit paper';
+/* The one question every hand submit asks ("Submit paper", and the overview's
+   submit): Cancel keeps the paper running as it is. */
+function askSubmitExam(){
+  const blank = EX.qs.length - examAnsweredN();
+  if(!blank){ if(confirm('Submit the paper and see your score?')) finishExam(false); return; }
+  if(confirm(`${blank} item${blank===1?' is':'s are'} still blank.\n\nOK: submit what you have answered (blank items are not logged).\nCancel: keep going.`)) finishExam(true);
+}
+/* The overview of a running paper: each question number, answered or not, a way
+   back to any of them, and the submit button. It shows no answer, grade or
+   explanation, and records nothing; the paper stays saved and its clock runs.
+   EX.review is not saved: a reload opens the paper on its question, as before. */
+function renderExamReview(){
+  EX.review = true;
+  const el = $('#v-exam'), n = EX.qs.length, answered = examAnsweredN();
+  const blanks = EX.qs.map((q,i)=> examBlank(q, EX.picks[i]) ? i+1 : 0).filter(Boolean);
+  let h = `<div class="examhead">
+    <span class="clock" id="exClock"${untimedPaper() ? ' title="Time taken so far: this paper is untimed"' : ''}>${untimedPaper() ? tookText() : fmt(EX.ends-Date.now())}</span>
+    <span class="prog">Review · ${answered} of ${n} answered</span>
+  </div>
+  <div class="qcard" id="exReview"><div class="qbody">
+    <h2 tabindex="-1" id="exRevHead" style="margin-top:0">Review your paper</h2>
+    <p class="sub">Nothing is graded or logged yet. Choose a number to go back to that question and change its answer.
+    The paper is graded only when you submit it.</p>
+    <div class="exgrid">`;
+  EX.qs.forEach((q,i)=>{
+    const blank = examBlank(q, EX.picks[i]);
+    h += `<button class="exq${blank?' blank':''}" data-q="${i}" data-state="${blank?'blank':'answered'}" aria-label="Question ${i+1}, ${blank?'not answered':'answered'}">
+      <b>${i+1}</b><small>${blank?'not answered':'answered'}</small></button>`;
+  });
+  h += `</div>${blanks.length ? `<p class="sub" id="exRevBlank">Not answered: ${blanks.length === n ? 'every question' : 'question' + (blanks.length===1?' ':'s ') + blanks.join(', ')}.</p>` : ''}
+  </div><div class="qfoot">
+    <button class="btn ghost" id="exRevBack">Back to question ${EX.i+1}</button>
+    <span class="spacer" style="flex:1"></span>
+    <button class="btn" id="exRevSubmit">${submitLabel()}</button>
+  </div></div>`;
+  el.innerHTML = h;
+  const go = i => { EX.i = i; saveExam(); renderExamQ(); };
+  el.querySelectorAll('#exReview [data-q]').forEach(b => b.onclick = () => go(+b.dataset.q));
+  $('#exRevBack').onclick = () => go(EX.i);
+  $('#exRevSubmit').onclick = askSubmitExam;
+  try { const hd = document.getElementById('exRevHead'); if(hd && hd.focus) hd.focus(); } catch(e){}
 }
 /* One place decides whether an exam answer was right, for both grading and the
    review page: a select-all item is right only when the whole set matches. */
