@@ -290,9 +290,10 @@ function literal(toks, r){
   return undefined;
 }
 // Identifiers whose presence means the file may change COURSE in a way a text reading cannot
-// see (code run from a string, a timer, the page's globals, reflection). Any of them makes
-// the file "not checked". `window` and `globalThis` are allowed only as `window.COURSE =`.
-const UNREADABLE_IDS = /^(eval|Function|setTimeout|setInterval|queueMicrotask|requestAnimationFrame|import|require|document|window|globalThis|self|top|parent|frames|Reflect|Proxy|with|fetch|location|navigator|define)$/;
+// see (code run from a string, a timer, the page's globals, reflection; in a classic script
+// `this` at the top level is the global object). Any of them makes the file "not checked".
+// `window`, `globalThis` and `this` are allowed only as `window.COURSE =`, the declaration.
+const UNREADABLE_IDS = /^(this|eval|Function|setTimeout|setInterval|queueMicrotask|requestAnimationFrame|import|require|document|window|globalThis|self|top|parent|frames|Reflect|Proxy|with|fetch|location|navigator|define)$/;
 const LINE_TERMINATORS = new RegExp('[' + String.fromCharCode(13, 0x2028, 0x2029) + ']');
 function parseCourse(text){
   text = String(text);
@@ -331,7 +332,7 @@ function parseCourse(text){
   for(let j = 0; j < toks.length; j++){
     const t = toks[j];
     if(t.t !== 'id' || !UNREADABLE_IDS.test(t.v)) continue;
-    if((t.v === 'window' || t.v === 'globalThis') && toks[j + 1] && toks[j + 1].t === 'p' && toks[j + 1].v === '.' && declNames.has(j + 2)) continue;   // window.COURSE = {
+    if((t.v === 'window' || t.v === 'globalThis' || t.v === 'this') && toks[j + 1] && toks[j + 1].t === 'p' && toks[j + 1].v === '.' && declNames.has(j + 2)) continue;   // window.COURSE = {
     risky.add(t.v);
   }
   if(risky.size) incomplete.push(`the file uses ${[...risky].join(', ')}, which can change COURSE in a way this reading cannot see: not checked`);

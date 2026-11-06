@@ -399,7 +399,9 @@ console.log('\n=== The release check fails closed: a file it cannot read complet
     ['var COURSE changed through window', `var COURSE = {exams:[${E1}], activeExam:'exam1'};\nwindow['COURSE'].exams.push(${E2});`],
     ['var COURSE changed through a computed global name', `var COURSE = {exams:[${E1}], activeExam:'exam1'};\nglobalThis['COU'+'RSE'].exams.push(${E2});`],
     ['Object.defineProperty on the global', `${plain}\nObject.defineProperty(globalThis, 'x', {get(){ COURSE.exams.push(${E2}); }});`],
-    ['a timer that changes it later', `${plain}\nsetTimeout(() => { COURSE.activeExam = 'exam2'; });`]
+    ['a timer that changes it later', `${plain}\nsetTimeout(() => { COURSE.activeExam = 'exam2'; });`],
+    ['var COURSE changed through this with a computed name', `var COURSE = {exams:[${E1}], activeExam:'exam1'};\nthis['COU'+'RSE'].exams.push(${E2});`],
+    ['var COURSE changed through this.COURSE', `var COURSE = {exams:[${E1}], activeExam:'exam1'};\nthis.COURSE.activeExam = 'exam2';`]
   ];
   let passed = 0;
   for(const [label, src] of bypasses){
@@ -409,6 +411,8 @@ console.log('\n=== The release check fails closed: a file it cannot read complet
     check(r.ok !== true, `bypass not OK: ${label}`, r);
   }
   check(passed === bypasses.length, `every one of the ${bypasses.length} bypasses is refused`);
+  const thisDecl = C.checkPublished(deent, C.parseCourse(`this.COURSE = {exams:[${E1}], activeExam:'exam1', kit:{core:'25c643d'}};`));
+  check(thisDecl.ok === true, 'this.COURSE = {...} as the declaration still reads completely', thisDecl);
   // what a real file may contain and still read completely
   const realistic = `const COURSE = {id:'deent', title:'COURSE 0000 — Course name', blurb:'Dr. Smith${BS}'s recording; see ${BT}guide${BT}', exams:[${E1}], activeExam:'exam1', kit:{core:'25c643d'}};`;
   const rr = C.checkPublished(deent, C.parseCourse(realistic));
