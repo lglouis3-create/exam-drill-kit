@@ -26,11 +26,14 @@ pull request or site.
    the last successful result and its time when there is one (kept in
    `~/.cache/exam-drill-kit/dashboard.json` and in `state.json` `lastSeen`). Never describe it as
    the repository or the site being down. Give the sanitized error the output lists, and the
-   fix when it is known: a repository whose pull requests are unavailable needs attaching to
-   this session with push access (`add_repo`), which Louis may have to allow.
-6. Under Approvals, list only what the output found in repositories: pull requests whose own
-   description says they wait for Louis, failed or cancelled checks, previews that differ from
-   the live site, and repositories that could not be read. Never infer an approval.
+   fix when it is known. In a cloud session, git reads of a public repository need nothing; the
+   GitHub API (pull requests, check runs, deployments) needs the repository attached to the
+   session with credentials, which `add_repo` gives only with access "push". Ask Louis before
+   attaching: it is a permission change, and the attachment authorizes no push and no deploy.
+6. Under Approvals, list only what the output found in repositories, grouped by each pull
+   request's own "Approval:" line: awaiting approval, unclear (no line, or an approval recorded
+   at an older head), approved at the current head. Show the line or sentence it came from.
+   Never infer an approval, and never count passing checks as one.
 7. If Louis asks for a page, publish the same content as a private Artifact; otherwise the
    conversation is the dashboard.
 

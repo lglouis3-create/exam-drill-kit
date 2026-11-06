@@ -12,6 +12,7 @@ Dated kit changes, newest first.
   - shows "Show my Exam Drill Dashboard" in Claude Code (`.claude/skills/exam-drill-dashboard/`).
 
   `coordinator/coord_test.js` runs in Kit checks. DEENT is registered in `COURSES.md`.
+- The coordinator reads a course file as text and never runs it. It reads the release state at the commit GitHub Pages last deployed, or says the live revision is unknown. Credentials are removed from every shown or cached error. Approvals come from an "Approval:" line in each pull request. A final exam with no date no longer stops it.
 
 ## 2026-11-05
 - The answer history is no longer cut silently at 20,000 entries: past it a notice offers Export progress and a removal of the oldest entries that names how many and their dates and needs an OK; until then new entries go on being added (`cap_test.js`).

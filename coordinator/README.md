@@ -46,8 +46,13 @@ Each exam in `courses.json` has two kinds of facts:
   the course's `course.js` once it is on the site.
 
 A date passing never changes a release status, and nothing in the coordinator writes a
-course site. `coord.js published` compares each kit course's `course.js` on its main branch
-(what Pages serves) with the schedule and reports a problem when the site lists an exam that
+course site. `coord.js published` compares each kit course's `course.js` at the commit GitHub
+Pages last deployed (the newest successful "pages build and deployment" run; the Pages source
+setting itself cannot be read through this session's proxy) with the schedule. When no
+successful deployment is found, it reads the head of `pagesBranch` and says the live revision
+is unknown. The course file is read as text and never run: `parseCourse` takes only the
+literal `exams[].id`, `activeExam` and `kit.core` from the object assigned to `COURSE`, and
+reports any other value as not checked. It and reports a problem when the site lists an exam that
 is not `published`, opens on one (`activeExam`), or lists an exam the schedule does not know.
 So an empty future exam can't slip into a site unnoticed. Earlier exams stay listed when
 later ones are cumulative: the check never asks for a published exam to be removed.
@@ -96,9 +101,17 @@ Say **"Show my Exam Drill Dashboard"** in a Claude Code session that has the kit
 skill `.claude/skills/exam-drill-dashboard/` runs `node coordinator/coord.js dashboard` and
 adds what only the session can read (scheduled tasks). The dashboard has four sections:
 Courses, Improvements, Approvals, Automation activity. Approvals come only from repository
-evidence: an open, non-draft pull request whose description says it waits for Louis, failed
-or cancelled checks on an open pull request's head, and a course `/preview/` that differs from
-its live site. `--offline` skips the network; `--json` gives the data.
+evidence. Each pull request states its status on a line of its own description:
+
+    Approval: awaiting Louis
+    Approval: approved by Louis on <YYYY-MM-DD> at <commit>
+    Approval: not needed (<reason>)
+
+"approved" counts only while the head is that commit. A description with no such line but older
+wording that asks for Louis's answer is shown as "unclear", with the sentence quoted. Passing
+checks never count as approval. The section also lists failed or cancelled checks (the newest
+run of each workflow) on an open pull request's head, checks that could not be read, and a
+course `/preview/` built after the live page. `--offline` skips the network; `--json` gives the data.
 
 A read the session cannot make (no credentials for that repository, a refused proxy) is shown
 as **"Access unavailable—status not checked"**, with the last successful result and its time,

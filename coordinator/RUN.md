@@ -47,7 +47,8 @@ name. `skip` and `wait` do nothing.
 - **retrospective** (Mode 6, now also started by the coordinator):
   - Write `coordinator/retros/<course>-<YYYY-MM-DD>.md` with what changed in the course since
     its last retrospective, what was reused or could be, and exam feedback if Louis gave any
-    (Mode 8).
+    (Mode 8). This repository is public: a retro holds no score, grade or answer history, only
+    what the drill covered or missed.
   - Note what the drill missed, if the feedback shows it.
   - Update `FEATURES.md` only with evidence; a passing test is not evidence that a feature
     helps learning.
@@ -69,9 +70,9 @@ For each registry item whose status allows work (`discovered`, `evaluating`):
      request that says merging it publishes. It is never merged by the run.
    - **optional-feature:** add it to `review/port-queue.md`, so the feature porter builds it
      under its policy. The coordinator does not port it.
-   - **core-change:** a kit pull request, marked "For Louis's yes or no".
-   - **skill-guidance:** proposed `skill/SKILL.md` text in a kit pull request, marked "For
-     Louis's yes or no". Its description says when the guidance applies and when it would add
+   - **core-change:** a kit pull request whose description has the line "Approval: awaiting Louis".
+   - **skill-guidance:** proposed `skill/SKILL.md` text in a kit pull request with the line
+     "Approval: awaiting Louis". Its description says when the guidance applies and when it would add
      complexity, and it keeps professor-taught exam content apart from supplemental material.
 4. Every pull request gets an independent review by a separate reviewer agent before it is
    marked ready. Merges follow decision 10 only.
@@ -89,7 +90,10 @@ For each registry item whose status allows work (`discovered`, `evaluating`):
     in a new container can still show each repository's last successful read and its time;
   - any new retrospective.
 - It is bookkeeping under decision 10: it merges after an independent review and green
-  checks, with a comment naming both.
+  checks, with a comment naming both. Its description carries "Approval: not needed
+  (bookkeeping under decision 10)". The Kit checks job "Coordinator records and logic" is one
+  of the jobs every kit pull request runs, so it counts among the required checks under
+  decision 10 like every other job of that run.
 - A run that changed no record opens no pull request.
 - The run never reviews its own bookkeeping commits: they change only the kit, and the kit is
   not a course.
