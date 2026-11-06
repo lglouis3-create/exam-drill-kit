@@ -19,9 +19,12 @@ Dated kit changes, newest first.
   the default branch, and skips the kit-update preview of a course whose `kitUpdate` is
   paused while keeping its read-only checks (`coord.js kitupdate`). DEENT is paused until
   its pending release is resolved (Louis, 2026-11-06).
-- A coordinator run records improvements and prepares none, and writes a retrospective only
-  when Louis asks; preparing improvements and automatic retrospectives are a separate
-  proposal.
+- A coordinator run prepares improvements: a branch and pull request in a course repository
+  for course-specific items (never merged by the run), a port-queue entry for an optional
+  feature, and a kit pull request for Louis's yes or no for a core change or skill guidance.
+  It starts a retrospective without being asked when a course becomes recently completed, a
+  registry item is adopted, a major feature merges or a technical problem is resolved. Mode 1
+  and Mode 2 read the improvement registry beside `FEATURES.md` when features are chosen.
 
 ## 2026-11-05
 - The answer history is no longer cut silently at 20,000 entries: past it a notice offers Export progress and a removal of the oldest entries that names how many and their dates and needs an OK; until then new entries go on being added (`cap_test.js`).
