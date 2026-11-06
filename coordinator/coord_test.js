@@ -43,11 +43,14 @@ check(/in progress/.test(at('2026-11-09T16:00:00Z').why), 'during Exam 1: in pro
 check(at('2026-11-09T18:00:00Z').next.id === 'exam2', 'after Exam 1 ends, the next exam is Exam 2');
 check(at('2026-11-28T18:00:00Z').status === 'active', '11/28: active (the final more than 7 days away)');
 check(at('2026-12-01T18:00:00Z').status === 'exam-approaching' && at('2026-12-01T18:00:00Z').next.id === 'final', '12/01: exam-approaching, the final next');
-check(at('2026-12-07T20:00:00Z').status === 'exam-approaching', 'on the day of the final (time not recorded): still exam-approaching until the day ends');
+check(at('2026-12-07T15:30:00Z').status === 'exam-approaching' && /in progress/.test(at('2026-12-07T15:30:00Z').why), 'during the final (9:00-10:30 Central): exam-approaching, in progress');
+check(at('2026-12-07T17:00:00Z').status === 'recently-completed', 'once the final has ended (10:30 Central): recently-completed');
 check(at('2026-12-08T18:00:00Z').status === 'recently-completed', '12/08: recently-completed');
-check(at('2026-12-29T05:59:00Z').status === 'recently-completed' && at('2026-12-29T06:01:00Z').status === 'completed', 'recently-completed lasts exactly 21 days after the final ends');
+check(at('2026-12-28T16:29:00Z').status === 'recently-completed' && at('2026-12-28T16:31:00Z').status === 'completed', 'recently-completed lasts exactly 21 days after the final ends (10:30 Central on 12/07)');
 check(at('2027-12-31T18:00:00Z').status === 'archived', 'a year after the final: archived');
-check(at('2026-11-06T15:00:00Z').flags.some(f => /Exam 2: date 2026-11-16, time not recorded/.test(f)), 'a missing exam time is flagged, not invented');
+check(at('2026-11-06T15:00:00Z').flags.some(f => /tentative/.test(f)) && !at('2026-11-06T15:00:00Z').flags.some(f => /time not recorded/.test(f)), 'DEENT: the syllabus times are recorded; the dates are flagged as tentative');
+const bdk = cfg.courses.find(c => c.id === 'bdk');
+check(C.lifecycle(bdk, T('2026-11-06T15:00:00Z'), cfg).flags.some(f => /Week 14 quiz.*time not recorded/.test(f)), 'a missing exam time is flagged, not invented (BDK quizzes)');
 const dx = clone(deent); dx.activeExam = 'exam1';
 check(C.lifecycle(dx, T('2026-11-25T18:00:00Z'), cfg).status === 'active', 'completion does not follow activeExam: on 11/25 the course is active (the Final ahead)');
 
@@ -56,7 +59,7 @@ const nf = clone(deent); nf.schedule.exams.find(e => e.id === 'final').date = nu
 let lc = null, threw = null;
 try { lc = C.lifecycle(nf, T('2026-11-30T18:00:00Z'), cfg); } catch(e){ threw = e.message; }
 check(!threw && lc.status === 'active', 'every dated exam passed and the final undated: no crash, active', threw || lc);
-check(lc && lc.flags.some(f => /Final Exam \(the final\) has no date/.test(f)) && lc.final && lc.final.date === null, 'the missing final date is flagged and no date is invented', lc);
+check(lc && lc.flags.some(f => /\(the final\) has no date/.test(f)) && lc.final && lc.final.date === null, 'the missing final date is flagged and no date is invented', lc);
 check(!threw && C.lifecycle(nf, T('2026-11-20T18:00:00Z'), cfg).next.id === 'exam3', 'before the last dated exam, the next exam is still found');
 {
   const saved = fs.readFileSync(path.join(__dirname, 'courses.json'), 'utf8');
