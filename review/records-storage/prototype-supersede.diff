@@ -1,0 +1,61 @@
+diff --git a/core/shell.html b/core/shell.html
+index 1efa2b4..12f8fd1 100644
+--- a/core/shell.html
++++ b/core/shell.html
+@@ -789,7 +789,7 @@ function claimProfile(p){
+   }).then(ok => {
+     if(PROFILE !== p || gen !== claimGen) return;
+     // this profile's NEW_LOG keeps entries answered while the lock was asked for: flushWaiting saves them now
+-    if(ok){ WRITER = 'held'; newRecordTime(p); WROTE_SINCE_CLAIM = false; MARK = 0; flushWaiting(); settlePendingSoon(); capNotice(); }   // past LOG_MAX: asked once this tab writes the profile (the review of aa8ab12, N1)
++    if(ok){ WRITER = 'held'; noteClaimBase(p); newRecordTime(p); WROTE_SINCE_CLAIM = false; MARK = 0; flushWaiting(); settlePendingSoon(); capNotice(); }   // past LOG_MAX: asked once this tab writes the profile (the review of aa8ab12, N1)
+     else if(WRITER === 'pending'){ WRITER = 'other'; WRITER_WHY = 'other'; EXAM_CLEAR_WAITING = ''; stopWall('other'); }
+   });
+ }
+@@ -859,7 +859,7 @@ function takeOver(force){
+         // drop it, so the Exam sim tab reads the paper from storage again
+         try { if(typeof EX !== 'undefined' && EX){ clearInterval(EX.timer); EX = null; } } catch(e){}
+         stopWall(null);
+-        NEW_LOGS[p] = []; WROTE_SINCE_CLAIM = false; settlePendingSoon(); capNotice();
++        NEW_LOGS[p] = []; noteClaimBase(p); WROTE_SINCE_CLAIM = false; settlePendingSoon(); capNotice();
+         if(KEPT_COPY){ KEPT_COPY = false; setTimeout(() => alert('The answers and settings this page had not saved are kept as a copy: Settings, "Put back the progress from …". The progress on screen now is the stored one.'), 0); }
+         else if(addedLog) setTimeout(() => alert('The answer history entries this page had not saved are added to the saved answer history.'), 0);
+         try { if(typeof show === 'function') show(typeof VIEW !== 'undefined' ? VIEW : 'study'); } catch(e){}
+@@ -935,13 +935,37 @@ function newRecordTime(p){
+   if(kept) REC_KEY[p] = TAB_ID + '.' + (++REC_N);
+ }
+ const seenKeyOf = p => NS + ':pending-seen:' + p;
++/* PROTOTYPE (records proposal, not for main): what this tab took over from, per profile. Another
++   record whose progress is exactly that, with no mark and every history entry already stored then,
++   holds nothing this tab's own stored record does not: it is removed once this tab's own record is
++   written. Never when this tab's own record write was refused. */
++const CLAIM_BASE = {}, CLAIM_LOG = {};
++function noteClaimBase(p){ try { const v = localStorage.getItem(keyFor(p)); CLAIM_BASE[p] = v === null ? null : JSON.stringify(JSON.parse(v)); const l = JSON.parse(localStorage.getItem(NS + ':log:' + p) || '[]'); CLAIM_LOG[p] = Array.isArray(l) ? l : null; } catch(e){ CLAIM_BASE[p] = null; CLAIM_LOG[p] = null; } }
++let SUPERSEDED = 0;
++function supersedeRecords(){
++  try {
++    const base = CLAIM_BASE[PROFILE], have = CLAIM_LOG[PROFILE];
++    if(base == null || !have) return;
++    const pre = NS + ':pending:' + PROFILE + ':', mine = myPendingKey(), keys = [];
++    for(let i = 0; i < localStorage.length; i++){ const k = localStorage.key(i); if(k && k.startsWith(pre) && k !== mine) keys.push(k); }
++    for(const k of keys){
++      const raw = localStorage.getItem(k); if(raw === null) continue;
++      let rec; try { rec = JSON.parse(raw); } catch(e){ continue; }
++      if(!rec || rec.mark || !rec.db || JSON.stringify(rec.db) !== base) continue;
++      const entries = Array.isArray(rec.log) ? rec.log.filter(Array.isArray) : [];
++      if(missingEntries(entries, have).length) continue;
++      if(localStorage.getItem(k) !== raw) continue;
++      localStorage.removeItem(k); SUPERSEDED++;
++    }
++  } catch(e){}
++}
+ function pendingAfter(k, v){
+   try {
+     if(WRITER !== 'held' || WRITER_FOR !== PROFILE || k !== keyFor(PROFILE)) return;
+     if(!SETTLING) WROTE_SINCE_CLAIM = true;
+     if(v === null){ localStorage.removeItem(myPendingKey()); return; }
+     const rec = '{"at":' + Date.now() + (MARK ? ',"mark":' + MARK : '') + ',"db":' + v + ',"log":' + JSON.stringify(newLog()) + '}';
+-    try { localStorage.setItem(myPendingKey(), rec); recordOff(false); }
++    try { localStorage.setItem(myPendingKey(), rec); recordOff(false); supersedeRecords(); }
+     catch(e){ dropOwnRecordIfStored(); recordOff(true); }   // storage full: this save has no record of its own
+   } catch(e){ /* before start-up, or unreadable: this save has no record of its own */ }
+ }
