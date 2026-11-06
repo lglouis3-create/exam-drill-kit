@@ -54,6 +54,16 @@ A retired record without a module part ahead of the stored progress keeps main's
 
 **This tab's own record under a full storage** (`dropOwnRecordIfStored`, kit #47). The stored progress is this tab's own later write, so its module part is the newer one. **Exempt** (`placeOf(..., true)`), and only there: `pendingDone` and `settleOne` check without the exemption.
 
+## Put back (the review of #69, N1)
+
+`restoreBackup` (`core/views.js`) wrote its copy list in its step 3 from the list it had read before it called `pendingRetire`. A record that `retireToCopy` had just made into a copy was dropped from that list. With storage full, `retireToCopy` had also removed the record first, so the module part was in neither. `pendingRetire` now runs after step 3. Nothing between the two reads or writes a per-tab record.
+
+Evidence, from `core/ci_course.sh template chromium` with the same 43-check test:
+- adbcb82: 4 of 43 fail (`before-putback-fix-adbcb82.log`). With storage full (real quota filler), right after Put back the record was gone and no copy held its `DB.ink`; after the filler was removed and two later checks, still no copy held it. The fourth failure is the device-setting case below.
+- With the fix: 43 of 43 pass (`after-putback-fix.log`); the run gave 30 PASS, 0 FAIL, 1 NOT RUN (`cite_check.py`, an allowed exclusion), 1 REPORT.
+
+A record with no answers that differs from the stored progress only in a setting kept per device (`views.js` `IMPORT_DEVICE`, today `eqPick`) is now held instead of kept as one more copy; an ordinary setting of its own still keeps it apart.
+
 ## Which parts count as a module's
 A module part is any key of the progress outside the core's own parts. The core's parts are `views.js` `NOT_COMPARED` (v, created, fsUndo, fsHistory, answers, qn, settings) and `ENTRY_MAPS` (concepts, arms, fsrsQ, fsrsC). `moduleAhead` uses Import's own `NOT_COMPARED`, `ENTRY_MAPS`, `isEmptyPart` and `canon`, which compares without regard to key order. These are reachable because views.js is in the same page script (`build.py` `FIXED_SOURCES`; `built_page.js` `engine()` includes it). So every module counts, not only ink and eq.
 

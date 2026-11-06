@@ -347,6 +347,56 @@ L.PAGE.need(NAME);
     await f.page.evaluate(() => { localStorage.removeItem('__filler'); for(let n = 0; n < 500; n++) localStorage.removeItem('__f' + n); });
     const r5 = await after(e.k);
     check(r5.copyInk, 'once there is room, a later check makes that record a copy', r5);
+    // Put back meeting a record not yet placed with DB.ink: Put back writes the copy list itself, so
+    // the record's copy must be on the list it leaves (the review of #69, N1)
+    const putBack = () => f.page.evaluate(() => { window.confirm = () => true; window.alert = () => {}; show('settings'); restoreBackup(); });
+    const oneCopy = () => f.page.evaluate(() => { localStorage.setItem(NS + ':backup:' + PROFILE, JSON.stringify([{at: Date.now() - 1000, data: localStorage.getItem(keyFor(PROFILE)), why: 'import'}])); });
+    await f.page.evaluate(() => { localStorage.removeItem('__filler'); for(let n = 0; n < 500; n++) localStorage.removeItem('__f' + n); localStorage.removeItem(NS + ':backup:' + PROFILE); });
+    await oneCopy();
+    const pb1 = await plant(INK);
+    await putBack();
+    const now1 = await f.page.evaluate(k => { const copies = JSON.parse(localStorage.getItem(NS + ':backup:' + PROFILE) || '[]');
+      return {copyInk: copies.some(c => { try { return !!JSON.parse(c.data).ink; } catch(e){ return false; } }), kept: localStorage.getItem(k) !== null}; }, pb1.k);
+    check(now1.copyInk, 'Put back meeting a record not yet placed with DB.ink: right after Put back, the copy holding DB.ink is on the list', now1);
+    const r7 = await after(pb1.k);
+    check(r7.copyInk && !r7.kept, 'Put back with room: the DB.ink copy stays on the list and the record is removed after the wait', r7);
+    // the same with a full storage: room for Put back's own writes, not for the DB.ink copy beside the record
+    await f.page.evaluate(() => { localStorage.removeItem(NS + ':backup:' + PROFILE); });
+    await oneCopy();
+    const pb2 = await plant(big);
+    const fill2 = await f.page.evaluate(k => {
+      const rec = localStorage.getItem(k), db = JSON.parse(rec).db;
+      const copy = JSON.stringify([{at: 1, data: JSON.stringify(db), why: 'another tab\'s last save', log: JSON.stringify(JSON.parse(rec).log)}]);
+      const list = localStorage.getItem(NS + ':backup:' + PROFILE), prog = localStorage.getItem(keyFor(PROFILE));
+      // Put back's own writes: the list with the progress on screen added, then the progress put back
+      const own = list.length + prog.length + 200;
+      const margin = (copy.length + (NS + ':backup:' + PROFILE).length) - (rec.length + k.length) + own + 4000;
+      let lo = 0, hi = 6e6;
+      while(hi - lo > 16){ const m = (lo + hi) >> 1; try { localStorage.setItem('__filler', 'x'.repeat(m)); lo = m; } catch(e){ hi = m; } }
+      localStorage.setItem('__filler', 'x'.repeat(lo - margin));
+      let refusedAlongside = false; try { localStorage.setItem('__probe', copy); localStorage.removeItem('__probe'); } catch(e){ refusedAlongside = true; }
+      return {record: rec.length, copy: copy.length, margin, refusedAlongside};
+    }, pb2.k);
+    await putBack();
+    const now2 = await f.page.evaluate(k => { const copies = JSON.parse(localStorage.getItem(NS + ':backup:' + PROFILE) || '[]');
+      return {copyInk: copies.some(c => { try { return !!JSON.parse(c.data).pages || !!JSON.parse(c.data).ink; } catch(e){ return false; } }), recordLeft: localStorage.getItem(k) !== null,
+              putBack: JSON.parse(localStorage.getItem(keyFor(PROFILE))).answers.length}; }, pb2.k);
+    check(fill2.refusedAlongside, 'Put back, storage full: the filler leaves too little room for the DB.ink copy beside the record', fill2);
+    check(now2.copyInk && !now2.recordLeft, 'Put back, storage full (real quota filler): the record goes first and its DB.ink copy is on the list Put back leaves', {now2, fill2});
+    await f.page.evaluate(() => { localStorage.removeItem('__filler'); for(let n = 0; n < 500; n++) localStorage.removeItem('__f' + n); });
+    const r8 = await after(pb2.k);
+    check(r8.copyInk, 'Put back, storage full: once there is room again, the DB.ink copy is still on the list', r8);
+    // no answers, a device-only setting of its own (views.js IMPORT_DEVICE): held, not one more copy
+    {
+      const r9 = await f.page.evaluate(() => {
+        const st = JSON.parse(localStorage.getItem(keyFor(PROFILE)));
+        const dev = Object.assign({}, st, {answers: [], settings: Object.assign({}, st.settings, {eqPick: 'this-device-' + Date.now()})});
+        const own = Object.assign({}, st, {answers: [], settings: Object.assign({}, st.settings, {goal: 4242})});
+        return {device: placeOf({at: Date.now(), db: dev}, st, false), own: placeOf({at: Date.now(), db: own}, st, false)};
+      });
+      check(r9.device === 'in', 'no answers, only a device setting differs (IMPORT_DEVICE): held, so no extra copy', r9);
+      check(r9.own === 'apart', 'control: no answers, an ordinary setting of its own: kept apart as a copy', r9);
+    }
     // both refused (every write refused): the copy is kept on the page and the notice shows
     const g = await plant(INK);
     const r6 = await f.page.evaluate(k => {
