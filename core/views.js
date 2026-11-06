@@ -2176,7 +2176,7 @@ function renderExam(){
   el.innerHTML = `<h2>Exam simulation</h2>
   <p class="sub">${EXAM.questions} questions drawn at the blueprint of ${esc(EXAM.name)}${EXAM.blurb ? ' — ' + esc(EXAM.blurb) : ''} —
   with a ${EXAM.minutes}-minute clock. ${examSataText()}
-  No explanations until you finish, same as the real thing.</p>
+  No explanations until you finish.</p>
   <div class="note"><b>Answers are logged when you submit.</b> The paper is saved as you go, so a
   reload or a switch to another app does not lose it, and "Submit what I have answered" logs a
   paper you cannot finish; blank items are then left out of your history rather than counted as misses.</div>
@@ -2230,9 +2230,9 @@ const EXAM_SATA = EXAM.sata || 0;
    a blueprint's select-all count is reached by swaps that can fail, and the
    pools share one set of families (dupOf) and cap each pool at its marks.
    EXAM_SAMPLE papers are drawn, once per exam and bank (kept in EXAM_SATA_SEEN);
-   the result is the lowest, the highest and the most frequent count seen. A
-   count the draw gives more rarely than that can be missed, so the page words it
-   as a sample ("usually ... about N", "not expected"), never as a fact. DEENT, 2026-11-06: the page said "about 0 of the 50 are
+   the result is the lowest and the highest count seen. A count the draw gives
+   more rarely than that can be missed, so the page words it as a sample ("about
+   N", "between lo and hi", "not expected"; "yours may differ"), never as a fact. DEENT, 2026-11-06: the page said "about 0 of the 50 are
    select-all" beside a paper that held none. */
 const EXAM_SAMPLE = 20;
 let EXAM_SATA_SEEN = null;
@@ -2240,26 +2240,27 @@ function examSataDrawn(){
   const key = JSON.stringify([EXAM.id, EXAM.questions, EXAM.sata, EXAM.blueprint || null, (EXAM.pools || []).map(p => [p.key, p.marks]), QUESTIONS.length]);
   if(EXAM_SATA_SEEN && EXAM_SATA_SEEN.key === key) return EXAM_SATA_SEEN;
   let lo = Infinity, hi = 0;
-  const seen = {};
   try {
     for(let k = 0; k < EXAM_SAMPLE; k++){
       const c = (drawPaper() || []).filter(isMulti).length;
-      lo = Math.min(lo, c); hi = Math.max(hi, c); seen[c] = (seen[c] || 0) + 1;
+      lo = Math.min(lo, c); hi = Math.max(hi, c);
     }
   } catch(e){ lo = hi = 0; }
   if(lo === Infinity) lo = 0;
-  // the count seen most often (the higher one on a tie), named as "about"
-  const usual = Object.keys(seen).map(Number).sort((a, b) => seen[b] - seen[a] || b - a)[0] || 0;
-  return (EXAM_SATA_SEEN = {key, lo, hi, usual});
+  return (EXAM_SATA_SEEN = {key, lo, hi});
 }
 /* Sampled, so never worded as a guarantee, and about practice papers, not the
    official exam (Louis, 2026-11-06: "address the outstanding review concern about
    sampled select-all counts being presented as guaranteed facts"). */
+/* The range the samples gave, never "about 0" (the review of fd2209e): none seen, one count
+   seen ("about N"), or two or more ("between lo and hi"). */
 const examSataText = () => {
-  const {hi, usual} = examSataDrawn();
+  const {lo, hi} = examSataDrawn();
   const tail = 'This describes the practice papers, not the official exam format.';
   if(!hi) return `Practice papers drawn from this bank are not expected to carry select-all items (none in ${EXAM_SAMPLE} sample draws). ${tail}`;
-  return `Practice papers drawn from this bank usually carry about ${usual} select-all item${usual === 1 ? '' : 's'} (tick every right option, marked all-or-nothing; from ${EXAM_SAMPLE} sample draws); yours may differ. ${tail}`;
+  const how = 'tick every right option, marked all-or-nothing; in ' + EXAM_SAMPLE + ' sample draws';
+  if(lo === hi) return `Practice papers drawn from this bank carry about ${hi} select-all item${hi === 1 ? '' : 's'} (${how}); yours may differ. ${tail}`;
+  return `Practice papers drawn from this bank carry between ${lo} and ${hi} select-all items (${how}); yours may differ. ${tail}`;
 };
 
 /* Draw n from a pool with a target number of select-all items in it. Select-all

@@ -12,7 +12,7 @@
  *   2. The opening page said the paper "mixes single-answer and select-all
  *      items ... about 0 of the 50 are select-all". It now names what 20
  *      sample draws put on practice papers, worded as a sample and not as the
- *      official exam format ("usually carry about N ...; yours may differ",
+ *      official exam format ("carry about N" or "between lo and hi ...; yours may differ",
  *      "not expected to carry select-all items"; Louis, 2026-11-06).
  *   3. A chosen answer on a running paper was drawn in the colour of a right
  *      answer (class pick-ok, green), right or wrong. It is now drawn in the
@@ -68,24 +68,37 @@ const toLast = async page => { const n = await page.evaluate(() => EX.qs.length)
 
 /* What the opening page says about select-all items, against the papers the draw makes:
    every count seen on 30 fresh draws lies within what the page names. */
+/* The opening page's select-all sentence, with the page's sampler and the test's own 20 draws
+   run from the same seeded Math.random (mulberry32), so both see the same papers: no flakiness on
+   a bank whose count varies from draw to draw (the review of fd2209e, 3). */
 const sataText = page => page.evaluate(() => {
-  if(EX){ clearInterval(EX.timer); EX = null; } clearExam(); show('exam');
+  if(EX){ clearInterval(EX.timer); EX = null; } clearExam();
+  const seeded = a => () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  const rnd = Math.random, SEED = 20261106, N = 20;
+  let seen = null;
+  try {
+    Math.random = seeded(SEED);
+    if(typeof examSataDrawn === 'function'){ try { EXAM_SATA_SEEN = null; } catch(e){} seen = examSataDrawn(); }
+    Math.random = seeded(SEED);
+    var drawn = []; for(let k = 0; k < N; k++) drawn.push(drawPaper().filter(isMulti).length);
+  } finally { Math.random = rnd; }
+  show('exam');   // the sampler's result is kept per exam and bank, so the page names what it found
   const sub = document.querySelector('#v-exam p.sub'), text = sub ? sub.textContent.replace(/\s+/g, ' ') : '';
-  const drawn = []; for(let k = 0; k < 30; k++) drawn.push(drawPaper().filter(isMulti).length);
-  const seen = typeof examSataDrawn === 'function' ? examSataDrawn() : null;
-  return {text, drawn, bank: QUESTIONS.filter(isMulti).length, seen: seen && {lo: seen.lo, hi: seen.hi, usual: seen.usual}};
+  return {text, drawn, bank: QUESTIONS.filter(isMulti).length, seen: seen && {lo: seen.lo, hi: seen.hi}};
 });
 /* The page words the sampled count as a sample about practice papers, never as a fact about this
-   paper or the official exam (Louis, 2026-11-06); and what it names agrees with the draw: "not
-   expected" only when 30 fresh draws carry none, "about N" with N within the fresh draws' range. */
+   paper or the official exam (Louis, 2026-11-06), never "about 0" (the review of fd2209e), and names
+   exactly the range of the same 20 seeded draws. */
 function sataAgrees(r, label){
-  const most = Math.max(...r.drawn), least = Math.min(...r.drawn), m = /usually carry about (\d+) select-all/.exec(r.text);
+  const most = Math.max(...r.drawn), least = Math.min(...r.drawn);
   const none = /not expected to carry select-all items \(none in \d+ sample draws\)/.test(r.text);
-  const guarantee = /This paper has no select-all|Between \d+ and \d+ of the|\d+ of the \d+ (?:is|are) select-all|mixes single-answer and select-all/i.test(r.text);
-  check(!guarantee && /practice papers, not the official exam format/.test(r.text) && (none || (m && /yours may differ/.test(r.text))),
-    `${label}: the opening page words the select-all count as a sample about practice papers, not a guarantee or the official exam format`, r.text);
-  const ok = none ? most === 0 : !!m && +m[1] >= least && +m[1] <= most;
-  check(ok, `${label}: what it names (${none ? 'none expected' : m ? 'about ' + m[1] : 'nothing'}) agrees with 30 fresh draws (${[...new Set(r.drawn)].sort((a, b) => a - b).join(', ')}; ${r.bank} in the bank)`,
+  const about = /carry about (\d+) select-all/.exec(r.text), between = /carry between (\d+) and (\d+) select-all items/.exec(r.text);
+  const guarantee = /This paper has no select-all|Between \d+ and \d+ of the|\d+ of the \d+ (?:is|are) select-all|mixes single-answer and select-all|about 0 select-all|same as the real thing/i.test(r.text);
+  check(!guarantee && /practice papers, not the official exam format/.test(r.text) && (none || ((about || between) && /yours may differ/.test(r.text))),
+    `${label}: the opening page words the select-all count as a sample about practice papers (never "about 0", never a fact about the real exam)`, r.text);
+  const named = none ? [0, 0] : about ? [+about[1], +about[1]] : between ? [+between[1], +between[2]] : null;
+  check(named && named[0] === least && named[1] === most && (!about || +about[1] > 0),
+    `${label}: what it names (${named ? (named[0] === named[1] ? named[0] : named[0] + '-' + named[1]) : 'nothing'}) is the range of the same 20 seeded draws (${least}-${most}; ${r.bank} in the bank)`,
     {text: r.text, drawn: r.drawn, seen: r.seen});
   return most;
 }
@@ -108,6 +121,20 @@ async function setupText(page, label){
   await page.evaluate(() => { if(window.__bp === undefined) delete EXAM.blueprint; else EXAM.blueprint = window.__bp; });
   const most = sataAgrees(r, `${label}, blueprint with sata 0 and a part only select-all items fill (${set})`);
   check(most >= 1, `${label}: that blueprint really puts a select-all item on the paper (the case the review found)`, r.drawn);
+  // a count that varies from draw to draw: the same part takes 0 or 1 question (n: [0, 1]); the page
+  // names the range, never "about 0" (the review of fd2209e, 1)
+  await page.evaluate(() => { window.__bp = EXAM.blueprint; });
+  const set2 = await page.evaluate(id => {
+    const q = byId(id), esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    EXAM.blueprint = {sata: 0, cats: [{key: 'only', match: '\\b' + esc(q.concept) + '\\b'}], rest: 'other',
+      parts: [{key: 'only', name: 'only select-all', n: [0, 1]}, {key: 'other', name: 'the rest', rest: true}]};
+    return id;
+  }, set);
+  const r2 = await sataText(page);
+  await page.evaluate(() => { if(window.__bp === undefined) delete EXAM.blueprint; else EXAM.blueprint = window.__bp; });
+  sataAgrees(r2, `${label}, blueprint whose part takes 0 or 1 select-all item (${set2})`);
+  check(Math.min(...r2.drawn) === 0 && Math.max(...r2.drawn) === 1 && /carry between 0 and 1 select-all items/.test(r2.text),
+    `${label}: that blueprint varies (0 and 1 in 20 seeded draws) and the page names "between 0 and 1"`, {drawn: r2.drawn, text: r2.text});
 }
 
 /* Review, Submit, Back and Next, the reload, the score: on one page. */
