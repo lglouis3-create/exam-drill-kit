@@ -2731,14 +2731,33 @@ function armFigs(root){
   });
 }
 function figBig(fig, on, keepFocus){
+  if(on === fig.classList.contains('big')) return;
+  /* The enlarged figure leaves the page's flow, which would shorten the page and
+     let the browser move the reader up; a placeholder of the figure's own size
+     holds its place, and the page is put back where it was on close. */
+  if(on){
+    const ph = document.createElement('div'), cs = getComputedStyle(fig);
+    ph.className = 'figph'; ph.setAttribute('aria-hidden', 'true');
+    ph.style.height = fig.offsetHeight + 'px';
+    ph.style.marginTop = cs.marginTop; ph.style.marginBottom = cs.marginBottom;
+    fig.before(ph);
+    fig.dataset.y = String(window.scrollY);
+  }
   fig.classList.toggle('big', on);
   document.body.classList.toggle('figbig', on);
+  if(!on){
+    const ph = fig.previousElementSibling;
+    if(ph && ph.classList.contains('figph')) ph.remove();
+    const y = +fig.dataset.y; delete fig.dataset.y;
+    if(fig.isConnected && !isNaN(y)) window.scrollTo(0, y);
+  }
   const b = fig.querySelector('[data-go="big"]');
   if(b){ b.textContent = on ? 'Close' : 'Enlarge'; b.setAttribute('aria-pressed', on ? 'true' : 'false'); }
   if(on){ fig.setAttribute('role', 'dialog'); fig.setAttribute('aria-modal', 'true'); }
   else { fig.removeAttribute('role'); fig.removeAttribute('aria-modal'); }
-  // focus goes to the button that opened it, Close while open and Enlarge after
-  if(b && !keepFocus && b.isConnected) b.focus();
+  // focus goes to the button that opened it, Close while open and Enlarge after,
+  // without the browser scrolling to it
+  if(b && !keepFocus && b.isConnected) b.focus({preventScroll: true});
 }
 /* Close any enlarged figure and release the page's scroll lock: before another
    tab is shown or a view is drawn again, so the lock never outlives its figure. */
