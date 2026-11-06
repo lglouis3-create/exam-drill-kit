@@ -186,6 +186,16 @@ function livePRs(repo){
   if(r.ok) return {state: 'ok', prs: JSON.parse(r.out)};
   return {state: ghKind(r.err) === 'missing' ? 'missing' : 'unavailable', why: sanitize(r.err)};
 }
+// how far the default (working) branch is ahead of the branch Pages serves: unreleased work
+function liveAhead(repo, pagesBranch){
+  const m = run('gh', ['api', `repos/${repo}`, '--jq', '.default_branch']);
+  if(!m.ok) return {state: ghKind(m.err) === 'missing' ? 'missing' : 'unavailable', why: sanitize(m.err)};
+  const def = m.out.trim();
+  if(def === pagesBranch) return {state: 'ok', value: {defaultBranch: def, ahead: 0}};
+  const c = run('gh', ['api', `repos/${repo}/compare/${pagesBranch}...${encodeURIComponent(def)}`, '--jq', '.ahead_by']);
+  if(!c.ok) return {state: 'unavailable', why: sanitize(c.err)};
+  return {state: 'ok', value: {defaultBranch: def, ahead: +c.out.trim()}};
+}
 function liveChecks(repo, sha){
   const r = run('gh', ['api', `repos/${repo}/actions/runs?head_sha=${sha}`, '--jq', '[.workflow_runs[] | {name, status, conclusion, id}]']);
   return r.ok ? JSON.parse(r.out) : null;
@@ -232,7 +242,7 @@ function approvalsFrom(repo, prs, checksOf){
 function dashboard(now, opts){
   const cfg = read('courses.json'), state = read('state.json'), imp = read('improvements.json'), auto = read('automations.json');
   const offline = opts.offline, at = new Date(now).toISOString();
-  const io = Object.assign({liveHead, liveFile, livePRs, liveChecks, kitBehind}, opts.io || {});   // opts.io: test doubles
+  const io = Object.assign({liveHead, liveFile, livePRs, liveChecks, kitBehind, liveAhead}, opts.io || {});   // opts.io: test doubles
   const seen = lastSeenStore(opts.cache === undefined ? path.join(require('os').homedir(), '.cache', 'exam-drill-kit', 'dashboard.json') : opts.cache, state);
   // one read: live when it can be made, otherwise the last successful result and its time
   const access = [];
@@ -256,7 +266,7 @@ function dashboard(now, opts){
     let pub = null, pin = null, behind = null, preview = {state: 'not-read'};
     if(c.siteKind === 'kit'){
       const cf = readOr(`course|${c.repo}`, `${c.repo}: ${c.courseFile}`, () => {
-        const f = io.liveFile(c.repo, c.courseFile);
+        const f = io.liveFile(c.repo, c.courseFile, c.pagesBranch || 'main');
         if(f.state !== 'ok') return f;
         try { const co = courseFromJs(f.text); return {state: 'ok', value: {pub: checkPublished(c, co), pin: co.kit && co.kit.core || null}}; }
         catch(e){ return {state: 'ok', value: {pub: {ok: false, problems: ['course file could not be read: ' + e.message.split('\n')[0]]}, pin: null}}; }
@@ -265,15 +275,21 @@ function dashboard(now, opts){
       else if(cf.state === 'missing') pub = {checked: 'live', ok: false, problems: [`${c.courseFile} not found on the default branch`]};
       else pub = {checked: cf.state, why: cf.why, last: cf.last};
       if(pin && !offline) behind = io.kitBehind(pin);
-      preview = readOr(`preview|${c.repo}`, `${c.repo}: version.json and preview/version.json`, () => {
-        const pv = io.liveFile(c.repo, 'preview/version.json');
+      // a preview waits when the Pages branch carries a /preview/ built after its live page
+      // (version.json holds only a build time, so the times are compared, not the text)
+      preview = readOr(`preview|${c.repo}`, `${c.repo}: version.json and preview/version.json on ${c.pagesBranch || 'main'}`, () => {
+        const ref = c.pagesBranch || 'main';
+        const pv = io.liveFile(c.repo, 'preview/version.json', ref);
         if(pv.state === 'missing') return {state: 'ok', value: false};
         if(pv.state !== 'ok') return pv;
-        const lv = io.liveFile(c.repo, 'version.json');
+        const lv = io.liveFile(c.repo, 'version.json', ref);
         if(lv.state === 'unavailable') return lv;
-        return {state: 'ok', value: lv.state !== 'ok' || lv.text !== pv.text};
+        const built = t => { try { return Date.parse(JSON.parse(t).built); } catch(e){ return NaN; } };
+        const pb = built(pv.text), lb = lv.state === 'ok' ? built(lv.text) : NaN;
+        return {state: 'ok', value: isNaN(pb) || isNaN(lb) ? pv.text.trim() !== (lv.text || '').trim() : pb > lb};
       });
     }
+    const ahead = readOr(`ahead|${c.repo}`, `${c.repo}: default branch against ${c.pagesBranch || 'main'} (GitHub API)`, () => io.liveAhead(c.repo, c.pagesBranch || 'main'));
     const sched = (c.schedule && c.schedule.exams) || [];
     const open = (imp.items || []).filter(i => (i.candidateCourses || []).includes(c.id) && !['adopted', 'rejected', 'deferred'].includes(i.status) && ['critical', 'high'].includes(i.severity));
     return {id: c.id, code: c.code, name: c.name, repo: c.repo, site: c.site, term: c.term, siteKind: c.siteKind, status: lc.status, why: lc.why,
@@ -282,7 +298,7 @@ function dashboard(now, opts){
       published: sched.filter(e => e.status === 'published').map(e => e.name),
       knownFuture: sched.filter(e => e.status !== 'published').map(e => `${e.name} ${e.date || 'date unknown'} (${e.status})`),
       developing: c.inDevelopment || [], lastReview: p.lastReviewAt, nextAction: `${p.action}: ${p.reason}`, head: headRead[c.repo],
-      kitPin: pin, kitBehind: behind, preview, publication: pub, flags: lc.flags, openProblems: open.map(i => i.id)};
+      kitPin: pin, kitBehind: behind, preview, ahead, publication: pub, flags: lc.flags, openProblems: open.map(i => i.id)};
   });
   const approvals = [];
   for(const repo of [cfg.kitRepo, ...cfg.courses.map(c => c.repo)]){
@@ -301,7 +317,7 @@ function dashboard(now, opts){
 function md(d){
   const L = [], cell = s => String(s == null ? '—' : s).replace(/\|/g, '\\|').replace(/\n/g, ' ');
   L.push(`# Exam Drill Dashboard`, ``, `Generated ${d.generatedAt}${d.offline ? ' (offline: no repository heads, course files or pull requests read)' : ''}.`, ``);
-  L.push(`## Courses`, ``, `| Course | Status | Next exam | Final | Published | Known, not released | Kit pin (behind) | Preview waiting | Next review | Problems |`, `|---|---|---|---|---|---|---|---|---|---|`);
+  L.push(`## Courses`, ``, `| Course | Status | Next exam | Final | Published | Known, not released | Kit pin (behind) | Preview waiting; unreleased work | Next review | Problems |`, `|---|---|---|---|---|---|---|---|---|---|`);
   const lastTxt = l => l ? ` (last successful read ${l.at})` : ' (no earlier successful read)';
   for(const c of d.courses){
     let probs;
@@ -315,8 +331,9 @@ function md(d){
     const pv = c.preview;
     const pvTxt = pv.state === 'ok' ? (pv.value ? 'yes' : 'no') : pv.state === 'unavailable' ? `${UNAVAILABLE}${lastTxt(pv.last)}${pv.last ? ': ' + (pv.last.value ? 'yes' : 'no') : ''}` : '—';
     const pinTxt = c.kitPin ? c.kitPin + (c.kitBehind != null ? ` (${c.kitBehind} core commits behind)` : '') : c.siteKind === 'kit' ? (pb && pb.last && pb.last.value && pb.last.value.pin ? `${pb.last.value.pin}${lastTxt(pb.last)}` : 'not read') : 'not a kit course';
+    const ah = c.ahead && c.ahead.state === 'ok' && c.ahead.value.ahead > 0 ? `; working branch \`${c.ahead.value.defaultBranch}\` ${c.ahead.value.ahead} commits ahead of the live branch` : c.ahead && c.ahead.state === 'unavailable' ? `; working branch: ${UNAVAILABLE}` : '';
     const nextRev = c.head && c.head.state === 'unavailable' ? `${UNAVAILABLE} (repository head)${lastTxt(c.head.last)}` : c.nextAction;
-    L.push(`| [${cell(c.code)}](https://github.com/${c.repo}) ${cell(c.name)}, ${cell(c.term)} | ${c.status}: ${cell(c.why)} | ${cell(c.next)} | ${cell(c.final)} | ${cell(c.published.join(', ') || 'none')} | ${cell(c.knownFuture.join('; ') || 'none')} | ${cell(pinTxt)} | ${cell(pvTxt)} | ${cell(nextRev)} | ${cell(probs)} |`);
+    L.push(`| [${cell(c.code)}](https://github.com/${c.repo}) ${cell(c.name)}, ${cell(c.term)} | ${c.status}: ${cell(c.why)} | ${cell(c.next)} | ${cell(c.final)} | ${cell(c.published.join(', ') || 'none')} | ${cell(c.knownFuture.join('; ') || 'none')} | ${cell(pinTxt)} | ${cell(pvTxt + ah)} | ${cell(nextRev)} | ${cell(probs)} |`);
   }
   const fl = d.courses.filter(c => c.flags.length);
   if(fl.length){ L.push(``, `**Schedule uncertainties:**`); for(const c of fl) L.push(`- ${c.code}: ${c.flags.join('; ')}`); }

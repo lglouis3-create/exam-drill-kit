@@ -14,7 +14,7 @@
     {
       "id": "deent", "code": "PHAR 4346", "name": "DEENT", "term": "Fall 2026",
       "repo": "lglouis3-create/DEENT", "site": "https://lglouis3-create.github.io/DEENT/",
-      "siteKind": "kit", "courseFile": "src/course.js",
+      "pagesBranch": "main", "siteKind": "kit", "courseFile": "src/course.js",
       "schedule": {
         "exams": [
           {"id": "exam1", "name": "Exam 1", "date": "2026-11-09", "start": "09:00", "minutes": 90, "siteId": "exam1", "status": "published",
@@ -33,7 +33,7 @@
     {
       "id": "medicinal-chemistry", "code": "PHAR 4342", "name": "Intro to Medicinal Chemistry", "term": "Fall 2026",
       "repo": "lglouis3-create/Medicinal-chemistry", "site": "https://lglouis3-create.github.io/Medicinal-chemistry/",
-      "siteKind": "kit", "courseFile": "src/course.js",
+      "pagesBranch": "main", "siteKind": "kit", "courseFile": "src/course.js",
       "schedule": {
         "uncertain": "only the cumulative final is recorded; the earlier exams' dates are not in the repository",
         "exams": [
@@ -47,7 +47,7 @@
     {
       "id": "pharmacokinetics", "code": "PHAR 4221", "name": "Basic Pharmacokinetics", "term": "Fall 2026",
       "repo": "lglouis3-create/Basic-Pharmacokinetics-", "site": "https://lglouis3-create.github.io/Basic-Pharmacokinetics-/",
-      "siteKind": "own", "courseFile": "src/course.js",
+      "pagesBranch": "main", "siteKind": "own", "courseFile": "src/course.js",
       "schedule": {
         "exams": [
           {"id": "exam1", "name": "Exam 1", "date": "2026-09-11", "start": "10:00", "minutes": 120, "siteId": "1", "status": "published", "source": "Basic-Pharmacokinetics- src/course.js exams (syllabus)"},
@@ -61,7 +61,7 @@
     {
       "id": "intro-pharmacology", "code": "PHAR 4344", "name": "Introduction to Pharmacology", "term": "Fall 2026",
       "repo": "lglouis3-create/Intro-Pharmacology-", "site": "https://lglouis3-create.github.io/Intro-Pharmacology-",
-      "siteKind": "own", "courseFile": "exam1-drill/src/course.js",
+      "pagesBranch": "main", "siteKind": "own", "courseFile": "exam1-drill/src/course.js",
       "schedule": {
         "uncertain": "whether the course has an exam after Exam 4 has not been checked against the syllabus",
         "exams": [
@@ -77,7 +77,7 @@
     {
       "id": "bdk", "code": "PHAR 4232", "name": "APC III, Basic Drug Knowledge quizzes", "term": "Fall 2026",
       "repo": "lglouis3-create/BDK", "site": "https://lglouis3-create.github.io/BDK/",
-      "siteKind": "own", "courseFile": "assets/app.js",
+      "pagesBranch": "main", "siteKind": "own", "courseFile": "assets/app.js",
       "schedule": {
         "uncertain": "quiz times are not recorded; earlier quizzes (Weeks 2-11) are in BDK assets/app.js QUIZZES and have passed",
         "exams": [

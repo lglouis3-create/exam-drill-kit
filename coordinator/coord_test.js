@@ -145,17 +145,22 @@ console.log('\n=== Access unavailable: reported as not checked, with the last su
     liveFile: (repo, file) => {
       if(denied && /DEENT|Intro-Pharmacology/.test(repo)) return {state: 'unavailable', why: 'GitHub access to this repository is not enabled for this session'};
       if(/DEENT/.test(repo) && file === 'src/course.js') return {state: 'ok', text: deentJs};
-      if(/DEENT/.test(repo) && file === 'preview/version.json') return {state: 'ok', text: '{"v":2}'};
-      if(/DEENT/.test(repo) && file === 'version.json') return {state: 'ok', text: '{"v":1}'};
+      if(/DEENT/.test(repo) && file === 'preview/version.json') return {state: 'ok', text: '{"built": "2026-11-05T06:12:02Z"}'};
+      if(/DEENT/.test(repo) && file === 'version.json') return {state: 'ok', text: '{"built": "2026-11-05T06:12:02Z"}'};
+      if(/Medicinal/.test(repo) && file === 'preview/version.json') return {state: 'ok', text: '{"built": "2026-11-06T01:00:00Z"}'};
+      if(/Medicinal/.test(repo) && file === 'version.json') return {state: 'ok', text: '{"built": "2026-11-05T13:06:13Z"}'};
       if(/Medicinal/.test(repo) && file === 'src/course.js') return {state: 'ok', text: "const COURSE = {exams:[{id:'final'}], activeExam:'final', kit:{core:'abc'}};"};
       return {state: 'missing'};
     },
     livePRs: repo => (denied && /DEENT/.test(repo)) || /Intro-Pharmacology/.test(repo) ? {state: 'unavailable', why: 'GitHub access to this repository is not enabled for this session'}
       : {state: 'ok', prs: /DEENT/.test(repo) ? [{number: 7, title: 'Exam 1 release', draft: false, head: 'x', body: "For Louis's yes or no", url: 'u'}] : []},
-    liveChecks: () => [], kitBehind: () => 3
+    liveChecks: () => [], kitBehind: () => 3, liveAhead: repo => /DEENT/.test(repo) ? (denied ? {state: 'unavailable', why: 'x'} : {state: 'ok', value: {defaultBranch: 'work', ahead: 4}}) : {state: 'ok', value: {defaultBranch: 'main', ahead: 0}}
   };
   const d1 = C.dashboard(T('2026-11-06T10:00:00Z'), {cache, io});
-  check(d1.access.length === 1 && C.md(d1).includes('[lglouis3-create/DEENT#7](u) Exam 1 release'), 'with access: DEENT\'s pull request waiting for Louis is listed');
+  const m1 = C.md(d1);
+  check(d1.access.length === 1 && m1.includes('[lglouis3-create/DEENT#7](u) Exam 1 release'), 'with access: DEENT\'s pull request waiting for Louis is listed');
+  check(/PHAR 4346.*\| no; working branch `work` 4 commits ahead of the live branch \|/.test(m1), 'DEENT: the same build time on the Pages branch is no waiting preview; the unreleased commits on its working branch are named');
+  check(/PHAR 4342.*\| yes \|/.test(m1) && /PHAR 4342: `\/preview\/`/.test(m1), 'a preview built after the live page on the Pages branch is a waiting preview');
   denied = true;
   const d2 = C.dashboard(T('2026-11-06T12:00:00Z'), {cache, io});
   const m2 = C.md(d2);
