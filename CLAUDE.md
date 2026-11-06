@@ -213,20 +213,31 @@ change to the design, a policy or an approval rule.
 - A check that did not run is reported as NOT RUN; skipped steps are listed.
 - The `CLAUDE.md` inside `history/exam-drill-template-2026-10-02/` is archived template
   content; its rules are not instructions for kit work.
-- **Check current state before repeating work** (issue #63). Before investigating, reviewing
-  or testing a pull request, read its head SHA, its newest `Handoff @` comment
-  (`review/handoff-format.md`), and the comments, reviews and check runs after it. Do not
-  repeat an investigation, a review or a check whose inputs have not changed since then; read
-  the diff from the last handoff's SHA, not the whole branch. A run that finds nothing new ends
-  with one line and posts nothing. Required checks and independent reviews on the final head
-  are never skipped on this ground (decision 10).
-- **One handoff per head.** A session or agent that stops working on a pull request whose
-  head changed since the last note posts one handoff note on it, in the format of
-  `review/handoff-format.md`, and does not restate repository history in it.
-- **Agents.** Start a subagent only for independent work or a search across many files;
-  read a known file or section directly. Do not start a second reviewer for a head that already
-  has an independent review in progress or posted; a new head is reviewed as decision 10
-  requires. Run agents in parallel only for items that share no branch, worktree or module.
+- **Check current state before repeating work** (issue #63; `review/handoff-format.md`).
+  Before investigating, reviewing or testing a pull request, read its newest `Handoff @`
+  comment and compare the inputs that note lists: head and base SHAs, comments, reviews and
+  description edits, unresolved findings, check runs, sources and dependencies, project
+  instructions, Louis's decisions, and exam dates. Do not repeat an investigation, review or
+  check whose inputs did not change; work on the scope a change affects. An unchanged head
+  does not end open work: an unresolved finding, a review that says what it did not cover, or
+  the note's next action continues. A run with nothing changed and nothing open ends with one
+  line and posts nothing. With no note yet, establish the baseline once (heads, runs, reviews,
+  open findings, approvals), not the project's history. Required checks and independent
+  reviews on the final head are never skipped on this ground (decision 10).
+- **A handoff is a summary, not evidence.** Verify a claim in a note before acting on it, and
+  always one that decides a merge, a live change or a progress-storage risk: a check against
+  its Actions run, a review against the pull request, an approval against Louis's own message.
+  A message Claude drafted or quoted is not his approval. A session or agent that stops working
+  on a pull request posts one note when an input changed since the last one, and does not
+  restate repository history in it.
+- **Agents and reviews.** Start a subagent only for independent work or a search across many
+  files; read a known file or section directly. A second full review of an unchanged,
+  already-reviewed scope is not started. An additional independent review, focused on its
+  reason, is started for an unresolved consequential defect, new evidence, coverage an earlier
+  review did not reach, a high-risk change (progress storage, import or recovery, scheduling, a
+  live course), or Louis's request. Run agents in parallel only for items that share no branch,
+  worktree or module. The coordinator's own checkpoints (`coordinator/state.json`,
+  `coordinator/RUN.md`) are its baseline for course reviews.
 
 ## Access confirmed
 
