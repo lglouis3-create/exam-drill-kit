@@ -1430,7 +1430,10 @@ function startQuiz(topicId, subId){
   if(!pool.length){ alert('No questions match those filters.'); return; }
   const t = TOPICS.find(x=>x.id===topicId);
   const s = t && t.subs.find(x=>x.id===subId);
-  Q = {pool, label: s ? `${t.name} — ${s.name}` : (t ? t.name : 'Everything'),
+  // the whole bank with no filter on is the one broad adaptive session; a topic, a
+  // subtopic or a filtered "Everything" is a set the student chose (targetedSet)
+  const broad = !topicId && !subId && FILTER.prof === 'all' && FILTER.tier === 'all' && FILTER.tag === 'all';
+  Q = {pool, label: s ? `${t.name} — ${s.name}` : (t ? t.name : 'Everything'), broad,
        current:null, answered:0, lastId:null, examMode:false, picked:null, revealed:false};
   nextQuestion();
   show('quiz');
@@ -1487,11 +1490,14 @@ function repeatSet(){
   nextQuestion();
 }
 
-/* A targeted set: a fixed list asked once each (every sweep but a pass of
-   everything and the exam-weighted pass). Its retry after "I was sure of that"
-   stays inside the set; the broad passes and the adaptive runner keep reaching the
-   rest of the bank for one. */
-const targetedSet = () => !!(Q && Q.sweep && !Q.repeat);
+/* A targeted set: any session the student narrowed (Louis, 2026-11-06: "preserve
+   the original targeted set"): a topic or subtopic drill, a filtered "Everything",
+   a filtered pass, every weak-spot drill and repeat, "Missed concepts". Its retry
+   after "I was sure of that" comes from the session's own pool only. Three sessions
+   are broad and keep reaching the rest of the bank: "Everything, adaptive" with no
+   filter on (Q.broad), the pass of every question and the exam-weighted pass
+   (Q.repeat). Which question the adaptive runner picks next is unchanged. */
+const targetedSet = () => !!(Q && !Q.repeat && !Q.broad);
 function nextQuestion(){
   let q = null;
   // after "I was sure of that": a different question on the same concept comes
