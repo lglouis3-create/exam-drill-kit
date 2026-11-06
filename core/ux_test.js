@@ -274,8 +274,10 @@ const NAMES = ['Zylonol', 'Quarbate', 'Fenmorine'];
     }, ['(' + FIXTURE.toString() + ')()', settings]);
     const n = await page.evaluate(() => ATLAS.boards.reduce((a, b) => a + b.sections.reduce((m, s) => m + s.items.length, 0), 0));
     const def = await draw(null);
-    const defSearch = await page.evaluate(() => { const q = document.getElementById('atq'); q.value = 'zylonol'; q.dispatchEvent(new Event('input'));
-      const t = document.getElementById('atCount').textContent.trim(); q.value = ''; q.dispatchEvent(new Event('input')); return t; });
+    // the core's own handler (oninput), not an input event: a course's Atlas controls
+    // (DEENT's atlas_ui.js) listen for the event and write a count of their own
+    const defSearch = await page.evaluate(() => { const q = document.getElementById('atq'); q.value = 'zylonol'; q.oninput();
+      const t = document.getElementById('atCount').textContent.trim(); q.value = ''; q.oninput(); return t; });
     const own = await draw({atlasTitle: 'Structure atlas', atlasNoun: ['structure', 'structures'], atlasExampleLabel: ''});
     if(w === 390){
       check(def.h2 === 'Functional group atlas' && def.intro.startsWith(`${n + 3} groups,`) && def.ph === 'Find a group…' &&
@@ -322,7 +324,7 @@ const NAMES = ['Zylonol', 'Quarbate', 'Fenmorine'];
       // the count leaves out a tile a class hides, not only one the search hides
       const st = document.createElement('style'); st.textContent = '.uxgone{display:none}'; document.head.appendChild(st);
       tiles[2].classList.add('uxgone');
-      const q = el.querySelector('#atq'); q.value = ''; q.dispatchEvent(new Event('input'));
+      const q = el.querySelector('#atq'); q.value = ''; q.oninput();
       r.count = el.querySelector('#atCount').textContent.trim();
       r.total = el.querySelectorAll('.attile').length;
       return r;
