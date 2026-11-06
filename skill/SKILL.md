@@ -23,8 +23,21 @@ Reusable logic goes to the kit; one course's data stays in its repo.
 1. **Attach `exam-drill-kit` with push access**, alongside the course repo (`add_repo`
    with access "push"). A read-only copy cannot open pull requests. If push access to
    the kit is refused, stop and tell Louis; do not continue without the kit.
-2. **Read from the kit:** `KIT_DESIGN.md` §7 and §12 (the standing principles and the
-   approved design changes), `FEATURES.md`, `COURSES.md`, and `core/README.md`.
+2. **Read from the kit:** in every mode, `KIT_DESIGN.md` §7 and §12 (the standing
+   principles and the approved design changes) and the `COURSES.md` entry of the course
+   the mode names. Then, by task:
+   - `FEATURES.md` in full in Modes 1, 2 (design check) and 6, where features are chosen
+     or compared; in other modes, the entries of the features the course's `course.js`
+     switches on and of any feature the task names.
+   - `core/README.md`: its section list (`grep -n '^## ' core/README.md`) and each section
+     the task touches. Read "Storage", "Start-up and the saved progress" and "Answer
+     history and the Home Screen card" in full for any change that touches progress
+     storage, import, recovery or history, and "The scheduler" for any scheduling change.
+     Mode 1, and moving a course onto the core, read the whole file.
+   - Mode 7: the `CHANGELOG.md` entries since the course's kit pin, and the
+     `core/README.md` sections they concern.
+   - Before repeating an investigation, review or check, read the newest handoff note on
+     the pull request concerned (`review/handoff-format.md`) and what was posted after it.
 3. **Read from the course repo:** `CLAUDE.md`, the last 7 entries of `reviews/LOG.md`,
    and `reviews/OPEN_QUESTIONS.md`.
 4. **Look before asking.** Check the course's Google Drive folder and, when the session
