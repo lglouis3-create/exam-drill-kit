@@ -17,6 +17,8 @@ const REFUSE = () => {
     if(this === window.localStorage && window.__refuse && window.__refuse.some(r => String(k).includes(r))) throw new DOMException('The quota has been exceeded.', 'QuotaExceededError');
     if(this === window.sessionStorage && window.__refuseSess && window.__refuseSess.some(r => String(k).includes(r))) throw new DOMException('The quota has been exceeded.', 'QuotaExceededError');
     return set.call(this, k, v); };
+  const rem = Storage.prototype.removeItem;
+  Storage.prototype.removeItem = function(k){ if(this === window.sessionStorage && window.__refuseRemove && window.__refuseRemove.some(r => String(k).includes(r))) throw new DOMException('refused', 'SecurityError'); return rem.call(this, k); };
 };
 (async () => {
   const {browser} = await L.launch(NAME);
@@ -189,7 +191,7 @@ const REFUSE = () => {
     const latest = await set(1, 1);                                    // refused, and its copy refused too
     check(pre.copy && latest !== mid, 'precondition: the first refused save left a tab copy, and the second answer differs', Object.assign({}, pre, {latest, mid}));
     const w = await a.evaluate(m => { const raw = sessionStorage.getItem(NS + ':exam-copy:' + PROFILE); const c = raw ? JSON.parse(raw) : null;
-      return {text: (document.getElementById('savewarn') || {}).textContent || '', copyOk: EXAM_COPY_OK, staleCopy: !!c && JSON.stringify(c.paper.picks) === m}; }, mid);
+      return {text: (document.getElementById('savewarn') || {}).textContent || '', copyOk: typeof examCopyCurrent === 'function' ? examCopyCurrent(PROFILE) : EXAM_COPY_OK, staleCopy: !!c && JSON.stringify(c.paper.picks) === m}; }, mid);
     check(/did not save your exam paper in progress/.test(w.text) && /Closing or reloading this page loses them/.test(w.text) && !/brings them back after a reload/.test(w.text) && !w.copyOk && !w.staleCopy,
       'a refused paper whose tab copy is refused too: the notice says closing or reloading loses its answers, and no earlier copy is left for a reload', Object.assign({}, w, {text: w.text.slice(0, 220)}));
     const me = await a.evaluate(() => PROFILE);
@@ -214,6 +216,152 @@ const REFUSE = () => {
       'after a real reload in that state: the stored paper comes back (the refused answers lost, as the notice said), not the earlier tab copy', Object.assign({}, rl, {stored0, mid}));
     check(!e6.length, 'a refused tab copy: no page errors', e6.slice(0, 2).join('; '));
     await c6.close();
+  }
+  // the review of 213331a: profiles and tabs. Helpers for one page: answer question i of the running paper,
+  // switch profile (every question accepted), the notice's text, an export's paper
+  const H = {
+    set: (a, i, v) => a.evaluate(([i, v]) => { const q = EX.qs[i]; EX.picks[i] = isMulti(q) ? [v] : (q.type === 'numeric' ? String(v) : v); saveExam(); return JSON.stringify(EX.picks); }, [i, v]),
+    start: async a => { await a.evaluate(() => { show('exam'); const b = document.getElementById('startExam'); if(b) b.click(); }); await a.waitForFunction(() => EX && EX.running, null, {timeout: 5000}); },
+    to: async (a, p) => { await a.evaluate(p => { window.confirm = () => true; useProfile(p); }, p); await a.waitForFunction(p => PROFILE === p, p, {timeout: 8000}).catch(() => {});
+      await a.waitForFunction(() => typeof WRITER === 'undefined' || (WRITER === 'held' && WRITER_FOR === PROFILE) || WRITER === 'none', null, {timeout: 20000}).catch(() => {}); await a.waitForTimeout(300); },
+    text: a => a.evaluate(() => (document.getElementById('savewarn') || {}).textContent || ''),
+    exported: async a => { const [dl] = await Promise.all([a.waitForEvent('download', {timeout: 5000}).catch(() => null), a.evaluate(() => exportProgress())]); const ex = dl ? JSON.parse(fs.readFileSync(await dl.path(), 'utf8')) : {}; return ex.exam ? JSON.stringify(ex.exam.picks) : null; },
+    open: async () => { const o = await L.openFile(browser, {}, REFUSE); o.page.on('dialog', d => d.accept().catch(() => {}));
+      await o.page.waitForFunction(() => typeof WRITER === 'undefined' || WRITER === 'held' || WRITER === 'none', null, {timeout: 8000}).catch(() => {}); return o; },
+  };
+  const SAYS_COPY = /brings them back after a reload of this tab/, SAYS_LOSES = /Closing or reloading this page loses them/;
+  {
+    // M1: the copy text is worked out per profile. "me": its copy refused; "qq": its copy kept
+    const {ctx: c7, page: a, errors: e7} = await H.open();
+    const me = await a.evaluate(() => PROFILE);
+    await H.start(a); const q1 = await H.set(a, 0, 0);                // stored
+    await a.evaluate(p => { window.__refuse = [':exam:']; window.__refuseSess = [':exam-copy:' + p]; }, me);
+    await H.set(a, 1, 1);                                              // refused, its copy refused too
+    const t0 = await H.text(a);
+    await H.to(a, 'qq'); await H.start(a); await H.set(a, 0, 1);       // qq: refused, its copy kept
+    const tq = await H.text(a);
+    await H.to(a, me); await a.evaluate(() => show('exam')); await a.waitForTimeout(300);
+    const t1 = await H.text(a);
+    check(SAYS_LOSES.test(t0) && SAYS_COPY.test(tq) && SAYS_LOSES.test(t1) && !SAYS_COPY.test(t1),
+      'per profile: back on a profile whose copy was refused, after another profile\'s copy was kept, the notice still says closing or reloading loses its answers', {t0: t0.slice(100, 220), tq: tq.slice(100, 220), t1: t1.slice(100, 220)});
+    // what a reload does in that state: the answers after the stored save are lost, as the notice said
+    await a.evaluate(() => { window.__refuse = null; window.__refuseSess = null; });
+    await a.reload(); await a.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+    await a.evaluate(() => show('exam')); await a.waitForTimeout(300);
+    const rl = await a.evaluate(p => ({on: PROFILE === p, picks: EX ? JSON.stringify(EX.picks) : null}), me);
+    check(rl.on && rl.picks === q1, 'and after a real reload the paper as stored comes back, without the refused answer, as the notice said', Object.assign({}, rl, {q1}));
+    check(!e7.length, 'per profile (copy refused here, kept there): no page errors', e7.slice(0, 2).join('; '));
+    await c7.close();
+  }
+  {
+    // M1, the other order: "me" keeps its copy, "qq"'s copy is refused; back on "me" the notice says its copy brings the answers back
+    const {ctx: c8, page: a, errors: e8} = await H.open();
+    const me = await a.evaluate(() => PROFILE);
+    await H.start(a); await H.set(a, 0, 0);
+    await a.evaluate(() => { window.__refuse = [':exam:']; window.__refuseSess = [':exam-copy:qq']; });
+    const latest = await H.set(a, 1, 1);                               // refused, its copy kept
+    await H.to(a, 'qq'); await H.start(a); await H.set(a, 0, 1);       // qq: refused, its copy refused
+    const tq = await H.text(a);
+    await H.to(a, me); await a.evaluate(() => show('exam')); await a.waitForTimeout(300);
+    const t1 = await H.text(a);
+    check(SAYS_LOSES.test(tq) && SAYS_COPY.test(t1), 'per profile: back on a profile whose copy was kept, after another profile\'s copy was refused, the notice says this tab\'s copy brings its answers back', {tq: tq.slice(100, 220), t1: t1.slice(100, 220)});
+    await a.evaluate(() => { window.__refuse = null; window.__refuseSess = null; });
+    await a.reload(); await a.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+    await a.evaluate(() => show('exam')); await a.waitForTimeout(300);
+    const rl = await a.evaluate(() => EX ? JSON.stringify(EX.picks) : null);
+    check(rl === latest, 'and a real reload brings that paper back from the copy, with the latest answer', {rl, latest});
+    check(!e8.length, 'per profile (copy kept here, refused there): no page errors', e8.slice(0, 2).join('; '));
+    await c8.close();
+  }
+  // M2 and M3: tab A holds a refused answer on "me" and leaves the profile; tab B opens "me", then either
+  // submits the stored paper (M2) or answers another question on it (M3), and closes; A comes back
+  const twoTabs = async bAct => {
+    const {ctx, page: a, errors} = await H.open();
+    const me = await a.evaluate(() => PROFILE);
+    await H.start(a); const q1 = await H.set(a, 0, 0);                 // stored
+    await a.evaluate(() => { window.__refuse = [':exam:']; });
+    const mine = await H.set(a, 1, 1);                                 // refused; A's copy kept
+    await H.to(a, 'qq');
+    const b = await ctx.newPage(); b.on('dialog', d => d.accept().catch(() => {}));
+    await b.goto(a.url()); await b.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+    if(await b.evaluate(p => PROFILE !== p, me)) await H.to(b, me);
+    await b.waitForFunction(() => typeof WRITER === 'undefined' || (WRITER === 'held' && WRITER_FOR === PROFILE) || WRITER === 'none', null, {timeout: 20000}).catch(() => {});
+    await b.evaluate(() => show('exam')); await b.waitForTimeout(300);
+    const bState = await b.evaluate(() => ({running: !!(EX && EX.running), picks: EX ? JSON.stringify(EX.picks) : null}));
+    const bOut = await bAct(b);
+    await b.close();
+    // A comes back to "me" once B's lock is free (a closed tab frees it a moment later): switched again until A holds it
+    let held = false;
+    for(let t = 0; t < 6 && !held; t++){
+      if(t){ await H.to(a, 'qq'); await a.waitForTimeout(500); }
+      await H.to(a, me);
+      held = await a.evaluate(p => typeof WRITER === 'undefined' || WRITER === 'none' || (WRITER === 'held' && WRITER_FOR === p), me);
+    }
+    check(held, 'precondition: tab A holds the profile again after tab B closed');
+    await a.evaluate(() => show('exam')); await a.waitForTimeout(500);
+    return {ctx, a, errors, me, q1, mine, bState, bOut};
+  };
+  {
+    const r = await twoTabs(b => b.evaluate(() => { finishExam(false); return LOG.filter(e => e[3] === 'exam').length; }));
+    check(r.bState.running && r.bState.picks === r.q1 && r.bOut > 0, 'precondition: tab B opened the stored paper and submitted it', {bState: r.bState, examEntries: r.bOut});
+    const st = await r.a.evaluate(() => ({running: !!(EX && EX.running), logged: LOG.filter(e => e[3] === 'exam').length, risk: atRiskAll(), text: (document.getElementById('savewarn') || {}).textContent || ''}));
+    check(!st.running && st.logged === r.bOut, 'a paper submitted in another tab does not run again here, and its answers are recorded once', Object.assign({}, st, {text: undefined, bLogged: r.bOut}));
+    const ex = await H.exported(r.a);
+    check(st.risk && /submitted in another tab/.test(st.text) && ex === r.mine,
+      'this page\'s refused answers on that submitted paper are not lost silently: still at risk, the notice says it was submitted in another tab, and Export holds them', {risk: st.risk, text: st.text.slice(100, 300), exported: ex, mine: r.mine});
+    // a new paper asks first while they are not exported (here: just exported, so it starts; then nothing is at risk)
+    const asked = []; r.a.removeAllListeners('dialog'); r.a.on('dialog', d => { asked.push(d.message()); d.dismiss().catch(() => {}); });
+    await r.a.evaluate(() => { EXPORTED_SNAP = null; window.confirm = m => { window.__asked = m; return false; }; const b = document.getElementById('startExam'); if(b) b.click(); });
+    const nw = await r.a.evaluate(() => ({asked: window.__asked || '', running: !!(EX && EX.running)}));
+    check(/submitted in another tab are lost when a new paper starts/.test(nw.asked) && !nw.running, 'a new paper on that profile asks first while those answers are not exported; declined, they stay', nw);
+    check(!r.errors.length, 'a paper submitted in another tab: no page errors', r.errors.slice(0, 2).join('; '));
+    await r.ctx.close();
+  }
+  {
+    const r = await twoTabs(async b => { const v = await H.set(b, 2, 1); return {v, stored: await b.evaluate(() => localStorage.getItem(NS + ':exam:' + PROFILE))}; });
+    check(r.bState.running && r.bState.picks === r.q1 && r.bOut.stored && JSON.parse(r.bOut.stored).picks && JSON.stringify(JSON.parse(r.bOut.stored).picks) === r.bOut.v, 'precondition: tab B opened the stored paper and stored another answer on it', {bState: r.bState, b: r.bOut.v});
+    const st = await r.a.evaluate(() => ({wall: !!(document.getElementById('stalewarn') || document.getElementById('stopwall')), running: !!(EX && EX.running), risk: atRiskAll()}));
+    // the page tries to write anyway (its next save): nothing over B's paper
+    await r.a.evaluate(() => { window.__refuse = null; if(EX){ EX.picks[3] = EX.picks[3]; saveExam(); } else { try { const raw = MEM[NS + ':exam:' + PROFILE]; const p = JSON.parse(raw); EX = {qs: p.ids.map(byId), i: 0, picks: p.picks, orders: p.orders, running: true, done: false, ends: p.ends}; saveExam(); EX = null; } catch(e){} } });
+    const after = await r.a.evaluate(() => localStorage.getItem(NS + ':exam:' + PROFILE));
+    const ex = await H.exported(r.a);
+    check(st.wall && !st.running && after === r.bOut.stored, 'another tab\'s newer stored paper: this page stops with the saved-elsewhere wall and never writes over it', Object.assign({}, st, {unchanged: after === r.bOut.stored}));
+    check(st.risk && ex === r.mine, 'this page\'s own refused paper stays at risk and in Export', {risk: st.risk, exported: ex, mine: r.mine});
+    check(!r.errors.length, 'another tab\'s newer paper: no page errors', r.errors.slice(0, 2).join('; '));
+    await r.ctx.close();
+  }
+  {
+    // M3, at the save itself: another writer (a tab without Web Locks, or one that wrote while this page was not
+    // looking) stores a different paper while this page's paper runs; this page's next answer writes nothing over it
+    const {ctx: c10, page: a, errors: e10} = await H.open();
+    await H.start(a); await H.set(a, 0, 0);
+    const other = await a.evaluate(() => { const k = NS + ':exam:' + PROFILE, p = JSON.parse(localStorage.getItem(k)); p.picks[2] = isMulti(EX.qs[2]) ? [1] : 1; const v = JSON.stringify(p); localStorage.setItem(k, v); return v; });
+    await H.set(a, 1, 1);
+    const r = await a.evaluate(() => ({stored: localStorage.getItem(NS + ':exam:' + PROFILE), wall: !!(document.getElementById('stalewarn') || document.getElementById('stopwall'))}));
+    check(r.stored === other && r.wall, 'a different paper stored by another writer while this paper runs: the next save writes nothing over it and the page stops with the saved-elsewhere wall', {unchanged: r.stored === other, wall: r.wall});
+    check(!e10.length, 'another writer\'s paper at save time: no page errors', e10.slice(0, 2).join('; '));
+    await c10.close();
+  }
+  {
+    // S1: a refused paper stored at last: the notice goes at once. S2: the earlier copy cannot even be removed:
+    // a return to the profile keeps this page's latest paper
+    const {ctx: c9, page: a, errors: e9} = await H.open();
+    const me = await a.evaluate(() => PROFILE);
+    await H.start(a); await H.set(a, 0, 0);
+    await a.evaluate(() => { window.__refuse = [':exam:']; });
+    await H.set(a, 1, 0);                                               // refused, copy kept
+    await a.evaluate(() => { window.__refuseSess = [':exam-copy:']; window.__refuseRemove = [':exam-copy:']; });
+    const latest = await H.set(a, 1, 1);                               // refused; copy neither updated nor removed
+    const stale = await a.evaluate(l => { const c = JSON.parse(sessionStorage.getItem(NS + ':exam-copy:' + PROFILE) || 'null'); return !!c && JSON.stringify(c.paper.picks) !== l; }, latest);
+    await H.to(a, 'qq'); await H.to(a, me); await a.evaluate(() => show('exam')); await a.waitForTimeout(300);
+    const back = await a.evaluate(() => EX ? JSON.stringify(EX.picks) : null);
+    check(stale && back === latest && SAYS_LOSES.test(await H.text(a)), 'an earlier copy that cannot be removed: a return to the profile keeps the latest paper, and the notice does not count on the copy', {stale, back, latest});
+    await a.evaluate(() => { window.__refuse = null; window.__refuseSess = null; window.__refuseRemove = null; });
+    await H.set(a, 2, 1);                                              // stored at last
+    const s1 = await a.evaluate(() => ({failed: FAILED.has(NS + ':exam:' + PROFILE), notice: !!document.getElementById('savewarn'), risk: atRiskAll()}));
+    check(!s1.failed && !s1.notice && !s1.risk, 'the refused paper stored at last: the notice goes at once and nothing is at risk', s1);
+    check(!e9.length, 'stored at last: no page errors', e9.slice(0, 2).join('; '));
+    await c9.close();
   }
   // real browser storage: with localStorage full, sessionStorage still takes a write (separate quota)
   {

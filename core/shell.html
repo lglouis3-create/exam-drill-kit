@@ -644,8 +644,16 @@ let SAVE_WARN_LOG = false;
 let REC_OFF = false;   // storage full: this tab has no per-tab record (#45) of its last save (pendingAfter, dropOwnRecordIfStored)
 const REC_OFF_TEXT = 'While storage is full, this tab cannot keep the record that protects its last save when it closes without handing over to another open tab of this drill.';
 const hereRefused = () => { try { return FAILED.has(keyFor(PROFILE)) || FAILED.has(logKey()) || FAILED.has(NS + ':exam:' + PROFILE); } catch(e){ return FAILED.size > 0; } };
-let EXAM_COPY_OK = false;   // this tab's sessionStorage copy of the refused paper was written (views.js saveExam)
-const examCopyText = () => EXAM_COPY_OK ? ' A copy kept by this tab brings them back after a reload of this tab; closing the tab loses them.' : ' Closing or reloading this page loses them.';
+/* Whether this tab's sessionStorage copy of profile p's refused paper is the paper this page holds for
+   it (views.js saveExam): worked out per profile when the notice is drawn, never one flag for the page,
+   so another profile's copy never stands in for this one's (the review of 213331a, M1). */
+const examCopyCurrent = p => { try { const k = NS + ':exam:' + p, raw = sessionStorage.getItem(NS + ':exam-copy:' + p); if(!raw || !FAILED.has(k)) return false; const c = JSON.parse(raw); return !!c && JSON.stringify(c.paper) === MEM[k]; } catch(e){ return false; } };
+/* Profiles whose refused paper was submitted in another tab without this page's last answers on it
+   (views.js restoreExam; the review of 213331a, M2): the paper does not run again here, and those
+   answers stay on this page for Export. */
+const EXAM_ELSEWHERE = new Set();
+const examCopyText = () => EXAM_ELSEWHERE.has(PROFILE) ? ' That paper was then submitted in another tab without these answers, so it does not run again here; closing or reloading this page loses them.'
+  : examCopyCurrent(PROFILE) ? ' A copy kept by this tab brings them back after a reload of this tab; closing the tab loses them.' : ' Closing or reloading this page loses them.';
 const EXAM_REFUSED_TEXT_ = () => ' The exam paper in progress was not saved either: its answers are kept on this page.' + examCopyText() + ' Export progress keeps them in the file (Import does not read a paper back).';
 const progLogRefused = () => { try { return FAILED.has(keyFor(PROFILE)) || FAILED.has(logKey()); } catch(e){ return false; } };
 const saveWarnText = () => (hereRefused() ? (progLogRefused() ? 'This browser did not save your progress' + (SAVE_WARN_LOG ? ' or answer history' : '') +
@@ -868,7 +876,7 @@ function takeOver(force){
         // drop it, so the Exam sim tab reads the paper from storage again
         try { if(typeof EX !== 'undefined' && EX){ clearInterval(EX.timer); EX = null; } } catch(e){}
         // the stored paper opens: this tab's copy of a refused one goes too (asked first, above)
-        try { sessionStorage.removeItem(NS + ':exam-copy:' + p); EXAM_COPY_OK = false; } catch(e){}
+        try { sessionStorage.removeItem(NS + ':exam-copy:' + p); } catch(e){} EXAM_ELSEWHERE.delete(p);
         stopWall(null);
         NEW_LOGS[p] = []; WROTE_SINCE_CLAIM = false; settlePendingSoon(); capNotice();
         if(KEPT_COPY){ KEPT_COPY = false; setTimeout(() => alert('The answers and settings this page had not saved are kept as a copy: Settings, "Put back the progress from …". The progress on screen now is the stored one.'), 0); }

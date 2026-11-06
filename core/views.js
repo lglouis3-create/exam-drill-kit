@@ -2331,17 +2331,30 @@ const paperId = p => { try { return String(p.ends) + '|' + String(p.started) + '
    as before. */
 const untimedPaper = () => !!EX && EX.ends === null && typeof EX.started === 'number';
 // written, and removed, only when the saved progress was loaded (canSave in shell.html)
+/* Another tab stored a different paper for this profile since this page last read or kept one there
+   (KEPT, as for the progress's SEEN): this page never writes over it (the review of 213331a, M3). A paper
+   that is gone is a submitted one, which the submitted-paper list covers. */
+const examSavedElsewhere = () => { const k = EXAM_KEY(); return (k in KEPT) && savedElsewhere(k, KEPT[k]); };
 function saveExam(){
   if(!EX || !EX.running || !canSave()) return;
-  if(profileSavedElsewhere()){ staleWarn(); return; }   // never over another tab's paper
+  if(profileSavedElsewhere() || examSavedElsewhere()){ staleWarn(); return; }   // never over another tab's paper
   const paper = {ids:EX.qs.map(q=>q.id), picks:EX.picks, orders:EX.orders, i:EX.i, ends:EX.ends};
   if(untimedPaper()) paper.started = EX.started;
-  if(store.set(EXAM_KEY(), JSON.stringify(paper))){ try { sessionStorage.removeItem(EXAM_COPY_KEY()); } catch(e){} EXAM_COPY_OK = false; }
+  const k = EXAM_KEY(), was = FAILED.has(k);
+  if(store.set(k, JSON.stringify(paper))){
+    try { sessionStorage.removeItem(EXAM_COPY_KEY()); } catch(e){}
+    // stored at last: the notice follows at once (the review of 213331a, S1)
+    if(was){ try { refreshSaveWarn(); } catch(e){} }
+  }
   // refused: this tab keeps a copy for a reload, with what was stored then (over), so a reload takes
-  // the copy only while nothing newer was stored since
-  // copy refused too: the earlier copy is removed, since it lacks these answers and a reload must not
-  // bring it back as if it held them (the review of b6de043); the notice then says a reload loses them
-  else { let ok = false; try { sessionStorage.setItem(EXAM_COPY_KEY(), JSON.stringify({paper, over: storedNow(EXAM_KEY())})); ok = true; } catch(e){ try { sessionStorage.removeItem(EXAM_COPY_KEY()); } catch(e2){} } if(ok !== EXAM_COPY_OK){ EXAM_COPY_OK = ok; try { refreshSaveWarn(); } catch(e){} } }
+  // the copy only while nothing newer was stored since. Copy refused too: the earlier copy is removed,
+  // since it lacks these answers and a reload must not bring it back as if it held them (the review of
+  // b6de043); the notice, drawn per profile, then says a reload loses them
+  else {
+    try { sessionStorage.setItem(EXAM_COPY_KEY(), JSON.stringify({paper, over: storedNow(k)})); }
+    catch(e){ try { sessionStorage.removeItem(EXAM_COPY_KEY()); } catch(e2){} }
+    try { refreshSaveWarn(); } catch(e){}
+  }
 }
 function clearExam(){
   if(!canSave()) return;
@@ -2355,31 +2368,47 @@ function clearExam(){
     // come back; the review of 8ff9351), written after the delete so it can use the room that frees;
     // if refused even so, a duplicated tab's copy could still come back
     if(id){ const done = examDoneList().filter(x => x !== id).concat([id]).slice(-20); store.trySet(EXAM_DONE_KEY(), JSON.stringify(done)); }
-    EXAM_COPY_OK = false;
+    EXAM_ELSEWHERE.delete(PROFILE);
   }
 }
 /* A paper saved by an earlier visit is brought back if its clock has not run
    out; otherwise it is submitted as it stands. */
 function restoreExam(){
+  const k = EXAM_KEY();
   let j = null;
-  try { j = JSON.parse(store.get(EXAM_KEY()) || 'null'); } catch(e) { j = null; }
-  // this tab's own copy of a refused save, when it is newer than what is stored
-  // (never a paper submitted since, in this tab or a duplicate of it: the marker clearExam leaves)
-  try {
-    const c = JSON.parse(sessionStorage.getItem(EXAM_COPY_KEY()) || 'null');
-    if(c && c.paper && c.paper.ids){
-      if(examDoneList().includes(paperId(c.paper))) sessionStorage.removeItem(EXAM_COPY_KEY());
-      // this page already holds a refused paper for this profile (a return to it without a reload): that
-      // one is the latest, and the tab's copy is never newer than it (the review of b6de043)
-      else if(FAILED.has(EXAM_KEY())){}
-      else if(storedNow(EXAM_KEY()) === c.over){
-        j = c.paper;
-        // still not stored: it counts as a refused save, so it stays protected and is what Export writes
-        // (the review of 383ba7d, M1); the next save tries the browser again
-        const k = EXAM_KEY(); MEM[k] = JSON.stringify(c.paper); FAILED.add(k); EXAM_COPY_OK = true; saveWarn(k);
-      }
+  try { j = JSON.parse(store.get(k) || 'null'); } catch(e) { j = null; }
+  if(FAILED.has(k)){
+    // this page holds a refused paper for this profile (a return to it without a reload): it is the latest
+    // this page has, and the tab's copy is never newer than it (the review of b6de043). But another tab may
+    // have acted on the profile meanwhile (the review of 213331a):
+    // M2, it submitted the paper: it does not run again (its answers would be recorded twice); this page's
+    // answers on it that were never stored stay refused, so they stay on this page, in Export and asked
+    // about, and the notice says the paper was submitted elsewhere
+    if(j && examDoneList().includes(paperId(j))){
+      EXAM_ELSEWHERE.add(PROFILE); try { sessionStorage.removeItem(EXAM_COPY_KEY()); } catch(e){}
+      try { refreshSaveWarn(); } catch(e){}
+      return false;
     }
-  } catch(e){}
+    // M3, it stored another paper: this page stops, as for progress saved in another tab (the wall,
+    // with Export); its own paper stays refused and in Export, and nothing is written over the other
+    if(examSavedElsewhere()){ staleWarn(); return false; }
+  } else {
+    KEPT[k] = storedNow(k);   // what is stored as this page last read it (examSavedElsewhere)
+    // this tab's own copy of a refused save, when it is newer than what is stored
+    // (never a paper submitted since, in this tab or a duplicate of it: the marker clearExam leaves)
+    try {
+      const c = JSON.parse(sessionStorage.getItem(EXAM_COPY_KEY()) || 'null');
+      if(c && c.paper && c.paper.ids){
+        if(examDoneList().includes(paperId(c.paper))) sessionStorage.removeItem(EXAM_COPY_KEY());
+        else if(storedNow(k) === c.over){
+          j = c.paper;
+          // still not stored: it counts as a refused save, so it stays protected and is what Export writes
+          // (the review of 383ba7d, M1); the next save tries the browser again
+          MEM[k] = JSON.stringify(c.paper); FAILED.add(k); saveWarn(k);
+        }
+      }
+    } catch(e){}
+  }
   if(!j || !j.ids) return false;
   const qs = j.ids.map(byId); if(qs.some(q => !q)) { clearExam(); return false; }
   EX = {qs, i:Math.min(j.i||0, qs.length-1), picks:j.picks, orders:j.orders, running:true, done:false, ends:j.ends};
@@ -2407,6 +2436,13 @@ function startClock(){
   }, 1000);
 }
 function beginExam(){
+  // the paper submitted in another tab still has answers only this page holds (restoreExam, M2): a new
+  // paper replaces them, so it asks first while they are not exported
+  const k = EXAM_KEY();
+  if(FAILED.has(k) && EXAM_ELSEWHERE.has(PROFILE)){
+    if(snapHere() !== EXPORTED_SNAP && !confirm('The answers this page had not saved on the paper submitted in another tab are lost when a new paper starts, unless you export them first (Export progress). Start a new paper?')) return;
+    delete MEM[k]; keptNow(k); EXAM_ELSEWHERE.delete(PROFILE); try { refreshSaveWarn(); } catch(e){}
+  }
   const qs = drawPaper();
   EX = {qs, i:0, picks:qs.map(q => isMulti(q) ? [] : null), running:true, done:false,
         ends: Date.now() + EXAM.minutes*60000, orders: qs.map(q=>shuffle(q.options.map((o,k)=>k)))};
