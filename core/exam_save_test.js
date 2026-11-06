@@ -149,7 +149,8 @@ const REFUSE = () => {
       await a.waitForFunction(() => WRITER === 'other', null, {timeout: 8000}).catch(() => {});
       await b.close();
       await a.evaluate(() => takeOver(false)); await a.waitForFunction(() => WRITER === 'held', null, {timeout: 20000}).catch(() => {});
-      const r = await a.evaluate(() => ({w: WRITER, copies: (JSON.parse(localStorage.getItem(NS + ':backup:' + PROFILE) || '[]')).length, copyLeft: !!sessionStorage.getItem(NS + ':exam-copy:' + PROFILE)}));
+      const r = await a.evaluate(() => ({w: WRITER, copies: (JSON.parse(localStorage.getItem(NS + ':backup:' + PROFILE) || '[]')).length, copyLeft: !!sessionStorage.getItem(NS + ':exam-copy:' + PROFILE), notice: !!document.getElementById('savewarn'), failed: FAILED.size}));
+      check(!r.notice && !r.failed, '"Use it here" with only the paper refused: the notice about it goes at once', {notice: r.notice, failed: r.failed});
       check(r.w === 'held' && r.copies === 0 && !r.copyLeft && asked.some(m => /exam paper in progress on this page was not saved/.test(m)) && !asked.some(m => /kept as a copy/.test(m)),
         '"Use it here" with only the paper refused: it asks about the paper, makes no copy of the saved progress, and drops the tab\'s paper copy', Object.assign({}, r, {asked}));
     } else L.skip('"Use it here" with only the paper refused', 'no Web Locks here');
@@ -275,7 +276,7 @@ const REFUSE = () => {
   }
   // M2 and M3: tab A holds a refused answer on "me" and leaves the profile; tab B opens "me", then either
   // submits the stored paper (M2) or answers another question on it (M3), and closes; A comes back
-  const twoTabs = async bAct => {
+  const twoTabs = async (bAct, view) => {
     const {ctx, page: a, errors} = await H.open();
     const me = await a.evaluate(() => PROFILE);
     await H.start(a); const q1 = await H.set(a, 0, 0);                 // stored
@@ -298,7 +299,7 @@ const REFUSE = () => {
       held = await a.evaluate(p => typeof WRITER === 'undefined' || WRITER === 'none' || (WRITER === 'held' && WRITER_FOR === p), me);
     }
     check(held, 'precondition: tab A holds the profile again after tab B closed');
-    await a.evaluate(() => show('exam')); await a.waitForTimeout(500);
+    await a.evaluate(v => show(v || 'exam'), view); await a.waitForTimeout(500);
     return {ctx, a, errors, me, q1, mine, bState, bOut};
   };
   {
@@ -321,6 +322,8 @@ const REFUSE = () => {
     const r = await twoTabs(async b => { const v = await H.set(b, 2, 1); return {v, stored: await b.evaluate(() => localStorage.getItem(NS + ':exam:' + PROFILE))}; });
     check(r.bState.running && r.bState.picks === r.q1 && r.bOut.stored && JSON.parse(r.bOut.stored).picks && JSON.stringify(JSON.parse(r.bOut.stored).picks) === r.bOut.v, 'precondition: tab B opened the stored paper and stored another answer on it', {bState: r.bState, b: r.bOut.v});
     const st = await r.a.evaluate(() => ({wall: !!(document.getElementById('stalewarn') || document.getElementById('stopwall')), running: !!(EX && EX.running), risk: atRiskAll()}));
+    const wt = await r.a.evaluate(() => { const w = document.getElementById('stalewarn') || document.getElementById('stopwall'); return w ? {text: w.textContent, take: !!w.querySelector('#stopTake'), why: w.dataset.why} : null; });
+    check(wt && (wt.take || !/Use it here/.test(wt.text)), 'the saved-in-another-tab wall names "Use it here" only when it has that button', wt && {why: wt.why, take: wt.take, names: /Use it here/.test(wt.text)});
     // the page tries to write anyway (its next save): nothing over B's paper
     await r.a.evaluate(() => { window.__refuse = null; if(EX){ EX.picks[3] = EX.picks[3]; saveExam(); } else { try { const raw = MEM[NS + ':exam:' + PROFILE]; const p = JSON.parse(raw); EX = {qs: p.ids.map(byId), i: 0, picks: p.picks, orders: p.orders, running: true, done: false, ends: p.ends}; saveExam(); EX = null; } catch(e){} } });
     const after = await r.a.evaluate(() => localStorage.getItem(NS + ':exam:' + PROFILE));
@@ -329,6 +332,29 @@ const REFUSE = () => {
     check(st.risk && ex === r.mine, 'this page\'s own refused paper stays at risk and in Export', {risk: st.risk, exported: ex, mine: r.mine});
     check(!r.errors.length, 'another tab\'s newer paper: no page errors', r.errors.slice(0, 2).join('; '));
     await r.ctx.close();
+  }
+  {
+    // N1 (the review of bd9f551): the same two cases with A back on the Quiz tab, so the Exam sim tab never opens;
+    // the notice must not promise a copy that a reload would not take
+    const ra = await twoTabs(b => b.evaluate(() => { finishExam(false); return LOG.filter(e => e[3] === 'exam').length; }), 'quiz');
+    const ta = await H.text(ra.a);
+    check(!SAYS_COPY.test(ta) && /submitted in another tab/.test(ta) && await ra.a.evaluate(() => atRiskAll()),
+      'back on the Quiz tab after another tab submitted the paper: the notice says it was submitted there and promises no copy; still at risk', {text: ta.slice(100, 330)});
+    await ra.a.evaluate(() => { window.__refuse = null; }); await ra.a.reload(); await ra.a.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+    await ra.a.evaluate(() => show('exam')); await ra.a.waitForTimeout(300);
+    const pa = await ra.a.evaluate(() => !!(EX && EX.running));
+    check(!pa, 'and a real reload indeed brings no paper back (the notice did not promise one)', {running: pa});
+    await ra.ctx.close();
+    const rb = await twoTabs(async b => { const v = await H.set(b, 2, 1); return {v, stored: await b.evaluate(() => localStorage.getItem(NS + ':exam:' + PROFILE))}; }, 'quiz');
+    await rb.a.waitForTimeout(500);
+    const tb = await H.text(rb.a), wb = await rb.a.evaluate(() => !!(document.getElementById('stalewarn') || document.getElementById('stopwall')));
+    check(wb && !SAYS_COPY.test(tb), 'back on the Quiz tab after another tab stored another paper: the saved-elsewhere wall at once, and the notice promises no copy', {wall: wb, text: tb.slice(100, 330)});
+    await rb.a.evaluate(() => { window.__refuse = null; }); await rb.a.reload(); await rb.a.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+    await rb.a.evaluate(() => show('exam')); await rb.a.waitForTimeout(300);
+    const pb = await rb.a.evaluate(() => EX ? JSON.stringify(EX.picks) : null);
+    check(pb === rb.bOut.v, 'and a real reload opens the other tab\'s paper (the notice did not promise this page\'s)', {pb, b: rb.bOut.v});
+    check(!ra.errors.length && !rb.errors.length, 'the Quiz-tab returns: no page errors', ra.errors.concat(rb.errors).slice(0, 2).join('; '));
+    await rb.ctx.close();
   }
   {
     // M3, at the save itself: another writer (a tab without Web Locks, or one that wrote while this page was not

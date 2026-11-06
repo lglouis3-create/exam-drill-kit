@@ -2371,6 +2371,30 @@ function clearExam(){
     EXAM_ELSEWHERE.delete(PROFILE);
   }
 }
+/* A return to a profile for which this page holds a refused paper: another tab may have acted on it
+   meanwhile (the review of 213331a). Called by restoreExam, and on the return itself (useProfile, and
+   once this page holds the profile's lock), so the notice and the wall are right at once (the review of
+   bd9f551, N1). Returns what it found: 'done', 'stale' or ''.
+   M2, it submitted the paper: it does not run again (its answers would be recorded twice); what this
+   page never stored on it stays refused, so it stays on this page, in Export and asked about, and the
+   notice says the paper was submitted elsewhere.
+   M3, it stored another paper: this page stops, as for progress saved in another tab (the wall, with
+   Export); its own paper stays refused and in Export, and nothing is written over the other. While the
+   lock is still being asked for, that is decided once it is held. */
+function examOnReturn(){
+  const k = EXAM_KEY();
+  if(!FAILED.has(k)) return '';
+  let j = null; try { j = JSON.parse(MEM[k] || 'null'); } catch(e){ j = null; }
+  if(j && examDoneList().includes(paperId(j))){
+    if(!EXAM_ELSEWHERE.has(PROFILE)){ EXAM_ELSEWHERE.add(PROFILE); try { sessionStorage.removeItem(EXAM_COPY_KEY()); } catch(e){} try { refreshSaveWarn(); } catch(e){} }
+    return 'done';
+  }
+  if(examSavedElsewhere()){
+    if(typeof WRITER !== 'undefined' && WRITER === 'pending') return 'stale';
+    staleWarn(); try { refreshSaveWarn(); } catch(e){} return 'stale';
+  }
+  return '';
+}
 /* A paper saved by an earlier visit is brought back if its clock has not run
    out; otherwise it is submitted as it stands. */
 function restoreExam(){
@@ -2380,18 +2404,8 @@ function restoreExam(){
   if(FAILED.has(k)){
     // this page holds a refused paper for this profile (a return to it without a reload): it is the latest
     // this page has, and the tab's copy is never newer than it (the review of b6de043). But another tab may
-    // have acted on the profile meanwhile (the review of 213331a):
-    // M2, it submitted the paper: it does not run again (its answers would be recorded twice); this page's
-    // answers on it that were never stored stay refused, so they stay on this page, in Export and asked
-    // about, and the notice says the paper was submitted elsewhere
-    if(j && examDoneList().includes(paperId(j))){
-      EXAM_ELSEWHERE.add(PROFILE); try { sessionStorage.removeItem(EXAM_COPY_KEY()); } catch(e){}
-      try { refreshSaveWarn(); } catch(e){}
-      return false;
-    }
-    // M3, it stored another paper: this page stops, as for progress saved in another tab (the wall,
-    // with Export); its own paper stays refused and in Export, and nothing is written over the other
-    if(examSavedElsewhere()){ staleWarn(); return false; }
+    // have acted on the profile meanwhile (examOnReturn)
+    if(examOnReturn()) return false;
   } else {
     KEPT[k] = storedNow(k);   // what is stored as this page last read it (examSavedElsewhere)
     // this tab's own copy of a refused save, when it is newer than what is stored

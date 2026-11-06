@@ -546,18 +546,23 @@ With less room the old core still keeps more progress, because it deletes histor
     (the review of b6de043).
   - **Per profile:** whether the notice says "a copy kept by this tab brings them back" is worked out for
     the profile on screen when the notice is drawn: a copy exists for that profile and holds the paper this
-    page holds for it. Another profile's copy never counts (the review of 213331a, M1).
+    page holds for it. Another profile's copy never counts (the review of 213331a, M1). It counts only while
+    a reload would take it: the paper is not on that profile's submitted list, and what is stored is still
+    what was stored when the copy was made (the review of bd9f551, N1).
   - **Submitted in another tab:** when this page comes back to a profile whose refused paper another tab
     has since submitted (it is on the submitted-paper list), the paper does not run again, so its answers
     are recorded once. This page's answers on it that were never stored stay on the page, at risk and in
     Export, and the notice says the paper was submitted in another tab without them. Starting a new paper
-    there asks first while they are not exported (M2).
+    there asks first while they are not exported (M2). This is found on the return to the profile itself,
+    whatever tab is on screen, not only when the Exam sim tab opens (N1).
   - **Another tab's newer paper:** when this page comes back to a profile with a refused paper and finds a
     different paper stored than it last read or kept there, it stops with the saved-in-another-tab wall,
     as for progress; its own paper stays in Export, and nothing is written over the other. A save also
-    writes nothing over a paper stored by another writer since this page read it (M3).
+    writes nothing over a paper stored by another writer since this page read it (M3). The wall comes on
+    the return itself, once this page holds the profile's lock (N1). That wall offers Export and Reload;
+    its text names "Use it here" only on the walls that have that button.
   - **Stored at last:** once a refused paper is stored, the notice is redrawn at once, and goes when nothing
-    else is refused (S1).
+    else is refused (S1). "Use it here" redraws it too, once it has cleared the refused writes.
   - **"It is saved":** the new-version bar's "A paper is running. It is saved…" question is now asked
     only when the paper is saved.
   - **After a reload** that brings the paper back from the tab's copy, the paper still counts as refused

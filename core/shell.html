@@ -647,12 +647,18 @@ const hereRefused = () => { try { return FAILED.has(keyFor(PROFILE)) || FAILED.h
 /* Whether this tab's sessionStorage copy of profile p's refused paper is the paper this page holds for
    it (views.js saveExam): worked out per profile when the notice is drawn, never one flag for the page,
    so another profile's copy never stands in for this one's (the review of 213331a, M1). */
-const examCopyCurrent = p => { try { const k = NS + ':exam:' + p, raw = sessionStorage.getItem(NS + ':exam-copy:' + p); if(!raw || !FAILED.has(k)) return false; const c = JSON.parse(raw); return !!c && JSON.stringify(c.paper) === MEM[k]; } catch(e){ return false; } };
+/* It also counts only while a reload would really take it (views.js restoreExam): the paper is not on that
+   profile's submitted list, and what is stored is still what was stored when the copy was made (the
+   review of bd9f551, N1). */
+const examCopyCurrent = p => { try { const k = NS + ':exam:' + p, raw = sessionStorage.getItem(NS + ':exam-copy:' + p); if(!raw || !FAILED.has(k)) return false; const c = JSON.parse(raw);
+  if(!c || JSON.stringify(c.paper) !== MEM[k] || storedNow(k) !== c.over) return false;
+  let done = []; try { const d = storedNow(NS + ':exam-done:' + p); const v = d ? JSON.parse(d) : []; done = Array.isArray(v) ? v : [String(d)]; } catch(e){ done = [String(storedNow(NS + ':exam-done:' + p))]; }
+  return typeof paperId !== 'function' || !done.includes(paperId(c.paper)); } catch(e){ return false; } };
 /* Profiles whose refused paper was submitted in another tab without this page's last answers on it
    (views.js restoreExam; the review of 213331a, M2): the paper does not run again here, and those
    answers stay on this page for Export. */
 const EXAM_ELSEWHERE = new Set();
-const examCopyText = () => EXAM_ELSEWHERE.has(PROFILE) ? ' That paper was then submitted in another tab without these answers, so it does not run again here; closing or reloading this page loses them.'
+const examCopyText = () => EXAM_ELSEWHERE.has(PROFILE) ? ' That paper was then submitted in another tab from what was stored, without the changes this page had not saved; it does not run again here, and closing or reloading this page loses those changes.'
   : examCopyCurrent(PROFILE) ? ' A copy kept by this tab brings them back after a reload of this tab; closing the tab loses them.' : ' Closing or reloading this page loses them.';
 const EXAM_REFUSED_TEXT_ = () => ' The exam paper in progress was not saved either: its answers are kept on this page.' + examCopyText() + ' Export progress keeps them in the file (Import does not read a paper back).';
 const progLogRefused = () => { try { return FAILED.has(keyFor(PROFILE)) || FAILED.has(logKey()); } catch(e){ return false; } };
@@ -803,7 +809,7 @@ function claimProfile(p){
   }).then(ok => {
     if(PROFILE !== p || gen !== claimGen) return;
     // this profile's NEW_LOG keeps entries answered while the lock was asked for: flushWaiting saves them now
-    if(ok){ WRITER = 'held'; newRecordTime(p); WROTE_SINCE_CLAIM = false; MARK = 0; flushWaiting(); settlePendingSoon(); capNotice(); }   // past LOG_MAX: asked once this tab writes the profile (the review of aa8ab12, N1)
+    if(ok){ WRITER = 'held'; newRecordTime(p); WROTE_SINCE_CLAIM = false; MARK = 0; flushWaiting(); settlePendingSoon(); capNotice(); try { if(typeof examOnReturn === 'function') examOnReturn(); } catch(e){} }   // past LOG_MAX: asked once this tab writes the profile (the review of aa8ab12, N1)
     else if(WRITER === 'pending'){ WRITER = 'other'; WRITER_WHY = 'other'; EXAM_CLEAR_WAITING = ''; stopWall('other'); }
   });
 }
@@ -878,6 +884,7 @@ function takeOver(force){
         // the stored paper opens: this tab's copy of a refused one goes too (asked first, above)
         try { sessionStorage.removeItem(NS + ':exam-copy:' + p); } catch(e){} EXAM_ELSEWHERE.delete(p);
         stopWall(null);
+        try { refreshSaveWarn(); } catch(e){}   // what it said about the refused writes no longer holds (the review of bd9f551)
         NEW_LOGS[p] = []; WROTE_SINCE_CLAIM = false; settlePendingSoon(); capNotice();
         if(KEPT_COPY){ KEPT_COPY = false; setTimeout(() => alert('The answers and settings this page had not saved are kept as a copy: Settings, "Put back the progress from …". The progress on screen now is the stored one.'), 0); }
         else if(addedLog) setTimeout(() => alert('The answer history entries this page had not saved are added to the saved answer history.'), 0);
@@ -1223,10 +1230,12 @@ function stopWall(why){
   const c = document.createElement('div'); c.className = 'stopcard';
   const p = document.createElement('p'); p.textContent = STOP_TEXT[why] || STOP_TEXT.other; c.appendChild(p);
   const unsaved = why !== 'asking' && unsavedHere();
+  const takes = why === 'other' || why === 'gave' || why === 'taken' || why === 'late' || why === 'nocopy';   // the walls with "Use it here"
   if(unsaved){
     const u = document.createElement('p');
-    u.innerHTML = '<b>This page has answers or settings that are not saved.</b> Export them to a file before you reload or leave; Import progress can add them back. "Use it here" keeps them as a copy in Settings (Put back), or, when only answer history entries are not saved, adds them to the saved answer history, before it opens the stored progress.' +
-      (examUnsavedHere() ? ' <b>The exam paper in progress is not saved either.</b> Export keeps its answers in the file; "Use it here" opens the stored paper, and Import does not read a paper back.' : '');
+    u.innerHTML = '<b>This page has answers or settings that are not saved.</b> Export them to a file before you reload or leave; Import progress can add them back.' +
+      (takes ? ' "Use it here" keeps them as a copy in Settings (Put back), or, when only answer history entries are not saved, adds them to the saved answer history, before it opens the stored progress.' : '') +
+      (examUnsavedHere() ? ' <b>The exam paper in progress is not saved either.</b> Export keeps its answers in the file' + (takes ? '; "Use it here" opens the stored paper,' : ',') + ' and Import does not read a paper back.' : '');
     c.appendChild(u);
   }
   const row = document.createElement('div'); row.className = 'stoprow';
@@ -1234,8 +1243,8 @@ function stopWall(why){
   if(unsaved) btn('Export this page\'s progress', '', () => { try { exportProgress(); EXPORTED_SNAP = snapHere(); } catch(e){ alert('The export did not work: ' + (e && e.message || e)); } }, 'stopExport');
   if(why !== 'asking') for(const ap of awayRefused()) btn('Export "' + ap + '"', '', () => exportAway(ap)).dataset.away = ap;
   // taking the profile here keeps this page's unsaved progress as a copy (takeOver), then reads the stored one
-  if(why === 'other' || why === 'gave' || why === 'taken' || why === 'late' || why === 'nocopy') btn('Use it here', '', () => takeOver(false), 'stopTake');
-  if(why === 'other' || why === 'gave' || why === 'taken' || why === 'late' || why === 'nocopy') btn('Switch profile', 'ghost', () => {
+  if(takes) btn('Use it here', '', () => takeOver(false), 'stopTake');
+  if(takes) btn('Switch profile', 'ghost', () => {
     if(atRiskAll() && !confirm('The answers and settings this page has not saved are lost when it opens another profile, unless you export them first. Switch anyway?')) return;
     try { askProfile(true); if(typeof show === 'function') show(typeof VIEW !== 'undefined' ? VIEW : 'quiz'); } catch(e){}
   }, 'stopSwitch');
@@ -1771,6 +1780,9 @@ function useProfile(n){
   store.set(NS+':profile', PROFILE);
   load();
   claimProfile(PROFILE);
+  // a refused paper of this profile that another tab submitted or replaced meanwhile: found on the
+  // return itself, not only when the Exam sim tab opens (the review of bd9f551, N1)
+  try { if(typeof examOnReturn === 'function') examOnReturn(); } catch(e){}
   try { refreshSaveWarn(); } catch(e){}   // its text names this profile's or another profile's refused work
   const who = document.getElementById('whoName');
   if(who) who.textContent = PROFILE;
