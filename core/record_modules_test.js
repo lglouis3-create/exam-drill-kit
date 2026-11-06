@@ -325,10 +325,26 @@ L.PAGE.need(NAME);
     const r3 = await after(c.k);
     const sizes = await f.page.evaluate(k => ({rec: (localStorage.getItem(k) || '').length}), c.k);
     check(fill.refusedAlongside, 'the filler leaves too little room for the copy beside the record (the copy alone is refused)', fill);
-    const note3 = await f.page.evaluate(() => { const n = document.getElementById('pendingnote'); return n ? n.textContent : ''; });
-    check(r3.kept && !r3.copyInk, 'storage full (real quota filler): the record, the only stored copy of its DB.ink, stays in storage; no copy yet', {r3, fill, sizes});
-    check(/storage is full or blocked/.test(note3) && /stays stored in this browser/.test(note3) && /Export progress does not include it/.test(note3) && /next time this drill opens/.test(note3),
-      'storage full: the notice says the work is still stored in this browser, that Export does not include it, and when it becomes a copy', note3);
+    // whether the browser accepts the copy here depends on its own quota accounting (WebKit stored it in
+    // job 128109291119 although the probe beside the record was refused); either way the record stays
+    check(r3.kept, 'storage full (real quota filler): the record, the only stored copy of its DB.ink, stays in storage (whether or not the browser accepted its copy)', {r3, fill, sizes});
+    // the copy refused for certain (only the copy list's write is refused): no copy, the record stays, the notice says so
+    {
+      const q = await plant(INK);
+      const rq = await f.page.evaluate(k => {
+        const real = Storage.prototype.setItem, bk = NS + ':backup:' + PROFILE;
+        Storage.prototype.setItem = function(key, v){ if(key === bk) throw new DOMException('full', 'QuotaExceededError'); return real.call(this, key, v); };
+        const before = localStorage.getItem(bk);
+        try { pendingRetire(); } finally { Storage.prototype.setItem = real; }
+        const n = document.getElementById('pendingnote');
+        return {kept: localStorage.getItem(k) !== null, listUnchanged: localStorage.getItem(bk) === before, note: n ? n.textContent : ''};
+      }, q.k);
+      check(rq.kept && rq.listUnchanged, 'the copy refused: the record stays in storage and no copy is written', rq);
+      check(/storage is full or blocked/.test(rq.note) && /stays stored in this browser/.test(rq.note) && /Export progress does not include it/.test(rq.note) && /next time this drill opens/.test(rq.note),
+        'the copy refused: the notice says the work is still stored in this browser, that Export does not include it, and when it becomes a copy', rq.note);
+      const rq2 = await after(q.k);
+      check(rq2.copyInk && !rq2.kept, 'the copy refused, then accepted at a later check: the record becomes a copy and goes after the wait', rq2);
+    }
     await f.page.evaluate(() => { localStorage.removeItem('__filler'); for(let n = 0; n < 500; n++) localStorage.removeItem('__f' + n); });
     await after(c.k);
     const r3b = await after(c.k);
@@ -389,7 +405,7 @@ L.PAGE.need(NAME);
       return {copyInk: copies.some(c => { try { return !!JSON.parse(c.data).pages || !!JSON.parse(c.data).ink; } catch(e){ return false; } }), recordLeft: localStorage.getItem(k) !== null,
               putBack: JSON.parse(localStorage.getItem(keyFor(PROFILE))).answers.length}; }, pb2.k);
     check(fill2.refusedAlongside, 'Put back, storage full: the filler leaves too little room for the DB.ink copy beside the record', fill2);
-    check(now2.recordLeft && !now2.copyInk, 'Put back, storage full (real quota filler): the record, the only stored copy of its DB.ink, stays in storage; no copy yet', {now2, fill2});
+    check(now2.recordLeft, 'Put back, storage full (real quota filler): the record, the only stored copy of its DB.ink, stays in storage (whether or not the browser accepted its copy)', {now2, fill2});
     await f.page.evaluate(() => { localStorage.removeItem('__filler'); for(let n = 0; n < 500; n++) localStorage.removeItem('__f' + n); });
     await after(pb2.k);
     const r8 = await after(pb2.k);

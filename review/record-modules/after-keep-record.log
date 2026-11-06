@@ -28,8 +28,10 @@
   ok    that record is removed once its copy is stored and the wait has passed
   ok    Erase meeting a record not yet placed with DB.ink: the record becomes a copy
   ok    the filler leaves too little room for the copy beside the record (the copy alone is refused)
-  ok    storage full (real quota filler): the record, the only stored copy of its DB.ink, stays in storage; no copy yet
-  ok    storage full: the notice says the work is still stored in this browser and becomes a copy once there is room
+  ok    storage full (real quota filler): the record, the only stored copy of its DB.ink, stays in storage (whether or not the browser accepted its copy)
+  ok    the copy refused: the record stays in storage and no copy is written
+  ok    the copy refused: the notice says the work is still stored in this browser, that Export does not include it, and when it becomes a copy
+  ok    the copy refused, then accepted at a later check: the record becomes a copy and goes after the wait
   ok    storage full, then room again: a later check makes the record a copy with its DB.ink, and the record goes after the wait
   ok    the record that could not become a copy is marked as retired (the mark fits)
   ok    storage full, the copy larger than the room the record frees: the record is written back, and stays through later checks while storage is full
@@ -37,7 +39,7 @@
   ok    Put back meeting a record not yet placed with DB.ink: right after Put back, the copy holding DB.ink is on the list
   ok    Put back with room: the DB.ink copy stays on the list and the record is removed after the wait
   ok    Put back, storage full: the filler leaves too little room for the DB.ink copy beside the record
-  ok    Put back, storage full (real quota filler): the record, the only stored copy of its DB.ink, stays in storage; no copy yet
+  ok    Put back, storage full (real quota filler): the record, the only stored copy of its DB.ink, stays in storage (whether or not the browser accepted its copy)
   ok    Put back, storage full, then room again: a later check makes the record a copy with its DB.ink, and the record goes after the wait
   ok    no answers, only a device setting differs (IMPORT_DEVICE): kept as a copy, since it was this device's own choice in another tab
   ok    control: no answers, an ordinary setting of its own: kept apart as a copy
@@ -45,4 +47,4 @@
   ok    the copy refused and every later write refused: after a reload the original record is still in storage, unchanged
   ok    no page errors (retire)
   ok    no page errors
-PASS: record_modules_test.js: 46 checks passed
+PASS: record_modules_test.js: 48 checks passed

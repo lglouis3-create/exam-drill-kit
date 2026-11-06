@@ -49,7 +49,9 @@ Under a full storage (Louis, 2026-11-06): the record is the only stored copy of 
 
 While storage stays full, the work is in storage but cannot be put back from Settings, and an export does not carry it. Nothing is lost if the page closes or the browser refuses every later write; a reload finds the record unchanged.
 
-Evidence (`core/ci_course.sh template chromium`, 46-check test): ced9806, the earlier remove-first code, fails 5 of 46 (`before-keep-record-ced9806.log`). There, with the backup write and every later write refused, the record was gone before and after a reload. This revision passes 46 of 46 (`after-keep-record.log`); the run gave 30 PASS, 0 FAIL, 1 NOT RUN (`cite_check.py`, an allowed exclusion), 1 REPORT.
+In WebKit (Kit checks job 128109291119, `webkit-job-128109291119-excerpt.txt`), the real-quota-filler case stored the copy beside the record, although a probe write of the same size just before had been refused; the record stayed (`"kept":true`). Whether a browser accepts that copy depends on its quota accounting, so the real-filler cases check only that the record stays, and a separate case refuses the copy list's write for certain (in every browser) and checks the record, the unchanged list and the notice.
+
+Evidence (`core/ci_course.sh template chromium`, 48-check test): ced9806, the earlier remove-first code, fails 5 of 48 (`before-keep-record-ced9806.log`). There, with the backup write and every later write refused, the record was gone before and after a reload. This revision passes 48 of 48 (`after-keep-record.log`); the run gave 30 PASS, 0 FAIL, 1 NOT RUN (`cite_check.py`, an allowed exclusion), 1 REPORT.
 
 A retired record without a module part ahead of the stored progress keeps main's behaviour. For example, a record with answers met by Erase stays in storage, unplaced. This is unchanged and not fixed here.
 
