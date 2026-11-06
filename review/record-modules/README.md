@@ -42,13 +42,14 @@ Neither case compared module parts. **Fixed:** `moduleAhead` makes both `'apart'
 
 The same rule applies to Erase: Erase is one of the four retiring actions, and the copy keeps the student's chance to put the writing back. After Delete the copies, such a record appears as one new copy right after the deletion. That is the record's own content, which no copy held before.
 
-Under a full storage:
-1. The copy is tried beside the record first.
-2. If it is refused, the record is removed and the copy takes the room it freed. A copy is a little larger than its record, because it holds the progress as an escaped string, so this works when the room left covers that difference.
-3. If the copy is still refused, the record is written back and stays, and a later check tries again once there is room.
-4. If the write-back is refused too, the copy is kept on this page for this visit (`store.set`) and the "did not save" notice shows.
+Under a full storage (Louis, 2026-11-06): the record is the only stored copy of that work, so it is never removed to make room for the copy.
+1. The copy is written beside the record.
+2. If that write is refused, the record stays in storage as it is. A notice tells the student the work is still stored in this browser but is not yet a copy that Settings can put back, and that it becomes one once there is room. The notice shows once per record per visit.
+3. A later check (after a reload, a switch back to the profile, or the next settle) tries the copy again. Once the copy is stored, the record goes after the usual proof and wait.
 
-**What is lost in that last case:** the record is no longer in storage, and its copy exists only on this page. If the page closes before storage has room, that tab's last save (its progress and module part) is lost.
+While storage stays full, the work is in storage but cannot be put back from Settings. Nothing is lost if the page closes or the browser refuses every later write; a reload finds the record unchanged.
+
+Evidence (`core/ci_course.sh template chromium`, 46-check test): ced9806, the earlier remove-first code, fails 5 of 46 (`before-keep-record-ced9806.log`). There, with the backup write and every later write refused, the record was gone before and after a reload. This revision passes 46 of 46 (`after-keep-record.log`); the run gave 30 PASS, 0 FAIL, 1 NOT RUN (`cite_check.py`, an allowed exclusion), 1 REPORT.
 
 A retired record without a module part ahead of the stored progress keeps main's behaviour. For example, a record with answers met by Erase stays in storage, unplaced. This is unchanged and not fixed here.
 

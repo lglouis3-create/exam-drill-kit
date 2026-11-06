@@ -325,7 +325,13 @@ L.PAGE.need(NAME);
     const r3 = await after(c.k);
     const sizes = await f.page.evaluate(k => ({rec: (localStorage.getItem(k) || '').length}), c.k);
     check(fill.refusedAlongside, 'the filler leaves too little room for the copy beside the record (the copy alone is refused)', fill);
-    check(r3.copyInk && !r3.kept, 'storage full (real quota filler): retire removes the record first and its copy, with DB.ink, takes the room it freed', {r3, fill, sizes});
+    const note3 = await f.page.evaluate(() => { const n = document.getElementById('pendingnote'); return n ? n.textContent : ''; });
+    check(r3.kept && !r3.copyInk, 'storage full (real quota filler): the record, the only stored copy of its DB.ink, stays in storage; no copy yet', {r3, fill, sizes});
+    check(/Storage is full/.test(note3) && /stays stored in this browser/.test(note3), 'storage full: the notice says the work is still stored in this browser and becomes a copy once there is room', note3);
+    await f.page.evaluate(() => { localStorage.removeItem('__filler'); for(let n = 0; n < 500; n++) localStorage.removeItem('__f' + n); });
+    await after(c.k);
+    const r3b = await after(c.k);
+    check(r3b.copyInk && !r3b.kept, 'storage full, then room again: a later check makes the record a copy with its DB.ink, and the record goes after the wait', r3b);
     // one that still does not fit: a record of many short strings (each quote is escaped in the copy)
     await f.page.evaluate(() => { localStorage.removeItem(NS + ':backup:' + PROFILE); });
     const quoted = {pages: {}}; for(let i = 0; i < 2000; i++) quoted.pages['p' + i] = {tags: Array.from({length: 30}, (_, j) => 'a' + j)};
@@ -382,10 +388,11 @@ L.PAGE.need(NAME);
       return {copyInk: copies.some(c => { try { return !!JSON.parse(c.data).pages || !!JSON.parse(c.data).ink; } catch(e){ return false; } }), recordLeft: localStorage.getItem(k) !== null,
               putBack: JSON.parse(localStorage.getItem(keyFor(PROFILE))).answers.length}; }, pb2.k);
     check(fill2.refusedAlongside, 'Put back, storage full: the filler leaves too little room for the DB.ink copy beside the record', fill2);
-    check(now2.copyInk && !now2.recordLeft, 'Put back, storage full (real quota filler): the record goes first and its DB.ink copy is on the list Put back leaves', {now2, fill2});
+    check(now2.recordLeft && !now2.copyInk, 'Put back, storage full (real quota filler): the record, the only stored copy of its DB.ink, stays in storage; no copy yet', {now2, fill2});
     await f.page.evaluate(() => { localStorage.removeItem('__filler'); for(let n = 0; n < 500; n++) localStorage.removeItem('__f' + n); });
+    await after(pb2.k);
     const r8 = await after(pb2.k);
-    check(r8.copyInk, 'Put back, storage full: once there is room again, the DB.ink copy is still on the list', r8);
+    check(r8.copyInk && !r8.kept, 'Put back, storage full, then room again: a later check makes the record a copy with its DB.ink, and the record goes after the wait', r8);
     // no answers, a device-only setting of its own (views.js IMPORT_DEVICE): every per-tab record is on this
     // device, so another tab's choice is this device's own and is kept as a copy, not dropped (the review of fd2aea1)
     {
@@ -405,9 +412,21 @@ L.PAGE.need(NAME);
       Storage.prototype.setItem = function(){ throw new DOMException('full', 'QuotaExceededError'); };
       try { pendingRetire(); } finally { Storage.prototype.setItem = real; }
       const mem = store.get(NS + ':backup:' + PROFILE);
-      return {recordGone: localStorage.getItem(k) === null, onPage: !!mem && mem.includes('"ink"') || (!!mem && mem.includes('\\"ink\\"')), notice: !!document.getElementById('savewarn')};
+      return {recordStays: localStorage.getItem(k) !== null, onPage: mem !== localStorage.getItem(NS + ':backup:' + PROFILE)};
     }, g.k);
-    check(r6.onPage && r6.notice, 'every write refused: the copy is kept on this page for this visit and the "did not save" notice shows', r6);
+    check(r6.recordStays && !r6.onPage, 'every write refused: the record stays in storage as it is, and no copy is kept only on this page', r6);
+    // the copy refused and every later write refused, through a reload: the record is still in storage
+    {
+      const h = await plant(INK);
+      await f.ctx.addInitScript(() => { Storage.prototype.setItem = function(){ throw new DOMException('full', 'QuotaExceededError'); }; });
+      await f.page.evaluate(() => { Storage.prototype.setItem = function(){ throw new DOMException('full', 'QuotaExceededError'); }; pendingRetire(); settlePending(); });
+      const before = await f.page.evaluate(k => localStorage.getItem(k), h.k);
+      await f.page.reload();
+      await f.page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+      await f.page.waitForTimeout(0);
+      const r10 = await f.page.evaluate(k => { try { settlePending(); } catch(e){} return localStorage.getItem(k); }, h.k);
+      check(before !== null && r10 === before, 'the copy refused and every later write refused: after a reload the original record is still in storage, unchanged', {before: before && before.length, after: r10 && r10.length});
+    }
     check(!f.errors.length, 'no page errors (retire)', f.errors);
     await f.ctx.close();
   }

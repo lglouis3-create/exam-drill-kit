@@ -999,7 +999,7 @@ function pendingRetire(){
       if(raw === null) continue;
       const fp = fpOf(raw);
       if(seen[k] && seen[k].fp === fp && seen[k].proven) continue;   // placed and proven: removed as usual
-      if(retireToCopy(k, raw)){ delete seen[k]; continue; }
+      retireToCopy(k, raw);   // a copy when it fits; the record stays either way until proven
       if(!(seen[k] && seen[k].fp === fp)) seen[k] = {fp, t: Date.now(), done: true};
     }
     writeSeen(seen);
@@ -1007,10 +1007,10 @@ function pendingRetire(){
   } catch(e){}
 }
 /* A retired record whose module part the stored progress lacks, not yet in a copy: one more copy,
-   with its history entries (Put back adds them). Under a full storage the record goes first and the
-   copy takes the room it frees; refused, the record is written back; both refused, the copy is kept
-   on this page for this visit (store.set) and the "did not save" notice shows. True when the record
-   is no longer needed under its own key (its content is in a copy, stored or, failing that, on this page). */
+   with its history entries (Put back adds them). The record is never removed to make room: with the
+   copy refused, the record stays in storage, a notice says so, and a later check retries. Always false:
+   the record goes only after the usual proof and wait. */
+const RETIRE_NOTED = new Set();   // records whose refused copy this page has already reported
 function retireToCopy(k, raw){
   let rec = null; try { rec = JSON.parse(raw); } catch(e){ return false; }
   if(!(rec && rec.db && typeof rec.db === 'object' && Array.isArray(rec.db.answers))) return false;
@@ -1024,15 +1024,13 @@ function retireToCopy(k, raw){
   if(entries.length) entry.log = JSON.stringify(entries);
   const bk = NS + ':backup:' + PROFILE, text = JSON.stringify(list.concat([entry]));
   SETTLING = true;
-  try {
-    if(store.trySet(bk, text)) return false;   // the copy is stored; the record goes after the usual proof and wait
-    try { localStorage.removeItem(k); } catch(e){ return false; }
-    if(store.trySet(bk, text)) return true;
-    let back = false; try { localStorage.setItem(k, raw); back = true; } catch(e){}
-    if(back) return false;
-    store.set(bk, text);   // refused again: kept on this page for this visit, with the notice
-    return true;
-  } finally { SETTLING = false; }
+  let stored = false;
+  try { stored = store.trySet(bk, text); } finally { SETTLING = false; }
+  // the record is the only stored copy of that work: it is never removed to make room for the copy
+  // (Louis, 2026-11-06). Refused, it stays in storage as it is, and a later check, once there is room,
+  // makes it a copy; either way the record itself goes only after the usual proof and wait.
+  if(!stored && !RETIRE_NOTED.has(k + ' ' + fpOf(raw)) && RETIRE_NOTED.add(k + ' ' + fpOf(raw))) pendingNotice('A tab of this profile that closed or reloaded saved work (writing or an equation drill) that is not in this profile\'s progress. Storage is full, so it is not yet a copy that Settings can put back. It stays stored in this browser, and becomes a copy, under Settings, "Put back the progress from …", once there is room (Export progress, then delete copies you do not need).');
+  return false;
 }
 // a record's fingerprint: its length and two hashes over every character (a changed record differs)
 const fpOf = raw => { let h1 = 0, h2 = 5381; for(let i = 0; i < raw.length; i++){ const c = raw.charCodeAt(i); h1 = (h1 * 31 + c) | 0; h2 = ((h2 << 5) + h2 + c) | 0; } return raw.length + ':' + h1 + ':' + h2; };

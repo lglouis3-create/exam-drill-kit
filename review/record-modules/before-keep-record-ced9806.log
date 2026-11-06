@@ -1,0 +1,48 @@
+  browser  Chromium started
+  ok    the stored progress has 3 answers and no module part
+  ok    a record 1 answer behind with DB.ink the stored progress lacks is not placed as "in"; its progress stays (kept or a copy) after the 60 s check
+  ok    a record 1 answer behind with DB.eq the stored progress lacks is not placed as "in"; its progress stays (kept or a copy) after the 60 s check
+  ok    a record 1 answer behind with DB.anyModule the stored progress lacks is not placed as "in"; its progress stays (kept or a copy) after the 60 s check
+  ok    a record behind with other DB.ink than the stored one is not placed as "in"; its writing stays
+  ok    a record with no answers and DB.eq, against stored answers, is not placed as "in"; its records stay
+  ok    a record with no answers and other settings, against stored answers, is kept as a copy ("apart")
+  ok    a record with the stored answers and its own DB.ink is kept as a copy
+  ok    control: a record behind whose module part the stored progress holds unchanged is placed as "in" and removed after the 60 s check, as before
+  ok    control: a record behind that differs only in a setting is kept as a copy, as before
+  ok    control: a record behind that lacks a module part the stored progress holds is placed as "in", as before
+  ok    control: this tab's own record is still removed under a full storage when the stored progress continues it
+  ok    the page's record holds its DB.ink after its save
+  ok    after a reload, the closed page's writing (DB.ink) is still in the browser: in the progress, its record or a copy
+  ok    no page errors in the reload case
+  ok    a record behind with the stored DB.ink in another key order is placed as "in" and removed
+  ok    a record behind with an empty module part (DB.eq = {}) is placed as "in" and removed, as before
+  ok    a record behind with an empty module part (DB.eq = []) is placed as "in" and removed, as before
+  ok    a record behind with an empty module part (DB.eq = null) is placed as "in" and removed, as before
+  ok    a record behind with an empty module part (DB.eq = 0) is placed as "in" and removed, as before
+  ok    the later record continues the stored answers, on a page that has written nothing
+  ok    a later record without DB.eq does not take away the stored DB.eq: it stays in the progress or a copy
+  ok    the stored progress (with DB.eq) stays, and the later record is kept as a copy
+  ok    no page errors (continues)
+  ok    a record of another profile, placed on switching to it, keeps its DB.ink (kept or a copy)
+  ok    Delete the copies meeting a record not yet placed with DB.ink: the record becomes a copy, with its history entries
+  ok    that record is removed once its copy is stored and the wait has passed
+  ok    Erase meeting a record not yet placed with DB.ink: the record becomes a copy
+  ok    the filler leaves too little room for the copy beside the record (the copy alone is refused)
+  FAIL  storage full (real quota filler): the record, the only stored copy of its DB.ink, stays in storage; no copy yet  — {"r3":{"kept":false,"copies":1,"copyInk":true,"copyLog":true},"fill":{"record":450485,"copy":452155,"margin":5658,"refusedAlongside":true},"sizes":{"rec":0}}
+  FAIL  storage full: the notice says the work is still stored in this browser and becomes a copy once there is room
+  ok    storage full, then room again: a later check makes the record a copy with its DB.ink, and the record goes after the wait
+  ok    the record that could not become a copy is marked as retired (the mark fits)
+  ok    storage full, the copy larger than the room the record frees: the record is written back, and stays through later checks while storage is full
+  ok    once there is room, a later check makes that record a copy
+  ok    Put back meeting a record not yet placed with DB.ink: right after Put back, the copy holding DB.ink is on the list
+  ok    Put back with room: the DB.ink copy stays on the list and the record is removed after the wait
+  ok    Put back, storage full: the filler leaves too little room for the DB.ink copy beside the record
+  FAIL  Put back, storage full (real quota filler): the record, the only stored copy of its DB.ink, stays in storage; no copy yet  — {"now2":{"copyInk":true,"recordLeft":false,"putBack":3},"fill2":{"record":451159,"copy":452949,"margin":7999,"refusedAlongside":true}}
+  ok    Put back, storage full, then room again: a later check makes the record a copy with its DB.ink, and the record goes after the wait
+  ok    no answers, only a device setting differs (IMPORT_DEVICE): kept as a copy, since it was this device's own choice in another tab
+  ok    control: no answers, an ordinary setting of its own: kept apart as a copy
+  FAIL  every write refused: the record stays in storage as it is, and no copy is kept only on this page  — {"recordStays":false,"onPage":true}
+  FAIL  the copy refused and every later write refused: after a reload the original record is still in storage, unchanged  — {"before":null,"after":null}
+  ok    no page errors (retire)
+  ok    no page errors
+FAIL: record_modules_test.js: 5 of 46 checks failed: storage full (real quota filler): the record, the only stored copy of its DB.ink, stays in storage; no copy yet; storage full: the notice says the work is still stored in this browser and becomes a copy once there is room; Put back, storage full (real quota filler): the record, the only stored copy of its DB.ink, stays in storage; no copy yet …
