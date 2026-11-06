@@ -983,10 +983,10 @@ let nfile = 0;
     await H.ctx.close();
   }
 
-  // in tab t, ask for this profile's writer lock with ifAvailable until it is granted, for at most
-  // ms; when it is not granted by then, say how many holders the browser still lists for it
-  const waitWriterFree = (t, ms) => t.evaluate(async ms => {
-    const name = NS + ':writer:' + PROFILE, t0 = Date.now();
+  // in tab t, ask for the lock named name with ifAvailable until it is granted or 2000 ms (ms) have
+  // passed; when it is not granted by then, say how many holders the browser still lists for it
+  const waitWriterFree = (t, name, ms) => t.evaluate(async ([name, ms]) => {
+    const t0 = Date.now();
     for(;;){
       if(await navigator.locks.request(name, {ifAvailable: true}, l => !!l)) return {free: true, ms: Date.now() - t0};
       if(Date.now() - t0 >= ms){
@@ -995,7 +995,7 @@ let nfile = 0;
       }
       await new Promise(r => setTimeout(r, 20));
     }
-  }, ms);
+  }, [name, ms]);
   // a second tab of d's browser, on the drill
   const secondTab = async d => {
     const t = await d.ctx.newPage();
@@ -1545,14 +1545,22 @@ let nfile = 0;
     const d = await device(undefined, true);
     await answer(d.page, 2, 0);
     const t2 = await secondTab(d);
-    await t2.waitForFunction(() => WRITER === 'other', null, {timeout: 5000}).catch(() => {});
+    // before the switch: t2 is read-only, and the browser lists exactly one held lock under the
+    // name t2 will wait on (a wrong name on either side would let the wait below pass at once)
+    const readOnly = await t2.waitForFunction(() => WRITER === 'other', null, {timeout: 5000}).then(() => true, () => false);
+    const name = await t2.evaluate(() => NS + ':writer:' + PROFILE);
+    const before = await t2.evaluate(async name => {
+      const q = await navigator.locks.query();
+      return {writer: WRITER, heldUnderName: (q.held || []).filter(l => l.name === name).length, held: (q.held || []).map(l => l.name)};
+    }, name);
     await d.page.evaluate(() => useProfile('elsewhere'));
-    // the page frees the lock by resolving its lock callback's promise; the browser frees it after
-    // that, so t2 asks until it is granted, for at most 2000 ms (the core's own 'brief' window), and
-    // a lock still held then fails the check (WebKit freed it later than the first request: job
-    // 127949917972; review/lock-test/)
-    const free = await waitWriterFree(t2, 2000);
-    check(free.free === true, 'a profile switch frees the old profile\'s lock', JSON.stringify(free));
+    // the page frees the lock by resolving its lock callback's promise and the browser frees it
+    // after that, so t2 asks until it is granted or 2000 ms have passed (the core's own 'brief'
+    // window); a lock still held then fails the check (the lock was still held at the single
+    // request in job 127949917972; review/lock-test/)
+    const free = await waitWriterFree(t2, name, 2000);
+    check(readOnly && before.writer === 'other' && before.heldUnderName === 1 && free.free === true,
+      'a profile switch frees the old profile\'s lock', JSON.stringify({readOnly, name, before, after: free}));
     await d.ctx.close();
   }
   {

@@ -1,4 +1,4 @@
-# DRILL_PAGE=<template course built from kit main 3f8ba20> node core/import_test.js (Chromium), with this branch's import_test.js
+# DRILL_PAGE=<template course built from this branch, base 3f8ba20> node core/import_test.js (Chromium), with this branch's second-head import_test.js
   browser  Chromium started
   ok    Export writes the course, its storage name, the progress and the history
 

@@ -1,4 +1,4 @@
-# the same, on a page whose writer lock is never freed: in the built course's shell.html, claimWriter's 'writerRelease = () => { writerRelease = null; res(); };' was changed to '... writerRelease = null; /* lock-test: never freed */ };' (res() never called). Other checks that rely on the release fail too; the line for this check is the one to read.
+# DRILL_PAGE=<template course built from this branch, base 3f8ba20> node core/import_test.js (Chromium), with this branch's second-head import_test.js; page whose writer lock is never freed: claimWriter's 'writerRelease = () => { writerRelease = null; res(); };' changed so res() is never called (lock-test: never freed); other checks that rely on the release fail too
   browser  Chromium started
   ok    Export writes the course, its storage name, the progress and the history
 
@@ -270,7 +270,7 @@
 === One writer per profile: the review of 4b3b94c ===
   ok    a read-only tab writes no exam paper, and Erase there erases nothing
   ok    a writer whose tab is no longer named as the writer writes nothing and stops
-  FAIL  a profile switch frees the old profile's lock  — {"free":false,"ms":2006,"stillHeld":1}
+  FAIL  a profile switch frees the old profile's lock  — {"readOnly":true,"name":"course-id-drill:writer:me","before":{"writer":"other","heldUnderName":1,"held":["course-id-drill:writer:me"]},"after":{"free":false,"ms":2007,"stillHeld":1}}
   ok    the Import button writes no profile another tab has open, and says why
   FAIL  after Use it here the page drops the exam paper it restored earlier, so the stored one is read again
   FAIL  Use it here on a page with an unsaved answer: that page's progress is kept as a copy (Put back), and the stored progress opens unmixed  — {"inCopy":false,"inProg":true}
@@ -313,7 +313,7 @@
   FAIL  precondition: the take-over finished (section A, take-over 3)  — other
   FAIL  a tab back on a profile it wrote before: the other tab wrote over its last save, and it holds the profile again (precondition)  — {"yHeld":"other","overwritten":false,"back":"other","tries":8}
   ok    a tab back on a profile it wrote before: its earlier last answer, written over by another tab, is kept (progress or a copy) after its next save
-  FAIL  a tab back on a profile: its new saves go to a new record; the earlier record is removed only after it is proven stored and 60 s have passed, the answer stays kept, and the present record stays  — {"pk1":"course-id-drill:pending:me:mw563gxv-jfj1h4b3","pk2":"course-id-drill:pending:me:mw563gxv-jfj1h4b3","early":true,"gone":false,"keptAfter":{"live":true,"copy":false},"ownStays":true}
+  FAIL  a tab back on a profile: its new saves go to a new record; the earlier record is removed only after it is proven stored and 60 s have passed, the answer stays kept, and the present record stays  — {"pk1":"course-id-drill:pending:me:mw57otv7-duucok73","pk2":"course-id-drill:pending:me:mw57otv7-duucok73","early":true,"gone":false,"keptAfter":{"live":true,"copy":false},"ownStays":true}
 
 === Records: the review of 59b3c50 ===
   ok    a deliberate change right after taking over (Put back) does not delete the leaving tab's late record: its last answer is kept
@@ -330,6 +330,6 @@
 === A profile switch away and straight back ===
   FAIL  one tab alone, a profile switch away and straight back: it is still the writer, with no wall  — {"w":"other","why":"other"}
   FAIL  six switches in one moment: still the writer, with no wall  — {"w":"other","wall":"other"}
-  FAIL  another tab queued for the profile when this page frees it: this page waits about 2 s, then opens read-only, and only the other tab holds the lock  — {"after":{"w":"other","wall":"other","held":""},"waited":6,"q":1}
+  FAIL  another tab queued for the profile when this page frees it: this page waits about 2 s, then opens read-only, and only the other tab holds the lock  — {"after":{"w":"other","wall":"other","held":""},"waited":14,"q":1}
   ok    no page errors
 FAIL: import_test.js: 16 of 274 checks failed: Use it here: the other tab saves its waiting answer and stops; this tab starts saving with that answer in its progress; after the hand-over both answers are stored, and the first tab takes no more answers; a hand-over whose last save has not reached this tab: it does not start writing on its older view; later, Use it here brings that answer …

@@ -3,7 +3,7 @@
 Dated kit changes, newest first.
 
 ## 2026-11-06 (checks)
-- `import_test.js` "a profile switch frees the old profile's lock": the second tab now asks for the lock until it is granted, for at most 2000 ms, instead of once straight after the switch. The page frees the lock by resolving its lock callback's promise and the browser frees it after that; WebKit did so after the single request in job 127949917972. A lock still held after 2000 ms fails the check and says how many holders remain (`review/lock-test/`).
+- `import_test.js` "a profile switch frees the old profile's lock": the second tab now asks for the lock until it is granted or 2000 ms have passed, instead of once straight after the switch. The page frees the lock by resolving its lock callback's promise and the browser frees it after that; the lock was still held at the single request in job 127949917972. Before the switch the check now confirms that the second tab is read-only and that the browser lists exactly one held lock under the name it waits on, so a wrong lock name on either side fails it. A lock still held after 2000 ms fails the check and says how many holders remain (`review/lock-test/`).
 - A check can report one case as NOT RUN (`check_lib.js` `notRunCase`). It is counted apart from passes and skips, named in the check's summary, and listed by `run_checks.sh`. `ci_course.sh` accepts exactly one such case, listed in `core/ci_exclusions.sh`: the worksheets-ink PDF's size in WebKit (Louis, 2026-11-06). Any other NOT RUN case, and the same case in Chromium, fails the run. When worksheets-ink is on, its PDF check (Chromium) and its four print-layout checks (Chromium and WebKit) must each appear as a passing line in its log (`REQUIRED_PASSES`; `notruncase_test.js`).
 
 ## 2026-11-06

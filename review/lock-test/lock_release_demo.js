@@ -7,11 +7,11 @@
  *
  * Three cases, each in a fresh browser context with a drill tab d and a second tab t2:
  *   as is      the core unchanged; N switches, each followed at once by the old immediate request
- *   later      d's release is held back 300 ms (a stand-in for a browser that frees it later,
- *              as WebKit did in job 127949917972)
+ *   later      d's release is held back 300 ms (a stand-in for a browser that frees it later;
+ *              in job 127949917972 the lock was still held at the single request)
  *   never      d's release never happens (a lock that never frees)
  * For each, both the old check (one immediate ifAvailable request) and the new check (retry
- * ifAvailable until it is granted, at most 2000 ms, the core's own 'brief' window) are run.
+ * ifAvailable until it is granted or 2000 ms have passed, the core's own 'brief' window) are run.
  *
  * Usage: DRILL_PAGE=<built index.html> node lock_release_demo.js <kit>/core [trials]
  */
@@ -19,7 +19,7 @@ const path = require('path');
 const L = require(path.join(path.resolve(process.argv[2]), 'check_lib.js'));
 const TRIALS = +(process.argv[3] || 30);
 
-// the same wait as import_test.js waitWriterFree (there the field is named stillHeld)
+// the same wait as import_test.js waitWriterFree (there the name is passed in and the field is named stillHeld)
 const waitFree = (t, ms) => t.evaluate(async ms => {
   const name = NS + ':writer:' + PROFILE, t0 = Date.now();
   for(;;){
@@ -81,7 +81,7 @@ const immediate = t => t.evaluate(() => navigator.locks.request(NS + ':writer:' 
       await hold(d, how);
       await d.evaluate(() => useProfile('elsewhere'));
       const r = await waitFree(t2, 2000);
-      console.log(`${how} (${L.BROWSER_NAME}): new check (wait for the release, at most 2000 ms): ${r.free ? 'passes' : 'FAILS'} ${JSON.stringify(r)}`);
+      console.log(`${how} (${L.BROWSER_NAME}): new check (wait for the release until 2000 ms have passed): ${r.free ? 'passes' : 'FAILS'} ${JSON.stringify(r)}`);
       await ctx.close();
     }
   }
