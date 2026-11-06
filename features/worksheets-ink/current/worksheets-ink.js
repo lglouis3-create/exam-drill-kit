@@ -384,10 +384,19 @@ const inkBytes = () => { const all = inkStore(); return all ? JSON.stringify(all
    'wait'    this page is still being given the profile (Web Locks): the core writes it once it has the profile;
    'stopped' the core wrote nothing because another tab or window has the profile or saved it since (its wall is up);
    'off'     nothing may be written (the saved progress was not loaded in this visit). */
+// this page's writing as stored now: the entry, null when none is stored, undefined when storage cannot be read
+function inkStored(k){
+  try { const raw = localStorage.getItem(keyFor(PROFILE)); if(raw === null) return null;
+    const d = JSON.parse(raw), e = d && d.ink && typeof d.ink === 'object' ? d.ink[k] : null; return e && typeof e === 'object' ? e : null; }
+  catch(e){ return undefined; }
+}
 function inkWrite(){
   if(!canSave()) return 'off';
   const k = keyFor(PROFILE), v = JSON.stringify(DB);
   save(); saveNow();
+  // stopped first (the review of 0769d14, O1): a page whose profile another tab has or saved since writes nothing,
+  // whether or not an earlier write was refused, and must not put back older writing
+  if(STALE || (typeof WRITER !== 'undefined' && WRITER !== 'none' && WRITER !== 'pending' && !(WRITER === 'held' && WRITER_FOR === PROFILE))) return 'stopped';
   if(FAILED.has(k)) return 'full';
   let now = null; try { now = localStorage.getItem(k); } catch(e){ now = null; }
   if(now === v) return 'ok';
@@ -409,10 +418,21 @@ function inkSave(){
   let state = inkWrite();
   if(state === 'full'){
     const now = DB.ink && DB.ink[k];
-    if(INK.good){ if(!inkStore()) DB.ink = {}; DB.ink[k] = JSON.parse(INK.good); } else if(DB.ink) delete DB.ink[k];
+    // put back this page's writing as it is stored now, read from storage, not as this page last saw a write
+    // land: a write held while the profile's lock was being given ('wait') may have been written since
+    // (the review of 0769d14, O2); INK.good only when storage cannot be read
+    const good = inkStored(k);
+    if(good !== undefined ? good : INK.good){ if(!inkStore()) DB.ink = {}; DB.ink[k] = good !== undefined ? good : JSON.parse(INK.good); } else if(DB.ink) delete DB.ink[k];
     const again = inkWrite();
     if(again === 'ok') state = 'refused';
-    else { if(now){ if(!inkStore()) DB.ink = {}; DB.ink[k] = now; } else if(DB.ink) delete DB.ink[k]; state = again === 'full' ? 'off' : again; }
+    else {
+      if(now){ if(!inkStore()) DB.ink = {}; DB.ink[k] = now; } else if(DB.ink) delete DB.ink[k];
+      state = again;
+      // both writes refused: the core's copy for this visit (served while the key is refused) holds the progress
+      // without the change, so it is written once more with the change, so a profile switch and back keeps it
+      // (the review of 0769d14, O3)
+      if(again === 'full'){ const third = inkWrite(); state = third === 'full' ? 'off' : third; }
+    }
     if(typeof refreshSaveWarn === 'function') refreshSaveWarn();
   }
   if(state === 'ok'){ const d = inkStore() && DB.ink[k]; INK.good = d ? JSON.stringify(d) : null; }

@@ -54,6 +54,11 @@
  * here and saves; a stroke in A writes nothing over B); ink stored before the change (DB.ink in the progress)
  * opens with the answers, a flag and a setting and is kept beside new writing; with storage full the core's
  * notice, which is allowed there, must say the progress is saved, and with storage denied that it is not.
+ * The independent review of 0769d14: with this tab's writes refused and then another tab's save, the next stroke
+ * is 'stopped' (the wall), not 'off'; a stroke held while the profile's lock is being given (WRITER 'pending', set
+ * by the test) is written once the page has it, and a refused stroke after it puts back the writing stored, not
+ * older writing; with storage denied a stroke not saved is in this visit's copy of the progress and stays after a
+ * profile switch and back; Save as PDF opens the print dialog only after every ink picture is decoded.
  *
  *     node features/worksheets-ink/test.js
  */
@@ -814,6 +819,86 @@ const countOf = (h, re) => (h.match(re) || []).length;
             `the card says Continue writing, the old name-line stroke is drawn (${px} pixels), and a new stroke is saved beside the old writing, the answers, the flag and the setting`,
             {lab, px, keptAll: !!keptAll});
       check(!errors.length, 'no page errors with ink stored before the change', errors.slice(0, 3).join('; '));
+      await ctx.close();
+    }
+
+    /* ---- the independent review of 0769d14: O1, O2, O3, O5 (progress first) ---- */
+    { // O1: storage refused in tab A, then tab B saves: A's next stroke is 'stopped' (the core's wall), not 'off', and B's progress stays
+      const NOLOCKS_DENY = () => { try { Object.defineProperty(Navigator.prototype, 'locks', {get: () => undefined, configurable: true}); } catch(e){}
+        const o = Storage.prototype.setItem; Storage.prototype.setItem = function(k, v){ if(window.__deny) throw new DOMException('The operation is insecure.', 'SecurityError'); return o.call(this, k, v); }; };
+      const {ctx, page, errors} = await openWith(820, 1180, NOLOCKS_DENY);
+      await writerReady(page);
+      let k = await sheetOpen(page, SID); await drawOn(page, k);
+      await page.evaluate(() => { window.__deny = true; });
+      await drawOn(page, k, 40);
+      const s1 = (await warnInfo(page)).state;
+      const b = await tabOf(ctx, page.url());
+      await b.page.evaluate(id => record(byId(id), 'correct', undefined, 1000), QA); await b.page.waitForTimeout(400);
+      const theirs = await stored(b.page);
+      await page.waitForFunction(v => localStorage.getItem(keyFor(PROFILE)) === v, theirs, {timeout: 5000}).catch(() => {});
+      await penMark(page, k); await page.waitForTimeout(300);
+      const w = await warnInfo(page), now = await stored(page), wl = await wall(page);
+      check(s1 === 'off' && w.state === 'stopped' && /stopped saving/.test(w.text) && wl === 'stalewarn:stale' && now === theirs,
+            `with this tab's writes refused and then another tab's save, the next stroke says this page stopped saving (not that the browser is not saving), the stale wall shows, and the other tab's progress stays (${JSON.stringify({first: s1, state: w.state, wall: wl, keptB: now === theirs})})`);
+      check(!errors.length && !b.errors.length, 'no page errors (refused writes, then another tab)', errors.concat(b.errors).slice(0, 3).join('; '));
+      await ctx.close();
+    }
+    { // O2: a stroke held while the profile's lock was being given is written later; a refused stroke after it puts back what is stored, not older writing
+      const MAXLEN = () => { const o = Storage.prototype.setItem;
+        Storage.prototype.setItem = function(k, v){ if(window.__maxLen && String(v).length > window.__maxLen) throw new DOMException('The quota has been exceeded.', 'QuotaExceededError'); return o.call(this, k, v); }; };
+      const {ctx, page, errors} = await openWith(820, 1180, MAXLEN);
+      const ev = (f, a) => page.evaluate(f, a);
+      await writerReady(page);
+      let k = await sheetOpen(page, SID); await drawOn(page, k);
+      // the lock being given (WRITER 'pending', as at load or a profile switch), set here so that the case is certain
+      await ev(() => { WRITER = 'pending'; });
+      await drawOn(page, k, 40);
+      const held = await ev(([sid, k]) => ({state: FX.api('worksheets-ink').state().saved, waiting: WRITE_WAITING,
+        stored: ((JSON.parse(localStorage.getItem(keyFor(PROFILE))).ink[sid + '|main'] || {parts: {}}).parts[k] || []).length}), [SID, k]);
+      await ev(() => { WRITER = 'held'; flushWaiting(); }); await page.waitForTimeout(400);
+      const landed = summary(await stored(page), SID).page;
+      // the next stroke is refused (the progress may grow by at most 50 characters); the write without it fits
+      await ev(() => { window.__maxLen = localStorage.getItem(keyFor(PROFILE)).length + 50; });
+      await drawOn(page, k, 80);
+      const after = summary(await stored(page), SID), w = await warnInfo(page);
+      await ev(() => { window.__maxLen = 0; });
+      check(held.state === 'wait' && held.waiting && held.stored === 1 && landed === 2 && w.state === 'refused' && after.page === 2,
+            `a stroke held while the lock was being given is written once the page has it, and a refused stroke after it puts back the 2 strokes stored, not 1 (${JSON.stringify({held, landed, state: w.state, storedAfter: after.page})})`);
+      check(!errors.length, 'no page errors (a held write, then a refused stroke)', errors.slice(0, 3).join('; '));
+      await ctx.close();
+    }
+    { // O3: both writes refused: the stroke stays in this visit's copy, so a profile switch and back keeps it
+      const {ctx, page, errors} = await openWith(820, 1180, DENY);
+      const ev = (f, a) => page.evaluate(f, a);
+      await writerReady(page);
+      const first = await ev(() => PROFILE);
+      let k = await sheetOpen(page, SID); await drawOn(page, k);
+      await ev(() => { window.__deny = true; });
+      await drawOn(page, k, 60);
+      // this visit's copy of the progress (what the core serves while the key is refused), before anything else is written
+      const mem = await ev(sid => { const d = JSON.parse(store.get(keyFor(PROFILE))), pg = d.ink && d.ink[sid + '|main'];
+        return pg ? Object.values(pg.parts).reduce((a, l) => a + l.length, 0) : 0; }, SID);
+      await ev(() => { window.__name = 'Other'; askProfile(true); });
+      await ev(n => { window.__name = n; askProfile(true); }, first);
+      await page.waitForTimeout(300);
+      const back = await ev(sid => [PROFILE, FX.api('worksheets-ink').inkCount(sid, 'main')], SID);
+      check(mem === 2 && back[0] === first && back[1] === 2, `with storage denied, a stroke not saved is in this visit's copy of the progress (${mem} strokes) and stays after a profile switch and back (${JSON.stringify(back)})`);
+      check(!errors.length, 'no page errors (storage denied, a switch and back)', errors.slice(0, 3).join('; '));
+      await ctx.close();
+    }
+    { // O5: Save as PDF opens the print dialog only after every ink picture is decoded
+      const {ctx, page, errors} = await openWith(820, 1180);
+      const ev = (f, a) => page.evaluate(f, a);
+      await writerReady(page);
+      const k = await sheetOpen(page, SID); await drawOn(page, k);
+      await ev(() => { window.__dec = 0; window.__calls = [];
+        HTMLImageElement.prototype.decode = function(){ return new Promise(r => setTimeout(() => { window.__dec++; r(); }, 300)); };
+        window.print = () => { window.__calls.push(window.__dec); }; });
+      await page.click('#ink [data-inkpdf]'); await page.waitForTimeout(900);
+      const pr = await ev(() => ({calls: window.__calls, pictures: document.querySelectorAll('#ink img.inkimg').length}));
+      check(pr.pictures > 0 && pr.calls.length === 1 && pr.calls[0] === pr.pictures,
+            `Save as PDF opens the print dialog once, after all ${pr.pictures} ink pictures are decoded (pictures decoded when it opened: ${JSON.stringify(pr.calls)})`);
+      check(!errors.length, 'no page errors (Save as PDF waiting for the pictures)', errors.slice(0, 3).join('; '));
       await ctx.close();
     }
 
