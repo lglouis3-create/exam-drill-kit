@@ -1,5 +1,6 @@
 {
-  "about": "Review checkpoints: per course, the last repository commit a coordinator review covered and when. A course whose head equals lastReviewedCommit is not reviewed again in full. Only a coordinator run writes these, in a bookkeeping pull request; null means no coordinator review has been recorded.",
+  "about": "Review checkpoints: per course, the last repository commit a coordinator review covered and when. A course whose head equals lastReviewedCommit is not reviewed again in full. Only a coordinator run writes these, in a bookkeeping pull request; null means no coordinator review has been recorded. lastSeen: the last successful read of each repository (head, course file, preview, pull requests) with its time, which the dashboard shows when a read is unavailable; a run copies it from `coord.js lastseen`.",
+  "lastSeen": {},
   "checkpoints": {
     "deent":               {"lastReviewedCommit": null, "lastReviewAt": null, "lastDeepAt": null, "kind": null, "record": null},
     "medicinal-chemistry": {"lastReviewedCommit": null, "lastReviewAt": null, "lastDeepAt": null, "kind": null, "record": null},

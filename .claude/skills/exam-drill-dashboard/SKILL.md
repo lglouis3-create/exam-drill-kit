@@ -22,10 +22,16 @@ pull request or site.
    Do not mark an automation active unless the list shows it enabled and it has fired.
 4. Show the dashboard in the conversation as it was printed, with your additions marked as
    such. Keep the four sections: Courses, Improvements, Approvals, Automation activity.
-5. Under Approvals, list only what the output found in repositories: pull requests whose own
+5. A read the session could not make is shown as "Access unavailable—status not checked", with
+   the last successful result and its time when there is one (kept in
+   `~/.cache/exam-drill-kit/dashboard.json` and in `state.json` `lastSeen`). Never describe it as
+   the repository or the site being down. Give the sanitized error the output lists, and the
+   fix when it is known: a repository whose pull requests are unavailable needs attaching to
+   this session with push access (`add_repo`), which Louis may have to allow.
+6. Under Approvals, list only what the output found in repositories: pull requests whose own
    description says they wait for Louis, failed or cancelled checks, previews that differ from
    the live site, and repositories that could not be read. Never infer an approval.
-6. If Louis asks for a page, publish the same content as a private Artifact; otherwise the
+7. If Louis asks for a page, publish the same content as a private Artifact; otherwise the
    conversation is the dashboard.
 
 End with at most three lines: what needs Louis today, in order of urgency.

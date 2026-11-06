@@ -100,6 +100,13 @@ evidence: an open, non-draft pull request whose description says it waits for Lo
 or cancelled checks on an open pull request's head, and a course `/preview/` that differs from
 its live site. `--offline` skips the network; `--json` gives the data.
 
+A read the session cannot make (no credentials for that repository, a refused proxy) is shown
+as **"Access unavailable—status not checked"**, with the last successful result and its time,
+never as the repository or its site being down. Last results are kept in
+`~/.cache/exam-drill-kit/dashboard.json` and, committed by runs, in `state.json` `lastSeen`.
+Git reads of a public repository need no attachment; the GitHub API (pull requests, check runs)
+needs the repository attached to the session with credentials.
+
 ## The builder skill
 
 `skill/SKILL.md` in this repository is the master copy. The skill Claude uses in a session

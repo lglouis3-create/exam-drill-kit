@@ -10,8 +10,11 @@ rule applies. A run never publishes a course site, never merges a course reposit
 
 - `git fetch origin` in the kit and work from `origin/main`.
 - Every repository in `coordinator/courses.json` must be reachable (`git ls-remote`), and
-  pull requests readable with `gh api` or the GitHub tools. A repository that is not
-  reachable is reported by name and skipped; the run does not attach it on its own.
+  pull requests readable with `gh api` or the GitHub tools. Git reads of a public repository
+  work without attaching it; the GitHub API (pull requests, check runs) needs it attached to
+  the run's session with credentials (`add_repo`, access "push"). A read that cannot be made
+  is reported as "Access unavailable—status not checked", never as the repository or site
+  being down, and the run does not attach a repository on its own.
 - Node, Python and Chromium start. If the kit cannot be fetched, stop and report.
 
 ## 1. Plan
@@ -82,6 +85,8 @@ For each registry item whose status allows work (`discovered`, `evaluating`):
     record file;
   - `improvements.json`;
   - `automations.json`: this run's own entry and the last runs read from the scheduled tasks;
+  - `state.json` `lastSeen`: the output of `node coordinator/coord.js lastseen`, so the dashboard
+    in a new container can still show each repository's last successful read and its time;
   - any new retrospective.
 - It is bookkeeping under decision 10: it merges after an independent review and green
   checks, with a comment naming both.

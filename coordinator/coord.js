@@ -6,7 +6,8 @@
    node coordinator/coord.js status      [--now <ISO>] [--json]
    node coordinator/coord.js plan        [--now <ISO>] [--json] [--heads <file>]
    node coordinator/coord.js published   [--course <id>] [--json]
-   node coordinator/coord.js dashboard   [--now <ISO>] [--json] [--offline]
+   node coordinator/coord.js dashboard   [--now <ISO>] [--json] [--offline] [--cache <file> | --no-cache]
+   node coordinator/coord.js lastseen    (the last successful reads, for a run to commit into state.json)
 
    It reads and prints; it never writes a record, pushes, merges or publishes. A run
    (coordinator/RUN.md) records its results by editing state.json and improvements.json in
@@ -152,23 +153,62 @@ function checkPublished(course, courseObj){
 }
 
 /* ---------- live data (skipped with --offline) ---------- */
-const sh = (cmd, args) => { try { return cp.execFileSync(cmd, args, {encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], timeout: 30000}); } catch(e){ return null; } };
-function liveHead(repo){ const o = sh('git', ['ls-remote', `https://github.com/${repo}`, 'HEAD']); return o ? o.split(/\s/)[0] : null; }
+// Each read says what happened: ok, missing (the repository answered that the file or
+// branch is not there), or unavailable (this session could not ask: no credentials for the
+// repository, the proxy refused, no network). "Unavailable" is never reported as the
+// repository or its site being down.
+function run(cmd, args){
+  try { return {ok: true, out: cp.execFileSync(cmd, args, {encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], timeout: 30000})}; }
+  catch(e){ return {ok: false, err: String((e.stderr || '') + (e.stdout || '') + (e.message || '')).slice(0, 600)}; }
+}
+const sanitize = s => String(s || '').replace(/gh[p]_[A-Za-z0-9]{20,}|github_[p]at_[A-Za-z0-9_]+/g, '[token]').replace(/\s+/g, ' ').trim().slice(0, 200);
+const ghKind = err => /HTTP 404|Not Found/i.test(err) ? 'missing' : 'unavailable';
+function liveHead(repo){
+  const r = run('git', ['ls-remote', `https://github.com/${repo}`, 'HEAD']);
+  return r.ok && r.out.trim() ? {state: 'ok', head: r.out.split(/\s/)[0]} : {state: 'unavailable', why: sanitize(r.err || 'no HEAD returned')};
+}
 function liveFile(repo, file, ref){
-  const o = sh('gh', ['api', `repos/${repo}/contents/${file}${ref ? '?ref=' + ref : ''}`, '--jq', '.content']);
-  if(o) return Buffer.from(o.trim(), 'base64').toString('utf8');
-  const g = sh('curl', ['-sfL', `https://raw.githubusercontent.com/${repo}/${ref || 'HEAD'}/${file}`]);
-  return g || null;
+  const r = run('gh', ['api', `repos/${repo}/contents/${file}${ref ? '?ref=' + ref : ''}`, '--jq', '.content']);
+  if(r.ok) return {state: 'ok', text: Buffer.from(r.out.trim(), 'base64').toString('utf8'), via: 'GitHub API'};
+  if(ghKind(r.err) === 'missing') return {state: 'missing', via: 'GitHub API'};
+  // a public file can still be read without credentials
+  const g = run('curl', ['-sSL', '-w', '\n%{http_code}', `https://raw.githubusercontent.com/${repo}/${ref || 'HEAD'}/${file}`]);
+  if(g.ok){
+    const i = g.out.lastIndexOf('\n'), code = g.out.slice(i + 1).trim(), body = g.out.slice(0, i);
+    if(code === '200') return {state: 'ok', text: body, via: 'raw.githubusercontent.com'};
+    if(code === '404') return {state: 'missing', via: 'raw.githubusercontent.com'};
+  }
+  return {state: 'unavailable', why: sanitize(r.err)};
 }
 function livePRs(repo){
-  const o = sh('gh', ['api', `repos/${repo}/pulls?state=open&per_page=100`, '--jq',
+  const r = run('gh', ['api', `repos/${repo}/pulls?state=open&per_page=100`, '--jq',
     '[.[] | {number, title, draft, head: .head.sha, body: (.body // "" | .[0:4000]), url: .html_url}]']);
-  return o ? JSON.parse(o) : null;
+  if(r.ok) return {state: 'ok', prs: JSON.parse(r.out)};
+  return {state: ghKind(r.err) === 'missing' ? 'missing' : 'unavailable', why: sanitize(r.err)};
 }
 function liveChecks(repo, sha){
-  const o = sh('gh', ['api', `repos/${repo}/actions/runs?head_sha=${sha}`, '--jq', '[.workflow_runs[] | {name, status, conclusion, id}]']);
-  return o ? JSON.parse(o) : null;
+  const r = run('gh', ['api', `repos/${repo}/actions/runs?head_sha=${sha}`, '--jq', '[.workflow_runs[] | {name, status, conclusion, id}]']);
+  return r.ok ? JSON.parse(r.out) : null;
 }
+const sh = (cmd, args) => { const r = run(cmd, args); return r.ok ? r.out : null; };
+
+/* ---------- last successful reads ----------
+   The dashboard keeps the last successful result of each read, with its time, in a cache
+   file outside the repository (default ~/.cache/exam-drill-kit/dashboard.json, or --cache),
+   and also reads state.json "lastSeen", which coordinator runs commit (RUN.md step 4) so the
+   last results survive a new container. The newer of the two is shown. */
+function lastSeenStore(cacheFile, state){
+  let cache = {};
+  try { cache = JSON.parse(fs.readFileSync(cacheFile, 'utf8')); } catch(e){}
+  const committed = (state && state.lastSeen) || {};
+  return {
+    get(key){ const a = cache[key], b = committed[key]; if(!a) return b || null; if(!b) return a; return Date.parse(a.at) >= Date.parse(b.at) ? a : b; },
+    put(key, value, at){ cache[key] = {at, value}; },
+    save(){ if(!cacheFile) return; try { fs.mkdirSync(path.dirname(cacheFile), {recursive: true}); fs.writeFileSync(cacheFile, JSON.stringify(cache, null, 1)); } catch(e){} },
+    all(){ return Object.assign({}, committed, cache); }
+  };
+}
+const UNAVAILABLE = 'Access unavailable—status not checked';
 // the kit commits a course is behind, from its kit.core pin, counted on core/ in this checkout
 function kitBehind(pin){
   if(!pin) return null;
@@ -191,66 +231,119 @@ function approvalsFrom(repo, prs, checksOf){
 /* ---------- dashboard ---------- */
 function dashboard(now, opts){
   const cfg = read('courses.json'), state = read('state.json'), imp = read('improvements.json'), auto = read('automations.json');
-  const offline = opts.offline;
-  const heads = {};
-  if(!offline) for(const c of cfg.courses) heads[c.repo] = liveHead(c.repo);
+  const offline = opts.offline, at = new Date(now).toISOString();
+  const io = Object.assign({liveHead, liveFile, livePRs, liveChecks, kitBehind}, opts.io || {});   // opts.io: test doubles
+  const seen = lastSeenStore(opts.cache === undefined ? path.join(require('os').homedir(), '.cache', 'exam-drill-kit', 'dashboard.json') : opts.cache, state);
+  // one read: live when it can be made, otherwise the last successful result and its time
+  const access = [];
+  function readOr(key, label, fn){
+    if(offline){ const l = seen.get(key); return {state: 'not-read', last: l}; }
+    const r = fn();
+    if(r.state === 'ok' || r.state === 'missing'){ seen.put(key, r.state === 'ok' ? r.value : {missing: true}, at); return r; }
+    access.push({what: label, why: r.why || ''});
+    return {state: 'unavailable', why: r.why, last: seen.get(key)};
+  }
+  const heads = {}, headRead = {};
+  for(const c of cfg.courses){
+    const r = readOr(`head|${c.repo}`, `${c.repo}: repository head (git)`, () => { const h = io.liveHead(c.repo); return h.state === 'ok' ? {state: 'ok', value: h.head} : h; });
+    headRead[c.repo] = r;
+    heads[c.repo] = r.state === 'ok' ? r.value : null;
+  }
   const pl = plan(cfg, state, offline ? null : heads, now, imp);
   const courses = cfg.courses.map(c => {
     const lc = lifecycle(c, now, cfg);
     const p = pl.find(x => x.course === c.id);
-    let pub = null, pin = null, behind = null, previewWaiting = null;
-    if(!offline && c.siteKind === 'kit'){
-      const txt = liveFile(c.repo, c.courseFile);
-      if(txt){ try { const co = courseFromJs(txt); pub = checkPublished(c, co); pin = co.kit && co.kit.core || null; behind = kitBehind(pin); } catch(e){ pub = {ok: false, problems: ['course file could not be read: ' + e.message.split('\n')[0]]}; } }
-      const live = liveFile(c.repo, 'version.json'), prev = liveFile(c.repo, 'preview/version.json');
-      if(prev) previewWaiting = live !== prev;
+    let pub = null, pin = null, behind = null, preview = {state: 'not-read'};
+    if(c.siteKind === 'kit'){
+      const cf = readOr(`course|${c.repo}`, `${c.repo}: ${c.courseFile}`, () => {
+        const f = io.liveFile(c.repo, c.courseFile);
+        if(f.state !== 'ok') return f;
+        try { const co = courseFromJs(f.text); return {state: 'ok', value: {pub: checkPublished(c, co), pin: co.kit && co.kit.core || null}}; }
+        catch(e){ return {state: 'ok', value: {pub: {ok: false, problems: ['course file could not be read: ' + e.message.split('\n')[0]]}, pin: null}}; }
+      });
+      if(cf.state === 'ok'){ pub = Object.assign({checked: 'live'}, cf.value.pub); pin = cf.value.pin; }
+      else if(cf.state === 'missing') pub = {checked: 'live', ok: false, problems: [`${c.courseFile} not found on the default branch`]};
+      else pub = {checked: cf.state, why: cf.why, last: cf.last};
+      if(pin && !offline) behind = io.kitBehind(pin);
+      preview = readOr(`preview|${c.repo}`, `${c.repo}: version.json and preview/version.json`, () => {
+        const pv = io.liveFile(c.repo, 'preview/version.json');
+        if(pv.state === 'missing') return {state: 'ok', value: false};
+        if(pv.state !== 'ok') return pv;
+        const lv = io.liveFile(c.repo, 'version.json');
+        if(lv.state === 'unavailable') return lv;
+        return {state: 'ok', value: lv.state !== 'ok' || lv.text !== pv.text};
+      });
     }
     const sched = (c.schedule && c.schedule.exams) || [];
     const open = (imp.items || []).filter(i => (i.candidateCourses || []).includes(c.id) && !['adopted', 'rejected', 'deferred'].includes(i.status) && ['critical', 'high'].includes(i.severity));
-    return {id: c.id, code: c.code, name: c.name, repo: c.repo, site: c.site, term: c.term, status: lc.status, why: lc.why,
+    return {id: c.id, code: c.code, name: c.name, repo: c.repo, site: c.site, term: c.term, siteKind: c.siteKind, status: lc.status, why: lc.why,
       next: lc.next ? `${lc.next.name} ${lc.next.date}${lc.next.start ? ' ' + lc.next.start : ''}` : null,
       final: lc.final ? `${lc.final.name} ${lc.final.date}` : null,
       published: sched.filter(e => e.status === 'published').map(e => e.name),
       knownFuture: sched.filter(e => e.status !== 'published').map(e => `${e.name} ${e.date || 'date unknown'} (${e.status})`),
-      developing: c.inDevelopment || [], lastReview: p.lastReviewAt, nextAction: `${p.action}: ${p.reason}`,
-      kitPin: pin, kitBehind: behind, previewWaiting, publication: pub, flags: lc.flags, openProblems: open.map(i => i.id)};
+      developing: c.inDevelopment || [], lastReview: p.lastReviewAt, nextAction: `${p.action}: ${p.reason}`, head: headRead[c.repo],
+      kitPin: pin, kitBehind: behind, preview, publication: pub, flags: lc.flags, openProblems: open.map(i => i.id)};
   });
-  let approvals = null;
-  if(!offline){
-    approvals = [];
-    for(const repo of [cfg.kitRepo, ...cfg.courses.map(c => c.repo)]){
-      const prs = livePRs(repo);
-      if(prs == null){ approvals.push({repo, unreachable: true}); continue; }
-      approvals.push(...approvalsFrom(repo, prs, sha => liveChecks(repo, sha)));
-    }
+  const approvals = [];
+  for(const repo of [cfg.kitRepo, ...cfg.courses.map(c => c.repo)]){
+    const r = readOr(`prs|${repo}`, `${repo}: open pull requests (GitHub API)`, () => {
+      const x = io.livePRs(repo);
+      return x.state === 'ok' ? {state: 'ok', value: approvalsFrom(repo, x.prs, sha => io.liveChecks(repo, sha))} : x;
+    });
+    if(r.state === 'ok') approvals.push({repo, checked: 'live', items: r.value});
+    else if(r.state === 'missing') approvals.push({repo, checked: 'live', items: [], note: 'the repository answered "not found"'});
+    else approvals.push({repo, checked: r.state, why: r.why, last: r.last});
   }
-  return {generatedAt: new Date(now).toISOString(), offline: !!offline, courses, plan: pl, improvements: imp.items || [], approvals, automations: auto.automations || []};
+  if(!offline) seen.save();
+  return {generatedAt: at, offline: !!offline, courses, plan: pl, improvements: imp.items || [], approvals, access, automations: auto.automations || [], lastSeen: seen.all()};
 }
 
 function md(d){
   const L = [], cell = s => String(s == null ? '—' : s).replace(/\|/g, '\\|').replace(/\n/g, ' ');
   L.push(`# Exam Drill Dashboard`, ``, `Generated ${d.generatedAt}${d.offline ? ' (offline: no repository heads, course files or pull requests read)' : ''}.`, ``);
   L.push(`## Courses`, ``, `| Course | Status | Next exam | Final | Published | Known, not released | Kit pin (behind) | Preview waiting | Next review | Problems |`, `|---|---|---|---|---|---|---|---|---|---|`);
+  const lastTxt = l => l ? ` (last successful read ${l.at})` : ' (no earlier successful read)';
   for(const c of d.courses){
-    const probs = [...(c.publication && c.publication.problems || []), ...c.openProblems].join('; ') || (c.publication ? 'none' : 'publication check not run');
-    L.push(`| [${cell(c.code)}](https://github.com/${c.repo}) ${cell(c.name)}, ${cell(c.term)} | ${c.status}: ${cell(c.why)} | ${cell(c.next)} | ${cell(c.final)} | ${cell(c.published.join(', ') || 'none')} | ${cell(c.knownFuture.join('; ') || 'none')} | ${cell(c.kitPin ? c.kitPin + (c.kitBehind != null ? ` (${c.kitBehind} core commits)` : '') : 'not a kit course or not read')} | ${cell(c.previewWaiting == null ? '—' : c.previewWaiting ? 'yes' : 'no')} | ${cell(c.nextAction)} | ${cell(probs)} |`);
+    let probs;
+    const pb = c.publication;
+    if(!pb) probs = c.siteKind === 'kit' ? 'release check not run' : 'release check not run (not a kit course)';
+    else if(pb.checked === 'unavailable' || pb.checked === 'not-read'){
+      const last = pb.last && pb.last.value && pb.last.value.pub;
+      probs = `${pb.checked === 'unavailable' ? UNAVAILABLE : 'not read (offline)'}${lastTxt(pb.last)}${last ? ': ' + (last.ok ? 'only released exams on the site' : last.problems.join('; ')) : ''}`;
+    }else probs = pb.ok ? 'only released exams on the site' : pb.problems.join('; ');
+    if(c.openProblems.length) probs += `; open: ${c.openProblems.join(', ')}`;
+    const pv = c.preview;
+    const pvTxt = pv.state === 'ok' ? (pv.value ? 'yes' : 'no') : pv.state === 'unavailable' ? `${UNAVAILABLE}${lastTxt(pv.last)}${pv.last ? ': ' + (pv.last.value ? 'yes' : 'no') : ''}` : '—';
+    const pinTxt = c.kitPin ? c.kitPin + (c.kitBehind != null ? ` (${c.kitBehind} core commits behind)` : '') : c.siteKind === 'kit' ? (pb && pb.last && pb.last.value && pb.last.value.pin ? `${pb.last.value.pin}${lastTxt(pb.last)}` : 'not read') : 'not a kit course';
+    const nextRev = c.head && c.head.state === 'unavailable' ? `${UNAVAILABLE} (repository head)${lastTxt(c.head.last)}` : c.nextAction;
+    L.push(`| [${cell(c.code)}](https://github.com/${c.repo}) ${cell(c.name)}, ${cell(c.term)} | ${c.status}: ${cell(c.why)} | ${cell(c.next)} | ${cell(c.final)} | ${cell(c.published.join(', ') || 'none')} | ${cell(c.knownFuture.join('; ') || 'none')} | ${cell(pinTxt)} | ${cell(pvTxt)} | ${cell(nextRev)} | ${cell(probs)} |`);
   }
   const fl = d.courses.filter(c => c.flags.length);
   if(fl.length){ L.push(``, `**Schedule uncertainties:**`); for(const c of fl) L.push(`- ${c.code}: ${c.flags.join('; ')}`); }
   L.push(``, `## Improvements`, ``, `| Id | Title | Source | Kind | Status | In the kit | Candidate courses | PRs |`, `|---|---|---|---|---|---|---|---|`);
   for(const i of d.improvements) L.push(`| ${cell(i.id)} | ${cell(i.title)} | ${cell(i.sourceRepo)}${i.sourceCommit ? ' ' + cell(i.sourceCommit) : ''} | ${cell(i.kind)} | ${cell(i.status)} | ${cell(i.existsInKit)} | ${cell((i.candidateCourses || []).join(', '))} | ${cell((i.prs || []).join(', ') || '—')} |`);
   L.push(``, `## Approvals`, ``);
-  if(d.approvals == null) L.push(`Not read (offline).`);
-  else {
-    const w = d.approvals.filter(a => a.waitsForLouis), f = d.approvals.filter(a => a.failedChecks && a.failedChecks.length), u = d.approvals.filter(a => a.unreachable);
-    L.push(`**Waiting for your yes or no** (open, not draft, and the description says so):`);
-    L.push(...(w.length ? w.map(a => `- [${a.repo}#${a.number}](${a.url}) ${a.title}`) : ['- none']));
-    L.push(``, `**Failed or cancelled checks on an open pull request's head:**`);
-    L.push(...(f.length ? f.map(a => `- [${a.repo}#${a.number}](${a.url}): ${a.failedChecks.join('; ')}`) : ['- none']));
-    const pv = d.courses.filter(c => c.previewWaiting);
-    L.push(``, `**Course previews that differ from the live site** (approval needed before they go live):`);
-    L.push(...(pv.length ? pv.map(c => `- ${c.code}: \`/preview/\` differs from the live \`version.json\``) : ['- none']));
-    if(u.length) L.push(``, `Not reachable from this session: ${u.map(a => a.repo).join(', ')}.`);
+  const live = d.approvals.filter(a => a.checked === 'live'), notChecked = d.approvals.filter(a => a.checked !== 'live');
+  const items = live.flatMap(a => a.items);
+  const w = items.filter(a => a.waitsForLouis), f = items.filter(a => a.failedChecks && a.failedChecks.length);
+  L.push(`**Waiting for your yes or no** (open, not draft, and the description says so):`);
+  L.push(...(w.length ? w.map(a => `- [${a.repo}#${a.number}](${a.url}) ${a.title}`) : ['- none in the repositories read']));
+  L.push(``, `**Failed or cancelled checks on an open pull request's head:**`);
+  L.push(...(f.length ? f.map(a => `- [${a.repo}#${a.number}](${a.url}): ${a.failedChecks.join('; ')}`) : ['- none in the repositories read']));
+  const pv = d.courses.filter(c => c.preview.state === 'ok' && c.preview.value);
+  L.push(``, `**Course previews that differ from the live site** (approval needed before they go live):`);
+  L.push(...(pv.length ? pv.map(c => `- ${c.code}: \`/preview/\` differs from the live \`version.json\``) : ['- none in the repositories read']));
+  if(notChecked.length){
+    L.push(``, `**${d.offline ? 'Not read (offline)' : UNAVAILABLE}** for these repositories' pull requests; this says nothing about whether the repository or its site is up:`);
+    for(const a of notChecked){
+      const lv = a.last && a.last.value;
+      const sum = lv ? `last successful read ${a.last.at}: ${lv.filter(x => x.waitsForLouis).length} waiting for you, ${lv.filter(x => x.failedChecks && x.failedChecks.length).length} with failed checks${lv.filter(x => x.waitsForLouis).map(x => `; #${x.number} ${x.title}`).join('')}` : 'no earlier successful read';
+      L.push(`- ${a.repo}: ${sum}`);
+    }
+  }
+  if(d.access.length){
+    L.push(``, `**Reads this session could not make** (sanitized errors):`);
+    for(const x of d.access) L.push(`- ${x.what}: ${x.why || 'no detail'}`);
   }
   L.push(``, `## Automation activity`, ``, `| Automation | Kind | Responsibility | Schedule or trigger | State | Last run recorded | Verified |`, `|---|---|---|---|---|---|---|`);
   for(const a of d.automations) L.push(`| ${cell(a.name)} | ${cell(a.kind)} | ${cell(a.responsibility)} | ${cell(a.schedule)} | ${cell(a.state)} | ${cell(a.lastRun)} | ${cell(a.verified)} |`);
@@ -282,7 +375,8 @@ if(require.main === module){
     out(json ? res : res.map(r => `${r.course}: ${r.ok === null ? 'NOT RUN' : r.ok ? 'OK' : 'PROBLEM'}${r.problems.length ? ' — ' + r.problems.join('; ') : ''}${r.knownNotReleased && r.knownNotReleased.length ? `\n  known, not released (hidden from students): ${r.knownNotReleased.join('; ')}` : ''}`).join('\n'));
     if(res.some(r => r.ok === false)) process.exitCode = 1;
   }
-  else if(cmd === 'dashboard'){ const d = dashboard(now, {offline: argv.includes('--offline')}); out(json ? d : md(d)); }
+  else if(cmd === 'dashboard'){ const d = dashboard(now, {offline: argv.includes('--offline'), cache: argv.includes('--no-cache') ? null : (opt('--cache') || undefined)}); out(json ? d : md(d)); }
+  else if(cmd === 'lastseen'){ const d = dashboard(now, {offline: false, cache: argv.includes('--no-cache') ? null : (opt('--cache') || undefined)}); console.log(JSON.stringify(d.lastSeen, null, 1)); }
   else { console.error('usage: coord.js status|plan|published|dashboard [--now ISO] [--json] [--offline]'); process.exit(2); }
 }
-module.exports = {zonedInstant, examSpan, lifecycle, plan, checkPublished, courseFromJs, approvalsFrom, md, STATUSES, RELEASE};
+module.exports = {dashboard, lastSeenStore, UNAVAILABLE, zonedInstant, examSpan, lifecycle, plan, checkPublished, courseFromJs, approvalsFrom, md, STATUSES, RELEASE};

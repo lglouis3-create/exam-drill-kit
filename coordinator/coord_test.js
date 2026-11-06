@@ -132,6 +132,44 @@ check(/## Courses/.test(dd) && /## Improvements/.test(dd) && /## Approvals/.test
 check(/PHAR 4346.*exam-approaching.*Exam 1 2026-11-09 09:00.*Final Exam 2026-12-07.*\| Exam 1 \|.*Exam 2 2026-11-16 \(planned\); Exam 3 2026-11-23 \(planned\); Final Exam 2026-12-07 \(planned\)/.test(dd), 'DEENT row: next Exam 1, final 12/07, Exam 1 published, the other three known and not released');
 check(/Kit coordinator daily.*proposed \(not configured\)/.test(dd), 'the proposed coordinator task shows as not configured');
 
+
+console.log('\n=== Access unavailable: reported as not checked, with the last successful result ===');
+{
+  const os = require('os');
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'coord-test-'));
+  const cache = path.join(tmp, 'last.json');
+  const deentJs = "const COURSE = {exams:[{id:'exam1'}], activeExam:'exam1', kit:{core:'25c643d'}};";
+  let denied = false;
+  const io = {
+    liveHead: repo => denied && /DEENT/.test(repo) ? {state: 'unavailable', why: 'fake refusal'} : {state: 'ok', head: 'h-' + repo},
+    liveFile: (repo, file) => {
+      if(denied && /DEENT|Intro-Pharmacology/.test(repo)) return {state: 'unavailable', why: 'GitHub access to this repository is not enabled for this session'};
+      if(/DEENT/.test(repo) && file === 'src/course.js') return {state: 'ok', text: deentJs};
+      if(/DEENT/.test(repo) && file === 'preview/version.json') return {state: 'ok', text: '{"v":2}'};
+      if(/DEENT/.test(repo) && file === 'version.json') return {state: 'ok', text: '{"v":1}'};
+      if(/Medicinal/.test(repo) && file === 'src/course.js') return {state: 'ok', text: "const COURSE = {exams:[{id:'final'}], activeExam:'final', kit:{core:'abc'}};"};
+      return {state: 'missing'};
+    },
+    livePRs: repo => (denied && /DEENT/.test(repo)) || /Intro-Pharmacology/.test(repo) ? {state: 'unavailable', why: 'GitHub access to this repository is not enabled for this session'}
+      : {state: 'ok', prs: /DEENT/.test(repo) ? [{number: 7, title: 'Exam 1 release', draft: false, head: 'x', body: "For Louis's yes or no", url: 'u'}] : []},
+    liveChecks: () => [], kitBehind: () => 3
+  };
+  const d1 = C.dashboard(T('2026-11-06T10:00:00Z'), {cache, io});
+  check(d1.access.length === 1 && C.md(d1).includes('[lglouis3-create/DEENT#7](u) Exam 1 release'), 'with access: DEENT\'s pull request waiting for Louis is listed');
+  denied = true;
+  const d2 = C.dashboard(T('2026-11-06T12:00:00Z'), {cache, io});
+  const m2 = C.md(d2);
+  check(d2.access.some(a => /DEENT: open pull requests/.test(a.what) && /not enabled for this session/.test(a.why)), 'the failing read and its sanitized error are reported', d2.access);
+  check(m2.includes(`${C.UNAVAILABLE}** for these repositories' pull requests`) && /lglouis3-create\/DEENT: last successful read 2026-11-06T10:00:00.000Z: 1 waiting for you, 0 with failed checks; #7 Exam 1 release/.test(m2), 'without access: "Access unavailable—status not checked", with the last successful result and its time');
+  check(/PHAR 4346.*Access unavailable—status not checked \(repository head\) \(last successful read 2026-11-06T10:00:00.000Z\)/.test(m2), 'the DEENT row says its head was not checked, with the last read time');
+  check(/PHAR 4346.*Access unavailable—status not checked \(last successful read 2026-11-06T10:00:00.000Z\): only released exams on the site/.test(m2), 'the release check shows the last successful result, marked as not checked now');
+  check(!/down|offline site|unreachable site/i.test(m2.split('## Automation activity')[0].replace(/not read \(offline\)/g, '')), 'nothing says the repository or the site is down');
+  check(/Intro-Pharmacology-: no earlier successful read/.test(m2), 'a repository never read before says so, not "none waiting"');
+  const st = C.lastSeenStore(null, {lastSeen: {'prs|o/r': {at: '2026-11-07T00:00:00Z', value: []}}});
+  check(st.get('prs|o/r').at === '2026-11-07T00:00:00Z', 'a last result committed in state.json is used when the cache has none');
+  fs.rmSync(tmp, {recursive: true, force: true});
+}
+
 console.log('\n=== The records ===');
 const ids = new Set();
 for(const c of cfg.courses){
