@@ -33,29 +33,45 @@ const QUOTA = () => {
     return real.call(this, k, v);
   };
 };
-// one answer in the page, by clicking as a student does (window.answerNow, for use inside an evaluate)
+// one answer in the page, by clicking as a student does (window.answerNow, for use inside an evaluate).
+// The question is chosen, not drawn: the first question of the bank, in bank order, that is answered
+// with option buttons (choice or select-all), put on screen through the engine's own fixed-queue pass
+// (a queue of that one question, as L.quizOn sets it up; nothing is shuffled or drawn). With
+// answerNow('multi') the question is the first select-all one. A quiz draws at random, and a course can hold
+// topics with numeric or matching questions only, so a draw can miss every option question.
+// A course with no such question, or a click that records no answer, stops the test with a message
+// that says so: that case is not exercised, so it is never counted as passed.
 const ANSWER_NOW = () => {
-  window.answerNow = () => {
-    // a question answered with option buttons (choice or select-all): the quiz is started again,
-    // topic after topic, until one is on screen (a quiz draws at random, the template also has
-    // numeric and matching questions, and a small pool ends instead of repeating)
-    for(let i = 0; i < 60; i++){
-      startQuiz(TOPICS[i % TOPICS.length].id);
-      if(Q.current && document.querySelector('#v-quiz button[data-o]')) break;
+  const onScreen = q => {
+    Q = {pool: [q], label: 'check', sweep: [q.id], i: 0, current: null, answered: 0, lastId: null, examMode: false, picked: null, revealed: false};
+    nextQuestion(); show('quiz');
+    return Q.current && Q.current.id === q.id && !!document.querySelector('#v-quiz button[data-o]');
+  };
+  window.answerNow = kind => {
+    const multi = kind === 'multi', slot = multi ? '__optionMulti' : '__optionQ';
+    let q = window[slot] ? QUESTIONS.find(x => x.id === window[slot]) : null;
+    if(!(q && onScreen(q))){
+      q = null;
+      for(const c of QUESTIONS){
+        if(!(c.options && c.options.length) || (multi && !isMulti(c))) continue;
+        if(onScreen(c)){ q = c; break; }
+      }
+      if(!q && multi) return null;   // the caller reports that this course has no select-all question
+      if(!q) throw new Error('storage_test needs a question answered with option buttons (choice or select-all), and this course has none: the answer cases were not run');
+      window[slot] = q.id;
     }
-    const q = Q.current;
+    const n0 = DB.answers.length;
     if(isMulti(q)){ for(const i of correctSet(q)) document.querySelector(`#v-quiz button[data-o="${i}"]`).click(); document.getElementById('btnCheck').click(); }
     else document.querySelector('#v-quiz button[data-o]').click();
+    if(DB.answers.length !== n0 + 1) throw new Error(`storage_test: clicking an answer to ${q.id} recorded ${DB.answers.length - n0} answers, not 1`);
     return DB.answers.length;
   };
 };
-const answerOne = page => page.evaluate(() => {
-  startQuiz(TOPICS[0].id);
-  const q = Q.current;
-  if(isMulti(q)){ for(const i of correctSet(q)) document.querySelector(`#v-quiz button[data-o="${i}"]`).click(); document.getElementById('btnCheck').click(); }
-  else document.querySelector('#v-quiz button[data-o]').click();
-  return DB.answers.length;
-});
+// the same, from outside the page: the helper is put in the page first when it is not there yet
+const answerOne = async page => {
+  if(!(await page.evaluate(() => typeof window.answerNow === 'function'))) await page.evaluate(ANSWER_NOW);
+  return page.evaluate(() => answerNow());
+};
 
 (async () => {
   const {browser} = await L.launch(NAME);
@@ -234,6 +250,17 @@ const answerOne = page => page.evaluate(() => {
     const sw = await two.page.evaluate(() => ({prompts: window.__prompts, who: PROFILE}));
     check(sw.prompts === 1 && sw.who === 'Other', 'the Switch button still asks for a name', JSON.stringify(sw));
     await two.ctx.close();
+  }
+  console.log('\n=== The answer helper on a select-all question ===');
+  {
+    const {ctx, page, errors} = await L.openFile(browser, {}, ANSWER_NOW);
+    const r = await page.evaluate(() => { const n0 = DB.answers.length; const n = answerNow('multi'); return n === null ? null : {n0, n, id: Q.current && Q.current.id, multi: !!(Q.current && isMulti(Q.current))}; });
+    if(r === null) L.skip('the helper answers a select-all question', 'this course has no select-all question answered with option buttons');
+    else {
+      check(r.multi && r.n === r.n0 + 1, 'the helper answers a select-all question (its correct options, then Check answer) and one answer is recorded', JSON.stringify(r));
+      check(!errors.length, 'select-all answer: no page errors', errors.slice(0, 2).join('; '));
+    }
+    await ctx.close();
   }
   await browser.close();
   L.finish(NAME);

@@ -479,7 +479,9 @@ let nfile = 0;
     ['the same answers, other concept progress', f => { const c = Object.keys(f.db.concepts)[0]; f.db.concepts[c].box += 1; f.db.concepts[c].dueAt += 86400000; }, /the file's concept progress differs from this profile's/i],
     ['the same answers and concept progress, another pace', f => { f.db.settings = Object.assign({}, f.db.settings, {mode: 'normal', pace: 'semester'}); }, /the file's settings differ from this profile's/i],
     ['the same answers, a scheduling state this profile lacks', f => { f.db.arms = {[Object.keys(f.db.concepts)[0]]: 'concept-fsrs'}; }, /the file's scheduling state differs from this profile's/i],
-    ['the same answers, a part a feature module keeps', f => { f.db.notes = {[I.ids[0]]: 'a note'}; }, /the file's other saved progress differs from this profile's/i],
+    // a note in the form the notes module saves it ({t: text, at: when typed}): that module, when a
+    // course has it, keeps only notes of that form in an imported progress
+    ['the same answers, a part a feature module keeps', f => { f.db.notes = {[I.ids[0]]: {t: 'a note', at: 1762300000000}}; }, /the file's other saved progress differs from this profile's/i],
   ]){
     const o = await own(3);
     const f = JSON.parse(JSON.stringify(o.file));
@@ -491,7 +493,7 @@ let nfile = 0;
     const name = await keptWhole(o.d.page, o.di, rr, f, o.data, label);
     if(f.db.notes){
       const theirs = JSON.parse(await stored(o.d.page, I.ns + ':data:' + name) || '{}');
-      check(JSON.stringify(theirs.notes) === JSON.stringify(f.db.notes), 'and the module\'s part is in it', theirs.notes);
+      check(JSON.stringify(theirs.notes) === JSON.stringify(f.db.notes), 'and the module\'s part is in it, the whole note (text and time)', theirs.notes);
     }
     await o.d.ctx.close();
   }
