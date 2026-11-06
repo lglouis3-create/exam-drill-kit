@@ -46,11 +46,27 @@ worksheets-ink does (`logs/real-quota-1475679.log`):
 - The two records in that minute were 1,475,919 and 1,476,083 characters.
 - The review reproduced these figures. Its total after the reload was 4,428,444, one character
   more, because its pending-seen entry was 162 characters, not 161.
-- **The porter's figures** come from a "diag-records log" its test refers to, which is in no
-  branch. They are left out of this proposal until that log is committed. The porter session was
-  asked on 2026-11-06 to commit it under `review/records-storage/logs/`. The porter described its
-  Import refusal but saved no log of it: its test adds a 61 s wait, so every saved run shows the
-  Import succeeding.
+- **The porter's figures** are on the evidence branch `evidence/records-storage`, commit
+  `e3c40bc`, which is never to be merged. They match these measurements in kind.
+  - `review/records-storage/logs/diag-records-new.log` at that commit:
+    - after the bulk save, `data:me` was 1,475,679 characters and one per-tab record 1,475,714;
+    - after a reload and one ink open and close, there were two records of 1,475,714 each;
+    - 62 s later, one record was left.
+  - The three keys after the reload add to 2 × 1,475,714 + 1,475,679 = 4,427,107 characters
+    (checked). With the three small keys listed (2, 17 and 132 characters), the total is 4,427,258.
+  - `worksheets-ink-modtest-new-1.log` and `worksheets-ink-modtest-r2-run2.log` at the same commit
+    each report "2 per-tab records of this profile after the reload; 1 left after 61 s, before the
+    Import", and then the Import succeeds.
+  - Their refused Imports (lines 208 and 222 of the first log, 210 and 224 of the second) come from
+    the module's separate "storage full (Chromium's own quota)" test, not from a reload minute.
+- **Two limits on the porter's evidence** (`logs/README.md` at that commit):
+  - no saved log shows the Import refused in the minute after a reload. The porter's test waits
+    61 s before its Import, so every saved run shows the Import succeeding, and the refusal was
+    reported but not logged;
+  - the diag log carries no commit stamp. It ran on the module's save-path code during the
+    worksheets-ink F1 work, before the port's final commit `0769d14`.
+- The refused Import in the reload minute is therefore shown only by this pull request's
+  `logs/real-quota-1475679.log` and by the review.
 
 **Larger progress** (`logs/real-quota-2000000.log`, `logs/real-quota-3000000.log`):
 
