@@ -2,11 +2,36 @@
 
 Dated kit changes, newest first.
 
-## 2026-11-06
+## 2026-11-06 (exam paper)
 - Exam paper: the last question's "Review" no longer grades and submits the paper. It is now "Review answers" and opens an overview of the paper (each question number, answered or not answered, a way back to any question, one submit button). The overview shows no answers, grades or explanations and records nothing; its submit asks the same question as "Submit paper", and Cancel keeps the paper running (`exam_review_test.js`).
 - Exam paper: a chosen answer is drawn in the neutral selection colour (blue), the same for a right and a wrong choice; green and red appear only on the result page.
-- Exam opening page: it describes select-all items from papers drawn by the engine's own draw (20 sample papers per exam and bank: one count, or a range when the samples differ), and says "This paper has no select-all items" when none was drawn, instead of "about 0 of the 50 are select-all".
+- Exam opening page: it describes select-all items from papers drawn by the engine's own draw (20 sample papers per exam and bank), worded as a sample about practice papers, not a guarantee or the official exam format: "Practice papers drawn from this bank usually carry about N select-all items (... from 20 sample draws); yours may differ." or "... are not expected to carry select-all items (none in 20 sample draws)", instead of "about 0 of the 50 are select-all".
 - Exam overview: the question opened from it takes the focus; with more than six unanswered the "Not answered" line gives the count and the first five. A chosen answer has an inner ring as well as the filled letter, so it differs from an answer under the pointer.
+
+## 2026-11-06 (checks)
+- `import_test.js` "a profile switch frees the old profile's lock": the second tab now asks for the lock until it is granted or 2000 ms have passed, instead of once straight after the switch. The page frees the lock by resolving its lock callback's promise and the browser frees it after that; the lock was still held at the single request in job 127949917972. Before the switch the check now confirms that the second tab is read-only and that the browser lists exactly one held lock under the name it waits on, so a wrong lock name on either side fails it. A lock still held after 2000 ms fails the check and says how many holders remain (`review/lock-test/`).
+- A check can report one case as NOT RUN (`check_lib.js` `notRunCase`). It is counted apart from passes and skips, named in the check's summary, and listed by `run_checks.sh`. `ci_course.sh` accepts exactly one such case, listed in `core/ci_exclusions.sh`: the worksheets-ink PDF's size in WebKit (Louis, 2026-11-06). Any other NOT RUN case, and the same case in Chromium, fails the run. When worksheets-ink is on, its PDF check (Chromium) and its four print-layout checks (Chromium and WebKit) must each appear as a passing line in its log (`REQUIRED_PASSES`; `notruncase_test.js`).
+
+## 2026-11-06
+- The improvement coordinator (`coordinator/`):
+  - records each course's whole exam schedule apart from what its site has released;
+  - classifies each course's lifecycle from that schedule in America/Chicago;
+  - plans reviews by lifecycle and by what changed since the last reviewed commit;
+  - checks that a site lists only released exams;
+  - keeps an improvement registry;
+  - shows "Show my Exam Drill Dashboard" in Claude Code (`.claude/skills/exam-drill-dashboard/`).
+
+  `coordinator/coord_test.js` runs in Kit checks. DEENT is registered in `COURSES.md` and
+  `coordinator/courses.json`, with its published and unreleased question counts labelled by
+  branch.
+- The coordinator reads a course file as text and never runs it. It reads the release state at the commit GitHub Pages last deployed, or says the live revision is unknown. Credentials are removed from every shown or cached error. Approvals come from an "Approval:" line in each pull request. A final exam with no date no longer stops it.
+- The kit-update run reads each course from the branch Pages serves (`pagesBranch`), never
+  the default branch, and skips the kit-update preview of a course whose `kitUpdate` is
+  paused while keeping its read-only checks (`coord.js kitupdate`). DEENT is paused until
+  its pending release is resolved (Louis, 2026-11-06).
+- A coordinator run records improvements and prepares none, and writes a retrospective only
+  when Louis asks; preparing improvements and automatic retrospectives are a separate
+  proposal.
 
 ## 2026-11-05
 - The answer history is no longer cut silently at 20,000 entries: past it a notice offers Export progress and a removal of the oldest entries that names how many and their dates and needs an OK; until then new entries go on being added (`cap_test.js`).

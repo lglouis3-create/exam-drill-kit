@@ -10,10 +10,10 @@
  *      button that asks the same question as "Submit paper". Opening it grades,
  *      records and shows nothing; Cancel on the question keeps the paper.
  *   2. The opening page said the paper "mixes single-answer and select-all
- *      items ... about 0 of the 50 are select-all". It now says what the draw
- *      really puts on the paper: no select-all item when none is drawn, and the
- *      number drawn (the course's target, or fewer when the exam's pools hold
- *      fewer) when some are.
+ *      items ... about 0 of the 50 are select-all". It now names what 20
+ *      sample draws put on practice papers, worded as a sample and not as the
+ *      official exam format ("usually carry about N ...; yours may differ",
+ *      "not expected to carry select-all items"; Louis, 2026-11-06).
  *   3. A chosen answer on a running paper was drawn in the colour of a right
  *      answer (class pick-ok, green), right or wrong. It is now drawn in the
  *      neutral selection colour, the same for a right and a wrong choice;
@@ -72,17 +72,21 @@ const sataText = page => page.evaluate(() => {
   if(EX){ clearInterval(EX.timer); EX = null; } clearExam(); show('exam');
   const sub = document.querySelector('#v-exam p.sub'), text = sub ? sub.textContent.replace(/\s+/g, ' ') : '';
   const drawn = []; for(let k = 0; k < 30; k++) drawn.push(drawPaper().filter(isMulti).length);
-  return {text, drawn, bank: QUESTIONS.filter(isMulti).length};
+  const seen = typeof examSataDrawn === 'function' ? examSataDrawn() : null;
+  return {text, drawn, bank: QUESTIONS.filter(isMulti).length, seen: seen && {lo: seen.lo, hi: seen.hi, usual: seen.usual}};
 });
+/* The page words the sampled count as a sample about practice papers, never as a fact about this
+   paper or the official exam (Louis, 2026-11-06); and what it names agrees with the draw: "not
+   expected" only when 30 fresh draws carry none, "about N" with N within the fresh draws' range. */
 function sataAgrees(r, label){
-  const most = Math.max(...r.drawn);
-  let lo, hi, m;
-  if(/no select-all/.test(r.text)){ lo = hi = 0; }
-  else if((m = /Between (\d+) and (\d+) of the \d+ are select-all/.exec(r.text))){ lo = +m[1]; hi = +m[2]; }
-  else if((m = /(\d+) of the \d+ (?:is|are) select-all/.exec(r.text))){ lo = hi = +m[1]; }
-  const ok = lo !== undefined && r.drawn.every(c => c >= lo && c <= hi) && !/mixes single-answer and select-all|about \d+ of the/i.test(r.text);
-  check(ok, `${label}: the opening page's select-all count (${lo === undefined ? 'none named' : lo === hi ? lo : lo + '-' + hi}) covers every paper drawn (${[...new Set(r.drawn)].sort((a, b) => a - b).join(', ')}; ${r.bank} in the bank)`,
-    {text: r.text, drawn: r.drawn});
+  const most = Math.max(...r.drawn), least = Math.min(...r.drawn), m = /usually carry about (\d+) select-all/.exec(r.text);
+  const none = /not expected to carry select-all items \(none in \d+ sample draws\)/.test(r.text);
+  const guarantee = /This paper has no select-all|Between \d+ and \d+ of the|\d+ of the \d+ (?:is|are) select-all|mixes single-answer and select-all/i.test(r.text);
+  check(!guarantee && /practice papers, not the official exam format/.test(r.text) && (none || (m && /yours may differ/.test(r.text))),
+    `${label}: the opening page words the select-all count as a sample about practice papers, not a guarantee or the official exam format`, r.text);
+  const ok = none ? most === 0 : !!m && +m[1] >= least && +m[1] <= most;
+  check(ok, `${label}: what it names (${none ? 'none expected' : m ? 'about ' + m[1] : 'nothing'}) agrees with 30 fresh draws (${[...new Set(r.drawn)].sort((a, b) => a - b).join(', ')}; ${r.bank} in the bank)`,
+    {text: r.text, drawn: r.drawn, seen: r.seen});
   return most;
 }
 async function setupText(page, label){
