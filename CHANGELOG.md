@@ -3,6 +3,25 @@
 Dated kit changes, newest first.
 
 ## 2026-11-06
+- The improvement coordinator (`coordinator/`):
+  - records each course's whole exam schedule apart from what its site has released;
+  - classifies each course's lifecycle from that schedule in America/Chicago;
+  - plans reviews by lifecycle and by what changed since the last reviewed commit;
+  - checks that a site lists only released exams;
+  - keeps an improvement registry;
+  - shows "Show my Exam Drill Dashboard" in Claude Code (`.claude/skills/exam-drill-dashboard/`).
+
+  `coordinator/coord_test.js` runs in Kit checks. DEENT is registered in `COURSES.md` and
+  `coordinator/courses.json`, with its published and unreleased question counts labelled by
+  branch.
+- The coordinator reads a course file as text and never runs it. It reads the release state at the commit GitHub Pages last deployed, or says the live revision is unknown. Credentials are removed from every shown or cached error. Approvals come from an "Approval:" line in each pull request. A final exam with no date no longer stops it.
+- The kit-update run reads each course from the branch Pages serves (`pagesBranch`), never
+  the default branch, and skips the kit-update preview of a course whose `kitUpdate` is
+  paused while keeping its read-only checks (`coord.js kitupdate`). DEENT is paused until
+  its pending release is resolved (Louis, 2026-11-06).
+- A coordinator run records improvements and prepares none, and writes a retrospective only
+  when Louis asks; preparing improvements and automatic retrospectives are a separate
+  proposal.
 - `worksheets-ink` (kit PR #17, draft): the writing is saved through the core's own save (`save()`, `saveNow()`, `store`)
   instead of a direct browser-storage write, which had made the core stop the page with its "saved in another tab"
   wall after writing, so nothing done on the page afterwards was saved. A second tab's newer progress is not written
