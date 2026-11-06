@@ -47,36 +47,70 @@ console.log('\n=== run_checks.sh ===');
 const rc = child.spawnSync('bash', ['run_checks.sh', 'features/worksheets-ink/test.js', 'only_case.js'], {encoding: 'utf8', cwd: T, env: Object.assign({}, process.env, {TMPDIR: T, DRILL_PAGE: path.join(T, 'index.html')})});
 const out = rc.stdout;
 const log = path.join(T, 'checks.log'); fs.writeFileSync(log, out);
-check(out.includes(`NOT RUN  features/worksheets-ink/test.js :: ${PDF}  — ${WHY}`), 'run_checks.sh lists the case as "NOT RUN  <check> :: <label>  — <why>"', out);
+check(out.includes(`NOT RUN CASE  features/worksheets-ink/test.js :: ${PDF}  — ${WHY}`), 'run_checks.sh lists the case as "NOT RUN CASE  <check> :: <label>  — <why>", a prefix of its own', out);
 check(/^PASS +features\/worksheets-ink\/test\.js +1 checks passed, 1 NOT RUN/m.test(out), 'the check itself is listed as PASS, with its case named');
 check(/2 PASS, 0 FAIL, 1 NOT RUN, 0 REPORT, 2 NOT RUN case\(s\); logs in /.test(out), 'the final line counts the NOT RUN cases apart from the checks', out.split('\n').slice(-2).join(' '));
 
 console.log('\n=== ci_course.sh accepts exactly the one documented case ===');
 // what ci_course.sh does with a run's output: unexpected_notruns <log>, with $kind and $browser set
 const rule = (kind, browser, file) => {
-  const s = child.spawnSync('bash', ['-c', `set -euo pipefail; source "$1"; kind="$2"; browser="$3"; n=0; unexpected_notruns "$4" >/dev/null || n=$?; echo "$n"`, '_', path.join(T, 'ci_exclusions.sh'), kind, browser, file], {encoding: 'utf8'});
+  const s = child.spawnSync('bash', ['-c', `set -euo pipefail; source "$1"; kind="$2"; browser="$3"; unexpected_notruns "$4" >/dev/null || true; echo "$UNEXPECTED_NOTRUNS"`, '_', path.join(T, 'ci_exclusions.sh'), kind, browser, file], {encoding: 'utf8'});
   return s.status === 0 ? +s.stdout.trim() : `error ${s.status}: ${s.stderr}`;
 };
-const one = (line, name) => { const f = path.join(T, name); fs.writeFileSync(f, line + '\n'); return f; };
-const permitted = one(`NOT RUN  features/worksheets-ink/test.js :: ${PDF}  — ${WHY}`, 'permitted.log');
+// a log as run_checks.sh writes it: the lines, then the final count line with the number of case lines
+const one = (lines, name, counted) => {
+  const ls = [].concat(lines), n = counted != null ? counted : ls.filter(l => l.startsWith('NOT RUN CASE  ')).length;
+  const f = path.join(T, name); fs.writeFileSync(f, ls.join('\n') + `\n1 PASS, 0 FAIL, 0 NOT RUN, 0 REPORT, ${n} NOT RUN case(s); logs in /x\n`); return f;
+};
+const permitted = one(`NOT RUN CASE  features/worksheets-ink/test.js :: ${PDF}  — ${WHY}`, 'permitted.log');
 check(rule('module:worksheets-ink', 'webkit', permitted) === 0, 'the worksheets-ink PDF-size case in WebKit is accepted');
 check(rule('module:worksheets-ink', 'chromium', permitted) === 1, 'the same case in Chromium fails the run (the PDF and its size stay required there)');
 check(rule('modules:worksheets-ink,chained-problem-sets', 'webkit', permitted) === 0, 'it is accepted on a course combining worksheets-ink with another module');
 const cases = [
-  ['another case of worksheets-ink in WebKit (its print layout)', `NOT RUN  features/worksheets-ink/test.js :: the printed worksheet's print layout  — not here`],
-  ['a similar label', `NOT RUN  features/worksheets-ink/test.js :: the printed PDF  — ${WHY}`],
-  ['the same case for another module', `NOT RUN  features/theme/test.js :: ${PDF}  — ${WHY}`],
-  ['the same case for a core check', `NOT RUN  browser_test.js :: ${PDF}  — ${WHY}`],
-  ['another reason', `NOT RUN  features/worksheets-ink/test.js :: ${PDF}  — the browser did not start`],
+  ['another case of worksheets-ink in WebKit (its print layout)', `NOT RUN CASE  features/worksheets-ink/test.js :: the printed worksheet's print layout  — not here`],
+  ['a similar label', `NOT RUN CASE  features/worksheets-ink/test.js :: the printed PDF  — ${WHY}`],
+  ['the same case for another module', `NOT RUN CASE  features/theme/test.js :: ${PDF}  — ${WHY}`],
+  ['the same case for a module whose path merely contains worksheets-ink', `NOT RUN CASE  features/worksheets-ink-x/test.js :: ${PDF}  — ${WHY}`],
+  ['the same case for a core check', `NOT RUN CASE  browser_test.js :: ${PDF}  — ${WHY}`],
+  ['another reason', `NOT RUN CASE  features/worksheets-ink/test.js :: ${PDF}  — the browser did not start`],
   ['the whole worksheets-ink test NOT RUN', `NOT RUN  features/worksheets-ink/test.js  page.pdf runs only in Chromium`],
-  ['a case line without its reason separator', `NOT RUN  features/worksheets-ink/test.js :: ${PDF} page.pdf runs only in Chromium`]
+  ['a whole-check NOT RUN worded like the permitted case', `NOT RUN  features/worksheets-ink/test.js :: ${PDF}  — ${WHY}`],
+  ['a case line without its reason separator', `NOT RUN CASE  features/worksheets-ink/test.js :: ${PDF} page.pdf runs only in Chromium`]
 ];
 for(const [label, line] of cases) check(rule('module:worksheets-ink', 'webkit', one(line, 'x.log')) === 1, `refused in WebKit: ${label}`);
-check(rule('template', 'webkit', log) === 2, 'the run above: only_case.js fails it twice (the whole check NOT RUN and its case); the PDF-size case does not count', rule('template', 'webkit', log));
+check(rule('template', 'webkit', log) === 2, 'the run above (its real output): only_case.js fails it twice (the whole check NOT RUN and its case); the PDF-size case does not count', rule('template', 'webkit', log));
 check(rule('template', 'chromium', one('NOT RUN  cite_check.py     no lecture PDFs found under decks/ or src/', 'cite.log')) === 0, 'the existing exclusion for cite_check.py still holds');
+check(rule('template', 'chromium', one('NOT RUN  cite_check.py     pdfplumber is not installed', 'cite2.log')) === 1, 'cite_check.py for any other reason still fails the run');
+const many = one(Array.from({length: 256}, (_, i) => `NOT RUN CASE  features/x/test.js :: item ${i}  — not here`), 'many.log');
+check(rule('template', 'webkit', many) === 256, '256 unexpected cases are counted as 256: the count cannot wrap to 0', rule('template', 'webkit', many));
+check(rule('module:worksheets-ink', 'webkit', one(`NOT RUN CASE  features/worksheets-ink/test.js :: ${PDF}  — ${WHY}`, 'forged.log', 0)) === 1, 'a case line that run_checks.sh did not count (a forged line) fails the run');
+{
+  const ci = fs.readFileSync(path.join(HERE, 'ci_course.sh'), 'utf8');
+  check(/^source "\$kit\/core\/ci_exclusions\.sh"$/m.test(ci) && /unexpected_notruns "\$work\/checks\.log"/.test(ci) && /unexpected=\$UNEXPECTED_NOTRUNS/.test(ci) && /if \[ "\$unexpected" -gt 0 \]; then/.test(ci),
+    'ci_course.sh sources this rule, applies it to the run\'s log and fails on any unexpected line');
+}
 const step = one('NOT RUN  stepper_test.js   no step-through figures in this course', 'step.log');
 check(rule('medicinal-chemistry', 'chromium', step) === 0 && rule('template', 'chromium', step) === 1, 'the stepper_test.js exclusion still holds for medicinal-chemistry only');
 check(rule('template', 'chromium', one('NOT RUN  storage_test.js   Node Playwright is not installed', 'pw.log')) === 1, 'any other NOT RUN check still fails the run');
+
+console.log('\n=== The checks the exclusion can never replace stay required ===');
+{
+  const logs = path.join(T, 'logs'); fs.mkdirSync(logs, {recursive: true});
+  const lf = path.join(logs, 'features__worksheets-ink__test.js.log');
+  const req = (order, browser, lines) => {
+    fs.writeFileSync(lf, lines.join('\n') + '\n');
+    const s = child.spawnSync('bash', ['-c', 'set -euo pipefail; source "$1"; missing_required "$2" "$3" "$4" >/dev/null || true; echo "$MISSING_REQUIRED"', '_', path.join(T, 'ci_exclusions.sh'), order, browser, logs], {encoding: 'utf8'});
+    return s.status === 0 ? +s.stdout.trim() : `error ${s.status}: ${s.stderr}`;
+  };
+  const PDFOK = '  ok    the printed PDF has the worksheet (56 KB)', LAYOUT = '  ok    Save as PDF prints the worksheet alone, ink as pictures in place of the canvases [1]';
+  check(req('worksheets-ink', 'chromium', [PDFOK, LAYOUT]) === 0, 'Chromium: the PDF check and the print layout passed: nothing missing');
+  check(req('worksheets-ink', 'chromium', [LAYOUT, `  skip  the printed PDF has the worksheet  — not here`]) === 1, 'Chromium: the PDF check skipped instead of passed fails the run');
+  check(req('worksheets-ink', 'webkit', [LAYOUT, `  NOT RUN  ${PDF}  — ${WHY}`]) === 0, 'WebKit: the print layout passed and the PDF size is the permitted case: nothing missing');
+  check(req('worksheets-ink', 'webkit', [`  NOT RUN  ${PDF}  — ${WHY}`]) === 1, 'WebKit: without the print-layout check passing, the run fails');
+  check(req('chained-problem-sets worksheets-ink', 'webkit', [LAYOUT]) === 0 && req('chained-problem-sets', 'webkit', []) === 0, 'it applies when worksheets-ink is one of the modules on, and only then');
+  const ci = fs.readFileSync(path.join(HERE, 'ci_course.sh'), 'utf8');
+  check(/missing_required "\$order" "\$browser" "\$logs"/.test(ci) && /if \[ "\$MISSING_REQUIRED" -gt 0 \]; then/.test(ci), 'ci_course.sh applies this to every module course');
+}
 
 fs.rmSync(T, {recursive: true, force: true});
 L.finish(NAME);

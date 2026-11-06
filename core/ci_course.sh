@@ -125,9 +125,9 @@ fi
 # every NOT RUN, of a check or of one case in a check, must be a documented exclusion with its
 # documented reason (core/ci_exclusions.sh)
 source "$kit/core/ci_exclusions.sh"
-unexpected=0
-unexpected_notruns "$work/checks.log" || unexpected=$?
-if [ $unexpected -gt 0 ]; then
+unexpected_notruns "$work/checks.log" || true
+unexpected=$UNEXPECTED_NOTRUNS
+if [ "$unexpected" -gt 0 ]; then
   echo "FAIL: $unexpected check(s) or case(s) did not run for a reason that is not a documented exclusion" >&2
   exit 1
 fi
@@ -151,6 +151,11 @@ if [ -n "${order:-}" ]; then
   done
   if [ $short -gt 0 ]; then
     echo "FAIL: $short module test(s) did not pass at least one check in $want" >&2
+    exit 1
+  fi
+  missing_required "$order" "$browser" "$logs" || true
+  if [ "$MISSING_REQUIRED" -gt 0 ]; then
+    echo "FAIL: $MISSING_REQUIRED required check(s) did not pass (core/ci_exclusions.sh REQUIRED_PASSES)" >&2
     exit 1
   fi
 fi
