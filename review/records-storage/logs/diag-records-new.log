@@ -1,0 +1,4 @@
+  browser  Chromium started
+after bulk save {"course-id-drill:profile":2,"course-id-drill:writer:me":17,"course-id-drill:pending:me:<tab>2":1475714,"course-id-drill:data:me":1475679}
+after reload + one ink open/close {"course-id-drill:profile":2,"course-id-drill:writer:me":17,"course-id-drill:pending:me:<tab>2":1475714,"course-id-drill:pending:me:<tab>3":1475714,"course-id-drill:pending-seen:me":132,"course-id-drill:data:me":1475679}
+62 s later {"course-id-drill:profile":2,"course-id-drill:writer:me":17,"course-id-drill:pending:me:<tab>2":1475714,"course-id-drill:data:me":1475679}
