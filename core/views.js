@@ -387,7 +387,7 @@ function filterBar(){
     const yet = !n && g === 'prof' && !QUESTIONS.some(q => q.prof === v);
     const why = !n ? (yet ? 'no questions yet' : 'no questions with the other filters') : '';
     return `<button class="chip${n ? '' : ' none'}" data-f="${g}" data-v="${v}" aria-pressed="${FILTER[g]===v}"${
-      why ? ` title="${why}"` : ''}>${why ? `<span>${l}</span> <small>(${yet ? why : 'none'})</small>` : l}</button>`;
+      why ? ` title="${why}"` : ''}>${why ? `<span>${l}</span> <small>(${yet ? why : 'none with the other filters'})</small>` : l}</button>`;
   };
   return `<div class="filters">
     <div class="frow"><label>Professor</label>
@@ -1480,7 +1480,9 @@ function startSweep(scope){
 function repeatSet(){
   if(Q.repeat){ startSweep(Q.repeat); return; }
   const pool = Q.pool.slice();
-  Q = {pool, label: Q.label, sweep: shuffle(pool.map(q => q.id)), i: 0,
+  // a filtered pass is named by filters that may have changed since: name it by its size
+  const label = Q.label === 'Every question under these filters' ? `The same ${pool.length} questions again` : Q.label;
+  Q = {pool, label, sweep: shuffle(pool.map(q => q.id)), i: 0,
        current:null, answered:0, lastId:null, examMode:false, picked:null, revealed:false};
   nextQuestion();
 }
@@ -1937,12 +1939,12 @@ function renderGaps(){
   <p class="sub">Every answer you have logged, weighted by what it is worth on the paper.</p>
   <div class="stat">
     <div><b>${tot}</b><span>answered</span></div>
-    <div data-stat="accuracy"><b style="color:var(--ok)">${Math.round(100*matched/tot)}%</b><span>matched the key · ${matched} of ${tot}</span></div>
+    <div data-stat="accuracy"><b style="color:var(--ok)">${Math.round(100*matched/tot)}%</b><span>right · ${matched} of ${tot} (guesses included)</span></div>
     <div><b style="color:var(--bad)">${wrong}</b><span>missed</span></div>
     <div><b>${m.mastered}</b><span>of ${m.total} concepts mastered</span></div>
   </div>
-  <p class="meta" data-stat="confidence" style="margin:-6px 0 6px">${matched ? `Of the ${matched} that matched: ${knew} knew it · ${shaky} not sure · ${guess} guessed.` : 'None matched the key yet.'}</p>
-  <p class="meta" id="statKey" style="margin:0 0 14px">Matched the key counts every right pick, guesses included.
+  <p class="meta" data-stat="confidence" style="margin:-6px 0 6px">${matched ? `Of the ${matched} right: ${knew} knew it · ${shaky} not sure · ${guess} guessed.` : 'None right yet.'}</p>
+  <p class="meta" id="statKey" style="margin:0 0 14px">Right counts every right pick, guesses included.
     Solid means right and not marked a guess or "not sure". Mastered comes from the review schedule
     (a concept at review step ${MASTER_BOX} or higher). Right answers on an exam paper, which asks no rating, count as "knew it".</p>`;
 
@@ -1963,7 +1965,7 @@ function renderGaps(){
     h += `<h3>This session</h3>
     <div class="panel">
       <div class="row spread">
-        <span data-stat="session"><b style="font-size:22px">${pct}%</b> <span class="meta">solid · ${ok} of ${ses.length} solid in ${mins} min</span></span>
+        <span data-stat="session"><b style="font-size:22px">${pct}%</b> <span class="meta">solid · ${ok} of ${ses.length} in ${mins} min</span></span>
         ${pa !== null && ses.length >= 6 ? `<span class="meta">first half ${pa}% → second half ${pb}%</span>` : ''}
       </div>
       <div class="sdots10 big" style="margin:11px 0 5px">${ses.slice(-20).map(e =>
@@ -2276,10 +2278,15 @@ function renderGaps(){
     }
   }
   el.innerHTML = h;
+  // wide tables scroll inside their own box on a phone instead of widening the page
+  el.querySelectorAll('table.gap').forEach(t => {
+    const w = document.createElement('div'); w.className = 'gapwrap';
+    t.parentNode.insertBefore(w, t); w.appendChild(t);
+  });
 
   el.querySelectorAll('[data-go]').forEach(b => b.onclick = () => show(b.dataset.go));
   const rs = $('#retrysess');
-  if(rs) rs.onclick = () => drillList(retryList, 'Missed this session');
+  if(rs) rs.onclick = () => drillList(retryList, 'Missed, guessed or unsure this session');
   const ma = $('#missall');
   if(ma) ma.onclick = () => drillList(notSolid, 'Not yet solid');
   el.querySelectorAll('[data-area]').forEach(b => b.onclick = () => {

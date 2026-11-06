@@ -32,6 +32,9 @@ const {check} = L;
 L.PAGE.need(NAME);
 
 const text = (page, sel) => page.$eval(sel, el => el.textContent.replace(/\s+/g, ' ').trim()).catch(() => '');
+// the core's own Start buttons on Topics (a feature module may add Starts of its own,
+// such as chained-problem-sets' fixed sets, which the filters do not apply to)
+const CORE_STARTS = '#v-topics button[data-t], #v-topics #sweepWeighted, #v-topics #sweepAll, #v-topics #sweepFiltered';
 const go = (page, v) => page.click(`#nav button[data-v="${v}"]`);
 const qState = page => page.evaluate(() => Q ? {
   pool: Q.pool.map(q => q.id).sort(), sweep: Q.sweep ? Q.sweep.slice() : null,
@@ -121,6 +124,9 @@ const fresh = async browser => {
     await answerAs(page, 'shaky'); await next(page);
     await go(page, 'gaps');
     for(const [sel, label] of [['#retrysess', 'the session\'s retry'], ['#missall', '"Drill all not-solid"']]){
+      if(sel === '#retrysess'){ await go(page, 'gaps'); const b = await page.$(sel); if(b){ await b.click();
+        const l = (await qState(page)).label;
+        check(l === 'Missed, guessed or unsure this session', 'the session\'s retry set is named as its button is', l); } }
       await go(page, 'gaps');
       const b = await page.$(sel);
       if(!b){ check(false, `${label}: its button is there`); continue; }
@@ -144,6 +150,7 @@ const fresh = async browser => {
       const got = await qState(page);
       check(got && JSON.stringify(got.pool) === JSON.stringify(want),
         `a filtered pass repeated after the filter was cleared keeps its ${want.length} questions`, got && got.pool.length);
+      check(got && got.label === `The same ${want.length} questions again`, 'and is named by its size, not by the filters now set', got && got.label);
     }else L.skip('a filtered pass repeated', 'no question type selects part of this bank');
     // broad modes unchanged
     const all = await page.evaluate(() => { startSweep('all'); Q.i = Q.sweep.length; nextQuestion();
@@ -195,14 +202,18 @@ const fresh = async browser => {
     await go(page, 'gaps');
     const g = await text(page, '#v-gaps');
     const acc = await text(page, '#v-gaps [data-stat="accuracy"]');
-    check(/60%/.test(acc) && /3 of 5/.test(acc) && /matched the key/i.test(acc),
-      'answer accuracy: 60%, 3 of 5 matched the key (a guess counts as matching)', acc || g.slice(0, 200));
+    check(/60%/.test(acc) && /right · 3 of 5 \(guesses included\)/.test(acc),
+      'answer accuracy: 60%, "right · 3 of 5 (guesses included)"', acc || g.slice(0, 200));
     const conf = await text(page, '#v-gaps [data-stat="confidence"]');
     check(/1 knew it/.test(conf) && /1 not sure/.test(conf) && /1 guessed/.test(conf),
       'confidence on the 3 that matched: 1 knew it, 1 not sure, 1 guessed', conf || 'no confidence line');
     check(!/\d+%\s*correct/i.test(g), 'no percentage on Weak spots is labelled "correct"', (g.match(/\d+%\s*correct/i) || [''])[0]);
     const ses = await text(page, '#v-gaps [data-stat="session"]');
-    check(/20%/.test(ses) && /1 of 5 solid/.test(ses), 'the session figure is 20%, "1 of 5 solid"', ses);
+    check(/20%/.test(ses) && /solid · 1 of 5 in/.test(ses) && (ses.match(/solid/g) || []).length === 1,
+      'the session figure is 20%, "solid · 1 of 5", "solid" once', ses);
+    check(!(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)),
+      'Weak spots does not widen a 390 px page (its tables scroll in their own box)',
+      await page.evaluate(() => document.documentElement.scrollWidth));
     check(/solid means/i.test(g) && /review schedule/i.test(g),
       'one line says what "solid" and "mastered" each count', g.slice(0, 400));
     const r = await page.$('#retrysess');
@@ -256,8 +267,10 @@ const fresh = async browser => {
     check(!!chip, 'every professor stays listed, one with no questions too');
     const ct = chip ? (await chip.textContent()).replace(/\s+/g, ' ').trim() : '';
     check(/no questions/i.test(ct), 'that chip says it has no questions', ct);
+    const tagNone = await page.$$eval('#v-topics .chip.none[data-f="tag"]', bs => bs.map(b => b.textContent.replace(/\s+/g, ' ').trim()));
+    check(tagNone.every(t => /\(none with the other filters\)/.test(t)), 'a chip with nothing under the other filters says so in its text', tagNone);
     if(chip) await chip.click();
-    const starts = await page.$$eval('#v-topics button', bs => bs.filter(b => /^(Start|Review)$/.test(b.textContent.trim()) && !b.disabled).length);
+    const starts = await page.$$eval(CORE_STARTS, bs => bs.filter(b => /^(Start|Review)$/.test(b.textContent.trim()) && !b.disabled).length);
     check(starts === 0, 'with no questions selected, no Start is offered', `${starts} Start buttons`);
     const t = await text(page, '#v-topics');
     check(/no questions match/i.test(t), 'the page says why nothing can start', t.slice(0, 400));
@@ -265,7 +278,7 @@ const fresh = async browser => {
     check(!!clr, 'a "Clear filters" button is there');
     if(clr) await clr.click();
     const after = await page.evaluate(() => ({prof: FILTER.prof, tier: FILTER.tier, tag: FILTER.tag}));
-    const starts2 = await page.$$eval('#v-topics button', bs => bs.filter(b => /^(Start|Review)$/.test(b.textContent.trim()) && !b.disabled).length);
+    const starts2 = await page.$$eval(CORE_STARTS, bs => bs.filter(b => /^(Start|Review)$/.test(b.textContent.trim()) && !b.disabled).length);
     check(after.prof === 'all' && after.tag === 'all' && after.tier === 'all' && starts2 > 0, 'Clear filters brings the bank back', {after, starts2});
     const startedEmpty = await page.evaluate(() => { FILTER.prof = 'Nobody Yet'; const before = Q; startSweep('filtered'); startQuiz(null, null);
       const same = Q === before; FILTER.prof = 'all'; return same; });
