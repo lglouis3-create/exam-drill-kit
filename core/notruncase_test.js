@@ -102,14 +102,24 @@ console.log('\n=== The checks the exclusion can never replace stay required ==='
     const s = child.spawnSync('bash', ['-c', 'set -euo pipefail; source "$1"; missing_required "$2" "$3" "$4" >/dev/null || true; echo "$MISSING_REQUIRED"', '_', path.join(T, 'ci_exclusions.sh'), order, browser, logs], {encoding: 'utf8'});
     return s.status === 0 ? +s.stdout.trim() : `error ${s.status}: ${s.stderr}`;
   };
+  const PRINT = [
+    "  ok    in print the worksheet's paper is laid out and every problem prints with its text (700 x 2985 px, 5 of 5 problems)",
+    "  ok    in print the ink's picture covers its problem and holds the stroke (1 of 1)",
+    '  ok    the worksheet renders in print media (158 KB picture of the paper)'];
   const PDFOK = '  ok    the printed PDF has the worksheet (56 KB)', LAYOUT = '  ok    Save as PDF prints the worksheet alone, ink as pictures in place of the canvases [1]';
-  check(req('worksheets-ink', 'chromium', [PDFOK, LAYOUT]) === 0, 'Chromium: the PDF check and the print layout passed: nothing missing');
-  check(req('worksheets-ink', 'chromium', [LAYOUT, `  skip  the printed PDF has the worksheet  — not here`]) === 1, 'Chromium: the PDF check skipped instead of passed fails the run');
-  check(req('worksheets-ink', 'webkit', [LAYOUT, `  NOT RUN  ${PDF}  — ${WHY}`]) === 0, 'WebKit: the print layout passed and the PDF size is the permitted case: nothing missing');
-  check(req('worksheets-ink', 'webkit', [`  NOT RUN  ${PDF}  — ${WHY}`]) === 1, 'WebKit: without the print-layout check passing, the run fails');
-  check(req('chained-problem-sets worksheets-ink', 'webkit', [LAYOUT]) === 0 && req('chained-problem-sets', 'webkit', []) === 0, 'it applies when worksheets-ink is one of the modules on, and only then');
+  check(req('worksheets-ink', 'chromium', [LAYOUT, ...PRINT, `  skip  the printed PDF has the worksheet  — not here`]) === 1, 'Chromium: the PDF check skipped instead of passed fails the run');
+  check(req('worksheets-ink', 'webkit', [LAYOUT, ...PRINT, `  NOT RUN  ${PDF}  — ${WHY}`]) === 0, 'WebKit: the print layout passed and the PDF size is the permitted case: nothing missing');
+  check(req('worksheets-ink', 'webkit', [...PRINT, `  NOT RUN  ${PDF}  — ${WHY}`]) === 1, 'WebKit: without the print-layout check passing, the run fails');
+  check(req('worksheets-ink', 'chromium', [PDFOK, LAYOUT, ...PRINT]) === 0, 'Chromium: the PDF check and every print-layout check passed: nothing missing');
+  check(req('worksheets-ink', 'chromium', [PDFOK, ...PRINT]) === 1, 'Chromium: with only "Save as PDF prints the worksheet alone" missing, the run fails');
+  for (const br of ['chromium', 'webkit']) PRINT.forEach((line, i) => {
+    const rest = [PDFOK, LAYOUT, ...PRINT.filter((_, k) => k !== i)];
+    check(req('worksheets-ink', br, rest) === 1, `${br}: without "${line.trim().slice(4).replace(/ \(.*$/, '')}" passing, the run fails`);
+  });
+  check(req('worksheets-ink', 'chromium', [LAYOUT, ...PRINT, '  FAIL  the printed PDF has the worksheet (0 KB)', 'note:  ok    the printed PDF has the worksheet']) === 1, 'a FAIL line, or the passing text anywhere but the start of a line, does not count as the pass');
+  check(req('chained-problem-sets worksheets-ink', 'webkit', [LAYOUT, ...PRINT]) === 0 && req('chained-problem-sets', 'webkit', []) === 0, 'it applies when worksheets-ink is one of the modules on, and only then');
   const ci = fs.readFileSync(path.join(HERE, 'ci_course.sh'), 'utf8');
-  check(/missing_required "\$order" "\$browser" "\$logs"/.test(ci) && /if \[ "\$MISSING_REQUIRED" -gt 0 \]; then/.test(ci), 'ci_course.sh applies this to every module course');
+  check(/^  missing_required "\$order" "\$browser" "\$logs" \|\| true$/m.test(ci) && /^  if \[ "\$MISSING_REQUIRED" -gt 0 \]; then$/m.test(ci), 'ci_course.sh applies this to every module course');
 }
 
 fs.rmSync(T, {recursive: true, force: true});

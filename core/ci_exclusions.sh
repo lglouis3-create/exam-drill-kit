@@ -74,9 +74,16 @@ unexpected_notruns() {
 # stay required). Each entry: module, browser, the start of the "  ok    " line its test prints.
 REQUIRED_PASSES=(
   "worksheets-ink|chromium|the printed PDF has the worksheet"
-  "worksheets-ink|chromium|Save as PDF prints the worksheet alone"
-  "worksheets-ink|webkit|Save as PDF prints the worksheet alone"
 )
+for b in chromium webkit; do
+  REQUIRED_PASSES+=(
+    "worksheets-ink|$b|Save as PDF prints the worksheet alone"
+    "worksheets-ink|$b|in print the worksheet's paper is laid out and every problem prints with its text"
+    "worksheets-ink|$b|in print the ink's picture covers its problem and holds the stroke"
+    "worksheets-ink|$b|the worksheet renders in print media"
+  )
+done
+unset b
 # missing_required <modules on, space-separated> <browser> <logs dir>: prints each required pass
 # that is missing from its module test's log and sets MISSING_REQUIRED to how many
 MISSING_REQUIRED=0
@@ -86,7 +93,7 @@ missing_required() {
     IFS='|' read -r m b want <<< "$entry"
     [[ "$order" == *" $m "* ]] && [ "$b" = "$br" ] || continue
     f="$logs/features__${m}__test.js.log"
-    if ! { [ -f "$f" ] && grep -qF "  ok    $want" "$f"; }; then
+    if ! { [ -f "$f" ] && awk -v w="  ok    $want" 'index($0, w) == 1 {f = 1} END {exit !f}' "$f"; }; then
       [ $n -eq 0 ] && echo && echo "---- a required check did not pass ----"
       echo "  features/$m/test.js in $br: \"$want\""
       n=$((n + 1))
