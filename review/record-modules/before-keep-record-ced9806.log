@@ -12,7 +12,7 @@
   ok    control: a record behind that lacks a module part the stored progress holds is placed as "in", as before
   ok    control: this tab's own record is still removed under a full storage when the stored progress continues it
   ok    the page's record holds its DB.ink after its save
-  ok    after a reload, the closed page's writing (DB.ink) is still in the browser: in the progress, its record or a copy
+  ok    after a reload, the closed page's own writing (its DB.ink) is still in the browser: in the progress, its record unchanged, or a copy of exactly that record
   ok    no page errors in the reload case
   ok    a record behind with the stored DB.ink in another key order is placed as "in" and removed
   ok    a record behind with an empty module part (DB.eq = {}) is placed as "in" and removed, as before
@@ -20,31 +20,34 @@
   ok    a record behind with an empty module part (DB.eq = null) is placed as "in" and removed, as before
   ok    a record behind with an empty module part (DB.eq = 0) is placed as "in" and removed, as before
   ok    the later record continues the stored answers, on a page that has written nothing
-  ok    a later record without DB.eq does not take away the stored DB.eq: it stays in the progress or a copy
+  ok    a later record without DB.eq does not take away the stored DB.eq: it stays in the progress unchanged, or a copy of exactly that progress
   ok    the stored progress (with DB.eq) stays, and the later record is kept as a copy
   ok    no page errors (continues)
-  ok    a record of another profile, placed on switching to it, keeps its DB.ink (kept or a copy)
-  ok    Delete the copies meeting a record not yet placed with DB.ink: the record becomes a copy, with its history entries
+  ok    a record of another profile, placed on switching to it, keeps its DB.ink (its record unchanged, or a copy of exactly that record)
+  ok    Delete the copies meeting a record not yet placed with DB.ink: that record becomes a copy of exactly its progress, with exactly its history entries
   ok    that record is removed once its copy is stored and the wait has passed
-  ok    Erase meeting a record not yet placed with DB.ink: the record becomes a copy
+  ok    Erase meeting a record not yet placed with DB.ink: that record becomes a copy of exactly its progress and history, and goes after the wait
   ok    the filler leaves too little room for the copy beside the record (the copy alone is refused)
-  FAIL  storage full (real quota filler): the record, the only stored copy of its DB.ink, stays in storage (whether or not the browser accepted its copy)  — {"r3":{"kept":false,"copies":1,"copyInk":true,"copyLog":true},"fill":{"record":450485,"copy":452155,"margin":5658,"refusedAlongside":true},"sizes":{"rec":0}}
+  FAIL  storage full (real quota filler): straight after the retire, the record, the only stored copy of its DB.ink, is still in storage unchanged (whether or not the browser accepted its copy)  — {"r3":{"kept":false,"recordGone":true,"copies":1,"copyExact":true,"logExact":true,"match":"450387:-936862976","want":"450387:-936862976"},"fill":{"record":450519,"copy":452193,"margin":5660,"refusedAlongside":true},"sizes":{"rec":0},"writes":[["course-id-drill:backup:me",452205,"QuotaExceededError"],["course-id-drill:pending:me:gone-rc2vom9",null,"removed"],["course-id-drill:backup:me",452205,"ok"],["course-id-drill:pending-seen:me",null,"removed"]]}
   FAIL  the copy refused while the record is stored: the record stays in storage unchanged and no copy is written  — {"kept":false,"listUnchanged":false,"note":""}
   FAIL  the copy refused: the notice says the work is still stored in this browser, that Export does not include it, and when it becomes a copy
-  ok    the copy refused, then accepted at a later check: the record becomes a copy and goes after the wait
+  ok    the copy refused, then accepted at a later check: that record becomes a copy of exactly its progress and history, and goes after the wait
   ok    storage full, then room again: a later check makes the record a copy with its DB.ink, and the record goes after the wait
   ok    the record that could not become a copy is marked as retired (the mark fits)
   ok    storage full, the copy larger than the room the record frees: the record is written back, and stays through later checks while storage is full
-  ok    once there is room, a later check makes that record a copy
-  ok    Put back meeting a record not yet placed with DB.ink: right after Put back, the copy holding DB.ink is on the list
+  ok    once there is room, a later check makes that record a copy of exactly its progress (no history entries)
+  ok    Put back meeting a record not yet placed with DB.ink: right after Put back, a copy of exactly that record's progress and history is on the list
   ok    Put back with room: the DB.ink copy stays on the list and the record is removed after the wait
+  FAIL  Put back with the record's copy refused: the record stays in storage unchanged and no copy of it is written  — {"now3":{"kept":false,"recordGone":true,"copies":2,"copyExact":true,"logExact":true,"match":"937:925610049","want":"937:925610049"},"rpq":{"putBack":3}}
+  ok    Put back with the copy refused, then accepted at a later check: that record becomes a copy of exactly its progress and history, and goes after the wait
   ok    Put back, storage full: the filler leaves too little room for the DB.ink copy beside the record
-  FAIL  Put back, storage full (real quota filler): the record, the only stored copy of its DB.ink, stays in storage (whether or not the browser accepted its copy)  — {"now2":{"copyInk":true,"recordLeft":false,"putBack":3},"fill2":{"record":451159,"copy":452949,"margin":7999,"refusedAlongside":true}}
+  FAIL  Put back, storage full (real quota filler): the record, the only stored copy of its DB.ink, stays in storage (whether or not the browser accepted its copy)  — {"now2":{"kept":false,"recordGone":true,"copies":2,"copyExact":true,"logExact":true,"match":"451061:-1489144977","want":"451061:-1489144977"},"fill2":{"record":451193,"copy":452987,"margin":8001,"refusedAlongside":true}}
   ok    Put back, storage full, then room again: a later check makes the record a copy with its DB.ink, and the record goes after the wait
   ok    no answers, only a device setting differs (IMPORT_DEVICE): kept as a copy, since it was this device's own choice in another tab
   ok    control: no answers, an ordinary setting of its own: kept apart as a copy
   FAIL  every write refused: the record stays in storage as it is, and no copy is kept only on this page  — {"recordStays":false,"onPage":true}
+  FAIL  the copy refused and every later write refused: straight after the retire, the record is unchanged  — {"same":false}
   FAIL  the copy refused and every later write refused: after a reload the original record is still in storage, unchanged  — {"before":null,"after":null}
   ok    no page errors (retire)
   ok    no page errors
-FAIL: record_modules_test.js: 6 of 48 checks failed: storage full (real quota filler): the record, the only stored copy of its DB.ink, stays in storage (whether or not the browser accepted its copy); the copy refused while the record is stored: the record stays in storage unchanged and no copy is written; the copy refused: the notice says the work is still stored in this browser, that Export does not include it, and when it becomes a copy …
+FAIL: record_modules_test.js: 8 of 51 checks failed: storage full (real quota filler): straight after the retire, the record, the only stored copy of its DB.ink, is still in storage unchanged (whether or not the browser accepted its copy); the copy refused while the record is stored: the record stays in storage unchanged and no copy is written; the copy refused: the notice says the work is still stored in this browser, that Export does not include it, and when it becomes a copy …

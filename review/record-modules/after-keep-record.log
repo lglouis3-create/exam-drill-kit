@@ -20,13 +20,13 @@
   ok    a record behind with an empty module part (DB.eq = null) is placed as "in" and removed, as before
   ok    a record behind with an empty module part (DB.eq = 0) is placed as "in" and removed, as before
   ok    the later record continues the stored answers, on a page that has written nothing
-  ok    a later record without DB.eq does not take away the stored DB.eq: it stays in the progress or a copy
+  ok    a later record without DB.eq does not take away the stored DB.eq: it stays in the progress unchanged, or a copy of exactly that progress
   ok    the stored progress (with DB.eq) stays, and the later record is kept as a copy
   ok    no page errors (continues)
   ok    a record of another profile, placed on switching to it, keeps its DB.ink (its record unchanged, or a copy of exactly that record)
   ok    Delete the copies meeting a record not yet placed with DB.ink: that record becomes a copy of exactly its progress, with exactly its history entries
   ok    that record is removed once its copy is stored and the wait has passed
-  ok    Erase meeting a record not yet placed with DB.ink: that record becomes a copy of exactly its progress and history
+  ok    Erase meeting a record not yet placed with DB.ink: that record becomes a copy of exactly its progress and history, and goes after the wait
   ok    the filler leaves too little room for the copy beside the record (the copy alone is refused)
   ok    storage full (real quota filler): straight after the retire, the record, the only stored copy of its DB.ink, is still in storage unchanged (whether or not the browser accepted its copy)
   ok    the copy refused while the record is stored: the record stays in storage unchanged and no copy is written
@@ -38,13 +38,16 @@
   ok    once there is room, a later check makes that record a copy of exactly its progress (no history entries)
   ok    Put back meeting a record not yet placed with DB.ink: right after Put back, a copy of exactly that record's progress and history is on the list
   ok    Put back with room: the DB.ink copy stays on the list and the record is removed after the wait
+  ok    Put back with the record's copy refused: the record stays in storage unchanged and no copy of it is written
+  ok    Put back with the copy refused, then accepted at a later check: that record becomes a copy of exactly its progress and history, and goes after the wait
   ok    Put back, storage full: the filler leaves too little room for the DB.ink copy beside the record
   ok    Put back, storage full (real quota filler): the record, the only stored copy of its DB.ink, stays in storage (whether or not the browser accepted its copy)
   ok    Put back, storage full, then room again: a later check makes the record a copy with its DB.ink, and the record goes after the wait
   ok    no answers, only a device setting differs (IMPORT_DEVICE): kept as a copy, since it was this device's own choice in another tab
   ok    control: no answers, an ordinary setting of its own: kept apart as a copy
   ok    every write refused: the record stays in storage as it is, and no copy is kept only on this page
+  ok    the copy refused and every later write refused: straight after the retire, the record is unchanged
   ok    the copy refused and every later write refused: after a reload the original record is still in storage, unchanged
   ok    no page errors (retire)
   ok    no page errors
-PASS: record_modules_test.js: 48 checks passed
+PASS: record_modules_test.js: 51 checks passed
