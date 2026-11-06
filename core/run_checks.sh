@@ -72,9 +72,10 @@ for c in "${CHECKS[@]}"; do
     line FAIL "$c" "$why"; fail=$((fail + 1))
   fi
   # each case the check reported as NOT RUN in this browser (check_lib.js notRunCase), one
-  # line each, "NOT RUN  <check> :: <label>  — <why>"; never counted as passed
+  # line each, "NOT RUN CASE  <check> :: <label>  — <why>"; never counted as passed. The prefix
+  # is its own, so a whole-check NOT RUN line can never read as a case line.
   while IFS= read -r nrc; do
-    printf 'NOT RUN  %s :: %s\n' "$c" "${nrc#  NOT RUN  }"; cases=$((cases + 1))
+    printf 'NOT RUN CASE  %s :: %s\n' "$c" "${nrc#  NOT RUN  }"; cases=$((cases + 1))
   done < <(grep -E '^  NOT RUN  ' "$log" || true)
 done
 
