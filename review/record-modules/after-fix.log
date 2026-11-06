@@ -1,4 +1,4 @@
-# core/record_modules_test.js with the fix (branch claude/elegant-ptolemy-pqxb8y-record-modules, template course, Chromium, 2026-11-06T16:10:25Z)
+# core/record_modules_test.js with the fix (branch claude/elegant-ptolemy-pqxb8y-record-modules, template course, Chromium, 2026-11-06T17:17:01Z)
   browser  Chromium started
   ok    the stored progress has 3 answers and no module part
   ok    a record 1 answer behind with DB.ink the stored progress lacks is not placed as "in"; its progress stays (kept or a copy) after the 60 s check
@@ -6,6 +6,7 @@
   ok    a record 1 answer behind with DB.anyModule the stored progress lacks is not placed as "in"; its progress stays (kept or a copy) after the 60 s check
   ok    a record behind with other DB.ink than the stored one is not placed as "in"; its writing stays
   ok    a record with no answers and DB.eq, against stored answers, is not placed as "in"; its records stay
+  ok    a record with no answers and other settings, against stored answers, is kept as a copy ("apart")
   ok    a record with the stored answers and its own DB.ink is kept as a copy
   ok    control: a record behind whose module part the stored progress holds unchanged is placed as "in" and removed after the 60 s check, as before
   ok    control: a record behind that differs only in a setting is kept as a copy, as before
@@ -14,6 +15,26 @@
   ok    the page's record holds its DB.ink after its save
   ok    after a reload, the closed page's writing (DB.ink) is still in the browser: in the progress, its record or a copy
   ok    no page errors in the reload case
+  ok    a record behind with the stored DB.ink in another key order is placed as "in" and removed
+  ok    a record behind with an empty module part (DB.eq = {}) is placed as "in" and removed, as before
+  ok    a record behind with an empty module part (DB.eq = []) is placed as "in" and removed, as before
+  ok    a record behind with an empty module part (DB.eq = null) is placed as "in" and removed, as before
+  ok    a record behind with an empty module part (DB.eq = 0) is placed as "in" and removed, as before
+  ok    the later record continues the stored answers, on a page that has written nothing
+  ok    a later record without DB.eq does not take away the stored DB.eq: it stays in the progress or a copy
+  ok    the stored progress (with DB.eq) stays, and the later record is kept as a copy
+  ok    no page errors (continues)
+  ok    a record of another profile, placed on switching to it, keeps its DB.ink (kept or a copy)
+  ok    Delete the copies meeting a record not yet placed with DB.ink: the record becomes a copy, with its history entries
+  ok    that record is removed once its copy is stored and the wait has passed
+  ok    Erase meeting a record not yet placed with DB.ink: the record becomes a copy
+  ok    the filler leaves too little room for the copy beside the record (the copy alone is refused)
+  ok    storage full (real quota filler): retire removes the record first and its copy, with DB.ink, takes the room it freed
+  ok    the record that could not become a copy is marked as retired (the mark fits)
+  ok    storage full, the copy larger than the room the record frees: the record is written back, and stays through later checks while storage is full
+  ok    once there is room, a later check makes that record a copy
+  ok    every write refused: the copy is kept on this page for this visit and the "did not save" notice shows
+  ok    no page errors (retire)
   ok    no page errors
-PASS: record_modules_test.js: 15 checks passed
+PASS: record_modules_test.js: 36 checks passed
 exit 0

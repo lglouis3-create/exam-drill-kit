@@ -14,6 +14,18 @@
  *   same     the record has the stored answers and a different module part (a copy already)
  *   reload   the page's own save, written over by a save without the module part, placed by
  *            the page that opens after a reload
+ *   empty, key order  an empty module part in the record, and the same part in another key
+ *            order, count as held (placed and removed as before)
+ *   switch   a record of another profile, placed when this page switches to that profile
+ *   continues  a later record that continues the stored answers but lacks the stored DB.eq
+ *            (the stored progress changed it without an answer) does not replace the
+ *            progress: it is a copy (the review of #69, M1)
+ *   retire   Delete the copies, Put back, Erase or a replacing Import meeting a record not yet
+ *            placed with a module part the stored progress lacks: the record becomes a copy;
+ *            under a full storage (real quota filler) the record goes first and the copy takes
+ *            its room; when the copy still does not fit, the record is written back and tried
+ *            again at later checks; both refused, the copy stays on the page with the notice
+ *            (the review of #69, M2)
  *   controls the same module part in both: placed and removed as before; a setting alone:
  *            kept as a copy, as before; this tab's own record under a full storage is still
  *            removed when the stored progress continues it (its module part is this tab's newer one)
@@ -96,6 +108,14 @@ L.PAGE.need(NAME);
     const r = await place(Object.assign({}, st, {answers: [], qn: 0, eq: EQ}));
     check(r.where !== 'in' && safe(r), 'a record with no answers and DB.eq, against stored answers, is not placed as "in"; its records stay', r);
   }
+  // zero answers, other settings: a record with no answers whose ordinary settings differ from the
+  // stored ones (a tab opened, a setting changed, closed) is kept as a copy, as the settings-only
+  // case behind the stored answers is (Louis, 2026-11-06)
+  {
+    const st = await p.evaluate(() => JSON.parse(localStorage.getItem(keyFor(PROFILE))));
+    const r = await place(Object.assign({}, st, {answers: [], qn: 0, settings: Object.assign({}, st.settings, {goal: 97})}));
+    check(st.answers.length > 0 && r.where === 'apart' && safe(r), 'a record with no answers and other settings, against stored answers, is kept as a copy ("apart")', Object.assign({stored: st.answers.length}, r));
+  }
   // same: the stored answers with another module part: a copy (this already held)
   {
     const st = await p.evaluate(() => JSON.parse(localStorage.getItem(keyFor(PROFILE))));
@@ -143,7 +163,7 @@ L.PAGE.need(NAME);
       const k = myPendingKey(), rec = JSON.parse(localStorage.getItem(k)), st = JSON.parse(localStorage.getItem(keyFor(PROFILE)));
       const other = Object.assign({}, st); delete other.ink;
       const last = st.answers[st.answers.length - 1];
-      other.answers = st.answers.concat([Object.assign({}, last, {t: last.t + 5000, qid: QUESTIONS[7 % QUESTIONS.length].id, concept: QUESTIONS[7 % QUESTIONS.length].concept})]);
+      other.answers = st.answers.concat([Object.assign({}, last, {at: last.at + 5000, qid: QUESTIONS[7 % QUESTIONS.length].id, concept: QUESTIONS[7 % QUESTIONS.length].concept})]);
       return {k, data: keyFor(PROFILE), hasInk: !!(rec && rec.db && rec.db.ink), other: JSON.stringify(other)};
     }, INK);
     check(before.hasInk, 'the page\'s record holds its DB.ink after its save', {k: before.k, hasInk: before.hasInk});
@@ -168,6 +188,177 @@ L.PAGE.need(NAME);
     check(r.storedInk || r.recordLeft || r.copyInk, 'after a reload, the closed page\'s writing (DB.ink) is still in the browser: in the progress, its record or a copy', r);
     check(!e.errors.length, 'no page errors in the reload case', e.errors);
     await e.ctx.close();
+  }
+  // empty module part, and the same part in another key order: held (placed as "in", removed)
+  {
+    const st = await p.evaluate(() => { DB.ink = {a: 1, b: {c: 2, d: 3}}; save(); saveNow(); return JSON.parse(localStorage.getItem(keyFor(PROFILE))); });
+    await answer(1, 9);
+    const r = await place(Object.assign({}, st, {ink: {b: {d: 3, c: 2}, a: 1}}));
+    check(r.where === 'in' && !r.kept && !r.inCopy, 'a record behind with the stored DB.ink in another key order is placed as "in" and removed', r);
+    await p.evaluate(() => { delete DB.ink; save(); saveNow(); });
+    const st2 = await p.evaluate(() => JSON.parse(localStorage.getItem(keyFor(PROFILE))));
+    for(const [lab, v] of [['{}', {}], ['[]', []], ['null', null], ['0', 0]]){
+      const r2 = await place(Object.assign({}, st2, {answers: st2.answers.slice(0, -1), eq: v}));
+      check(r2.where === 'in' && !r2.kept && !r2.inCopy, `a record behind with an empty module part (DB.eq = ${lab}) is placed as "in" and removed, as before`, r2);
+    }
+  }
+
+  // a fresh page on a stored progress it has not changed (as a tab that just opened)
+  const fresh = async (setup) => {
+    const a = await device();
+    const keys = await a.page.evaluate(setup);
+    await a.ctx.close();
+    const ctx = await browser.newContext(L.OPEN_CTX);
+    await ctx.addInitScript(() => { window.prompt = () => 'TestUser'; });
+    await ctx.addInitScript(([s]) => { if(sessionStorage.getItem('__seeded')) return; sessionStorage.setItem('__seeded', '1'); for(const [k, v] of Object.entries(s)) localStorage.setItem(k, v); }, [keys]);
+    const page = await ctx.newPage(), errors = [];
+    page.on('pageerror', e => errors.push(e.message));
+    page.on('dialog', x => x.accept().catch(() => {}));
+    await page.goto(await L.pageUrl(L.PAGE.PAGE));
+    await page.waitForFunction(() => typeof WRITER !== 'undefined' && WRITER === 'held', null, {timeout: 8000}).catch(() => {});
+    await page.waitForTimeout(1800);
+    return {ctx, page, errors};
+  };
+  const seedOf = () => { const o = {}; for(let i = 0; i < localStorage.length; i++){ const k = localStorage.key(i); if(!/:(pending|pending-seen|writer):/.test(k + ':')) o[k] = localStorage.getItem(k); } return o; };
+
+  // continues: the stored progress has 4 answers and DB.eq (changed without an answer); a later record
+  // has those 4 answers and a 5th, and no DB.eq
+  {
+    const f = await fresh(`(() => { for(let i = 0; i < 4; i++){ const t = Date.now(); while(Date.now() === t){} record(QUESTIONS[i % QUESTIONS.length], 'correct', undefined, 1000); }
+      DB.eq = ${JSON.stringify(EQ)}; save(); saveNow(); return (${seedOf.toString()})(); })()`);
+    const r = await f.page.evaluate(() => {
+      const st = JSON.parse(localStorage.getItem(keyFor(PROFILE))), last = st.answers[st.answers.length - 1];
+      const later = Object.assign({}, st, {answers: st.answers.concat([Object.assign({}, last, {at: last.at + 5000, qid: QUESTIONS[5 % QUESTIONS.length].id, concept: QUESTIONS[5 % QUESTIONS.length].concept})])});
+      delete later.eq;
+      const k = pendingKey(PROFILE, 'gone-late');
+      localStorage.setItem(k, JSON.stringify({at: Date.now(), db: later, log: []}));
+      const where = placeOf(JSON.parse(localStorage.getItem(k)), st);
+      const unchanged = !WROTE_SINCE_CLAIM;
+      settlePending();
+      const sk = NS + ':pending-seen:' + PROFILE, v = JSON.parse(localStorage.getItem(sk) || '{}'); if(v[k]) v[k].t -= 61000; localStorage.setItem(sk, JSON.stringify(v));
+      settlePending();
+      const now = JSON.parse(localStorage.getItem(keyFor(PROFILE)));
+      const copies = JSON.parse(localStorage.getItem(NS + ':backup:' + PROFILE) || '[]');
+      return {where, unchanged, storedEq: !!now.eq, storedAnswers: now.answers.length, laterInCopy: copies.some(c => c.data === JSON.stringify(later)), copyEq: copies.some(c => { try { return !!JSON.parse(c.data).eq; } catch(e){ return false; } })};
+    });
+    check(r.where === 'continues' && r.unchanged, 'the later record continues the stored answers, on a page that has written nothing', r);
+    check(r.storedEq || r.copyEq, 'a later record without DB.eq does not take away the stored DB.eq: it stays in the progress or a copy', r);
+    check(r.storedEq && r.laterInCopy, 'the stored progress (with DB.eq) stays, and the later record is kept as a copy', r);
+    check(!f.errors.length, 'no page errors (continues)', f.errors);
+    await f.ctx.close();
+  }
+
+  // switch: a record of another profile, placed when this page switches to it
+  {
+    const r = await p.evaluate(async ink => {
+      const back = PROFILE;
+      useProfile('Second'); await new Promise(res => setTimeout(res, 400));
+      for(let i = 0; i < 3; i++){ const t = Date.now(); while(Date.now() === t){} record(QUESTIONS[i], 'correct', undefined, 1000); }
+      save(); saveNow();
+      const st = JSON.parse(localStorage.getItem(keyFor(PROFILE)));
+      useProfile(back); await new Promise(res => setTimeout(res, 400));
+      const k = pendingKey('Second', 'gone-sw');
+      localStorage.setItem(k, JSON.stringify({at: Date.now(), db: Object.assign({}, st, {answers: st.answers.slice(0, 2), ink}), log: []}));
+      useProfile('Second'); await new Promise(res => setTimeout(res, 2200));
+      const sk = NS + ':pending-seen:' + PROFILE, v = JSON.parse(localStorage.getItem(sk) || '{}'); if(v[k]) v[k].t -= 61000; localStorage.setItem(sk, JSON.stringify(v));
+      settlePending();
+      const copies = JSON.parse(localStorage.getItem(NS + ':backup:Second') || '[]');
+      const out = {profile: PROFILE, writer: WRITER, kept: localStorage.getItem(k) !== null, copyInk: copies.some(c => { try { return !!JSON.parse(c.data).ink; } catch(e){ return false; } })};
+      useProfile(back); await new Promise(res => setTimeout(res, 400));
+      return out;
+    }, INK);
+    check(r.profile === 'Second' && (r.kept || r.copyInk), 'a record of another profile, placed on switching to it, keeps its DB.ink (kept or a copy)', r);
+  }
+
+  // retire: a record not placed yet, with DB.ink the stored progress lacks, then "Delete the copies"
+  {
+    const f = await fresh(`(() => { for(let i = 0; i < 3; i++){ const t = Date.now(); while(Date.now() === t){} record(QUESTIONS[i], 'correct', undefined, 1000); } save(); saveNow(); return (${seedOf.toString()})(); })()`);
+    const plant = (ink, noLog) => f.page.evaluate(([ink, noLog]) => {
+      const st = JSON.parse(localStorage.getItem(keyFor(PROFILE)));
+      const db = Object.assign({}, st, {answers: st.answers.slice(0, 2), ink});
+      const k = pendingKey(PROFILE, 'gone-' + Math.random().toString(36).slice(2, 7));
+      const e = [Math.round(Date.now() / 1000), 'feedc0de', 1, 'quiz', 'from the closed tab', 'knew', 'mc', 'concept', '', null];
+      localStorage.setItem(k, JSON.stringify({at: Date.now(), db, log: noLog ? [] : [e]}));
+      return {k, data: JSON.stringify(db)};
+    }, [ink, !!noLog]);
+    // two later checks, each after the 60 s wait: the first proves the copy, the second removes the record
+    const after = k => f.page.evaluate(([k]) => {
+      for(let pass = 0; pass < 2; pass++){
+        const sk = NS + ':pending-seen:' + PROFILE, v = JSON.parse(localStorage.getItem(sk) || '{}'); if(v[k]) v[k].t -= 61000;
+        try { localStorage.setItem(sk, JSON.stringify(v)); } catch(e){}
+        settlePending();
+      }
+      const copies = JSON.parse(localStorage.getItem(NS + ':backup:' + PROFILE) || '[]');
+      return {kept: localStorage.getItem(k) !== null, copies: copies.length, copyInk: copies.some(c => { try { return !!JSON.parse(c.data).ink; } catch(e){ return false; } }),
+              copyLog: copies.some(c => typeof c.log === 'string' && c.log.includes('from the closed tab'))};
+    }, [k]);
+    // no copies yet: one plain copy first so Delete the copies has something to delete
+    await f.page.evaluate(() => { localStorage.setItem(NS + ':backup:' + PROFILE, JSON.stringify([{at: Date.now() - 1000, data: localStorage.getItem(keyFor(PROFILE)), why: 'import'}])); });
+    const a = await plant(INK);
+    await f.page.evaluate(() => { window.confirm = () => true; show('settings'); deleteCopies(); });
+    const r1 = await after(a.k);
+    check(r1.copyInk && r1.copyLog, 'Delete the copies meeting a record not yet placed with DB.ink: the record becomes a copy, with its history entries', r1);
+    check(!r1.kept, 'that record is removed once its copy is stored and the wait has passed', r1);
+    // Erase meets one too
+    const b = await plant(INK);
+    await f.page.evaluate(() => { window.confirm = () => true; window.alert = () => {}; show('settings'); document.getElementById('btnReset').click(); });
+    const r2 = await after(b.k);
+    check(r2.copyInk, 'Erase meeting a record not yet placed with DB.ink: the record becomes a copy', r2);
+
+    // a full storage, with real quota filler: the record goes first and the copy takes its room
+    await f.page.evaluate(() => { localStorage.removeItem(NS + ':backup:' + PROFILE); });
+    const big = {pages: {}}; for(let i = 0; i < 400; i++) big.pages['p' + i] = {strokes: Array.from({length: 40}, (_, j) => [[i, j], [i + 1, j + 2], [i + 3, j + 5]])};
+    const c = await plant(big);
+    const fill = await f.page.evaluate(k => {
+      // the room left: more than the copy needs beyond the record's own size, less than the copy
+      // itself (the copy holds the progress as an escaped string, so it is a little larger than the record)
+      const rec = localStorage.getItem(k), db = JSON.parse(rec).db;
+      const copy = JSON.stringify([{at: 1, data: JSON.stringify(db), why: 'another tab\'s last save', log: JSON.stringify(JSON.parse(rec).log)}]);
+      const margin = (copy.length + (NS + ':backup:' + PROFILE).length) - (rec.length + k.length) + 4000;
+      let lo = 0, hi = 6e6;
+      while(hi - lo > 16){ const m = (lo + hi) >> 1; try { localStorage.setItem('__filler', 'x'.repeat(m)); lo = m; } catch(e){ hi = m; } }
+      localStorage.setItem('__filler', 'x'.repeat(lo - margin));
+      let refusedAlongside = false; try { localStorage.setItem('__probe', copy); localStorage.removeItem('__probe'); } catch(e){ refusedAlongside = true; }
+      return {record: rec.length, copy: copy.length, margin, refusedAlongside};
+    }, c.k);
+    await f.page.evaluate(() => { pendingRetire(); });
+    const r3 = await after(c.k);
+    const sizes = await f.page.evaluate(k => ({rec: (localStorage.getItem(k) || '').length}), c.k);
+    check(fill.refusedAlongside, 'the filler leaves too little room for the copy beside the record (the copy alone is refused)', fill);
+    check(r3.copyInk && !r3.kept, 'storage full (real quota filler): retire removes the record first and its copy, with DB.ink, takes the room it freed', {r3, fill, sizes});
+    // one that still does not fit: a record of many short strings (each quote is escaped in the copy)
+    await f.page.evaluate(() => { localStorage.removeItem(NS + ':backup:' + PROFILE); });
+    const quoted = {pages: {}}; for(let i = 0; i < 2000; i++) quoted.pages['p' + i] = {tags: Array.from({length: 30}, (_, j) => 'a' + j)};
+    await f.page.evaluate(() => { localStorage.removeItem('__filler'); for(let n = 0; n < 500; n++) localStorage.removeItem('__f' + n); });
+    // the stored progress has answers again (Erase above emptied it), so this record is behind it
+    await f.page.evaluate(() => { for(let i = 0; i < 3; i++){ const t = Date.now(); while(Date.now() === t){} record(QUESTIONS[i], 'correct', undefined, 1000); } save(); saveNow(); });
+    const e = await plant(quoted, true);   // no history entries: only its progress decides whether it is held
+    // about 3,000 characters left: room for the small "first seen" mark, not for the copy
+    await f.page.evaluate(() => {
+      let lo = 0, hi = 6e6;
+      while(hi - lo > 16){ const m = (lo + hi) >> 1; try { localStorage.setItem('__filler', 'x'.repeat(m)); lo = m; } catch(e){ hi = m; } }
+      localStorage.setItem('__filler', 'x'.repeat(lo - 3000));
+    });
+    await f.page.evaluate(() => { pendingRetire(); });
+    const marked = await f.page.evaluate(k => { const v = JSON.parse(localStorage.getItem(NS + ':pending-seen:' + PROFILE) || '{}'); return !!(v[k] && v[k].done && !v[k].proven); }, e.k);
+    check(marked, 'the record that could not become a copy is marked as retired (the mark fits)', marked);
+    const r4 = await after(e.k);
+    check(r4.kept && !r4.copyInk, 'storage full, the copy larger than the room the record frees: the record is written back, and stays through later checks while storage is full', r4);
+    await f.page.evaluate(() => { localStorage.removeItem('__filler'); for(let n = 0; n < 500; n++) localStorage.removeItem('__f' + n); });
+    const r5 = await after(e.k);
+    check(r5.copyInk, 'once there is room, a later check makes that record a copy', r5);
+    // both refused (every write refused): the copy is kept on the page and the notice shows
+    const g = await plant(INK);
+    const r6 = await f.page.evaluate(k => {
+      const real = Storage.prototype.setItem;
+      Storage.prototype.setItem = function(){ throw new DOMException('full', 'QuotaExceededError'); };
+      try { pendingRetire(); } finally { Storage.prototype.setItem = real; }
+      const mem = store.get(NS + ':backup:' + PROFILE);
+      return {recordGone: localStorage.getItem(k) === null, onPage: !!mem && mem.includes('"ink"') || (!!mem && mem.includes('\\"ink\\"')), notice: !!document.getElementById('savewarn')};
+    }, g.k);
+    check(r6.onPage && r6.notice, 'every write refused: the copy is kept on this page for this visit and the "did not save" notice shows', r6);
+    check(!f.errors.length, 'no page errors (retire)', f.errors);
+    await f.ctx.close();
   }
   check(!d.errors.length, 'no page errors', d.errors);
   await d.ctx.close();
