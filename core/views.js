@@ -226,6 +226,7 @@ const ALL_TAGS = Object.keys(TYPE_LABEL).filter(k => QUESTIONS.some(q=>q.types.i
 
 const VIEWS = ['topics','quiz','gaps','exam','atlas','diagrams','guide','tell','ref','settings'];
 function show(v){
+  figClose();
   VIEW = v;
   document.querySelectorAll('#nav button').forEach(b=>b.setAttribute('aria-selected', b.dataset.v===v));
   VIEWS.forEach(k=> document.getElementById('v-'+k).classList.toggle('hide', k!==v));
@@ -1295,7 +1296,7 @@ function startHere(nFiltered){
   const r = [];
   const guide = typeof GUIDE_HTML !== 'undefined' && String(GUIDE_HTML).trim() && hasTab('guide');
   r.push(['learn', 'Learn a topic', guide ? 'Read a guide, then drill its topic' : 'Pick a topic below and drill it']);
-  r.push(['practice', 'Start practice', 'Mixed questions, missed concepts first', !nFiltered]);
+  r.push(['practice', 'Start practice', 'Mixed questions, missed concepts first; follows the filters below', !nFiltered]);
   if(hasTab('gaps')) r.push(['weak', 'Review weak concepts', 'What you have missed, and what to read']);
   if(hasTab('exam')) r.push(['exam', 'Practice exam', 'A paper drawn like the real one']);
   return `<div class="panel startbox" id="startHere"><b class="starthead">Start here</b>
@@ -1342,8 +1343,7 @@ function renderTopics(){
   if(!nFiltered) h += `<div class="panel" id="noMatch"><b>No questions match these filters:</b> ${emptyReason()}.
     <div class="row" style="margin-top:9px"><button class="btn" id="clearFilters">Clear filters</button></div></div>`;
   // the whole-bank passes are the advanced route: offered after the topic list
-  const passes = !nFiltered ? '' : `<h3 id="wholeBank">Whole-bank passes</h3>
-  <div class="topic sweepcard"><div class="subs">
+  const passes = !nFiltered ? '' : `<div class="topic sweepcard" id="wholeBank"><div class="subs">
     <div class="subrow"><span class="sname"><b>Exam-weighted pass — ${wp.length} questions</b>
       <small>Every question from the ${mainPool().marks}-mark pool, plus the other pools in the paper's ${EXAM.pools.map(p=>p.marks).join(' : ')} proportion. Shuffled, each once.</small></span>
       <button id="sweepWeighted">Start</button></div>
@@ -1388,7 +1388,7 @@ function renderTopics(){
     h += `</div></details>`;
   }
 
-  if(nFiltered) h += `<h3>Mixed drills</h3>
+  if(nFiltered) h += `<h3>Mixed drills and whole-bank passes</h3>
   <div class="topic"><div class="subs">
     <div class="subrow"><span class="sname"><b>Everything, adaptive</b>
       <small>Whole bank under the current filters — missed concepts first, and it stops when nothing is due</small></span>
@@ -1522,6 +1522,7 @@ function qLabel(q){
 const srcFlag = q => q.source==='transcript' ? '<span class="srcflag">from lecture audio</span>'
                    : q.source==='both'       ? '<span class="srcflag">slides and lecture audio</span>' : '';
 function renderQuiz(){
+  figClose();
   const el = $('#v-quiz');
   if(!Q){
     el.innerHTML = `<div class="empty"><p><b>No set is open.</b></p>
@@ -2711,17 +2712,38 @@ function armFigs(root){
     ctl.appendChild(big);
   });
 }
-function figBig(fig, on){
+function figBig(fig, on, keepFocus){
   fig.classList.toggle('big', on);
   document.body.classList.toggle('figbig', on);
   const b = fig.querySelector('[data-go="big"]');
-  if(b){ b.textContent = on ? 'Close' : 'Enlarge'; b.setAttribute('aria-pressed', on ? 'true' : 'false'); if(on) b.focus(); }
+  if(b){ b.textContent = on ? 'Close' : 'Enlarge'; b.setAttribute('aria-pressed', on ? 'true' : 'false'); }
   if(on){ fig.setAttribute('role', 'dialog'); fig.setAttribute('aria-modal', 'true'); }
   else { fig.removeAttribute('role'); fig.removeAttribute('aria-modal'); }
+  // focus goes to the button that opened it, Close while open and Enlarge after
+  if(b && !keepFocus && b.isConnected) b.focus();
+}
+/* Close any enlarged figure and release the page's scroll lock: before another
+   tab is shown or a view is drawn again, so the lock never outlives its figure. */
+function figClose(){
+  if(typeof document.querySelectorAll !== 'function' || !document.body || !document.body.classList) return;
+  document.querySelectorAll('figure.big').forEach(f => figBig(f, false, true));
+  document.body.classList.remove('figbig');
 }
 document.addEventListener('keydown', e => {
   const open = document.querySelector('figure.big');
-  if(e.key === 'Escape' && open){ figBig(open, false); return; }
+  if(!open && document.body.classList.contains('figbig')) document.body.classList.remove('figbig');
+  if(e.key === 'Escape' && open){ e.preventDefault(); figBig(open, false); return; }
+  // while a figure is enlarged, Tab moves among its own controls only
+  if(e.key === 'Tab' && open){
+    const f = [...open.querySelectorAll('button,[href],select,input,[tabindex]:not([tabindex="-1"])')]
+      .filter(x => !x.disabled && x.getClientRects().length);
+    if(f.length){
+      const i = f.indexOf(document.activeElement);
+      const to = e.shiftKey ? (i <= 0 ? f[f.length - 1] : f[i - 1]) : (i < 0 || i === f.length - 1 ? f[0] : f[i + 1]);
+      e.preventDefault(); to.focus();
+    }
+    return;
+  }
   // the arrow keys step a figure while one of its controls has focus
   const ctl = e.target && e.target.closest && e.target.closest('[data-anim]');
   if(!ctl || (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft')) return;
@@ -2823,6 +2845,7 @@ const DIA_LIST = () => (typeof DIAGRAMS !== 'undefined' ? DIAGRAMS : [])
   .map(([name, keys]) => [name, keys.filter(k => typeof DIA !== 'undefined' && DIA[k])])
   .filter(([, keys]) => keys.length);
 function renderDiagrams(){
+  figClose();
   const el = $('#v-diagrams');
   const groups = DIA_LIST();
   if(!groups.length){
@@ -2974,7 +2997,7 @@ function renderAtlas(){
   const onScreen = t => !t.hidden && (el.offsetParent === null || t.getClientRects().length > 0);
   const recount = () => {
     const live = tiles.filter(onScreen).length;
-    count$.textContent = live === tiles.length ? `${tiles.length} ${tiles.length === 1 ? W.one : W.many}` : `${live} of ${tiles.length} ${W.many}`;
+    count$.textContent = live === tiles.length ? `${tiles.length} ${tiles.length === 1 ? W.one : W.many}` : (COURSE.atlasNoun ? `${live} of ${tiles.length} ${W.many}` : `${live} of ${tiles.length}`);
   };
   recount();
   el.atlasRecount = recount;
@@ -3092,6 +3115,10 @@ function sideCue(box){
   const over = box.scrollWidth - box.clientWidth > 1;
   const l = over && box.scrollLeft > 1, r = over && box.scrollLeft < box.scrollWidth - box.clientWidth - 1;
   box.classList.toggle('wide', over);
+  // the first column stays in view only where each row starts with its own cell:
+  // a rowspan or colspan would pin a cell of another column on the rows it spans
+  const t = box.querySelector('table');
+  box.classList.toggle('stick', over && !!t && !t.querySelector('[rowspan]:not([rowspan="1"]),[colspan]:not([colspan="1"])'));
   box.classList.toggle('more-l', l);
   box.classList.toggle('more-r', r);
   const cue = box.previousElementSibling;

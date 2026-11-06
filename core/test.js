@@ -380,13 +380,18 @@ console.log('\n=== 9. Figures, read links, change log, blueprint ===');
   const anchors = {guide: docIds(X.GUIDE_HTML, 'guide'), tell: docIds(X.TELL_HTML, 'tell'), ref: docIds(X.REFERENCE_HTML, 'ref'),
     atlas: new Set((X.ATLAS.boards || []).map(b => 'at-' + b.id)),
     diagrams: new Set(X.DIA_LIST().flatMap(([, keys], gi) => ['dgg-' + gi].concat(keys.map(k => 'dg-' + k))))};
-  const views = new Set(X.VIEWS);
+  // the views this course shows: the Atlas and Diagrams tabs are dropped at start-up
+  // when the course draws nothing for them (views.js, the boot steps), so a link
+  // there would open a tab the reader cannot see
+  const views = new Set(X.VIEWS.filter(v =>
+    v === 'atlas' ? X.COURSE.atlas !== false && (X.ATLAS.boards || []).length > 0
+    : v === 'diagrams' ? X.DIA_LIST().length > 0 : true));
   const L = X.READ_LINKS || {};
   const all = [].concat((L.byKey || []).flatMap(([, ls]) => ls),
                         Object.values(L.bySub || {}), Object.values(L.byLecture || {}),
                         QUESTIONS.flatMap(q => Array.isArray(q.read) ? q.read : []));
   const badView = all.filter(l => !views.has(l[0]));
-  ok(!badView.length, `${all.length} read link(s), every one naming a view the page has${badView.length ? ' — ' + [...new Set(badView.map(l=>l[0]))].join(', ') : ''}`);
+  ok(!badView.length, `${all.length} read link(s), every one naming a view this course shows${badView.length ? ' — ' + [...new Set(badView.map(l=>l[0]))].join(', ') : ''}`);
   const badAnchor = all.filter(l => views.has(l[0]) && l[1] && anchors[l[0]] && !anchors[l[0]].has(l[1]));
   ok(!badAnchor.length, `every read link's anchor is drawn by its view${badAnchor.length ? ' — ' + [...new Set(badAnchor.map(l => l[0] + ':' + l[1]))].slice(0, 6).join(', ') : ''}`);
   const resolved = QUESTIONS.filter(q => X.linksFor(q).length).length;

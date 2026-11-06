@@ -59,9 +59,9 @@ nav button[aria-selected="true"]{color:#fff;border-bottom-color:#6FA0E8}
    has more; the bar scrolls under it. Each takes no width of its own. */
 nav::before,nav::after{position:sticky;z-index:1;flex:0 0 30px;display:none;align-items:center;
   font-size:22px;line-height:1;color:#fff;cursor:pointer;pointer-events:auto}
-nav::before{content:"\2039";left:0;margin-right:-30px;margin-left:-8px;padding-left:8px;justify-content:flex-start;
+nav::before{content:"\2039";left:-8px;margin-right:-30px;margin-left:-8px;padding-left:8px;justify-content:flex-start;
   background:linear-gradient(to right,var(--ink-2) 55%,transparent)}
-nav::after{content:"\203A";right:0;margin-left:-30px;margin-right:-8px;padding-right:8px;justify-content:flex-end;
+nav::after{content:"\203A";right:-8px;margin-left:-30px;margin-right:-8px;padding-right:8px;justify-content:flex-end;
   background:linear-gradient(to left,var(--ink-2) 55%,transparent)}
 nav.more-l::before,nav.more-r::after{display:flex}
 main{max-width:var(--maxw);margin:0 auto;padding:18px 14px 90px}
@@ -411,12 +411,14 @@ body.swbar-on{padding-bottom:76px}
 /* A table wider than its box keeps its first column (what each row is) in view
    while the other columns scroll under it, and a line above the box says which
    side has more columns (more-l, more-r and .tcue, set by boxTables in views.js).
-   The fixed column
-   is held to at most 40% of a narrow screen so the comparison keeps room. */
-.tscroll.wide table th:first-child,.tscroll.wide table td:first-child{position:sticky;left:0;z-index:1;
+   The fixed column is held to at most 40% of a narrow screen so the comparison
+   keeps room. A table with a rowspan or colspan scrolls with the line but no
+   fixed column (.stick is not set), since a spanned cell would pin a cell of
+   another column on the rows it spans. */
+.tscroll.stick table th:first-child,.tscroll.stick table td:first-child{position:sticky;left:0;z-index:1;
   background:var(--paper);box-shadow:inset -1px 0 0 var(--line)}
-.tscroll.wide table thead th:first-child{background:var(--surface);z-index:2}
-@media (max-width:620px){.tscroll.wide table th:first-child,.tscroll.wide table td:first-child{max-width:40vw;min-width:7em}}
+.tscroll.stick table thead th:first-child{background:var(--surface);z-index:2}
+@media (max-width:620px){.tscroll.stick table th:first-child,.tscroll.stick table td:first-child{max-width:40vw;min-width:7em}}
 .tcue{font-size:12px;color:var(--text-dim);margin:0 0 4px;text-align:right}
 .tcue[hidden]{display:none}
 #v-guide,#v-tell,#v-ref{overflow-wrap:break-word}

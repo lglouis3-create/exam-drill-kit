@@ -65,6 +65,10 @@ const NAMES = ['Zylonol', 'Quarbate', 'Fenmorine'];
         filters: pos(document.querySelector('#v-topics .chip[data-f]')),
         topics: pos(document.querySelector('#v-topics details.topic')),
         sweepAfterTopics: !!(sweepAll && lastTopic && (lastTopic.compareDocumentPosition(sweepAll) & Node.DOCUMENT_POSITION_FOLLOWING)),
+        practiceSays: (box.querySelector('[data-start="practice"]') || {}).textContent || '',
+        // the heading right before the whole-bank passes names them
+        passHead: (() => { const hs = [...document.querySelectorAll('#v-topics h3')].filter(x => sweepAll && (x.compareDocumentPosition(sweepAll) & Node.DOCUMENT_POSITION_FOLLOWING));
+          return hs.length ? hs[hs.length - 1].textContent.trim() : ''; })(),
         onScreen: box.getBoundingClientRect().top < innerHeight,
         sideways: document.documentElement.scrollWidth > innerWidth + 1};
     });
@@ -76,6 +80,8 @@ const NAMES = ['Zylonol', 'Quarbate', 'Fenmorine'];
       check(s.onScreen, `${w} px: it is on the first screen`);
       check(s.sweepAfterTopics, `${w} px: the whole-bank pass is still offered, after the topic list`);
       check(!s.sideways, `${w} px: no sideways scroll on the Topics tab`);
+      check(/filters/.test(s.practiceSays), `${w} px: Start practice says it follows the filters`, s.practiceSays);
+      check(/whole-bank/i.test(s.passHead), `${w} px: the whole-bank passes sit under a heading that names them`, s.passHead);
     }
     if(w === 390 && s){
       const went = {};
@@ -122,6 +128,18 @@ const NAMES = ['Zylonol', 'Quarbate', 'Fenmorine'];
     check(!t.cueEnd && t.cueLeft, `${w}x${h}: at the right end the right cue goes and a left cue shows`, JSON.stringify(t));
     check(t.widthShare <= 0.5, `${w}x${h}: the fixed column takes at most half the box`, t.widthShare.toFixed(2));
     check(!t.sideways, `${w}x${h}: the page itself does not scroll sideways`);
+    const rs = await page.evaluate(async () => {
+      const host = document.createElement('div');
+      host.innerHTML = '<table class="reftab"><tbody><tr><td rowspan="2">Group</td><td>one</td><td>' + 'x '.repeat(30) + '</td></tr>' +
+        '<tr><td>two</td><td>' + 'y '.repeat(30) + '</td></tr></tbody></table>';
+      host.querySelector('table').style.minWidth = '900px';
+      document.getElementById('v-tell').appendChild(host);
+      boxTables(host);
+      await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+      const box = host.querySelector('.tscroll'), second = host.querySelectorAll('tr')[1].firstElementChild;
+      return {stick: box.classList.contains('stick'), cue: box.classList.contains('more-r'), pos: getComputedStyle(second).position};
+    });
+    check(!rs.stick && rs.pos !== 'sticky' && rs.cue, `${w}x${h}: a table with a rowspan scrolls with its cue but pins no cell`, JSON.stringify(rs));
     await ctx.close();
   }
 
@@ -133,13 +151,16 @@ const NAMES = ['Zylonol', 'Quarbate', 'Fenmorine'];
       const raf = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
       show('topics'); nav.scrollLeft = 0; nav.dispatchEvent(new Event('scroll')); await raf();
       const over = nav.scrollWidth > nav.clientWidth + 1;
-      const start = {r: nav.classList.contains('more-r'), l: nav.classList.contains('more-l')};
+      // the chevron covers the bar's very edge: what is under its outer 3 px is the bar, not a tab
+      const edge = side => { const r = nav.getBoundingClientRect(), y = r.top + r.height / 2;
+        const x = side === 'r' ? r.right - 3 : r.left + 3; return document.elementFromPoint(x, y) === nav; };
+      const start = {r: nav.classList.contains('more-r'), l: nav.classList.contains('more-l'), edgeR: over ? edge('r') : true};
       const last = [...nav.querySelectorAll('button[data-v]')].pop();
       show(last.dataset.v); await raf(); await new Promise(r => setTimeout(r, 450));
       const nr = nav.getBoundingClientRect(), br = last.getBoundingClientRect();
       const inView = br.left >= nr.left - 1 && br.right <= nr.right + 1;
       nav.scrollLeft = nav.scrollWidth; nav.dispatchEvent(new Event('scroll')); await raf();
-      const end = {r: nav.classList.contains('more-r'), l: nav.classList.contains('more-l')};
+      const end = {r: nav.classList.contains('more-r'), l: nav.classList.contains('more-l'), edgeL: over ? edge('l') : true};
       // a long course title wraps the header; scrolled down, the tab bar stays below it
       document.getElementById('courseTitle').textContent = 'PHAR 0000 — A long course title that wraps onto a second line (P2 Fall 2026)';
       window.dispatchEvent(new Event('resize')); show('topics');
@@ -153,6 +174,7 @@ const NAMES = ['Zylonol', 'Quarbate', 'Fenmorine'];
       check(n.start.r && !n.start.l, `${w}x${h}: tabs run off the right edge and the bar shows a cue there`, JSON.stringify(n.start));
       check(!n.end.r && n.end.l, `${w}x${h}: at the end the cue moves to the left edge`, JSON.stringify(n.end));
       check(n.inView, `${w}x${h}: the tab opened last is scrolled into view`);
+      check(n.start.edgeR && n.end.edgeL, `${w}x${h}: each chevron covers the bar's edge, with no sliver of a tab outside it`, JSON.stringify([n.start, n.end]));
     }else{
       check(!n.start.r && !n.start.l, `${w}x${h}: every tab fits and no cue shows`, JSON.stringify(n.start));
     }
@@ -207,9 +229,29 @@ const NAMES = ['Zylonol', 'Quarbate', 'Fenmorine'];
         check(big && big.w >= 380 && big.svgW >= 340, 'Enlarge shows the figure across the screen', JSON.stringify(big));
         check(big && big.steps === s.steps && /^Step 2 /.test(big.t), 'enlarged, the steps and the current step are the same', JSON.stringify(big));
         check(big && big.focus && /Close/.test(big.label), 'enlarged, focus stays in the figure and its button says Close', JSON.stringify(big));
+        const sel = '#v-diagrams figure.big';
+        let inside = true;
+        for(let i = 0; i < 14; i++){
+          await page.keyboard.press(i < 8 ? 'Tab' : 'Shift+Tab');
+          inside = inside && await page.evaluate(sel => { const f = document.querySelector(sel); return !!f && f.contains(document.activeElement); }, sel);
+        }
+        check(inside, 'enlarged, Tab and Shift+Tab stay among the figure\'s own controls');
         await page.keyboard.press('Escape');
-        const closed = await page.evaluate(() => !document.querySelector('#v-diagrams figure.big'));
-        check(closed, 'Escape closes the enlarged figure');
+        const closed = await page.evaluate(() => ({gone: !document.querySelector('#v-diagrams figure.big'), lock: document.body.classList.contains('figbig'),
+          focus: document.activeElement && document.activeElement.dataset.go === 'big' && document.activeElement.textContent.trim() === 'Enlarge'}));
+        check(closed.gone && !closed.lock, 'Escape closes the enlarged figure and releases the page', JSON.stringify(closed));
+        check(closed.focus, 'after Escape, focus is back on Enlarge', JSON.stringify(closed));
+        // another tab, or the view drawn again, while enlarged: no scroll lock left behind
+        const away = await page.evaluate(() => {
+          const b = () => document.querySelector('#v-diagrams figure:has([data-anim]) [data-go="big"]');
+          b().click(); show('topics');
+          const r1 = {lock: document.body.classList.contains('figbig'), big: !!document.querySelector('figure.big'), overflow: getComputedStyle(document.body).overflow};
+          show('diagrams'); b().click(); renderDiagrams();
+          const r2 = {lock: document.body.classList.contains('figbig'), big: !!document.querySelector('figure.big')};
+          return {r1, r2};
+        });
+        check(!away.r1.lock && !away.r1.big && away.r1.overflow !== 'hidden', 'opening another tab while enlarged closes the figure and the page scrolls', JSON.stringify(away.r1));
+        check(!away.r2.lock && !away.r2.big, 'drawing the view again while enlarged leaves no scroll lock', JSON.stringify(away.r2));
       }
     }
     check(!errors.length, 'no page error on the Diagrams tab', errors.join(' | '));
@@ -232,10 +274,13 @@ const NAMES = ['Zylonol', 'Quarbate', 'Fenmorine'];
     }, ['(' + FIXTURE.toString() + ')()', settings]);
     const n = await page.evaluate(() => ATLAS.boards.reduce((a, b) => a + b.sections.reduce((m, s) => m + s.items.length, 0), 0));
     const def = await draw(null);
+    const defSearch = await page.evaluate(() => { const q = document.getElementById('atq'); q.value = 'zylonol'; q.dispatchEvent(new Event('input'));
+      const t = document.getElementById('atCount').textContent.trim(); q.value = ''; q.dispatchEvent(new Event('input')); return t; });
     const own = await draw({atlasTitle: 'Structure atlas', atlasNoun: ['structure', 'structures'], atlasExampleLabel: ''});
     if(w === 390){
       check(def.h2 === 'Functional group atlas' && def.intro.startsWith(`${n + 3} groups,`) && def.ph === 'Find a group…' &&
         def.aria === 'Find a functional group' && def.count === `${n + 3} groups`, 'with no course setting the Atlas reads as before', JSON.stringify(def));
+      check(/^\d+ of \d+$/.test(defSearch), 'with no course setting a narrowed count reads "n of N" as before', defSearch);
       check(def.eg.length >= 1 && def.eg.every(t => /^e\.g\. /.test(t)), 'with no course setting the "e.g." label stays, as text', def.eg.join(' | '));
       check(own.h2 === 'Structure atlas' && own.intro.startsWith(`${n + 3} structures,`) && own.ph === 'Find a structure…' &&
         own.aria === 'Find a structure' && own.count === `${n + 3} structures`, 'atlasTitle and atlasNoun name the Atlas, its intro, search and count', JSON.stringify(own));
