@@ -259,23 +259,29 @@ const NAMES = ['Zylonol', 'Quarbate', 'Fenmorine'];
     if(has){
       // a short screen (a phone in landscape), so the page scrolls even on a course with one figure
       await page.setViewportSize({width: 390, height: 420});
-      const place = await page.evaluate(async () => {
-        const raf = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-        show('diagrams'); await raf();
-        const fig = document.querySelector('#v-diagrams figure:has([data-anim])');
-        fig.scrollIntoView(); window.scrollBy(0, -50);
-        window.scrollTo(0, Math.max(window.scrollY, document.documentElement.scrollHeight - innerHeight)); await raf();
-        const y0 = Math.round(scrollY);
-        fig.querySelector('[data-go="big"]').click(); await raf();
-        const y1 = Math.round(scrollY);
-        document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape', bubbles: true})); await raf();
-        const y2 = Math.round(scrollY);
-        fig.querySelector('[data-go="big"]').click(); await raf();
-        fig.querySelector('[data-go="big"]').click(); await raf();
-        return {y0, y1, y2, y3: Math.round(scrollY)};
-      });
-      check(place.y0 > 0 && place.y1 === place.y0 && place.y2 === place.y0 && place.y3 === place.y0,
-        'Enlarge, then Escape or Close, leaves the page where it was', JSON.stringify(place));
+      // two places: the page scrolled to its end (the figure leaving the flow would
+      // shorten it) and the figure's top at the top of the screen (scroll anchoring)
+      for(const where of ['end', 'top']){
+        const place = await page.evaluate(async where => {
+          const raf = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+          show('diagrams'); await raf();
+          const fig = document.querySelector('#v-diagrams figure:has([data-anim])');
+          if(where === 'top') fig.scrollIntoView();
+          else { fig.scrollIntoView(); window.scrollBy(0, -50);
+            window.scrollTo(0, Math.max(window.scrollY, document.documentElement.scrollHeight - innerHeight)); }
+          await raf();
+          const y0 = Math.round(scrollY);
+          fig.querySelector('[data-go="big"]').click(); await raf();
+          const y1 = Math.round(scrollY);
+          document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape', bubbles: true})); await raf();
+          const y2 = Math.round(scrollY);
+          fig.querySelector('[data-go="big"]').click(); await raf();
+          fig.querySelector('[data-go="big"]').click(); await raf();
+          return {y0, y1, y2, y3: Math.round(scrollY)};
+        }, where);
+        check(place.y0 > 0 && place.y1 === place.y0 && place.y2 === place.y0 && place.y3 === place.y0,
+          `Enlarge, then Escape or Close, leaves the page where it was (${where === 'top' ? 'figure at the top of the screen' : 'page scrolled to its end'})`, JSON.stringify(place));
+      }
     }
     check(!errors.length, 'no page error on the Diagrams tab', errors.join(' | '));
     await ctx.close();

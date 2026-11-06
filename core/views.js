@@ -2735,16 +2735,20 @@ function figBig(fig, on, keepFocus){
   /* The enlarged figure leaves the page's flow, which would shorten the page and
      let the browser move the reader up; a placeholder of the figure's own size
      holds its place, and the page is put back where it was on close. */
+  let ph = null;
   if(on){
-    const ph = document.createElement('div'), cs = getComputedStyle(fig);
+    const cs = getComputedStyle(fig);
+    ph = document.createElement('div');
     ph.className = 'figph'; ph.setAttribute('aria-hidden', 'true');
     ph.style.height = fig.offsetHeight + 'px';
     ph.style.marginTop = cs.marginTop; ph.style.marginBottom = cs.marginBottom;
-    fig.before(ph);
     fig.dataset.y = String(window.scrollY);
   }
   fig.classList.toggle('big', on);
   document.body.classList.toggle('figbig', on);
+  // the placeholder goes in only once the figure has left the flow, so the two
+  // never stand in the flow together; the page is held where it was either way
+  if(ph){ fig.before(ph); window.scrollTo(0, +fig.dataset.y); }
   if(!on){
     const ph = fig.previousElementSibling;
     if(ph && ph.classList.contains('figph')) ph.remove();
