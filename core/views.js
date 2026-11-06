@@ -2173,11 +2173,9 @@ function renderExam(){
   if(!EX) restoreExam();
   if(EX && EX.running){ if(EX.review) renderExamReview(); else renderExamQ(); return; }
   if(EX && EX.done){ renderExamResult(); return; }
-  const nSata = examSataDrawn();
   el.innerHTML = `<h2>Exam simulation</h2>
   <p class="sub">${EXAM.questions} questions drawn at the blueprint of ${esc(EXAM.name)}${EXAM.blurb ? ' — ' + esc(EXAM.blurb) : ''} —
-  with a ${EXAM.minutes}-minute clock. ${nSata ? `About ${nSata} of the ${EXAM.questions} are select-all (tick every right option),
-  marked all-or-nothing; the others have one best answer.` : 'This paper has no select-all items: each multiple-choice item has one best answer.'}
+  with a ${EXAM.minutes}-minute clock. ${examSataText()}
   No explanations until you finish, same as the real thing.</p>
   <div class="note"><b>Answers are logged when you submit.</b> The paper is saved as you go, so a
   reload or a switch to another app does not lose it, and "Submit what I have answered" logs a
@@ -2225,26 +2223,38 @@ function drawN(pool, n, blocked){
    this many, taken in proportion to each pool's share of the paper, and falls
    back to whatever the bank holds if a pool has fewer. */
 const EXAM_SATA = EXAM.sata || 0;
-/* How many select-all items the draw puts on a paper, for the opening page: the
-   target (the blueprint's, or EXAM_SATA split across the pools as drawPaper
-   splits it), capped by the select-all items each pool really holds, so the
-   page never promises a format the bank cannot supply (DEENT, 2026-11-06: "about
-   0 of the 50 are select-all" beside a paper that held none). */
+/* How many select-all items the draw puts on a paper, for the opening page:
+   counted on papers drawn by drawPaper itself (every wrapper included), never
+   worked out from the targets, so the page names only what the draw really
+   gives. A worked-out count disagreed with the draw (the review of 007e956):
+   a blueprint's select-all count is reached by swaps that can fail, and the
+   pools share one set of families (dupOf) and cap each pool at its marks.
+   EXAM_SAMPLE papers are drawn, once per exam and bank (kept in EXAM_SATA_SEEN);
+   the result is the lowest and the highest count seen. A count the draw gives
+   more rarely than that can be missed, so a range is named whenever two counts
+   were seen. DEENT, 2026-11-06: the page said "about 0 of the 50 are
+   select-all" beside a paper that held none. */
+const EXAM_SAMPLE = 20;
+let EXAM_SATA_SEEN = null;
 function examSataDrawn(){
+  const key = JSON.stringify([EXAM.id, EXAM.questions, EXAM.sata, EXAM.blueprint || null, (EXAM.pools || []).map(p => [p.key, p.marks]), QUESTIONS.length]);
+  if(EXAM_SATA_SEEN && EXAM_SATA_SEEN.key === key) return EXAM_SATA_SEEN;
+  let lo = Infinity, hi = 0;
   try {
-    const n = EXAM.questions || 0, elig = QUESTIONS.filter(q => !q.lowYield && !q.type);
-    const bp = EXAM.blueprint && Array.isArray(EXAM.blueprint.parts) && EXAM.blueprint.parts.length ? EXAM.blueprint : null;
-    if(bp) return Math.min(bp.sata || 0, elig.filter(isMulti).length, n);
-    const total = EXAM.pools.reduce((s, p) => s + p.marks, 0) || 1, main = mainPool();
-    let left = EXAM_SATA, got = 0;
-    EXAM.pools.filter(p => p !== main).forEach(p => {
-      const s = Math.round(EXAM_SATA * p.marks / total); left -= s;
-      got += Math.min(s, elig.filter(q => p.test(q) && isMulti(q)).length);
-    });
-    got += Math.min(Math.max(0, left), elig.filter(q => main.test(q) && isMulti(q)).length);
-    return Math.min(got, n);
-  } catch(e){ return 0; }
+    for(let k = 0; k < EXAM_SAMPLE; k++){
+      const c = (drawPaper() || []).filter(isMulti).length;
+      lo = Math.min(lo, c); hi = Math.max(hi, c);
+    }
+  } catch(e){ lo = hi = 0; }
+  if(lo === Infinity) lo = 0;
+  return (EXAM_SATA_SEEN = {key, lo, hi});
 }
+const examSataText = () => {
+  const {lo, hi} = examSataDrawn(), n = EXAM.questions;
+  if(!hi) return 'This paper has no select-all items: each multiple-choice item has one best answer.';
+  return `${lo === hi ? hi : `Between ${lo} and ${hi}`} of the ${n} ${lo === hi && hi === 1 ? 'is' : 'are'} select-all (tick every right option), marked all-or-nothing;
+  the others have one best answer.`;
+};
 
 /* Draw n from a pool with a target number of select-all items in it. Select-all
    questions are drawn first so they are never crowded out, then single-answer
@@ -2462,14 +2472,18 @@ function renderExamReview(){
     h += `<button class="exq${blank?' blank':''}" data-q="${i}" data-state="${blank?'blank':'answered'}" aria-label="Question ${i+1}, ${blank?'not answered':'answered'}">
       <b>${i+1}</b><small>${blank?'not answered':'answered'}</small></button>`;
   });
-  h += `</div>${blanks.length ? `<p class="sub" id="exRevBlank">Not answered: ${blanks.length === n ? 'every question' : 'question' + (blanks.length===1?' ':'s ') + blanks.join(', ')}.</p>` : ''}
+  h += `</div>${blanks.length ? `<p class="sub" id="exRevBlank">Not answered: ${blanks.length === n ? 'every question' : blanks.length > 6
+    ? `${blanks.length} questions, the first ${blanks.slice(0, 5).join(', ')} and ${blanks.length - 5} more (dashed in the grid)`
+    : 'question' + (blanks.length===1?' ':'s ') + blanks.join(', ')}.</p>` : ''}
   </div><div class="qfoot">
     <button class="btn ghost" id="exRevBack">Back to question ${EX.i+1}</button>
     <span class="spacer" style="flex:1"></span>
     <button class="btn" id="exRevSubmit">${submitLabel()}</button>
   </div></div>`;
   el.innerHTML = h;
-  const go = i => { EX.i = i; saveExam(); renderExamQ(); };
+  // the question opened from the overview takes the focus (keyboard and screen reader land on it)
+  const go = i => { EX.i = i; saveExam(); renderExamQ();
+    try { const st = document.querySelector('#v-exam .stem'); if(st){ st.setAttribute('tabindex', '-1'); st.focus(); } } catch(e){} };
   el.querySelectorAll('#exReview [data-q]').forEach(b => b.onclick = () => go(+b.dataset.q));
   $('#exRevBack').onclick = () => go(EX.i);
   $('#exRevSubmit').onclick = askSubmitExam;

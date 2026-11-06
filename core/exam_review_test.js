@@ -66,22 +66,44 @@ const start = async page => {
 };
 const toLast = async page => { const n = await page.evaluate(() => EX.qs.length); for(let k = await page.evaluate(() => EX.i); k < n - 1; k++) await page.click('#exNext'); };
 
-/* What the opening page says about select-all items, against the papers the draw makes. */
-async function setupText(page, label){
-  await page.evaluate(() => { if(EX){ clearInterval(EX.timer); EX = null; } clearExam(); show('exam'); });
-  const r = await page.evaluate(() => {
-    const sub = document.querySelector('#v-exam p.sub'), text = sub ? sub.textContent.replace(/\s+/g, ' ') : '';
-    const drawn = []; for(let k = 0; k < 12; k++) drawn.push(drawPaper().filter(isMulti).length);
-    return {text, drawn, bank: QUESTIONS.filter(isMulti).length};
-  });
+/* What the opening page says about select-all items, against the papers the draw makes:
+   every count seen on 30 fresh draws lies within what the page names. */
+const sataText = page => page.evaluate(() => {
+  if(EX){ clearInterval(EX.timer); EX = null; } clearExam(); show('exam');
+  const sub = document.querySelector('#v-exam p.sub'), text = sub ? sub.textContent.replace(/\s+/g, ' ') : '';
+  const drawn = []; for(let k = 0; k < 30; k++) drawn.push(drawPaper().filter(isMulti).length);
+  return {text, drawn, bank: QUESTIONS.filter(isMulti).length};
+});
+function sataAgrees(r, label){
   const most = Math.max(...r.drawn);
-  if(most === 0){
-    check(!/\d+ of the \d+ are select-all/.test(r.text) && !/mixes single-answer and select-all/.test(r.text) && /no select-all/.test(r.text),
-      `${label}: the opening page says the paper has no select-all item, and the draw puts none on it (${r.bank} in the bank)`, r.text);
-  } else {
-    const m = /(\d+) of the (\d+) are select-all/.exec(r.text);
-    check(m && +m[1] === most, `${label}: the opening page names the number of select-all items the draw puts on the paper (${most})`, {text: r.text, drawn: r.drawn});
-  }
+  let lo, hi, m;
+  if(/no select-all/.test(r.text)){ lo = hi = 0; }
+  else if((m = /Between (\d+) and (\d+) of the \d+ are select-all/.exec(r.text))){ lo = +m[1]; hi = +m[2]; }
+  else if((m = /(\d+) of the \d+ (?:is|are) select-all/.exec(r.text))){ lo = hi = +m[1]; }
+  const ok = lo !== undefined && r.drawn.every(c => c >= lo && c <= hi) && !/mixes single-answer and select-all|about \d+ of the/i.test(r.text);
+  check(ok, `${label}: the opening page's select-all count (${lo === undefined ? 'none named' : lo === hi ? lo : lo + '-' + hi}) covers every paper drawn (${[...new Set(r.drawn)].sort((a, b) => a - b).join(', ')}; ${r.bank} in the bank)`,
+    {text: r.text, drawn: r.drawn});
+  return most;
+}
+async function setupText(page, label){
+  sataAgrees(await sataText(page), label);
+  // a blueprint whose select-all count cannot be reached: sata 0 with a part whose category holds
+  // only select-all items (the review of 007e956, 1); the page must name what the draw puts on it
+  const set = await page.evaluate(() => {
+    const elig = QUESTIONS.filter(q => !q.lowYield && !q.type);
+    const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const q = elig.find(x => isMulti(x) && elig.filter(y => y.concept === x.concept).every(isMulti));
+    if(!q) return null;
+    window.__bp = EXAM.blueprint;
+    EXAM.blueprint = {sata: 0, cats: [{key: 'only', match: '\\b' + esc(q.concept) + '\\b'}], rest: 'other',
+      parts: [{key: 'only', name: 'only select-all', n: 1}, {key: 'other', name: 'the rest', rest: true}]};
+    return q.id;
+  });
+  if(!set){ L.skip(`${label}: a blueprint whose select-all count cannot be reached`, 'no concept in this bank is made only of select-all items'); return; }
+  const r = await sataText(page);
+  await page.evaluate(() => { if(window.__bp === undefined) delete EXAM.blueprint; else EXAM.blueprint = window.__bp; });
+  const most = sataAgrees(r, `${label}, blueprint with sata 0 and a part only select-all items fill (${set})`);
+  check(most >= 1, `${label}: that blueprint really puts a select-all item on the paper (the case the review found)`, r.drawn);
 }
 
 /* Review, Submit, Back and Next, the reload, the score: on one page. */
@@ -143,6 +165,8 @@ async function flow(page, label, opts){
   s = await state(page);
   check(s.running && !s.review && s.i === blankAt && s.prog.startsWith(`Question ${blankAt + 1} of ${n}`) && s.picks === before.picks,
     `${label}: a number in the overview opens that question, with every answer kept`, s);
+  check(await page.evaluate(() => !!document.activeElement && document.activeElement.classList.contains('stem')),
+    `${label}: the question opened from the overview takes the focus`, await page.evaluate(() => document.activeElement && document.activeElement.outerHTML.slice(0, 80)));
   await page.evaluate(ANS, false);
   await toLast(page);
   await page.click('#exNext');
@@ -183,6 +207,20 @@ async function flow(page, label, opts){
   check(s.log - before.log === n && s.answers - before.answers === n, `${label}: all ${n} answers are recorded once (history +${s.log - before.log})`);
   const pct = Math.round(100 * got / n);
   check(s.h2.includes(`${got} / ${n} (${pct}%)`), `${label}: the score reads ${got} / ${n} (${pct}%)`, s.h2);
+}
+
+/* The overview's "Not answered" line names a count and the first few, not every number. */
+async function manyBlanks(page, label){
+  await start(page);
+  const r = await page.evaluate(() => {
+    EX.qs.forEach((q, i) => { if(i % 3 === 0) EX.picks[i] = isMulti(q) ? [0] : (q.type ? null : 0); });
+    EX.i = EX.qs.length - 1; renderExamQ(); document.getElementById('exNext').click();
+    const n = EX.qs.length, blank = EX.qs.filter((q, i) => examBlank(q, EX.picks[i])).length;
+    return {n, blank, line: (document.getElementById('exRevBlank') || {}).textContent || ''};
+  });
+  if(r.blank <= 6){ L.skip(`${label}: the "Not answered" line with many blanks`, `the paper has ${r.n} questions, ${r.blank} left blank`); return; }
+  const nums = (r.line.match(/\d+/g) || []).length;
+  check(r.line.includes(`${r.blank} questions`) && nums <= 7, `${label}: with ${r.blank} not answered the line gives the count and the first five ("${r.line.trim()}")`, r.line);
 }
 
 /* Blank items of a partial paper stay out of the history; a full paper's score. */
@@ -235,6 +273,15 @@ async function selection(page, label, scheme){
   check(!green, `${label} (${scheme}): the chosen answer uses no right or wrong colour`, look);
   check(look.onWrong.pressed === 'true' && look.off.pressed === 'false' && look.onWrong.border !== look.off.border,
     `${label} (${scheme}): the chosen answer is marked pressed and drawn apart from the others`, look);
+  // selected and hovered are drawn apart (the review of 007e956, 3)
+  const hv = await page.evaluate(() => { const b = [...document.querySelectorAll('#v-exam button.opt')].find(x => x.getAttribute('aria-pressed') === 'false'); return b ? +b.dataset.o : -1; });
+  if(hv >= 0){
+    await page.hover(`#v-exam button.opt[data-o="${hv}"]`);
+    const d = await page.evaluate(hv => { const sty = b => { const s = getComputedStyle(b), k = getComputedStyle(b.querySelector('.k')); return [s.borderColor, s.backgroundColor, s.boxShadow, k.backgroundColor].join(' | '); };
+      return {hover: sty(document.querySelector(`#v-exam button.opt[data-o="${hv}"]`)), chosen: sty(document.querySelector('#v-exam button.opt[aria-pressed="true"]'))}; }, hv);
+    check(d.hover !== d.chosen, `${label} (${scheme}): a chosen answer looks different from an answer under the pointer`, d);
+    await page.mouse.move(0, 0);
+  }
   // the keyboard: a focused option is chosen with the space bar
   const before = await page.evaluate(() => EX.picks[EX.i]);
   const target = await page.evaluate(before => { const bs = [...document.querySelectorAll('#v-exam button.opt')]; const b = bs.find(x => +x.dataset.o !== before); return +b.dataset.o; }, before);
@@ -265,6 +312,7 @@ async function onPage(browser, file, label, opts){
     if(opts.setup !== false) await setupText(page, label);
     if(opts.flow !== false) await flow(page, label, opts);
     if(opts.scores) await scores(page, label);
+    if(opts.scores) await manyBlanks(page, label);
     if(opts.select) for(const sch of ['light', 'dark']) await selection(page, label, sch);
     if(opts.expired) await expired(page, label);
     check(!errors.length, `${label}: no page errors`, errors.slice(0, 2).join('; '));

@@ -5,7 +5,8 @@ Dated kit changes, newest first.
 ## 2026-11-06
 - Exam paper: the last question's "Review" no longer grades and submits the paper. It is now "Review answers" and opens an overview of the paper (each question number, answered or not answered, a way back to any question, one submit button). The overview shows no answers, grades or explanations and records nothing; its submit asks the same question as "Submit paper", and Cancel keeps the paper running (`exam_review_test.js`).
 - Exam paper: a chosen answer is drawn in the neutral selection colour (blue), the same for a right and a wrong choice; green and red appear only on the result page.
-- Exam opening page: it describes select-all items from what the draw puts on the paper (the target, capped by the select-all items in the exam's pools), and says "This paper has no select-all items" when there are none, instead of "about 0 of the 50 are select-all".
+- Exam opening page: it describes select-all items from papers drawn by the engine's own draw (20 sample papers per exam and bank: one count, or a range when the samples differ), and says "This paper has no select-all items" when none was drawn, instead of "about 0 of the 50 are select-all".
+- Exam overview: the question opened from it takes the focus; with more than six unanswered the "Not answered" line gives the count and the first five. A chosen answer has an inner ring as well as the filled letter, so it differs from an answer under the pointer.
 
 ## 2026-11-05
 - The answer history is no longer cut silently at 20,000 entries: past it a notice offers Export progress and a removal of the oldest entries that names how many and their dates and needs an OK; until then new entries go on being added (`cap_test.js`).
