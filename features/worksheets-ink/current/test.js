@@ -353,7 +353,7 @@ const countOf = (h, re) => (h.match(re) || []).length;
       await page.emulateMedia({media: 'screen'});
       check(JSON.stringify(pp) === JSON.stringify([1, false, false, false, true, true]), `Save as PDF prints the worksheet alone, ink as pictures in place of the canvases ${JSON.stringify(pp)}`);
       if(pdf) check(pdf.length > 20000, `the printed PDF has the worksheet (${Math.round(pdf.length / 1024)} KB)`);
-      else L.notRunCase("the printed PDF's size", `page.pdf runs only in Chromium (${L.BROWSER_NAME} here); the printed worksheet is checked by its print layout above`);   // documented exclusion, core/ci_exclusions.sh (Louis, 2026-11-06)
+      else L.notRunCase("the printed PDF's size", `page.pdf runs only in Chromium (${L.BROWSER_NAME} here, ${W} x ${H} viewport); the printed worksheet is checked by its print layout above`);   // documented exclusion, core/ci_exclusions.sh (Louis, 2026-11-06)
       await page.click('#ink [data-inkdone]');
       const lab = await page.innerText(btn);
       check(!(await ev(() => !!document.getElementById('ink'))) && /Continue/.test(lab), `Done closes it and the card says ${JSON.stringify(lab.trim())}`);
