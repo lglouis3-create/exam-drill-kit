@@ -1794,21 +1794,27 @@ let nfile = 0;
       const name = NS + ':writer:' + PROFILE, t0 = Date.now(), mine = [];
       const q0 = await navigator.locks.query();
       for(const l of q0.pending || []) if(l.name === name) mine.push(l.clientId);   // this tab's own queued request
+      // a holder counts as this tab's only by a clientId the browser gives; without one, the lock is free only
+      // when nobody holds it (the review of 58d9881: an undefined clientId would match any holder)
+      const ids = mine.filter(id => typeof id === 'string' && id);
       let freeAt = null;
       for(;;){
         if(WRITER === 'held') return {ok: true, ms: Date.now() - t0, freeMs: freeAt === null ? null : freeAt - t0};
         const q = await navigator.locks.query(), held = (q.held || []).filter(l => l.name === name);
         // no queued request of its own (already granted, or never asked): free at once, so the 6 s bound applies
-        const free = !mine.length || held.length === 0 || held.every(h => mine.includes(h.clientId));
+        const free = !mine.length || held.length === 0 || (ids.length === mine.length && held.every(h => ids.includes(h.clientId)));
+        var last = {queued: mine.length, ids: ids.length, holders: held.map(h => h.clientId === undefined ? '(no clientId)' : (ids.includes(h.clientId) ? 'this tab' : 'other'))};
         if(free && freeAt === null) freeAt = Date.now();
         if(freeAt !== null && Date.now() - freeAt > 6000)
-          return {ok: false, why: 'the lock was free, but the take-over did not finish within 6 s', writer: WRITER, wall: WRITER_WHY, ms: Date.now() - t0, freeMs: freeAt - t0};
+          return {ok: false, why: 'the lock was free, but the take-over did not finish within 6 s', writer: WRITER, wall: WRITER_WHY, ms: Date.now() - t0, freeMs: freeAt - t0, locks: last};
         if(freeAt === null && Date.now() - t0 > 60000)
-          return {ok: false, why: 'another holder kept the writer lock for 60 s', writer: WRITER, held: held.length, ms: Date.now() - t0};
+          return {ok: false, why: 'another holder kept the writer lock for 60 s', writer: WRITER, wall: WRITER_WHY, held: held.length, ms: Date.now() - t0, locks: last};
         await new Promise(res => setTimeout(res, 50));
       }
     });
     if(!r.ok) check(false, 'precondition: the take-over finished (' + what + ')', r);
+    // a passing take-over that waited long is printed, so a slow lock release shows in passing runs too
+    else if(r.ms > 5000) console.log(`  note  the take-over (${what}) waited ${r.ms} ms; the lock was free after ${r.freeMs === null ? 'an unknown time' : r.freeMs + ' ms'}`);
     return r.ok;
   };
   const keptAnywhere = async (p, di, at) => {                   // in the stored progress or in a kept copy
