@@ -161,7 +161,7 @@ for(const [label, src] of loops){
 const getterRes = site("const COURSE = {get exams(){while(true){}}, activeExam:'exam1'};");
 check(getterRes.warnings.some(w => /no exams property/.test(w)), 'an exams getter is reported as not readable, not run', getterRes);
 const nonLit = site("const X='exam9'; const COURSE = {exams:[{id:X},{id:'exam1'}], activeExam: pick(), kit:{core:'abc1234'}};");
-check(nonLit.exams.length === 1 && nonLit.warnings.length === 2 && nonLit.activeExam === null && nonLit.kit.core === 'abc1234', 'values that are not literals are reported, not guessed', nonLit);
+check(nonLit.exams.length === 1 && nonLit.warnings.some(w => /exam's id is not a literal/.test(w)) && nonLit.warnings.some(w => /activeExam is not a literal/.test(w)) && nonLit.activeExam === null && nonLit.kit.core === 'abc1234', 'values that are not literals are reported, not guessed', nonLit);
 const tricky = site("/* exams:[{id:'fake'}] */ const COURSE = {name:'a // b', re: /[}\\]]/g, exams:[{id:'exam1', pools:[{filter:{exam:1}}], note:`x}`}, {id:2}], activeExam:2, // activeExam:'z'\n kit:{core:'25c643d'}};");
 check(JSON.stringify(tricky.exams) === '[{"id":"exam1"},{"id":2}]' && tricky.activeExam === 2 && tricky.kit.core === '25c643d' && tricky.incomplete.length === 1 && /regular expression/.test(tricky.incomplete[0]), 'comments, strings with brackets and nested objects do not confuse the reader; a regular expression literal makes the file not checked', tricky);
 const plainTricky = site("/* exams:[{id:'fake'}] */ const COURSE = {name:'a // b', exams:[{id:'exam1', pools:[{filter:{exam:1}}], note:`x}`}, {id:2}], activeExam:2, // activeExam:'z'\n kit:{core:'25c643d'}};");
@@ -401,7 +401,18 @@ console.log('\n=== The release check fails closed: a file it cannot read complet
     ['Object.defineProperty on the global', `${plain}\nObject.defineProperty(globalThis, 'x', {get(){ COURSE.exams.push(${E2}); }});`],
     ['a timer that changes it later', `${plain}\nsetTimeout(() => { COURSE.activeExam = 'exam2'; });`],
     ['var COURSE changed through this with a computed name', `var COURSE = {exams:[${E1}], activeExam:'exam1'};\nthis['COU'+'RSE'].exams.push(${E2});`],
-    ['var COURSE changed through this.COURSE', `var COURSE = {exams:[${E1}], activeExam:'exam1'};\nthis.COURSE.activeExam = 'exam2';`]
+    ['var COURSE changed through this.COURSE', `var COURSE = {exams:[${E1}], activeExam:'exam1'};\nthis.COURSE.activeExam = 'exam2';`],
+    ['Function reached through a prototype constructor', `var COURSE = {exams:[${E1}], activeExam:'exam1'};\nObject.getPrototypeOf(()=>0).constructor('return this')()['COU'+'RSE'].exams.push(${E2});`],
+    ['Function reached through [].constructor.constructor', `var COURSE = {exams:[${E1}], activeExam:'exam1'};\n[].constructor.constructor('return this')()['COU'+'RSE'].exams.push(${E2});`],
+    ['Function reached through a computed member name', `var COURSE = {exams:[${E1}], activeExam:'exam1'};\n(()=>0)['constru'+'ctor']('return this')()['COU'+'RSE'].exams.push(${E2});`],
+    ['Function with a split code string', `${plain}\n(()=>0)['constru'+'ctor']('COU'+'RSE.exams.push({id:"exam2"})')();`],
+    ['Function with optional chaining in the code string', `${plain}\n(()=>0).constructor('COURSE?.exams.push({id:"exam2"})')();`],
+    ['Function with a hex-escaped code string', `${plain}\n(()=>0).constructor('${BS}x43OURSE.exams.push({id:"exam2"})')();`],
+    ['a __proto__ key supplying activeExam', `const COURSE = {exams:[${E1}], __proto__:{activeExam:'exam2'}};`],
+    ['a call inside the literal', `const COURSE = {exams:[${E1}], activeExam:'exam1', title: String('x')};`],
+    ['an arrow inside the literal', `const COURSE = {exams:[${E1}], activeExam:'exam1', f: () => 1};`],
+    ['a stray identifier value inside the literal', `const COURSE = {exams:[${E1}], activeExam:'exam1', x: undefined};`],
+    ['a second harmless statement after the literal', `${plain}\nconst other = 1;`]
   ];
   let passed = 0;
   for(const [label, src] of bypasses){

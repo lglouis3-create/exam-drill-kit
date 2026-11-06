@@ -336,6 +336,32 @@ function parseCourse(text){
     risky.add(t.v);
   }
   if(risky.size) incomplete.push(`the file uses ${[...risky].join(', ')}, which can change COURSE in a way this reading cannot see: not checked`);
+  // The structural rule, which the rules above and below only back up: the file is one
+  // declaration statement, `[const|let|var] COURSE = {...}[;]` or `[window|globalThis|this].COURSE
+  // = {...}[;]`, and nothing else; inside the literal the only identifiers are keys and true,
+  // false and null, and there is no call, function, arrow or assignment and no __proto__ key.
+  // Every bypass found in review needed a second statement or code inside the literal; a real
+  // course.js (the kit template, DEENT, Medicinal-chemistry) is data only and satisfies this.
+  {
+    const d0 = decl[0];
+    let s0 = d0;
+    if(toks[d0 - 1] && toks[d0 - 1].t === 'id' && /^(const|let|var)$/.test(toks[d0 - 1].v)) s0 = d0 - 1;
+    else if(toks[d0 - 1] && toks[d0 - 1].t === 'p' && toks[d0 - 1].v === '.' && toks[d0 - 2] && toks[d0 - 2].t === 'id' && /^(window|globalThis|this)$/.test(toks[d0 - 2].v)) s0 = d0 - 2;
+    let e0 = close;
+    if(toks[e0 + 1] && toks[e0 + 1].t === 'p' && toks[e0 + 1].v === ';') e0++;
+    const outside = s0 + (toks.length - 1 - e0);
+    if(outside > 0) incomplete.push(`the file has ${outside} token${outside > 1 ? 's' : ''} outside the single COURSE declaration (another statement, or code around the literal): not checked`);
+    const inside = [];
+    for(let j = at + 1; j < close; j++){
+      const t = toks[j], nx = toks[j + 1];
+      const isKey = nx && nx.t === 'p' && nx.v === ':';
+      if(t.t === 'id' && !isKey && !/^(true|false|null)$/.test(t.v)) inside.push(`identifier ${t.v}`);
+      else if(t.t === 'p' && (t.v === '(' || t.v === ')')) inside.push('a call or function');
+      else if(t.t === 'p' && t.v === '=') inside.push('an assignment or arrow');
+      else if((t.t === 'id' || t.t === 'str') && isKey && t.v === '__proto__') inside.push('a __proto__ key');
+    }
+    if(inside.length) incomplete.push(`the COURSE literal holds code, not only data (${[...new Set(inside)].slice(0, 4).join('; ')}): not checked`);
+  }
   const top = props(toks, at);
   if(top.irregular.length) incomplete.push(`COURSE has entries that are not key: value (${top.irregular.slice(0, 3).join('; ')}): not checked`);
   for(const k of ['exams', 'activeExam']) if(top.duplicates.has(k)) incomplete.push(`COURSE.${k} is given more than once: not checked`);

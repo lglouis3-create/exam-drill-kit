@@ -40,8 +40,12 @@ a non-literal id or `activeExam`, a second assignment to or any later reference 
 regular expression, a template literal with a substitution, a carriage return or Unicode line
 separator, a backslash outside a string, a string that mentions `COURSE` as code, or an
 identifier that can run code or reach the page's globals (`eval`, `Function`, `window`,
-`globalThis`, `Reflect`, `Proxy` and others). The kit template and the registered courses use
-none of these. What it does not cover: `build.py` concatenates the course's other data files
+`globalThis`, `Reflect`, `Proxy` and others). Above all these, the file must be a single
+declaration, `const COURSE = {...};` (or `window.COURSE = {...};`), whose literal holds data
+only: keys, strings, numbers, `true`, `false`, `null`, arrays and objects, with no call,
+function, arrow, assignment or `__proto__` key. Anything else in the file, before or after the
+literal or inside it, is "not checked". The kit template and the registered courses satisfy
+this: `build.py` evaluates `course.js` as data and the engine reads `COURSE` and nothing else. What it does not cover: `build.py` concatenates the course's other data files
 (`files`, `glossary.js`, `links.js`, `reference.js`, `tell.js`, `guide.js`) into the same page
 script after `COURSE`, and the check reads only `course.js`; a change to `COURSE` from one of
 those files is not seen. The checks in `core/` (`test.js`, `output_test.js`) read the built
