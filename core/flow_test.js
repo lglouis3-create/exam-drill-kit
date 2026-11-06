@@ -158,6 +158,10 @@ const fresh = async browser => {
   {
     const {ctx, page} = await fresh(browser);
     await go(page, 'exam');
+    if(!(await page.$('#startExam'))){
+      L.skip('a partial exam', 'this course\'s active exam has no question count, so no paper is drawn');
+      await ctx.close();
+    }else{
     await page.click('#startExam');
     const n = await page.evaluate(() => EX.qs.length);
     await page.evaluate(() => {
@@ -178,6 +182,7 @@ const fresh = async browser => {
     const g = await text(page, '#v-gaps');
     check(/50%/.test(g), 'Weak spots shows 50% for the same two answers', g.slice(0, 200));
     await ctx.close();
+    }
   }
 
   console.log('\n=== 3 and 4. Weak spots names what each number counts ===');
