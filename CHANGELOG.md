@@ -2,6 +2,9 @@
 
 Dated kit changes, newest first.
 
+## 2026-11-06 (checks)
+- A check can report one case as NOT RUN (`check_lib.js` `notRunCase`). It is counted apart from passes and skips, named in the check's summary, and listed by `run_checks.sh`. `ci_course.sh` accepts exactly one such case, listed in `core/ci_exclusions.sh`: the worksheets-ink PDF's size in WebKit (Louis, 2026-11-06). Any other NOT RUN case, and the same case in Chromium, fails the run (`notruncase_test.js`).
+
 ## 2026-11-06
 - The improvement coordinator (`coordinator/`):
   - records each course's whole exam schedule apart from what its site has released;
