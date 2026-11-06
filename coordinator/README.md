@@ -33,6 +33,20 @@ records, credentials or unpublished lecture material (`coord_test.js` checks for
 scores, grades and answer histories). Anything private stays out of GitHub; a run that would
 need it asks Louis where it may keep it.
 
+**What the release check reads, and what it cannot.** `coord.js published` reads `course.js`
+as text and never runs it. A file it cannot read completely is "not checked" (NOT RUN, exit 1),
+never OK: a repeated or escaped key, a spread, shorthand, computed, getter or method entry,
+a non-literal id or `activeExam`, a second assignment to or any later reference to `COURSE`, a
+regular expression, a template literal with a substitution, a carriage return or Unicode line
+separator, a backslash outside a string, a string that mentions `COURSE` as code, or an
+identifier that can run code or reach the page's globals (`eval`, `Function`, `window`,
+`globalThis`, `Reflect`, `Proxy` and others). The kit template and the registered courses use
+none of these. What it does not cover: `build.py` concatenates the course's other data files
+(`files`, `glossary.js`, `links.js`, `reference.js`, `tell.js`, `guide.js`) into the same page
+script after `COURSE`, and the check reads only `course.js`; a change to `COURSE` from one of
+those files is not seen. The checks in `core/` (`test.js`, `output_test.js`) read the built
+page itself.
+
 ## Branches, counts and kit-update previews
 
 - `pagesBranch`: the branch GitHub Pages serves, `main` for every course. Published status
@@ -72,7 +86,7 @@ setting itself cannot be read through this session's proxy) with the schedule. W
 successful deployment is found, it reads the head of `pagesBranch` and says the live revision
 is unknown. The course file is read as text and never run: `parseCourse` takes only the
 literal `exams[].id`, `activeExam` and `kit.core` from the object assigned to `COURSE`, and
-reports any other value as not checked. It and reports a problem when the site lists an exam that
+reports any other value as not checked. It reports a problem when the site lists an exam that
 is not `published`, opens on one (`activeExam`), or lists an exam the schedule does not know.
 So an empty future exam can't slip into a site unnoticed. Earlier exams stay listed when
 later ones are cumulative: the check never asks for a published exam to be removed.

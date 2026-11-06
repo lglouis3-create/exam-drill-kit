@@ -34,7 +34,9 @@ const SECRET_PATTERNS = [
   /\b(bearer|token|basic)\s+(?=[A-Za-z0-9._~+\/=-]*\d)[A-Za-z0-9._~+\/=-]{16,}/gi,
   /([?&](access_token|token|key|sig|signature|password)=)[^&\s]+/gi,
   /\b(sk-ant-[A-Za-z0-9_-]{10,}|sk-[A-Za-z0-9]{20,}|AKIA[0-9A-Z]{16}|xox[abprs]-[A-Za-z0-9-]{10,})\b/g,
-  /\b([A-Za-z0-9_]*(?:TOKEN|SECRET|PASSWORD|PASSWD|API_?KEY)[A-Za-z0-9_]*\s*=\s*|password\s*:\s*)(?!\[redacted\])[^\s&]+/gi,   // NAME_TOKEN=..., password=..., password: ...
+  // NAME_TOKEN=..., password=..., password: ..., token: ... These also hide harmless values such as
+  // MAX_TOKENS=4096; an error message loses nothing a person needs by that.
+  /\b([A-Za-z0-9_]*(?:TOKEN|SECRET|PASSWORD|PASSWD|API_?KEY)[A-Za-z0-9_]*\s*=\s*|(?:password|token)\s*:\s*)(?!\[redacted\])[^\s&]+/gi,
   /\bgh[pousr]_[A-Za-z0-9]{8,15}\b/g                         // short or truncated GitHub tokens
 ];
 function redact(s){
@@ -48,7 +50,7 @@ function redact(s){
 }
 const sanitize = s => redact(s).replace(/\s+/g, ' ').trim().slice(0, 240);
 // true when a text still holds something that looks like a credential (used by the checks)
-const hasSecret = s => /gh[pousr]_[A-Za-z0-9]{16,}|github_pat_[A-Za-z0-9_]{20,}|(x-access-token|x-oauth-basic|oauth2):(?!\[redacted\])[^@\s\/]+@|:\/\/[^\/\s:@]+:(?!\[redacted\])[^\/\s@]+@|(authorization|proxy-authorization)\s*[:=]\s*(?!\[redacted\])\S|\b(bearer|token|basic)\s+(?!\[redacted\])(?=[A-Za-z0-9._~+\/=-]*\d)[A-Za-z0-9._~+\/=-]{16,}|[?&](access_token|token|key|sig|signature|password)=(?!\[redacted\])[^&\s]|sk-ant-[A-Za-z0-9_-]{10,}|AKIA[0-9A-Z]{16}|xox[abprs]-[A-Za-z0-9-]{10,}|\b[A-Za-z0-9_]*(?:TOKEN|SECRET|PASSWORD|PASSWD|API_?KEY)[A-Za-z0-9_]*\s*=\s*(?!\[redacted\])[^\s&]|\bpassword\s*:\s*(?!\[redacted\])\S|\bgh[pousr]_[A-Za-z0-9]{8,}/i.test(String(s));
+const hasSecret = s => /gh[pousr]_[A-Za-z0-9]{16,}|github_pat_[A-Za-z0-9_]{20,}|(x-access-token|x-oauth-basic|oauth2):(?!\[redacted\])[^@\s\/]+@|:\/\/[^\/\s:@]+:(?!\[redacted\])[^\/\s@]+@|(authorization|proxy-authorization)\s*[:=]\s*(?!\[redacted\])\S|\b(bearer|token|basic)\s+(?!\[redacted\])(?=[A-Za-z0-9._~+\/=-]*\d)[A-Za-z0-9._~+\/=-]{16,}|[?&](access_token|token|key|sig|signature|password)=(?!\[redacted\])[^&\s]|sk-ant-[A-Za-z0-9_-]{10,}|AKIA[0-9A-Z]{16}|xox[abprs]-[A-Za-z0-9-]{10,}|\b[A-Za-z0-9_]*(?:TOKEN|SECRET|PASSWORD|PASSWD|API_?KEY)[A-Za-z0-9_]*\s*=\s*(?!\[redacted\])[^\s&]|\b(?:password|token)\s*:\s*(?!\[redacted\])\S|\bgh[pousr]_[A-Za-z0-9]{8,}/i.test(String(s));
 const redactDeep = v => typeof v === 'string' ? redact(v) : Array.isArray(v) ? v.map(redactDeep) : v && typeof v === 'object' ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, redactDeep(x)])) : v;
 
 /* ---------- dates and time in the course's time zone ---------- */
@@ -204,9 +206,12 @@ function tokenize(src){
     if(ch === '/' && src[i + 1] === '*'){ const e = src.indexOf('*/', i + 2); i = e < 0 ? n : e + 2; continue; }
     if(/\s/.test(ch)){ i++; continue; }
     if(ch === '"' || ch === "'" || ch === '`'){
-      let j = i + 1, v = '';
-      while(j < n && src[j] !== ch){ if(src[j] === '\\'){ v += src[j + 1] || ''; j += 2; } else v += src[j++]; }
-      push({t: ch === '`' ? 'tpl' : 'str', v}); i = j + 1; continue;
+      let j = i + 1, v = '', esc = false, nl = false;
+      while(j < n && src[j] !== ch){ if(src[j] === '\\'){ esc = true; v += src[j + 1] || ''; j += 2; } else { if(src[j] === '\n') nl = true; v += src[j++]; } }
+      // esc: the source had a backslash escape (the value above keeps the escape letter, not its
+      // meaning, so such a string is never trusted as a key or an id); nl: a raw line break inside
+      // a quoted string, which JavaScript refuses, so the tokenizer has lost its place
+      push({t: ch === '`' ? 'tpl' : 'str', v, esc, nl: nl && ch !== '`'}); i = j + 1; continue;
     }
     if(ch === '/'){
       const regexOk = !prevSig || (prevSig.t === 'p' && /[(,=:[!&|?{};+\-*%<>~^]/.test(prevSig.v)) || (prevSig.t === 'id' && /^(return|typeof|instanceof|in|of|new|delete|void|throw|case|do|else)$/.test(prevSig.v));
@@ -259,7 +264,7 @@ function props(toks, a){
   while(j < b){
     const k = toks[j];
     if(k.t === 'p' && k.v === ','){ j++; continue; }
-    if((k.t === 'id' || k.t === 'str' || k.t === 'num') && toks[j + 1] && toks[j + 1].t === 'p' && toks[j + 1].v === ':'){
+    if((k.t === 'id' || (k.t === 'str' && !k.esc) || k.t === 'num') && toks[j + 1] && toks[j + 1].t === 'p' && toks[j + 1].v === ':'){
       const vs = j + 2, ve = valueEnd(vs), key = String(k.v);
       if(out.has(key)) out.duplicates.add(key);
       out.set(key, {s: vs, e: ve});
@@ -278,16 +283,32 @@ const wholeBracket = (toks, r, open) => r && toks[r.s] && toks[r.s].t === 'p' &&
 function literal(toks, r){
   if(!r || r.e - r.s !== 1) return undefined;
   const t = toks[r.s];
-  if(t.t === 'str' || t.t === 'num') return t.v;
-  if(t.t === 'tpl' && !/\$\{/.test(t.v)) return t.v;
+  if(t.t === 'str' && !t.esc) return t.v;
+  if(t.t === 'num') return t.v;
+  if(t.t === 'tpl' && !t.esc && !/\$\{/.test(t.v)) return t.v;
   if(t.t === 'id' && t.v === 'null') return null;
   return undefined;
 }
+// Identifiers whose presence means the file may change COURSE in a way a text reading cannot
+// see (code run from a string, a timer, the page's globals, reflection). Any of them makes
+// the file "not checked". `window` and `globalThis` are allowed only as `window.COURSE =`.
+const UNREADABLE_IDS = /^(eval|Function|setTimeout|setInterval|queueMicrotask|requestAnimationFrame|import|require|document|window|globalThis|self|top|parent|frames|Reflect|Proxy|with|fetch|location|navigator|define)$/;
+const LINE_TERMINATORS = new RegExp('[' + String.fromCharCode(13, 0x2028, 0x2029) + ']');
 function parseCourse(text){
-  const toks = tokenize(String(text));
+  text = String(text);
+  const toks = tokenize(text);
   // incomplete: reasons the file cannot be checked without running it. Any one of them makes
-  // the release check "not checked" (ok: null), never ok: the check fails closed.
+  // the release check "not checked" (ok: null), never ok: the check fails closed. The rules
+  // below are deliberately wider than what a real course.js uses (the kit template, DEENT and
+  // Medicinal-chemistry use none of these constructs), so a file that trips one is read by a
+  // person, not passed.
   const incomplete = [];
+  if(LINE_TERMINATORS.test(text)) incomplete.push('the file contains a carriage return or a Unicode line separator, which ends a comment or line in JavaScript but not in this reading: not checked');
+  if(toks.some(t => t.t === 're')) incomplete.push('the file contains a regular expression literal or an ambiguous slash: not checked');
+  if(toks.some(t => t.t === 'p' && t.v === '\\')) incomplete.push('the file contains a backslash outside a string or comment (an escaped identifier): not checked');
+  if(toks.some(t => t.t === 'tpl' && /\$\{/.test(t.v))) incomplete.push('the file contains a template literal with a substitution, which can run code: not checked');
+  if(toks.some(t => t.t === 'str' && t.nl)) incomplete.push('a quoted string spans a line break, so the tokenizer lost its place: not checked');
+  if(toks.some(t => (t.t === 'str' || t.t === 'tpl') && /COURSE\s*[.\[=(;]/.test(t.v))) incomplete.push('a string mentions COURSE as code (it could be run or has swallowed code): not checked');
   // COURSE = {   (const/let/var COURSE, window.COURSE, globalThis.COURSE)
   const decl = [];
   for(let j = 0; j + 2 < toks.length; j++){
@@ -305,6 +326,15 @@ function parseCourse(text){
   const others = [];
   for(let j = 0; j < toks.length; j++) if(toks[j].t === 'id' && toks[j].v === 'COURSE' && !declNames.has(j)) others.push(j);
   if(others.length) incomplete.push(`COURSE is referenced ${others.length} time${others.length > 1 ? 's' : ''} outside its declaration (it may change after the literal): not checked`);
+  // identifiers that can change COURSE without naming it in a readable way
+  const risky = new Set();
+  for(let j = 0; j < toks.length; j++){
+    const t = toks[j];
+    if(t.t !== 'id' || !UNREADABLE_IDS.test(t.v)) continue;
+    if((t.v === 'window' || t.v === 'globalThis') && toks[j + 1] && toks[j + 1].t === 'p' && toks[j + 1].v === '.' && declNames.has(j + 2)) continue;   // window.COURSE = {
+    risky.add(t.v);
+  }
+  if(risky.size) incomplete.push(`the file uses ${[...risky].join(', ')}, which can change COURSE in a way this reading cannot see: not checked`);
   const top = props(toks, at);
   if(top.irregular.length) incomplete.push(`COURSE has entries that are not key: value (${top.irregular.slice(0, 3).join('; ')}): not checked`);
   for(const k of ['exams', 'activeExam']) if(top.duplicates.has(k)) incomplete.push(`COURSE.${k} is given more than once: not checked`);
@@ -338,6 +368,7 @@ function parseCourse(text){
   let kitCore = null;
   const kit = top.get('kit');
   if(kit && wholeBracket(toks, kit, '{')){ const c = literal(toks, props(toks, kit.s).get('core')); if(typeof c === 'string') kitCore = c; }
+  // warnings: the same list under its earlier name, kept for the older checks in coord_test.js
   return {exams, activeExam: activeExam === undefined ? null : activeExam, kit: kitCore ? {core: kitCore} : null, incomplete, warnings: incomplete};
 }
 
@@ -602,7 +633,7 @@ function md(d){
     else if(pb.checked === 'unavailable' || pb.checked === 'not-read'){
       const last = pb.last && pb.last.value && pb.last.value.pub;
       probs = `${pb.checked === 'unavailable' ? UNAVAILABLE : 'not read (offline)'}${lastTxt(pb.last)}${last ? ': ' + (last.ok ? 'only released exams on the site' : last.problems.join('; ')) : ''}`;
-    }else probs = (pb.ok ? 'only released exams on the site' : pb.problems.join('; ')) + `, read at ${pb.basis}`;
+    }else probs = (pb.ok ? 'only released exams on the site' : pb.ok === null ? 'not checked: ' + pb.problems.join('; ') : pb.problems.join('; ')) + `, read at ${pb.basis}`;
     if(c.openProblems.length) probs += `; open: ${c.openProblems.join(', ')}`;
     const dp = c.deployed;
     const depTxt = dp.state === 'ok' ? (dp.value ? `${dp.value.sha.slice(0, 7)} on ${dp.value.branch}, deployed ${dp.value.at}${dp.value.newer ? `; a newer Pages run is ${dp.value.newer}` : ''}` : 'unknown: no successful Pages deployment found')
@@ -704,7 +735,8 @@ if(require.main === module){
       return Object.assign({course: c.id, at: ref, deployedKnown: !!(dep.state === 'ok' && dep.value)}, checkPublished(c, co));
     });
     out(json ? res : res.map(r => `${r.course} (at ${String(r.at).slice(0, 12)}${r.deployedKnown === false ? ', live revision unknown' : ''}): ${r.ok === null ? 'NOT RUN' : r.ok ? 'OK' : 'PROBLEM'}${r.problems.length ? ' — ' + r.problems.join('; ') : ''}${r.knownNotReleased && r.knownNotReleased.length ? `\n  known, not released (hidden from students): ${r.knownNotReleased.join('; ')}` : ''}`).join('\n'));
-    if(res.some(r => r.ok === false)) process.exitCode = 1;
+    // a course that is not checked (NOT RUN) fails the command as a problem does: the check fails closed
+    if(res.some(r => r.ok !== true)) process.exitCode = 1;
   }
   else if(cmd === 'dashboard'){ const d = dashboard(now, {offline: argv.includes('--offline'), cache}); out(json ? d : md(d)); }
   else if(cmd === 'kitupdate'){

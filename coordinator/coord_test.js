@@ -163,7 +163,9 @@ check(getterRes.warnings.some(w => /no exams property/.test(w)), 'an exams gette
 const nonLit = site("const X='exam9'; const COURSE = {exams:[{id:X},{id:'exam1'}], activeExam: pick(), kit:{core:'abc1234'}};");
 check(nonLit.exams.length === 1 && nonLit.warnings.length === 2 && nonLit.activeExam === null && nonLit.kit.core === 'abc1234', 'values that are not literals are reported, not guessed', nonLit);
 const tricky = site("/* exams:[{id:'fake'}] */ const COURSE = {name:'a // b', re: /[}\\]]/g, exams:[{id:'exam1', pools:[{filter:{exam:1}}], note:`x}`}, {id:2}], activeExam:2, // activeExam:'z'\n kit:{core:'25c643d'}};");
-check(JSON.stringify(tricky.exams) === '[{"id":"exam1"},{"id":2}]' && tricky.activeExam === 2 && tricky.kit.core === '25c643d' && !tricky.warnings.length, 'comments, strings with brackets, regular expressions and nested objects do not confuse the reader', tricky);
+check(JSON.stringify(tricky.exams) === '[{"id":"exam1"},{"id":2}]' && tricky.activeExam === 2 && tricky.kit.core === '25c643d' && tricky.incomplete.length === 1 && /regular expression/.test(tricky.incomplete[0]), 'comments, strings with brackets and nested objects do not confuse the reader; a regular expression literal makes the file not checked', tricky);
+const plainTricky = site("/* exams:[{id:'fake'}] */ const COURSE = {name:'a // b', exams:[{id:'exam1', pools:[{filter:{exam:1}}], note:`x}`}, {id:2}], activeExam:2, // activeExam:'z'\n kit:{core:'25c643d'}};");
+check(JSON.stringify(plainTricky.exams) === '[{"id":"exam1"},{"id":2}]' && plainTricky.activeExam === 2 && !plainTricky.incomplete.length, 'the same file without the regular expression reads completely', plainTricky);
 let none = null; try { site('const X = {exams: []};'); } catch(e){ none = e.message; }
 check(/no object literal assigned to COURSE/.test(none || ''), 'a file with no COURSE object is reported as unreadable');
 {
@@ -373,6 +375,44 @@ console.log('\n=== The release check fails closed: a file it cannot read complet
     try { r = C.checkPublished(deent, C.parseCourse(src)); } catch(e){ r = {ok: null, threw: e.message}; }
     check(r.ok !== true, `not OK: ${label}`, r);
   }
+  // the second independent review's bypasses (2026-11-06): each would make the deployed page list
+  // or open on exam2 while a plain reading shows exam1
+  const CR = String.fromCharCode(13), LS = String.fromCharCode(0x2028), BT = String.fromCharCode(96), BS = String.fromCharCode(92);
+  const bypasses = [
+    ['a duplicate exams key written with quotes', `const COURSE = {exams:[${E1}], 'exams':[${E1}, ${E2}], activeExam:'exam1'};`],
+    ['activeExam repeated with a quoted key', `const COURSE = {exams:[${E1}, ${E2}], activeExam:'exam1', 'activeExam':'exam2'};`],
+    ['an id repeated with a quoted key', `const COURSE = {exams:[{id:'exam1', 'id':'exam2'}], activeExam:'exam1'};`],
+    ['a hex-escaped exams key', `const COURSE = {exams:[${E1}], '${BS}x65xams':[${E1}, ${E2}], activeExam:'exam1'};`],
+    ['an octal-escaped exams key', `const COURSE = {exams:[${E1}], '${BS}145xams':[${E1}, ${E2}], activeExam:'exam1'};`],
+    ['a line continuation inside the exams key', `const COURSE = {exams:[${E1}], 'ex${BS}\nams':[${E1}, ${E2}], activeExam:'exam1'};`],
+    ['an escaped exam id', `const COURSE = {exams:[${E1}, {id:'exam${BS}u0032'}], activeExam:'exam1'};`],
+    ['a template substitution that runs code', `${plain}\nconst label = ${BT}\${COURSE.exams.push(${E2})}${BT};`],
+    ['a template whose substitution hides a backtick, then code', `${plain}\nconst s = ${BT}\${"${BT}"}${BT}; COURSE.exams.push(${E2});`],
+    ['eval of a string', `${plain}\neval("COURSE.exams.push(${E2.replace(/'/g, "\\\\'")})");`],
+    ['indirect eval', `${plain}\n(0, eval)("COURSE.activeExam = 'exam2'");`],
+    ['Function from a string', `${plain}\nFunction("COURSE.activeExam = 'exam2'")();`],
+    ['a unicode-escaped identifier', `${plain}\n${BS}u0043OURSE.exams.push(${E2});`],
+    ['an ambiguous slash after a brace', `const n = {} / 1; ${plain} COURSE.exams.push(${E2}); const z = 2 / 3;`],
+    ['an ambiguous slash after ++', `let i = 0; i++ / 2; ${plain} COURSE.exams.push(${E2}); const z = 2 / 3;`],
+    ['a carriage return ending a line comment', `${plain}\n// note${CR}COURSE.exams.push(${E2});`],
+    ['a Unicode line separator ending a line comment', `${plain}\n// note${LS}COURSE.exams.push(${E2});`],
+    ['var COURSE changed through window', `var COURSE = {exams:[${E1}], activeExam:'exam1'};\nwindow['COURSE'].exams.push(${E2});`],
+    ['var COURSE changed through a computed global name', `var COURSE = {exams:[${E1}], activeExam:'exam1'};\nglobalThis['COU'+'RSE'].exams.push(${E2});`],
+    ['Object.defineProperty on the global', `${plain}\nObject.defineProperty(globalThis, 'x', {get(){ COURSE.exams.push(${E2}); }});`],
+    ['a timer that changes it later', `${plain}\nsetTimeout(() => { COURSE.activeExam = 'exam2'; });`]
+  ];
+  let passed = 0;
+  for(const [label, src] of bypasses){
+    let r;
+    try { r = C.checkPublished(deent, C.parseCourse(src)); } catch(e){ r = {ok: null, threw: e.message}; }
+    if(r.ok !== true) passed++;
+    check(r.ok !== true, `bypass not OK: ${label}`, r);
+  }
+  check(passed === bypasses.length, `every one of the ${bypasses.length} bypasses is refused`);
+  // what a real file may contain and still read completely
+  const realistic = `const COURSE = {id:'deent', title:'COURSE 0000 — Course name', blurb:'Dr. Smith${BS}'s recording; see ${BT}guide${BT}', exams:[${E1}], activeExam:'exam1', kit:{core:'25c643d'}};`;
+  const rr = C.checkPublished(deent, C.parseCourse(realistic));
+  check(rr.ok === true, 'a file with an escaped apostrophe in a description, the word COURSE in a title and a plain template string reads completely', rr);
   const unread = C.checkPublished(deent, C.parseCourse(`${plain}\nCOURSE.activeExam = 'exam2';`));
   check(unread.ok === null && unread.notChecked === true && unread.problems.some(p => /not checked/.test(p)), 'a file that may change COURSE after the literal is "not checked" (ok: null), with the reason', unread);
   // the kit's own files: the template passes; template-unset (which changes an exam after the literal) is not checked
