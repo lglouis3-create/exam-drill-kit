@@ -30,7 +30,7 @@ sandbox.globalThis = sandbox;
 vm.createContext(sandbox);
 // DIA, DIAGRAMS and READ_LINKS are optional: a course without drawn figures or
 // read links may leave them out (views.js reads them the same way).
-code += "\nglobalThis.__X={QUESTIONS,TOPICS,IMAGES,COURSE,EXAM,DIA:typeof DIA!=='undefined'?DIA:{},DIAGRAMS:typeof DIAGRAMS!=='undefined'?DIAGRAMS:[],READ_LINKS:typeof READ_LINKS!=='undefined'?READ_LINKS:{},BUILD,record,pickNext,st,score,drawN,drawMixed,drawPaper,drawBlueprint,bpCat,EXAM_SATA,askProfile,markGuessed,markShaky,isMulti,gradeMulti,correctSet,gradeNumeric,NUMERIC:typeof NUMERIC!=='undefined'?NUMERIC:null,lecOf,skillOf,linksFor,sessionLog,solidEntry,getDB:()=>DB};\n";
+code += "\nglobalThis.__X={QUESTIONS,TOPICS,IMAGES,COURSE,EXAM,VIEWS,DIA_LIST,ATLAS:typeof ATLAS!=='undefined'?ATLAS:{boards:[]},GUIDE_HTML:typeof GUIDE_HTML!=='undefined'?GUIDE_HTML:'',TELL_HTML:typeof TELL_HTML!=='undefined'?TELL_HTML:'',REFERENCE_HTML:typeof REFERENCE_HTML!=='undefined'?REFERENCE_HTML:'',DIA:typeof DIA!=='undefined'?DIA:{},DIAGRAMS:typeof DIAGRAMS!=='undefined'?DIAGRAMS:[],READ_LINKS:typeof READ_LINKS!=='undefined'?READ_LINKS:{},BUILD,record,pickNext,st,score,drawN,drawMixed,drawPaper,drawBlueprint,bpCat,EXAM_SATA,askProfile,markGuessed,markShaky,isMulti,gradeMulti,correctSet,gradeNumeric,NUMERIC:typeof NUMERIC!=='undefined'?NUMERIC:null,lecOf,skillOf,linksFor,sessionLog,solidEntry,getDB:()=>DB};\n";
 try { vm.runInContext(code, sandbox); }
 catch (e) { console.error('FAIL: script threw at load — ' + e.message + '\n' + e.stack); process.exit(1); }
 
@@ -367,13 +367,28 @@ console.log('\n=== 9. Figures, read links, change log, blueprint ===');
   });
   ok(!badSteps.length, `${steppers.length} step-through figure(s), each with a dot per step${badSteps.length ? ' — ' + badSteps.join(', ') : ''}`);
 
-  // read links point at a real tab, and resolve for at least the questions they name
-  const views = new Set(['guide', 'tell', 'ref']);
+  // read links point at a view jump() can open and at an anchor that view draws:
+  // a reading tab's section (an id written in it, or the generated <prefix>-<n>
+  // of a heading with none, as renderDoc numbers them), an Atlas board (at-<id>),
+  // a Diagrams figure or group (dg-<key>, dgg-<n>)
+  const docIds = (html, prefix) => {
+    const ids = new Set([...String(html).matchAll(/\bid="([^"]+)"/g)].map(m => m[1]));
+    let n = 0;
+    [...String(html).matchAll(/<h3([^>]*)>/g)].forEach(m => { if(!/\bid=/.test(m[1])) ids.add(`${prefix}-${n++}`); });
+    return ids;
+  };
+  const anchors = {guide: docIds(X.GUIDE_HTML, 'guide'), tell: docIds(X.TELL_HTML, 'tell'), ref: docIds(X.REFERENCE_HTML, 'ref'),
+    atlas: new Set((X.ATLAS.boards || []).map(b => 'at-' + b.id)),
+    diagrams: new Set(X.DIA_LIST().flatMap(([, keys], gi) => ['dgg-' + gi].concat(keys.map(k => 'dg-' + k))))};
+  const views = new Set(X.VIEWS);
   const L = X.READ_LINKS || {};
   const all = [].concat((L.byKey || []).flatMap(([, ls]) => ls),
-                        Object.values(L.bySub || {}), Object.values(L.byLecture || {}));
+                        Object.values(L.bySub || {}), Object.values(L.byLecture || {}),
+                        QUESTIONS.flatMap(q => Array.isArray(q.read) ? q.read : []));
   const badView = all.filter(l => !views.has(l[0]));
-  ok(!badView.length, `${all.length} read link(s), every one naming guide, tell or ref${badView.length ? ' — ' + badView.map(l=>l[0]).join(', ') : ''}`);
+  ok(!badView.length, `${all.length} read link(s), every one naming a view the page has${badView.length ? ' — ' + [...new Set(badView.map(l=>l[0]))].join(', ') : ''}`);
+  const badAnchor = all.filter(l => views.has(l[0]) && l[1] && anchors[l[0]] && !anchors[l[0]].has(l[1]));
+  ok(!badAnchor.length, `every read link's anchor is drawn by its view${badAnchor.length ? ' — ' + [...new Set(badAnchor.map(l => l[0] + ':' + l[1]))].slice(0, 6).join(', ') : ''}`);
   const resolved = QUESTIONS.filter(q => X.linksFor(q).length).length;
   console.log(`  ${resolved} of ${QUESTIONS.length} questions resolve to a reading section (the rest group by topic in the review plan)`);
 

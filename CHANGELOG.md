@@ -2,6 +2,13 @@
 
 Dated kit changes, newest first.
 
+## 2026-11-06
+- The Topics tab opens with a short Start here block: Learn a topic, Start practice, Review weak concepts, Practice exam (existing views only). The whole-bank passes move below the topic list.
+- On a narrow screen: a wide reading table keeps its first column in view while the rest scrolls, with a line that says which side has more columns; the tab bar shows a chevron on the side with more tabs and scrolls the opened tab into view; the tab bar no longer slides under a header that wraps to two lines.
+- Step-through figures: every control and dot is a 44 px touch target, the current dot is ringed, the step is announced, the arrow keys step, and Enlarge shows the figure across the screen (Close or Escape).
+- Atlas: course.js `atlasTitle`, `atlasNoun` and `atlasExampleLabel` set its heading, its noun and the "e.g." label (defaults unchanged); a Reveal name button per tile with aria-expanded; in Hide names mode no drawing label, board heading, intro, section label or note names a structure; the count leaves out tiles a class hides; "Back to the atlas" after a jump out of it.
+- `test.js` accepts read links to any view (the Atlas's `at-<board>`, Diagrams' `dg-<key>`) and fails a link whose anchor its view does not draw. New check: `ux_test.js`.
+
 ## 2026-11-05
 - The answer history is no longer cut silently at 20,000 entries: past it a notice offers Export progress and a removal of the oldest entries that names how many and their dates and needs an OK; until then new entries go on being added (`cap_test.js`).
 - Study progress first when storage is full: while a progress write is refused, the answer history is held (on the page, named in the notice, in Export) and written after the next progress save; this tab's own per-tab record, proven stored, is removed to make room and the progress write tried once more.
