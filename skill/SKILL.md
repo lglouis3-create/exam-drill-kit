@@ -46,6 +46,7 @@ Reusable logic goes to the kit; one course's data stays in its repo.
 | "approve updates for <course>" | 7 Update a drill (make the waiting preview live) |
 | "undo the last kit update for <course>" | 7 Update a drill (revert it) |
 | "exam <N> outcome for <course>" | 8 Exam outcome |
+| "Show my Exam Drill Dashboard" / "run the coordinator" | 9 Coordinator and dashboard |
 
 If the request names no mode, ask which one in one line.
 
@@ -235,6 +236,14 @@ every automated check; only an adversarial review against the sources (Mode 4) f
   in the course's `CLAUDE.md`; report any difference.
 - Design changes are built at `/preview/` on the course's own site and replace the live
   page only after Louis approves them (decision 6).
+- **Known is not released.** The coordinator's `coordinator/courses.json` holds every exam the
+  syllabus names, each with a release status (`planned`, `collecting-material`,
+  `in-development`, `ready-for-review`, `approved`, `published`). Only a `published` exam
+  goes into `course.js` `exams`, and `activeExam` names a published one; never add an
+  empty future exam to the site, and never release one because its date has passed.
+  Earlier exams stay on the site when later ones are cumulative. After a release goes live
+  and its deploy is confirmed, set that exam to `published` (and its `siteId`) in the same
+  kit pull request that updates `COURSES.md`; `coord.js published` checks the two agree.
 
 ## State
 
@@ -262,7 +271,8 @@ The checks fail the build when `CLAUDE.md` was not updated after the newest lect
    new course" says) and the approved features into the repo, fill
    `course.js` from the syllabus, propose the skill taxonomy and the exam/module map and
    confirm both, ingest the first lecture (Mode 2), build, run the checks, publish, add
-   the course to `COURSES.md` by kit pull request, and offer a daily review (Mode 5).
+   the course to `COURSES.md` and to `coordinator/courses.json` (its whole exam schedule,
+   each exam's release status) by kit pull request, and offer a daily review (Mode 5).
    Tell Louis to attach the new repository to the "Kit updater" session with one
    message there ("attach lglouis3-create/<repo> to this session with push access"),
    so the daily kit-update run can reach it.
@@ -324,6 +334,13 @@ pull request; update `FEATURES.md` versions, "best for", "weaker at" and evidenc
 `COURSES.md` (features used, design changes, declined proposals, exam outcomes); propose
 retiring a version only where evidence shows a newer one is better at everything the
 older one was best for.
+
+The coordinator also starts a retro without being asked (`coordinator/RUN.md` step 2):
+when a course becomes recently completed, when a registry item is adopted, when a major
+feature merges, and when a technical problem is resolved. Each retro is written to
+`coordinator/retros/<course>-<date>.md` and its reusable findings go to
+`coordinator/improvements.json`. A passing test is not evidence that a feature helps
+learning; say what was observed.
 
 ## Mode 7: update a drill
 
@@ -394,6 +411,31 @@ the previous pins in `course.js`, confirms the deploy, and logs it in `reviews/L
 Record Louis's feedback in `COURSES.md`: the score if he gives it, the question types
 that appeared, and what the drill missed. Compare it with the drill's coverage and the
 answer log, and turn what it shows into improvement proposals.
+
+## Mode 9: coordinator and dashboard
+
+- **"Show my Exam Drill Dashboard"**: follow the project skill
+  `.claude/skills/exam-drill-dashboard/SKILL.md` in the kit. It runs
+  `node coordinator/coord.js dashboard` and shows the result in the conversation. It changes
+  nothing.
+- **"Run the coordinator"** (or its scheduled task): follow `coordinator/RUN.md`.
+- The coordinator plans reviews by each course's lifecycle, from its whole schedule in
+  America/Chicago, never from `activeExam`:
+  - exam-approaching and active: daily;
+  - recently completed: weekly;
+  - completed: monthly, with a quarterly deep audit;
+  - archived: only on change.
+- It skips unchanged code, tracks every improvement in `coordinator/improvements.json`,
+  and hands reusable features to the port queue.
+- It never publishes a course site or merges a course repository's main.
+
+### Choosing features from the registry
+
+When a course is set up or its design is checked (Mode 1 step 3, Mode 2), read
+`coordinator/improvements.json` alongside `FEATURES.md`. Offer an adopted improvement only
+where the course's material calls for it, and say when it would add complexity for no gain.
+Professor-taught exam content and optional supplemental material stay apart; the rules for
+scored questions are unchanged.
 
 ## The scheduler
 

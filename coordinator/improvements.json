@@ -1,0 +1,229 @@
+{
+ "about": "The improvement registry: every candidate improvement a course shows, traced to its source and its decision. Before adding an item, a run searches this file, FEATURES.md and review/port-queue.md for it and links an existing entry instead of adding a duplicate. Statuses: discovered, evaluating, proposed, implementing, testing, awaiting-approval, adopted, deferred, rejected. kind: course-specific, optional-feature, core-change, skill-guidance. severity (optional): critical (progress loss, a live site broken), high, normal. A feature in use is not evidence that it helps learning: evidence names what was observed.",
+ "items": [
+  {
+   "id": "atlas-core-fixes",
+   "title": "Atlas fixes: unshaded figure before the answer by default, fgScale reads either quote style, long names wrap, heading and search text from course.js",
+   "sourceRepo": "lglouis3-create/DEENT",
+   "sourceCommit": "d48768d",
+   "kind": "core-change",
+   "severity": "high",
+   "studentBenefit": "no sideways scroll on a phone (DEENT's Atlas is 425 px wide at 390 px); structures in questions drawn at a readable size; the drawing before the answer cannot point to it; DEENT's drug board no longer titled 'Functional group atlas'",
+   "evidence": "evaluated 2026-11-06 by a separate reviewer agent from the DEENT and Medicinal-chemistry builds served locally in Chromium at 390 and 1280 px (github.io was not reachable from the session; dark mode not judged: the core has no dark theme); no learning-outcome evidence; observed: .atname has no overflow-wrap; the core heading text is Medicinal-chemistry's; RDKit's single-quoted width defeats fgScale (hydrocortisone 212x118 px); Medicinal-chemistry keeps shading in FGQ",
+   "technicalRisk": "low; Medicinal-chemistry needs a per-question choice to keep a shaded figure",
+   "existsInKit": "partial: the core renders the atlas (renderAtlas, fgShow, cmpStrip, optFig in core/views.js; core/browser_test.js 294-383)",
+   "candidateCourses": [
+    "deent",
+    "medicinal-chemistry"
+   ],
+   "status": "proposed",
+   "notes": "recommended first by the evaluation; a core pull request for Louis's yes or no",
+   "prs": [],
+   "relatedQueueItems": [],
+   "decision": null
+  },
+  {
+   "id": "rdkit-atlas-generator",
+   "title": "Atlas drawn with RDKit from SMILES, features shaded by SMARTS, plus a reproducible PubChem/ChEMBL check",
+   "sourceRepo": "lglouis3-create/DEENT",
+   "sourceCommit": "fb54cf0",
+   "kind": "optional-feature",
+   "studentBenefit": "drug-sized structures at one scale, checked against reference databases, so a wrong structure does not reach the student",
+   "evidence": "evaluated 2026-11-06 by a separate reviewer agent from the DEENT and Medicinal-chemistry builds served locally in Chromium at 390 and 1280 px (github.io was not reachable from the session; dark mode not judged: the core has no dark theme); no learning-outcome evidence; DEENT src/verification: 69 exact, 2 exact-pubchem, 5 stereo-unspecified, 4 tautomer, 11 teaching-structure, 0 mismatches; three slide drawing errors caught",
+   "technicalRisk": "medium: RDKit needed at build time; the check needs PubChem and EBI (cached); course strings hard-coded in gen_atlas.py",
+   "existsInKit": "none: the core renders atlas data but has no generator",
+   "candidateCourses": [
+    "deent",
+    "medicinal-chemistry"
+   ],
+   "status": "evaluating",
+   "relatedQueueItems": [
+    "FEATURES.md structure-atlas v1"
+   ],
+   "notes": "second step: a kit tool, with course strings moved to course.js",
+   "prs": [],
+   "decision": null
+  },
+  {
+   "id": "atlas-study-controls",
+   "title": "Atlas study controls: priority badges, reference-only toggle, Hide key features, source line",
+   "sourceRepo": "lglouis3-create/DEENT",
+   "sourceCommit": "d48768d",
+   "kind": "core-change",
+   "studentBenefit": "review focused on examinable structures; recall without the shading cue",
+   "evidence": "evaluated 2026-11-06 by a separate reviewer agent from the DEENT and Medicinal-chemistry builds served locally in Chromium at 390 and 1280 px (github.io was not reachable from the session; dark mode not judged: the core has no dark theme); no learning-outcome evidence; 80 of 91 tiles shown by default, 11 behind 'Show reference-only'",
+   "technicalRisk": "medium as built: a MutationObserver patch matching tiles by DOM order, with its own storage prefix outside ns",
+   "existsInKit": "partial: search, Hide names, Reveal all in core renderAtlas",
+   "candidateCourses": [
+    "deent",
+    "medicinal-chemistry"
+   ],
+   "status": "evaluating",
+   "notes": "to become renderAtlas options, not the observer add-on",
+   "prs": [],
+   "relatedQueueItems": [],
+   "decision": null
+  },
+  {
+   "id": "lecture-vs-verified-compare",
+   "title": "The lecture's drawing beside the verified structure, with the difference explained",
+   "sourceRepo": "lglouis3-create/DEENT",
+   "sourceCommit": "d48768d",
+   "kind": "optional-feature",
+   "studentBenefit": "learns the professor's drawing without memorising its error, and whether the difference matters",
+   "evidence": "evaluated 2026-11-06 by a separate reviewer agent from the DEENT and Medicinal-chemistry builds served locally in Chromium at 390 and 1280 px (github.io was not reachable from the session; dark mode not judged: the core has no dark theme); no learning-outcome evidence; 6 comparisons readable at both widths",
+   "technicalRisk": "low to medium; depends on the generator",
+   "existsInKit": "none: core cmpStrip compares answer options only",
+   "candidateCourses": [
+    "deent"
+   ],
+   "status": "evaluating",
+   "notes": "fits the rule to state both sources when they disagree",
+   "prs": [],
+   "relatedQueueItems": [],
+   "decision": null
+  },
+  {
+   "id": "structure-priority-tiers",
+   "title": "Structure tiers (core, reference, verify), with questions drawing only on core structures",
+   "sourceRepo": "lglouis3-create/DEENT",
+   "sourceCommit": "d48768d",
+   "kind": "skill-guidance",
+   "studentBenefit": "questions use only examinable, verified structures",
+   "evidence": "evaluated 2026-11-06 by a separate reviewer agent from the DEENT and Medicinal-chemistry builds served locally in Chromium at 390 and 1280 px (github.io was not reachable from the session; dark mode not judged: the core has no dark theme); no learning-outcome evidence; atlas_data.json priority reasons with transcript times; atlas_check.js rule 4",
+   "technicalRisk": "low",
+   "existsInKit": "none",
+   "candidateCourses": [
+    "deent",
+    "medicinal-chemistry"
+   ],
+   "status": "evaluating",
+   "notes": "a SKILL.md rule plus a general core check",
+   "prs": [],
+   "relatedQueueItems": [],
+   "decision": null
+  },
+  {
+   "id": "structure-atlas-catalog-entry",
+   "title": "Correct FEATURES.md: structure-atlas and structure-compare are in the core, not modules waiting for a port",
+   "sourceRepo": "lglouis3-create/exam-drill-kit",
+   "sourceCommit": "066b06e",
+   "kind": "skill-guidance",
+   "studentBenefit": "indirect: one tested atlas path, no duplicate port",
+   "evidence": "core/views.js and core/browser_test.js carry the Medicinal-chemistry atlas; no features/structure-atlas folder; not in review/port-queue.md",
+   "technicalRisk": "low",
+   "existsInKit": "yes: in the core",
+   "candidateCourses": [
+    "medicinal-chemistry",
+    "deent"
+   ],
+   "status": "proposed",
+   "relatedQueueItems": [
+    "FEATURES.md structure-atlas v1",
+    "FEATURES.md structure-compare v1"
+   ],
+   "decision": "merge the DEENT improvements into the core atlas; do not supersede it (Medicinal-chemistry's hand-drawn input stays for R-group and wedge drawings)",
+   "notes": "catalog bookkeeping",
+   "prs": []
+  },
+  {
+   "id": "deent-deeper-understanding",
+   "title": "Optional 'Deeper Understanding' sections",
+   "sourceRepo": "lglouis3-create/DEENT",
+   "sourceCommit": null,
+   "kind": "optional-feature",
+   "studentBenefit": "supplemental science kept apart from what the professors test",
+   "evidence": "candidate named by Louis, 2026-11-06; not evaluated; not yet located in the DEENT repository",
+   "technicalRisk": "not assessed",
+   "existsInKit": "none found in FEATURES.md",
+   "candidateCourses": [
+    "deent"
+   ],
+   "status": "discovered",
+   "prs": [],
+   "relatedQueueItems": [],
+   "decision": null,
+   "notes": "Scored questions keep the professor-taught source rules; supplemental material stays out of exam pools (standing course-source rules)."
+  },
+  {
+   "id": "deent-information-load",
+   "title": "Reduced information overload",
+   "sourceRepo": "lglouis3-create/DEENT",
+   "sourceCommit": null,
+   "kind": "skill-guidance",
+   "studentBenefit": "less on screen at once for a beginner",
+   "evidence": "candidate named by Louis, 2026-11-06; not evaluated",
+   "technicalRisk": "not assessed",
+   "existsInKit": "partial: DEENT Atlas hides reference-tier structures by default (DEENT CLAUDE.md)",
+   "candidateCourses": [
+    "deent"
+   ],
+   "status": "discovered",
+   "prs": [],
+   "relatedQueueItems": [],
+   "decision": null,
+   "notes": "needs a browser review of the student pages, not a code reading"
+  },
+  {
+   "id": "pk-numeric-walkthroughs",
+   "title": "Improved numerical problem walkthroughs",
+   "sourceRepo": "lglouis3-create/Basic-Pharmacokinetics-",
+   "sourceCommit": null,
+   "kind": "optional-feature",
+   "studentBenefit": "set-up and steps of a calculation shown in order",
+   "evidence": "candidate named by Louis, 2026-11-06; not evaluated",
+   "technicalRisk": "not assessed",
+   "existsInKit": "partial: port queue item 1 plan-the-problem (draft PR #11), features/chained-problem-sets, features/equation-drill; FEATURES.md guide-walkthroughs v2 (PK)",
+   "candidateCourses": [],
+   "status": "discovered",
+   "prs": [
+    "lglouis3-create/exam-drill-kit#11"
+   ],
+   "relatedQueueItems": [
+    "port-queue 1 plan-the-problem"
+   ],
+   "decision": null,
+   "notes": "already in the porter's queue: the coordinator tracks it here and does not open a second pull request"
+  },
+  {
+   "id": "bdk-learn-workflow",
+   "title": "Improved learn-mode workflows",
+   "sourceRepo": "lglouis3-create/BDK",
+   "sourceCommit": "577d5b6",
+   "kind": "optional-feature",
+   "studentBenefit": "successive relearning with one checkbox per listed item",
+   "evidence": "FEATURES.md learn-mode v2 cites two studies by author and year; no learning-outcome data",
+   "technicalRisk": "not assessed",
+   "existsInKit": "partial: FEATURES.md learn-mode v2; port-queue item 11 (status 'BDK move')",
+   "candidateCourses": [
+    "bdk"
+   ],
+   "status": "discovered",
+   "prs": [],
+   "relatedQueueItems": [
+    "port-queue 11 learn-mode"
+   ],
+   "decision": null,
+   "notes": "ported as part of the BDK move plan (review/bdk-move-plan.md), not separately"
+  },
+  {
+   "id": "ip-explanation-navigation",
+   "title": "Better explanation navigation",
+   "sourceRepo": "lglouis3-create/Intro-Pharmacology-",
+   "sourceCommit": "620890f",
+   "kind": "optional-feature",
+   "studentBenefit": "from a missed question to the guide, reference and tell-apart sections, and back",
+   "evidence": "FEATURES.md explain-more-links v2: a phone review found Exam 4 answers linked only to the guide (PH notes §2)",
+   "technicalRisk": "not assessed",
+   "existsInKit": "partial: FEATURES.md explain-more-links v2 catalogued; not in features/",
+   "candidateCourses": [],
+   "status": "discovered",
+   "prs": [],
+   "relatedQueueItems": [
+    "FEATURES.md explain-more-links"
+   ],
+   "decision": null,
+   "notes": ""
+  }
+ ]
+}

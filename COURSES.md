@@ -70,3 +70,16 @@ Mid-course design changes:
 Proposals declined: none recorded. Two offers have no decision (per-column colour in Compare; the daily review reading an exported progress file; both from session memory, unverified, BDK notes §5).
 Exam outcomes: none recorded.
 Louis's notes:
+
+---
+
+## PHAR 4346 DEENT   repo: DEENT   site: https://lglouis3-create.github.io/DEENT/   term: Fall 2026
+Material profile: two professors (Dr. Smith, pharmacology; Dr. Sikazwe, medicinal chemistry); slide decks and recorded lectures; drug structures (Atlas of 91 structures drawn with RDKit from SMILES and checked against PubChem and ChEMBL); four exams: Exam 1 Mon 11/09 9:00-10:30 am (50 questions, 90 minutes, unweighted), Exam 2 11/16, Exam 3 11/23, Final 12/07 (dates of Exams 2-4 from Louis, 2026-11-06; times not recorded). Only Exam 1 is released on the site; the others are known to the coordinator (`coordinator/courses.json`) and not shown (DEENT `src/course.js`, `CLAUDE.md` at `fb54cf0`).
+  Bank: 555 questions (DEENT `CLAUDE.md`, 2026-11-06).
+Features and versions used: kit core at `25c643d`, no feature modules; Atlas built in the course's own files (`src/atlas_ui.js`, `src/gen_atlas.py`).
+Mid-course design changes:
+  2026-11-05  first releases at the Pages root, Lectures 1-4 (DEENT `CLAUDE.md`); preview approval as recorded in that course's log.
+  2026-11-06  Atlas refinement and the sun-exposure lecture on the working branch; preview approved: waiting for Louis.
+Proposals declined: none recorded; the `structure-compare` and `most-likely-stars` ports deferred by Louis on 2026-11-05.
+Exam outcomes: none yet.
+Louis's notes:
