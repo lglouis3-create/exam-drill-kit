@@ -762,6 +762,166 @@ const next = p => p.evaluate(() => { const b = document.getElementById('btnNext'
     check(!e6.length, '"Use it here" with only history unsaved: no page errors', e6.slice(0, 2).join('; '));
     await c6.close();
   }
+  for(const which of ['history', 'progress']){
+    // #47's review of 5519a49 (comment 6647518091): a departing tab's per-tab record settled while this
+    // page holds history the browser refused. The browser takes a history write only up to the stored
+    // history plus the departing tab's one entry, so a write of the stored history plus that entry would
+    // fit, and the page's held entries would then be lost from the page and from Export. With the
+    // progress refused (which="progress"), settling writes no history at all (study progress first).
+    const CAP = () => {
+      const set = Storage.prototype.setItem;
+      Storage.prototype.setItem = function(k, v){
+        if(window.__refuseData && k === NS + ':data:' + PROFILE) throw new DOMException('The quota has been exceeded.', 'QuotaExceededError');
+        if(window.__logCap && k === NS + ':log:' + PROFILE && v.length > window.__logCap) throw new DOMException('The quota has been exceeded.', 'QuotaExceededError');
+        return set.call(this, k, v);
+      };
+    };
+    const {ctx: cs, page: o, errors: es} = await L.openFile(browser, {}, CAP);
+    await o.waitForFunction(() => typeof WRITER === 'undefined' || WRITER === 'held' || WRITER === 'none', null, {timeout: 8000}).catch(() => {});
+    if(!(await o.evaluate(() => typeof WRITER !== 'undefined' && WRITER === 'held'))){
+      check(false, `settling with ${which} refused: this page holds the profile (a precondition; no Web Locks here)`); await cs.close(); continue;
+    }
+    // the check after taking the profile (settlePendingSoon's 1.5 s timer) is cancelled, so only what the code under test schedules can settle the record
+    await o.evaluate(() => clearTimeout(PENDING_TIMER));
+    const pre = await o.evaluate(which => {
+      record(QUESTIONS[0], 'correct', 0, 4000); saveNow(); record(QUESTIONS[1], 'wrong', 0, 4000); saveNow();
+      const stored = localStorage.getItem(logKey()), base = JSON.parse(stored);
+      const dep = base[0].slice(0, 7); dep[0] = base[0][0] - 5000; dep[1] = 'deadbeef';   // an entry this page does not hold, in the older seven-field form (shorter than a new entry)
+      // the cap: the stored history plus the departing entry, and not one entry more
+      window.__logCap = JSON.stringify(base.concat([dep]).sort((x, y) => x[0] - y[0])).length;
+      if(which === 'progress') window.__refuseData = true;
+      record(QUESTIONS[2], 'correct', 0, 4000); saveNow(); record(QUESTIONS[3], 'correct', 0, 4000); saveNow();
+      const held = LOG.slice(base.length);
+      const rec = {at: Date.now() - 2000, db: JSON.parse(localStorage.getItem(keyFor(PROFILE))), log: [dep]};
+      const pk = NS + ':pending:' + PROFILE + ':departed-tab';
+      localStorage.setItem(pk, JSON.stringify(rec));
+      return {stored: base.length, held, dep, pk, failedLog: FAILED.has(logKey()), failedData: FAILED.has(keyFor(PROFILE))};
+    }, which);
+    await o.evaluate(() => settlePending());
+    await o.waitForTimeout(200);
+    const has = (l, e) => l.some(x => JSON.stringify(x) === JSON.stringify(e));
+    const st = await o.evaluate(() => ({page: LOG.slice(), stored: JSON.parse(localStorage.getItem(logKey()) || '[]'), failedLog: FAILED.has(logKey()),
+      pending: localStorage.getItem(NS + ':pending:' + PROFILE + ':departed-tab') !== null, mem: MEM[logKey()] ? JSON.parse(MEM[logKey()]).length : null}));
+    check(pre.held.length === 2 && pre.failedLog && (which !== 'progress' || pre.failedData),
+      `settling with ${which} refused: a precondition, this page holds 2 entries the browser refused`, {held: pre.held.length, failedLog: pre.failedLog, failedData: pre.failedData});
+    check(pre.held.every(e => has(st.page, e)) && has(st.page, pre.dep) && st.failedLog,
+      `settling a departing tab's record with ${which} refused: the page keeps its own held entries and adds the departing one, still counted as unsaved`, {page: st.page.length, failedLog: st.failedLog, held: pre.held.every(e => has(st.page, e)), dep: has(st.page, pre.dep)});
+    check(which !== 'progress' || st.stored.length === pre.stored, 'progress refused: settling writes no history (study progress first)', {stored: st.stored.length, before: pre.stored});
+    check(st.pending, `settling with ${which} refused: the departing tab's record stays until what it holds is stored`, st.pending);
+    await o.evaluate(() => show('settings'));
+    const [dl] = await Promise.all([o.waitForEvent('download', {timeout: 5000}).catch(() => null), o.evaluate(() => document.getElementById('btnExport').click())]);
+    const ex = dl ? JSON.parse(fs.readFileSync(await dl.path(), 'utf8')) : {};
+    check(Array.isArray(ex.log) && pre.held.every(e => has(ex.log, e)) && has(ex.log, pre.dep),
+      `settling with ${which} refused: Export holds the held entries and the departing one`, ex.log && ex.log.length);
+    // room again: the next save stores the progress and both sets of entries
+    await o.evaluate(() => { window.__logCap = null; window.__refuseData = false; record(QUESTIONS[4 % QUESTIONS.length], 'correct', 0, 4000); saveNow(); });
+    // no settlePending() by hand: the save that stores the held history settles the record again
+    await o.waitForFunction(pk => { const s = readSeen()[pk]; return !!(s && s.proven); }, pre.pk, {timeout: 4000}).catch(() => {});
+    const fin = await o.evaluate(pk => ({stored: JSON.parse(localStorage.getItem(logKey()) || '[]'), prog: JSON.parse(localStorage.getItem(keyFor(PROFILE))).answers.length,
+      failed: FAILED.has(logKey()) || FAILED.has(keyFor(PROFILE)), proven: !!(readSeen()[pk] && readSeen()[pk].proven)}), pre.pk);
+    check(pre.held.every(e => has(fin.stored, e)) && has(fin.stored, pre.dep) && fin.prog === 5 && !fin.failed,
+      `with room again after settling with ${which} refused: the progress, the held entries and the departing entry are all stored`, {stored: fin.stored.length, prog: fin.prog, failed: fin.failed, held: pre.held.every(e => has(fin.stored, e)), dep: has(fin.stored, pre.dep)});
+    check(fin.proven, `with room again after settling with ${which} refused: the departing tab's record is settled again and proven stored, with no reload, switch or take-over`, fin.proven);
+    check(!es.length, `settling with ${which} refused: no page errors`, es.slice(0, 2).join('; '));
+    await cs.close();
+  }
+  {
+    // the review of 7e832f3: S1, a record whose entries are all stored, settled while this page holds
+    // refused history, goes on to the proof (it is not kept for ever); N1, a record whose progress
+    // differs, settled while the progress write is refused, writes no copy until the progress is stored
+    const CAP = () => {
+      const set = Storage.prototype.setItem;
+      Storage.prototype.setItem = function(k, v){
+        if(window.__refuseData && k === NS + ':data:' + PROFILE) throw new DOMException('The quota has been exceeded.', 'QuotaExceededError');
+        if(window.__refuseLog && k === NS + ':log:' + PROFILE) throw new DOMException('The quota has been exceeded.', 'QuotaExceededError');
+        return set.call(this, k, v);
+      };
+    };
+    const {ctx: cs, page: o, errors: es} = await L.openFile(browser, {}, CAP);
+    await o.waitForFunction(() => typeof WRITER === 'undefined' || WRITER === 'held' || WRITER === 'none', null, {timeout: 8000}).catch(() => {});
+    if(!(await o.evaluate(() => typeof WRITER !== 'undefined' && WRITER === 'held'))) check(false, 'records settled under refusal: this page holds the profile (a precondition; no Web Locks here)');
+    else {
+      await o.evaluate(() => clearTimeout(PENDING_TIMER));   // only what the code under test schedules can settle a record
+      const s1 = await o.evaluate(() => {
+        record(QUESTIONS[0], 'correct', 0, 4000); saveNow(); record(QUESTIONS[1], 'wrong', 0, 4000); saveNow();
+        const stored = JSON.parse(localStorage.getItem(logKey()));
+        window.__refuseLog = true; record(QUESTIONS[2], 'correct', 0, 4000); saveNow();
+        const pk = NS + ':pending:' + PROFILE + ':stored-tab';
+        localStorage.setItem(pk, JSON.stringify({at: Date.now() - 2000, db: JSON.parse(localStorage.getItem(keyFor(PROFILE))), log: [stored[0]]}));
+        settlePending();
+        const seen = readSeen()[pk];
+        return {held: FAILED.has(logKey()), proven: !!(seen && seen.proven)};
+      });
+      check(s1.held && s1.proven, 'history held: a closed tab\'s record whose progress and entries are all stored is recorded as proven (removed 60 s on), not kept for ever', s1);
+      const n1 = await o.evaluate(() => {
+        window.__refuseLog = false; window.__refuseData = true; record(QUESTIONS[3], 'correct', 0, 4000); saveNow();
+        const st = JSON.parse(localStorage.getItem(keyFor(PROFILE)));
+        const other = JSON.parse(JSON.stringify(st)); other.answers = [Object.assign({}, st.answers[0], {elsewhere: 1})];
+        const pk = NS + ':pending:' + PROFILE + ':other-tab';
+        localStorage.setItem(pk, JSON.stringify({at: Date.now() - 1000, db: other, log: []}));
+        const before = localStorage.getItem(NS + ':backup:' + PROFILE);
+        settlePending();
+        return {pk, refused: FAILED.has(keyFor(PROFILE)), copyWritten: localStorage.getItem(NS + ':backup:' + PROFILE) !== before, stays: localStorage.getItem(pk) !== null};
+      });
+      check(n1.refused && !n1.copyWritten && n1.stays, 'progress refused: a closed tab\'s record with other progress writes no copy (study progress first) and stays', n1);
+      await o.evaluate(() => { window.__refuseData = false; record(QUESTIONS[4 % QUESTIONS.length], 'correct', 0, 4000); saveNow(); });
+      await o.waitForFunction(() => (JSON.parse(localStorage.getItem(NS + ':backup:' + PROFILE) || '[]') || []).length > 0, null, {timeout: 4000}).catch(() => {});
+      const n1b = await o.evaluate(() => { const l = JSON.parse(localStorage.getItem(NS + ':backup:' + PROFILE) || '[]'); return {copies: l.length, other: l.some(c => c && /elsewhere/.test(c.data))}; });
+      check(n1b.other, 'with the progress stored again, that record is settled again and kept as a copy, with no reload, switch or take-over', n1b);
+    }
+    check(!es.length, 'records settled under refusal: no page errors', es.slice(0, 2).join('; '));
+    await cs.close();
+  }
+  {
+    // the review of c159869, T1 (N3): real two tabs in one context. Tab B holds refused history on
+    // profile X and switches to Y; tab A opens X, answers and closes without handing over (its per-tab
+    // record stays); B switches back to X and settles A's record with its own history still refused.
+    // Settling writes nothing then, so B is not stopped as "saved in another tab", and both entries
+    // are on its page and in its Export.
+    const CAP = () => {
+      const set = Storage.prototype.setItem;
+      Storage.prototype.setItem = function(k, v){ if(window.__capKey && k === window.__capKey && v.length > window.__capLen) throw new DOMException('The quota has been exceeded.', 'QuotaExceededError'); return set.call(this, k, v); };
+    };
+    const {ctx: ct, page: b, errors: et} = await L.openFile(browser, {}, CAP);
+    await b.waitForFunction(() => typeof WRITER === 'undefined' || WRITER === 'held' || WRITER === 'none', null, {timeout: 8000}).catch(() => {});
+    if(!(await b.evaluate(() => typeof WRITER !== 'undefined' && WRITER === 'held'))) check(false, 'two tabs, a record settled with history refused: tab B holds the profile (a precondition; no Web Locks here)');
+    else {
+      const X = await b.evaluate(() => PROFILE);
+      const heldB = await b.evaluate(() => {
+        record(QUESTIONS[0], 'correct', 0, 4000); saveNow();
+        window.__capKey = logKey(); window.__capLen = localStorage.getItem(logKey()).length;
+        record(QUESTIONS[1], 'wrong', 0, 4000); saveNow();
+        return {e: LOG[LOG.length - 1].slice(), refused: FAILED.has(logKey())};
+      });
+      await b.evaluate(() => { const c = window.confirm; window.confirm = () => true; try { useProfile('settle-y'); } finally { window.confirm = c; } });
+      await b.waitForFunction(() => PROFILE === 'settle-y' && WRITER === 'held', null, {timeout: 8000}).catch(() => {});
+      const a = await ct.newPage(); const ea = []; a.on('pageerror', e => ea.push(e.message)); a.on('dialog', d => d.accept().catch(() => {}));
+      await a.goto(b.url());
+      await a.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+      await a.evaluate(X => { if(PROFILE !== X) useProfile(X); }, X);
+      await a.waitForFunction(X => PROFILE === X && WRITER === 'held', X, {timeout: 8000}).catch(() => {});
+      const aEntry = await a.evaluate(() => { record(QUESTIONS[2], 'correct', 0, 4000); saveNow(); return LOG[LOG.length - 1].slice(); });
+      await a.waitForTimeout(300);
+      const recA = await a.evaluate(() => Object.keys(localStorage).filter(k => k.startsWith(NS + ':pending:' + PROFILE + ':')).length);
+      await a.close();   // closed without handing over: its record stays
+      await b.waitForTimeout(500);
+      await b.evaluate(X => { const c = window.confirm; window.confirm = () => true; try { useProfile(X); } finally { window.confirm = c; } }, X);
+      await b.waitForFunction(X => PROFILE === X && WRITER === 'held', X, {timeout: 8000}).catch(() => {});
+      await b.waitForTimeout(2500);   // the settle at the claim, and the one 1.5 s later
+      check(heldB.refused && recA > 0, 'two tabs: a precondition, B holds a refused entry and A left its per-tab record', {refused: heldB.refused, recA});
+      const has = (l, e) => l.some(x => JSON.stringify(x.map((v, i) => i === 5 ? null : v)) === JSON.stringify(e.map((v, i) => i === 5 ? null : v)));
+      const st = await b.evaluate(() => ({writer: WRITER, wall: !!document.getElementById('stopwall'), stale: typeof STALE !== 'undefined' ? !!STALE : false, log: LOG.slice()}));
+      check(st.writer === 'held' && !st.wall && !st.stale, 'two tabs: B, back on the profile with its history refused, settles A\'s record and is not stopped as "saved in another tab"', {writer: st.writer, wall: st.wall, stale: st.stale});
+      check(has(st.log, heldB.e) && has(st.log, aEntry), 'two tabs: B\'s held entry and A\'s entry are both on B\'s page', {held: has(st.log, heldB.e), a: has(st.log, aEntry)});
+      if(!st.wall) await b.evaluate(() => show('settings'));
+      const [dl] = await Promise.all([b.waitForEvent('download', {timeout: 5000}).catch(() => null), b.evaluate(() => { const x = document.getElementById('btnExport') || document.getElementById('stopExport'); if(x) x.click(); })]);
+      const ex = dl ? JSON.parse(fs.readFileSync(await dl.path(), 'utf8')) : {};
+      check(Array.isArray(ex.log) && has(ex.log, heldB.e) && has(ex.log, aEntry), 'two tabs: B\'s Export holds its held entry and A\'s entry', ex.log && ex.log.length);
+      check(!ea.length, 'two tabs: no page errors in tab A', ea.slice(0, 2).join('; '));
+    }
+    check(!et.length, 'two tabs, a record settled with history refused: no page errors', et.slice(0, 2).join('; '));
+    await ct.close();
+  }
   await browser.close();
   L.finish(NAME);
 })().catch(e => { console.log(e.stack); console.log(`FAIL: ${NAME}: the test stopped: ${String(e.message).split('\n')[0]}`); process.exit(1); });

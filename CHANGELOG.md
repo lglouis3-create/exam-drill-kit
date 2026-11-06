@@ -27,6 +27,7 @@ Dated kit changes, newest first.
   proposal.
 
 ## 2026-11-05
+- With storage full, a closed tab's per-tab record settled by this page no longer replaces the history this page holds unsaved: its entries join the page's held history, settling writes no history, and no copy of another tab's progress, while the progress or history write is refused; the record stays, and is settled again as soon as a refused write is kept.
 - The answer history is no longer cut silently at 20,000 entries: past it a notice offers Export progress and a removal of the oldest entries that names how many and their dates and needs an OK; until then new entries go on being added (`cap_test.js`).
 - Study progress first when storage is full: while a progress write is refused, the answer history is held (on the page, named in the notice, in Export) and written after the next progress save; this tab's own per-tab record, proven stored, is removed to make room and the progress write tried once more.
 - "Use it here" with only history unsaved no longer stores an entry twice when the other tab already placed this tab's per-tab record.

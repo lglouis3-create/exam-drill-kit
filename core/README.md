@@ -493,6 +493,18 @@ cuts nothing; instead:
   independent review of c2b0238, M1: its history was written and its progress never tried again). So history cannot take the room the next progress save needs; at most the
   entry of the answer whose own progress write was the first refused is stored ahead of it (it is
   written when that answer is given, 150 ms before its progress save);
+- a departing tab's per-tab record settled while this page holds history the browser has not stored
+  (its history write refused, or its progress refused) writes no history: the record's missing
+  entries join the page's history, held with it (on the page, in the notice, in Export), and the
+  record stays until its entries are stored (`settleOne`); a record whose entries are all stored
+  already goes on to the cleanup rule's proof. While the progress write is refused, settling writes
+  no copy of a record's other progress either; the record stays. When the browser keeps a refused
+  write of this profile's progress or history again, the records are settled again
+  (`settleAfterKept`), so none waits for a reload, a switch or a take-over (the review of 7e832f3,
+  S1, S2, N1). Before, the settlement wrote the stored
+  history plus the record's entries, which could fit where the page's own history could not, and
+  then replaced the page's held entries, so they were lost from the page, from Export and from
+  storage (#47's review of 5519a49; `history_test.js`, "settling a departing tab's record");
 - this tab's own per-tab record (#45, about the size of the progress) is removed when the browser
   refuses to write it, or refuses a progress write, and what is stored, read back, holds all of it
   (`dropOwnRecordIfStored`, the cleanup rule's proof); a refused progress write is then tried once
