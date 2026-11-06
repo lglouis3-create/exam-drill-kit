@@ -167,7 +167,10 @@ merged as `4e0fae4`.
 ## 11. Coordination with ChatGPT, feedback checks and status (Louis, 2026-11-06)
 
 Louis's message of 2026-11-06 adds these rules; where they are stricter than the sections above,
-they apply.
+they apply. §9's "do not create a separate porter automation" bars a second ChatGPT review automation
+only. Louis: "Keep the shared ChatGPT review automation. Do not create another ChatGPT review task.
+The additional Claude feedback checks are for reading and responding to that shared review work." The
+Claude feedback-check task below is the one he asked for on 2026-11-06.
 
 - **GitHub is the handoff with ChatGPT.**
   - The shared ChatGPT review automation covers main-kit work and porter drafts: correctness, missing
@@ -181,9 +184,12 @@ they apply.
   first. Keep useful source behaviour, without requiring each module to reproduce unrelated features
   of its source course. Weigh optimization suggestions, but confirmed defects, progress preservation
   and agreed functionality come first.
-- **Optional improvements** go in the existing improvement registry (`coordinator/improvements.json`,
-  coordinator PR #57 or its successor, once merged). Each entry is checked for duplicates and says
-  its student benefit and acceptance criteria.
+- **Optional improvements** go in the existing improvement registry. Each entry is checked for
+  duplicates and says its student benefit and acceptance criteria. On 2026-11-06 the registry
+  (`coordinator/improvements.json`) exists only in coordinator PR #57, which is not merged. Until it
+  is, each optional improvement is recorded on the pull request it concerns, with its student benefit
+  and acceptance criteria, and sent to the main kit session for the registry. The gap is reported to
+  Louis.
 - **Three statuses, reported apart:**
   - tests passing;
   - intended source functionality fully ported;
@@ -194,23 +200,30 @@ they apply.
   could not be read is reported as unreviewed.
 - **Feedback checks.** The scheduled task "Kit porter feedback check" runs at about 5:30, 10:30,
   15:30 and 20:30 America/Chicago, daylight-saving included, 30 minutes after ChatGPT's review
-  windows. Neither schedule guarantees completion. It fires into the porter session, so it never
-  runs at the same time as the nightly "Kit feature port" run. It:
-  1. reads new comments and reviews on the porter's open pull requests and on watched core or
-     coordinator pull requests;
-  2. compares them with a durable checkpoint (branch `porter/feedback-checkpoint`,
-     `feedback/check.py`), so unchanged discussions are not processed again;
+  windows. Neither schedule guarantees completion. If feedback has not arrived, authorized work
+  continues and the next window checks again. Louis's setup rules: the existing nightly task is kept;
+  one recurring task covers all four windows rather than four tasks; no existing equivalent task is
+  duplicated. (Claude's design, not Louis's rule: the task fires into the porter session, like the
+  nightly run, so the two never run at the same time.) Each check:
+  1. reads new comments and reviews on the porter's open pull requests and on relevant core
+     dependencies. Its watch list also holds coordinator PR #57, because Louis routes course
+     oversight through it;
+  2. compares them with the last processed comments and commits, kept as a durable checkpoint
+     (branch `porter/feedback-checkpoint`, `feedback/check.py`), so unchanged discussions are not
+     processed again and a new commit counts as a change;
   3. assesses new findings, addresses the valid ones within existing authorization, or records a
      specific approval request;
   4. replies on the pull request with one disposition per finding: fixed, rejected with evidence,
      awaiting clarification, blocked, or awaiting Louis. The reply gives the reasoning, the exact
      commit and the validation;
-  5. ends at once when nothing material changed: no tests and no message to Louis.
+  5. ends promptly when nothing material changed: no tests rerun and no message to Louis.
 
   Triage aims at about five minutes; that is a planning budget, not a cutoff. Substantial
-  implementation goes through the nightly run.
-- **No concurrent edits.** No two tasks or agents edit the same branch or worktree. An active
-  implementing agent is recorded in a handoff note, and fixes are not duplicated across sessions.
+  implementation continues through the existing work process (§2: the nightly run and the porter's
+  standing autonomy).
+- **No concurrent edits.** No two tasks or agents edit the same branch or worktree. When necessary,
+  a handoff is left for the active implementing session, and fixes are not duplicated across
+  sessions.
 - **Review requests.** Before requesting another review, give the exact commit, what changed, the
   specific questions and the existing evidence. Request another full review only when code, evidence
   or an unresolved substantive question warrants it. Do not rerun the full suite only because a
@@ -230,6 +243,8 @@ they apply.
 
 ### Decisions on kit PR #17, worksheets-ink (Louis, 2026-11-06)
 
+Louis: "Check the current PR state first and apply these decisions only where still relevant."
+
 1. **Ink saving.**
    - Louis authorizes the fix that makes worksheets-ink save through the core's supported storage
      path. He prefers it to a direct browser-storage write followed by bookkeeping that only
@@ -242,7 +257,8 @@ they apply.
      - writing ink does not block later saves;
      - genuine second-tab conflicts stay protected;
      - a failed save gives an accurate warning without deleting saved work.
-   - The keyboard interaction and the WebKit print failure are rechecked.
+   - The affected keyboard interaction is rechecked, and the previously reported WebKit print failure
+     is investigated.
 2. **PDF-size check.**
    - Louis approves documenting it as Chromium-only, because the test's PDF-generation API is not
      available in WebKit.
