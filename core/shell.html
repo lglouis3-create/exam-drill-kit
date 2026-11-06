@@ -2142,13 +2142,17 @@ function markSure(q){
 /* The question that comes straight after a confident error: another question
    on the same concept, from the pool on screen first and then from the bank;
    one never shown before first (in random order), then the one shown least
-   recently. null when the concept has no other question. */
-function retryQuestion(concept, notId, pool){
+   recently. null when the concept has no other question. inSetOnly: a targeted
+   set (a weak-spot drill, the session's retry, a filtered pass, any fixed list)
+   takes the retry from the set only and never from the rest of the bank (Louis,
+   2026-11-06: the original targeted set is preserved); null when the set holds no
+   other question on the concept. */
+function retryQuestion(concept, notId, pool, inSetOnly){
   const s = DB.concepts[concept] || {}, last = s.last || {}, asked = s.asked || [];
   const when = q => q.id in last ? last[q.id] : asked.includes(q.id) ? 0 : -1;
   const other = list => list.filter(q => q && q.concept === concept && q.id !== notId);
   let c = other(pool || []);
-  if(!c.length) c = other(conceptQs(concept));
+  if(!c.length && !inSetOnly) c = other(conceptQs(concept));
   if(!c.length) return null;
   // calculation preset: a question of another skill first, when the concept has one
   const was = SCHED.calc && byId(notId) ? skillOf(byId(notId)) : null;
