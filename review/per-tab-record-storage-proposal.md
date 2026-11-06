@@ -22,9 +22,7 @@ All measurements are in Chromium (Playwright 1.63.0) on a scratch template cours
 `main` at `3ebde7e`. They use the browser's own localStorage limit, not a forced one. They are
 also the limits for an origin holding nothing else. Every kit drill shares the origin
 `lglouis3-create.github.io`, so on Louis's devices the room is smaller by whatever the other
-drills store. The scripts are in `review/records-storage/` and the logs in its `logs/`. Figures
-credited to "the review" come from the independent review of #66 (2026-11-06, of `dc68a31`),
-whose own scripts were not committed.
+drills store. The scripts are in `review/records-storage/` and the logs in its `logs/`.
 
 **The limit.** One origin's localStorage took 5,242,859 characters (key and value) and refused
 more (`logs/quota-probe.log`; the review measured the same).
@@ -44,8 +42,6 @@ worksheets-ink does (`logs/real-quota-1475679.log`):
 - **The same Import after the earlier record was removed succeeded.** It stored 1,475,928
   characters as "Other (imported 2026-11-06)".
 - The two records in that minute were 1,475,919 and 1,476,083 characters.
-- The review reproduced these figures. Its total after the reload was 4,428,444, one character
-  more, because its pending-seen entry was 162 characters, not 161.
 - **The porter's figures** are on the evidence branch `evidence/records-storage`, commit
   `e3c40bc`, which is never to be merged. They match these measurements in kind.
   - `review/records-storage/logs/diag-records-new.log` at that commit:
@@ -80,10 +76,7 @@ The arithmetic:
   progress (checked);
 - in the minute after a reload, three copies must fit: 5,242,859 / 3 = 1,747,620 characters
   (checked).
-- The review bracketed both. Three copies fit at 1,747,000, and the reloaded page's record was
-  refused at 1,748,500. The record was kept at 2,621,000 and absent at 2,622,000. The true limits
-  are a few hundred characters lower, because of the record's wrapper (about 240 characters) and
-  the other keys.
+- The true limits are lower by the record's wrapper and the other keys stored on the origin.
 
 ### The progress save itself refused, just below the record's limit
 
@@ -100,21 +93,20 @@ reloaded page's record was refused (`logs/real-quota-2620000.log`, `recOff: true
 - From the first answer after the reload, the page held more answers than storage, which kept 2.
   Ten seconds later the answer history was refused as well.
 - The notice read: "This browser did not save your progress or answer history (storage is full
-  or blocked). It is kept on this page until you close or reload it; closing or reloading it
-  loses it."
+  or blocked). It is kept on this page until you close or reload it; closing or reloading it"
+  (the log stores the text cut off at that point).
 - At the check 70 s after the first answer, storage held all 10 answers, the earlier page's
   record was gone, and this tab had no record. The check 60 s after the first answer still
   showed 2 answers stored. The notice text read at the 70 s check was still the "did not save"
   wording.
-- The review saw the same with its own script ("the page held 3 answers and storage held 2").
 
 **The cause.** Kit #47's "study progress first" makes room by removing only this tab's own
 proven record (`dropOwnRecordIfStored`). It never removes the earlier page's record, which is
 what fills the room. So in the minute after a reload, a progress save is refused whenever the
 earlier record and the new progress together exceed the quota. Closing the tab in that minute
-loses the answers given since the reload. This happens for progress whose growth since the
-earlier record was written carries it over the limit. Ink can add thousands of characters in a
-minute; one answer added about 250 here.
+loses the answers given since the reload. This happens when the progress has grown since the
+earlier record was written, so that the two no longer fit together. Ink can add thousands of
+characters in a minute; one answer added about 250 here.
 
 ### What the record would take if compressed
 
@@ -130,8 +122,7 @@ is an estimate for his data.
 The deflate and fflate figures count the compressed bytes packed 15 bits per stored character.
 Both libraries gave the exact text back on every sample (`exact: true`). fflate came out 0.004
 to 0.008 above the deflate estimate. lz-string came out below it on both ink samples and 0.012
-above it on answers. The review measured Chromium counting a text of 15-bit
-characters exactly like ASCII. Counting in WebKit and Firefox was not run.
+above it on answers. @@COUNT15@@ Counting in WebKit and Firefox was not run.
 
 **Time.** Medians of 5 runs in Chromium, in milliseconds (`logs/compress-timing.log`). "Rate 4" is
 Chrome DevTools Protocol CPU throttling on this container's Xeon 2.1 GHz. It is a slowed desktop
@@ -151,8 +142,7 @@ sample, today's save is about 58 + 27 + 27 = 112 ms of main-thread time (checked
 the record with fflate on every save would add about 440 ms, which makes it about 525 ms
 (58 + 27 + 440 = 525, checked; the record's own smaller `setItem` is left out). On the porter
 sample it would be about 59 + 23 + 675 = 757 ms (checked). Saves run 150 ms after each change, so
-on a phone this cost could fall on every answer or stroke. The phone time is not measured. The
-review measured lz-string 1,342 ms and fflate 681 ms at the same throttling.
+on a phone this cost could fall on every answer or stroke. The phone time is not measured.
 
 ## The alternatives
 
@@ -187,8 +177,9 @@ before what is stored is shown to hold it.
 - **Loses:** the lost save itself; it only detects the loss. **Rejected.**
 
 **D. Removing records sooner.** The idea is to keep a record only while its save is unconfirmed.
-- A tab cannot confirm that another tab has seen its save. Between processes the HTML Standard
-  defines no ordering or timing for localStorage.
+- A tab cannot confirm that another tab has seen its save. The HTML Standard does not define how
+  localStorage behaves between processes, and tells authors to assume there is no locking
+  mechanism.[2]
 - A tab already removes its own record after reading it back under a full quota (kit #47).
 - One prototype went further (`prototype-supersede.diff`, on a throwaway branch, not proposed).
   It removed another tab's record once the stored progress equalled what this tab had taken over
@@ -205,7 +196,7 @@ before what is stored is shown to hold it.
     was out of date, so the prototype removed a newer version of that record.
 - **Rejected in this form.** The prototype shows that removing other tabs' records on that rule
   loses data. It does not show that every earlier removal does. The 60 s wait itself is a timing
-  assumption, and the HTML Standard gives it no bound.
+  assumption, and the HTML Standard gives it no bound.[2]
 
 **E. A size-capped record.**
 - Above the cap no record is written, which is what happens now above 2,621,430 characters, at a
@@ -223,8 +214,8 @@ compressed `db` text, `n` its length and `fp` its `fpOf` hash).
     (both checked; random-walk sample, empty origin).
   - The reloaded page's own record would be refused above about 3,895,140. The progress save
     itself would be refused in the reload minute when the earlier compressed record and the
-    progress no longer fit together, near 4,469,616. The M2 case moves to that size; it does not
-    disappear.
+    progress no longer fit together, near 4,469,616. The refused progress save in the minute
+    after a reload moves to that size; it does not disappear.
 - **Placement and cleanup:** the same rules as A. Placement, the 60 s wait and the "unchanged"
   check are kept; only the record's size changes.
 - **Integrity:** raw deflate has no checksum, so a damaged stream can decompress to wrong text.
@@ -252,15 +243,19 @@ approved).
 - Its quota is a share of the disk, not the 5 MB localStorage limit.
 - It is a migration with its own decisions and its own approval. It needs device checks on a
   real iPhone and iPad, which have not been run.
+- **A stated risk, not measured:** G's writes are IndexedDB transactions too, so the save written
+  as the page is hidden or closed has the same gap as H's record (below). Whether that
+  transaction completes was not run.
 
 **H. Records only in IndexedDB, the progress staying in localStorage** (the review's
 alternative).
 - **Quota:** localStorage holds only the progress, so a progress up to the whole 5,242,859
-  characters (less the other keys) saves. The reload-minute refusals and the M2 case go away.
+  characters (less the other keys) saves. The reload-minute refusals of the record and of the
+  progress save go away.
 - **Unchanged:** the progress key's format, Export and Import, and compression (none).
 - **Cost:** an IndexedDB put of the progress text completed in 3 to 15 ms at rate 1 and 6 to
-  23 ms at rate 4 (`logs/compress-timing.log`). The put does not block the page.
-- **The gap:** the write is asynchronous. The core writes a save still waiting on its 150 ms
+  23 ms at rate 4 (`logs/compress-timing.log`). @@IDB@@
+- **A stated risk, not measured (the gap):** the write is asynchronous. The core writes a save still waiting on its 150 ms
   timer when the page is hidden or closed (`saveNow`, called from `views.js` on `pagehide` and
   `visibilitychange`). That fix, finding A1 of kit #30, exists because a reload 20 ms after a
   paper was submitted lost 2 of 2 answers in the stopwatch port. Under H, the record of that last save would be an IndexedDB transaction
@@ -269,6 +264,22 @@ alternative).
 - **Older cores:** they read records only from localStorage, so they never place an IndexedDB
   record. That gives F's mixed-tab and rollback limits, plus a second storage area to clear on
   Erase and Reset.
+
+### The alternatives' guarantees side by side
+
+Each cell restates the entry above; "stated risk" marks a case that was not measured.
+
+| | Quota failure | Reload | Profile switch | Cross-tab recovery | Closing without handing over |
+|---|---|---|---|---|---|
+| **A** (today) | A refused record leaves that save without one (kit #47). Just below 2,621,430 characters, the progress save itself is refused for up to about a minute after a reload (measured). | The earlier page's record stays until proven stored, plus 60 s: three copies for that minute. | One record per return. | Placed as the progress or as a copy; removed only when proven stored and unchanged 60 s later. | Protected while the record fits. |
+| **B** (delta) | Smaller record. | As A. | As A. | Cannot rebuild the save when another tab wrote over its base. **Loses.** | Loses the save in the case #45 covers. |
+| **C** (hash and pointer) | Smaller record. | As A. | As A. | Detects the loss; cannot bring the save back. **Loses.** | Detected, not prevented. |
+| **D** (prototype: remove sooner) | 2.00 times after a reload (measured). | Other tabs' records removed earlier. | As A. | Failed 6 of 273 `import_test.js` checks: lost answers and a setting (measured). **Loses.** | Lost in the failing scenarios. |
+| **E** (size cap) | No record above the cap. | As A below the cap. | As A. | As A below the cap; nothing above it. | Not protected above the cap. |
+| **F** (compressed, in the page) | Above the threshold the record is about 0.15 to 0.17 of the progress (generated ink samples); the progress save is refused in the reload minute near 4,469,616. | As A, about 1.35 times the progress in that minute. | As A. | As A, with the `n` and `fp` check; a record failing it is left in place. | Protected: the record is written in the same save. The page is blocked while it compresses (measured). |
+| **W** (F's compression in a Worker) | As F. | As F. | As F. | As F. | Not protected between the progress write and the record write (measured window, Worker unthrottled). |
+| **G** (progress and record in IndexedDB) | A share of the disk. | Decided in its own migration. | Decided in its own migration. | Needs a read-check-write inside one transaction. | Stated risk: a transaction started as the page closes may not complete. |
+| **H** (records only in IndexedDB) | localStorage holds only the progress; no record refusal there. | As A, records in IndexedDB. | As A. | As A; an older core never places these records. | Stated risk: as G. |
 
 ### Save time and responsiveness in a real page
 
@@ -332,11 +343,12 @@ every row.
 core pull request for Louis's yes. It is gated on timing on real phones. Until that pull request
 is approved and live, A stays as it is.**
 
-Below that size the record stays today's full copy, so most saves cost nothing more. On an empty
+Below that size the record stays today's full copy, so saves below that size cost nothing more. On an empty
 origin that size is about 1,747,620 characters of progress, and the core would compute it from
 the room the origin has left at each save. Above it, a record exists where A writes none or
-refuses the progress save for a minute. H is not recommended: its record of the save written at
-close is the write least certain to complete, which is the case A1 fixed. G remains a separate
+refuses the progress save for a minute. H is not recommended because of a stated risk that was
+not measured: its record of the save written at close is an IndexedDB transaction started as the
+page closes, the case A1 fixed for localStorage. G carries the same risk for its progress write. G remains a separate
 decision; if it is approved first, F is not needed.
 
 **The gate, before any production pull request:**
@@ -416,5 +428,7 @@ The review reproduced this, in one page with planted records. It is present on `
 
 ## References
 
-1. Wagner J. Interaction to Next Paint (INP). web.dev. Published May 6, 2022. Updated
+1. Wagner J, Pollard B. Interaction to Next Paint (INP). web.dev. Published May 6, 2022. Updated
    September 2, 2025. Accessed November 6, 2026. https://web.dev/articles/inp
+2. WHATWG. HTML Living Standard: Web storage. Accessed November 6, 2026.
+   https://html.spec.whatwg.org/multipage/webstorage.html
