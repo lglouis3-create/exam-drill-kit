@@ -9,26 +9,41 @@ test failure. Each of those jobs stays NOT RUN for its head commit (KIT_DESIGN.m
 ## The three cancelled jobs
 
 The apt part of each job's log is in `logs/apt-<job>.txt`: the package-list fetch, "Need to get",
-every download line, and the cancel lines. The step times come from the GitHub API's job record
+every download line (`Get`) and every failed fetch (`Ign`), and the cancel lines. The step times come from the GitHub API's job record
 for each job.
 
 | Job (run, head) | Runner | Install step | Packages (apt) | Result |
 |---|---|---|---|---|
 | 127623349742 (run 42135762254, c25f234) | 1000003578 | 00:17:48-01:02:02 UTC, 44 min 14 s | "Need to get 114 MB" at 00:17:59; "Fetched 114 MB in 43min 36s (43.6 kB/s)" at 01:01:35; 181 downloads, Get:2 to Get:182 | the checks started at 01:02:02 and the job was cancelled 59 s later, at 01:03:01 |
 | 127901474048 (run 42220609563, 0769d14) | 1000004127 | 12:49:42-13:34:54 UTC, 45 min 12 s | "Need to get 114 MB" at 12:49:54; 133 downloads started, the last Get:134 at 13:34:26 | cancelled in the install step; no check ran |
-| 127956955596 (run 42236831601, 690b4b0) | 1000004270 | 14:48:48-15:35:06 UTC, 46 min 18 s | "Need to get 114 MB" at 14:48:57; Get:2 to Get:182 by 15:31:02, then Get:20 (8998 kB) fetched again at 15:33:04 | cancelled in the install step; no check ran |
+| 127956955596 (run 42236831601, 690b4b0) | 1000004270 | 14:48:48-15:35:06 UTC, 46 min 18 s | "Need to get 114 MB" at 14:48:57; Get:2 to Get:182 by 15:31:02, then Get:20 (8998 kB) requested again at 15:33:04 and not finished | cancelled in the install step; no check ran |
 
 - In all three jobs the package lists came fast: "Fetched 12.9 MB in 1s" (9801 kB/s, 10.9 MB/s
   and 9898 kB/s).
 - Every package download in all three jobs came from `azure.archive.ubuntu.com`.
+- Some fetches failed and were set aside (`Ign` lines), to be requested again later. The gap is
+  measured from the `Get` line of the same item (checked); a `Get` line does not mark exactly
+  when its transfer began, so these gaps are approximate.
+  - Job 127956955596, five:
+    - Ign:20 at 15:00:10, 165 s after Get:20 at 14:57:25;
+    - Ign:43 at 15:07:58, 131 s after 15:05:47;
+    - Ign:59 at 15:10:21, 55 s after 15:09:26;
+    - Ign:66 at 15:13:47, 175 s after 15:10:52;
+    - Ign:182 at 15:33:03, 121 s after 15:31:02.
+
+    Get:20 was requested again at 15:33:04, 1,974 s after its Ign line, and the job was cancelled
+    before it finished.
+  - Job 127901474048, one: Ign:83 at 13:27:00, 22 s after Get:83 at 13:26:38.
+  - Job 127623349742: none.
 - Each log reads the mirror list `file:/etc/apt/apt-mirrors.txt` (144 B). The logs do not show
   its contents.
 - Rates (checked):
   - Job 127623349742: apt's own line gives 114 MB in 2,616 s, which is 43.6 kB/s
     (43.6 × 2,616 = 114,058 kB).
-  - Job 127956955596: the downloads from 14:48:57 to 15:33:04 took 2,647 s;
-    114,000 / 2,647 = 43.1 kB/s.
-- At 43.1 kB/s, 6 minutes carry about 15,516 kB (43.1 × 360) of the 114 MB.
+  - Job 127956955596, an estimate: the downloads ran from 14:48:57 to 15:33:04, 2,647 s. Not
+    all of the 114 MB had arrived, because Get:20 was still being fetched again. 114,000 / 2,647 =
+    43.1 kB/s is therefore an upper estimate.
+- At 43.1 kB/s, 6 minutes fetch about 15,516 kB (43.1 × 360) of the 114 MB.
 
 ## The 21 installs that succeeded
 
@@ -68,21 +83,34 @@ times.
 ## Options
 
 1. **apt retries and HTTP timeouts** (`Acquire::Retries`, `Acquire::http::Timeout`).
-   - apt's retry acts on a failed download, and its HTTP timeout acts on a connection that
-     sends nothing.
-   - Every download in the three jobs completed, slowly: no line shows a failed fetch, and data
-     arrived throughout.
-   - So neither would have ended these installs sooner. This is read from the logs; the options
-     were not tried.
+   - The noble `apt.conf(5)` page describes these settings as follows (read 2026-11-06,
+     https://manpages.ubuntu.com/manpages/noble/man5/apt.conf.5.html):
+     - Retries: "If this is non-zero APT will retry failed files the given number of times."
+     - The HTTP timeout "applies to the connection as well as the data timeout". The page gives
+       no default value.
+   - The logs show apt's own handling acting in two of the three jobs: six fetches failed
+     (`Ign`), and in job 127956955596 one of them was requested again 1,974 s later.
+   - An independent review read two of the gaps (121 s and 165 s) as matching a 120 s timeout.
+     The logs record when each `Ign` was printed, not which setting caused it, and the other gaps
+     were 22, 55, 131 and 175 s.
+   - What this shows: apt's per-fetch handling did act, and the install was still slow. Every
+     retried fetch went back to the same host, `azure.archive.ubuntu.com`.
+   - Raising the retry count or shortening the HTTP timeout keeps that host. A shorter timeout
+     could fail some slow fetches sooner, but the logs do not show that it would shorten the
+     install as a whole. These settings were not tried.
 2. **A separate install limit, with one retry of the install only.** This is the smallest
    change that the evidence supports, and it is in this pull request.
    - The install gets 6 minutes, about 3.3 times the slowest of the 21 (110 × 3.27 = 360 s). A
      normal install finishes in the first attempt.
-   - An install that passes 6 minutes is stopped and tried once more.
-   - Before that second try, the step stops leftover install processes and finishes any
-     interrupted dpkg run. It also prints the mirror list. When the list names hosts other than
+   - The second attempt runs after any failure of the first, a timeout or an error. A first
+     attempt that ran longer than 6 minutes is stopped.
+   - Before that second try, the step stops leftover install processes (the `npx` process and the
+     Playwright CLI's node child, `apt-get`, `dpkg`). It gives apt up to 120 s to wait for a dpkg
+     lock (`DPkg::Lock::Timeout`), and finishes any interrupted dpkg run. It also prints the mirror list. When the list names hosts other than
      `azure.archive.ubuntu.com`, that host is removed for the second attempt. The logs show only
      that host serving packages, so a second attempt against it would likely be as slow.
+   - The second attempt writes one line to the job summary, so the jobs it rescued can be
+     counted.
    - If the second attempt also fails, a step named "NOT RUN: the WebKit install failed twice, so
      no check ran" fails the job visibly and writes the same line to the job summary. The checks
      are skipped, never passed.
@@ -103,8 +131,11 @@ times.
 ## The retry path, shown on a scratch branch
 
 This was run 42248694033, on branch `claude/elegant-ptolemy-pqxb8y-verify-webkit-install`
-(aa41b65), which is not for merging. Its first attempt was held past a 1-minute limit, and the
-other jobs were switched off. Excerpts are in `logs/verify-<job>.txt`.
+(aa41b65), which is not for merging. On that branch:
+- the first attempt was held past a 1-minute limit;
+- five jobs were switched off (chromium, coordinator, plan, modules, and the plan-driven WebKit
+  module matrix);
+- the WebKit module job used one fixed course, `module:formulas-in-text`. Excerpts are in `logs/verify-<job>.txt`.
 
 - **Job 127997632041 (WebKit · template):** the first attempt shows "has timed out after 1
   minutes" at 16:04:15.
@@ -112,8 +143,8 @@ other jobs were switched off. Excerpts are in `logs/verify-<job>.txt`.
     `http://azure.archive.ubuntu.com/ubuntu/ priority:1`,
     `https://archive.ubuntu.com/ubuntu/ priority:2` and
     `https://security.ubuntu.com/ubuntu/ priority:3`.
-  - It dropped the first line, and fetched all 200 package downloads from
-    `archive.ubuntu.com`: "Fetched 114 MB in 10s (11.4 MB/s)".
+  - It dropped the first line. It fetched 19 package lists and all 181 package downloads from
+    `archive.ubuntu.com`, with no failed fetch: "Fetched 114 MB in 10s (11.4 MB/s)".
   - The checks then gave "29 PASS, 0 FAIL, 1 NOT RUN, 1 REPORT, 0 NOT RUN case(s)"; the one
     NOT RUN is `cite_check.py`, the documented exclusion.
   - The job succeeded.
@@ -123,10 +154,15 @@ other jobs were switched off. Excerpts are in `logs/verify-<job>.txt`.
     "Process completed with exit code 1".
   - The checks step was skipped, and the job failed.
 
+The scratch branch ran the retry step as it stood at 9564c42. The second attempt's commands
+changed after that run: it now also stops `dpkg` and the Playwright CLI's node child, sets
+`DPkg::Lock::Timeout`, ignores blank lines in the mirror list, and writes a summary line. That
+run does not cover these additions.
+
 This shows the mechanics and that `archive.ubuntu.com` served the packages once, on a runner
 that was not slow. It does not show the retry on a slow runner.
 
-The same commit's normal path is PR #67's run 42248641607. In all 5 WebKit jobs the first
+The normal path ran on this PR's first head, 9564c42, in run 42248641607. In all 5 WebKit jobs the first
 attempt passed in 39 to 67 s, and the second attempt and the NOT RUN step were skipped.
 
 ## What is not known
