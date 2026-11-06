@@ -44,40 +44,20 @@ name. `skip` and `wait` do nothing.
 - **light**: open registry items for the course, the release check, and whether
   `inDevelopment` matches the schedule (an exam within 14 days with no material in
   development is a high-severity item). No full review.
-- **retrospective** (Mode 6, now also started by the coordinator):
-  - Write `coordinator/retros/<course>-<YYYY-MM-DD>.md` with what changed in the course since
-    its last retrospective, what was reused or could be, and exam feedback if Louis gave any
-    (Mode 8). This repository is public: a retro holds no score, grade or answer history, only
-    what the drill covered or missed.
-  - Note what the drill missed, if the feedback shows it.
-  - Update `FEATURES.md` only with evidence; a passing test is not evidence that a feature
-    helps learning.
-  - Other events that start one: a course turning recently-completed, a registry item turning
-    `adopted`, a major feature merging, a technical problem resolved.
+- **retrospective**: the plan lists it as due; the run records that in its report and does
+  not write one on its own. A retrospective is written only when Louis asks for one (Mode 6).
+  Starting retrospectives without being asked is part of the separate proposal named in
+  step 3.
 - **deep-audit**: the retrospective's questions across all courses using the same features,
   plus the browser workflow above. Done once per quarter per completed course.
 - **essential-check**: the course's checks only.
 
-## 3. Prepare improvements
+## 3. Improvements: recorded, not prepared
 
-For each registry item whose status allows work (`discovered`, `evaluating`):
-
-1. Search open pull requests in the kit and the course for it. If one exists, link it and
-   stop: one pull request per item.
-2. Classify it: `course-specific`, `optional-feature`, `core-change` or `skill-guidance`.
-3. Act by kind:
-   - **course-specific:** a branch `coordinator/<item>` in the course repository and a pull
-     request that says merging it publishes. It is never merged by the run.
-   - **optional-feature:** add it to `review/port-queue.md`, so the feature porter builds it
-     under its policy. The coordinator does not port it.
-   - **core-change:** a kit pull request whose description has the line "Approval: awaiting Louis".
-   - **skill-guidance:** proposed `skill/SKILL.md` text in a kit pull request with the line
-     "Approval: awaiting Louis". Its description says when the guidance applies and when it would add
-     complexity, and it keeps professor-taught exam content apart from supplemental material.
-4. Every pull request gets an independent review by a separate reviewer agent before it is
-   marked ready. Merges follow decision 10 only.
-5. An item that failed twice is set to `deferred` with the reason, and Louis is told; it is
-   not retried every day.
+A run records what it finds in `improvements.json` (in step 4's bookkeeping pull request)
+and prepares nothing: no branch or pull request in a course repository or the kit, and no
+port-queue entry. Preparing improvements and starting retrospectives on its own are a
+separate kit pull request for Louis's yes or no; this step changes only when that is merged.
 
 ## 4. Record
 

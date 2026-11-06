@@ -46,6 +46,30 @@
       "pagesBranch": "main",
       "siteKind": "kit",
       "courseFile": "src/course.js",
+      "workingBranch": "claude/jolly-bell-k7ur5m",
+      "counts": [
+        {
+          "what": "questions",
+          "value": 509,
+          "where": "published",
+          "ref": "main b2c2523",
+          "source": "BUILD.questions in index.html and preview/index.html on main (the Pages branch), read 2026-11-06; Pages deploy of b2c2523 completed with success 2026-11-05T06:16:54Z"
+        },
+        {
+          "what": "questions",
+          "value": 555,
+          "where": "unreleased",
+          "ref": "claude/jolly-bell-k7ur5m 2f12d74",
+          "source": "BUILD.questions in index.html and preview/index.html on the working branch (the repository's default branch, 16 commits ahead of main), read 2026-11-06; waiting for Louis's approval"
+        }
+      ],
+      "kitUpdate": {
+        "previews": "paused",
+        "since": "2026-11-06",
+        "reason": "DEENT's own release (Atlas, the sun-exposure lecture, reading links) waits for Louis on the working branch claude/jolly-bell-k7ur5m with its own preview/; a kit-update preview built from main would leave that work out and collide with that preview",
+        "liftWhen": "after the pending DEENT release is resolved (released or set aside by Louis): verify the approved course baseline on main (its head, BUILD.questions and Pages deploy) and that no pending preview on main or on the working branch would be overwritten; then a kit session sets previews to \"active\" in a bookkeeping pull request, and the next kit-update run prepares a separate kit-update preview",
+        "source": "Louis, 2026-11-06, in the Kit updater session"
+      },
       "schedule": {
         "exams": [
           {

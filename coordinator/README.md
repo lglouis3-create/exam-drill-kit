@@ -12,8 +12,8 @@ It adds to what already runs and replaces none of it:
 | Already running | What it does | The coordinator's part |
 |---|---|---|
 | Kit checks (`.github/workflows/checks.yml`) | every kit pull request and push to main | reads the results; adds `coordinator/coord_test.js` to the run |
-| Kit feature port (nightly, session "Kit feature porter") | ports queued features into the kit (`review/port-queue.md`) | sends reusable features to the queue; never ports them itself |
-| Kit update run (nightly, session "Kit updater") | builds `/preview/` of a course behind the kit; live only after "approve updates for <course>" | reports courses behind the kit; never updates one |
+| Kit feature port (nightly, session "Kit feature porter") | ports queued features into the kit (`review/port-queue.md`) | records reusable features in `improvements.json`; adds nothing to the queue and never ports (preparing them is a separate proposal) |
+| Kit update run (nightly, session "Kit updater") | builds `/preview/` of a course behind the kit; live only after "approve updates for <course>"; skips the preview of a course whose `kitUpdate` is paused | holds each course's `kitUpdate` state (`coord.js kitupdate`); reports courses behind the kit; never updates one |
 | BDK daily review; DEENT reminders | course sessions' own work | reads their pull requests; does not repeat them |
 | ChatGPT GitHub review (about 05:00, 10:00, 15:00, 20:00 Central) | external reviews of pull requests | none: no second review automation |
 
@@ -25,13 +25,33 @@ It adds to what already runs and replaces none of it:
 | `state.json` | review checkpoints: per course, the last commit a review covered, when, and of which kind | coordinator runs only |
 | `improvements.json` | the improvement registry | coordinator runs and kit sessions |
 | `automations.json` | every automation, what it does, its last recorded run, what has been verified | coordinator runs |
-| `retros/` | retrospective records (Mode 6), one file per course and date | coordinator runs |
+| `retros/` | retrospective records (Mode 6), one file per course and date | the session that writes a retrospective Louis asked for |
 
 The kit repository is public. These files hold only what is already public in the course
 repositories or what Louis gives for the schedule: no scores, answer histories, study
 records, credentials or unpublished lecture material (`coord_test.js` checks for tokens,
 scores, grades and answer histories). Anything private stays out of GitHub; a run that would
 need it asks Louis where it may keep it.
+
+## Branches, counts and kit-update previews
+
+- `pagesBranch`: the branch GitHub Pages serves, `main` for every course. Published status
+  (the release check, the kit pin, the live and preview builds) is read at the commit Pages
+  last deployed from it, or at its head when no deployment can be read, never from the
+  repository's default branch, which can be a working branch with unreleased work.
+- `workingBranch` (optional): a branch with work not yet released, named so the dashboard and
+  the kit-update run keep it apart from what is published.
+- `counts` (optional): figures such as the question count, each labelled `where`
+  (`published` on the Pages branch or `unreleased` on a working branch), with `ref` (branch
+  and commit) and `source` (where the figure was read and when). A figure without a source
+  is not recorded.
+- `kitUpdate` (optional; absent means `{"previews": "active"}`): `previews` is `active` or
+  `paused`. A pause needs `since`, `reason`, `liftWhen` and `source`, and `coord.js` refuses
+  one without them. It stops the kit-update run from preparing a kit-update preview for
+  that course only; the run's read-only checks go on and its report names the pause.
+  `node coordinator/coord.js kitupdate` prints the state of every course. A pause is lifted
+  only as its `liftWhen` says, by a kit session in a bookkeeping pull request, never by the
+  run itself.
 
 ## Schedule and release are two different things
 

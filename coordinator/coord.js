@@ -8,6 +8,7 @@
    node coordinator/coord.js published   [--course <id>] [--json]
    node coordinator/coord.js dashboard   [--now <ISO>] [--json] [--offline] [--cache <file> | --no-cache]
    node coordinator/coord.js lastseen    (the last successful reads, for a run to commit into state.json)
+   node coordinator/coord.js kitupdate   [--json]   (for the kit-update run: which courses' kit-update previews are paused, and why)
 
    It reads and prints; it never writes a record, pushes, merges or publishes, and it never
    runs a course's code: a course file is read as text (parseCourse). The only file it
@@ -531,7 +532,7 @@ function dashboard(now, opts){
       published: sched.filter(e => e.status === 'published').map(e => e.name),
       knownFuture: sched.filter(e => e.status !== 'published').map(e => `${e.name} ${e.date || 'date not recorded'} (${e.status})`),
       developing: c.inDevelopment || [], lastReview: p.lastReviewAt, nextAction: `${p.action}: ${p.reason}`, head: headRead[c.repo],
-      deployed: dep, kitPin: pin, kitBehind: behind, preview, ahead, publication: pub, flags: lc.flags, openProblems: open.map(i => i.id)};
+      deployed: dep, kitPin: pin, kitBehind: behind, kitUpdate: kitUpdatePolicy(c), preview, ahead, publication: pub, flags: lc.flags, openProblems: open.map(i => i.id)};
   });
   const approvals = [];
   for(const repo of [cfg.kitRepo, ...cfg.courses.map(c => c.repo)]){
@@ -567,8 +568,9 @@ function md(d){
     const pvTxt = pv.state === 'ok' ? (pv.value ? 'yes' : 'no') : pv.state === 'unavailable' ? `${UNAVAILABLE}${lastTxt(pv.last)}${pv.last ? ': ' + (pv.last.value ? 'yes' : 'no') : ''}` : '—';
     const pinTxt = c.kitPin ? c.kitPin + (c.kitBehind != null ? ` (${c.kitBehind} core commits behind)` : '') : c.siteKind === 'kit' ? (pb && pb.last && pb.last.value && pb.last.value.pin ? `${pb.last.value.pin}${lastTxt(pb.last)}` : 'not read') : 'not a kit course';
     const ah = c.ahead && c.ahead.state === 'ok' && c.ahead.value.ahead > 0 ? `; working branch \`${c.ahead.value.defaultBranch}\` ${c.ahead.value.ahead} commits ahead of the live branch` : c.ahead && c.ahead.state === 'unavailable' ? `; working branch: ${UNAVAILABLE}` : '';
+    const kp = c.kitUpdate && c.kitUpdate.previews === 'paused' ? `; kit-update previews paused since ${c.kitUpdate.since}` : '';
     const nextRev = c.head && c.head.state === 'unavailable' ? `${UNAVAILABLE} (repository head)${lastTxt(c.head.last)}` : c.nextAction;
-    L.push(`| [${cell(c.code)}](https://github.com/${c.repo}) ${cell(c.name)}, ${cell(c.term)} | ${c.status}: ${cell(c.why)} | ${cell(c.next)} | ${cell(c.final)} | ${cell(c.published.join(', ') || 'none')} | ${cell(c.knownFuture.join('; ') || 'none')} | ${cell(depTxt)} | ${cell(pinTxt)} | ${cell(pvTxt + ah)} | ${cell(nextRev)} | ${cell(probs)} |`);
+    L.push(`| [${cell(c.code)}](https://github.com/${c.repo}) ${cell(c.name)}, ${cell(c.term)} | ${c.status}: ${cell(c.why)} | ${cell(c.next)} | ${cell(c.final)} | ${cell(c.published.join(', ') || 'none')} | ${cell(c.knownFuture.join('; ') || 'none')} | ${cell(depTxt)} | ${cell(pinTxt + kp)} | ${cell(pvTxt + ah)} | ${cell(nextRev)} | ${cell(probs)} |`);
   }
   const fl = d.courses.filter(c => c.flags.length);
   if(fl.length){ L.push(``, `**Schedule uncertainties:**`); for(const c of fl) L.push(`- ${c.code}: ${c.flags.join('; ')}`); }
@@ -606,6 +608,23 @@ function md(d){
   return redact(L.join('\n'));
 }
 
+/* ---------- kit-update previews: active, or paused for a course ---------- */
+// A course's `kitUpdate` record (courses.json). No record means previews are active. A pause
+// stops the kit-update run from preparing a kit-update preview for that course only; the run's
+// read-only checks (preflight, the pin on the Pages branch against the kit, the Pages deploy) go on.
+const KIT_PREVIEWS = ['active', 'paused'];
+function kitUpdatePolicy(course){
+  const base = {course: course.id, repo: course.repo, pagesBranch: course.pagesBranch || 'main'};
+  const k = course.kitUpdate;
+  if(!k) return Object.assign(base, {previews: 'active'});
+  if(!KIT_PREVIEWS.includes(k.previews)) throw new Error(`${course.id}: kitUpdate.previews must be one of ${KIT_PREVIEWS.join(', ')}`);
+  if(k.previews === 'paused'){
+    for(const f of ['since', 'reason', 'liftWhen', 'source']) if(!k[f] || typeof k[f] !== 'string') throw new Error(`${course.id}: a kit-update pause needs ${f}`);
+    if(isNaN(Date.parse(k.since))) throw new Error(`${course.id}: kitUpdate.since is not a date`);
+  }
+  return Object.assign(base, {previews: k.previews, since: k.since || null, reason: k.reason || null, liftWhen: k.liftWhen || null, source: k.source || null});
+}
+
 /* ---------- command line ---------- */
 if(require.main === module){
   const argv = process.argv.slice(2), cmd = argv[0];
@@ -635,8 +654,12 @@ if(require.main === module){
     if(res.some(r => r.ok === false)) process.exitCode = 1;
   }
   else if(cmd === 'dashboard'){ const d = dashboard(now, {offline: argv.includes('--offline'), cache}); out(json ? d : md(d)); }
+  else if(cmd === 'kitupdate'){
+    const k = cfg.courses.map(kitUpdatePolicy);
+    out(json ? k : k.map(x => `${x.course.padEnd(22)} kit-update previews ${x.previews}${x.previews === 'paused' ? ` since ${x.since} (Pages branch ${x.pagesBranch})\n  reason: ${x.reason}\n  lifted: ${x.liftWhen}` : ''}`).join('\n'));
+  }
   else if(cmd === 'lastseen'){ const d = dashboard(now, {offline: false, cache}); console.log(redact(JSON.stringify(d.lastSeen, null, 1))); }
-  else { console.error('usage: coord.js status|plan|published|dashboard|lastseen [--now ISO] [--json] [--offline]'); process.exit(2); }
+  else { console.error('usage: coord.js status|plan|published|dashboard|lastseen|kitupdate [--now ISO] [--json] [--offline]'); process.exit(2); }
 }
-module.exports = {dashboard, lastSeenStore, UNAVAILABLE, zonedInstant, examSpan, lifecycle, plan, checkPublished, parseCourse, tokenize,
+module.exports = {kitUpdatePolicy, KIT_PREVIEWS, dashboard, lastSeenStore, UNAVAILABLE, zonedInstant, examSpan, lifecycle, plan, checkPublished, parseCourse, tokenize,
   approvalStatus, approvalsFrom, md, redact, sanitize, hasSecret, run, validDate, STATUSES, RELEASE};

@@ -330,6 +330,35 @@ check(au.every(a => a.name && a.state && a.verified), 'every automation records 
 const blob = ['courses.json', 'state.json', 'improvements.json', 'automations.json', 'README.md', 'RUN.md'].map(f => fs.readFileSync(path.join(__dirname, f), 'utf8')).join('\n');
 check(!C.hasSecret(blob) && !/"score"|"grade"|"answers"\s*:/.test(blob), 'the records hold no credentials, scores, grades or answer histories');
 
+console.log('\n=== Kit-update previews: a pause for one course ===');
+const kp = cfg.courses.map(C.kitUpdatePolicy);
+const kd = kp.find(x => x.course === 'deent');
+check(kd.previews === 'paused' && kd.pagesBranch === 'main' && /working branch/.test(kd.reason) && /verify the approved course baseline/.test(kd.liftWhen) && /no pending preview/.test(kd.liftWhen) && kd.source, 'DEENT: kit-update previews paused, with the reason, how the pause is lifted, its source, and main as the Pages branch', kd);
+check(kp.filter(x => x.course !== 'deent').every(x => x.previews === 'active'), 'every other course: kit-update previews active (no change)', kp);
+check(cfg.courses.every(c => (c.pagesBranch || 'main') === 'main'), 'every course names main as the branch Pages serves');
+for(const [field, re] of [['reason', /needs reason/], ['liftWhen', /needs liftWhen/], ['source', /needs source/]]){
+  const x = clone(deent); delete x.kitUpdate[field];
+  let refused = false; try { C.kitUpdatePolicy(x); } catch(e){ refused = re.test(e.message); }
+  check(refused, `a pause without ${field} is refused`);
+}
+const bs = clone(deent); bs.kitUpdate.since = 'soon';
+let t4 = false; try { C.kitUpdatePolicy(bs); } catch(e){ t4 = /not a date/.test(e.message); }
+check(t4, 'a pause whose since is not a date is refused');
+const nv = clone(deent); nv.kitUpdate.previews = 'off';
+let t3 = false; try { C.kitUpdatePolicy(nv); } catch(e){ t3 = /must be one of/.test(e.message); }
+check(t3, 'an unknown kit-update state is refused');
+const na = clone(deent); delete na.kitUpdate;
+check(C.kitUpdatePolicy(na).previews === 'active', 'no kitUpdate record: previews active');
+const dc = deent.counts || [];
+check(dc.length === 2 && dc.some(x => x.where === 'published' && x.ref.startsWith('main ') && x.source) && dc.some(x => x.where === 'unreleased' && x.ref.startsWith(deent.workingBranch + ' ') && x.source), 'DEENT question counts are labelled by where they come from (published on main, unreleased on the working branch), each with its source', dc);
+const kj = JSON.parse(cp.execFileSync(process.execPath, [path.join(__dirname, 'coord.js'), 'kitupdate', '--json'], {encoding: 'utf8'}));
+check(kj.length === cfg.courses.length && kj.filter(x => x.previews === 'paused').map(x => x.course).join() === 'deent', '`coord.js kitupdate --json` lists every course, with only DEENT paused', kj.map(x => x.course + ':' + x.previews));
+const kt = cp.execFileSync(process.execPath, [path.join(__dirname, 'coord.js'), 'kitupdate'], {encoding: 'utf8'});
+check(/deent\s+kit-update previews paused since 2026-11-06/.test(kt) && /reason: /.test(kt) && /lifted: /.test(kt), '`coord.js kitupdate` prints the pause with its reason and how it is lifted');
+const ddOff = C.dashboard(T('2026-11-06T15:00:00Z'), {offline: true, cache: null});
+check(ddOff.courses.find(c => c.id === 'deent').kitUpdate.previews === 'paused' && /kit-update previews paused since 2026-11-06/.test(C.md(ddOff)), 'the dashboard\'s DEENT row says kit-update previews are paused');
+check(ddOff.courses.filter(c => c.id !== 'deent').every(c => c.kitUpdate.previews === 'active') && (C.md(ddOff).match(/kit-update previews paused/g) || []).length === 1, 'the dashboard shows no pause for the other courses');
+
 fs.rmSync(TMP, {recursive: true, force: true});
 console.log(fails ? `FAIL: coord_test.js: ${fails} of ${fails + passes} checks failed` : `PASS: coord_test.js: ${passes} checks passed`);
 process.exitCode = fails ? 1 : 0;

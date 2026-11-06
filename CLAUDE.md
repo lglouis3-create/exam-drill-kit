@@ -142,7 +142,12 @@ after Phase 1 and overrides earlier sections where they differ.
 - **"Show my Exam Drill Dashboard"**: follow `.claude/skills/exam-drill-dashboard/SKILL.md`
   (it runs `node coordinator/coord.js dashboard`).
 - The scheduled task "Kit coordinator daily" is proposed, not configured; until it is,
-  a run happens only when asked ("run the coordinator").
+  a run happens only when asked ("run the coordinator"). A run records improvements and
+  prepares none; preparing them and automatic retrospectives are a separate proposal.
+- **Kit-update previews paused for DEENT** (Louis, 2026-11-06; `coordinator/courses.json`
+  `kitUpdate`, `node coordinator/coord.js kitupdate`): the nightly run keeps DEENT's
+  read-only checks and reports the pause; its working branch and preview stay untouched.
+  The pause is lifted only as its `liftWhen` says.
 
 ## Rules for kit sessions
 

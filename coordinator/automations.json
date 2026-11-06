@@ -22,7 +22,7 @@
     {
       "name": "Kit update run",
       "kind": "scheduled task trig_01QduqhookGDD8HxANEbLq4w, wakes session 'Kit updater'",
-      "responsibility": "builds and checks a /preview/ of each kit course behind the kit's main; never makes it live without Louis's reply 'approve updates for <course>'",
+      "responsibility": "preflight of the kit and every course in COURSES.md (five with DEENT); builds and checks a /preview/ of each kit course behind the kit's main, except a course whose kitUpdate previews are paused (DEENT since 2026-11-06), which keeps only its read-only checks and is reported as paused; never makes an update live without Louis's reply 'approve updates for <course>'",
       "schedule": "daily 02:47 America/Chicago",
       "state": "active",
       "lastRun": "2026-11-05 08:47 UTC: SUCCEEDED (wake delivered)",

@@ -335,13 +335,6 @@ pull request; update `FEATURES.md` versions, "best for", "weaker at" and evidenc
 retiring a version only where evidence shows a newer one is better at everything the
 older one was best for.
 
-The coordinator also starts a retro without being asked (`coordinator/RUN.md` step 2):
-when a course becomes recently completed, when a registry item is adopted, when a major
-feature merges, and when a technical problem is resolved. Each retro is written to
-`coordinator/retros/<course>-<date>.md` and its reusable findings go to
-`coordinator/improvements.json`. A passing test is not evidence that a feature helps
-learning; say what was observed.
-
 ## Mode 7: update a drill
 
 **Moving a course onto the core, or any update Louis asks for by name:** build the
@@ -368,8 +361,27 @@ starts with none (tested 2026-11-01). Each run:
    branch name, and `gh api 'repos/<owner>/<repo>/actions/runs?per_page=1'`; and Node,
    Python and Chromium start. If any of these fails, nothing goes live in this run; the
    run reports FAILED with the failing step and its output.
-Then it compares every course's `kit` pins in `course.js` with the kit's `main`. For each
-course that is behind:
+Then it reads each course's `course.js` from the branch GitHub Pages serves
+(`coordinator/courses.json` `pagesBranch`; `main` for every course today), never from the
+repository's default branch, which can hold unreleased work (DEENT's default branch is its
+working branch). It compares the `kit` pins there with the kit's `main`, and reads the
+kit-update state of each course: `node coordinator/coord.js kitupdate` on the kit's
+`origin/main`.
+- **Paused** (`kitUpdate.previews` "paused"; DEENT since 2026-11-06): the run makes no
+  branch, build, `/preview/`, commit or log entry in that course, and changes neither its
+  working branch nor its existing preview. Its read-only checks go on: the preflight
+  above, the pin on the Pages branch against the kit's `main`, the Pages branch's head and
+  its latest "pages build and deployment" run. The run reports, in its one line for the
+  course, "kit-update preview paused since <since>: <reason>", the pin and how far it is
+  behind. A paused course behind the kit is not a failure and sends no notification on its
+  own.
+- **Lifting a pause** (the record's `liftWhen`): after the pending release is resolved, a
+  kit session verifies the approved course baseline on the Pages branch (its head, its
+  question count and its confirmed Pages deploy) and that no pending preview, on the Pages
+  branch or the working branch, would be overwritten. Only then does it set `previews` to
+  "active" in a bookkeeping pull request, and the next run prepares a separate kit-update
+  preview. The run itself never lifts a pause.
+For each course that is behind and not paused:
 1. Build the update at `/preview/`, run every check, and append the result to the
    course's `reviews/LOG.md`.
 2. Leave the preview waiting and send Louis a summary: what changed in plain words,
@@ -425,17 +437,12 @@ answer log, and turn what it shows into improvement proposals.
   - recently completed: weekly;
   - completed: monthly, with a quarterly deep audit;
   - archived: only on change.
-- It skips unchanged code, tracks every improvement in `coordinator/improvements.json`,
-  and hands reusable features to the port queue.
+- It skips unchanged code and records every improvement it finds in
+  `coordinator/improvements.json`. Preparing improvements (branches, pull requests, port-queue
+  entries) and starting retrospectives on its own are a separate proposal for Louis's yes or
+  no; until it is merged, a run prepares nothing and a retrospective happens only when Louis
+  asks for one (Mode 6).
 - It never publishes a course site or merges a course repository's main.
-
-### Choosing features from the registry
-
-When a course is set up or its design is checked (Mode 1 step 3, Mode 2), read
-`coordinator/improvements.json` alongside `FEATURES.md`. Offer an adopted improvement only
-where the course's material calls for it, and say when it would add complexity for no gain.
-Professor-taught exam content and optional supplemental material stay apart; the rules for
-scored questions are unchanged.
 
 ## The scheduler
 
