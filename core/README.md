@@ -528,6 +528,56 @@ With less room the old core still keeps more progress, because it deletes histor
   notice says another profile's work is not saved and has an **Export "<profile>"** button for
   each such profile (`exportAway`: the progress and history this page holds for it), and so does
   the stop wall (the review of b3c9bbe, M1).
+- **An exam paper whose save is refused** (`<ns>:exam:<profile>`; Louis, 2026-11-05).
+  - **Counted:** it counts as unsaved (`examUnsavedHere`), for this profile and for a profile
+    switched away from.
+  - **The notice:** it names the exam paper.
+  - **Export:** the file holds the paper (field `exam`). Import does not read the paper back.
+  - **Questions:** the Reload buttons, a profile switch and closing the tab ask as for progress. The
+    "already exported" snapshot includes the paper, so a new answer on it after an export asks again.
+    Exporting one profile does not clear another profile's protection.
+  - **This tab's copy:** a refused paper is also written to this tab's sessionStorage
+    (`<ns>:exam-copy:<profile>`), which a reload of the same tab brings back when it is newer. Closing
+    the tab ends that copy. In Chromium, with localStorage full, sessionStorage still took the copy
+    (`exam_save_test.js`); in Safari that is NOT RUN.
+  - **When the copy is refused too:** the earlier copy is removed, since it lacks the latest answers, and
+    the notice says closing or reloading the page loses them. A reload then brings back the paper as last
+    stored. A return to the profile without a reload keeps this page's latest paper, never an older copy
+    (the review of b6de043).
+  - **Per profile:** whether the notice says "a copy kept by this tab brings them back" is worked out for
+    the profile on screen when the notice is drawn: a copy exists for that profile and holds the paper this
+    page holds for it. Another profile's copy never counts (the review of 213331a, M1). It counts only while
+    a reload would take it: the paper is not on that profile's submitted list, and what is stored is still
+    what was stored when the copy was made (the review of bd9f551, N1).
+  - **Submitted in another tab:** when this page comes back to a profile whose refused paper another tab
+    has since submitted (it is on the submitted-paper list), the paper does not run again, so its answers
+    are recorded once. This page's answers on it that were never stored stay on the page, at risk and in
+    Export, and the notice says the paper was submitted in another tab without them. Starting a new paper
+    there asks first while they are not exported (M2). This is found on the return to the profile itself,
+    whatever tab is on screen, not only when the Exam sim tab opens (N1).
+  - **Another tab's newer paper:** when this page comes back to a profile with a refused paper and finds a
+    different paper stored than it last read or kept there, it stops with the saved-in-another-tab wall,
+    as for progress; its own paper stays in Export, and nothing is written over the other. A save also
+    writes nothing over a paper stored by another writer since this page read it (M3). The wall comes on
+    the return itself, once this page holds the profile's lock (N1). That wall offers Export and Reload;
+    its text names "Use it here" only on the walls that have that button.
+  - **Stored at last:** once a refused paper is stored, the notice is redrawn at once, and goes when nothing
+    else is refused (S1). "Use it here" redraws it too, once it has cleared the refused writes, and so does
+    submitting a refused paper here: the notice then no longer names the paper (it stays for refused
+    progress or history).
+  - **"It is saved":** the new-version bar's "A paper is running. It is saved…" question is now asked
+    only when the paper is saved.
+  - **After a reload** that brings the paper back from the tab's copy, the paper still counts as refused
+    (on the page, in Export, asked about) until a save is kept.
+  - **"Use it here"** does not keep a refused paper: it asks first, then opens the stored paper and drops
+    the tab's copy; it makes no copy of progress that was saved.
+  - **A submitted paper** is added to a small list of the last 20 submitted here (`<ns>:exam-done:<profile>`),
+    so no tab's copy, a duplicated tab's included, brings it back. If the browser refuses even that marker, a duplicated tab's copy could
+    still come back.
+  - **A profile switch** puts the running paper away; it is not carried onto the next profile.
+  - **Closing the tab:** while the paper is not exported, the browser's leave question, as for progress
+    (Chromium checked; WebKit not checkable here, #39; Safari NOT RUN). A tab the system closes gets no
+    question, and its copy ends with it.
 - **In-app actions:**
   - **Switching profile** tries the refused writes once more, then asks and offers the export.
   - **The stop wall's Reload** and **the new-version bar's Reload** both ask first while work that is
