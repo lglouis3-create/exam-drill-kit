@@ -1,0 +1,14 @@
+2026-11-06T16:03:02.9325459Z ##[group]Run echo "verification only: this first attempt is held past its limit"; sleep 120
+2026-11-06T16:03:02.9580788Z verification only: this first attempt is held past its limit
+2026-11-06T16:04:15.4361301Z ##[error]The action 'Playwright 1.63.0, WebKit and pdfplumber 0.11.10' has timed out after 1 minutes.
+2026-11-06T16:04:15.4898340Z apt mirror list:
+2026-11-06T16:04:15.4906304Z http://azure.archive.ubuntu.com/ubuntu/	priority:1
+2026-11-06T16:04:15.4907020Z https://archive.ubuntu.com/ubuntu/	priority:2
+2026-11-06T16:04:15.4907714Z https://security.ubuntu.com/ubuntu/	priority:3
+2026-11-06T16:04:15.4969636Z second attempt, without azure.archive.ubuntu.com:
+2026-11-06T16:04:15.4975611Z https://archive.ubuntu.com/ubuntu/	priority:2
+2026-11-06T16:04:15.4976403Z https://security.ubuntu.com/ubuntu/	priority:3
+2026-11-06T16:04:23.6648118Z Fetched 12.9 MB in 2s (7600 kB/s)
+2026-11-06T16:04:24.9324651Z Need to get 114 MB of archives.
+2026-11-06T16:04:35.3114302Z Fetched 114 MB in 10s (11.4 MB/s)
+2026-11-06T16:09:48.2712512Z 29 PASS, 0 FAIL, 1 NOT RUN, 1 REPORT, 0 NOT RUN case(s); logs in /tmp/drill-checks-3N3Cbd
