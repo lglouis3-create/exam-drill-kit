@@ -311,8 +311,11 @@ const startAndPick = page => page.evaluate(() => {
     const {ctx, page, errors} = await L.openFile(browser);
     await switchTo(page, 'A');
     const started = await startAndPick(page);
+    // the steps this case replaces must exist: a core without them (main before #58, or a rename) fails
+    // here, so the case can never stop probing without a failure; the switch below is checked either way
+    const steps = await page.evaluate(() => ({park: typeof parkSession === 'function', resume: typeof resumeSession === 'function'}));
+    check(steps.park && steps.resume, 'the core has the switch steps this case makes throw (parkSession, resumeSession)', JSON.stringify(steps));
     await page.evaluate(() => { const m = QUESTIONS.find(x => x.options && x.options.length); if(m) drillList([m], 'Missed concepts');
-      // a core with no such steps (before #58) is checked as it is: the switch must still leave B clean
       if(typeof parkSession === 'function'){ window.__park = parkSession; parkSession = () => { throw new Error('probe: parkSession fails'); }; }
       if(typeof resumeSession === 'function'){ window.__resume = resumeSession; resumeSession = () => { throw new Error('probe: resumeSession fails'); }; } });
     await switchTo(page, 'B');
