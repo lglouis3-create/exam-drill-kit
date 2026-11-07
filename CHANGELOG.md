@@ -2,6 +2,9 @@
 
 Dated kit changes, newest first.
 
+## 2026-11-06 (WebKit install)
+- In the WebKit jobs the install of Playwright, WebKit and pdfplumber has its own limit of 6 minutes, apart from the checks' 30. After any failure of the first attempt, an error or running longer than 6 minutes, the install is tried once more. Before that second attempt, any process the first left behind is stopped (including dpkg and the Playwright CLI's node child), apt waits up to 120 s for a dpkg lock, an interrupted dpkg run is finished, a line is written to the job summary, and the mirror list is printed; if the list names hosts other than `azure.archive.ubuntu.com`, that host is left out. A second failure fails the job through a step named "NOT RUN: the WebKit install failed twice, so no check ran". The checks are never retried. Diagnosis: `review/ci/webkit-install-2026-11-06.md`.
+
 ## 2026-11-06 (records)
 - A tab's last save (the per-tab record) keeps a feature module's part of the progress: worksheets-ink's `DB.ink`, equation-drill's `DB.eq`, or any key outside the core's own parts, as Import decides.
   - **A record behind the stored progress, or with no answers:** if it holds a module part that the stored progress does not hold the same, it becomes a copy (Settings, "Put back the progress from …"). Before, only the settings were compared, and the record was removed 60 s later.
@@ -19,6 +22,7 @@ Dated kit changes, newest first.
 - A check can report one case as NOT RUN (`check_lib.js` `notRunCase`). It is counted apart from passes and skips, named in the check's summary, and listed by `run_checks.sh`. `ci_course.sh` accepts exactly one such case, listed in `core/ci_exclusions.sh`: the worksheets-ink PDF's size in WebKit (Louis, 2026-11-06). Any other NOT RUN case, and the same case in Chromium, fails the run. When worksheets-ink is on, its PDF check (Chromium) and its four print-layout checks (Chromium and WebKit) must each appear as a passing line in its log (`REQUIRED_PASSES`; `notruncase_test.js`).
 
 ## 2026-11-06
+- A running exam paper, quiz session or targeted review now belongs to the profile that started it. Before, a profile switch left it on screen: the next profile saw the paper and its picks, a pick saved it under the next profile, and submitting it, or its clock running out, recorded the answers in the next profile's history. A switch now saves the paper under its own profile and puts it and the quiz session away; switching back brings both back as they were. A paper is submitted at most once. A reload brings the quiz place back only for the profile it was saved under, so a reload after another tab switched the profile does not carry the question over; that place record (per tab, sessionStorage) now names its profile (`ownership_test.js`). No progress, history or paper format changes.
 - The improvement coordinator (`coordinator/`):
   - records each course's whole exam schedule apart from what its site has released;
   - classifies each course's lifecycle from that schedule in America/Chicago;
