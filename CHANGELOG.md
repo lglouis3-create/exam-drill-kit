@@ -85,6 +85,16 @@ Dated kit changes, newest first.
 - Kit checks on GitHub: every pull request runs the checks in Chromium and, as information, in WebKit.
 - Checks open built pages over HTTP from 127.0.0.1, not from disk, so WebKit no longer refuses the manifest.
 - Kit checks on GitHub: each changed feature module, and each module that needs it, is checked on a course of its own.
+- New feature module `concept-statuses` v1 (`features/concept-statuses/`), from
+  Basic-Pharmacokinetics `ac2eb73` (`src/views.js` 2506-2725): a Concepts section on Weak
+  spots with a status per concept (Unfamiliar, Struggling, Improving, Mastered, Returning,
+  Learning) read from the answers, the counts behind it, the option chosen most often, the
+  most common kind of miss, Practice this concept, and the spaced checks due. It reads the
+  core's state and does not change how the core schedules. `FEATURES.md` corrected: the
+  core has the concept scheduler and a mastered count, not the named statuses. Test: 89
+  checks (PK `src/test.js` section 4c and `src/sweep_test.py` `concept_check` ported, on PK
+  data taken verbatim, with persistence checks on a long answer history); `ci/oncourse.js`
+  writes the module's course for the kit's CI.
 - `core/render_test.js`: answers calculation and matching items with their own controls; no more random failures.
 
 ## 2026-11-01
