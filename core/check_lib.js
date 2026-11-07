@@ -13,13 +13,20 @@
 
    A check that ran over zero items has proved nothing, so a check that finds
    nothing to look at reports NOT RUN rather than PASS.
+
+   One case inside a check that cannot run in this browser is reported with
+   notRunCase(label, why): the line "  NOT RUN  <label>  — <why>", counted apart
+   from passes and skips (never as either), and named in the summary:
+     PASS: <check>: <n> checks passed, <k> NOT RUN (<label>: <why>; ...)
+   run_checks.sh lists each such case, and ci_course.sh fails the run on any
+   case that is not a documented exclusion (core/ci_exclusions.sh).
    ========================================================================== */
 const fs = require('fs'), os = require('os'), path = require('path'), http = require('http'),
       crypto = require('crypto'), vm = require('vm'), child = require('child_process');
 const PAGE = require('./built_page');
 
 let fails = 0, passes = 0;
-const failed = [], skipped = [];
+const failed = [], skipped = [], notRunCases = [];
 function check(ok, label, detail){
   console.log((ok ? '  ok    ' : '  FAIL  ') + label +
     (!ok && detail !== undefined && detail !== '' ? '  — ' + (typeof detail === 'string' ? detail : JSON.stringify(detail)) : ''));
@@ -28,11 +35,16 @@ function check(ok, label, detail){
 }
 function skip(label, why){ console.log(`  skip  ${label}  — ${why}`); skipped.push(label); }
 function notRun(name, why){ console.log(`NOT RUN: ${name}: ${why}`); process.exit(2); }
+function notRunCase(label, why){
+  const l = String(label).replace(/\s+/g, ' ').trim(), w = String(why).replace(/\s+/g, ' ').trim();
+  console.log(`  NOT RUN  ${l}  — ${w}`); notRunCases.push({label: l, why: w});
+}
 function finish(name){
-  if(!fails && !passes) notRun(name, 'no check ran' + (skipped.length ? ` (${skipped.length} skipped)` : ''));
+  const nr = notRunCases.length ? `, ${notRunCases.length} NOT RUN (${notRunCases.map(c => `${c.label}: ${c.why}`).join('; ')})` : '';
+  if(!fails && !passes) notRun(name, 'no check ran' + (skipped.length ? ` (${skipped.length} skipped)` : '') + nr);
   const sk = skipped.length ? ` (${skipped.length} skipped: ${skipped.slice(0, 3).join('; ')}${skipped.length > 3 ? ' …' : ''})` : '';
-  if(fails) console.log(`FAIL: ${name}: ${fails} of ${fails + passes} checks failed: ${failed.slice(0, 3).join('; ')}${failed.length > 3 ? ' …' : ''}`);
-  else console.log(`PASS: ${name}: ${passes} checks passed${sk}`);
+  if(fails) console.log(`FAIL: ${name}: ${fails} of ${fails + passes} checks failed: ${failed.slice(0, 3).join('; ')}${failed.length > 3 ? ' …' : ''}${nr}`);
+  else console.log(`PASS: ${name}: ${passes} checks passed${nr}${sk}`);
   process.exit(fails ? 1 : 0);
 }
 
@@ -278,6 +290,6 @@ const quizOn = (page, ids) => page.evaluate(ids => {
   return !!Q.current;
 }, [].concat(ids));
 
-module.exports = {browserType, BROWSER, BROWSER_NAME, PAGE, check, skip, notRun, finish, playwright, launch, openFile, serve, engine, scratchRepo,
+module.exports = {browserType, BROWSER, BROWSER_NAME, PAGE, check, skip, notRun, notRunCase, finish, playwright, launch, openFile, serve, engine, scratchRepo,
                   scratchBuild, featureOn, openPage, quizOn, pageUrl, openFromDisk, OPEN_CTX,
-                  counts: () => ({fails, passes, skipped: skipped.length})};
+                  counts: () => ({fails, passes, skipped: skipped.length, notRun: notRunCases.length})};

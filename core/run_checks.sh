@@ -18,7 +18,7 @@ CHECKS=(test.js style_check.js style_check_test.js render_test.js explain_check.
         device_lint.js output_test.js files_test.js tables_test.js checks_test.js draw_test.js browser_test.js storage_test.js
         startup_test.js update_test.js offline_test.js home_test.js history_test.js scheduler_test.js
         preview_test.js state_check.js state_check_test.js oldcache_test.js nullexam_test.js import_test.js
-        storage_use_test.js cap_test.js)
+        storage_use_test.js cap_test.js notruncase_test.js record_modules_test.js ownership_test.js)
 # Checks of what this course switches on (build.py --list-checks): features_test.js
 # and each module's own test when course.js `features` has a module on,
 # numeric_test.js with `numeric`, exam_typed_test.js with an exam's `typed`.
@@ -28,7 +28,7 @@ CHECKS+=("${OPTIONAL[@]}")
 [ $# -gt 0 ] && CHECKS=("$@")
 
 LOGS=$(mktemp -d "${TMPDIR:-/tmp}/drill-checks-XXXXXX")
-pass=0; fail=0; notrun=0; report=0
+pass=0; fail=0; notrun=0; report=0; cases=0
 line() { printf '%-8s %-17s %s\n' "$1" "$2" "$3"; }
 
 # the summary a check printed last, without its own "STATUS: name:" prefix
@@ -71,7 +71,13 @@ for c in "${CHECKS[@]}"; do
   else
     line FAIL "$c" "$why"; fail=$((fail + 1))
   fi
+  # each case the check reported as NOT RUN in this browser (check_lib.js notRunCase), one
+  # line each, "NOT RUN CASE  <check> :: <label>  — <why>"; never counted as passed. The prefix
+  # is its own, so a whole-check NOT RUN line can never read as a case line.
+  while IFS= read -r nrc; do
+    printf 'NOT RUN CASE  %s :: %s\n' "$c" "${nrc#  NOT RUN  }"; cases=$((cases + 1))
+  done < <(grep -E '^  NOT RUN  ' "$log" || true)
 done
 
-echo "$pass PASS, $fail FAIL, $notrun NOT RUN, $report REPORT; logs in $LOGS"
+echo "$pass PASS, $fail FAIL, $notrun NOT RUN, $report REPORT, $cases NOT RUN case(s); logs in $LOGS"
 [ $fail -eq 0 ]
