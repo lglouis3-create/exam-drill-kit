@@ -68,7 +68,10 @@ const fresh = async browser => {
 (async () => {
   const {browser} = await L.launch(NAME);
   const ALL = await (async () => { const {ctx, page} = await fresh(browser);
-    const n = await page.evaluate(() => QUESTIONS.length); await ctx.close(); return n; })();
+    // the whole bank outside any optional topic (optional_test.js), which is every question
+    // in a course that marks none
+    const n = await page.evaluate(() => { const opt = new Set(TOPICS.filter(t => t.optional).map(t => t.id));
+      return QUESTIONS.filter(q => !opt.has(q.topic)).length; }); await ctx.close(); return n; })();
 
   console.log('\n=== 1. Repeating a targeted set keeps its question ids ===');
   {

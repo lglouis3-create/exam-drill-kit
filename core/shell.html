@@ -379,6 +379,7 @@ body.swbar-on{padding-bottom:76px}
 /* labels on a question card, typed question kinds */
 .lbl{font-size:11.5px;color:var(--text-dim);border:1px solid var(--line-soft);border-radius:999px;padding:1px 8px;white-space:nowrap}
 .lbl.kind{background:var(--surface)}
+.lbl.opt{color:var(--text);border-color:var(--text-dim);font-weight:600}   /* an optional topic, outside the active exam */
 .numin{display:flex;align-items:center;gap:10px;margin:14px 0 6px}
 .numin input{font:inherit;font-size:17px;padding:9px 12px;border:1.5px solid var(--line);border-radius:8px;width:180px;max-width:60%}
 .numin .units{font-size:15px;color:var(--text-dim)}
@@ -598,6 +599,21 @@ const BUILD = /*__BUILD__*/{stamp:'', built:'', questions:0, images:0, changelog
 const IMAGES = /*__IMAGES__*/{};
 const QUESTIONS = /*__QUESTIONS__*/[];
 const TOPICS = /*__TOPICS__*/[];
+/* Optional topics: a TOPICS entry with `optional: true` holds questions kept in the
+   bank but outside the active exam (Louis, 2026-11-06, for slides a professor left
+   off the assigned pages: kept "outside Exam 1 practice papers, required-exam
+   readiness calculations, and default Exam 1 study recommendations", reachable
+   "through an explicitly labeled optional or beyond-Exam-1 practice category").
+   The mark is per topic, not per question. Those questions are left out of every
+   default set (Everything, adaptive, filtered or not; the passes; the exam pools,
+   so papers, the exam-weighted pass, the readiness cards and mark weights; What to
+   review next and the mastered count) and carry no exam label; opening the topic,
+   one of its subtopics or a drill of its own reaches them. A course with no
+   optional topic is unchanged: requiredQs() is then every question. */
+const OPTIONAL_TOPICS = new Set(TOPICS.filter(t => t && t.optional).map(t => t.id));
+const isOptional = q => !!q && OPTIONAL_TOPICS.has(q.topic);
+// read from QUESTIONS at each call, so a check that replaces the bank in place is followed
+const requiredQs = () => OPTIONAL_TOPICS.size ? QUESTIONS.filter(q => !isOptional(q)) : QUESTIONS;
 /* Which exam the simulator and the weighted pass follow, and its pools. A pool
    filter is an object of field:value; an array value means "one of". */
 const EXAM = COURSE.exams.find(e => e.id === COURSE.activeExam) || COURSE.exams[0];
@@ -605,7 +621,7 @@ const EXAM = COURSE.exams.find(e => e.id === COURSE.activeExam) || COURSE.exams[
    lecture, which come from the lecture the question's citation names. */
 const fieldOf = (q, k) => (k === 'exam' || k === 'module') ? (lecOf(q) || {})[k] : k === 'lecture' ? (lecOf(q) || {}).id : q[k];
 const poolFilter = f => q => Object.entries(f).every(([k, v]) => Array.isArray(v) ? v.includes(fieldOf(q, k)) : fieldOf(q, k) === v);
-EXAM.pools.forEach(p => { p.test = poolFilter(p.filter); });
+EXAM.pools.forEach(p => { const t = poolFilter(p.filter); p.test = q => !isOptional(q) && t(q); });
 const poolOf = q => EXAM.pools.find(p => p.test(q));
 /* The lecture a question comes from, read from the deck its citation names. */
 const lecOf = q => {
@@ -613,7 +629,7 @@ const lecOf = q => {
   const c = q.cite || '';
   return (q._lec = COURSE.lectures.find(l => c.includes(l.deck)) || null);
 };
-const examLabel = q => { const l = lecOf(q); if(!l) return '';
+const examLabel = q => { const l = lecOf(q); if(!l || isOptional(q)) return '';
   return `Exam ${l.exam} · ${l.module}`; };
 
 /* ==========================================================================
@@ -2053,7 +2069,7 @@ function examConcepts(ex){
   let set = EXAM_SCOPE.get(ex);
   if(!set){
     const tests = (ex.pools || []).map(p => poolFilter(p.filter || {}));
-    set = new Set(QUESTIONS.filter(q => tests.some(t => t(q))).map(q => q.concept));
+    set = new Set(requiredQs().filter(q => tests.some(t => t(q))).map(q => q.concept));
     EXAM_SCOPE.set(ex, set);
   }
   return set;
@@ -2208,7 +2224,8 @@ function retryQuestion(concept, notId, pool, inSetOnly){
   const when = q => q.id in last ? last[q.id] : asked.includes(q.id) ? 0 : -1;
   const other = list => list.filter(q => q && q.concept === concept && q.id !== notId);
   let c = other(pool || []);
-  if(!c.length && !inSetOnly) c = other(conceptQs(concept));
+  // a broad session reaches the rest of the bank, but not an optional topic
+  if(!c.length && !inSetOnly) c = other(conceptQs(concept)).filter(q => !isOptional(q));
   if(!c.length) return null;
   // calculation preset: a question of another skill first, when the concept has one
   const was = SCHED.calc && byId(notId) ? skillOf(byId(notId)) : null;
@@ -2258,7 +2275,7 @@ const lecIndex = q => { const l = lecOf(q); return l ? COURSE.lectures.indexOf(l
 function earlierDue(pool){
   const top = Math.max(-1, ...pool.map(lecIndex));
   const inPool = new Set(pool.map(q => q.id));
-  return QUESTIONS.filter(q => !inPool.has(q.id) && lecIndex(q) >= 0 && lecIndex(q) < top);
+  return requiredQs().filter(q => !inPool.has(q.id) && lecIndex(q) >= 0 && lecIndex(q) < top);
 }
 function pickNext(pool, justAsked){
   let cands = [];
