@@ -49,6 +49,9 @@ const stored = (page, p) => page.evaluate(p => {
   try { exam = JSON.parse(localStorage.getItem(NS + ':exam:' + p) || 'null'); } catch(e){ exam = 'unreadable'; }
   return {answers: a, log: l, exam};
 }, p);
+// a paper's pick for one item: an option index, or for a select-all item the list of ticked options
+// (the first item of a drawn paper can be either; Medicinal-chemistry's job 128235854299 drew a select-all)
+const has = (p, oi) => p === oi || (Array.isArray(p) && p.includes(oi));
 // the Exam tab as drawn now. A chosen option is counted by aria-pressed, with the class names the
 // engine has used for it (pick-ok, exsel since #59, on for select-all); each button counts once
 const examView = page => page.evaluate(() => {
@@ -103,7 +106,7 @@ const startAndPick = page => page.evaluate(() => {
       const back = await examView(page);
       const picks = await page.evaluate(() => EX && EX.picks);
       check(back.running && back.picked === 1, "back on A, A's paper is running again with A's pick on screen", JSON.stringify(back));
-      check(Array.isArray(picks) && picks[0] === oi, "A's pick is the one A made", JSON.stringify({picks, oi}));
+      check(Array.isArray(picks) && has(picks[0], oi), "A's pick is the one A made", JSON.stringify({picks, oi}));
       const a1 = await stored(page, 'A');
       check(a1.answers === 0 && a1.log === 0, 'nothing was recorded under A by the switches', JSON.stringify(a1));
     }
@@ -130,7 +133,7 @@ const startAndPick = page => page.evaluate(() => {
     await switchTo(page, 'A');
     const back = await examView(page);
     const picks = await page.evaluate(() => EX && EX.picks);
-    check(back.running && Array.isArray(picks) && picks[0] === oi, "back on A after the reload, A's paper and pick are there", JSON.stringify({back, picks, oi}));
+    check(back.running && Array.isArray(picks) && has(picks[0], oi), "back on A after the reload, A's paper and pick are there", JSON.stringify({back, picks, oi}));
     check(!errors.length, 'no page error in case 2', errors.join(' | '));
     await ctx.close();
   }
@@ -336,7 +339,7 @@ const startAndPick = page => page.evaluate(() => {
     await page.evaluate(() => { const k = NS + ':data:A'; const d = JSON.parse(localStorage.getItem(k) || JSON.stringify(BLANK())); d.elsewhere = Date.now(); localStorage.setItem(k, JSON.stringify(d)); });
     const pick2 = await page.evaluate(() => { const b = document.querySelectorAll('#v-exam .opt')[1]; if(!b) return null; const oi = +b.dataset.o; b.click(); return {oi, savedElsewhere: profileSavedElsewhere()}; });
     const storedPick = ((await stored(page, 'A')).exam || {}).picks;
-    check(pick2 && pick2.savedElsewhere && storedPick && storedPick[0] !== pick2.oi, 'the second pick was not stored (the profile was saved elsewhere)', JSON.stringify({pick2, storedPick}));
+    check(pick2 && pick2.savedElsewhere && storedPick && !has(storedPick[0], pick2.oi), 'the second pick was not stored (the profile was saved elsewhere)', JSON.stringify({pick2, storedPick}));
     await page.evaluate(() => { window.__name = 'B'; askProfile(true); show(VIEW); });
     await page.waitForTimeout(300);
     const onB = await examView(page);
@@ -344,7 +347,7 @@ const startAndPick = page => page.evaluate(() => {
     await page.evaluate(() => { window.__name = 'A'; askProfile(true); show(VIEW); });
     await page.waitForTimeout(300);
     const picks = await page.evaluate(() => EX && EX.picks);
-    check(Array.isArray(picks) && pick2 && picks[0] === pick2.oi, "back on A, the pick this page could not store is still on A's paper", JSON.stringify({picks, pick2}));
+    check(Array.isArray(picks) && pick2 && has(picks[0], pick2.oi), "back on A, the pick this page could not store is still on A's paper", JSON.stringify({picks, pick2}));
     check(!errors.length, 'no page error in case 9', errors.join(' | '));
     await ctx.close();
   }
@@ -392,7 +395,7 @@ const startAndPick = page => page.evaluate(() => {
     await page.evaluate(() => { window.__name = 'A'; askProfile(true); show(VIEW); });
     await page.waitForTimeout(300);
     const back = await page.evaluate(() => ({picks: EX && EX.picks, owner: EX && EX.owner}));
-    check(Array.isArray(back.picks) && back.picks[0] === oi2 && back.owner === 'A', "back on A, the refused pick is on A's paper", JSON.stringify({back, oi2}));
+    check(Array.isArray(back.picks) && has(back.picks[0], oi2) && back.owner === 'A', "back on A, the refused pick is on A's paper", JSON.stringify({back, oi2}));
     const recA3 = await recs('A');
     check(JSON.stringify(recA3) === JSON.stringify(recA2) && Object.keys(recA3).length === 1,
       "with storage full, A's per-tab record is never removed by the switches", JSON.stringify({before: Object.keys(recA2).length, after: Object.keys(recA3).length}));
