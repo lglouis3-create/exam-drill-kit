@@ -24,6 +24,9 @@
  *      starts with none of A's
  *   9. a pick that saveExam could not store (the profile saved in another window) is
  *      kept on the page for A across a switch
+ *  10. beside this tab's per-tab record (#69): a switch leaves A's record exactly as it was
+ *      and gives B no record with A's answers; with storage full, a refused pick survives a
+ *      switch and back, and A's record is never removed
  *
  *     node ownership_test.js
  */
@@ -343,6 +346,58 @@ const startAndPick = page => page.evaluate(() => {
     const picks = await page.evaluate(() => EX && EX.picks);
     check(Array.isArray(picks) && pick2 && picks[0] === pick2.oi, "back on A, the pick this page could not store is still on A's paper", JSON.stringify({picks, pick2}));
     check(!errors.length, 'no page error in case 9', errors.join(' | '));
+    await ctx.close();
+  }
+
+  if(examOn){
+    console.log("\n=== 10. A switch beside this tab's per-tab record (#69), with storage working and with it full ===");
+    // the per-tab record (NS:pending:<profile>:<tab>) protects this tab's last save; the switch only
+    // saves the paper under its own key and puts the paper and quiz session away, so the record of A
+    // stays as it was, and B gets none of A's answers in a record of its own
+    const QUOTA = () => {
+      const real = Storage.prototype.setItem;
+      Storage.prototype.setItem = function(k, v){
+        if(window.__quota) throw new DOMException('The quota has been exceeded.', 'QuotaExceededError');
+        return real.call(this, k, v);
+      };
+    };
+    const {ctx, page, errors} = await L.openFile(browser, {}, QUOTA);
+    await switchTo(page, 'A');
+    // one quiz answer under A: A's progress and A's per-tab record hold it
+    await page.evaluate(() => { const m = QUESTIONS.find(x => x.options && x.options.length && !isMulti(x));
+      drillList([m], 'Missed concepts'); show('quiz'); document.querySelector('#v-quiz button[data-o]').click(); });
+    await page.waitForTimeout(400);
+    const recs = p => page.evaluate(p => { const out = {}; for(let i = 0; i < localStorage.length; i++){ const k = localStorage.key(i);
+      if(k && k.startsWith(NS + ':pending:' + p + ':')) out[k] = localStorage.getItem(k); } return out; }, p);
+    const recA0 = await recs('A');
+    const countIn = r => Object.values(r).map(v => { try { return JSON.parse(v).db.answers.length; } catch(e){ return -1; } });
+    check(Object.keys(recA0).length === 1 && countIn(recA0)[0] === 1, "A's per-tab record holds A's one answer", JSON.stringify(countIn(recA0)));
+    await startAndPick(page);
+    await page.waitForTimeout(300);
+    await switchTo(page, 'B');
+    const recA1 = await recs('A'), recB = await recs('B');
+    check(JSON.stringify(recA1) === JSON.stringify(recA0), "the switch leaves A's per-tab record exactly as it was", '');
+    check(countIn(recB).every(n => n === 0), "no record under B holds an answer", JSON.stringify(countIn(recB)));
+    await switchTo(page, 'A');
+    // storage full from here: a pick under A is refused, then a switch to B and back
+    await page.evaluate(() => { window.__quota = true; });
+    const oi2 = await page.evaluate(() => { show('exam'); const b = document.querySelectorAll('#v-exam .opt')[1]; if(!b) return null; const oi = +b.dataset.o; b.click(); return oi; });
+    const refused = await page.evaluate(() => FAILED.has(NS + ':exam:A'));
+    check(oi2 !== null && refused, "with storage full, A's pick is refused and held on the page", JSON.stringify({oi2, refused}));
+    const recA2 = await recs('A');
+    await page.evaluate(() => { window.__name = 'B'; askProfile(true); show(VIEW); });
+    await page.waitForTimeout(300);
+    const onB = await examView(page);
+    check(!onB.running, 'with storage full, B has no paper after the switch', JSON.stringify(onB));
+    await page.evaluate(() => { window.__name = 'A'; askProfile(true); show(VIEW); });
+    await page.waitForTimeout(300);
+    const back = await page.evaluate(() => ({picks: EX && EX.picks, owner: EX && EX.owner}));
+    check(Array.isArray(back.picks) && back.picks[0] === oi2 && back.owner === 'A', "back on A, the refused pick is on A's paper", JSON.stringify({back, oi2}));
+    const recA3 = await recs('A');
+    check(JSON.stringify(recA3) === JSON.stringify(recA2) && Object.keys(recA3).length === 1,
+      "with storage full, A's per-tab record is never removed by the switches", JSON.stringify({before: Object.keys(recA2).length, after: Object.keys(recA3).length}));
+    await page.evaluate(() => { window.__quota = false; });
+    check(!errors.length, 'no page error in case 10', errors.join(' | '));
     await ctx.close();
   }
 
