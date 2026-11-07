@@ -31,12 +31,9 @@
 # PASS with at least one passed check printed after the browser it started (check_lib.js
 # launch) was the run's browser.
 #
-# Documented exclusions (check, the reason it must give, which courses, why):
-#   cite_check.py    "no lecture PDFs found"     every course   the lecture decks are kept
-#                                                               in Louis's Drive, never in
-#                                                               a repository
-#   stepper_test.js  "no step-through figures"   medicinal-     that course has no
-#                                                chemistry      step-through figures
+# Documented exclusions: core/ci_exclusions.sh lists them (cite_check.py without lecture
+# PDFs; stepper_test.js on medicinal-chemistry; and one case, the worksheets-ink PDF's size
+# in WebKit only). Any other NOT RUN, of a whole check or of one case, fails the run.
 set -euo pipefail
 kind="${1:?usage: core/ci_course.sh <template|template-unset|medicinal-chemistry|module:<name>|modules:<a>,<b>> [chromium|webkit]}"
 browser="${2:-chromium}"; browser="${browser,,}"
@@ -125,26 +122,13 @@ if [ -n "$logs" ] && [ -d "$logs" ]; then
     tail -n 25 "$f"
   done
 fi
-# every NOT RUN must be a documented exclusion with its documented reason
-allowed() {   # $1 check, $2 reason
-  case "$1" in
-    cite_check.py)   [[ "$2" == "no lecture PDFs found"* ]] ;;
-    stepper_test.js) [ "$kind" = medicinal-chemistry ] && [[ "$2" == "no step-through figures"* ]] ;;
-    *) return 1 ;;
-  esac
-}
-unexpected=0
-while IFS= read -r line; do
-  check="$(printf '%s' "$line" | sed -E 's/^NOT RUN +([^ ]+) +.*$/\1/')"
-  reason="$(printf '%s' "$line" | sed -E 's/^NOT RUN +[^ ]+ +//')"
-  if ! allowed "$check" "$reason"; then
-    [ $unexpected -eq 0 ] && echo && echo "---- NOT RUN that is not a documented exclusion ----"
-    echo "  $check: $reason"
-    unexpected=$((unexpected + 1))
-  fi
-done < <(grep -E '^NOT RUN +[^ ]+ ' "$work/checks.log" || true)
-if [ $unexpected -gt 0 ]; then
-  echo "FAIL: $unexpected check(s) did not run for a reason that is not a documented exclusion" >&2
+# every NOT RUN, of a check or of one case in a check, must be a documented exclusion with its
+# documented reason (core/ci_exclusions.sh)
+source "$kit/core/ci_exclusions.sh"
+unexpected_notruns "$work/checks.log" || true
+unexpected=$UNEXPECTED_NOTRUNS
+if [ "$unexpected" -gt 0 ]; then
+  echo "FAIL: $unexpected check(s) or case(s) did not run for a reason that is not a documented exclusion" >&2
   exit 1
 fi
 # A module course: each module switched on must have its own test (features/<name>/test.js)
@@ -167,6 +151,11 @@ if [ -n "${order:-}" ]; then
   done
   if [ $short -gt 0 ]; then
     echo "FAIL: $short module test(s) did not pass at least one check in $want" >&2
+    exit 1
+  fi
+  missing_required "$order" "$browser" "$logs" || true
+  if [ "$MISSING_REQUIRED" -gt 0 ]; then
+    echo "FAIL: $MISSING_REQUIRED required check(s) did not pass (core/ci_exclusions.sh REQUIRED_PASSES)" >&2
     exit 1
   fi
 fi
