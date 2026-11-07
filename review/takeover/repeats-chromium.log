@@ -1,0 +1,4 @@
+import_test_main.js: 10 pass, 0 fail of 10 (Chromium, /dev/shm/kit-ci-B73ahZ/course/index.html)
+import_test.js: 10 pass, 0 fail of 10 (Chromium, /dev/shm/kit-ci-B73ahZ/course/index.html)
+
+[exited with code 0]
