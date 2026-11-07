@@ -975,7 +975,6 @@ function restoreBackup(){
   }
   clearTimeout(saveTimer); saveTimer = null;
   SEEN = b.data;
-  pendingRetire();
   DB = db;
   try { fsFromHistory(); } catch(e){ FS_ERROR = String(e && e.message || e); }
   // a copy kept by "Use it here" may hold history entries that were never stored: they go into the
@@ -994,6 +993,9 @@ function restoreBackup(){
   }
   const kept = logIn ? withNow.filter(c => c !== b) : withNow;
   const listed = store.trySet(backupKey(PROFILE), JSON.stringify(kept));                                          // (3)
+  // the per-tab records are retired after the list is written: a record holding a module's part
+  // becomes one more copy on this list, and a list written after it would drop that copy (the review of #69, N1)
+  pendingRetire();
   alert('The progress from ' + dateOf(b.at) + ' is back. The progress that was on screen is kept as a copy' +
         (!logIn ? '; the copy just put back stays on the list too, because its answer history could not be added to this profile\'s history.' :
          listed ? '.' : '; the copy just put back is also still on the list (the browser refused to update it).'));
