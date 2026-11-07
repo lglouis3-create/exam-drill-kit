@@ -896,19 +896,23 @@ if(writerChan) writerChan.addEventListener('message', e => {
    progress is found by its last answer, compared field by field (never question and time alone),
    which also works once the oldest answers are cut at ANSWERS_MAX:
    - its last answer is in the stored progress, before the stored last answer: the stored
-     progress continued from it (later answers): nothing to add;
+     progress continued from it (later answers): nothing to add, unless the record holds a setting,
+     a mark or a module's part (moduleAhead) the stored progress does not show: then a copy;
    - it is the stored last answer, or the record has no answers: equal progress, nothing to add;
      different progress (a setting, a module's part): one more copy Import keeps (Put back);
    - its last answer is not stored: the save that was written over. If the stored last answer is
-     in the record (the record continues what is stored) and this tab has written and changed
-     nothing since it took the profile, the record becomes the progress; otherwise it is one more
-     copy Import keeps. Either way with a notice; nothing is mixed.
+     in the record (the record continues what is stored), this tab has written and changed
+     nothing since it took the profile, and the stored progress holds no module part the record
+     lacks or holds otherwise, the record becomes the progress; otherwise it is one more copy
+     Import keeps. Either way with a notice; nothing is mixed.
    The record's history entries that the stored history lacks are added to it; entries are
    compared on every field but the confidence one ("Not sure" changes that one later), and as
    many times as they occur, so two identical attempts stay two.
    Erase, Put back, an Import that replaces the progress and Delete the copies retire the other
    tabs' records of the profile (their content is older than what the student chose), so none of
-   them can bring back what was erased, put back, replaced or deleted.
+   them can bring back what was erased, put back, replaced or deleted. A retired record not yet
+   placed that holds a module's part the stored progress lacks becomes a copy, with its history
+   entries (retireToCopy), since nothing else would ever reach it.
    Cleanup: a record is removed only when what is stored, read back, holds it as above (in the
    progress or a copy, and every history entry), and only on a later check at least 60 s after
    that was first found, with the record unchanged in between; the first-found time is kept in
@@ -957,7 +961,7 @@ function dropOwnRecordIfStored(){
     if(raw === null || sv === null) return false;
     const old = JSON.parse(raw), st = JSON.parse(sv), have = storedLogEntries();
     const logIn = have !== null && missingEntries(Array.isArray(old.log) ? old.log.filter(Array.isArray) : [], have).length === 0;
-    if(!(old && old.db && Array.isArray(old.db.answers)) || placeOf(old, st) !== 'in' || !logIn) return false;
+    if(!(old && old.db && Array.isArray(old.db.answers)) || placeOf(old, st, true) !== 'in' || !logIn) return false;
     if(localStorage.getItem(k) !== raw) return false;
     localStorage.removeItem(k);
     recordOff(true);
@@ -978,20 +982,56 @@ function pendingMark(){ MARK = Date.now(); }
 function pendingRetire(){
   // nothing is deleted: a record seen now is older than what the student chose and is not placed
   // again while it stays as it is; a record that changes after this (a newer save of a leaving tab
-  // arriving late) is placed as usual, and is kept as a copy, since this tab has written since
+  // arriving late) is placed as usual, and is kept as a copy, since this tab has written since.
+  // A record not yet placed that holds a module's part the stored progress lacks (DB.ink, DB.eq)
+  // becomes a copy first (Put back, Delete the copies), since no screen reaches a retired record
+  // and the cleanup never removes it (the review of #69, M2)
   MARK = Date.now();
   try {
     const pre = NS + ':pending:' + PROFILE + ':', mine = myPendingKey();
-    const seen = readSeen();
+    const seen = readSeen(), keys = [];
     for(let i = 0; i < localStorage.length; i++){
       const k = localStorage.key(i);
-      if(!k || !k.startsWith(pre) || k === mine) continue;
+      if(k && k.startsWith(pre) && k !== mine) keys.push(k);
+    }
+    for(const k of keys){
       const raw = localStorage.getItem(k);
-      if(raw !== null && !(seen[k] && seen[k].fp === fpOf(raw))) seen[k] = {fp: fpOf(raw), t: Date.now(), done: true};
+      if(raw === null) continue;
+      const fp = fpOf(raw);
+      if(seen[k] && seen[k].fp === fp && seen[k].proven) continue;   // placed and proven: removed as usual
+      retireToCopy(k, raw);   // a copy when it fits; the record stays either way until proven
+      if(!(seen[k] && seen[k].fp === fp)) seen[k] = {fp, t: Date.now(), done: true};
     }
     writeSeen(seen);
     NEW_LOGS[PROFILE] = [];
   } catch(e){}
+}
+/* A retired record whose module part the stored progress lacks, not yet in a copy: one more copy,
+   with its history entries (Put back adds them). The record is never removed to make room: with the
+   copy refused, the record stays in storage, a notice says so, and a later check retries. Always false:
+   the record goes only after the usual proof and wait. */
+const RETIRE_NOTED = new Set();   // records whose refused copy this page has already reported
+function retireToCopy(k, raw){
+  let rec = null; try { rec = JSON.parse(raw); } catch(e){ return false; }
+  if(!(rec && rec.db && typeof rec.db === 'object' && Array.isArray(rec.db.answers))) return false;
+  let st = null; try { const v = storedNow(keyFor(PROFILE)); st = v ? JSON.parse(v) : null; } catch(e){ return false; }
+  if(!moduleAhead(rec.db, st)) return false;
+  const list = readCopiesList(), dbStr = JSON.stringify(rec.db);
+  if(list === null) return false;
+  if(list.some(c => c && c.data === dbStr)) return false;   // a copy holds it already: removed as usual once proven
+  const entries = Array.isArray(rec.log) ? rec.log.filter(Array.isArray) : [];
+  const entry = {at: rec.at || Date.now(), data: dbStr, why: 'another tab\'s last save'};
+  if(entries.length) entry.log = JSON.stringify(entries);
+  const bk = NS + ':backup:' + PROFILE, text = JSON.stringify(list.concat([entry]));
+  SETTLING = true;
+  let stored = false;
+  try { stored = store.trySet(bk, text); } finally { SETTLING = false; }
+  // the record is the only stored copy of that work: it is never removed to make room for the copy
+  // (Louis, 2026-11-06). Refused, it stays in storage as it is, and the next check with room (the drill
+  // opened or reloaded, copies deleted here, a take-over, a profile switch) makes it a copy; the record
+  // itself goes only once a check finds its copy stored, at least 60 s after it was first seen.
+  if(!stored && !RETIRE_NOTED.has(k + ' ' + fpOf(raw)) && RETIRE_NOTED.add(k + ' ' + fpOf(raw))) pendingNotice('A tab of this profile that closed or reloaded saved work (writing or an equation drill) that is not in this profile\'s progress. The browser refused to store a copy of it (storage is full or blocked), so Settings cannot put it back yet, and Export progress does not include it. It stays stored in this browser as it is. It becomes a copy, under Settings, "Put back the progress from …", the next time this drill opens or copies are deleted here while there is room; deleting copies you do not need makes room.');
+  return false;
 }
 // a record's fingerprint: its length and two hashes over every character (a changed record differs)
 const fpOf = raw => { let h1 = 0, h2 = 5381; for(let i = 0; i < raw.length; i++){ const c = raw.charCodeAt(i); h1 = (h1 * 31 + c) | 0; h2 = ((h2 << 5) + h2 + c) | 0; } return raw.length + ':' + h1 + ':' + h2; };
@@ -1022,7 +1062,11 @@ function settlePending(){
   for(const r of recs){
     try {
       const prev = seen[r.k];
-      if(prev && prev.fp === fpOf(r.raw) && prev.done){ pendingDone(r.k, r.raw, r.rec, true); continue; }   // handled before, unchanged
+      if(prev && prev.fp === fpOf(r.raw) && prev.done){
+        // retired before it was placed, with a module part a full storage kept out of a copy: tried again
+        if(!prev.proven && retireToCopy(r.k, r.raw)){ const sv = readSeen(); delete sv[r.k]; writeSeen(sv); continue; }
+        pendingDone(r.k, r.raw, r.rec, true); continue;   // handled before, unchanged
+      }
       settleOne(r.k, r.raw, r.rec);
     } catch(e){ console.error('A tab\'s pending record could not be checked; it is left as it is.', e); }
   }
@@ -1039,13 +1083,31 @@ function missingEntries(entries, have){
 function readCopiesList(){
   try { const v = storedNow(NS + ':backup:' + PROFILE); const l = v ? JSON.parse(v) : []; return Array.isArray(l) ? l : [l]; } catch(e){ return null; }
 }
+/* A module's part of the progress (worksheets-ink's DB.ink, equation-drill's DB.eq, any key
+   outside the core's own parts: views.js NOT_COMPARED and ENTRY_MAPS, as Import decides) that the
+   record holds and the stored progress does not hold the same. A module changes its part without
+   an answer, so answers the stored progress went on from do not show that it holds the record's
+   part (the review of kit #66, 2026-11-06: such a record was removed and the part lost). */
+function moduleAhead(db, st){
+  // the same parts, emptiness and key-order-free comparison Import uses (views.js, in this page's script)
+  return Object.keys(db).some(k => !NOT_COMPARED.includes(k) && !(k in ENTRY_MAPS) && !isEmptyPart(db[k]) && canon(db[k]) !== canon(st ? st[k] : undefined));
+}
 /* Where the record stands against what is stored: 'in', 'conflict' (same point, other progress),
-   'continues' (its last answer missing; the record holds the stored last answer) or 'apart'. */
-function placeOf(rec, st){
+   'continues' (its last answer missing; the record holds the stored last answer) or 'apart'.
+   own: this tab's own record, whose stored progress is this tab's own later write (a module part
+   it changed since is newer there), checked by dropOwnRecordIfStored. */
+function placeOf(rec, st, own){
   const pAns = rec.db.answers, sAns = st && Array.isArray(st.answers) ? st.answers : [];
   const dbStr = JSON.stringify(rec.db), stStr = st ? JSON.stringify(st) : null;
   if(dbStr === stStr) return 'in';
-  if(!pAns.length) return sAns.length && !rec.mark ? 'in' : 'conflict';
+  const ahead = !own && moduleAhead(rec.db, st);
+  const ownSettings = JSON.stringify(rec.db.settings || {}) !== JSON.stringify((st && st.settings) || {});
+  // no answers: held only when it carries nothing of its own (no mark, module part or setting the
+  // stored progress lacks); a setting of its own makes it a copy, as behind the stored answers
+  if(!pAns.length){
+    if(!sAns.length || rec.mark || ahead) return 'conflict';
+    return ownSettings && !own ? 'apart' : 'in';
+  }
   const last = answerSign(pAns[pAns.length - 1]);
   let idx = -1;
   for(let i = sAns.length - 1; i >= 0; i--) if(answerSign(sAns[i]) === last){ idx = i; break; }
@@ -1054,7 +1116,7 @@ function placeOf(rec, st){
     // the stored progress went on from the record's last answer: nothing to add, unless the record
     // carries a choice of its own the later progress does not show (a setting; Erase, Put back or
     // a replacing Import in that tab), which is then kept as a copy
-    if(rec.mark || JSON.stringify(rec.db.settings || {}) !== JSON.stringify((st && st.settings) || {})) return 'apart';
+    if(rec.mark || ahead || ownSettings) return 'apart';
     return 'in';
   }
   if(!sAns.length) return 'continues';
@@ -1081,7 +1143,9 @@ function settleOne(k, raw, rec){
   try { const v = storedNow(keyFor(PROFILE)); st = v ? JSON.parse(v) : null; } catch(e){ return; }
   const place = placeOf(rec, st), dbStr = JSON.stringify(rec.db);
   const unchangedHere = !WROTE_SINCE_CLAIM && JSON.stringify(DB) === (SEEN === null ? LOADED_DB : SEEN) && !FAILED.has(keyFor(PROFILE));
-  if(place === 'continues' && unchangedHere){
+  // the record replaces the stored progress only when that loses no module part the stored progress
+  // holds (a tab that changed DB.eq without an answer; the review of #69): otherwise it is a copy
+  if(place === 'continues' && unchangedHere && !moduleAhead(st || {}, rec.db)){
     SETTLING = true;
     let ok = false;
     try { ok = store.trySet(keyFor(PROFILE), dbStr); } finally { SETTLING = false; }
@@ -1111,8 +1175,11 @@ function pendingDone(k, raw, rec, handled){
   // removed only with proof that its content is stored (in the progress or a copy); "handled" only
   // stops it being placed again, it is never a reason to remove it (the review of c9254dc)
   const progressIn = place === 'in' || (list !== null && list.some(c => c && c.data === dbStr));
-  const have = storedLogEntries();
-  const logIn = have !== null && missingEntries(Array.isArray(rec.log) ? rec.log.filter(Array.isArray) : [], have).length === 0;
+  const have = storedLogEntries(), entries = Array.isArray(rec.log) ? rec.log.filter(Array.isArray) : [];
+  // its history entries are in the history, or in the copy that holds its progress (a retired
+  // record's copy carries them, and Put back adds them: retireToCopy)
+  const logIn = (have !== null && missingEntries(entries, have).length === 0) ||
+    (entries.length > 0 && list !== null && list.some(c => c && c.data === dbStr && c.log === JSON.stringify(entries)));
   const seen = readSeen();
   const fp = fpOf(raw), prev = seen[k];
   // once proven stored, the proof stands for that exact record (this tab's later writes move the
@@ -1739,10 +1806,16 @@ function useProfile(n){
       if(!confirm('Switch to "' + n + '" now?')) return;
     }
   }
+  // the paper and quiz session on screen belong to the profile being left (views.js parkSession)
+  const from = PROFILE, moving = !!from && n !== from;
+  // a step that throws still leaves no session of the profile being left on the page
+  const dropSession = () => { try { if(typeof EX !== 'undefined' && EX){ clearInterval(EX.timer); EX = null; } } catch(e){} try { if(typeof Q !== 'undefined') Q = null; } catch(e){} };
+  if(moving){ try { if(typeof parkSession === 'function') parkSession(from); else dropSession(); } catch(e){ dropSession(); } }
   PROFILE = n;
   store.set(NS+':profile', PROFILE);
   load();
   claimProfile(PROFILE);
+  if(moving){ try { if(typeof resumeSession === 'function') resumeSession(n); } catch(e){ dropSession(); } }
   try { refreshSaveWarn(); } catch(e){}   // its text names this profile's or another profile's refused work
   const who = document.getElementById('whoName');
   if(who) who.textContent = PROFILE;
