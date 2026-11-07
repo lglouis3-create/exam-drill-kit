@@ -1,0 +1,316 @@
+{
+  "about": "The coordinator's course records: the full academic schedule each course follows (known to the coordinator) and, per exam, its release status (what students may see). Only facts already public in the course repositories or given by Louis go here: no scores, study history, credentials or unpublished lecture material. Edited by coordinator runs in bookkeeping pull requests; coordinator/README.md explains each field.",
+  "kitRepo": "lglouis3-create/exam-drill-kit",
+  "timezone": "America/Chicago",
+  "defaults": {
+    "approachDays": 7,
+    "recentDays": 21,
+    "archiveDays": 365
+  },
+  "cadence": {
+    "exam-approaching": {
+      "everyDays": 1,
+      "priority": 5,
+      "focus": "current exam coverage, stability, missing material, regressions; no major redesign before the exam"
+    },
+    "active": {
+      "everyDays": 1,
+      "priority": 4,
+      "focus": "meaningful new changes, open technical and teaching issues, readiness for upcoming material"
+    },
+    "recently-completed": {
+      "everyDays": 7,
+      "priority": 3,
+      "focus": "retrospective, exam feedback, reusable improvements"
+    },
+    "completed": {
+      "everyDays": 30,
+      "deepEveryDays": 91,
+      "priority": 2,
+      "focus": "light maintenance and compatibility; a deeper cross-course comparison and usability audit each quarter"
+    },
+    "archived": {
+      "everyDays": null,
+      "priority": 1,
+      "focus": "checks only when the repository changes; essential maintenance"
+    }
+  },
+  "courses": [
+    {
+      "id": "deent",
+      "code": "PHAR 4346",
+      "name": "DEENT",
+      "term": "Fall 2026",
+      "repo": "lglouis3-create/DEENT",
+      "site": "https://lglouis3-create.github.io/DEENT/",
+      "pagesBranch": "main",
+      "siteKind": "kit",
+      "courseFile": "src/course.js",
+      "workingBranch": "claude/jolly-bell-k7ur5m",
+      "counts": [
+        {
+          "what": "questions",
+          "value": 509,
+          "where": "published",
+          "ref": "main b2c2523",
+          "source": "BUILD.questions in index.html and preview/index.html on main (the Pages branch), read 2026-11-06; Pages deploy of b2c2523 completed with success 2026-11-05T06:16:54Z"
+        },
+        {
+          "what": "questions",
+          "value": 555,
+          "where": "unreleased",
+          "ref": "claude/jolly-bell-k7ur5m 2f12d74",
+          "source": "BUILD.questions in index.html and preview/index.html on the working branch (the repository's default branch, 16 commits ahead of main), read 2026-11-06; waiting for Louis's approval"
+        }
+      ],
+      "kitUpdate": {
+        "previews": "paused",
+        "since": "2026-11-06",
+        "reason": "DEENT's own release (Atlas, the sun-exposure lecture, reading links) waits for Louis on the working branch claude/jolly-bell-k7ur5m with its own preview/; a kit-update preview built from main would leave that work out and collide with that preview",
+        "liftWhen": "after the pending DEENT release is resolved (released or set aside by Louis): verify the approved course baseline on main (its head, BUILD.questions and Pages deploy) and that no pending preview on main or on the working branch would be overwritten; then a kit session sets previews to \"active\" in a bookkeeping pull request, and the next kit-update run prepares a separate kit-update preview",
+        "source": "Louis, 2026-11-06, in the Kit updater session"
+      },
+      "schedule": {
+        "exams": [
+          {
+            "id": "exam1",
+            "name": "Exam 1",
+            "date": "2026-11-09",
+            "start": "09:00",
+            "minutes": 90,
+            "siteId": "exam1",
+            "status": "published",
+            "source": "DEENT src/course.js exams[0] ('Mon 11/09, 9:00–10:30 AM') and DEENT syllabus SyllabusF26---PHAR-4346---PT-III-DEENT.pdf, 'Tentative exam dates' table, as recorded in DEENT reviews/COURSE_STATUS.json at 3ce3c20 (read 2026-11-06); dates also from Louis, 2026-11-06",
+            "coverage": "Lectures 1-4",
+            "cumulative": null,
+            "questions": 50
+          },
+          {
+            "id": "exam2",
+            "name": "Exam 2",
+            "date": "2026-11-16",
+            "start": "09:00",
+            "minutes": 90,
+            "siteId": null,
+            "status": "planned",
+            "source": "DEENT syllabus SyllabusF26---PHAR-4346---PT-III-DEENT.pdf, 'Tentative exam dates' table, as recorded in DEENT reviews/COURSE_STATUS.json at 3ce3c20 (read 2026-11-06); dates also from Louis, 2026-11-06",
+            "coverage": "Lectures 1-4 (30%), Lectures 5-8 (70%)",
+            "cumulative": true,
+            "questions": 50
+          },
+          {
+            "id": "exam3",
+            "name": "Exam 3",
+            "date": "2026-11-23",
+            "start": "09:00",
+            "minutes": 90,
+            "siteId": null,
+            "status": "planned",
+            "source": "DEENT syllabus SyllabusF26---PHAR-4346---PT-III-DEENT.pdf, 'Tentative exam dates' table, as recorded in DEENT reviews/COURSE_STATUS.json at 3ce3c20 (read 2026-11-06); dates also from Louis, 2026-11-06",
+            "coverage": "Lectures 9-13",
+            "cumulative": null,
+            "questions": 50
+          },
+          {
+            "id": "final",
+            "name": "Final Exam",
+            "date": "2026-12-07",
+            "start": "09:00",
+            "minutes": 90,
+            "siteId": null,
+            "status": "planned",
+            "final": true,
+            "cumulative": true,
+            "source": "DEENT syllabus SyllabusF26---PHAR-4346---PT-III-DEENT.pdf, 'Tentative exam dates' table, as recorded in DEENT reviews/COURSE_STATUS.json at 3ce3c20 (read 2026-11-06); dates also from Louis, 2026-11-06",
+            "coverage": "Lectures 14-18 (50%), prior material (50%)",
+            "questions": 60
+          }
+        ],
+        "uncertain": "the syllabus calls these dates tentative and subject to change"
+      },
+      "inDevelopment": [
+        "Exam 1: Atlas refinement and the sun-exposure lecture wait on the working branch claude/jolly-bell-k7ur5m for Louis's approval (DEENT CLAUDE.md, 2026-11-06); read 2026-11-06: 16 commits ahead of main and 3 behind (GitHub compare), which Pages last deployed at b2c2523; not authorization to deploy",
+        "Kit pin 25c643d, 32 core commits behind the kit's main (read 2026-11-06): an update goes through the Kit update run's preview and Louis's 'approve updates for DEENT'; this record authorizes no update",
+        "Exam 1: Dr. Sikazwe's list of slides to avoid, promised by 11/06 (reminder task set)"
+      ],
+      "override": null
+    },
+    {
+      "id": "medicinal-chemistry",
+      "code": "PHAR 4342",
+      "name": "Intro to Medicinal Chemistry",
+      "term": "Fall 2026",
+      "repo": "lglouis3-create/Medicinal-chemistry",
+      "site": "https://lglouis3-create.github.io/Medicinal-chemistry/",
+      "pagesBranch": "main",
+      "siteKind": "kit",
+      "courseFile": "src/course.js",
+      "schedule": {
+        "uncertain": "only the cumulative final is recorded; the earlier exams' dates are not in the repository",
+        "exams": [
+          {
+            "id": "final",
+            "name": "Exam 4 (cumulative final)",
+            "date": "2026-09-21",
+            "start": "09:00",
+            "minutes": 75,
+            "siteId": "final",
+            "status": "published",
+            "final": true,
+            "cumulative": true,
+            "source": "Medicinal-chemistry src/course.js exams[0] ('Mon 9/21, 9:00–10:15 am')"
+          }
+        ]
+      },
+      "inDevelopment": [],
+      "override": null
+    },
+    {
+      "id": "pharmacokinetics",
+      "code": "PHAR 4221",
+      "name": "Basic Pharmacokinetics",
+      "term": "Fall 2026",
+      "repo": "lglouis3-create/Basic-Pharmacokinetics-",
+      "site": "https://lglouis3-create.github.io/Basic-Pharmacokinetics-/",
+      "pagesBranch": "main",
+      "siteKind": "own",
+      "courseFile": "src/course.js",
+      "schedule": {
+        "exams": [
+          {
+            "id": "exam1",
+            "name": "Exam 1",
+            "date": "2026-09-11",
+            "start": "10:00",
+            "minutes": 120,
+            "siteId": "1",
+            "status": "published",
+            "source": "Basic-Pharmacokinetics- src/course.js exams (syllabus)"
+          },
+          {
+            "id": "exam2",
+            "name": "Exam 2",
+            "date": "2026-10-08",
+            "start": "07:50",
+            "minutes": 120,
+            "siteId": "2",
+            "status": "published",
+            "source": "Basic-Pharmacokinetics- src/course.js exams (syllabus)"
+          },
+          {
+            "id": "exam3",
+            "name": "Exam 3 (final)",
+            "date": "2026-10-27",
+            "start": "08:00",
+            "minutes": 120,
+            "siteId": "3",
+            "status": "published",
+            "final": true,
+            "source": "Basic-Pharmacokinetics- src/course.js exams (the professor's announcement of 10/26)"
+          }
+        ]
+      },
+      "inDevelopment": [],
+      "override": null
+    },
+    {
+      "id": "intro-pharmacology",
+      "code": "PHAR 4344",
+      "name": "Introduction to Pharmacology",
+      "term": "Fall 2026",
+      "repo": "lglouis3-create/Intro-Pharmacology-",
+      "site": "https://lglouis3-create.github.io/Intro-Pharmacology-",
+      "pagesBranch": "main",
+      "siteKind": "own",
+      "courseFile": "exam1-drill/src/course.js",
+      "schedule": {
+        "uncertain": "whether the course has an exam after Exam 4 has not been checked against the syllabus",
+        "exams": [
+          {
+            "id": "exam1",
+            "name": "Exam 1",
+            "date": "2026-10-02",
+            "start": "09:00",
+            "minutes": 120,
+            "siteId": "1",
+            "status": "published",
+            "source": "Intro-Pharmacology- exam1-drill/src/course.js exams (syllabus)"
+          },
+          {
+            "id": "exam2",
+            "name": "Exam 2",
+            "date": "2026-10-12",
+            "start": "08:30",
+            "minutes": 120,
+            "siteId": "2",
+            "status": "published",
+            "source": "Intro-Pharmacology- exam1-drill/src/course.js exams (syllabus)"
+          },
+          {
+            "id": "exam3",
+            "name": "Exam 3",
+            "date": "2026-10-23",
+            "start": "09:00",
+            "minutes": 120,
+            "siteId": "3",
+            "status": "published",
+            "source": "Intro-Pharmacology- exam1-drill/src/course.js exams (the professor in class, 10/22)"
+          },
+          {
+            "id": "exam4",
+            "name": "Exam 4",
+            "date": "2026-11-02",
+            "start": "08:30",
+            "minutes": 120,
+            "siteId": "4",
+            "status": "published",
+            "source": "Intro-Pharmacology- exam1-drill/src/course.js exams (syllabus)"
+          }
+        ]
+      },
+      "inDevelopment": [],
+      "override": null
+    },
+    {
+      "id": "bdk",
+      "code": "PHAR 4232",
+      "name": "APC III, Basic Drug Knowledge quizzes",
+      "term": "Fall 2026",
+      "repo": "lglouis3-create/BDK",
+      "site": "https://lglouis3-create.github.io/BDK/",
+      "pagesBranch": "main",
+      "siteKind": "own",
+      "courseFile": "assets/app.js",
+      "schedule": {
+        "uncertain": "quiz times are not recorded; earlier quizzes (Weeks 2-11) are in BDK assets/app.js QUIZZES and have passed",
+        "exams": [
+          {
+            "id": "week14",
+            "name": "Week 14 quiz (pages 5, 9)",
+            "date": "2026-11-17",
+            "endDate": "2026-11-19",
+            "start": null,
+            "minutes": null,
+            "siteId": "Week 14",
+            "status": "published",
+            "source": "BDK assets/app.js QUIZZES (course syllabus)"
+          },
+          {
+            "id": "cumulative",
+            "name": "Cumulative BDK/Calcs Assessment",
+            "date": "2026-11-30",
+            "start": null,
+            "minutes": null,
+            "siteId": "Cumulative",
+            "status": "published",
+            "final": true,
+            "cumulative": true,
+            "source": "BDK assets/app.js QUIZZES (course syllabus)"
+          }
+        ]
+      },
+      "inDevelopment": [],
+      "override": null
+    }
+  ]
+}

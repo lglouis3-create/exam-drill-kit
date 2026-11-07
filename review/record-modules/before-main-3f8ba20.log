@@ -1,0 +1,40 @@
+# core/record_modules_test.js on main 3f8ba20's core (template course, Chromium, 2026-11-06T17:17:15Z)
+  browser  Chromium started
+  ok    the stored progress has 3 answers and no module part
+  FAIL  a record 1 answer behind with DB.ink the stored progress lacks is not placed as "in"; its progress stays (kept or a copy) after the 60 s check  — {"where":"in","kept":false,"inCopy":false,"copies":0}
+  FAIL  a record 1 answer behind with DB.eq the stored progress lacks is not placed as "in"; its progress stays (kept or a copy) after the 60 s check  — {"where":"in","kept":false,"inCopy":false,"copies":0}
+  FAIL  a record 1 answer behind with DB.anyModule the stored progress lacks is not placed as "in"; its progress stays (kept or a copy) after the 60 s check  — {"where":"in","kept":false,"inCopy":false,"copies":0}
+  FAIL  a record behind with other DB.ink than the stored one is not placed as "in"; its writing stays  — {"where":"in","kept":false,"inCopy":false,"copies":0}
+  FAIL  a record with no answers and DB.eq, against stored answers, is not placed as "in"; its records stay  — {"where":"in","kept":false,"inCopy":false,"copies":0}
+  FAIL  a record with no answers and other settings, against stored answers, is kept as a copy ("apart")  — {"stored":3,"where":"in","kept":false,"inCopy":false,"copies":0}
+  ok    a record with the stored answers and its own DB.ink is kept as a copy
+  ok    control: a record behind whose module part the stored progress holds unchanged is placed as "in" and removed after the 60 s check, as before
+  ok    control: a record behind that differs only in a setting is kept as a copy, as before
+  ok    control: a record behind that lacks a module part the stored progress holds is placed as "in", as before
+  ok    control: this tab's own record is still removed under a full storage when the stored progress continues it
+  ok    the page's record holds its DB.ink after its save
+  FAIL  after a reload, the closed page's writing (DB.ink) is still in the browser: in the progress, its record or a copy  — {"stored":4,"storedInk":false,"recordLeft":false,"copyInk":false}
+  ok    no page errors in the reload case
+  ok    a record behind with the stored DB.ink in another key order is placed as "in" and removed
+  ok    a record behind with an empty module part (DB.eq = {}) is placed as "in" and removed, as before
+  ok    a record behind with an empty module part (DB.eq = []) is placed as "in" and removed, as before
+  ok    a record behind with an empty module part (DB.eq = null) is placed as "in" and removed, as before
+  ok    a record behind with an empty module part (DB.eq = 0) is placed as "in" and removed, as before
+  ok    the later record continues the stored answers, on a page that has written nothing
+  FAIL  a later record without DB.eq does not take away the stored DB.eq: it stays in the progress or a copy  — {"where":"continues","unchanged":true,"storedEq":false,"storedAnswers":5,"laterInCopy":false,"copyEq":false}
+  FAIL  the stored progress (with DB.eq) stays, and the later record is kept as a copy  — {"where":"continues","unchanged":true,"storedEq":false,"storedAnswers":5,"laterInCopy":false,"copyEq":false}
+  ok    no page errors (continues)
+  FAIL  a record of another profile, placed on switching to it, keeps its DB.ink (kept or a copy)  — {"profile":"Second","writer":"held","kept":false,"copyInk":false}
+  FAIL  Delete the copies meeting a record not yet placed with DB.ink: the record becomes a copy, with its history entries  — {"kept":true,"copies":0,"copyInk":false,"copyLog":false}
+  FAIL  that record is removed once its copy is stored and the wait has passed  — {"kept":true,"copies":0,"copyInk":false,"copyLog":false}
+  FAIL  Erase meeting a record not yet placed with DB.ink: the record becomes a copy  — {"kept":true,"copies":0,"copyInk":false,"copyLog":false}
+  ok    the filler leaves too little room for the copy beside the record (the copy alone is refused)
+  FAIL  storage full (real quota filler): retire removes the record first and its copy, with DB.ink, takes the room it freed  — {"r3":{"kept":true,"copies":0,"copyInk":false,"copyLog":false},"fill":{"record":450485,"copy":452155,"margin":5658,"refusedAlongside":true},"sizes":{"rec":450485}}
+  ok    the record that could not become a copy is marked as retired (the mark fits)
+  FAIL  storage full, the copy larger than the room the record frees: the record is written back, and stays through later checks while storage is full  — {"kept":false,"copies":0,"copyInk":false,"copyLog":false}
+  FAIL  once there is room, a later check makes that record a copy  — {"kept":false,"copies":0,"copyInk":false,"copyLog":false}
+  FAIL  every write refused: the copy is kept on this page for this visit and the "did not save" notice shows  — {"recordGone":false,"onPage":false,"notice":false}
+  ok    no page errors (retire)
+  ok    no page errors
+FAIL: record_modules_test.js: 17 of 36 checks failed: a record 1 answer behind with DB.ink the stored progress lacks is not placed as "in"; its progress stays (kept or a copy) after the 60 s check; a record 1 answer behind with DB.eq the stored progress lacks is not placed as "in"; its progress stays (kept or a copy) after the 60 s check; a record 1 answer behind with DB.anyModule the stored progress lacks is not placed as "in"; its progress stays (kept or a copy) after the 60 s check …
+exit 1

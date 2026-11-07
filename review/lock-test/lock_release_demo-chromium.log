@@ -1,0 +1,7 @@
+# node review/lock-test/lock_release_demo.js core 30, Chromium, page built from this branch's second head (base 3f8ba20, template course), 2026-11-06T16:58:44Z
+  browser  Chromium started
+as is (Chromium): the old immediate request found the lock still held in 0 of 30 switches
+later (Chromium): old check (one immediate request): FAILS (free: false)
+later (Chromium): new check (wait for the release until 2000 ms have passed): passes {"free":true,"ms":310}
+never (Chromium): old check (one immediate request): FAILS (free: false)
+never (Chromium): new check (wait for the release until 2000 ms have passed): FAILS {"free":false,"ms":2005,"held":1}
