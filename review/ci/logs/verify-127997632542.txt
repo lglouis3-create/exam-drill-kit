@@ -1,0 +1,8 @@
+2026-11-06T16:03:06.4153353Z ##[group]Run echo "verification only: this first attempt is held past its limit"; sleep 120
+2026-11-06T16:03:06.4430369Z verification only: this first attempt is held past its limit
+2026-11-06T16:04:18.9195536Z ##[error]The action 'Playwright 1.63.0, WebKit and pdfplumber 0.11.10' has timed out after 1 minutes.
+2026-11-06T16:04:18.9336405Z verification only: this second attempt is held past its limit too
+2026-11-06T16:05:31.4263095Z ##[error]The action 'Playwright 1.63.0, WebKit and pdfplumber 0.11.10 (second attempt, after the first failed or passed 6 minutes)' has timed out after 1 minutes.
+2026-11-06T16:05:31.4309591Z ##[group]Run echo "NOT RUN: the install of Playwright, WebKit and pdfplumber failed or passed 6 minutes twice; no check ran (an install failure, not a test failure)" | tee -a "$GITHUB_STEP_SUMMARY"
+2026-11-06T16:05:31.4400914Z NOT RUN: the install of Playwright, WebKit and pdfplumber failed or passed 6 minutes twice; no check ran (an install failure, not a test failure)
+2026-11-06T16:05:31.4404578Z ##[error]Process completed with exit code 1.

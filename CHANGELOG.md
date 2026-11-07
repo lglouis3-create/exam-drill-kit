@@ -2,6 +2,47 @@
 
 Dated kit changes, newest first.
 
+## 2026-11-06 (WebKit install)
+- In the WebKit jobs the install of Playwright, WebKit and pdfplumber has its own limit of 6 minutes, apart from the checks' 30. After any failure of the first attempt, an error or running longer than 6 minutes, the install is tried once more. Before that second attempt, any process the first left behind is stopped (including dpkg and the Playwright CLI's node child), apt waits up to 120 s for a dpkg lock, an interrupted dpkg run is finished, a line is written to the job summary, and the mirror list is printed; if the list names hosts other than `azure.archive.ubuntu.com`, that host is left out. A second failure fails the job through a step named "NOT RUN: the WebKit install failed twice, so no check ran". The checks are never retried. Diagnosis: `review/ci/webkit-install-2026-11-06.md`.
+
+## 2026-11-06 (records)
+- A tab's last save (the per-tab record) keeps a feature module's part of the progress: worksheets-ink's `DB.ink`, equation-drill's `DB.eq`, or any key outside the core's own parts, as Import decides.
+  - **A record behind the stored progress, or with no answers:** if it holds a module part that the stored progress does not hold the same, it becomes a copy (Settings, "Put back the progress from …"). Before, only the settings were compared, and the record was removed 60 s later.
+  - **A record with no answers whose settings differ from the stored ones:** kept as a copy ("apart"), as the settings-only case behind the stored answers already was. Before, it was taken as stored and removed.
+  - **A later record that continues the stored answers:** it no longer replaces a progress whose module part it lacks; it becomes a copy instead.
+  - **A record not yet placed, met by Erase, Put back, a replacing Import or Delete the copies:** if it holds a module part the stored progress lacks, it becomes a copy with its history entries. Under a full storage the record, the only stored copy of that work, is never removed to make room: it stays in storage, a notice says it is not yet a copy Settings can put back, and a later check makes the copy once there is room (Louis, 2026-11-06). With every write refused, the record is still in storage after a reload.
+  - **This tab's own record under a full storage:** still removed when the stored progress continues it (`placeOf` `own`).
+  - **Put back:** the per-tab records are retired after Put back writes its copy list, so a record's module part kept as a copy stays on that list, with storage full or not (the review of #69, N1). Before, Put back's own list write dropped that copy, and with storage full the record had already been removed: the module part was lost.
+- New check `core/record_modules_test.js`. On main 3f8ba20 it fails 17 of 36 checks (`review/record-modules/before-main-3f8ba20.log`). The Put back checks fail 3 of 43 on adbcb82 (`review/record-modules/before-putback-fix-adbcb82.log`) and pass 43 of 43 with this change (`after-putback-fix.log`).
+- equation-drill and worksheets-ink stay off in every course until this merges (Louis, 2026-11-06).
+
+## 2026-11-06 (checks)
+- `import_test.js` section A, a writer that leaves without handing over (task 56): the next tab's take-over waits for the leaving tab's writer lock, and in WebKit job 128009951139 that lock was still held 20 s after the page closed, so the single 20 s wait found the take-over still waiting and the answer recorded next was not stored. `tookOver` now waits on the real condition in two bounded parts: the lock free of every holder but this tab within 60 s, then the take-over finished within 6 s, the core's own 5 s deadline plus a margin. A lock never freed, or a take-over that does not finish once the lock is free, still fails, with what was seen. No core change (`review/takeover/`).
+- `import_test.js` "a profile switch frees the old profile's lock": the second tab now asks for the lock until it is granted or 2000 ms have passed, instead of once straight after the switch. The page frees the lock by resolving its lock callback's promise and the browser frees it after that; the lock was still held at the single request in job 127949917972. Before the switch the check now confirms that the second tab is read-only and that the browser lists exactly one held lock under the name it waits on, so a wrong lock name on either side fails it. A lock still held after 2000 ms fails the check and says how many holders remain (`review/lock-test/`).
+- A check can report one case as NOT RUN (`check_lib.js` `notRunCase`). It is counted apart from passes and skips, named in the check's summary, and listed by `run_checks.sh`. `ci_course.sh` accepts exactly one such case, listed in `core/ci_exclusions.sh`: the worksheets-ink PDF's size in WebKit (Louis, 2026-11-06). Any other NOT RUN case, and the same case in Chromium, fails the run. When worksheets-ink is on, its PDF check (Chromium) and its four print-layout checks (Chromium and WebKit) must each appear as a passing line in its log (`REQUIRED_PASSES`; `notruncase_test.js`).
+
+## 2026-11-06
+- A running exam paper, quiz session or targeted review now belongs to the profile that started it. Before, a profile switch left it on screen: the next profile saw the paper and its picks, a pick saved it under the next profile, and submitting it, or its clock running out, recorded the answers in the next profile's history. A switch now saves the paper under its own profile and puts it and the quiz session away; switching back brings both back as they were. A paper is submitted at most once. A reload brings the quiz place back only for the profile it was saved under, so a reload after another tab switched the profile does not carry the question over; that place record (per tab, sessionStorage) now names its profile (`ownership_test.js`). No progress, history or paper format changes.
+- The improvement coordinator (`coordinator/`):
+  - records each course's whole exam schedule apart from what its site has released;
+  - classifies each course's lifecycle from that schedule in America/Chicago;
+  - plans reviews by lifecycle and by what changed since the last reviewed commit;
+  - checks that a site lists only released exams;
+  - keeps an improvement registry;
+  - shows "Show my Exam Drill Dashboard" in Claude Code (`.claude/skills/exam-drill-dashboard/`).
+
+  `coordinator/coord_test.js` runs in Kit checks. DEENT is registered in `COURSES.md` and
+  `coordinator/courses.json`, with its published and unreleased question counts labelled by
+  branch.
+- The coordinator reads a course file as text and never runs it. It reads the release state at the commit GitHub Pages last deployed, or says the live revision is unknown. Credentials are removed from every shown or cached error. Approvals come from an "Approval:" line in each pull request. A final exam with no date no longer stops it.
+- The kit-update run reads each course from the branch Pages serves (`pagesBranch`), never
+  the default branch, and skips the kit-update preview of a course whose `kitUpdate` is
+  paused while keeping its read-only checks (`coord.js kitupdate`). DEENT is paused until
+  its pending release is resolved (Louis, 2026-11-06).
+- A coordinator run records improvements and prepares none, and writes a retrospective only
+  when Louis asks; preparing improvements and automatic retrospectives are a separate
+  proposal.
+
 ## 2026-11-05
 - The answer history is no longer cut silently at 20,000 entries: past it a notice offers Export progress and a removal of the oldest entries that names how many and their dates and needs an OK; until then new entries go on being added (`cap_test.js`).
 - Study progress first when storage is full: while a progress write is refused, the answer history is held (on the page, named in the notice, in Export) and written after the next progress save; this tab's own per-tab record, proven stored, is removed to make room and the progress write tried once more.
