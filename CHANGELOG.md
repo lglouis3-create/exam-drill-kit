@@ -2,6 +2,9 @@
 
 Dated kit changes, newest first.
 
+## 2026-11-06 (WebKit install)
+- In the WebKit jobs the install of Playwright, WebKit and pdfplumber has its own limit of 6 minutes, apart from the checks' 30. After any failure of the first attempt, an error or running longer than 6 minutes, the install is tried once more. Before that second attempt, any process the first left behind is stopped (including dpkg and the Playwright CLI's node child), apt waits up to 120 s for a dpkg lock, an interrupted dpkg run is finished, a line is written to the job summary, and the mirror list is printed; if the list names hosts other than `azure.archive.ubuntu.com`, that host is left out. A second failure fails the job through a step named "NOT RUN: the WebKit install failed twice, so no check ran". The checks are never retried. Diagnosis: `review/ci/webkit-install-2026-11-06.md`.
+
 ## 2026-11-06 (records)
 - A tab's last save (the per-tab record) keeps a feature module's part of the progress: worksheets-ink's `DB.ink`, equation-drill's `DB.eq`, or any key outside the core's own parts, as Import decides.
   - **A record behind the stored progress, or with no answers:** if it holds a module part that the stored progress does not hold the same, it becomes a copy (Settings, "Put back the progress from …"). Before, only the settings were compared, and the record was removed 60 s later.
