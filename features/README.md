@@ -153,6 +153,7 @@ is off says so on its card and offers the next question.
 | `chained-problem-sets` | v2 | Basic-Pharmacokinetics `ac2eb73` | problems asked in parts, worked in the professor's order; parts kept together on a paper |
 | `equation-drill` | v2 | Basic-Pharmacokinetics `ac2eb73` | an Equations tab: every equation with its symbols and conditions, typed or built from pieces; needs `formulas-in-text` |
 | `wrong-number-diagnosis` | v1 | Basic-Pharmacokinetics `ac2eb73` | what a wrong typed number says about the slip behind it, beside the miss chips; converts PK's saved `missKind` |
+| `quiz-prep-cards` | v1 | Basic-Pharmacokinetics `ac2eb73` | a card on Topics for each quiz in course.js `quizzes` until it is over: day, days left, what it covers, what the professor said, drills over its questions |
 
 `port_from_pk.py` beside a module's `current/` (equation-drill, wrong-number-diagnosis) is the
 script that wrote the module's code from Basic-Pharmacokinetics' files; each of its
