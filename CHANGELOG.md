@@ -85,6 +85,17 @@ Dated kit changes, newest first.
 - Kit checks on GitHub: every pull request runs the checks in Chromium and, as information, in WebKit.
 - Checks open built pages over HTTP from 127.0.0.1, not from disk, so WebKit no longer refuses the manifest.
 - Kit checks on GitHub: each changed feature module, and each module that needs it, is checked on a course of its own.
+- New feature module `pair-up-drills` v1 (`features/pair-up-drills/`), from Intro-Pharmacology-
+  `929cd62` `exam1-drill/src/app.js` (Pair up, the drug ↔ receptor drill and the poisoning table
+  drill; port queue item 19): a Pair up tab over the course's `PAIR_SETS` (chips dragged or tapped
+  into boxes, one or several per box, checked with where each belongs and why, the wrong ones
+  retried) and one tab per table of the course's `RECALL_TABLES` (each row asked column from
+  column with one tap among answers from the other rows, misses first in the next round, Cover
+  and reveal). Best scores and misses are kept in the progress as `DB.pairup`. No course switches
+  it on yet; the core and the template are unchanged. Its test: 69 checks pass on a template
+  scratch course with Intro to Pharmacology's 5 sets, 39-drug table and 12-row poisoning table
+  as course data (written by `features/pair-up-drills/ci/oncourse.js` from the fixture that
+  `port_from_ip.js` takes from that course's files); with the module's code left out, 1 of 1 fails.
 - `core/render_test.js`: answers calculation and matching items with their own controls; no more random failures.
 
 ## 2026-11-01
