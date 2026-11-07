@@ -1,0 +1,3 @@
+FAIL     record_modules_test.js 1 of 46 checks failed: storage full (real quota filler): the record, the only stored copy of its DB.ink, stays in storage; no copy yet
+---- record_modules_test.js (failing lines, then the end of its log) ----
+  FAIL  storage full (real quota filler): the record, the only stored copy of its DB.ink, stays in storage; no copy yet  — {"r3":{"kept":true,"copies":1,"copyInk":true,"copyLog":true},"fill":{"record":450485,"copy":452155,"margin":5658,"refusedAlongside":true},"sizes":{"rec":450485}}

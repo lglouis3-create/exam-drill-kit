@@ -1,0 +1,14 @@
+##[group]Runner Image Provisioner
+##[group]Runner Image
+##[group]Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+##[group]Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+##[group]Run actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+##[group]Run npm install -g playwright@1.63.0
+Fetched 12.9 MB in 1s (9886 kB/s)
+Need to get 114 MB of archives.
+Fetched 114 MB in 39s (2918 kB/s)
+##[group]Run bash core/ci_course.sh template webkit
+FAIL     import_test.js    2 of 274 checks failed: precondition: the take-over finished (section A, take-over 1); a writer closes without handing over before its last save reached the next tab: that answer is in the stored prog
+28 PASS, 1 FAIL, 1 NOT RUN, 1 REPORT, 0 NOT RUN case(s); logs in /tmp/drill-checks-T5Unmw
+  FAIL  precondition: the take-over finished (section A, take-over 1)  — other
+  FAIL  a writer closes without handing over before its last save reached the next tab: that answer is in the stored progress, with the next tab's  — {"last":{"live":true,"copy":false},"next":{"live":false,"copy":false}}
