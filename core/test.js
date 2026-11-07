@@ -112,6 +112,20 @@ for (const t of TOPICS) {
   }
 }
 
+// An optional topic (shell.html OPTIONAL_TOPICS) keeps its questions out of the exam's sets,
+// but scheduling state is kept per concept (DB.concepts): a question of an optional topic that
+// shares its concept with a question outside optional topics would move that required
+// concept's readiness when answered, and bring itself back through the concept (review of #72).
+{
+  const optT = new Set(TOPICS.filter(t => t && t.optional).map(t => t.id));
+  if (optT.size) {
+    const reqC = new Set(QUESTIONS.filter(q => !optT.has(q.topic)).map(q => q.concept));
+    const shared = QUESTIONS.filter(q => optT.has(q.topic) && reqC.has(q.concept));
+    for (const q of shared) bad(`${q.id}: in optional topic "${q.topic}" but shares concept "${q.concept}" with a question outside optional topics; give it a concept of its own`);
+    if (!shared.length) console.log(`  ok    the ${QUESTIONS.filter(q => optT.has(q.topic)).length} questions of ${optT.size} optional topic(s) share no concept with the rest of the bank`);
+  }
+}
+
 console.log('\n=== 4. Spaced repetition rules ===');
 const { record, pickNext, st, score, markGuessed, isMulti, gradeMulti, correctSet } = X;
 const conceptsIn = pool => [...new Set(pool.map(q=>q.concept))];

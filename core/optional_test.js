@@ -23,12 +23,17 @@
  *     "Optional"; a card of another topic keeps its exam label;
  *   - opening the topic reaches every question of it: its "Everything in" Start,
  *     each subtopic's Start, and the adaptive runner on that set picks from it.
+ * test.js reports that the optional topic shares no concept with the rest of the bank, and on
+ * a second copy, where one of its questions takes the concept of a question outside optional
+ * topics, test.js fails (scheduling state is per concept, so answering it would move the
+ * required concept's readiness).
  * On the course's own page, when it has no optional topic: no "Optional" label,
  * "Everything" and the pass of every question hold every question (the behaviour
  * before optional topics existed).
  *
  *     node optional_test.js
  */
+const child = require('child_process');
 const L = require('./check_lib');
 const NAME = 'optional_test.js';
 const {check} = L;
@@ -262,7 +267,32 @@ const ANSWER = right => {
       check(tp.length > 0 && tp.every(id => OPT.has(id)), `the topic's drill keeps to its questions (${tp.length} answered)`, tp);
       check(!errors.length, 'no page error on the scratch page', errors.join(' | '));
       await ctx.close();
+      // test.js on this well-formed copy: the optional topic shares no concept with the rest
+      const t1 = child.spawnSync('node', ['test.js'], {cwd: b.src, encoding: 'utf8', timeout: 600000});
+      check(/share no concept with the rest of the bank/.test(t1.stdout || ''), 'test.js reports that the optional topic shares no concept with the rest of the bank',
+            (t1.stdout || '').split('\n').slice(-2).join(' | '));
     } finally { b.rm(); }
+
+    // ---- a copy whose optional question shares a concept with a required one ----
+    // scheduling state is per concept, so answering it would move the required concept's
+    // readiness: test.js must fail the course (review of #72)
+    const SHARE = MARK + `
+;(() => {
+  const t = TOPICS.find(x => x.optional); if(!t) return;
+  const o = QUESTIONS.find(q => q.topic === t.id), r = QUESTIONS.find(q => q.topic !== t.id && !TOPICS.find(x => x.id === q.topic).optional);
+  if(o && r){ o.concept = r.concept; o.__shared = r.id; }
+})();
+`;
+    const b2 = L.scratchBuild('optional-share', {files: {'q99_optional_check.js': SHARE}});
+    try {
+      if(check(b2.code === 0, 'the copy with a shared concept builds', b2.out.split('\n').slice(-3).join(' | '))){
+        const t2 = child.spawnSync('node', ['test.js'], {cwd: b2.src, encoding: 'utf8', timeout: 600000});
+        const out = t2.stdout || '';
+        check(t2.status === 1 && /in optional topic ".+" but shares concept/.test(out),
+              'test.js fails a question of an optional topic that shares its concept with a required question',
+              `exit ${t2.status}: ${out.split('\n').filter(l => /FAIL/.test(l)).slice(0, 2).join(' | ') || out.split('\n').slice(-2).join(' | ')}`);
+      }
+    } finally { b2.rm(); }
   } finally { await browser.close(); }
   L.finish(NAME);
 })().catch(e => { console.log(`FAIL: ${NAME}: ${e.stack || e}`); process.exit(1); });
