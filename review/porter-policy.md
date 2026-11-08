@@ -270,3 +270,77 @@ Louis: "Check the current PR state first and apply these decisions only where st
 These decisions authorize the implementation and this one testing exclusion. They do not approve
 merging #17 or publishing a course update. The final revision, its independent review, the required
 check results and the remaining limitations go back to Louis for merge approval.
+
+## 12. Coordination across sessions (Louis, 2026-11-08)
+
+Louis's message of 2026-11-08 in the porter session, verbatim:
+
+> Apply this coordination policy across the project
+>
+> I authorize the feature porter to coordinate adoption of this policy with the main kit, Kit updater/coordinator, and DEENT sessions using supported session communication. Ask each session to acknowledge adoption and persist the relevant instructions within its authorized scope.
+>
+> If direct communication is unavailable, use shared GitHub discussions and durable handoff records. Report any session that could not be reached. Do not claim another session adopted the policy without confirmation or bypass session permissions.
+>
+> This coordination policy does not expand any session’s implementation, merge, or deployment authority. The porter’s Part 1 authorization remains specific to that work.
+>
+> One central decision session
+>
+> Use “Exam drill kit Phase 1 setup” as the central coordination and approval session.
+>
+> Routine questions, dependency checks, reviews, and implementation handoffs should pass directly between the owning sessions. Keep GitHub as the durable record, identifying the owner, exact commit, evidence, dependencies, and next action.
+>
+> Sessions should continue work already authorized without asking Louis to relay messages or repeat an unchanged approval.
+>
+> Use independent feedback
+>
+> Request ChatGPT feedback on the relevant GitHub PR when a concrete uncertainty would benefit from another assessment. Include the exact commit, specific question, evidence, and decision depending on the review.
+>
+> Evaluate all feedback independently. Another qualified independent reviewer may satisfy the review requirement; do not wait unnecessarily for ChatGPT’s scheduled window. An unanswered request is not approval.
+>
+> Escalate consequential decisions centrally
+>
+> When an issue genuinely requires Louis’s decision, send it to the central session and request a notification there through the supported notification mechanism.
+>
+> The central session should consolidate related requests into one message containing:
+>
+> * The problem and practical student impact.
+> * The affected repositories, PRs, and exact revisions.
+> * The recommended action and alternatives.
+> * Which work must pause and which work can continue.
+> * The precise approval or decision needed.
+>
+> Confirmed progress-loss risks, live-site failures, and consequential conflicting changes warrant prompt notification. Routine status and unchanged blockers do not.
+>
+> If central delivery fails, notify Louis in the originating session and explicitly identify the failed handoff. Do not silently leave a serious issue unreported.
+>
+> Distribute decisions accurately
+>
+> Only Louis’s actual decision counts as his approval. Recommendations from Claude or ChatGPT, quoted draft approvals, silence, and another session’s readiness assessment do not.
+>
+> Record his decision with a link or durable reference, its scope, and the applicable revision or conditions. Communicate it to affected sessions and obtain acknowledgment before dependent actions proceed.
+>
+> Where an existing rule requires approval in a particular owning session—especially a live-course update—preserve that requirement. Route the prepared request there and explain the exception centrally; do not make Louis repeat approvals unless that rule requires it.
+>
+> If instructions or approvals conflict, pause only the affected action and resolve the conflict through the central session. Continue unrelated authorized work.
+>
+> Avoid duplicate work and notifications
+>
+> Maintain one owner per implementation, coordinate overlapping branches, reuse valid evidence, and use existing scheduled checks. Do not introduce additional polling tasks or watcher loops merely to coordinate sessions.
+>
+> Include adoption acknowledgments, unreachable sessions, material handoffs, and outstanding central decisions in the next consolidated update.
+
+Notes (Claude's reading, not Louis's words):
+
+- **Sessions.** "Exam drill kit Phase 1 setup" is `session_01LVkWFC9wTqUxncwEDduxrb`. The Kit updater
+  is `session_01LVkWFDAbAtw7kDGwqd43Qg`, and the DEENT session is `session_01LVkWFEkUuDubJgsfxiNBhr`.
+  The ids are from the account's session list on 2026-11-08.
+- **How it combines with §7, §10 and §11.** Where a rule above says to ask or notify Louis (§7's
+  approval requests; §10 and §11's prompt notices of progress-loss risks and live-site failures), the
+  porter sends the request to the central session and asks it to notify him there. If that delivery
+  fails, the porter tells Louis in the porter session and names the failed handoff. An approval that
+  an existing rule requires in an owning session keeps that requirement. In particular, a live-course
+  update keeps its approval in the Kit updater or in the course's own session.
+- **Part 1.** Louis's sentence refers to "the porter’s Part 1 authorization"; this section grants no
+  authorization. On 2026-11-08 the porter holds no record of a Part 1 decision. Its reading is that
+  the sentence means Part 1 of the BDK study-features plan (kit PR #73). The porter starts nothing on
+  Part 1 until it has Louis's own message deciding it, with its scope and its revision or conditions.
