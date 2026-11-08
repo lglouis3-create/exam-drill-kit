@@ -218,11 +218,13 @@ const ANSWER = right => {
           const keepDB = JSON.stringify(DB), keepLog = JSON.stringify(LOG || []);
           const keepNew = (NEW_LOGS[PROFILE] || []).length;   // this tab's own new history entries, for its per-tab record
           let planted = null;
-          let q = QUESTIONS.find(x => ids.includes(x.id) && (kind === 'multi' ? isMulti(x) : !isMulti(x)));
+          // a question with option buttons: an optional calculation question (type 'numeric', no options) has none to tap
+          const hasOpts = x => !x.type && Array.isArray(x.options) && x.options.length >= 2;
+          let q = QUESTIONS.find(x => ids.includes(x.id) && hasOpts(x) && (kind === 'multi' ? isMulti(x) : !isMulti(x)));
           // no optional select-all question in this course: one is planted for this page only, a copy of an
           // optional question with two correct options, in the same (optional) topic
           if(!q && kind === 'multi'){
-            const base = QUESTIONS.find(x => ids.includes(x.id) && Array.isArray(x.options) && x.options.length >= 3);
+            const base = QUESTIONS.find(x => ids.includes(x.id) && hasOpts(x) && x.options.length >= 3);
             if(base){
               q = JSON.parse(JSON.stringify(base)); q.id = base.id + '-planted-multi'; q.multi = true;
               q.options.forEach((o, i) => { o.correct = i < 2; });
@@ -239,6 +241,7 @@ const ANSWER = right => {
           const afterBadge = {revealed: !!Q.revealed, picked: Q.picked === null || Q.picked === undefined ? null : String(Q.picked),
                               picks: Array.isArray(Q.picks) ? Q.picks.map(String) : null, log: (LOG || []).length - logN, answers: DB.answers.length - ansN};
           const btn = document.querySelector('#v-quiz button.opt[data-o]');
+          if(!btn) return {kind, badge: true, noOption: true, afterBadge};
           btn.click();
           if(kind === 'multi'){ const c = document.getElementById('btnCheck'); if(c) c.click(); }
           const out = {kind, badge: true, planted: !!planted, afterBadge, recorded: DB.answers.length - ansN, revealed: !!Q.revealed};
@@ -255,6 +258,7 @@ const ANSWER = right => {
         const how = r.planted ? ' (a question planted for this check)' : '';
         check(r.badge, `the ${r.kind} optional question card shows the Optional badge`, r);
         if(!r.badge) continue;
+        if(!check(!r.noOption, `the ${r.kind} optional question card draws its option buttons`, r)) continue;
         const a = r.afterBadge;
         check(!a.revealed && a.picked === null && !(a.picks || []).some(x => x === 'NaN') && a.log === 0 && a.answers === 0,
           `tapping the Optional badge on an unrevealed ${r.kind === 'multi' ? 'select-all' : 'single-answer'} question${how} changes nothing (not revealed, nothing picked, nothing recorded)`, a);
