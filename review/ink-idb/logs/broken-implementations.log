@@ -4,33 +4,57 @@
   FAIL  migrate: the database holds the two pages  — []
   FAIL  mixed: the next new page keeps both the moved stroke and the earlier-core tab's stroke  — ["{\"t\":\"pen\",\"c\":\"#111111\",\"w\":0.003,\"p\":[0.9,0.2,0.3,0.49]}"]
   FAIL  mixed: after a reload both strokes are there, once each  — ["{\"t\":\"pen\",\"c\":\"#111111\",\"w\":0.003,\"p\":[0.9,0.2,0.3,0.49]}"]
-FAIL: outside_test.js: 5 of 43 checks failed: interrupted: while the database refuses every write, localStorage keeps every page of the earlier format; migrate: after a reload every moved page is back, each stroke once; 
+FAIL: outside_test.js: 5 of 63 checks failed: interrupted: while the database refuses every write, localStorage keeps every page of the earlier format; migrate: after a reload every moved page is back, each stroke once; 
 == OUTSIDE_BREAK=no-rev
   FAIL  two tabs: a tab that wrote over another tab's newer page keeps both tabs' strokes (read back in a third tab)  — ["{\"t\":\"pen\",\"c\":\"#111111\",\"w\":0.003,\"p\":[0.1,0.2,0.3,0.41000000000000003]}","{\"t\":\
   FAIL  two tabs: the tab whose write was merged shows the merged page  — ["{\"t\":\"pen\",\"c\":\"#111111\",\"w\":0.003,\"p\":[0.1,0.2,0.3,0.41000000000000003]}","{\"t\":\"pen\",\"c\":\"#111111\",\"w\":0.003,\"p\":[0.
-FAIL: outside_test.js: 2 of 43 checks failed: two tabs: a tab that wrote over another tab's newer page keeps both tabs' strokes (read back in a third tab); two tabs: the tab whose write was merged shows the merged page
+  FAIL  M3: in 106 reads of the database during a merged write with a later change waiting, none lacks the other tab's stroke  — [3,4]
+  FAIL  M3: after both tabs closed, a new tab reads every stroke of both  — 3
+FAIL: outside_test.js: 4 of 63 checks failed: two tabs: a tab that wrote over another tab's newer page keeps both tabs' strokes (read back in a third tab); two tabs: the tab whose write was merged shows the merged page; 
 == OUTSIDE_BREAK=saved-on-fail
-  FAIL  interrupted: no page refused by the database is reported saved  — ["saved","saved"]
-  FAIL  quota: a write the database refuses reports refused, never saved  — ["saved","saved"]
+  FAIL  quota: a write the database refuses reports refused, never saved  — ["unsaved","unsaved"]
   FAIL  quota: a notice says the writing was not saved and offers Export  — null
-  FAIL  quota: the page counts the refused writing as unsaved (asked about before it is left)  — null
-FAIL: outside_test.js: page.waitForEvent: Timeout 30000ms exceeded while waiting for event "download"
+FAIL: outside_test.js: page.click: Timeout 30000ms exceeded.
 == OUTSIDE_BREAK=no-import
   FAIL  export: a file Import puts into a new profile (this browser holds other answers) has its pages there after a reload  — {"result":"The file's progress is now the profile \"me (imported 2026-11-08)\" (1 answer). 
-FAIL: outside_test.js: 1 of 43 checks failed: export: a file Import puts into a new profile (this browser holds other answers) has its pages there after a reload
+FAIL: outside_test.js: 1 of 63 checks failed: export: a file Import puts into a new profile (this browser holds other answers) has its pages there after a reload
 == OUTSIDE_BREAK=no-profile
   FAIL  basic: after a reload the page is back in DB.ink as written  — {}
   FAIL  basic: the database holds the page under its profile, with a revision  — {"keys":["x\u0001ink\u0001pg1"]}
   FAIL  large: after a reload every one of the 171 pages is back as written  — 0
   FAIL  migrate: after a reload every moved page is back, each stroke once  — {}
   FAIL  mixed: after a reload both strokes are there, once each  — []
-  FAIL  quota: a notice says the writing was not saved and offers Export  — null
+  FAIL  quota: a notice says the writing was not saved and offers Export  — {"text":"Writing of \"x\" is not saved yet. It is kept on this page and saved when that profile is opened again here; closing or reloading thi
 FAIL: outside_test.js: page.waitForEvent: Timeout 30000ms exceeded while waiting for event "download"
 == OUTSIDE_BREAK=no-attach
   FAIL  profiles: Erase on one profile leaves another profile's page  — []
-  FAIL  export: a file Import puts into a new profile (this browser holds other answers) has its pages there after a reload  — {"result":"The file's progress is now the profile \"me (imported 2026-11-08)\" (1 answer). Th
-FAIL: outside_test.js: 2 of 43 checks failed: profiles: Erase on one profile leaves another profile's page; export: a file Import puts into a new profile (this browser holds other answers) has its pages there after a rel
+  FAIL  export: a file Import puts into a new profile (this browser holds other answers) has its pages there after a reload  — {"result":"The file's progress is now the profile \"me (imported 2026-11-08)\" (1 answer). 
+  FAIL  M1: after a switch to another profile, the refused writing of the first counts as unsaved and the notice names that profile  — {"unsaved":true,"notice":"This browser did not save your latest writing (its storag
+  FAIL  M5: a page erased in another tab does not come back in a tab that switches away and back  — {"keys":["x"],"state":"saved"}
+FAIL: outside_test.js: 4 of 63 checks failed: profiles: Erase on one profile leaves another profile's page; export: a file Import puts into a new profile (this browser holds other answers) has its pages there after a rel
 == OUTSIDE_BREAK=drop-unavailable
   FAIL  unavailable: with no database the page stays inside the stored progress
   FAIL  unavailable: after a reload the page is back  — {}
-FAIL: outside_test.js: 2 of 43 checks failed: unavailable: with no database the page stays inside the stored progress; unavailable: after a reload the page is back
+  FAIL  M4: with no database, a tab that does not hold the profile reports its change "unsaved"  — saved
+  FAIL  M4: a new tab reads the saved page and not the read-only tab's change  — []
+FAIL: outside_test.js: 4 of 63 checks failed: unavailable: with no database the page stays inside the stored progress; unavailable: after a reload the page is back; M4: with no database, a tab that does not hold the prof
+== OUTSIDE_BREAK=readback-true
+  FAIL  read-back: a database copy that reads back different from the page leaves the page in localStorage
+  FAIL  read-back: the next visit (copies read back equal) has both strokes after a reload  — ["{\"t\":\"pen\",\"c\":\"#111111\",\"w\":0.003,\"p\":[0.30000000000000004,0.2,0.3,0.43000000000000005]}"]
+  FAIL  read-back: a page closed between the database write and its read-back leaves the page in localStorage
+FAIL: outside_test.js: 3 of 63 checks failed: read-back: a database copy that reads back different from the page leaves the page in localStorage; read-back: the next visit (copies read back equal) has both strokes after 
+== OUTSIDE_BREAK=no-hold
+  FAIL  M1: back on the first profile the refused page is written; after a reload it is stored  — {}
+  FAIL  M2: a page refused in a tab whose profile another tab took, then taken back, is stored (after a reload)  — {}
+FAIL: outside_test.js: 2 of 63 checks failed: M1: back on the first profile the refused page is written; after a reload it is stored; M2: a page refused in a tab whose profile another tab took, then taken back, is stored
+== the same test on the core at d0da191 (DRILL_PAGE: a template course built from d0da191)
+  FAIL  unavailable: a notice says the database could not be used and the writing is kept in the other storage  — none; problem: undefined; state: unavailable
+  FAIL  M1: after a switch to another profile, the refused writing of the first counts as unsaved and the notice names that profile  — {"unsaved":true,"notice":""}
+  FAIL  M1: back on the first profile the refused page is written; after a reload it is stored  — {}
+  FAIL  M2: a page refused in a tab whose profile another tab took, then taken back, is stored (after a reload)  — {}
+  FAIL  M3: in 105 reads of the database during a merged write with a later change waiting, none lacks the other tab's stroke  — [4,4]
+  FAIL  M4: with no database, right after save() (before the 150 ms write) the page is "saving", not "saved"  — saved
+  FAIL  M4: with no database, a tab that does not hold the profile reports its change "unsaved"  — saved
+  FAIL  M5: an erased page whose write was still running does not come back after a switch away and back, and is not reported saved  — {"keys":["x"],"state":"saved"}
+  FAIL  M5: a page erased in another tab does not come back in a tab that switches away and back  — {"keys":["x"],"state":"saved"}
+FAIL: outside_test.js: 9 of 63 checks failed: unavailable: a notice says the database could not be used and the writing is kept in the other storage; M1: after a switch to another profile, the refused writing of the firs

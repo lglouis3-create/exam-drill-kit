@@ -52,6 +52,14 @@ What replaces each place that holds ink inline today (the porter's list for #17)
   stored progress, as before this layer.
 - The database refuses a write: state `refused`, never `saved`; a notice with Export; the page asks
   before it is left; each later save tries again.
+- Writing not yet stored (refused, being written, or changed in a tab that may not write) is kept on
+  the page through a profile switch, "Use it here", Import and Put back, and written when the
+  profile is open with the writer lock again (`OUT.held`; the review of #81 at d0da191, M1, M2).
+- An Erase, here or in another tab, is not undone by a write still running or by what this page
+  knew before (M5). A merge never writes the page from before the merge (M3). With no database the
+  states follow the progress's own write (M4).
+- Limits with mixed versions: a tab on an earlier core exports without the moved pages, and its
+  Erase does not remove them from the database (they come back on the next load on this core).
 
 ## 3. What is guaranteed when the page goes away
 

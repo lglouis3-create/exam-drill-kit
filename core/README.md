@@ -305,6 +305,7 @@ unchanged, and under `fsrs` and the comparison the rebuilt cards equal the libra
 **A module part kept in IndexedDB** (`shell.html`, "PARTS OF THE PROGRESS KEPT IN INDEXEDDB";
 Louis, 2026-11-08: "use IndexedDB for worksheet ink"). A module whose part of the progress has no
 upper size calls `registerOutside(part)` while it loads (worksheets-ink: `registerOutside('ink')`).
+A module that registers after the first load has the profile on screen read in at once.
 Nothing changes for a course with no such module: no database is opened and `progText(db)` is
 `JSON.stringify(db)`, so its stored progress is the same text as before (`outside_test.js` "none").
 With a part registered:
@@ -355,10 +356,34 @@ With a part registered:
 - A preview (`/preview/`) has its own database (`exam-drill:<ns>-preview`); the first time it opens it
   copies the live database's records, when the browser lists that database (`indexedDB.databases`).
 
-What a module calls (the API for worksheets-ink, #17):
+- Writing not yet stored is never dropped (the review of #81 at d0da191, M1, M2). Every page value
+  the database has not committed (still being written, refused, or changed in a tab that may not
+  write) is kept on the page (`OUT.held`) whatever replaces `DB`: a load, a profile switch, "Use it
+  here", Import, Put back. When the profile is open with the writer lock, it is merged back into
+  `DB` and written. Until then it counts as unsaved (leaving asks first), and the notice names the
+  profile it belongs to, with Export for it. A record an earlier core wrote with `ink` inside it is
+  merged the same way (`outsideAbsorb`); the record is then compared without the part.
+- Erase is final for this page too: a write that began before it is not recorded when it completes
+  (its delete runs after it), and each load replaces what the page knows of the profile with what
+  the database holds, so a page erased here or in another tab does not come back.
+- A database read that fails, or a database that does not open within 5 s, shows a notice. After a
+  failed read the page shows, writes and exports none of the stored writing, and Export says so.
+- Import's result is shown once the file's pages are written (into this profile or a new one), and
+  it says so when the database refused them. A replacing Import does not put the file's pages into
+  the stored progress until they are moved (Put back does, because its copy came from there): the
+  file is the copy until the database commits them, and a large file would not fit in localStorage.
+- Mixed versions, limits: a tab on an earlier core exports a file without the moved pages, and its
+  Erase does not remove them from the database, so they come back on the next load on this core.
+  Keep every tab of a course on one version (the "new version" card) before erasing or exporting.
+
+What a module calls (the API for worksheets-ink, #17). It must not delete pages with `delete
+DB.ink[...]` or `delete DB.ink` (a deletion of a page from `DB` is never written; it comes back on
+the next load), and must not decide what is saved by comparing `JSON.stringify(DB)` with the stored
+progress (the ink is not in it):
 `registerOutside(part, {merge})`; `outsideReady()` (a Promise: the profile's pages are in `DB`;
 show a page only after it); `outsideState(part, page)` (`'saved'`, `'saving'`, `'unsaved'`,
-`'refused'`, `'failed'`); `onOutside(fn)` (called with `{profile, part, page, state, merged}` after
+`'refused'`, `'failed'`, `'none'`; with the database unavailable the same states follow the
+progress's own write); `onOutside(fn)` (called with `{profile, part, page, state, merged}` after
 each change of state, `null` after a load); `outsideRemove(part, page)`; `outsideClear(PROFILE,
 part)`. It writes a page by putting a new object in `DB[part][page]` and calling `save()`.
 

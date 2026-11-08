@@ -56,6 +56,10 @@ const BREAKS = {
   // a load does not read the stored pages back
   'no-attach': ["LOADED_DB = progText(db); outsideAttachSoon(PROFILE);", "LOADED_DB = progText(db);"],
   // the database unavailable: the pages are left out of the stored progress all the same
+  // the read-back after a moved page's write always succeeds
+  'readback-true': ["return outReq(t.objectStore('parts').get(k)).then(r => !!r && sameVal(r.v, v), () => false);", "return Promise.resolve(true);"],
+  // writing not yet stored is not kept on the page when DB is replaced (both places that keep it)
+  'no-hold': [["  try { if(LOADED) outsideHold(LOADED); } catch(e){}", ""], ["  OUT.sent[k] = undefined;   // the next save tries again; the value stays in OUT.held", "  OUT.sent[k] = undefined; delete OUT.held[k];"]],
   'drop-unavailable': ["if(!OUT.parts.size || OUT.state === 'unavailable' || !isPlainObj(db)) return JSON.stringify(db);", "if(!OUT.parts.size || !isPlainObj(db)) return JSON.stringify(db);"],
 };
 const BREAK = process.env.OUTSIDE_BREAK || '';
@@ -65,9 +69,11 @@ const built = fs.readFileSync(L.PAGE.PAGE, 'utf8');
 if(!built.includes(ANCHOR) || !built.includes('function registerOutside(')) L.notRun(NAME, 'the built page has no outside-part layer (registerOutside)');
 let withPart = built.replace(ANCHOR, "registerOutside('ink');\n" + ANCHOR);
 if(BREAK){
-  const [a, b] = BREAKS[BREAK];
-  if(!withPart.includes(a)) { console.log(`OUTSIDE_BREAK ${BREAK}: its target text is not in the page`); process.exit(2); }
-  withPart = withPart.replace(a, b);
+  const pairs = Array.isArray(BREAKS[BREAK][0]) ? BREAKS[BREAK] : [BREAKS[BREAK]];
+  for(const [a, b] of pairs){
+    if(!withPart.includes(a)) { console.log(`OUTSIDE_BREAK ${BREAK}: its target text is not in the page`); process.exit(2); }
+    withPart = withPart.replace(a, b);
+  }
   console.log(`  (deliberately broken page: ${BREAK})`);
 }
 const SITE = path.dirname(L.PAGE.PAGE);
@@ -277,6 +283,9 @@ const stroke = n => ({t: 'pen', c: '#111111', w: 0.003, p: [0.1 * n, 0.2, 0.3, 0
       check(await p.evaluate(() => OUT.state) === 'unavailable' && st && st.ink && same(st.ink.u1, pg), 'unavailable: with no database the page stays inside the stored progress', st && st.ink);
       await reload(p);
       check(same((await inkNow(p)).u1, pg), 'unavailable: after a reload the page is back', await inkNow(p));
+      await p.waitForSelector('#outwarn', {timeout: 3000}).catch(() => {});
+      const un = await p.evaluate(() => { const d = document.getElementById('outwarn'); return d ? ('[' + d.outerHTML.slice(0, 200) + ']') : 'none; problem: ' + OUT.problem + '; state: ' + OUT.state; });
+      check(/could not be used/.test(un), 'unavailable: a notice says the database could not be used and the writing is kept in the other storage', un.slice(0, 300) || 'empty');
       check(!errors.length, 'unavailable: no page error', errors);
       await ctx.close();
     }
@@ -386,6 +395,181 @@ const stroke = n => ({t: 'pen', c: '#111111', w: 0.003, p: [0.1 * n, 0.2, 0.3, 0
       await c3.close();
       const r2 = await imp(oldFile, 'earlier core backup');
       check(same(r2.ink.e1, pages.e1) && same(r2.ink.e2, pages.e2), 'export: an earlier core\'s backup (DB.ink in the file) imports and its pages are back after a reload', {result: r2.result, keys: Object.keys(r2.ink)});
+    }
+    // ---- the review of #81 at d0da191 (M1-M5) and its test gaps ----
+    const refuseInit = () => { const put = IDBObjectStore.prototype.put; IDBObjectStore.prototype.put = function(){ if(window.__refuse && this.name === 'parts') throw new DOMException('planted refusal', 'QuotaExceededError'); return put.apply(this, arguments); }; };
+    const noLocks = () => { try { Object.defineProperty(navigator, 'locks', {value: undefined, configurable: true}); } catch(e){} };
+    const wait = ms => new Promise(r => setTimeout(r, ms));
+    // M1: a refused page kept through a profile switch, named by the notice, written when the profile is opened again
+    {
+      const ctx = await newCtx(refuseInit);
+      const {page: p} = await open(ctx);
+      const P0 = await p.evaluate(() => PROFILE);
+      const R = {parts: {work: [stroke(1)]}, room: {}, at: 1};
+      await p.evaluate(() => { window.__refuse = true; });
+      await put(p, {r: R}); await settled(p, ['r']);
+      await p.evaluate(() => { useProfile('Other'); }); await ready(p);
+      const away = await p.evaluate(P0 => { const d = document.getElementById('outwarn'); return {unsaved: unsavedHere(), notice: d ? d.textContent : ''}; }, P0);
+      check(away.unsaved && away.notice.includes('"' + P0 + '"'), 'M1: after a switch to another profile, the refused writing of the first counts as unsaved and the notice names that profile', away);
+      await p.evaluate(() => { window.__refuse = false; });
+      await p.evaluate(P0 => useProfile(P0), P0); await ready(p);
+      await settled(p, ['r']);
+      await reload(p);
+      check(same((await inkNow(p)).r, R), 'M1: back on the first profile the refused page is written; after a reload it is stored', await inkNow(p));
+      await ctx.close();
+    }
+    // M2: "Use it here" in another tab while a page is refused, then taken back: the page is kept and stored
+    {
+      const ctx = await newCtx(refuseInit);
+      const {page: a} = await open(ctx);
+      if(await a.evaluate(() => WRITER) !== 'held') L.skip('M2: the take-over', 'no Web Locks in this browser');
+      else {
+        const R = {parts: {work: [stroke(5)]}, room: {}, at: 5};
+        await a.evaluate(() => { window.__refuse = true; });
+        await put(a, {r: R}); await settled(a, ['r']);
+        const {page: b} = await open(ctx);
+        await b.evaluate(() => takeOver(false));
+        await b.waitForFunction(() => WRITER === 'held', null, {timeout: 8000}).catch(() => {});
+        await a.waitForFunction(() => WRITER === 'other', null, {timeout: 8000}).catch(() => {});
+        await a.evaluate(() => { window.__refuse = false; takeOver(false); });
+        await a.waitForFunction(() => WRITER === 'held', null, {timeout: 8000}).catch(() => {});
+        await ready(a); await settled(a, ['r']);
+        await b.close();
+        await reload(a);
+        check(same((await inkNow(a)).r, R), 'M2: a page refused in a tab whose profile another tab took, then taken back, is stored (after a reload)', await inkNow(a));
+      }
+      await ctx.close();
+    }
+    // M3: a merged write with a later change waiting: no moment in which the database lacks the other tab's stroke
+    {
+      const ctx = await newCtx(noLocks);
+      const {page: t1} = await open(ctx);
+      await put(t1, {s: {parts: {work: [stroke(1)]}, room: {}, at: 1}}); await settled(t1, ['s']);
+      const {page: t2} = await open(ctx);
+      await put(t1, {s: {parts: {work: [stroke(1), stroke(2)]}, room: {}, at: 2}}); await settled(t1, ['s']);
+      const trace = await t2.evaluate(s => new Promise(res => {
+        DB.ink.s = {parts: {work: [s[0], s[2]]}, room: {}, at: 3}; save(); DB.ink.s = {parts: {work: [s[0], s[2], s[3]]}, room: {}, at: 4}; save();
+        const out = [], t0 = performance.now();
+        const poll = () => { const t = OUT.db.transaction('parts'); const g = t.objectStore('parts').get(PROFILE + '\u0001ink\u0001s');
+          g.onsuccess = () => { out.push({rev: g.result.rev, w: g.result.v.parts.work.map(x => JSON.stringify(x))}); if(performance.now() - t0 < 400) setTimeout(poll, 3); else res(out); }; };
+        poll(); }), [stroke(1), stroke(2), stroke(3), stroke(4)]);
+      const s2 = JSON.stringify(stroke(2)), s3 = JSON.stringify(stroke(3));
+      const lost = trace.filter(x => x.w.includes(s3) && !x.w.includes(s2));
+      check(!lost.length && trace.length > 5, `M3: in ${trace.length} reads of the database during a merged write with a later change waiting, none lacks the other tab's stroke`, lost.slice(0, 2).map(x => x.rev));
+      await t1.close(); await t2.close();
+      const {page: t3} = await open(ctx);
+      const got = strokesOf(await inkNow(t3), 's');
+      check([1, 2, 3, 4].every(n => got.includes(JSON.stringify(stroke(n)))), 'M3: after both tabs closed, a new tab reads every stroke of both', got.length);
+      await ctx.close();
+    }
+    // M4: with no database, a tab that does not hold the profile, and a change on the 150 ms wait, are not "saved"
+    {
+      const ctx = await newCtx(() => { const o = IDBFactory.prototype.open; IDBFactory.prototype.open = function(name){ if(String(name).startsWith('exam-drill:')) throw new DOMException('planted', 'InvalidStateError'); return o.apply(this, arguments); }; });
+      const {page: a} = await open(ctx);
+      const st = await a.evaluate(() => { DB.ink = {w: {parts: {work: [{t: 'pen', p: [1]}]}, room: {}, at: 1}}; save(); return outsideState('ink', 'w'); });
+      check(st === 'saving', 'M4: with no database, right after save() (before the 150 ms write) the page is "saving", not "saved"', st);
+      await a.waitForTimeout(400);
+      check(await a.evaluate(() => outsideState('ink', 'w')) === 'saved', 'M4: with no database, after the progress write the page is "saved"', await a.evaluate(() => outsideState('ink', 'w')));
+      const {page: b} = await open(ctx);
+      if(await b.evaluate(() => WRITER) === 'other'){
+        await b.evaluate(() => { DB.ink = {z: {parts: {work: [{t: 'pen', p: [2]}]}, room: {}, at: 2}}; save(); });
+        await b.waitForTimeout(400);
+        check(await b.evaluate(() => outsideState('ink', 'z')) === 'unsaved', 'M4: with no database, a tab that does not hold the profile reports its change "unsaved"', await b.evaluate(() => outsideState('ink', 'z')));
+      } else L.skip('M4: the read-only tab', 'no Web Locks in this browser');
+      const {page: c} = await open(ctx);
+      check(same((await inkNow(c)).w, {parts: {work: [{t: 'pen', p: [1]}]}, room: {}, at: 1}) && !(await inkNow(c)).z, 'M4: a new tab reads the saved page and not the read-only tab\'s change', Object.keys(await inkNow(c)));
+      await ctx.close();
+    }
+    // M5: an Erase with a write still running, and an Erase in another tab: the page does not come back
+    {
+      const ctx = await newCtx();
+      const {page: p} = await open(ctx);
+      const P0 = await p.evaluate(() => PROFILE);
+      await put(p, {x: {parts: {work: [stroke(1)]}, room: {}, at: 1}}); await settled(p, ['x']);
+      await p.evaluate(s => { DB.ink = {x: {parts: {work: [s[0], s[1]]}, room: {}, at: 2}}; save(); outsideClear(PROFILE); DB = BLANK(); save(); }, [stroke(1), stroke(2)]);
+      await p.waitForTimeout(600);
+      await p.evaluate(() => useProfile('Other')); await ready(p);
+      await p.evaluate(P0 => useProfile(P0), P0); await ready(p);
+      const back = await p.evaluate(() => ({keys: Object.keys(DB.ink || {}), state: outsideState('ink', 'x')}));
+      check(!back.keys.includes('x') && back.state !== 'saved', 'M5: an erased page whose write was still running does not come back after a switch away and back, and is not reported saved', back);
+      await put(p, {y: {parts: {work: [stroke(9)]}, room: {}, at: 9}}); await settled(p, ['y']);
+      await reload(p);
+      const after = Object.keys(await inkNow(p)), rec = (await idbPages(p)) || {};
+      check(!after.includes('x') && after.includes('y') && !Object.keys(rec).some(k => k.endsWith('\u0001ink\u0001x')), 'M5: after one more change and a reload, the erased page is in neither the page nor the database', {after, keys: Object.keys(rec)});
+      await ctx.close();
+      const c2 = await newCtx(noLocks);
+      const {page: a} = await open(c2);
+      const PA = await a.evaluate(() => PROFILE);
+      await put(a, {x: {parts: {work: [stroke(1)]}, room: {}, at: 1}}); await settled(a, ['x']);
+      const {page: b} = await open(c2);
+      await a.evaluate(() => { outsideClear(PROFILE); DB = BLANK(); save(); });
+      await a.waitForTimeout(600);
+      await b.evaluate(() => useProfile('Other')); await ready(b);
+      await b.evaluate(PA => useProfile(PA), PA); await ready(b);
+      const bk = await b.evaluate(() => ({keys: Object.keys(DB.ink || {}), state: outsideState('ink', 'x')}));
+      check(!bk.keys.includes('x') && bk.state !== 'saved', 'M5: a page erased in another tab does not come back in a tab that switches away and back', bk);
+      await c2.close();
+    }
+    // the read-back: a copy that reads back different keeps the page in localStorage
+    {
+      const old = {a: {parts: {work: [stroke(3), stroke(4)]}, room: {}, at: 3}};
+      const ctx = await newCtx(() => { const put = IDBObjectStore.prototype.put; IDBObjectStore.prototype.put = function(val, key){ if(window.__corrupt && this.name === 'parts' && val && val.v && val.v.parts){ val = Object.assign({}, val, {v: Object.assign({}, val.v, {parts: {work: val.v.parts.work.slice(0, 1)}})}); } return put.call(this, val, key); }; });
+      const {page: o} = await open(ctx, L.PAGE.PAGE);
+      await put(o, {}); await o.evaluate(ink => { const k = keyFor(PROFILE); const v = JSON.parse(localStorage.getItem(k)); v.ink = ink; localStorage.setItem(k, JSON.stringify(v)); }, old);
+      await o.close();
+      const {page: q} = await open(ctx, PART_PAGE, () => { window.__corrupt = true; });
+      await q.waitForTimeout(800);
+      const st = await storedProg(q);
+      check(st && st.ink && same(st.ink.a, old.a), 'read-back: a database copy that reads back different from the page leaves the page in localStorage', st && st.ink);
+      await q.close();
+      const {page: r} = await open(ctx);
+      await settled(r, ['a']);
+      await reload(r);
+      check(strokesOf(await inkNow(r), 'a').length === 2, 'read-back: the next visit (copies read back equal) has both strokes after a reload', strokesOf(await inkNow(r), 'a'));
+      // interrupted between the write and the read-back
+      const c2 = await newCtx(() => { const g = IDBObjectStore.prototype.get; IDBObjectStore.prototype.get = function(){ if(window.__stall && this.transaction.mode === 'readonly' && this.name === 'parts') return {}; return g.apply(this, arguments); }; });
+      const {page: o2} = await open(c2, L.PAGE.PAGE);
+      await put(o2, {}); await o2.evaluate(ink => { const k = keyFor(PROFILE); const v = JSON.parse(localStorage.getItem(k)); v.ink = ink; localStorage.setItem(k, JSON.stringify(v)); }, old);
+      await o2.close();
+      const {page: q2} = await open(c2, PART_PAGE, () => { window.__stall = true; });
+      await q2.waitForTimeout(800);
+      const st2 = await storedProg(q2);
+      check(st2 && st2.ink && same(st2.ink.a, old.a), 'read-back: a page closed between the database write and its read-back leaves the page in localStorage', st2 && st2.ink);
+      await q2.close();
+      const {page: r2} = await open(c2);
+      await settled(r2, ['a']);
+      await r2.waitForFunction(() => !('ink' in JSON.parse(localStorage.getItem(keyFor(PROFILE)) || '{}')), null, {timeout: 10000}).catch(() => {});
+      await reload(r2);
+      check(same((await inkNow(r2)).a, old.a) && !('ink' in (await storedProg(r2))), 'read-back: the next visit moves it (in the database, out of localStorage, back after a reload)', null);
+      await c2.close(); await ctx.close();
+    }
+    // a quota refusal that arrives as the transaction's abort (as a full disk does), not a thrown put
+    {
+      const ctx = await newCtx(() => { const put = IDBObjectStore.prototype.put; IDBObjectStore.prototype.put = function(){ const r = put.apply(this, arguments);
+        if(window.__abortQuota && this.name === 'parts'){ const t = this.transaction; try { Object.defineProperty(t, 'error', {get: () => new DOMException('planted quota abort', 'QuotaExceededError'), configurable: true}); } catch(e){} t.abort(); }
+        return r; }; });
+      const {page: p} = await open(ctx);
+      const K = {parts: {work: [stroke(1)]}, room: {}, at: 1};
+      await put(p, {k: K}); await settled(p, ['k']);
+      await p.evaluate(() => { window.__abortQuota = true; });
+      await put(p, {k: {parts: {work: [stroke(1), stroke(2)]}, room: {}, at: 2}});
+      const s = await settled(p, ['k']);
+      check(s[0] === 'refused' && await p.evaluate(() => !!document.getElementById('outwarn')), 'quota abort: a transaction aborted with QuotaExceededError reports refused, with the notice', s);
+      await p.evaluate(() => { window.__abortQuota = false; });
+      await reload(p);
+      check(same((await inkNow(p)).k, K), 'quota abort: after a reload the page as saved before the refusal is stored', await inkNow(p));
+      await ctx.close();
+    }
+    // a crash after the commit: the page closed without unload handlers once "saved"
+    {
+      const ctx = await newCtx();
+      const {page: p} = await open(ctx);
+      const C = {parts: {work: [stroke(7)]}, room: {}, at: 7};
+      await put(p, {c: C}); const s = await settled(p, ['c']);
+      await p.close({runBeforeUnload: false});
+      const {page: q} = await open(ctx);
+      check(s[0] === 'saved' && same((await inkNow(q)).c, C), 'closing: a page reported saved is stored after its tab is closed without unload handlers', s);
+      await ctx.close();
     }
     // closing: a change still on save()'s 150 ms timer when the page is reloaded (pagehide writes it)
     {

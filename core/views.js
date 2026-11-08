@@ -499,10 +499,11 @@ function exportProgress(){
     let done = false;
     outsideReady().then(() => { if(!done){ done = true; exportProgress(); } });
     // the database did not answer: the file is made from what this page holds, and the page says so
-    setTimeout(() => { if(done) return; done = true; OUT.attached[PROFILE] = DB; exportProgress();
-      alert('The writing kept in this browser\'s database could not be read in time, so the file holds only the writing this page has open.'); }, 10000);
+    setTimeout(() => { if(done) return; done = true; OUT.readFailed[PROFILE] = OUT.readFailed[PROFILE] || 'no answer within 10 s'; exportProgress(); }, 10000);
     return;
   }
+  // the stored writing could not be read: the file holds the writing this page has, and says so
+  if(OUT.parts.size && OUT.readFailed[PROFILE]) setTimeout(() => alert('The writing kept in this browser\'s database could not be read (' + OUT.readFailed[PROFILE] + '), so this file holds only the writing this page has open, not the writing saved before.'), 0);
   const blob = new Blob([JSON.stringify({app:'exam-drill', course:COURSE.id, ns:NS, exported:new Date().toISOString(),
                                          profile:PROFILE, db:DB, log:LOG}, null, 1)], {type:'application/json'});
   const a = document.createElement('a');
@@ -904,7 +905,17 @@ function withOtherProfile(plan, fn){
     {text: `The profile "${esc(name)}" is open in another tab or window of this browser, which saves it, so nothing was imported, and that profile and "${esc(PROFILE)}" are unchanged. Import in that tab, or close it and import again.`})
     .catch(e => ({text: 'The import could not start: ' + esc(String(e && e.message || e)) + '. Nothing was imported.'}));
 }
+/* With a part kept in IndexedDB, a replacing Import's result is shown once the file's pages are
+   written (or refused, which it then says). */
+let IMPORT_WAIT = null;
 function runImport(plan){
+  IMPORT_WAIT = null;
+  const r = runImportNow(plan);
+  if(!IMPORT_WAIT || !r || typeof r.then === 'function') return r;
+  const keys = IMPORT_WAIT; IMPORT_WAIT = null;
+  return outsideSettled(keys).then(ok => ok ? r : Object.assign({}, r, {text: r.text + ' The browser did not save the writing from the file (storage is full or blocked). It is kept on this page, the notice offers Export, and the file still holds it.'}));
+}
+function runImportNow(plan){
   if(!canSave()) return {text: esc(LOAD_FAIL) + ' The file was not imported.'};
   // the plan was made from what this page holds: check again that it is what is stored
   if(FAILED.has(keyFor(PROFILE))) return {text: esc(UNSAVED)};
@@ -932,9 +943,11 @@ function runImport(plan){
       store.del(keyFor(name));
       return {text: `${refused}, so nothing was imported. Your progress is unchanged.`};
     }
-    // the file's pages kept outside localStorage (worksheet ink) go into the new profile's database records
-    outsideImport(name, db).then(ok => { if(!ok) alert(`The browser did not save the writing in the file for the profile "${name}" (storage is full or blocked). The file still holds it; importing it again adds it.`); });
-    return {text: `The file's progress is now the profile "${esc(name)}" (${nAnswers(db.answers.length)}). The progress of "${esc(PROFILE)}" is unchanged.`, open: name};
+    const done = {text: `The file's progress is now the profile "${esc(name)}" (${nAnswers(db.answers.length)}). The progress of "${esc(PROFILE)}" is unchanged.`, open: name};
+    // the file's pages kept outside localStorage (worksheet ink) go into the new profile's database
+    // records; the result is shown once the database committed them (the review of #81, should-fix 4)
+    if(!OUT.parts.size) return done;
+    return outsideImport(name, db).then(ok => ok ? done : Object.assign({}, done, {text: done.text + ` The browser did not save the writing in the file for "${esc(name)}" (storage is full or blocked); the file still holds it, and importing it again adds it.`}));
   }
   let text = '';
   if(plan.action === 'replace'){
@@ -959,8 +972,10 @@ function runImport(plan){
     clearTimeout(saveTimer); saveTimer = null;
     SEEN = dbText;
     pendingRetire();   // other tabs' older records of this profile cannot bring back what was replaced
+    outsideHold(PROFILE);   // this page's uncommitted writing is kept through the import
     DB = db;
     outsideAdopt(PROFILE);   // the file's pages kept outside localStorage, merged with the ones stored
+    if(OUT.parts.size && OUT.state === 'ready') IMPORT_WAIT = outsidePageKeys(PROFILE, DB);
     try { fsFromHistory(); } catch(e){ FS_ERROR = String(e && e.message || e); }
     text = `Imported: "${esc(PROFILE)}" now has the file's progress (${nAnswers(db.answers.length)}). The progress it replaced is kept; Settings can put it back.`;
   }
@@ -1044,6 +1059,7 @@ function restoreBackup(){
   }
   clearTimeout(saveTimer); saveTimer = null;
   SEEN = b.data;
+  outsideHold(PROFILE);   // this page's uncommitted writing is kept through the put-back
   DB = db;
   outsideAdopt(PROFILE, true);   // the copy's pages kept outside localStorage stay with it until moved
   try { fsFromHistory(); } catch(e){ FS_ERROR = String(e && e.message || e); }
