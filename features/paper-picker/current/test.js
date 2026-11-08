@@ -260,12 +260,11 @@ const sameIds = (a, b) => a.length === b.length && a.every((x, i) => x === b[i])
     await page.click('#v-exam .opt'); await page.click('#exNext');
     const run1b = await ev(() => [...document.querySelectorAll('#v-exam [data-pp="running"]')].map(x => x.textContent));
     check(run1b.length === 1 && run1b[0] === run1, 'and still says so, once, on the next question', run1b);
-    await page.click('#exPrev').catch(() => {});
     const before = await ev(() => DB.paperPicker.exam);
     const blocked = await ev(() => FX.api('paper-picker').choose(1));
     check(blocked === false && before === 2 && await ev(() => DB.paperPicker.exam) === 2, 'the choice cannot change while a paper runs');
     // answer three questions, reload during the paper, then answer the rest and submit
-    for(let i = 0; i < 3; i++){ await page.click('#v-exam .opt'); await page.click('#exNext'); }
+    for(let i = 1; i < 3; i++){ await page.click('#v-exam .opt'); await page.click('#exNext'); }   // question 1 was answered above
     await page.waitForTimeout(300);
     await page.reload(); await ready();
     await page.click('#nav button[data-v="exam"]'); await settle();
