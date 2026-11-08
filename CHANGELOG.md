@@ -2,6 +2,9 @@
 
 Dated kit changes, newest first.
 
+## 2026-11-08 (exam opening page and feature modules)
+- The exam's opening page draws 20 sample papers to describe its select-all items (#59). A feature module's `X.paper` hook no longer runs on those sample draws, only on a paper that starts (`EXAM_SAMPLING` in `views.js`, read by `features.js`). Before, a hook ran 20 times on opening the Exam tab; a hook that saves (paper-picker, not merged) wrote the progress for papers nobody started. A hook only reorders a paper, so the select-all count is unchanged. `features_test.js` checks it (20 hook calls before, 0 after; a real draw still runs the hook once).
+
 ## 2026-11-08 (plan)
 - BDK's study features are planned as kit modules any course can switch on, in four parts (`review/bdk-study-features-plan.md`, Louis 2026-11-08): the drug list, comparison and field colours first; existing study tools next; new storage, scheduling behaviour and the builder's recommendation keep their own approvals. Recorded as `bdk-study-features` in `coordinator/improvements.json`; port queue items 11-17 are `planned` by part. Nothing is built by this change.
 

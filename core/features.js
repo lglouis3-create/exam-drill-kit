@@ -29,7 +29,8 @@
      X.reading(fn(html))      the HTML of a reading tab (Guides, Tell apart,
                               Reference) before it is drawn; returns the HTML
      X.paper(fn(qs))          the questions of a new exam paper, in order,
-                              before it starts; returns them
+                              before it starts; returns them (not run on the
+                              sample papers the exam's opening page draws)
      X.settings({title, html(), wire(el)})  a section at the end of Settings
      X.start(fn())            once, after the first progress load
      X.progress(fn(db))       on every saved progress read or imported, before
@@ -177,6 +178,7 @@ const FX = (() => {
   });
   wrap('drawPaper', () => drawPaper, f => { drawPaper = f; }, orig => function(){
     let qs = orig.apply(this, arguments);
+    if(typeof EXAM_SAMPLING !== 'undefined' && EXAM_SAMPLING) return qs;   // the opening page's sample draws are not new papers
     papers.forEach(p => { qs = run(p.n, 'paper', () => { const out = p.f(qs.slice()); if(!Array.isArray(out) || out.length !== qs.length) throw new Error('X.paper must return the same questions'); return out; }, qs); });
     return qs;
   });
