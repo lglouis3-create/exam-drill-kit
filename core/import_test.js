@@ -2285,7 +2285,8 @@ let nfile = 0;
     await d.page.waitForFunction(() => WRITER !== 'pending', null, {timeout: 6000}).catch(() => {});
     const waited = Date.now() - t0;
     const after = await d.page.evaluate(() => ({w: WRITER, wall: (document.getElementById('stopwall') || {dataset: {}}).dataset.why || null, held: WRITER_FOR}));
-    const q = await d.page.evaluate(() => navigator.locks.query().then(r => r.held.length));
+    // writer locks only: each open tab also holds its own tab lock `exam-drill-tab:<tab>` (recovery records, #81)
+    const q = await d.page.evaluate(() => navigator.locks.query().then(r => r.held.filter(l => l.name.startsWith(NS + ':writer:')).length));
     check(after.w === 'other' && after.wall === 'other' && !after.held && waited >= 1500 && q === 1,
       'another tab queued for the profile when this page frees it: this page waits about 2 s, then opens read-only, and only the other tab holds the lock', {after, waited, q});
     await d.ctx.close();

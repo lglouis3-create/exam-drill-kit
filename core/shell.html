@@ -1454,6 +1454,7 @@ const OUT_STALE_MS = 5 * 60 * 1000, OUT_BEAT_MS = 30 * 1000;
 const outAliveKey = tab => NS + ':tab-alive:' + tab;
 let OUT_TABLOCK = false;
 function outsideTabAlive(){
+  if(typeof window === 'undefined' || typeof document === 'undefined' || typeof setInterval !== 'function') return;   // the checks' Node sandbox runs this code without a page
   try { if(navigator.locks && navigator.locks.request){ navigator.locks.request('exam-drill-tab:' + TAB_ID, () => new Promise(() => {})).catch(() => {}); OUT_TABLOCK = !!navigator.locks.query; } } catch(e){ OUT_TABLOCK = false; }
   const beat = () => { if(!OUT_TABLOCK) try { localStorage.setItem(outAliveKey(TAB_ID), String(Date.now())); } catch(e){} };
   beat();
