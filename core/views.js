@@ -226,6 +226,7 @@ const ALL_TAGS = Object.keys(TYPE_LABEL).filter(k => QUESTIONS.some(q=>q.types.i
 
 const VIEWS = ['topics','quiz','gaps','exam','atlas','diagrams','guide','tell','ref','settings'];
 function show(v){
+  figClose();
   VIEW = v;
   document.querySelectorAll('#nav button').forEach(b=>b.setAttribute('aria-selected', b.dataset.v===v));
   VIEWS.forEach(k=> document.getElementById('v-'+k).classList.toggle('hide', k!==v));
@@ -233,7 +234,39 @@ function show(v){
   ({topics:renderTopics, quiz:renderQuiz, gaps:renderGaps, exam:renderExam,
     atlas:renderAtlas, diagrams:renderDiagrams, guide:renderGuide, tell:renderTell,
     ref:renderRef, settings:renderSettings}[v])();
+  navReveal(v);
+  armFigs(document.getElementById('v-' + v));
 }
+
+/* ---------- the tab bar on a narrow screen ----------
+   The tabs scroll sideways when they do not fit (a phone, a tablet in portrait).
+   The bar shows a chevron on the side that has more tabs (more-l, more-r, drawn
+   in shell.html; tapping it scrolls that way), and the tab opened is scrolled
+   into view, so a tab reached from a link is never left off the edge. */
+function navCue(){
+  const n = document.getElementById('nav');
+  if(!n || !n.classList || typeof n.scrollWidth !== 'number') return;
+  // the header wraps to two lines or more on a phone when the course title is
+  // long, so the bar sits below the header's real height, not a fixed 44 px
+  const hd = document.querySelector('header');
+  if(hd && document.documentElement.style){
+    document.documentElement.style.setProperty('--head-h', hd.offsetHeight + 'px');
+    document.documentElement.style.setProperty('--nav-h', n.offsetHeight + 'px');
+  }
+  const max = n.scrollWidth - n.clientWidth;
+  n.classList.toggle('more-l', max > 1 && n.scrollLeft > 1);
+  n.classList.toggle('more-r', max > 1 && n.scrollLeft < max - 1);
+}
+function navReveal(v){
+  const n = document.getElementById('nav');
+  const b = n && n.querySelector && n.querySelector(`button[data-v="${v}"]`);
+  if(!b || typeof b.getBoundingClientRect !== 'function' || typeof n.scrollWidth !== 'number') return navCue();
+  const nr = n.getBoundingClientRect(), br = b.getBoundingClientRect(), pad = 30;
+  if(br.left < nr.left + pad) n.scrollLeft -= (nr.left + pad - br.left);
+  else if(br.right > nr.right - pad) n.scrollLeft += (br.right - nr.right + pad);
+  navCue();
+}
+
 
 /* ==========================================================================
    JUMPING TO A READING SECTION, AND BACK
@@ -256,7 +289,8 @@ function scrollToEl(el){
 }
 const RET = [];
 const VIEW_NAME = {quiz:'the question', exam:'the exam', gaps:'weak spots', diagrams:'the diagrams',
-                   topics:'the topics', ref:'the reference', tell:'tell apart', guide:'the guides'};
+                   topics:'the topics', ref:'the reference', tell:'tell apart', guide:'the guides',
+                   atlas:'the atlas', settings:'settings'};
 function jump(view, anchor){
   RET.push({view: VIEW, y: window.scrollY});
   show(view);
@@ -1253,6 +1287,36 @@ function examCountdown(){
   return `${d} day${d === 1 ? '' : 's'} until the exam.`;
 }
 
+/* ---------- Start here ----------
+   One short block at the top of the Topics tab with the routes the page already
+   has, so a first visit meets an obvious start before the filters, the change
+   log and the whole-bank passes: the guides (or the topic list), the adaptive
+   runner, Weak spots and the exam tab. A route whose tab the course dropped is
+   left out; Start practice is off when the filters select nothing. */
+const hasTab = v => !!document.querySelector(`#nav button[data-v="${v}"]`);
+function startHere(nFiltered){
+  const r = [];
+  const guide = typeof GUIDE_HTML !== 'undefined' && String(GUIDE_HTML).trim() && hasTab('guide');
+  r.push(['learn', 'Learn a topic', guide ? 'Read a guide, then drill its topic' : 'Pick a topic below and drill it']);
+  r.push(['practice', 'Start practice', 'Mixed questions, missed concepts first; follows the filters below', !nFiltered]);
+  if(hasTab('gaps')) r.push(['weak', 'Review weak concepts', 'What you have missed, and what to read']);
+  if(hasTab('exam')) r.push(['exam', 'Practice exam', 'A paper drawn like the real one']);
+  return `<div class="panel startbox" id="startHere"><b class="starthead">Start here</b>
+    <div class="startgrid">${r.map(([k, t, d, off]) =>
+      `<button type="button" class="startbtn" data-start="${k}"${off ? ' disabled' : ''}><b>${t}</b><small>${d}</small></button>`).join('')}</div></div>`;
+}
+function wireStart(root){
+  root.querySelectorAll('#startHere button[data-start]').forEach(b => b.onclick = () => {
+    const k = b.dataset.start;
+    if(k === 'practice') return startQuiz(null, null);
+    if(k === 'weak') return show('gaps');
+    if(k === 'exam') return show('exam');
+    if(typeof GUIDE_HTML !== 'undefined' && String(GUIDE_HTML).trim() && hasTab('guide')) return show('guide');
+    const t = root.querySelector('details.topic');
+    if(t){ t.open = true; scrollToEl(t); }
+  });
+}
+
 function renderTopics(){
   const counts = {};
   QUESTIONS.forEach(q => counts[q.prof] = (counts[q.prof]||0)+1);
@@ -1261,6 +1325,7 @@ function renderTopics(){
   <p class="sub">${esc(EXAM.name)}: ${EXAM.questions} questions, ${EXAM.minutes} minutes${EXAM.date ? ', ' + esc(EXAM.date) : ''}.
   ${EXAM.blurb ? esc(EXAM.blurb) + '. ' : ''}Question bank: ${QUESTIONS.length} across ${conceptsIn(QUESTIONS).length} concepts.
   ${examCountdown() ? '<b>' + esc(examCountdown()) + '</b>' : ''}</p>
+  ${startHere(poolFor(null, null).length)}
   <p class="stamp">Built ${esc(BUILD.stamp || '')}${(BUILD.changelog||[]).length ? ' · <a href="#" id="whatsnew">all changes</a>' : ''}</p>
   ${newsCard()}`;
 
@@ -1270,15 +1335,17 @@ function renderTopics(){
   // holds far more questions on the material worth few marks than on the
   // material worth many, so a straight pass through everything spends the
   // evening in the wrong place. This one takes the whole of the heaviest pool
-  // and samples the others in the paper's own proportion. The full pass is
-  // still here, second.
+  // and samples the others in the paper's own proportion. Both whole-bank
+  // passes come after the topic list: the Start here block above is the way in
+  // for a first visit, and these are the advanced route.
   const nAll = QUESTIONS.length, nFiltered = poolFor(null, null).length;
   const wp = weightedPool();
   // filters that select nothing: say why and offer to clear them, and offer no
   // Start, since every one would open an empty set or quietly ignore the filters
   if(!nFiltered) h += `<div class="panel" id="noMatch"><b>No questions match these filters:</b> ${emptyReason()}.
     <div class="row" style="margin-top:9px"><button class="btn" id="clearFilters">Clear filters</button></div></div>`;
-  else h += `<div class="topic sweepcard"><div class="subs">
+  // the whole-bank passes are the advanced route: offered after the topic list
+  const passes = !nFiltered ? '' : `<div class="topic sweepcard" id="wholeBank"><div class="subs">
     <div class="subrow"><span class="sname"><b>Exam-weighted pass — ${wp.length} questions</b>
       <small>Every question from the ${mainPool().marks}-mark pool, plus the other pools in the paper's ${EXAM.pools.map(p=>p.marks).join(' : ')} proportion. Shuffled, each once.</small></span>
       <button id="sweepWeighted">Start</button></div>
@@ -1323,14 +1390,16 @@ function renderTopics(){
     h += `</div></details>`;
   }
 
-  if(nFiltered) h += `<h3>Mixed drills</h3>
+  if(nFiltered) h += `<h3>Mixed drills and whole-bank passes</h3>
   <div class="topic"><div class="subs">
     <div class="subrow"><span class="sname"><b>Everything, adaptive</b>
       <small>Whole bank under the current filters — missed concepts first, and it stops when nothing is due</small></span>
       <button data-t="" data-s="">Start</button></div>
   </div></div>`;
+  h += passes;
 
   $('#v-topics').innerHTML = h;
+  wireStart($('#v-topics'));
 
   const wn = $('#whatsnew'); if(wn) wn.onclick = e => { e.preventDefault(); show('settings'); };
   const nok = $('#newsok'); if(nok) nok.onclick = () => {
@@ -1468,6 +1537,7 @@ function qLabel(q){
 const srcFlag = q => q.source==='transcript' ? '<span class="srcflag">from lecture audio</span>'
                    : q.source==='both'       ? '<span class="srcflag">slides and lecture audio</span>' : '';
 function renderQuiz(){
+  figClose();
   const el = $('#v-quiz');
   if(!Q){
     el.innerHTML = `<div class="empty"><p><b>No set is open.</b></p>
@@ -1651,6 +1721,7 @@ function renderQuiz(){
   const bc = $('#btnCheck'); if(bc) bc.onclick = submitMulti;
   const bn = $('#btnNext'); if(bn) bn.onclick = () => { Q.answered++; Q.lastId = Q.current.id; nextQuestion(); };
   wireConfidence();
+  armFigs(el);
 }
 /* After a correct answer: how sure were you. "Not sure" brings the concept
    back at the short interval; "guessed" treats it as not yet known. Neither
@@ -2656,6 +2727,8 @@ function stepTo(fig, from, to){
     d.classList.toggle('on', j === to);
     d.setAttribute('aria-current', j === to ? 'step' : 'false');
   });
+  const now$ = fig.querySelector('.stepnow');
+  if(now$) now$.textContent = `Step ${to + 1} of ${steps.length}`;
   if(reduceMotion()) return;
   const now = steps[to];
   const scale = svg.viewBox.baseVal.width / (svg.getBoundingClientRect().width || 1);
@@ -2684,9 +2757,94 @@ function stepTo(fig, from, to){
   svg.appendChild(ghost);
   setTimeout(() => ghost.remove(), 600);
 }
+/* What the step controls gain from the engine, whatever diagrams.js wrote: the
+   current step in words (announced as it changes), aria-current on its dot, and
+   an Enlarge button that shows the figure across the screen (Escape or Close
+   puts it back). The steps and their order are the figure's own. Run on each
+   view as it is drawn; a figure already armed is left alone. */
+function armFigs(root){
+  if(!root || typeof root.querySelectorAll !== 'function') return;
+  root.querySelectorAll('[data-anim]').forEach(ctl => {
+    if(ctl.querySelector('.stepnow')) return;
+    const fig = ctl.closest('figure'); if(!fig) return;
+    const steps = [...fig.querySelectorAll('.st')]; if(!steps.length) return;
+    const i = Math.max(0, steps.findIndex(s => s.classList.contains('on')));
+    const now = document.createElement('span');
+    now.className = 'stepnow'; now.setAttribute('aria-live', 'polite');
+    now.textContent = `Step ${i + 1} of ${steps.length}`;
+    ctl.prepend(now);
+    fig.querySelectorAll('.sdot').forEach((d, j) => d.setAttribute('aria-current', j === i ? 'step' : 'false'));
+    const big = document.createElement('button');
+    big.type = 'button'; big.className = 'btn ghost'; big.dataset.go = 'big'; big.textContent = 'Enlarge';
+    big.setAttribute('aria-pressed', 'false');
+    ctl.appendChild(big);
+  });
+}
+function figBig(fig, on, keepFocus){
+  if(on === fig.classList.contains('big')) return;
+  /* The enlarged figure leaves the page's flow, which would shorten the page and
+     let the browser move the reader up; a placeholder of the figure's own size
+     holds its place, and the page is put back where it was on close. */
+  let ph = null;
+  if(on){
+    const cs = getComputedStyle(fig);
+    ph = document.createElement('div');
+    ph.className = 'figph'; ph.setAttribute('aria-hidden', 'true');
+    ph.style.height = fig.offsetHeight + 'px';
+    ph.style.marginTop = cs.marginTop; ph.style.marginBottom = cs.marginBottom;
+    fig.dataset.y = String(window.scrollY);
+  }
+  fig.classList.toggle('big', on);
+  document.body.classList.toggle('figbig', on);
+  // the placeholder goes in only once the figure has left the flow, so the two
+  // never stand in the flow together; the page is held where it was either way
+  if(ph){ fig.before(ph); window.scrollTo(0, +fig.dataset.y); }
+  if(!on){
+    const ph = fig.previousElementSibling;
+    if(ph && ph.classList.contains('figph')) ph.remove();
+    const y = +fig.dataset.y; delete fig.dataset.y;
+    if(fig.isConnected && !isNaN(y)) window.scrollTo(0, y);
+  }
+  const b = fig.querySelector('[data-go="big"]');
+  if(b){ b.textContent = on ? 'Close' : 'Enlarge'; b.setAttribute('aria-pressed', on ? 'true' : 'false'); }
+  if(on){ fig.setAttribute('role', 'dialog'); fig.setAttribute('aria-modal', 'true'); }
+  else { fig.removeAttribute('role'); fig.removeAttribute('aria-modal'); }
+  // focus goes to the button that opened it, Close while open and Enlarge after,
+  // without the browser scrolling to it
+  if(b && !keepFocus && b.isConnected) b.focus({preventScroll: true});
+}
+/* Close any enlarged figure and release the page's scroll lock: before another
+   tab is shown or a view is drawn again, so the lock never outlives its figure. */
+function figClose(){
+  if(typeof document.querySelectorAll !== 'function' || !document.body || !document.body.classList) return;
+  document.querySelectorAll('figure.big').forEach(f => figBig(f, false, true));
+  document.body.classList.remove('figbig');
+}
+document.addEventListener('keydown', e => {
+  const open = document.querySelector('figure.big');
+  if(!open && document.body.classList.contains('figbig')) document.body.classList.remove('figbig');
+  if(e.key === 'Escape' && open){ e.preventDefault(); figBig(open, false); return; }
+  // while a figure is enlarged, Tab moves among its own controls only
+  if(e.key === 'Tab' && open){
+    const f = [...open.querySelectorAll('button,[href],select,input,[tabindex]:not([tabindex="-1"])')]
+      .filter(x => !x.disabled && x.getClientRects().length);
+    if(f.length){
+      const i = f.indexOf(document.activeElement);
+      const to = e.shiftKey ? (i <= 0 ? f[f.length - 1] : f[i - 1]) : (i < 0 || i === f.length - 1 ? f[0] : f[i + 1]);
+      e.preventDefault(); to.focus();
+    }
+    return;
+  }
+  // the arrow keys step a figure while one of its controls has focus
+  const ctl = e.target && e.target.closest && e.target.closest('[data-anim]');
+  if(!ctl || (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft')) return;
+  const b = ctl.querySelector(`button[data-go="${e.key === 'ArrowRight' ? 1 : -1}"]`);
+  if(b){ e.preventDefault(); b.click(); }
+});
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-anim] button'); if(!b) return;
   const fig = b.closest('figure'); if(!fig) return;
+  if(b.dataset.go === 'big') return figBig(fig, !fig.classList.contains('big'));
   const steps = [...fig.querySelectorAll('.st')]; if(!steps.length) return;
   const cur = steps.findIndex(s => s.classList.contains('on')), n = steps.length;
   const playBtn = fig.querySelector('[data-go="play"]');
@@ -2778,6 +2936,7 @@ const DIA_LIST = () => (typeof DIAGRAMS !== 'undefined' ? DIAGRAMS : [])
   .map(([name, keys]) => [name, keys.filter(k => typeof DIA !== 'undefined' && DIA[k])])
   .filter(([, keys]) => keys.length);
 function renderDiagrams(){
+  figClose();
   const el = $('#v-diagrams');
   const groups = DIA_LIST();
   if(!groups.length){
@@ -2851,25 +3010,44 @@ function refFigures(html){
    ========================================================================== */
 let ATLAS_BUILT = false;
 
+/* The words the Atlas uses for itself, from course.js, each defaulting to what
+   the engine always said, so a course that sets none reads as before:
+     atlasTitle         the heading ('Functional group atlas')
+     atlasNoun          what one tile is: a word ('structure', plural + "s") or
+                        [one, many] (['group', 'groups'])
+     atlasExampleLabel  the label before a tile's `e` line ('e.g.'); '' drops it,
+                        for a course whose `e` lines are facts, not examples */
+function atlasWords(){
+  const n = COURSE.atlasNoun;
+  const [one, many] = Array.isArray(n) ? [n[0], n[1] || n[0] + 's'] : n ? [n, n + 's'] : ['group', 'groups'];
+  return {title: COURSE.atlasTitle || 'Functional group atlas', one, many,
+          search: n ? `Find a ${one}` : 'Find a functional group',
+          eg: COURSE.atlasExampleLabel === undefined || COURSE.atlasExampleLabel === null ? 'e.g.' : String(COURSE.atlasExampleLabel)};
+}
+const ATLAS_ANON = 'Structure to identify';
+
 function renderAtlas(){
   const el = $('#v-atlas');
   if(ATLAS_BUILT) return;
 
+  const W = atlasWords();
   const count = ATLAS.boards.reduce((n,b)=>n+b.sections.reduce((m,s)=>m+s.items.length,0),0);
-  let h = `<h2>Functional group atlas</h2>
-  <p class="sub">${count} groups, drawn to the same scale. The ones that get confused sit next to
+  let h = `<h2>${esc(W.title)}</h2>
+  <p class="sub">${count} ${esc(count === 1 ? W.one : W.many)}, drawn to the same scale. The ones that get confused sit next to
   each other and the atom that separates them is shaded. Read a row left to right, then hide the
   names and go along it again.</p>
   <div class="atbar">
-    <input id="atq" type="search" placeholder="Find a group\u2026" aria-label="Find a functional group">
+    <input id="atq" type="search" placeholder="Find a ${esc(W.one)}…" aria-label="${esc(W.search)}">
     <button class="chip" id="atHide" aria-pressed="false">Hide names</button>
     <button class="chip hide" id="atShow">Reveal all</button>
     <span class="spacer"></span>
-    <span style="font-size:12px;color:var(--text-dim)" id="atCount"></span>
+    <span style="font-size:12px;color:var(--text-dim)" id="atCount" aria-live="polite"></span>
   </div>`;
 
-  for(const b of ATLAS.boards){
-    h += `<section class="atboard" id="at-${b.id}"><h3>${b.title}</h3>
+  // In Hide names mode a board's heading reads "Board n of N" instead of its
+  // title, and its intro, section labels and note are hidden (shell.html).
+  ATLAS.boards.forEach((b, bi) => {
+    h += `<section class="atboard" id="at-${b.id}"><h3><span class="athead-name">${b.title}</span><span class="athead-anon">Board ${bi + 1} of ${ATLAS.boards.length}</span></h3>
       <p class="bintro">${b.intro}</p>`;
     for(const sec of b.sections){
       h += `<div class="atsub">${esc(sec.label)}</div><div class="atgrid">`;
@@ -2878,19 +3056,20 @@ function renderAtlas(){
         const hay = (it.plain + ' ' + it.t + ' ' + (it.e||'')).replace(/<[^>]+>/g,'').toLowerCase();
         h += `<article class="attile" data-find="${esc(hay)}">
           <div class="atfig">${svg}</div>
+          <button type="button" class="chip atrev" aria-expanded="false">Reveal name</button>
           <div class="atname">${it.n}</div>
           <p class="attell">${it.t}</p>
-          ${it.e ? `<p class="ateg">${esc(it.e)}</p>` : ''}
+          ${it.e ? `<p class="ateg">${W.eg ? `<span class="ateglbl">${esc(W.eg)} </span>` : ''}${esc(it.e)}</p>` : ''}
         </article>`;
       }
       h += `</div>`;
     }
     if(b.note) h += `<p class="atnote">${b.note}</p>`;
     h += `</section>`;
-  }
+  });
   h += `<p class="sub" style="margin-top:26px">A bare line end is a carbon with three hidden
   hydrogens and a plain vertex is a carbon with two. A line end carrying a letter is that atom
-  instead, not a carbon \u2014 different drawings entirely, and the cheapest point to lose.</p>`;
+  instead, not a carbon — different drawings entirely, and the cheapest point to lose.</p>`;
 
   el.innerHTML = h;
   ATLAS_BUILT = true;
@@ -2898,12 +3077,39 @@ function renderAtlas(){
   const tiles = [...el.querySelectorAll('.attile')];
   const q = el.querySelector('#atq'), hide = el.querySelector('#atHide'),
         showAll = el.querySelector('#atShow'), count$ = el.querySelector('#atCount');
+  tiles.forEach(t => t.querySelectorAll('.atfig svg').forEach(sv => {
+    sv.dataset.label = sv.getAttribute('aria-label') || '';
+    const ti = sv.querySelector('title'); if(ti) ti.dataset.label = ti.textContent;
+  }));
 
+  /* A tile counts as shown when the search left it in and nothing else hides it
+     either: a course's own controls may hide tiles with a class (a filter of its
+     own), so the count reads what is on screen, not only the search's `hidden`. */
+  const onScreen = t => !t.hidden && (el.offsetParent === null || t.getClientRects().length > 0);
   const recount = () => {
-    const live = tiles.filter(t => !t.hidden).length;
-    count$.textContent = live === tiles.length ? `${tiles.length} groups` : `${live} of ${tiles.length}`;
+    const live = tiles.filter(onScreen).length;
+    count$.textContent = live === tiles.length ? `${tiles.length} ${tiles.length === 1 ? W.one : W.many}` : (COURSE.atlasNoun ? `${live} of ${tiles.length} ${W.many}` : `${live} of ${tiles.length}`);
   };
   recount();
+  el.atlasRecount = recount;
+
+  /* The names, as the mode shows them: a drawing is labelled with its name only
+     while the names are shown or its tile is revealed; otherwise it reads as a
+     structure to identify. Each reveal button says whether its tile is open. */
+  const sync = () => {
+    const off = el.classList.contains('namesoff');
+    tiles.forEach(t => {
+      const shown = !off || t.classList.contains('shown');
+      t.querySelectorAll('.atfig svg').forEach(sv => {
+        sv.setAttribute('aria-label', shown ? sv.dataset.label : ATLAS_ANON);
+        const ti = sv.querySelector('title'); if(ti) ti.textContent = shown ? ti.dataset.label : ATLAS_ANON;
+      });
+      const b = t.querySelector('.atrev');
+      if(b){ b.setAttribute('aria-expanded', off && t.classList.contains('shown') ? 'true' : 'false');
+             b.textContent = off && t.classList.contains('shown') ? 'Hide name' : 'Reveal name'; }
+    });
+  };
+  const reveal = t => { if(!el.classList.contains('namesoff')) return; t.classList.toggle('shown'); sync(); };
 
   q.oninput = () => {
     const v = q.value.trim().toLowerCase();
@@ -2927,11 +3133,14 @@ function renderAtlas(){
     hide.textContent = on ? 'Names hidden' : 'Hide names';
     showAll.classList.toggle('hide', !on);
     if(!on) tiles.forEach(t => t.classList.remove('shown'));
+    sync(); recount();
   };
-  showAll.onclick = () => tiles.forEach(t => t.classList.add('shown'));
-  tiles.forEach(t => t.querySelector('.atfig').onclick = () => {
-    if(el.classList.contains('namesoff')) t.classList.toggle('shown');
+  showAll.onclick = () => { tiles.forEach(t => t.classList.add('shown')); sync(); };
+  tiles.forEach(t => {
+    t.querySelector('.atfig').onclick = () => reveal(t);
+    const b = t.querySelector('.atrev'); if(b) b.onclick = () => reveal(t);
   });
+  sync();
 }
 
 function renderDoc(el, html, prefix){
@@ -2978,8 +3187,40 @@ function boxTables(root){
     box.style.marginTop = cs.marginTop; box.style.marginBottom = cs.marginBottom;
     t.before(box); box.appendChild(t);
     t.style.marginTop = '0'; t.style.marginBottom = '0';
+    const cue = document.createElement('p');
+    cue.className = 'tcue'; cue.hidden = true; cue.setAttribute('aria-hidden', 'true');
+    box.before(cue);
+    box.addEventListener('scroll', () => sideCue(box), {passive: true});
+    TABLE_BOXES.add(box);
   });
+  if(typeof requestAnimationFrame === 'function')
+    requestAnimationFrame(() => root.querySelectorAll('.tscroll').forEach(sideCue));
 }
+/* A box whose table is wider than it is marked .wide (its first column then
+   stays in view) and more-l / more-r for the side that has more columns; the
+   line above it says so in words. Measured again on a resize or rotation. */
+const TABLE_BOXES = new Set();
+function sideCue(box){
+  if(!box.isConnected){ TABLE_BOXES.delete(box); return; }
+  if(!box.offsetParent) return;                     // its tab is not on screen
+  const over = box.scrollWidth - box.clientWidth > 1;
+  const l = over && box.scrollLeft > 1, r = over && box.scrollLeft < box.scrollWidth - box.clientWidth - 1;
+  box.classList.toggle('wide', over);
+  // the first column stays in view only where each row starts with its own cell:
+  // a rowspan or colspan would pin a cell of another column on the rows it spans
+  const t = box.querySelector('table');
+  box.classList.toggle('stick', over && !!t && !t.querySelector('[rowspan]:not([rowspan="1"]),[colspan]:not([colspan="1"])'));
+  box.classList.toggle('more-l', l);
+  box.classList.toggle('more-r', r);
+  const cue = box.previousElementSibling;
+  if(cue && cue.classList.contains('tcue')){
+    cue.hidden = !over;
+    cue.textContent = r ? (l ? '\u2190 More columns on both sides \u2192' : 'More columns to the right: scroll sideways \u2192')
+                        : '\u2190 More columns to the left';
+  }
+}
+if(typeof window.addEventListener === 'function')
+  window.addEventListener('resize', () => { TABLE_BOXES.forEach(sideCue); navCue(); });
 function renderRef(){ renderDoc($('#v-ref'), refFigures(REFERENCE_HTML), 'ref'); }
 function renderTell(){ renderDoc($('#v-tell'), refFigures(TELL_HTML), 'tell'); }
 function renderGuide(){ renderDoc($('#v-guide'), refFigures(GUIDE_HTML), 'guide'); }
@@ -3211,6 +3452,18 @@ bootStep('the page title', () => {
 bootStep('the tab buttons', () => {
   document.querySelectorAll('#nav button').forEach(b => b.onclick = () => show(b.dataset.v));
   document.getElementById('btnWho').onclick = () => { askProfile(true); show(VIEW); };
+});
+bootStep('the tab bar cue', () => {
+  const n = document.getElementById('nav');
+  n.addEventListener('scroll', navCue, {passive: true});
+  // the chevrons are the bar's own ::before / ::after, so a tap on one lands on the bar
+  n.addEventListener('click', e => {
+    if(e.target !== n) return;
+    const r = n.getBoundingClientRect(), x = e.clientX;
+    if(n.classList.contains('more-r') && x > r.right - 40) n.scrollBy({left: n.clientWidth * 0.7, behavior: reduceMotion() ? 'auto' : 'smooth'});
+    else if(n.classList.contains('more-l') && x < r.left + 40) n.scrollBy({left: -n.clientWidth * 0.7, behavior: reduceMotion() ? 'auto' : 'smooth'});
+  });
+  navCue();
 });
 /* A tab with nothing in it is removed rather than left to open on an empty
    page: the atlas when the course draws no structures, the Diagrams tab when no

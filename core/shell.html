@@ -49,12 +49,21 @@ header{
 header h1{font-size:15px;margin:0;font-weight:600;letter-spacing:.2px}
 header .who{font-size:12px;color:#9FB0C4;margin-left:auto;display:flex;gap:8px;align-items:center}
 header .who button{background:#2A3A4D;color:#DCE6F2;border:1px solid #3B4F66;border-radius:6px;padding:3px 9px;font-size:12px}
-nav{background:var(--ink-2);display:flex;gap:2px;padding:0 8px;overflow-x:auto;position:sticky;top:44px;z-index:39}
+nav{background:var(--ink-2);display:flex;gap:2px;padding:0 8px;overflow-x:auto;position:sticky;top:var(--head-h,44px);z-index:39}
 nav button{
   background:none;border:0;color:#9FB0C4;padding:10px 14px;font-size:14px;
   border-bottom:3px solid transparent;white-space:nowrap
 }
 nav button[aria-selected="true"]{color:#fff;border-bottom-color:#6FA0E8}
+/* More tabs off the edge (views.js navCue): a chevron on a fade, on the side that
+   has more; the bar scrolls under it. Each takes no width of its own. */
+nav::before,nav::after{position:sticky;z-index:1;flex:0 0 30px;display:none;align-items:center;
+  font-size:22px;line-height:1;color:#fff;cursor:pointer;pointer-events:auto}
+nav::before{content:"\2039";left:-8px;margin-right:-30px;margin-left:-8px;padding-left:8px;justify-content:flex-start;
+  background:linear-gradient(to right,var(--ink-2) 55%,transparent)}
+nav::after{content:"\203A";right:-8px;margin-left:-30px;margin-right:-8px;padding-right:8px;justify-content:flex-end;
+  background:linear-gradient(to left,var(--ink-2) 55%,transparent)}
+nav.more-l::before,nav.more-r::after{display:flex}
 main{max-width:var(--maxw);margin:0 auto;padding:18px 14px 90px}
 h2{font-size:20px;margin:0 0 4px}
 h3{font-size:16px;margin:22px 0 8px}
@@ -292,7 +301,7 @@ body.swbar-on{padding-bottom:76px}
 /* ---------- functional group atlas ---------- */
 .atbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--paper);
   border:1px solid var(--line);border-radius:var(--r);padding:11px 13px;margin-bottom:16px;
-  position:sticky;top:88px;z-index:30}
+  position:sticky;top:calc(var(--head-h,44px) + var(--nav-h,44px));z-index:30}
 .atbar input{font:inherit;font-size:13px;border:1px solid var(--line);border-radius:7px;
   padding:6px 10px;width:190px;background:var(--paper);color:var(--text)}
 .atbar .spacer{flex:1}
@@ -313,7 +322,9 @@ body.swbar-on{padding-bottom:76px}
 .attell{font-size:12.5px;line-height:1.45;color:var(--text-dim);margin:0}
 .attell b{color:var(--text);font-weight:600}
 .ateg{font-size:11px;color:var(--text-dim);margin:0;font-style:italic}
-.ateg::before{content:"e.g. ";opacity:.7}
+.ateg .ateglbl{opacity:.7}
+.athead-anon{display:none}
+.atrev{display:none;align-self:flex-start;min-height:44px}
 .atnote{border-left:3px solid var(--accent);padding:3px 0 3px 13px;margin:16px 0 0;
   font-size:14px;color:var(--text);max-width:44rem;background:var(--accent-bg);
   border-radius:0 6px 6px 0;padding-right:12px;padding-top:9px;padding-bottom:9px}
@@ -324,6 +335,11 @@ body.swbar-on{padding-bottom:76px}
    the opposite of what going along a row quickly needs. */
 #v-atlas.namesoff .atgrid{align-items:start}
 #v-atlas.namesoff .atname,#v-atlas.namesoff .attell,#v-atlas.namesoff .ateg{display:none}
+/* nothing outside a revealed tile names a structure: headings read "Board n of N",
+   and intros, section labels and notes are hidden */
+#v-atlas.namesoff .athead-name,#v-atlas.namesoff .bintro,#v-atlas.namesoff .atsub,#v-atlas.namesoff .atnote{display:none}
+#v-atlas.namesoff .athead-anon{display:inline}
+#v-atlas.namesoff .atrev{display:inline-block}
 #v-atlas.namesoff .attile.shown .atname,#v-atlas.namesoff .attile.shown .attell{display:block}
 #v-atlas.namesoff .attile.shown .ateg{display:block}
 #v-atlas.namesoff .atfig{cursor:pointer}
@@ -392,7 +408,20 @@ body.swbar-on{padding-bottom:76px}
    sideways when the table is wider than the screen, so the page never does;
    a word or link longer than its line breaks instead of running off it, and a
    jump-list chip (.refnav a) longer than the line wraps. */
-.tscroll{overflow-x:auto;max-width:100%}
+.tscroll{overflow-x:auto;max-width:100%;position:relative}
+/* A table wider than its box keeps its first column (what each row is) in view
+   while the other columns scroll under it, and a line above the box says which
+   side has more columns (more-l, more-r and .tcue, set by boxTables in views.js).
+   The fixed column is held to at most 40% of a narrow screen so the comparison
+   keeps room. A table with a rowspan or colspan scrolls with the line but no
+   fixed column (.stick is not set), since a spanned cell would pin a cell of
+   another column on the rows it spans. */
+.tscroll.stick table th:first-child,.tscroll.stick table td:first-child{position:sticky;left:0;z-index:1;
+  background:var(--paper);box-shadow:inset -1px 0 0 var(--line)}
+.tscroll.stick table thead th:first-child{background:var(--surface);z-index:2}
+@media (max-width:620px){.tscroll.stick table th:first-child,.tscroll.stick table td:first-child{max-width:40vw;min-width:7em}}
+.tcue{font-size:12px;color:var(--text-dim);margin:0 0 4px;text-align:right}
+.tcue[hidden]{display:none}
 #v-guide,#v-tell,#v-ref{overflow-wrap:break-word}
 input[type=text]{font:inherit;padding:8px 11px;border:1px solid var(--line);border-radius:7px;background:var(--paper);color:var(--text)}
 .kbd{font:12px ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:1px 5px}
@@ -402,6 +431,19 @@ input[type=text]{font:inherit;padding:8px 11px;border:1px solid var(--line);bord
 .panel .row{display:flex;flex-wrap:wrap;gap:9px;align-items:center}
 .panel .spread{justify-content:space-between}
 .meta{font-size:13px;color:var(--text-dim)}
+
+/* ---------- Start here: the first routes on the Topics tab ---------- */
+.startbox{border-color:var(--accent);background:var(--accent-bg)}
+.starthead{display:block;font-size:14px;margin:0 0 9px}
+.startgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.startbtn{min-height:44px;text-align:left;background:var(--paper);color:var(--text);border:1px solid var(--line);
+  border-radius:8px;padding:9px 12px;display:flex;flex-direction:column;gap:2px}
+.startbtn b{font-size:14.5px;color:var(--accent)}
+.startbtn small{font-size:12px;color:var(--text-dim);line-height:1.35}
+.startbtn:hover{border-color:var(--accent)}
+.startbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.startbtn:disabled{opacity:.5;cursor:default}
+@media (max-width:420px){.startgrid{grid-template-columns:1fr 1fr}.startbtn small{display:none}}
 .stamp{font-size:12.5px;color:var(--text-dim);margin:-10px 0 16px}
 
 /* ---------- What's new (the change log the build embeds) ---------- */
@@ -450,12 +492,26 @@ input[type=text]{font:inherit;padding:8px 11px;border:1px solid var(--line);bord
 .fig .st .glide{transition:transform .9s ease}
 @keyframes stIn{from{opacity:0}}
 @keyframes stOut{to{opacity:0}}
-.sdots{display:inline-flex;gap:6px;align-items:center;margin-left:auto}
-.sdot{width:12px;height:12px;border-radius:50%;background:var(--line);border:none;padding:0;cursor:pointer}
-.sdot.on{background:var(--accent)}
-.sdot:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+/* Every control is a 44 by 44 px touch target at least; a dot is drawn 12 px
+   (14 px and ringed for the current step) in the middle of its target. */
+.sdots{display:inline-flex;gap:0;align-items:center;margin-left:auto;flex-wrap:wrap}
+.sdot{width:44px;height:44px;border-radius:50%;background:transparent;border:none;padding:0;cursor:pointer;
+  display:inline-grid;place-items:center}
+.sdot::before{content:"";width:12px;height:12px;border-radius:50%;background:var(--line)}
+.sdot.on::before{width:14px;height:14px;background:var(--accent);box-shadow:0 0 0 3px var(--accent-bg),0 0 0 4px var(--accent)}
+.sdot:focus-visible{outline:2px solid var(--accent);outline-offset:-6px}
 .anim{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0 2px}
-.anim .btn{padding:5px 10px;font-size:13px}
+.anim .btn{padding:5px 12px;font-size:13px;min-height:44px;min-width:44px}
+.anim .stepnow{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* Enlarge: the figure across the screen, above the page, until Close or Escape */
+.fig.big{position:fixed;inset:0;z-index:70;margin:0;max-width:none;border-radius:0;overflow:auto;
+  padding:14px max(14px,env(safe-area-inset-right)) 18px max(14px,env(safe-area-inset-left))}
+.fig.big svg{max-height:calc(100vh - 170px);max-height:calc(100dvh - 170px)}
+body.figbig{overflow:hidden}
+/* the placeholder that holds an enlarged figure's place (views.js figBig); neither
+   it nor the figure may anchor the browser's scroll, which would move the page by
+   the placeholder's margin */
+.figph,.fig.big{overflow-anchor:none}
 
 /* ---------- Diagrams tab ---------- */
 .diagrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:12px;margin:8px 0 22px}
