@@ -188,7 +188,7 @@ put there, not even for the timing test alone. Two alternatives were checked:
 5. In the repository: Settings → Pages → Build and deployment → Deploy from a branch → `main`,
    folder `/ (root)` → Save. The page is then at `https://<organization>.github.io/ink-validation/`.
 
-The page is the template course built with this PR's core, with the storage namespace
+The built page and its deploy steps are in `device-page/` (`device-page/README.md`). The page is a course built with this PR's core, with the storage namespace
 `ink-validation` and a panel at the bottom. Everything it writes is generated; "Clean up" removes it.
 
 **On each device** (an iPhone or iPad in Safari, and an Android phone in Chrome), one sample at a time:
