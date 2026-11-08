@@ -127,8 +127,9 @@ const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
   const once = s => head.split(s).length - 1 === 1;
   L.check(once(`<title>${T}</title>`) && !head.includes('<title>Exam drill</title>') && (head.match(/<title>/g) || []).length === 1,
     'the page has one <title>, the share title HTML-escaped', (head.match(/<title>.*<\/title>/) || [''])[0]);
+  L.check(!/apple-mobile-web-app-title/.test(head), 'share writes no apple-mobile-web-app-title (the Home Screen name stays the manifest\'s short_name)', head.match(/apple-mobile[^>]*>/));
   const want = [
-    ['name', 'apple-mobile-web-app-title', T], ['property', 'og:title', T], ['name', 'twitter:title', T],
+    ['property', 'og:title', T], ['name', 'twitter:title', T],
     ['name', 'description', D], ['property', 'og:description', D], ['name', 'twitter:description', D],
     ['property', 'og:type', 'website'], ['property', 'og:url', share.url],
     ['property', 'og:image', share.url + 'logo.png'], ['property', 'og:image:type', 'image/png'],

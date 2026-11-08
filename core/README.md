@@ -203,7 +203,7 @@ existed. Its keys, each optional and a non-empty string:
 
 | Key | In the `<head>` |
 |---|---|
-| `title` | `<title>` (without `title`, `course.js` `title`), and `apple-mobile-web-app-title`, `og:title`, `twitter:title` |
+| `title` | `<title>` (without `title`, `course.js` `title`), `og:title`, `twitter:title`; not `apple-mobile-web-app-title`, so on an iPhone or iPad the Home Screen name stays the manifest's `short_name` |
 | `description` | `description`, `og:description`, `twitter:description` |
 | `url` | the site's address, `https://` and ending in `/`: `og:type` `website` and `og:url` (`<url>preview/` on a preview build) |
 | `image` | a PNG file name under `src/icons/`; needs `url`: `og:image` (`<url><image>`), `og:image:type` `image/png`, `twitter:card` `summary_large_image`, `twitter:image`. The live build copies the file to the root; a preview build points at the live copy |

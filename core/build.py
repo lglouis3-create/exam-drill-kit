@@ -207,7 +207,6 @@ def share_head(sh, preview):
     def meta(attr, key, val):
         out.append(f'<meta {attr}="{key}" content="{htmlmod.escape(val, quote=True)}">')
     if 'title' in sh:
-        meta('name', 'apple-mobile-web-app-title', sh['title'])
         meta('property', 'og:title', sh['title'])
         meta('name', 'twitter:title', sh['title'])
     if 'description' in sh:
