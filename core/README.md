@@ -424,8 +424,8 @@ With a part registered:
   Keep every tab of a course on one version (the "new version" card) before erasing or exporting.
 
 **Requirement for #17 (worksheets-ink).** A module that keeps its own copy of a page (worksheets-ink's
-`INK.data`) must reload that page from `DB[part][page]` on both events `onOutside` reports:
-`event: 'parked'` (its writing from before another tab's Erase was set apart and taken off the page)
+`INK.data`) must reload that page from `DB[part][page]` on each of the three events `onOutside` reports:
+`event: 'parked'` (its writing from before another tab's Erase was set apart and taken off the page),
 and `event: 'released'` (Add it back or Leave it out), and `event: 'erased'` (the page was erased in another tab and taken off the page on screen). Otherwise its next save writes the set-apart
 strokes back without the student's choice (the fifth and sixth reviews of #81, V12). Export progress
 carries set-apart writing too. Another tab's Erase reaches an open tab as a storage event on its mark
