@@ -2,6 +2,9 @@
 
 Dated kit changes, newest first.
 
+## 2026-11-08 (checks)
+- `optional_test.js` decides from `exams[].questions` alone whether the course sets a question count. With `marks: null` and a count set, `nullexam.js` draws full papers, and the test had expected empty ones (DEENT: questions 50, marks null; 1 of 47 checks failed while its 20 papers held 1,000 items, none optional). Test only.
+
 ## 2026-11-08 (checks: exam review)
 - `exam_review_test.js`: its answer helper sets an answer instead of toggling it. A select-all option clicked a second time is taken off, so when question 1 of the paper was a select-all item, answering it again after Next and Back emptied it; "Chromium · medicinal-chemistry" then failed (the overview read "not answered" for questions 1 and 2, and "all 50 answers are recorded once (history +49)" failed) on main since 9711ce2 (runs 42470418238, 42470992560). Test only.
 
