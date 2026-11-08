@@ -1,0 +1,12 @@
+{
+ "name": "field-colours",
+ "version": "v1",
+ "does": "Colours the headings of the fields a course names as hardest (BDK: Pharmacologic category teal, Common indications pink), as text colour only, in the panes of feature tabs: any element there marked data-field=\"<field>\" (drug-list-tab's column headings; compare-tab's row headers once that module marks them). Dark colours only under the theme module's dark theme. Display only; reads no course data and stores nothing.",
+ "source": "BDK assets/style.css lines 367-383 (the colours) and assets/app.js line 2598 (th.k-cat, th.k-ind on the Drug list headings), at 05c36c3; first in BDK bf91dc0",
+ "js": ["field-colours.js"],
+ "step": "step.js",
+ "options": {
+  "fields": {"default": [["category", "#0f766e", "#5eead4"], ["indication", "#a21caf", "#f0abfc"]], "about": "[[field, light colour, dark colour], ...]: each heading marked data-field=\"<field>\" in a feature tab's pane takes the light colour, or the dark colour under the theme module's dark theme; colours as #rgb or #rrggbb (BDK's)"}
+ },
+ "test": "test.js"
+}
