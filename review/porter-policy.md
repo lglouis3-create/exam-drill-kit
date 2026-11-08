@@ -24,10 +24,22 @@ heads).
 
 - Course repositories stay read-only. No push to them, no pull request in them, and no live-course
   update without Louis's separate approval.
-- Take pending items in `review/port-queue.md`: Intro to Pharmacology's 18-21 first, then the
-  remaining Pharmacokinetics items. Skip items that are not pending, items already represented by
+- Take pending items in `review/port-queue.md`: Intro to Pharmacology's 18-21 first, then BDK's
+  part-1 items (below), then the remaining Pharmacokinetics items. Skip items that are not pending, items already represented by
   an open pull request or a pushed port branch, and the section "Core changes found by the
   assessments (not nightly)". There is no two-open-PR limit.
+- BDK study features, part 1 (Louis, 2026-11-08: "I approve the reviewed plan at 84736dc and
+  authorize implementing its defined Part 1 scope"; his message in the central session, event
+  `3eb3c4d9-f3b1-4af6-ac5e-a162e7dd853a`). After Intro to Pharmacology's items and before the
+  remaining Pharmacokinetics items, take queue items 14 (drug-list-tab), 22 (field-colours) and 12
+  (compare-tab), in that order; for these three, this order replaces the queue's row order (§8).
+  Louis approved the plan at `84736dc`. They are built in the narrower scope of the plan as merged
+  (`review/bdk-study-features-plan.md` at `fa579cd`), whose only part-1 difference leaves out
+  compare-tab's "Learn these N drugs together" button: it starts Learn, which records answers, and
+  comes with learn-mode in part 2. Their source is BDK `assets/app.js` and `assets/style.css` at `05c36c3`,
+  read-only. His approval covers development, not storage, import or recovery, scheduling,
+  migrations, destructive actions, test weakening or course publication; any of those goes to him
+  with a concrete proposal. The other parts' items stay `planned` until he approves their part.
 - Read each item from the repository in its Source column. For items 18 and 21, use only Intro to
   Pharmacology's implementation; BDK's versions belong to BDK's migration.
 - The queue is not finished because every item has a branch or a pull request.
