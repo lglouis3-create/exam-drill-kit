@@ -50,7 +50,13 @@ const ANS = right => {
   let want;
   if(isMulti(q)){ const c = correctSet(q), w = q.options.findIndex(o => !o.correct); want = right ? c : (w >= 0 ? [w] : c.slice(0, 1)); }
   else want = [q.options.findIndex(o => right ? o.correct : !o.correct)];
-  for(const oi of want) document.querySelector(`#v-exam button.opt[data-o="${oi}"]`).click();
+  // set the choice, not toggle it: a select-all option clicked a second time is taken off again, so a question
+  // answered earlier (question 1 in Next and Back) would lose its answer when answered again. Click only the
+  // options whose state differs from the wanted one (aria-pressed is the drawn state).
+  const btn = oi => document.querySelector(`#v-exam button.opt[data-o="${oi}"]`);
+  const on = oi => btn(oi).getAttribute('aria-pressed') === 'true';
+  if(isMulti(q)){ q.options.forEach((o, oi) => { if(want.includes(oi) !== on(oi)) btn(oi).click(); }); return; }
+  for(const oi of want) if(!on(oi)) btn(oi).click();
 };
 const state = page => page.evaluate(() => ({running: !!(EX && EX.running), done: !!(EX && EX.done), i: EX ? EX.i : -1, n: EX && EX.qs ? EX.qs.length : 0,
   ids: EX && EX.qs ? EX.qs.map(q => q.id).join() : '', picks: EX ? JSON.stringify(EX.picks) : '', ends: EX ? EX.ends : undefined,
