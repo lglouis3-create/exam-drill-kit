@@ -172,7 +172,7 @@ const sideways = page => page.evaluate(() => document.documentElement.scrollWidt
       const FIX = dltFix();
       console.log('\n=== BDK\'s list with BDK\'s field colours (scratch copy) ===');
       // the writes of the same page without field-colours, from its first line, by key
-      const s0 = build('fc-none', FIX.tables, true, null, `delete COURSE.features['field-colours'];`);
+      const s0 = build('fc-none', FIX.tables, true, null, `delete COURSE.features['field-colours']; if(COURSE.features) delete COURSE.features.theme;`);
       let baseline = [];
       if(s0.code !== 0) check(false, 'the scratch copy without field-colours builds', s0.out.split('\n').pop());
       else {
@@ -182,11 +182,34 @@ const sideways = page => page.evaluate(() => document.documentElement.scrollWidt
         await ctx.close();
       }
       s0.rm();
-      const s = build('fc-bdk', FIX.tables, true, null);
+      // "no theme module": a course that has the theme module on (the kit's theme,* run) has it taken off here
+      const s = build('fc-bdk', FIX.tables, true, null, `if(COURSE.features) delete COURSE.features.theme;`);
       if(s.code !== 0) check(false, 'the scratch copy with BDK\'s tables builds', s.out.split('\n').pop());
       else {
         for(const w of [390, 820]) await lightView(browser, s.page, w, false, baseline);
         await lightView(browser, s.page, 390, true, baseline);
+        // a tab id that a CSS selector must escape (drug-list-tab's own step allows none, so the
+        // pane is made here): the rules the module writes for it colour its headings, with the
+        // browser's CSS.escape and with the module's own escape where CSS.escape is missing
+        const {ctx, page} = await L.openPage(browser, s.page, {viewport: {width: 390, height: 900}});
+        const esc = await page.evaluate(([light]) => {
+          const A = FX.api('field-colours'), ids = ['drug.list', '1st list', 'a"b'], out = {};
+          for(const how of ['CSS.escape', 'own escape']){
+            const keep = CSS.escape; if(how === 'own escape') CSS.escape = undefined;
+            const css = A.css(ids); CSS.escape = keep;
+            const st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
+            out[how] = ids.map(id => { const sec = document.createElement('section'); sec.id = 'v-' + id;
+              sec.innerHTML = '<table><tr><th data-field="category">x</th><th data-field="brand">y</th></tr></table>';
+              document.querySelector('main').appendChild(sec);
+              const r = [getComputedStyle(sec.querySelector('[data-field="category"]')).color, getComputedStyle(sec.querySelector('[data-field="brand"]')).color];
+              sec.remove(); return r; });
+            st.remove();
+          }
+          return out;
+        }, BDK_FIELDS[0]);
+        const okEsc = Object.values(esc).every(list => list.every(([c, b]) => c === rgbStr(BDK_FIELDS[0][1]) && b !== c));
+        check(okEsc, 'tab ids a selector must escape ("drug.list", "1st list", \'a"b\'): their headings are coloured, with CSS.escape and with the module\'s own escape', esc);
+        await ctx.close();
       }
       s.rm();
 
@@ -198,7 +221,7 @@ const sideways = page => page.evaluate(() => document.documentElement.scrollWidt
         const {ctx, page, errors} = await L.openPage(browser, s2.page, {viewport: {width: 390, height: 900}}, consoleTrap);
         await page.click('#nav button[data-v="drugs"]');
         const hs = await headings(page, 'drugs');
-        check(hs.filter(h => h.field === 'generic').every(h => h.color === rgbStr(o[0][1])) && hs.filter(h => h.field === 'category' || h.field === 'indication').every(h => h.color !== rgbStr(BDK_FIELDS[0][1]) && h.color !== rgbStr(BDK_FIELDS[1][1])),
+        check(hs.filter(h => h.field === 'generic').length === FIX.tables.length && hs.filter(h => h.field === 'generic').every(h => h.color === rgbStr(o[0][1])) && hs.filter(h => h.field === 'category' || h.field === 'indication').every(h => h.color !== rgbStr(BDK_FIELDS[0][1]) && h.color !== rgbStr(BDK_FIELDS[1][1])),
               `options change the fields and colours: Generic takes ${o[0][1]}, Pharmacologic category and Common indications take none`, hs.slice(0, 5));
         check(!errors.length, 'no page error (options copy)', errors);
         await ctx.close();

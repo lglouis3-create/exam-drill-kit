@@ -13,3 +13,6 @@ glossary-tap,formulas-in-text
 study-controls,paper-picker
 notes,study-controls
 theme,*
+# field-colours' ci/oncourse.js switches drug-list-tab on itself (copied in, with its own
+# ci/oncourse.js) when the course does not have it on; drug-list-tab's script stops on a
+# course that already has it, so no line may name drug-list-tab after field-colours.

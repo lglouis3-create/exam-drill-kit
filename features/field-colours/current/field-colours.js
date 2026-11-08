@@ -22,14 +22,18 @@
      theme module keeps the light colours: BDK's own rule for a dark device
      (style.css line 370) would put light text on the core's light page;
    - left out (FEATURES.md "Not ported"): the after-answer drug card's dt/dd
-     colours and the `.asked` shading (app.js 899-918, 934; style.css 372-381)
+     colours and the `.asked` shading (app.js 899-918, 934; style.css 374-381 and the .drug dt parts of 372-373)
      and the field labels in question prompts (style.css 372-373, .term-label).
    Nothing is stored.
    ========================================================================== */
-function fcCss(){
-  const tabs = typeof FX !== 'undefined' ? FX.tabs() : [], F = OPT.fields || [];
+/* a tab id as a CSS identifier: CSS.escape where the browser has it, else every
+   character other than a letter, digit, "_" or "-" (and a leading digit) as a hex escape */
+const fcId = s => (typeof CSS !== 'undefined' && CSS && typeof CSS.escape === 'function') ? CSS.escape(String(s))
+  : String(s).replace(/[^A-Za-z0-9_-]/g, c => '\\' + c.charCodeAt(0).toString(16) + ' ').replace(/^(-?)([0-9])/, (m, a, d) => a + '\\3' + d + ' ');
+function fcCss(tabList){
+  const tabs = tabList || (typeof FX !== 'undefined' ? FX.tabs() : []), F = OPT.fields || [];
   if(!tabs.length || !F.length) return '';
-  const sel = (pre, f) => tabs.map(t => `${pre}#v-${t} [data-field="${f}"]`).join(',');
+  const sel = (pre, f) => tabs.map(t => `${pre}#v-${fcId(t)} [data-field="${f}"]`).join(',');
   let css = F.map(([f, light]) => `${sel('', f)}{color:${light}}`).join('\n') + '\n' +
             F.map(([f, , dark]) => `${sel(':root[data-theme="dark"] ', f)}{color:${dark}}`).join('\n') + '\n';
   if(FX.on('theme'))
@@ -44,4 +48,4 @@ X.start(() => {
   s.textContent = css;
   document.head.appendChild(s);
 });
-X.api({css: fcCss});
+X.api({css: fcCss, id: fcId});
