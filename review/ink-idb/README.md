@@ -102,6 +102,11 @@ pages (4,452,807 characters), each added to that profile.
 | + ink 171 pages | 19, 19, 22 ms; 30 ms | 41, 44, 43 ms; 75 ms | 96 ms | 79 ms |
 | baseline: + ink 69 pages inside the progress | 497, 504, 484 ms; 554 ms | 260, 286, 278 ms; 332 ms | 344 ms | 335 ms |
 
+After the fixes for the independent review of d0da191 the rate-4 runs were repeated on the changed
+core (`logs/timing-idb-after-review.log`): save (commit) medians 20 to 26 ms, largest 37 ms; the
+slowest click 96 ms (Event Timing), the fallback's largest 104 ms; every page saved. The table
+above is from the earlier core (56f5dc3).
+
 At rate 1 every largest save (commit) with the layer was 22 ms or less and every slowest click 24
 ms or less (`timing-idb.log`). The baseline was not run on the 171-page sample: in #66's runs today's per-tab
 record was refused at 4,453,234 characters (§1). With the layer the stored progress stays 546,993
