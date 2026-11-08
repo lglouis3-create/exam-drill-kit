@@ -52,7 +52,7 @@ this table are from c2f87ae; the plan cites BDK at 05c36c3. `field-colours`
 | Order | Item | Source | Not before | Status |
 |---|---|---|---|---|
 | 11 | learn-mode (successive relearning in rounds) | BDK `startLearn` ~1755 | — | planned (part 2) |
-| 12 | compare-tab (drugs side by side, differences marked) | BDK ~2244; at `05c36c3`: `viewCompare` 2301 | — | pending (part 1) |
+| 12 | compare-tab (drugs side by side, differences marked) | BDK ~2244; at `05c36c3`: `viewCompare` 2301 | — | done (part 1: without Learn these drugs together, Drugs you have mixed up and the links from question feedback, see FEATURES.md) |
 | 13 | cram-mode (time-boxed pass before a quiz, Last look) | BDK ~2018 | — | planned (part 2) |
 | 14 | drug-list-tab (table per page, search across pages; recall mode) | BDK ~2496; at `05c36c3`: `viewBrowse` 2553; recall mode: DEENT `src/druglist_ui.js` at `main` `0281922` | — | done |
 | 15 | match-game (timed pairs) | BDK ~2160 | — | planned (part 2) |
