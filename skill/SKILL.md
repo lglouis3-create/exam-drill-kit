@@ -27,8 +27,9 @@ Reusable logic goes to the kit; one course's data stays in its repo.
    principles and the approved design changes) and the `COURSES.md` entry of the course
    the mode names (`COURSES.md` in full in Modes 1 and 6). Mode 9 reads §7 and §12 and,
    in place of one course's entry, what `coordinator/RUN.md` names; a coordinator step
-   that performs another mode (a retrospective is Mode 6, a prepared improvement is Mode
-   1 or 2's design check) also reads that mode's list. Then, by task:
+   that performs another mode also reads that mode's list (a retrospective is Mode 6; a
+   course-specific improvement is Mode 2's design check; a core or skill change also reads
+   what `CLAUDE.md` line 3 requires for a design or policy change). Then, by task:
    - `FEATURES.md` in full in Modes 1, 2 (design check) and 6, where features are chosen
      or compared, together with any registry this file says to read beside it; in other
      modes, the entries of the features the course's `course.js` switches on and of any

@@ -52,13 +52,16 @@ Compare each of these with the note:
 5. the sources and dependencies the note lists: a course repository's commit, a dependent pull
    request's head or state, a Drive file's modified time;
 6. project instructions on the base branch: `CLAUDE.md`, `KIT_DESIGN.md` §3, §7 and §12,
-   `review/porter-policy.md`, `review/standing-autonomy-2026-11-03.md`, `skill/SKILL.md`,
+   `review/porter-policy.md`, `review/standing-autonomy-2026-11-03.md` and every later
+   `review/standing-autonomy-*.md` (2026-11-08: routine course updates), `skill/SKILL.md`,
    `coordinator/RUN.md`, and the files that define the required checks
    (`.github/workflows/checks.yml`, `.github/ci_plan.js`); and the stored instructions of the
    scheduled tasks concerned, which are not in the repository, so a base SHA does not show them;
 7. Louis's decisions and approvals given since the note;
 8. dates that change priorities: an exam within 7 days in `coordinator/courses.json` or the
-   course's `course.js`, or a deadline Louis set.
+   course's `course.js` (the coordinator's `defaults.approachDays`), or a deadline Louis set.
+   Such a date changes the order of work; it is not an approval and not a reason to repeat
+   completed checks or reviews.
 
 ## Reading one before starting work
 
