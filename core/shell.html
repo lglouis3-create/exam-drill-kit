@@ -758,7 +758,8 @@ const OUT = {
   known: {},           // key -> {v, rev}: the page as the database held it when this page last read or wrote it
   sent: {},            // key -> the value last handed to a write (compared by identity)
   held: {},            // key -> a value this page holds that the database has not committed
-  heldAt: {},          // key -> when this page first held it (compared with an Erase, Put back or Import in another tab)
+  heldAt: {},          // key -> when this page first held it (compared with another tab's Erase)
+  stale: {},           // key -> kept from before another tab's Erase: waits for the student's choice on the notice
   status: {},          // key -> 'saving' | 'saved' | 'refused' | 'failed'
   busy: {}, again: {}, // a write runs for key; a newer value waits for it
   inline: {},          // profile -> {part: Set(page)}: pages still inside the stored progress, not yet moved
@@ -983,7 +984,7 @@ function outsideAdopt(p, fromStored){
     const st = OUT.known[k] ? OUT.known[k].v : undefined;
     // kept equal to the committed page: nothing to keep (V2)
     if(OUT.held[k] !== undefined && st !== undefined && !OUT.busy[k] && sameVal(OUT.held[k], st)){ delete OUT.held[k]; delete OUT.heldAt[k]; }
-    const hd = OUT.held[k];
+    const hd = OUT.stale[k] ? undefined : OUT.held[k];   // kept from before another tab's Erase: not put back on its own
     if(!isPlainObj(DB[part])) DB[part] = {};
     let v = DB[part][page];
     if(v === undefined || sameVal(v, st)) v = st;
@@ -996,23 +997,46 @@ function outsideAdopt(p, fromStored){
   OUT.attached[p] = DB;
   outsideWrite(p);
 }
-/* Erase, Put back and a replacing Import mark the profile (pendingMark), in localStorage, so every
-   tab sees it: `<ns>:outside-mark:<profile>` = {at, tab}. (The second review of #81, V3: writing
-   kept in a read-only tab undid an Erase made in the writer tab, after "Use it here".) */
-function outsideMarkReplaced(p){
-  if(!OUT.parts.size || !p) return;
-  try { localStorage.setItem(NS + ':outside-mark:' + p, JSON.stringify({at: Date.now(), tab: TAB_ID})); } catch(e){}
+/* An Erase marks what it erased, in localStorage, so every tab sees it: `<ns>:outside-mark:<profile>`
+   is a list of {at, tab, part, page} (part and page empty for the whole profile), the latest per tab
+   and scope. Settings' Erase marks the profile; a module's own erase of its part or of a page
+   (outsideClear(p, part), outsideRemove) marks that part or page. Put back and a replacing Import do
+   not mark: they merge the stored pages. (The second and third reviews of #81, V3, V6.) */
+function outsideMarks(p){
+  try { const v = JSON.parse(localStorage.getItem(NS + ':outside-mark:' + p) || '[]'); return Array.isArray(v) ? v.filter(m => m && typeof m.at === 'number') : []; } catch(e){ return []; }
 }
-/* Writing this page kept from before another tab erased, put back or replaced the profile: the
-   student decides whether it is added back; dropped, it is gone from this page. */
+function outsideMarkErased(p, part, page){
+  if(!OUT.parts.size || !p) return;
+  try {
+    const list = outsideMarks(p).filter(m => !(m.tab === TAB_ID && (m.part || '') === (part || '') && (m.page || '') === (page || '')));
+    list.push({at: Date.now(), tab: TAB_ID, part: part || '', page: page || ''});
+    localStorage.setItem(NS + ':outside-mark:' + p, JSON.stringify(list.slice(-100)));
+  } catch(e){}
+}
+/* Writing this page kept from before another tab erased it (a mark of another tab, covering its
+   page, later than when this page first kept it): not written on its own and never deleted on its
+   own. It stays kept (unsaved: leaving asks first), out of DB, and the notice names it with three
+   choices: Add it back, Export it, Leave it out (the third review of #81, Q1). */
 function outsideHeldAfterMark(p){
-  let mark = null;
-  try { mark = JSON.parse(localStorage.getItem(NS + ':outside-mark:' + p) || 'null'); } catch(e){ mark = null; }
-  if(!mark || mark.tab === TAB_ID || typeof mark.at !== 'number') return;
-  const old = outKeysOf(OUT.held, p).filter(k => (OUT.heldAt[k] || 0) < mark.at && !OUT.busy[k]);
-  if(!old.length) return;
-  const keep = confirm('This page kept writing of "' + p + '" (' + old.length + ' page' + (old.length === 1 ? '' : 's') + ') from before that profile was erased, put back or replaced by an import in another tab or window. OK adds that writing back to the profile; Cancel leaves it out.');
-  for(const k of old){ if(keep) OUT.heldAt[k] = Date.now(); else { delete OUT.held[k]; delete OUT.heldAt[k]; delete OUT.status[k]; } }
+  const marks = outsideMarks(p).filter(m => m.tab !== TAB_ID);
+  if(!marks.length) return;
+  for(const k of outKeysOf(OUT.held, p)){
+    if(OUT.busy[k] || OUT.stale[k]) continue;
+    const [, part, page] = outSplit(k), at = OUT.heldAt[k] || 0;
+    if(marks.some(m => m.at > at && (!m.part || m.part === part) && (!m.page || m.page === page))) OUT.stale[k] = true;
+  }
+}
+const outStaleOf = p => outKeysOf(OUT.stale, p).filter(k => OUT.held[k] !== undefined);
+const outCount = v => { let n = 0; const walk = x => { if(Array.isArray(x)) n += x.length; else if(isPlainObj(x)) Object.values(x).forEach(walk); }; walk(v && v.parts !== undefined ? v.parts : v); return n; };
+/* The student's choices on the notice. */
+function outsideStaleAdd(p){
+  for(const k of outStaleOf(p)){ delete OUT.stale[k]; OUT.heldAt[k] = Date.now(); }
+  if(p === PROFILE && OUT.have[p]) outsideAdopt(p);
+  outsideNotify(null);
+}
+function outsideStaleDrop(p, keys){
+  for(const k of keys){ if(!OUT.stale[k]) continue; delete OUT.stale[k]; delete OUT.held[k]; delete OUT.heldAt[k]; delete OUT.status[k]; }
+  outsideNotify(null);
 }
 /* Pages found in another place than the database (a per-tab record an earlier core wrote with its
    module part inside): merged into what this page holds for the profile, and written. */
@@ -1117,7 +1141,7 @@ function outsideFailed(k, err, p, part, page){
 function outsideAgain(p, part, page, k){
   if(!OUT.again[k]) return;
   OUT.again[k] = false;
-  const v = p === PROFILE && isPlainObj(DB[part]) && DB[part][page] !== undefined ? DB[part][page] : OUT.held[k];
+  const v = p === PROFILE && isPlainObj(DB[part]) && DB[part][page] !== undefined ? DB[part][page] : (OUT.stale[k] ? undefined : OUT.held[k]);
   if(v !== undefined && outMay(p)) outsideWriteOne(p, part, page, v, false);
   else { if(OUT.status[k] === 'saving') OUT.status[k] = OUT.held[k] !== undefined ? 'unsaved' : 'saved'; outsideNotify(k); }
 }
@@ -1193,10 +1217,10 @@ function outsideClear(p, part){
   p = p || PROFILE;
   if(!OUT.parts.size) return Promise.resolve();
   OUT.gen[p] = (OUT.gen[p] || 0) + 1;
-  if(!part) outsideMarkReplaced(p);   // other tabs' kept writing of the profile is from before this Erase (V3)
+  outsideMarkErased(p, part);   // other tabs' kept writing of what this erases is from before it (V3)
   for(const k of new Set(Object.keys(OUT.known).concat(Object.keys(OUT.sent), Object.keys(OUT.status), Object.keys(OUT.held)))){
     const s = outSplit(k);
-    if(s[0] === p && (!part || s[1] === part)){ delete OUT.known[k]; delete OUT.sent[k]; delete OUT.status[k]; delete OUT.held[k]; delete OUT.heldAt[k]; OUT.again[k] = false; }
+    if(s[0] === p && (!part || s[1] === part)){ delete OUT.known[k]; delete OUT.sent[k]; delete OUT.status[k]; delete OUT.held[k]; delete OUT.heldAt[k]; delete OUT.stale[k]; OUT.again[k] = false; }
   }
   if(p === PROFILE){ if(part) delete DB[part]; else for(const pt of OUT.parts) delete DB[pt]; }
   if(OUT.inline[p]){ if(part) delete OUT.inline[p][part]; else OUT.inline[p] = {}; }
@@ -1213,7 +1237,8 @@ function outsideRemove(part, page, p){
   p = p || PROFILE;
   const k = outKey(p, part, page);
   OUT.gen[p] = (OUT.gen[p] || 0) + 1;
-  delete OUT.known[k]; delete OUT.sent[k]; delete OUT.status[k]; delete OUT.held[k]; delete OUT.heldAt[k]; OUT.again[k] = false;
+  outsideMarkErased(p, part, page);
+  delete OUT.known[k]; delete OUT.sent[k]; delete OUT.status[k]; delete OUT.held[k]; delete OUT.heldAt[k]; delete OUT.stale[k]; OUT.again[k] = false;
   if(p === PROFILE && isPlainObj(DB[part])) delete DB[part][page];
   if(OUT.inline[p] && OUT.inline[p][part]) OUT.inline[p][part].delete(page);
   return outsideOpen().then(() => {
@@ -1287,21 +1312,33 @@ function outsideWarn(){
     if(s !== 'refused' && s !== 'failed') continue;
     if(p === PROFILE){ if(s === 'refused') refused = true; else failed = true; } else others.add(p);
   }
-  for(const k of Object.keys(OUT.held)){ const p = outSplit(k)[0]; if(p !== PROFILE && !OUT.busy[k]) others.add(p); }
+  // kept from before another tab's Erase: named, with the student's three choices (Q1)
+  for(const hp of new Set(Object.keys(OUT.held).map(k => outSplit(k)[0]))) outsideHeldAfterMark(hp);
+  const staleBy = {};
+  for(const k of Object.keys(OUT.stale)) if(OUT.held[k] !== undefined){ const sp = outSplit(k)[0]; (staleBy[sp] = staleBy[sp] || []).push(k); }
+  for(const k of Object.keys(OUT.held)){ const p = outSplit(k)[0]; if(p !== PROFILE && !OUT.busy[k] && !OUT.stale[k]) others.add(p); }
   let d = document.getElementById('outwarn');
-  if(!refused && !failed && !others.size && !OUT.problem){ if(d) d.remove(); return; }
+  if(!refused && !failed && !others.size && !OUT.problem && !Object.keys(staleBy).length){ if(d) d.remove(); return; }
   if(!d){ d = document.createElement('div'); d.id = 'outwarn'; d.setAttribute('role', 'alert'); document.body.appendChild(d); }
   const parts = [];
   if(refused || failed) parts.push((refused ? 'This browser did not save your latest writing (its storage is full).' : 'This browser did not save your latest writing (' + outEsc(OUT.why) + ').') +
     ' It is kept on this page until you close or reload it, and each later change tries to save it again. Export progress keeps it in a file; Import progress adds it back.');
   if(others.size) parts.push('Writing of ' + [...others].map(p => '"' + outEsc(p) + '"').join(', ') + ' is not saved yet. It is kept on this page and saved when that profile is opened again here; closing or reloading this page loses it.');
   if(OUT.problem) parts.push(outEsc(OUT.problem));
+  const staleHtml = Object.keys(staleBy).map(sp => {
+    const list = staleBy[sp].map(k => { const [, , page] = outSplit(k), n = outCount(OUT.held[k]); return '"' + outEsc(page) + '" (' + n + ' stroke' + (n === 1 ? '' : 's') + ')'; });
+    return '<div class="outstale" data-profile="' + outEsc(sp) + '">This page kept writing of "' + outEsc(sp) + '" from before it was erased in another tab or window: ' + list.join(', ') +
+      '. It is not added back and not deleted unless you choose: <button type="button" class="btn" data-outadd="' + outEsc(sp) + '">Add it back</button> <button type="button" class="btn" data-outexp="' + outEsc(sp) + '">Export it</button> <button type="button" class="btn ghost" data-outdrop="' + outEsc(sp) + '">Leave it out (deletes ' + list.join(', ') + ' from this page)</button></div>';
+  }).join('');
   d.innerHTML = parts.join(' ') + (refused || failed ? ' <button type="button" class="btn" id="outwarnExport">Export progress</button>' : '') +
-    [...others].map(p => ' <button type="button" class="btn" data-outaway="' + outEsc(p) + '">Export "' + outEsc(p) + '"</button>').join('') + ' <button type="button" class="btn ghost">OK</button>';
+    [...others].map(p => ' <button type="button" class="btn" data-outaway="' + outEsc(p) + '">Export "' + outEsc(p) + '"</button>').join('') + staleHtml + ' <button type="button" class="btn ghost" data-outok="">OK</button>';
   const ex = d.querySelector('#outwarnExport');
   if(ex) ex.onclick = () => { try { exportProgress(); } catch(e){ alert('The export did not work: ' + (e && e.message || e)); } };
   d.querySelectorAll('button[data-outaway]').forEach(b => { b.onclick = () => exportAway(b.dataset.outaway); });
-  d.querySelector('button.ghost').onclick = () => d.remove();
+  d.querySelectorAll('button[data-outadd]').forEach(b => { b.onclick = () => outsideStaleAdd(b.dataset.outadd); });
+  d.querySelectorAll('button[data-outexp]').forEach(b => { b.onclick = () => exportAway(b.dataset.outexp); });
+  d.querySelectorAll('button[data-outdrop]').forEach(b => { const sp = b.dataset.outdrop, keys = (staleBy[sp] || []).slice(); b.onclick = () => outsideStaleDrop(sp, keys); });
+  d.querySelector('button[data-outok]').onclick = () => d.remove();
 }
 /* What this page last read under the profile's own progress and history keys, or wrote
    there with the browser keeping it (SEEN, SEEN_LOG, below); kept by every write through
@@ -1560,7 +1597,7 @@ function takeOver(force){
         try { if(typeof EX !== 'undefined' && EX){ clearInterval(EX.timer); EX = null; } } catch(e){}
         stopWall(null);
         NEW_LOGS[p] = []; WROTE_SINCE_CLAIM = false; settlePendingSoon(); capNotice();
-        const INK_KEPT = inkHere ? ' The writing this page had not saved is not in that copy: it stays on this page and is merged into the writing now stored, and saved.' : '';
+        const INK_KEPT = inkHere ? ' The writing this page had not saved is not in that copy: it stays on this page and is merged into the writing now stored, and saved; writing from before an erase in another tab is named on the notice instead, to add back, export or leave out.' : '';
         if(KEPT_COPY){ KEPT_COPY = false; setTimeout(() => alert('The answers and settings this page had not saved are kept as a copy: Settings, "Put back the progress from …". The progress on screen now is the stored one.' + INK_KEPT), 0); }
         else if(addedLog) setTimeout(() => alert('The answer history entries this page had not saved are added to the saved answer history.' + INK_KEPT), 0);
         else if(inkHere) setTimeout(() => alert(INK_KEPT.trim()), 0);
@@ -1680,7 +1717,7 @@ function saveProgress(){
 /* The other tabs' records of profile p go (Erase, Put back, a replacing Import, Delete the copies). */
 /* Erase, Put back and a replacing Import call this before they write, so the record written with
    that write already carries the mark (the review of c9254dc, P2). */
-function pendingMark(){ MARK = Date.now(); outsideMarkReplaced(PROFILE); }
+function pendingMark(){ MARK = Date.now(); }
 function pendingRetire(){
   // nothing is deleted: a record seen now is older than what the student chose and is not placed
   // again while it stays as it is; a record that changes after this (a newer save of a leaving tab

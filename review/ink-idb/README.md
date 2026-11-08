@@ -59,8 +59,9 @@ What replaces each place that holds ink inline today (the porter's list for #17)
   knew before (M5). A merge never writes the page from before the merge (M3). With no database the
   states follow the progress's own write (M4).
 - Leaving or reloading asks first while writing is refused or kept unwritten; kept writing from
-  before another tab's Erase, Put back or Import is added back only if the student says so (the
-  second review of #81, N1, V3).
+  before another tab's Erase (of the profile, a part or a page) is neither written nor deleted on its
+  own: the notice names it with Add it back, Export it and Leave it out (the second and third
+  reviews of #81, N1, V3, Q1). Put back and Import do not count as an Erase.
 - Limits with mixed versions: a tab on an earlier core exports without the moved pages, and its
   Erase does not remove them from the database (they come back on the next load on this core).
 

@@ -611,30 +611,98 @@ const stroke = n => ({t: 'pen', c: '#111111', w: 0.003, p: [0.1 * n, 0.2, 0.3, 0
       check(v2.state === 'saved' && v2.held === 0 && !v2.unsaved, 'V2: a page kept with the same content as the stored page is saved, not kept unsaved', v2);
       await ctx.close();
     }
-    // V3: writing kept in a read-only tab, the profile erased in the writer tab, then "Use it here":
-    // the student is asked; Cancel leaves it out (the Erase stands), OK adds it back
-    for(const keep of [false, true]){
+    // ---- the third review of #81 at 75b016b (Q1 and its should-fixes) ----
+    // a read-only tab B keeps writing of page s; tab A erases (the scope given); A closes; B takes the profile
+    const v3 = async (opts) => {
       const ctx = await newCtx();
-      await ctx.addInitScript(keep => { const c = window.confirm; window.confirm = m => /erased, put back or replaced/.test(m) ? (window.__asked = m, keep) : c.call(window, m); }, keep);
+      // a suppressed dialog: every confirm() answers false with no question shown (V5)
+      await ctx.addInitScript(() => { window.confirm = () => false; });
       const {page: a} = await open(ctx);
-      if(await a.evaluate(() => WRITER) !== 'held'){ L.skip('V3', 'no Web Locks in this browser'); await ctx.close(); break; }
-      await put(a, {s: {parts: {work: [stroke(1)]}, room: {}, at: 1}}); await settled(a, ['s']);
+      if(await a.evaluate(() => WRITER) !== 'held'){ await ctx.close(); return null; }
+      await put(a, {s: {parts: {work: [stroke(1)]}, room: {}, at: 1}, u: {parts: {work: [stroke(5)]}, room: {}, at: 1}}); await settled(a, ['s', 'u']);
       const {page: b} = await open(ctx);
       await b.evaluate(s => { DB.ink.s = {parts: {work: [s[0], s[1]]}, room: {}, at: 2}; save(); }, [stroke(1), stroke(2)]);
       await b.waitForTimeout(300);
-      await a.waitForTimeout(100);
-      await a.evaluate(() => { outsideClear(PROFILE); DB = BLANK(); save(); saveNow(); LOG = []; LOG_OK = true; saveLog(); pendingRetire(); });
-      await a.waitForTimeout(500);
+      if(opts.ownLaterMark){ await a.waitForTimeout(20); }
+      await a.evaluate(how => { if(how === 'profile'){ outsideClear(PROFILE); DB = BLANK(); save(); saveNow(); LOG = []; LOG_OK = true; saveLog(); pendingRetire(); }
+        else if(how === 'part') outsideClear(PROFILE, 'ink'); else if(how === 'mark-free') pendingMark(); }, opts.erase);
+      await a.waitForTimeout(400);
+      // B's own later mark (it erases another page itself) must not hide A's earlier one
+      if(opts.ownLaterMark) await b.evaluate(() => outsideRemove('ink', 'zz'));
       await a.close();
       await b.evaluate(() => takeOver(false));
       await b.waitForFunction(() => WRITER === 'held', null, {timeout: 8000}).catch(() => {});
       await ready(b); await b.waitForTimeout(800);
-      const asked = await b.evaluate(() => window.__asked || '');
-      await reload(b);
-      const ink = await inkNow(b);
-      if(!keep) check(!!asked && !ink.s, 'V3: after another tab erased the profile, the student is asked about this tab\'s kept writing; Cancel leaves it out (after a reload)', {asked: asked.slice(0, 60), keys: Object.keys(ink)});
-      else check(!!asked && strokesOf(ink, 's').length === 2, 'V3: OK adds the kept writing back (after a reload)', {asked: asked.slice(0, 60), strokes: strokesOf(ink, 's').length});
-      await ctx.close();
+      return {ctx, b};
+    };
+    // a notice button that is not there fails the checks that follow instead of stopping the run
+    const clickIf = async (pg, sel) => { const el = await pg.$(sel); if(el) await el.click(); return !!el; };
+    const staleNotice = b => b.evaluate(() => { const d = document.querySelector('#outwarn .outstale'); return d ? {text: d.textContent, add: !!d.querySelector('[data-outadd]'), exp: !!d.querySelector('[data-outexp]'), drop: !!d.querySelector('[data-outdrop]')} : null; });
+    {
+      const r = await v3({erase: 'profile'});
+      if(!r) L.skip('Q1', 'no Web Locks in this browser');
+      else {
+        const {ctx, b} = r;
+        const n = await staleNotice(b);
+        check(!!n && n.add && n.exp && n.drop && /"s" \(2 strokes\)/.test(n.text) && await b.evaluate(() => unsavedHere()),
+          'Q1: with dialogs suppressed, writing kept from before another tab\'s Erase is kept, counted unsaved, and named on the notice with Add it back, Export it and Leave it out', n);
+        check(!(await inkNow(b)).s, 'Q1: it is not written into the erased profile on its own', Object.keys(await inkNow(b)));
+        let file = {db: {}};
+        if(await b.$('#outwarn [data-outexp]')){ const [dl] = await Promise.all([b.waitForEvent('download'), b.click('#outwarn [data-outexp]')]); file = JSON.parse(fs.readFileSync(await dl.path(), 'utf8')); }
+        check(strokesOf(file.db.ink || {}, 's').length === 2, 'Q1: Export it gives a file with the kept writing', file.db.ink && Object.keys(file.db.ink));
+        await clickIf(b, '#outwarn [data-outadd]');
+        await settled(b, ['s']);
+        await reload(b);
+        check(strokesOf(await inkNow(b), 's').length === 2, 'Q1: Add it back writes it; after a reload the page has both strokes', strokesOf(await inkNow(b), 's'));
+        await ctx.close();
+      }
+    }
+    {
+      const r = await v3({erase: 'profile'});
+      if(r){
+        const {ctx, b} = r;
+        // a page made after the erase is not named and not discarded
+        await put(b, {t: {parts: {work: [stroke(8)]}, room: {}, at: 8}}); await settled(b, ['t']);
+        const n = await staleNotice(b);
+        check(!!n && /"s"/.test(n.text) && !/"t"/.test(n.text), 'Leave it out: the notice names only the page kept from before the Erase', n && n.text.slice(0, 160));
+        await clickIf(b, '#outwarn [data-outdrop]');
+        await reload(b);
+        const ink = await inkNow(b);
+        check(!ink.s && strokesOf(ink, 't').length === 1 && !(await b.evaluate(() => unsavedHere())), 'Leave it out: discards the named page only; the later page is stored (after a reload)', Object.keys(ink));
+        await ctx.close();
+      }
+    }
+    {
+      const r = await v3({erase: 'mark-free'});
+      if(r){
+        const {ctx, b} = r;
+        const marks = await b.evaluate(() => localStorage.getItem(NS + ':outside-mark:' + PROFILE));
+        await settled(b, ['s']); await reload(b);
+        check(!marks && strokesOf(await inkNow(b), 's').length === 2, 'V6: Put back and a replacing Import (pendingMark) set no mark; kept writing is merged and stored (after a reload)', {marks, s: strokesOf(await inkNow(b), 's').length});
+        await ctx.close();
+      }
+    }
+    {
+      const r = await v3({erase: 'part'});
+      if(r){
+        const {ctx, b} = r;
+        const n = await staleNotice(b);
+        check(!!n && /"s"/.test(n.text) && !(await inkNow(b)).s, 'a module\'s erase of its part (outsideClear(p, part)) is marked: the kept writing waits for the student', n && n.text.slice(0, 120));
+        await clickIf(b, '#outwarn [data-outdrop]'); await reload(b);
+        check(!(await inkNow(b)).s, 'after Leave it out and a reload, the erased part stays erased', Object.keys(await inkNow(b)));
+        await ctx.close();
+      }
+    }
+    {
+      const r = await v3({erase: 'profile', ownLaterMark: true});
+      if(r){
+        const {ctx, b} = r;
+        const n = await staleNotice(b);
+        check(!!n && /"s"/.test(n.text), 'two tabs\' marks: this tab\'s own later mark does not hide the other tab\'s earlier Erase', n && n.text.slice(0, 120));
+        await clickIf(b, '#outwarn [data-outdrop]'); await reload(b);
+        check(!(await inkNow(b)).s, 'two tabs\' marks: after Leave it out and a reload, the Erase stands', Object.keys(await inkNow(b)));
+        await ctx.close();
+      }
     }
     // closing: a change still on save()'s 150 ms timer when the page is reloaded (pagehide writes it)
     {

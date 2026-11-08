@@ -366,10 +366,16 @@ With a part registered:
 - Leaving or reloading asks first (the second review of #81, N1): the browser's leave question and
   the in-app Reload's question also come when writing is refused or kept for a profile not yet
   written (`outsideAtRisk`), unless it was exported since. A write that is only running does not ask.
-- Writing kept in a tab from before another tab erased, put back or replaced the profile (a mark in
-  `<ns>:outside-mark:<profile>`, written by Erase and by `pendingMark`) is not merged back on its own:
-  the student is asked; OK adds it back, Cancel leaves it out (V3). "Use it here" says where that
-  writing went: not into the copy of the progress, but merged into the writing now stored.
+- An Erase marks what it erased for every tab: `<ns>:outside-mark:<profile>` is a list of {at, tab,
+  part, page}, the latest per tab and scope. Settings' Erase marks the profile; a module's erase of its
+  part (`outsideClear(p, part)`) or of a page (`outsideRemove`) marks that part or page. Put back and
+  a replacing Import do not mark (they merge). Writing a tab kept from before another tab's mark
+  covering its page is neither written nor deleted on its own (the third review of #81, Q1): it
+  stays kept (unsaved, so leaving asks), out of the page on screen, and the notice names each page
+  and its strokes, with "Add it back" (written), "Export it" (a file) and "Leave it out" (the only
+  way it is discarded, and only the pages it names). No dialog decides it. "Use it here" says where
+  the unsaved writing went: not into the copy of the progress, but merged into the stored writing,
+  or named on the notice when it predates such an Erase.
 - Erase is final for this page too: a write that began before it is not recorded when it completes
   (its delete runs after it), and each load replaces what the page knows of the profile with what
   the database holds, so a page erased here or in another tab does not come back.
