@@ -426,7 +426,7 @@ With a part registered:
 **Requirement for #17 (worksheets-ink).** A module that keeps its own copy of a page (worksheets-ink's
 `INK.data`) must reload that page from `DB[part][page]` on each of the three events `onOutside` reports:
 `event: 'parked'` (its writing from before another tab's Erase was set apart and taken off the page),
-and `event: 'released'` (Add it back or Leave it out), and `event: 'erased'` (the page was erased in another tab and taken off the page on screen). Otherwise its next save writes the set-apart
+`event: 'released'` (Add it back or Leave it out) and `event: 'erased'` (the page was erased in another tab and taken off the page on screen). Otherwise its next save writes the set-apart
 strokes back without the student's choice (the fifth and sixth reviews of #81, V12). Export progress
 carries set-apart writing too. Another tab's Erase reaches an open tab as a storage event on its mark
 key, and the writing is set apart at that moment, so strokes drawn after it are never mixed in; a tab
