@@ -176,10 +176,14 @@ const FX = (() => {
     readings.forEach(r => { html = run(r.n, 'reading', () => { const out = r.f(html); if(typeof out !== 'string') throw new Error('X.reading must return the HTML'); return out; }, html); });
     return orig.call(this, html);
   });
+  // the same questions, each once, in any order: a hook reorders a paper and never swaps a question, so the
+  // opening page's sample draws (which skip the hooks) count the same select-all items as a real paper
+  const sameQs = (a, b) => { const key = x => x && x.id; const ids = b.map(key).sort().join('\n');
+    return a.every(x => x && typeof x === 'object') && a.map(key).sort().join('\n') === ids; };
   wrap('drawPaper', () => drawPaper, f => { drawPaper = f; }, orig => function(){
     let qs = orig.apply(this, arguments);
     if(typeof EXAM_SAMPLING !== 'undefined' && EXAM_SAMPLING) return qs;   // the opening page's sample draws are not new papers
-    papers.forEach(p => { qs = run(p.n, 'paper', () => { const out = p.f(qs.slice()); if(!Array.isArray(out) || out.length !== qs.length) throw new Error('X.paper must return the same questions'); return out; }, qs); });
+    papers.forEach(p => { qs = run(p.n, 'paper', () => { const out = p.f(qs.slice()); if(!Array.isArray(out) || out.length !== qs.length || !sameQs(out, qs)) throw new Error('X.paper must return the same questions'); return out; }, qs); });
     return qs;
   });
   wrap('load', () => load, f => { load = f; }, orig => function(){

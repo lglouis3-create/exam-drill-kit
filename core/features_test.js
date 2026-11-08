@@ -224,6 +224,15 @@ const ALL = {'fx-probe': {version: 'v1', word: 'zz-word'}, 'fx-probe-throws': {v
           `the exam's opening page draws its sample papers without running the paper hook (${sampled.calls} hook calls)`, sampled);
     const real = await page.evaluate(() => { const before = window.__probe.paperCalls || 0; drawPaper(); return (window.__probe.paperCalls || 0) - before; });
     check(real === 1, `a paper drawn after the sampling still runs the paper hook once (${real})`, real);
+    // a draw that throws during the sampling still clears the flag: the next real paper runs the hook
+    const thrown = await page.evaluate(() => {
+      const keep = drawPaper; let n = 0;
+      drawPaper = function(){ if(++n === 3) throw new Error('probe: a draw that fails'); return keep.apply(this, arguments); };
+      EXAM_SATA_SEEN = null; examSataDrawn(); drawPaper = keep;
+      const flag = EXAM_SAMPLING, before = window.__probe.paperCalls || 0; drawPaper();
+      return {flag, calls: (window.__probe.paperCalls || 0) - before};
+    });
+    check(thrown.flag === false && thrown.calls === 1, `a sample draw that throws leaves the flag off, and the next paper runs the hook once`, thrown);
 
     // a reading tab's HTML
     await page.click('#nav button[data-v="ref"]');
