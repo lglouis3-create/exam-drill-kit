@@ -187,9 +187,17 @@ after Phase 1 and overrides earlier sections where they differ.
     under this authority; Louis keeps it unmerged (2026-11-03: after ChatGPT's review of
     7dbc054 found three defects, until they are fixed, reviewed and brought back for his
     approval).
-  - Live courses stay unchanged unless Louis approves their update separately. An
-    unattended run never changes a live site without his reply; the nightly kit-update
-    run leaves every update at `/preview/`. A course session changes a live site only
+  - Live courses stay unchanged unless Louis approves their update separately, except
+    routine updates under his standing authorization of 2026-11-08
+    (`review/standing-autonomy-2026-11-08.md`; `KIT_DESIGN.md` §12 decision 10, amended):
+    the nightly kit-update run publishes a routine update after validating the exact
+    candidate and confirming the published build matches it, and leaves at `/preview/`
+    any update that carries a meaningful decision or an unresolved risk. The same text
+    decides that BDK, Basic-Pharmacokinetics- and Intro-Pharmacology- are migrated onto
+    the core (one owner each, order by progress and assessments; superseding the
+    2026-11-01 decisions for Pharmacokinetics and Intro to Pharmacology), that a kit
+    commit or pin difference alone triggers no preview, publication or notification, and
+    that Medicinal-chemistry has ended but stays eligible for fitting improvements. A course session changes a live site only
     with his approval of that change in the session (decision 10, reading 7).
   - Investigate a failed check and keep its evidence; rerun for diagnosis, never
     until green.

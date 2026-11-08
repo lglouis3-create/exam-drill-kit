@@ -433,7 +433,8 @@ changes an earlier section, this section is current.
       waits for Louis's yes.
     - **Louis's approval stays required**, inside or outside a pull request, for:
       - progress storage, import and recovery, and scheduling behaviour;
-      - course migrations and live-course updates;
+      - course migrations, and live-course updates other than the routine updates of the
+        2026-11-08 amendment below;
       - destructive actions, permission changes, and consequential design choices that
         are not resolved;
       - weakening, skipping or exempting a required check.
@@ -444,7 +445,18 @@ changes an earlier section, this section is current.
     - **Live courses** stay unchanged unless Louis approves their update separately. An
       unattended run (the kit-update run, a Mode 5 scheduled ingest, any scheduled task)
       never changes a live site without his reply; its work waits at `/preview/` or on a
-      branch. A course session changes a live site only with Louis's approval of that
+      branch. **Amended 2026-11-08** (`review/standing-autonomy-2026-11-08.md` §1, his
+      words): a *routine* course update is prepared, validated and published without his
+      reply, after the exact candidate is verified, the required checks and independent
+      review are complete, and the published build is confirmed to match the validated
+      candidate, with rollback kept available; an update that carries a meaningful decision
+      or an unresolved risk (progress loss or incompatible conversion; removing content or
+      features; an answer key without adequate source support; a substantial change to study
+      or exam behaviour; a major redesign close to an assessment; an unresolved consequential
+      trade-off; weakening a required check, a destructive action, a permission change)
+      still waits for him. Recorded holds (DEENT's pending release and its kit-preview
+      pause) stay until their conditions are resolved or he lifts them. The rest of this
+      bullet stands for every other case. A course session changes a live site only with Louis's approval of that
       change given in the session (his request for it, or his yes to a summary of it).
       Louis confirmed the part on unattended runs on 2026-11-03: the scheduled task "BDK
       daily review" prepares its work on a branch with a pull request, and the "Kit

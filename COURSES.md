@@ -21,6 +21,7 @@ Mid-course design changes:
   2026-10-30  service worker, network-first with a 3.5 s fallback (`ed38dbd`); why: Louis asked for offline use; preview approved: no preview step existed.
   (These two changes came after the exam on Mon 9/21 named at `src/views.js:370`.)
   2026-11-01  moved onto the kit core (Mode 7, kit `main` ff7bd51, `course.js` `kit:{core:'ff7bd51'}`), with the 09/21 round (479 questions: the 387 live ids kept, 92 new), course name "Intro to Medicinal Chemistry (P2 Fall 2026)" (Louis), citations corrected after a slide check against the decks in Louis's Drive, `oldCachePrefix: 'phar4342-drill-'`; why: Louis's order of moves (Medicinal-chemistry first); preview approved: yes, at `/preview/` from 2026-11-01, and Louis approved the switch the same day (live commit `d7331be`).
+  2026-11-08  kit updates 8ec7125 → 0eeb13b (commit `db6da5b`, Louis's "Approve updates for medicinal chemistry" in the Kit updater session) and 0eeb13b → 1bdc08e (commit `59c9a86`, pin only, under his standing authorization of 2026-11-08 for routine updates); why: the kit-update run. Louis, 2026-11-08: the course has ended; no preview is built for a pin difference alone from now on; the course stays eligible for improvements that fit its material (`review/standing-autonomy-2026-11-08.md` §4).
 Proposals declined: none recorded.
 Exam outcomes: none recorded in the repo or the notes.
 Louis's notes:
@@ -40,6 +41,7 @@ Exam outcomes: none recorded in the repo or the notes.
 Louis's notes:
 
 ---
+  2026-11-08  Louis: migrate onto the kit core, with BDK and the other courses awaiting migration (`review/standing-autonomy-2026-11-08.md` §3; this supersedes the 2026-11-01 decision for Pharmacokinetics and Intro to Pharmacology). Owner and order: set by the central session and recorded in `review/bdk-move-plan.md` or the migrations record. "No kit pin" is its expected status until then.
 
 ## PHAR 4344 Pharmacotherapeutics II: Introduction to Pharmacology   repo: Intro-Pharmacology-   site: https://lglouis3-create.github.io/Intro-Pharmacology-   term: Fall 2026
 Material profile: lecture course taught by two professors in sequence; drug tables (Exam 1 drug list, drug ↔ receptor); pathways and processes (step-through figures, scenes); the professor's polls, quizzes and Jeopardy items kept verbatim; assigned readings (chapters and articles) tested as discussed; four exams (50, 50, 54 questions; Exam 4 count `null`, "about 55" per the professor on 10/28, `exam1-drill/src/course.js:55-111`). Exam 4 is Mon Nov 2 (`exam1-drill/src/course.js:100`).
@@ -54,6 +56,7 @@ Exam outcomes: Quiz 4: "quiz 4 is correct as i got a 100" (Louis, PH notes §4; 
 Louis's notes:
 
 ---
+  2026-11-08  Louis: migrate onto the kit core, with BDK and the other courses awaiting migration (`review/standing-autonomy-2026-11-08.md` §3; this supersedes the 2026-11-01 decision for Pharmacokinetics and Intro to Pharmacology). Owner and order: set by the central session and recorded in `review/bdk-move-plan.md` or the migrations record. "No kit pin" is its expected status until then.
 
 ## PHAR 4232 APC III, Basic Drug Knowledge (BDK) quizzes   repo: BDK   site: https://lglouis3-create.github.io/BDK/   term: Fall 2026
 Material profile: drug tables only: the BDK list PDF, 300 drugs on 26 pages (BDK notes §1); weekly quizzes on set pages (`QUIZZES`, `assets/app.js:42`); no lecture decks, transcripts or professor questions supplied (BDK notes §3); Louis also studies in Quizlet. Built from Louis's "BDK QUIZLET DECK SPEC", not from the skill.
@@ -72,6 +75,7 @@ Exam outcomes: none recorded.
 Louis's notes:
 
 ---
+  2026-11-08  Louis: migrate onto the kit core, with BDK and the other courses awaiting migration (`review/standing-autonomy-2026-11-08.md` §3; this supersedes the 2026-11-01 decision for Pharmacokinetics and Intro to Pharmacology). Owner and order: set by the central session and recorded in `review/bdk-move-plan.md` or the migrations record. "No kit pin" is its expected status until then.
 
 ## PHAR 4346 DEENT   repo: DEENT   site: https://lglouis3-create.github.io/DEENT/   term: Fall 2026
 Material profile: two professors (pools "Dr. Smith (pharmacology)" and "Dr. Sikazwe (medicinal chemistry)" in DEENT `src/course.js`); slide decks and recorded lectures; drug structures (an Atlas of 91 structures drawn with RDKit from SMILES and checked against PubChem and ChEMBL, on the working branch only, unreleased: its files are not on `main`); four exams, each Monday 9:00-10:30 am: Exam 1 11/09 (50 questions, Lectures 1-4), Exam 2 11/16 (50, Lectures 1-4 30% and 5-8 70%), Exam 3 11/23 (50, Lectures 9-13), Final 12/07 (60, Lectures 14-18 50% and prior material 50%); the syllabus calls the dates tentative (its "Tentative exam dates" table, as recorded in DEENT `reviews/COURSE_STATUS.json` at `3ce3c20`; the dates also from Louis, 2026-11-06). Only Exam 1 is released on the site; the others are known to the coordinator (`coordinator/courses.json`) and not shown (DEENT `src/course.js` on `main` at `b2c2523`, read 2026-11-06).
