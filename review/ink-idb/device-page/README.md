@@ -2,7 +2,7 @@
 
 `index.html` here is the page for the phone and tablet runs of `../README.md` §6. It was built
 by `build.sh`:
-- the core of kit commit 4ababbc (this pull request);
+- the core of kit commit e5b0daa (this pull request);
 - Medicinal-chemistry at 97ecf8b (public repository);
 - `../make_device_page.js`.
 
@@ -28,7 +28,7 @@ Louis then turns Pages on, once: in the repository, Settings → Pages → Deplo
 
 The page is then at `https://<organization>.github.io/ink-validation/`.
 
-To check that the published file is this one: every rebuild differs only in its BUILD stamp line (the time of the build), so compare the SHA-256 of the file with that line removed: `grep -v '^const BUILD = ' index.html | sha256sum` (d6942beef4cc7851ab4e992457b9f14c012d63a9dfb7d25e2fdbc401ce1188e2 for the `index.html` here); the published copy, fetched with `curl -s https://<organization>.github.io/ink-validation/ | grep -v '^const BUILD = ' | sha256sum`, gives the same. Open the page and read the panel's top line, which shows the browser, Event Timing and the database state.
+To check that the published file is this one: every rebuild differs only in its BUILD stamp line (the time of the build), so compare the SHA-256 of the file with that line removed: `grep -v '^const BUILD = ' index.html | sha256sum` (2a4d001498ccfbcabd120a229dc5d7fd92a917c02c465a610a374e7043d9af35 for the `index.html` here); the published copy, fetched with `curl -s https://<organization>.github.io/ink-validation/ | grep -v '^const BUILD = ' | sha256sum`, gives the same. Open the page and read the panel's top line, which shows the browser, Event Timing and the database state.
 
 ## On the devices
 
