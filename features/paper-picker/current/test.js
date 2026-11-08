@@ -254,6 +254,13 @@ const sameIds = (a, b) => a.length === b.length && a.every((x, i) => x === b[i])
     check(r1.running && r1.n === N && r1.mods.every(m => mods.includes(m)) && mods.every((m, i) => cnt(m) === E2.pools[i].marks),
           `its paper is ${N} questions from Modules ${mods.join(', ')}: ${E2.pools.map(p => p.marks).join(', ')} of them`, r1.mods.join(','));
     check(r1.mins === E3.minutes, `the paper keeps the current exam's clock (${E3.minutes} minutes)`, r1.mins);
+    // while it runs, the page says which exam the paper was drawn for (the engine's text about the current exam's papers does not stand for it)
+    const run1 = await ev(() => (document.querySelector('#v-exam [data-pp="running"]') || {}).textContent || '');
+    check(run1 === `This paper is drawn for ${E2.name}.`, `while the paper runs, the page says it is drawn for ${E2.name}`, run1);
+    await page.click('#v-exam .opt'); await page.click('#exNext');
+    const run1b = await ev(() => [...document.querySelectorAll('#v-exam [data-pp="running"]')].map(x => x.textContent));
+    check(run1b.length === 1 && run1b[0] === run1, 'and still says so, once, on the next question', run1b);
+    await page.click('#exPrev').catch(() => {});
     const before = await ev(() => DB.paperPicker.exam);
     const blocked = await ev(() => FX.api('paper-picker').choose(1));
     check(blocked === false && before === 2 && await ev(() => DB.paperPicker.exam) === 2, 'the choice cannot change while a paper runs');
@@ -304,6 +311,8 @@ const sameIds = (a, b) => a.length === b.length && a.every((x, i) => x === b[i])
     const r3 = await ev(() => EX.qs.map(q => q.id));
     const drew = await ev(() => DB.paperPicker.drawn && DB.paperPicker.drawn.exam);
     check(drew === 3 && r3.length === N, `a paper for the current exam is the engine's own draw of ${N}, recorded for ${E3.name}`, {drew, n: r3.length});
+    check(await ev(() => (document.querySelector('#v-exam [data-pp="running"]') || {}).textContent || '') === `This paper is drawn for ${E3.name}.`,
+          `while it runs, the page says it is drawn for ${E3.name}`);
     await page.click('#v-exam .opt');
     await page.click('#exEnd');
     await page.waitForSelector('#exAgain', {timeout: 5000}).catch(() => {});
@@ -346,8 +355,13 @@ const sameIds = (a, b) => a.length === b.length && a.every((x, i) => x === b[i])
     const sh = await ev(() => (document.querySelector('#v-exam [data-pp="short"]') || {}).textContent || '');
     check(b1s.room < N && sh.includes(`its pools can supply ${b1s.room} of the ${N}`) && sh.includes(`drawn for ${E3.name}`),
           `with ${E1.name}'s Module 2 pool emptied (${b1s.per.join('/')}): the page says its pools supply ${b1s.room} of the ${N}, and that the paper is drawn for the current exam`, sh);
+    const shText = await ev(() => document.getElementById('v-exam').textContent.replace(/\s+/g, ' '));
+    check(shText.includes(`${N} questions drawn at the blueprint of ${E3.name}`) && !shText.includes(`This paper: ${N} questions drawn at the blueprint of ${E1.name}`),
+          `and the page keeps the engine's description of ${E3.name}'s paper, with no description of a paper of ${E1.name}`);
     await page.click('#startExam');
     const r5 = await ev(() => ({drawn: DB.paperPicker.drawn.exam, n: EX.qs.length}));
+    check(await ev(() => (document.querySelector('#v-exam [data-pp="running"]') || {}).textContent || '') === `This paper is drawn for ${E3.name}.`,
+          `that paper, while it runs, says it is drawn for ${E3.name}, not ${E1.name}`);
     check(r5.drawn === 3 && r5.n === N, 'the paper started then is the current exam\'s', r5);
     await ev(() => { const p = COURSE.exams.find(x => x.id === 1).pools[1]; p.filter = p.ppWas; delete p.ppWas; delete p.test; });
     await ev(() => { finishExam(true); EX = null; renderExam(); });

@@ -195,16 +195,28 @@ const NOTE = () => `A paper for an earlier exam is drawn from that exam's pools,
 function otherHTML(e, n){
   const by = poolsOf(e), want = shares(e, n), have = room(e, n);
   const clock = typeof EXAM.minutes === 'number' ? `with a ${EXAM.minutes}-minute clock` : 'untimed';
-  let h = `<div data-pp="other"><p class="sub">This paper: ${n} questions drawn at the blueprint of ${esc(e.name)}${e.blurb ? ' — ' + esc(e.blurb) : ''} — ${clock}.
-  About ${e.sata || 0} of the ${n} are select-all, marked all-or-nothing. No explanations until you finish, same as the real thing.</p>
-  <table class="gap"><thead><tr><th>Drawn from</th><th>Questions</th><th>In the bank</th></tr></thead><tbody>${
+  const table = `<table class="gap"><thead><tr><th>Drawn from</th><th>Questions</th><th>In the bank</th></tr></thead><tbody>${
     by.map((x, i) => `<tr><td>${esc(x.pool.name || x.pool.key || '')}</td><td>${want[i]}</td><td>${x.qs.length}</td></tr>`).join('')}</tbody></table>`;
-  if(have < n) h += `<div class="note" data-pp="short"><b>The bank holds too few questions for a paper of ${esc(e.name)}:</b>
-    its pools can supply ${have} of the ${n}. Until it holds more, a paper started here is drawn for ${esc(EXAM.name)}.</div>`;
-  return h + `</div>`;
+  // too few questions: the paper is the current exam's, so the engine's own description of it stays (renderHook)
+  if(have < n) return `<div data-pp="other"><div class="note" data-pp="short"><b>The bank holds too few questions for a paper of ${esc(e.name)}:</b>
+    its pools can supply ${have} of the ${n}. Until it holds more, a paper started here is drawn for ${esc(EXAM.name)},
+    as described below.</div>${table}</div>`;
+  return `<div data-pp="other"><p class="sub">This paper: ${n} questions drawn at the blueprint of ${esc(e.name)}${e.blurb ? ' — ' + esc(e.blurb) : ''} — ${clock}.
+  About ${e.sata || 0} of the ${n} are select-all, marked all-or-nothing. No explanations until you finish, same as the real thing.</p>${table}</div>`;
 }
 
+/* While a paper runs: which exam it was drawn for, from the paper itself (its
+   record, state().drawn), so a paper that fell back to the current exam (too few
+   questions for the chosen one) says so; the engine's opening-page text about the
+   current exam's papers does not stand for another exam's paper. */
+function runningLine(pane){
+  if(pane.querySelector('[data-pp="running"]')) return;
+  const d = state().drawn, x = d && examById(d.exam);
+  if(!x) return;
+  pane.insertAdjacentHTML('afterbegin', `<p class="sub" data-pp="running">This paper is drawn for ${esc(x.name)}.</p>`);
+}
 X.rendered((pane, view) => {
+  if(view === 'exam' && OFFER.size && EX && EX.running) return runningLine(pane);
   if(view !== 'exam' || !EX && !document.getElementById('startExam') || EX && EX.running) return;
   if(EX && EX.done){
     logPaper();
@@ -221,7 +233,7 @@ X.rendered((pane, view) => {
   const e = chosen(), n = typeof EXAM.questions === 'number' ? EXAM.questions : 0;
   if(e !== EXAM && n){
     const sub = pane.querySelector('p.sub:not([data-pp])');
-    if(sub) sub.remove();
+    if(sub && room(e, n) >= n) sub.remove();
     pane.querySelector('[data-pp="done"]').insertAdjacentHTML('beforeend', otherHTML(e, n));
   }
   pane.insertAdjacentHTML('beforeend', historyHTML());
