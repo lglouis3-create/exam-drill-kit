@@ -28,10 +28,13 @@ else OPT.rows.forEach((d, k) => {
   if(!known(d.field)) errs.push(`option rows "${d.key}" names the field "${d.field}", which no row has`);
   if(d.section !== undefined && !(Number.isInteger(d.section) && d.section >= 0 && d.section < labels.length)) errs.push(`option rows "${d.key}" has section ${JSON.stringify(d.section)}, not an index into sectionLabels (0 to ${labels.length - 1})`);
   if(d.split !== undefined && (!Array.isArray(d.split) || d.split.some(x => typeof x !== 'string' || !x))) errs.push(`option rows "${d.key}" has split that is not a list of separators`);
+  for(const x of ['blank', 'empty']) if(d[x] !== undefined && (typeof d[x] !== 'string' || !d[x])) errs.push(`option rows "${d.key}" has ${x} that is not text`);
   const extra = Object.keys(d).filter(x => !['key', 'heading', 'field', 'section', 'split', 'blank', 'empty'].includes(x));
   if(extra.length) errs.push(`option rows "${d.key}" has ${extra.join(', ')}, which a row does not take`);
 });
 for(const o of ['ownField', 'classField', 'brandField']) if(OPT[o] && !known(OPT[o])) errs.push(`option ${o} names the field "${OPT[o]}", which no row has`);
+if(!Array.isArray(OPT.classSkip) || OPT.classSkip.some(x => typeof x !== 'string')) errs.push('option classSkip must be a list of class names (text)');
+for(const o of ['label', 'before']) if(typeof OPT[o] !== 'string' || !OPT[o].trim()) errs.push(`option ${o} must be text`);
 if(!known(OPT.labelField)) errs.push(`option labelField names the field "${OPT.labelField}", which no row has`);
 if(!Number.isInteger(OPT.max) || OPT.max < 2) errs.push(`option max is ${JSON.stringify(OPT.max)}: Compare needs room for at least 2 drugs`);
 if(OPT.defaultTable !== '' && !ids.has(String(OPT.defaultTable))) errs.push(`option defaultTable is "${OPT.defaultTable}", which is not a table's id`);

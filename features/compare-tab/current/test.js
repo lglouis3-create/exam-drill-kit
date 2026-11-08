@@ -6,14 +6,19 @@
  * the table's rows, the page number as the table id (FIX). BDK_FACTS is, for each of the
  * 300 drugs, the lists BDK's own Compare shows (factList, assets/app.js lines 2294-2299),
  * from BDK's d.facts as its loadData and resolveSeeAbove build them from its flashcards
- * (lines 108-120, 273-281, 283-347), written by a script from those files.
+ * (lines 108-120, 273-281, 302-324, 331-347). The line was written by
+ * features/compare-tab/ci/bdk_facts.js, which runs BDK's splitDepth0 and itemsOf as app.js
+ * holds them and BDK's loadData, resolveSeeAbove and factList as copied there:
+ *     node features/compare-tab/ci/bdk_facts.js <BDK checkout at 05c36c3>
+ * prints it; on 2026-11-08 its output was byte for byte the line below.
  *
  * The facts: every drug's list for each row, as the module derives it from the table's
  * fields, against BDK_FACTS, key by key: how many drugs have the same number of items,
  * the same items, and the same items but for case (printed, and checked against the
  * numbers recorded below); and, for every pair of drugs on the same page (1738 pairs),
- * whether each row is marked "same" as BDK marks it, and whether each drug gets as many
- * shared items as in BDK.
+ * and for all 44850 pairs of the 300 drugs, whether each row is marked "same" as BDK marks
+ * it, and whether each drug gets as many shared items as in BDK (the module's own marking,
+ * which compares items without case, against BDK's, letter for letter, on BDK_FACTS).
  *
  * On a scratch copy with BDK's tables, at 390 px and 820 px: the tab opens on the first
  * table; one drug selected says "Add at least one more drug."; the sixth drug picked
@@ -21,12 +26,13 @@
  * BDK's (classes with two or more drugs, "See individual drug components" left out) with
  * their counts, and a class of six fills five columns; a known pair, oxycodone and
  * methadone (page 25), shows the rows and the shared and different items BDK's data
- * gives them; Only differences hides the rows marked same; each row heading carries its
+ * gives them; budesonide's "Asthma" and montelukast's "asthma" (page 9) are shared, and
+ * items that differ only in spacing (page 2's "Elevated IOP", respaced: the list has no such case) too; Only differences hides the rows marked same; each row heading carries its
  * field (data-field); nothing stored; no page or console error; no sideways scroll.
  * With drug-list-tab in the course: its detail row offers "Compare the N drugs in this
  * class" for a drug with classmates (benazepril, page 5; methadone, page 25: six, five
- * opened) and none for a drug alone in its class, and the button opens Compare with
- * them. With field-colours in the course: the row headings of category and indication
+ * opened) and none for a drug alone in its class; in its recall mode, only once the row
+ * is revealed; and the button opens Compare with them. With field-colours in the course: the row headings of category and indication
  * take its colours. The build step refuses bad options.
  *
  *     node features/compare-tab/test.js
@@ -48,7 +54,7 @@ const KEYS = DEFAULTS.rows.map(d => d.key);
 const AGREE = {count: {cat: 300, brand: 300, cls: 296, ind: 292, kse: 300, bw: 300, notes: 300, org: 300},
                exact: {cat: 277, brand: 300, cls: 228, ind: 99, kse: 6, bw: 186, notes: 170, org: 284},
                nocase: {cat: 278, brand: 300, cls: 228, ind: 145, kse: 272, bw: 269, notes: 239, org: 289},
-               pairs: 1738, rows: 10781, same: 10781, sharedCounts: 10689};
+               pairs: 1738, rows: 10781, same: 10781, sharedCounts: 10772, allPairs: 44850, allRows: 290386, allSame: 290386, allCounts: 290363};
 const DLT_DIR = path.join(__dirname, '..', 'drug-list-tab'), FC_DIR = path.join(__dirname, '..', 'field-colours');
 const FILE = 'ct_tables_test.js';
 const ref = (id, i) => FIX.tables.findIndex(t => t.id === id) + ':' + i;
@@ -97,27 +103,41 @@ function factChecks(kit){
   console.log(`  facts: ${diffRows.length} drugs with another number of items than BDK's in at least one row: ${diffRows.join(', ')}`);
   check(Object.keys(kit).length === 300 && ['count', 'exact', 'nocase'].every(s => KEYS.every(k => stat[s][k] === AGREE[s][k])),
         'each drug\'s lists, against BDK\'s, agree as recorded (AGREE): ' + KEYS.map(k => `${k} ${stat.count[k]}`).join(', ') + ' of 300 with the same number of items', stat);
-  // pairs on the same page: "same" rows and shared-item counts, as BDK marks them
-  const mark = lists => { const shared = new Set(lists[0].filter(x => lists.every(l => l.includes(x))));
-    return {same: lists.every(l => l.length === lists[0].length && l.every(x => shared.has(x))), counts: lists.map(l => l.filter(x => shared.has(x)).length)}; };
-  const byPage = {}; for(const k of Object.keys(BDK_FACTS)) (byPage[k.split(':')[0]] = byPage[k.split(':')[0]] || []).push(k);
-  let pairs = 0, rows = 0, same = 0, counts = 0; const offSame = [], offCounts = [];
-  for(const ks of Object.values(byPage)) for(let a = 0; a < ks.length; a++) for(let b = a + 1; b < ks.length; b++){
-    pairs++;
-    for(const key of KEYS){
-      const lb = [BDK_FACTS[ks[a]][key], BDK_FACTS[ks[b]][key]], lk = [kit[ks[a]][key], kit[ks[b]][key]];
-      if(lb.every(l => !l.length) && lk.every(l => !l.length)) continue;
-      rows++;
-      const mb = mark(lb), mk = mark(lk);
-      if(mb.same === mk.same) same++; else offSame.push(`${ks[a]}|${ks[b]} ${key}`);
-      if(JSON.stringify(mb.counts) === JSON.stringify(mk.counts)) counts++; else if(offCounts.length < 3) offCounts.push(`${ks[a]}|${ks[b]} ${key}: kit ${mk.counts} BDK ${mb.counts}`);
-    }
-  }
-  console.log(`  pairs on one page: ${pairs}; rows shown ${rows}; marked same as BDK marks them ${same}; with as many shared items per drug as BDK ${counts} (e.g. ${offCounts.join('; ')})`);
-  check(pairs === AGREE.pairs && rows === AGREE.rows && same === rows && counts === AGREE.sharedCounts,
-        `every row of the ${pairs} same-page pairs is marked "same" exactly where BDK marks it (${same} of ${rows}); ${counts} have BDK's shared-item counts, as recorded`, offSame.slice(0, 5));
 }
 
+/* pairs of drugs: each row marked "same", and each drug's shared-item count, by the module's
+   own marking (FX.api compare-tab mark) on its lists and by BDK's marking (viewCompare, lines
+   2323-2324, letter for letter) on BDK_FACTS; for the pairs on one page and for all pairs */
+async function pairChecks(page){
+  const r = await page.evaluate(([B, keys]) => {
+    const A = FX.api('compare-tab'), rowsDef = FX.modules().find(m => m.name === 'compare-tab').options.rows, kit = {};
+    DRUG_TABLES.forEach((t, ti) => t.rows.forEach((x, i) => { kit[t.id + ':' + i] = Object.fromEntries(keys.map(k => [k, A.facts(ti + ':' + i, rowsDef.find(d => d.key === k))])); }));
+    const bdk = lists => { const shared = new Set(lists[0].filter(x => lists.every(l => l.includes(x))));
+      return {same: lists.every(l => l.length === lists[0].length && l.every(x => shared.has(x))), counts: lists.map(l => l.filter(x => shared.has(x)).length)}; };
+    const ids = Object.keys(B), out = {page: {pairs: 0, rows: 0, same: 0, counts: 0, offSame: [], offCounts: []}, all: {pairs: 0, rows: 0, same: 0, counts: 0, offSame: [], offCounts: []}};
+    for(let a = 0; a < ids.length; a++) for(let b = a + 1; b < ids.length; b++){
+      const sets = ids[a].split(':')[0] === ids[b].split(':')[0] ? [out.page, out.all] : [out.all];
+      sets.forEach(o => o.pairs++);
+      for(const key of keys){
+        const lb = [B[ids[a]][key], B[ids[b]][key]], lk = [kit[ids[a]][key], kit[ids[b]][key]];
+        if(lb.every(l => !l.length) && lk.every(l => !l.length)) continue;
+        const mb = bdk(lb), mk = A.mark(lk), sameOk = mb.same === mk.same, countOk = JSON.stringify(mb.counts) === JSON.stringify(mk.counts);
+        for(const o of sets){
+          o.rows++;
+          if(sameOk) o.same++; else if(o.offSame.length < 5) o.offSame.push(`${ids[a]}|${ids[b]} ${key}`);
+          if(countOk) o.counts++; else if(o.offCounts.length < 4) o.offCounts.push(`${ids[a]}|${ids[b]} ${key}: kit ${mk.counts} BDK ${mb.counts} (${JSON.stringify(lk)})`);
+        }
+      }
+    }
+    return out;
+  }, [BDK_FACTS, KEYS]);
+  for(const [w, o] of [['on one page', r.page], ['all', r.all]])
+    console.log(`  pairs ${w}: ${o.pairs}; rows shown ${o.rows}; marked same as BDK marks them ${o.same}; with BDK's shared-item counts ${o.counts}${o.offCounts.length ? ' (the others: ' + o.offCounts.join('; ') + ' …)' : ''}`);
+  check(r.page.pairs === AGREE.pairs && r.page.rows === AGREE.rows && r.page.same === r.page.rows && r.page.counts === AGREE.sharedCounts,
+        `every row of the ${r.page.pairs} same-page pairs is marked "same" exactly where BDK marks it (${r.page.same} of ${r.page.rows}); ${r.page.counts} have BDK's shared-item counts, as recorded`, r.page.offSame);
+  check(r.all.pairs === AGREE.allPairs && r.all.rows === AGREE.allRows && r.all.same === AGREE.allSame && r.all.counts === AGREE.allCounts,
+        `all ${r.all.pairs} pairs of the 300 drugs: ${r.all.same} of ${r.all.rows} rows marked "same" where BDK marks them, ${r.all.counts} with BDK's shared-item counts, as recorded`, {same: r.all.offSame, counts: r.all.offCounts});
+}
 async function compareView(browser, file, width){
   const tag = ` (${width} px)`;
   const {ctx, page, errors} = await L.openPage(browser, file, {viewport: {width, height: 900}}, consoleTrap);
@@ -185,6 +205,20 @@ async function compareView(browser, file, width){
   const vis = await page.$$eval(`${P} .cmp tbody tr`, rs => rs.map(r => [r.dataset.row, getComputedStyle(r).display !== 'none']));
   check(JSON.stringify(vis.filter(v => v[1]).map(v => v[0])) === JSON.stringify(['brand', 'ind', 'kse', 'bw']), 'Only differences hides the rows marked same' + tag, vis);
   check(!(await sideways(page)), 'no sideways scroll with two drugs side by side' + tag);
+  // a fact written in other capitals: budesonide's "Asthma" and montelukast's "asthma" (page 9)
+  await page.uncheck(`${P} [data-onlydiff]`);
+  await page.click(`${P} [data-clear]`); await pickTable(page, 9);
+  await page.click(`${P} [data-toggle="${ref(9, 0)}"]`); await page.click(`${P} [data-toggle="${ref(9, 8)}"]`);
+  const asth = await page.$eval(`${P} .cmp tbody tr[data-row="ind"]`, r => [...r.querySelectorAll('td')].map(td => [...td.querySelectorAll('li')].map(li => (li.className === 'shared' ? 'S ' : 'D ') + li.textContent)));
+  // spaces: no item in BDK's list differs from another only in spacing, so the rule is checked on page 2's
+  // "Elevated IOP" written here with a doubled inner space and a trailing one
+  const sp = await page.evaluate(() => FX.api('compare-tab').mark([['Elevated  IOP '], ['elevated IOP']]));
+  check(sp.same && JSON.stringify(sp.counts) === '[1,1]', 'items that differ only in spacing count as one item ("Elevated  IOP " and "elevated IOP")' + tag, sp);
+  check(JSON.stringify(asth) === JSON.stringify([['S Asthma', 'D COPD'], ['D Allergic rhinitis', 'S asthma']]),
+        'budesonide\'s "Asthma" and montelukast\'s "asthma" (page 9) are shown shared, each in its own words' + tag, asth);
+  await page.click(`${P} [data-clear]`); await pickTable(page, 25);
+  await page.click(`${P} [data-toggle="${ref(25, 4)}"]`); await page.click(`${P} [data-toggle="${ref(25, 5)}"]`);
+  await page.check(`${P} [data-onlydiff]`);
   await page.uncheck(`${P} [data-onlydiff]`);
   check((await page.$$eval(`${P} .cmp tbody tr`, rs => rs.filter(r => getComputedStyle(r).display !== 'none').length)) === 6, 'unchecked, every row is back' + tag);
   // the choices last for the visit
@@ -220,7 +254,11 @@ async function compareView(browser, file, width){
     ['a row with a key it does not take', {rows: DEFAULTS.rows.map(d => d.key === 'brand' ? Object.assign({}, d, {colour: 'red'}) : d)}, /option rows "brand" has colour, which a row does not take/],
     ['max under 2', {max: 1}, /option max is 1: Compare needs room for at least 2 drugs/],
     ['a defaultTable that is not a table', {defaultTable: '99'}, /option defaultTable is "99", which is not a table's id/],
-    ['a classField no row has', {classField: 'klass'}, /option classField names the field "klass", which no row has/]]){
+    ['a classField no row has', {classField: 'klass'}, /option classField names the field "klass", which no row has/],
+    ['a classSkip entry that is not text', {classSkip: ['See individual drug components', 3]}, /option classSkip must be a list of class names \(text\)/],
+    ['an empty label', {label: '  '}, /option label must be text/],
+    ['a row whose blank is not text', {rows: DEFAULTS.rows.map(d => d.key === 'brand' ? Object.assign({}, d, {blank: 5}) : d)}, /option rows "brand" has blank that is not text/],
+    ['a row whose empty is empty', {rows: DEFAULTS.rows.map(d => d.key === 'cls' ? Object.assign({}, d, {empty: ''}) : d)}, /option rows "cls" has empty that is not text/]]){
     const b = build('ct-bad', o);
     check(b.code !== 0 && re.test(b.out) && !fs.existsSync(b.page), `${what}: the build stops with its message`, b.out.split('\n').pop());
     b.rm();
@@ -239,6 +277,7 @@ async function compareView(browser, file, width){
       await ctx.close();
       if(!kit) check(false, 'the module offers its facts (FX.api compare-tab facts)');
       else factChecks(kit);
+      { const {ctx, page} = await L.openPage(browser, s.page); await pairChecks(page); await ctx.close(); }
     }
     for(const w of [390, 820]) await compareView(browser, s.page, w);
 
@@ -259,6 +298,16 @@ async function compareView(browser, file, width){
         check(met && met[0] === 'Compare the 6 drugs in this class' && met[1] === [0, 1, 2, 3, 4].map(i => ref(25, i)).join(','), 'methadone\'s: "Compare the 6 drugs in this class", opening the first five' + tag, met);
         const alone = await open('brimonidine', ref(2, 0));
         check(alone === null, 'brimonidine, alone in its class on page 2: no Compare button' + tag, alone);
+        // drug-list-tab's recall mode: a row's detail (and so its button) comes only with Reveal
+        await page.fill('#v-drugs [data-q]', '');
+        await page.click('#v-drugs [data-dl="recall"]');
+        await page.fill('#v-drugs [data-q]', 'methadone');
+        const hiddenBtn = await page.$(`#v-drugs tr.detail[data-for="${ref(25, 5)}"] [data-ct-compare]`);
+        await page.click(`#v-drugs [data-reveal="${ref(25, 5)}"]`);
+        const shownBtn = await page.$eval(`#v-drugs tr.detail[data-for="${ref(25, 5)}"]`, d => { const b = d.querySelector('[data-ct-compare]'); return b ? b.textContent : null; }).catch(() => null);
+        check(!hiddenBtn && shownBtn === 'Compare the 6 drugs in this class', 'in drug-list-tab\'s recall mode an unrevealed row has no Compare button; revealed, it has' + tag, {hidden: !!hiddenBtn, shownBtn});
+        await page.click(`#v-drugs [data-reveal="${ref(25, 5)}"]`);
+        await page.click('#v-drugs [data-dl="recall"]');
         await open('methadone', ref(25, 5));
         await page.click(`#v-drugs tr[data-ref="${ref(25, 5)}"] + tr.detail [data-ct-compare]`);
         const st = await state(page);

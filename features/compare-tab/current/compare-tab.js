@@ -1,7 +1,7 @@
 /* ==========================================================================
    COMPARE: DRUGS SIDE BY SIDE (feature module compare-tab v1)
    ==========================================================================
-   Ported from BDK assets/app.js at 05c36c3: viewCompare (lines 2301-2376),
+   Ported from BDK assets/app.js at 05c36c3: viewCompare (lines 2301-2374),
    COMPARE_ROWS (2290-2293), factList (2294-2299), classmates (879) and the
    "Compare the N drugs in this class" button of the Drug list's detail row
    (2611); its styles in assets/style.css (lines 90, 106, 310-323). The code
@@ -17,6 +17,14 @@
      resolveSeeAbove, 331-347). The item texts are the list's own; BDK's
      cards reword them, so a row can hold the same facts in other words. How
      far the kit's lists agree with BDK's is measured in this module's test;
+   - items are compared without case and with spaces collapsed (ctMark): the
+     list writes one fact as "asthma" for one drug and "Asthma" for another,
+     where BDK's cards write both alike;
+   - opening Compare with drugs (the Drug list's button) moves the page picker
+     to their page; BDK's go('compare', refs) (lines 1250, 2304-2306) keeps the
+     picker on the page it had;
+   - items are plain text; BDK draws each with gloss(x) (line 2326), its
+     glossary links;
    - the table picked and Only differences last for the visit (memory); BDK
      stores them (comparePage, onlyDiff);
    - the tab opens on the option defaultTable (else the first table); BDK
@@ -106,6 +114,17 @@ function ctShort(r){
 }
 const ctTag = t => String(t.short != null && t.short !== '' ? t.short : t.id);
 
+/* BDK's marking (viewCompare, lines 2323-2324): an item is shared when every drug has it,
+   a row is the same when every list holds the same items; compared on a key without case
+   and with spaces collapsed, so "asthma" and "Asthma" (page 9) count as one item; each
+   item keeps its own text */
+const ctKey = x => String(x).toLowerCase().replace(/\s+/g, ' ').trim();
+function ctMark(lists){
+  const keys = lists.map(l => l.map(ctKey));
+  const shared = new Set(keys[0].filter(x => keys.every(l => l.includes(x))));
+  const same = keys.every(l => l.length === keys[0].length && l.every(x => shared.has(x)));
+  return {shared, same, counts: keys.map(l => l.filter(x => shared.has(x)).length)};
+}
 function ctRender(pane){
   const T = ctTables();
   if(CT.page === null){ const at = OPT.defaultTable !== '' ? T.findIndex(t => String(t.id) === String(OPT.defaultTable)) : -1; CT.page = at < 0 ? 0 : at; }
@@ -124,10 +143,9 @@ function ctRender(pane){
     const rows = OPT.rows.map(def => {
       const lists = CT.sel.map(ref => ctFacts(ref, def));
       if(lists.every(l => !l.length)) return '';
-      const shared = new Set(lists[0].filter(x => lists.every(l => l.includes(x))));
-      const same = lists.every(l => l.length === lists[0].length && l.every(x => shared.has(x)));
+      const {shared, same} = ctMark(lists);
       return `<tr class="${same ? 'same' : ''}" data-row="${ctText(def.key)}"><th scope="row" data-field="${ctText(def.field)}">${ctText(def.heading)}${same ? '<span class="samebadge">same</span>' : ''}</th>${lists.map(l =>
-        `<td>${l.length ? `<ul>${l.map(x => `<li class="${shared.has(x) ? 'shared' : 'diff'}">${ctText(x)}</li>`).join('')}</ul>` : '<span class="ct-dim">—</span>'}</td>`).join('')}</tr>`;
+        `<td>${l.length ? `<ul>${l.map(x => `<li class="${shared.has(ctKey(x)) ? 'shared' : 'diff'}">${ctText(x)}</li>`).join('')}</ul>` : '<span class="ct-dim">—</span>'}</td>`).join('')}</tr>`;
     }).join('');
     table = `<div class="ct-card" data-side>
       <div class="ct-spread"><h3>Side by side</h3>
@@ -197,4 +215,4 @@ X.rendered((pane, view) => {
   const d = typeof FX !== 'undefined' && FX.modules().find(m => m.name === 'drug-list-tab' && m.on);
   if(d && view === ((d.options && d.options.tab) || 'drugs')) ctDecorate(pane);
 });
-X.api({facts: ctFacts, classmates: ctClassmates, open: ctOpen, state: () => ({page: CT.page, sel: CT.sel.slice(), onlyDiff: CT.onlyDiff})});
+X.api({facts: ctFacts, mark: ctMark, classmates: ctClassmates, open: ctOpen, state: () => ({page: CT.page, sel: CT.sel.slice(), onlyDiff: CT.onlyDiff})});

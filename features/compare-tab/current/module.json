@@ -2,7 +2,7 @@
  "name": "compare-tab",
  "version": "v1",
  "does": "A Compare tab over the course's DRUG_TABLES (a data file listed in course.js `files`, the one drug-list-tab reads): choose 2 to 5 drugs (a table picker, Whole class chips, one at a time; the sixth drops the oldest) and see them side by side, one row per field, each item marked shared (every drug has it) or different, a row the same for all marked same, and Only differences. With drug-list-tab on, its detail row offers \"Compare the N drugs in this class\". The choices last for the visit only; nothing is stored.",
- "source": "BDK assets/app.js viewCompare (lines 2301-2376), COMPARE_ROWS (2290-2293), factList (2294-2299), classmates (879), d.short (297-299), the Drug list's Compare button (2611), splitDepth0 (108-120) and assets/style.css (lines 90, 106, 310-323), at 05c36c3",
+ "source": "BDK assets/app.js viewCompare (lines 2301-2374), COMPARE_ROWS (2290-2293), factList (2294-2299), classmates (879), d.short (297-299), the Drug list's Compare button (2611), splitDepth0 (108-120) and assets/style.css (lines 90, 106, 310-323), at 05c36c3",
  "js": ["compare-tab.js"],
  "css": ["compare-tab.css"],
  "step": "step.js",
