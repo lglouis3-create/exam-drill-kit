@@ -59,7 +59,11 @@ const state = page => page.evaluate(() => ({running: !!(EX && EX.running), done:
   review: !!document.getElementById('exReview'), h2: ((document.querySelector('#v-exam h2') || {}).textContent || ''),
   asked: (window.__asked || []).slice()}));
 const secs = t => { const m = /(\d+):(\d+)/.exec(t || ''); return m ? (+m[1]) * 60 + (+m[2]) : NaN; };
+// this tab holds its profile's lock (or the browser has none): a clear asked for while the lock is
+// still being asked for waits for it (views.js clearExam), so a paper would come back
+const settled = page => page.waitForFunction(() => typeof WRITER === 'undefined' || WRITER === 'held' || WRITER === 'none', null, {timeout: 5000}).catch(() => {});
 const start = async page => {
+  await settled(page);
   await page.evaluate(() => { if(EX){ clearInterval(EX.timer); EX = null; } clearExam(); show('exam'); });
   await page.click('#startExam');
   await page.waitForTimeout(100);
@@ -240,6 +244,40 @@ async function flow(page, label, opts){
   check(s.h2.includes(`${got} / ${n} (${pct}%)`), `${label}: the score reads ${got} / ${n} (${pct}%)`, s.h2);
 }
 
+/* An overview left on screen after a switch to another profile (useProfile with no redraw): its
+   Submit, its numbers and its Back do nothing, throw nothing and record nothing for either profile
+   (the confirmation of 5b062f5, Low). */
+async function staleOverview(page, label){
+  await spy(page);
+  await start(page);
+  await page.evaluate(ANS, true);
+  await toLast(page);
+  await page.click('#exNext');
+  const from = await page.evaluate(() => PROFILE);
+  const r = await page.evaluate(() => {
+    const count = p => { let a = 0, l = 0; try { a = (JSON.parse(localStorage.getItem(NS + ':data:' + p) || 'null') || {answers: []}).answers.length; } catch(e){}
+      try { l = JSON.parse(localStorage.getItem(NS + ':log:' + p) || '[]').length; } catch(e){} return a + '/' + l; };
+    const from = PROFILE, to = from + '-other';
+    const sub = document.getElementById('exRevSubmit'), num = document.querySelector('#exReview [data-q]'), back = document.getElementById('exRevBack');
+    const before = {from: count(from), to: count(to)};
+    window.__ok = true; window.__asked = [];
+    useProfile(to);   // no redraw: the overview of `from`'s paper stays on screen
+    const errs = [];
+    for(const [n, b] of [['Submit', sub], ['a number', num], ['Back', back]]){ try { if(b && b.onclick) b.onclick(); } catch(e){ errs.push(n + ': ' + (e && e.message || e)); } }
+    const after = {from: count(from), to: count(to)};
+    const res = {before, after, errs, asked: window.__asked.slice(), profile: PROFILE, exOwner: EX ? (EX.owner || '(none)') : null};
+    useProfile(from);
+    return res;
+  });
+  check(!r.errs.length, `${label}: after a switch to another profile, the stale overview's Submit, numbers and Back throw nothing`, r.errs);
+  check(JSON.stringify(r.before) === JSON.stringify(r.after) && !r.asked.length,
+    `${label}: and they record nothing for either profile and ask nothing`, r);
+  await settled(page);
+  await page.evaluate(() => show('exam'));
+  const s = await state(page);
+  check(s.running && s.log === (await page.evaluate(() => LOG.length)), `${label}: back on "${from}", the paper is still running`, {running: s.running, profile: from});
+}
+
 /* The overview's "Not answered" line names a count and the first few, not every number. */
 async function manyBlanks(page, label){
   await start(page);
@@ -344,6 +382,7 @@ async function onPage(browser, file, label, opts){
     if(opts.flow !== false) await flow(page, label, opts);
     if(opts.scores) await scores(page, label);
     if(opts.scores) await manyBlanks(page, label);
+    if(opts.scores) await staleOverview(page, label);
     if(opts.select) for(const sch of ['light', 'dark']) await selection(page, label, sch);
     if(opts.expired) await expired(page, label);
     check(!errors.length, `${label}: no page errors`, errors.slice(0, 2).join('; '));

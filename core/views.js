@@ -2500,6 +2500,8 @@ const submitLabel = () => examAnsweredN() < EX.qs.length ? 'Submit what I have a
 /* The one question every hand submit asks ("Submit paper", and the overview's
    submit): Cancel keeps the paper running as it is. */
 function askSubmitExam(){
+  // a control left on screen after a switch to another profile: that profile's paper is not this one
+  if(!EX || !EX.running || !examOwned()) return;
   const blank = EX.qs.length - examAnsweredN();
   if(!blank){ if(confirm('Submit the paper and see your score?')) finishExam(false); return; }
   if(confirm(`${blank} item${blank===1?' is':'s are'} still blank.\n\nOK: submit what you have answered (blank items are not logged).\nCancel: keep going.`)) finishExam(true);
@@ -2509,6 +2511,7 @@ function askSubmitExam(){
    explanation, and records nothing; the paper stays saved and its clock runs.
    EX.review is not saved: a reload opens the paper on its question, as before. */
 function renderExamReview(){
+  if(!EX || !EX.running || !examOwned()) return;   // as askSubmitExam
   EX.review = true;
   const el = $('#v-exam'), n = EX.qs.length, answered = examAnsweredN();
   const blanks = EX.qs.map((q,i)=> examBlank(q, EX.picks[i]) ? i+1 : 0).filter(Boolean);
@@ -2536,10 +2539,10 @@ function renderExamReview(){
   </div></div>`;
   el.innerHTML = h;
   // the question opened from the overview takes the focus (keyboard and screen reader land on it)
-  const go = i => { EX.i = i; saveExam(); renderExamQ();
+  const go = i => { if(!EX || !EX.running || !examOwned()) return; EX.i = i; saveExam(); renderExamQ();
     try { const st = document.querySelector('#v-exam .stem'); if(st){ st.setAttribute('tabindex', '-1'); st.focus(); } } catch(e){} };
   el.querySelectorAll('#exReview [data-q]').forEach(b => b.onclick = () => go(+b.dataset.q));
-  $('#exRevBack').onclick = () => go(EX.i);
+  $('#exRevBack').onclick = () => { if(EX) go(EX.i); };
   $('#exRevSubmit').onclick = askSubmitExam;
   try { const hd = document.getElementById('exRevHead'); if(hd && hd.focus) hd.focus(); } catch(e){}
 }
