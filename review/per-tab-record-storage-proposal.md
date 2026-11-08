@@ -93,7 +93,7 @@ and any `/preview/` copies store (`review/storage-usage-proposal.md`).
    - the localStorage limit, with `quota_probe.js`'s method, once per browser, because the
      thresholds above come from Chromium's 5,242,859.
    - Samples: the profile at both caps, 546,993 characters of progress after 5,000 answers
-     (`review/storage-measure/measure.js`; `review/storage-usage-proposal.md` §2), and the
+     (`review/storage-measure/measure.js`; `review/storage-usage-proposal.md` §1, table, 5,000 answers), and the
      random-walk ink profile of 69 pages, 1,796,478 characters. The 546,993-character profile
      was not timed in Chromium; the 526,734-character sample (4,000 answers on 600 concepts,
      20,259 characters smaller: 546,993 − 526,734 = 20,259, checked) is the nearest timed size.
