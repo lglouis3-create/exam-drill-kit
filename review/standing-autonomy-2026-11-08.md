@@ -131,9 +131,16 @@ Done the same day: Medicinal-chemistry commit `59c9a86` ("kit update: core 0eeb1
   "Kit update run" (`trig_01QduqhookGDD8HxANEbLq4w`), rewritten in the Kit updater session on
   2026-11-08 at 10:41:46 UTC.
 - §2: Medicinal-chemistry `reviews/LOG.md`, 2026-11-08, and `COURSES.md`.
-- §3: migration owners and order are set by the central session "Exam drill kit Phase 1
-  setup" and recorded in `review/bdk-move-plan.md` or a migrations record there; `COURSES.md`
-  notes the decision for each course.
+- §3: migration owners and order, set by the central session "Exam drill kit Phase 1
+  setup" on 2026-11-08 (11:00 UTC, by message to the Kit updater): order BDK (no switch on
+  11/17-11/19 or 11/30), then Basic-Pharmacokinetics-, then Intro-Pharmacology-; the owner of
+  all three is the central kit session (inventory, course-repo branch, preview, progress
+  conversion and rollback tests, decisions to Louis), because `review/porter-policy.md` §1
+  keeps course repositories read-only for the porter and widening that would be a permission
+  change for Louis; the porter builds the kit-side feature gaps as modules through
+  `review/port-queue.md` (BDK Part 1 now, the Pharmacokinetics Tier 2 drafts, Intro to
+  Pharmacology items 18-21); the Kit updater keeps nightly maintenance and routine updates
+  for all five courses. `COURSES.md` carries the same under each course.
 - Earlier decisions this text supersedes: the 2026-11-01 decisions to leave Pharmacokinetics
   and Intro to Pharmacology on their own engines (`CLAUDE.md`, "Moving the courses onto the
   core"), and the 2026-11-03 rule that every routine live-course update waits for his reply.
