@@ -2,6 +2,9 @@
 
 Dated kit changes, newest first.
 
+## 2026-11-08 (feature modules: the paper hook)
+- `X.paper` again accepts a paper of the same length with other questions in place, as before #80 (paper-picker draws another exam's paper; #80's same-questions rule refused it and paper-picker's test failed 3 of 3). A result of another length, with an entry that is not a question of the bank, or with a question twice, is refused, the drawn paper kept and the module switched off for the visit. #80's protection stays: the hooks do not run on the opening page's sample draws. `features_test.js` checks a replacing hook and each refusal (wrong length; a copy that is not the bank's question; a question twice; each on its own visit); the throw test clears the sampled count after it (the review of #80).
+
 ## 2026-11-08 (exam opening page and feature modules)
 - The exam's opening page draws 20 sample papers to describe its select-all items (#59). A feature module's `X.paper` hook no longer runs on those sample draws, only on a paper that starts (`EXAM_SAMPLING` in `views.js`, read by `features.js`). Before, a hook ran 20 times on opening the Exam tab; a hook that saves (paper-picker, not merged) wrote the progress for papers nobody started. A hook only reorders a paper, so the select-all count is unchanged. `features_test.js` checks it (20 hook calls before, 0 after; a real draw still runs the hook once).
 
