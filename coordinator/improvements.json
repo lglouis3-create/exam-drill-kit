@@ -234,7 +234,7 @@
    "studentBenefit": "drug-table recall in any course with a drug chart (searchable lists, side-by-side comparison, flashcards, matching, cram)",
    "evidence": "Louis's request (2026-11-08, this session); BDK's own features and tests; no learning-outcome evidence",
    "technicalRisk": "parts 1-2 low (no new storage, no scheduler change); part 3 adds storage or scheduling and keeps its own approval; part 4 is a SKILL.md recommendation change",
-   "existsInKit": "partial: FEATURES.md entries learn-mode, card-modes, match-game, cram-mode, compare-tab, field-colours (Used by: BDK only); no module under features/; no drug-list entry",
+   "existsInKit": "partial: features/drug-list-tab v1 (#83) and features/field-colours v1 (#85); learn-mode, card-modes, match-game, cram-mode and compare-tab catalogued in FEATURES.md (Used by: BDK only)",
    "candidateCourses": [
     "bdk",
     "deent",
@@ -268,17 +268,21 @@
    "sourceCommit": "0281922",
    "kind": "optional-feature",
    "studentBenefit": "hear the reason for an answer and a guided walkthrough of a figure, in the professor's material, on the phone",
-   "evidence": "DEENT's release review of 2026-11-08 (334 clips listed on both pages; walk_test 60/60); no learning-outcome evidence",
+   "evidence": "DEENT 0281922 (2026-11-08 release, 334 audio/*.mp3 files with src/walk_ui.js, src/why_ui.js and src/walk_test.js); the DEENT session reported walk_test 60/60 in its release review (its report, 2026-11-08); no learning-outcome evidence",
    "technicalRisk": "normal: a per-device resume key outside progress storage (DEENT session); audio files enlarge the page's assets",
-   "existsInKit": "no",
+   "existsInKit": "partial: FEATURES.md recorded-narration v1 and guide-walkthroughs v2 are catalogued (Used by: PH, PK); not in features/",
    "candidateCourses": [
     "deent"
    ],
    "status": "discovered",
    "prs": [],
-   "relatedQueueItems": [],
-   "decision": "",
-   "notes": "source files in DEENT: walk_ui.js, why_ui.js (DEENT session, 2026-11-08); recorded at the DEENT session's request; not evaluated"
+   "relatedQueueItems": [
+    "FEATURES.md recorded-narration",
+    "FEATURES.md guide-walkthroughs",
+    "port-queue Tier 3 walkthroughs with audio, Hear why (waits for the Pharmacokinetics move)"
+   ],
+   "decision": null,
+   "notes": "DEENT's implementation is a third source beside PH's and PK's for the catalogued entries; recorded at the DEENT session's request; not evaluated"
   },
   {
    "id": "drug-list-persistent-outcomes",
@@ -287,7 +291,7 @@
    "sourceCommit": "bad5e46",
    "kind": "optional-feature",
    "studentBenefit": "see which drug facts (drug and field) a student has recalled, partly recalled or missed, across visits",
-   "evidence": "DEENT's Drug List improvement plan (DEENT issue #1, DEENT session 2026-11-08); no learning-outcome evidence",
+   "evidence": "DEENT issue #1 (student walkthrough review, 2026-11-08; open) and the DEENT session's plan (2026-11-08); no learning-outcome evidence",
    "technicalRisk": "high: new progress storage (a DB.drugs part, equation-drill pattern), Import behaviour (a module record that changes without an answer sends imports to a new profile more often, core/README.md 805-816), and a fact-to-question map so a Drug List answer on a fact with a bank question is recorded once and never through record() for synthetic items",
    "existsInKit": "no: drug-list-tab v1 (#83) stores nothing",
    "candidateCourses": [
@@ -301,7 +305,7 @@
     "improvements bdk-study-features part 3"
    ],
    "decision": "waits for Louis: progress storage and Import behaviour keep their own approval (decision 10; the BDK study-features plan part 3)",
-   "notes": "owner if approved: the kit feature porter; keyed by stable fact ids drugId:field (DEENT druglist_data.js); records outcome, recognition or recall, and self-rating, no raw text; DEENT's Phase 1 (no new storage) proceeds in DEENT under Louis's instruction there"
+   "notes": "owner if approved: the kit feature porter; keyed by a proposed fact id drugId:field, built from the stable drug ids in DEENT src/druglist_data.js; records outcome, recognition or recall, and self-rating, no raw text; DEENT's Phase 1 (no new storage) proceeds in DEENT under Louis's instruction there"
   }
  ]
 }
