@@ -2,7 +2,7 @@
    SHORT ANSWER AND GRAPHS (feature module short-answer-graphs v1)
    ==========================================================================
    Ported from Intro-Pharmacology exam1-drill/src/app.js at 929cd62 (lines
-   2402-2444, 3704-3778, 3821-3854, 850 and 911): the
+   2402-2444, 3704-3778, 3821-3854, 850, 911 and 404-421): the
    Short answer page (vSa, saState, saSave; the "Short answer" section) and
    the Graphs drill (GR, MISS, MISS2, missOf, graphOf, graphQs, missTally,
    graphFeedback, graphDone, startGraph, vGraphs; the "Graphs: drill one of
