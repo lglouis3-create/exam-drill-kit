@@ -1780,14 +1780,42 @@ let nfile = 0;
   }
 
   console.log('\n=== A writer that leaves without handing over: its last save in a key only it writes ===');
-  // the take-over finished before the test answers there (a precondition, its own check): in WebKit a
-  // take-over has taken longer than 9 s, and an answer recorded before it finished is replaced by the
-  // stored progress the take-over opens (the page is under the "asking" wall then, so a student cannot)
+  // the take-over finished before the test answers there (a precondition, its own check). A take-over
+  // without a hand-over waits for the leaving tab's writer lock; in WebKit that lock has stayed held
+  // more than 20 s after the page closed (job 128009951139), so the old single 20 s wait found the
+  // take-over still waiting. The wait is now on the real condition, in two bounded parts:
+  //   released  the lock is free of every holder but this tab (60 s for the browser to free it);
+  //   finished  then this tab writes (WRITER 'held') within 6 s, the core's own 5 s deadline for
+  //             the old writer's values plus a margin.
+  // Either part not met is a FAIL, with what was seen: a lock never freed, or a take-over that does
+  // not finish once it is free (task 56).
   const tookOver = async (t, what) => {
-    await t.waitForFunction(() => WRITER === 'held', null, {timeout: 20000}).catch(() => {});
-    const w = await t.evaluate(() => WRITER);
-    if(w !== 'held') check(false, 'precondition: the take-over finished (' + what + ')', w);
-    return w === 'held';
+    const r = await t.evaluate(async () => {
+      const name = NS + ':writer:' + PROFILE, t0 = Date.now(), mine = [];
+      const q0 = await navigator.locks.query();
+      for(const l of q0.pending || []) if(l.name === name) mine.push(l.clientId);   // this tab's own queued request
+      // a holder counts as this tab's only by a clientId the browser gives; without one, the lock is free only
+      // when nobody holds it (the review of 58d9881: an undefined clientId would match any holder)
+      const ids = mine.filter(id => typeof id === 'string' && id);
+      let freeAt = null;
+      for(;;){
+        if(WRITER === 'held') return {ok: true, ms: Date.now() - t0, freeMs: freeAt === null ? null : freeAt - t0};
+        const q = await navigator.locks.query(), held = (q.held || []).filter(l => l.name === name);
+        // no queued request of its own (already granted, or never asked): free at once, so the 6 s bound applies
+        const free = !mine.length || held.length === 0 || (ids.length === mine.length && held.every(h => ids.includes(h.clientId)));
+        var last = {queued: mine.length, ids: ids.length, holders: held.map(h => h.clientId === undefined ? '(no clientId)' : (ids.includes(h.clientId) ? 'this tab' : 'other'))};
+        if(free && freeAt === null) freeAt = Date.now();
+        if(freeAt !== null && Date.now() - freeAt > 6000)
+          return {ok: false, why: 'the lock was free, but the take-over did not finish within 6 s', writer: WRITER, wall: WRITER_WHY, ms: Date.now() - t0, freeMs: freeAt - t0, locks: last};
+        if(freeAt === null && Date.now() - t0 > 60000)
+          return {ok: false, why: 'another holder kept the writer lock for 60 s', writer: WRITER, wall: WRITER_WHY, held: held.length, ms: Date.now() - t0, locks: last};
+        await new Promise(res => setTimeout(res, 50));
+      }
+    });
+    if(!r.ok) check(false, 'precondition: the take-over finished (' + what + ')', r);
+    // a passing take-over that waited long is printed, so a slow lock release shows in passing runs too
+    else if(r.ms > 5000) console.log(`  note  the take-over (${what}) waited ${r.ms} ms; the lock was free after ${r.freeMs === null ? 'an unknown time' : r.freeMs + ' ms'}`);
+    return r.ok;
   };
   const keptAnywhere = async (p, di, at) => {                   // in the stored progress or in a kept copy
     const prog = JSON.parse(await stored(p, di.data) || '{"answers":[]}');
