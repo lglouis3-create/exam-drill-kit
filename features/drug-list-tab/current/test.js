@@ -501,7 +501,14 @@ async function optionView(browser, file, o){
     await page.click(`${p} [data-reveal="${actAt.ref}"]`);
     const after = await page.evaluate(([p, a]) => { const tr = document.querySelector(`${p} tr[data-ref="${a.ref}"]`); return !!tr && tr.textContent.includes(a.text); }, [p, actAt]);
     check(before.row && !before.inPage && after, `in recall mode a shown column's sub-field is hidden until Reveal (activity of row ${actAt.ref}: absent from the page before, in its row after)`, {before, after});
+    const gone = () => page.evaluate(([p, a]) => { const pane = document.querySelector(p); return !(pane.innerHTML.includes(a.text) || pane.textContent.includes(a.text)); }, [p, actAt]);
+    await page.click(`${p} [data-reveal="${actAt.ref}"]`);   // Hide again
+    const afterHide = await gone();
+    await page.click(`${p} [data-reveal="${actAt.ref}"]`);   // Reveal once more
+    const shownAgain = !(await gone());
     await page.click(`${p} [data-dl="hideall"]`);
+    const afterAll = await gone();
+    check(afterHide && shownAgain && afterAll, 'and it is gone from the page again after Hide again, and after Hide all', {afterHide, shownAgain, afterAll});
   }
   check(!(await page.$(`${p} [data-listview]`)) && !(await page.$(`${p} .pdfpage`)) && (await page.$$(`${p} section[data-table] table`)).length === FIX.tables.length,
         'recall mode draws the table only: no Table / page-image choice while it is on');
@@ -586,6 +593,12 @@ async function optionView(browser, file, o){
   const o2 = opts({tab: 'druglist', label: 'Drugs', columns: [['generic', 'Generic'], ['label', 'Listed as', 'activity', 'Activity against: ']], searchFields: ['generic'], groups: [], defaultGroup: '',
     recallDefault: true, recallShow: ['label'], recallClassField: ''});
   const s2 = build('dlt-opts', T.map(t => Object.assign({}, t, {image: `pages/p${t.id}.webp`, imageSize: BDK_PAGE_IMG[t.id]})), o2);
+  // a sub-field named in recallShow shows before Reveal: one column, BDK's activity as its sub-field, the BDK tables
+  // that have activity text (whole, as they are)
+  const actTables = T.filter(t => t.rows.some(r => r.activity));
+  const o3 = opts({columns: [['generic', 'Generic', 'activity', 'Activity against: ']], searchFields: ['generic'], groups: [], defaultGroup: '',
+    recallDefault: true, recallShow: ['generic', 'activity'], recallClassField: ''});
+  const s3 = build('dlt-subshow', actTables, o3);
   const {browser} = await L.launch(NAME);
   try {
     for(const w of [390, 820]){ console.log(`\n--- ${w} px ---`); await bdkView(browser, s.page, w); }
@@ -593,9 +606,21 @@ async function optionView(browser, file, o){
     console.log('\n=== other options (scratch copy: tab, label, columns, searched fields, no groups, an image per table) ===');
     if(s2.code !== 0) check(false, 'the scratch copy with other options builds', s2.out.split('\n').pop());
     else await optionView(browser, s2.page, o2);
+    console.log('\n=== a sub-field named in recallShow (scratch copy: one column, the tables with activity text) ===');
+    if(s3.code !== 0) check(false, 'the scratch copy with a shown sub-field builds', s3.out.split('\n').pop());
+    else {
+      const {ctx, page} = await L.openPage(browser, s3.page, {viewport: {width: 820, height: 900}}, consoleTrap);
+      await page.click(`#nav button[data-v="${BDK_OPT.tab}"]`);
+      const want = actTables.flatMap((t, ti) => t.rows.map((r, i) => [`${ti}:${i}`, r.activity]).filter(x => x[1]));
+      const got = await page.evaluate(([tab, want]) => want.map(([ref, a]) => { const tr = document.querySelector(`#v-${tab} tr[data-ref="${ref}"]`);
+        return !!tr && tr.textContent.includes(a); }), [BDK_OPT.tab, want]);
+      const on = await page.$eval(`#v-${BDK_OPT.tab} [data-dl="recall"]`, b => b.getAttribute('aria-pressed'));
+      check(on === 'true' && want.length > 0 && got.every(Boolean), `with recall on, a sub-field named in recallShow is shown before Reveal (activity on ${want.length} rows)`, {on, n: want.length, missing: got.filter(x => !x).length});
+      await ctx.close();
+    }
   } finally {
     await browser.close();
-    s.rm(); s2.rm();
+    s.rm(); s2.rm(); s3.rm();
   }
   L.finish(NAME);
 })().catch(e => { console.log('FAIL: ' + NAME + ': crashed: ' + (e && e.stack || e)); process.exit(1); });
