@@ -2,6 +2,9 @@
 
 Dated kit changes, newest first.
 
+## 2026-11-08 (checks: exam review)
+- `exam_review_test.js`: its answer helper sets an answer instead of toggling it. A select-all option clicked a second time is taken off, so when question 1 of the paper was a select-all item, answering it again after Next and Back emptied it; "Chromium · medicinal-chemistry" then failed (the overview read "not answered" for questions 1 and 2, and "all 50 answers are recorded once (history +49)" failed) on main since 9711ce2 (runs 42470418238, 42470992560). Test only.
+
 ## 2026-11-08 (plan)
 - BDK's study features are planned as kit modules any course can switch on, in four parts (`review/bdk-study-features-plan.md`, Louis 2026-11-08): the drug list, comparison and field colours first; existing study tools next; new storage, scheduling behaviour and the builder's recommendation keep their own approvals. Recorded as `bdk-study-features` in `coordinator/improvements.json`; port queue items 11-17 are `planned` by part. Nothing is built by this change.
 
