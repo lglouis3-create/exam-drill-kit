@@ -133,6 +133,12 @@ largest 19 ms; the slowest click 72 ms (Event Timing), the fallback's largest 97
 An unchanged page is recognised by the identity of its outer object, so a save copies only the page
 that changed.
 
+After the seventh review and Louis's decisions of 2026-11-08 (recovery records, scoped Erase, B1, X4)
+the rate-4 runs were repeated on the core of 4ababbc (`logs/timing-idb-recovery.log`, 9 runs): save
+(commit) medians 18 to 36 ms, largest 54 ms; the save() call's largest 26 ms; the slowest click 64 ms
+(Event Timing), the fallback's largest 112 ms; every page saved. Kept writing of a page whose write is
+running is not written as a recovery record unless one already exists.
+
 After the fixes for the independent review of d0da191 the rate-4 runs were repeated on the changed
 core (`logs/timing-idb-after-review.log`): save (commit) medians 20 to 26 ms, largest 37 ms; the
 slowest click 96 ms (Event Timing), the fallback's largest 104 ms; every page saved. The table
@@ -147,7 +153,7 @@ Against the provisional targets (median save 200 ms or less, slowest click 200 m
 desktop CPU slowed 4 times: met by every sample with the layer, including the 171-page sample the
 old storage could not hold; not met by the baseline at 69 pages (slowest click 344 ms). This is
 supporting evidence only; phones decide (§6). No compression and no Worker were needed: the largest
-save with the layer at rate 4 is 37 ms.
+save with the layer at rate 4 is 54 ms (`timing-idb-recovery.log`).
 
 
 ## 5. The click-delay measure without Event Timing
