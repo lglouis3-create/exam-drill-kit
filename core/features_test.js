@@ -70,7 +70,13 @@ X.after((q, result, picked, mode, entry) => {
 });
 X.rendered((pane, view) => { seen.rendered[view] = (seen.rendered[view] || 0) + 1; });
 X.reading(html => html + '<p id="probeRead">probe reading</p>');
-X.paper(qs => { seen.paperCalls = (seen.paperCalls || 0) + 1; seen.paper = qs.map(q => q.id); return qs.slice().reverse(); });
+X.paper(qs => { seen.paperCalls = (seen.paperCalls || 0) + 1; seen.paper = qs.map(q => q.id);
+  const mode = window.__paperMode || 'reverse';
+  if(mode === 'replace'){ const ids = new Set(qs.map(q => q.id)); const other = QUESTIONS.filter(q => !ids.has(q.id)).slice(0, qs.length);
+    seen.replaced = other.map(q => q.id); return other.length === qs.length ? other : qs.slice().reverse(); }
+  if(mode === 'short') return qs.slice(1);
+  if(mode === 'junk') return qs.map((q, i) => i ? q : null);
+  return qs.slice().reverse(); });
 X.settings({title: 'Probe settings', html: () => '<p><button class="chip" id="probeSet">probe setting</button></p>',
             wire: el => { el.querySelector('#probeSet').onclick = () => { seen.setting = true; }; }});
 X.start(() => { seen.start++; seen.startDB = !!(DB && DB.answers); });
@@ -224,12 +230,28 @@ const ALL = {'fx-probe': {version: 'v1', word: 'zz-word'}, 'fx-probe-throws': {v
           `the exam's opening page draws its sample papers without running the paper hook (${sampled.calls} hook calls)`, sampled);
     const real = await page.evaluate(() => { const before = window.__probe.paperCalls || 0; drawPaper(); return (window.__probe.paperCalls || 0) - before; });
     check(real === 1, `a paper drawn after the sampling still runs the paper hook once (${real})`, real);
+    // the hook contract: a paper of the same length, the same questions reordered or other questions in
+    // their place (paper-picker), is the paper; another length, or an entry that is not a question, is refused
+    const contract = await page.evaluate(() => {
+      const out = {};
+      window.__paperMode = 'replace'; const r = drawPaper().map(q => q.id); out.replace = {got: r, want: window.__probe.replaced};
+      window.__paperMode = 'short'; const drawnS = () => window.__probe.paper; const s = drawPaper().map(q => q.id); out.short = {got: s, drawn: drawnS()};
+      window.__paperMode = 'junk'; const j = drawPaper(); out.junk = {got: j.map(q => q && q.id), drawn: window.__probe.paper};
+      window.__paperMode = 'reverse';
+      return out;
+    });
+    check(contract.replace.want && contract.replace.want.length && JSON.stringify(contract.replace.got) === JSON.stringify(contract.replace.want),
+          'a paper hook may put other questions in place (same length): its paper is the one drawn', contract.replace);
+    check(JSON.stringify(contract.short.got) === JSON.stringify(contract.short.drawn),
+          'a paper hook that returns another length is refused, and the drawn paper is kept', contract.short);
+    check(JSON.stringify(contract.junk.got) === JSON.stringify(contract.junk.drawn),
+          'a paper hook that returns an entry that is not a question is refused, and the drawn paper is kept', contract.junk);
     // a draw that throws during the sampling still clears the flag: the next real paper runs the hook
     const thrown = await page.evaluate(() => {
       const keep = drawPaper; let n = 0;
       drawPaper = function(){ if(++n === 3) throw new Error('probe: a draw that fails'); return keep.apply(this, arguments); };
       EXAM_SATA_SEEN = null; examSataDrawn(); drawPaper = keep;
-      const flag = EXAM_SAMPLING, before = window.__probe.paperCalls || 0; drawPaper();
+      const flag = EXAM_SAMPLING, before = window.__probe.paperCalls || 0; drawPaper(); EXAM_SATA_SEEN = null;
       return {flag, calls: (window.__probe.paperCalls || 0) - before};
     });
     check(thrown.flag === false && thrown.calls === 1, `a sample draw that throws leaves the flag off, and the next paper runs the hook once`, thrown);
