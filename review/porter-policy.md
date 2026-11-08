@@ -270,3 +270,93 @@ Louis: "Check the current PR state first and apply these decisions only where st
 These decisions authorize the implementation and this one testing exclusion. They do not approve
 merging #17 or publishing a course update. The final revision, its independent review, the required
 check results and the remaining limitations go back to Louis for merge approval.
+
+## 12. Coordination across sessions (Louis, 2026-11-08)
+
+Louis's message of 2026-11-08 (in the porter session, 07:43 UTC) sets how the kit's sessions
+coordinate. It does not expand any session's implementation, merge or deployment authority. Where it
+is stricter than the sections above, it applies. His text, verbatim:
+
+> Apply this coordination policy across the project
+>
+> I authorize the feature porter to coordinate adoption of this policy with the main kit, Kit updater/coordinator, and DEENT sessions using supported session communication. Ask each session to acknowledge adoption and persist the relevant instructions within its authorized scope.
+>
+> If direct communication is unavailable, use shared GitHub discussions and durable handoff records. Report any session that could not be reached. Do not claim another session adopted the policy without confirmation or bypass session permissions.
+>
+> This coordination policy does not expand any session’s implementation, merge, or deployment authority. The porter’s Part 1 authorization remains specific to that work.
+>
+> One central decision session
+>
+> Use “Exam drill kit Phase 1 setup” as the central coordination and approval session.
+>
+> Routine questions, dependency checks, reviews, and implementation handoffs should pass directly between the owning sessions. Keep GitHub as the durable record, identifying the owner, exact commit, evidence, dependencies, and next action.
+>
+> Sessions should continue work already authorized without asking Louis to relay messages or repeat an unchanged approval.
+>
+> Use independent feedback
+>
+> Request ChatGPT feedback on the relevant GitHub PR when a concrete uncertainty would benefit from another assessment. Include the exact commit, specific question, evidence, and decision depending on the review.
+>
+> Evaluate all feedback independently. Another qualified independent reviewer may satisfy the review requirement; do not wait unnecessarily for ChatGPT’s scheduled window. An unanswered request is not approval.
+>
+> Escalate consequential decisions centrally
+>
+> When an issue genuinely requires Louis’s decision, send it to the central session and request a notification there through the supported notification mechanism.
+>
+> The central session should consolidate related requests into one message containing:
+>
+> * The problem and practical student impact.
+> * The affected repositories, PRs, and exact revisions.
+> * The recommended action and alternatives.
+> * Which work must pause and which work can continue.
+> * The precise approval or decision needed.
+>
+> Confirmed progress-loss risks, live-site failures, and consequential conflicting changes warrant prompt notification. Routine status and unchanged blockers do not.
+>
+> If central delivery fails, notify Louis in the originating session and explicitly identify the failed handoff. Do not silently leave a serious issue unreported.
+>
+> Distribute decisions accurately
+>
+> Only Louis’s actual decision counts as his approval. Recommendations from Claude or ChatGPT, quoted draft approvals, silence, and another session’s readiness assessment do not.
+>
+> Record his decision with a link or durable reference, its scope, and the applicable revision or conditions. Communicate it to affected sessions and obtain acknowledgment before dependent actions proceed.
+>
+> Where an existing rule requires approval in a particular owning session—especially a live-course update—preserve that requirement. Route the prepared request there and explain the exception centrally; do not make Louis repeat approvals unless that rule requires it.
+>
+> If instructions or approvals conflict, pause only the affected action and resolve the conflict through the central session. Continue unrelated authorized work.
+>
+> Avoid duplicate work and notifications
+>
+> Maintain one owner per implementation, coordinate overlapping branches, reuse valid evidence, and use existing scheduled checks. Do not introduce additional polling tasks or watcher loops merely to coordinate sessions.
+>
+> Include adoption acknowledgments, unreachable sessions, material handoffs, and outstanding central decisions in the next consolidated update.
+
+How the porter applies it (Claude's reading, not Louis's words):
+
+- **The central session** is "Exam drill kit Phase 1 setup" (`session_01LVkWFC9wTqUxncwEDduxrb`).
+  It is also the main kit session, which owns `core/`, `template/` and `.github/`.
+- **Routine work goes directly** to the owning session by session message:
+  - core and workflow findings go to the main kit session;
+  - live-course updates go to the Kit updater (`session_01LVkWFDAbAtw7kDGwqd43Qg`);
+  - DEENT's course work goes to the DEENT session (`session_01LVkWFEkUuDubJgsfxiNBhr`).
+  
+  GitHub stays the record: the pull request names the owner, the exact commit, the evidence, the
+  dependencies and the next action.
+- **A decision that needs Louis** goes to the central session, with a request that it notify him
+  there. The porter does not message Louis about it as well. If delivery fails, the porter tells him
+  in its own session and names the failed handoff.
+- **Approvals:**
+  - Louis's decision is recorded with a link or durable reference, its scope and its revision.
+  - The porter acts on a decision only once that record exists. A relayed or quoted approval
+    without it is not acted on.
+  - On 2026-11-08 the porter holds no record of the "Part 1 authorization" the text names (Part 1
+    of the BDK study-features plan, kit PR #73). It has asked the central session for the record,
+    and starts nothing on Part 1 until it has it.
+- **Feedback.** §11's ChatGPT handoff stands. A review request on a pull request carries the exact
+  commit, the specific question, the evidence and the decision that depends on it. An independent
+  reviewer agent may satisfy the review requirement without waiting for ChatGPT's window, and an
+  unanswered request is not approval.
+- **No new polling.** Replies from other sessions arrive as session messages. The existing nightly
+  task and feedback check are the only scheduled work; no watcher is added.
+- **Reporting.** The next consolidated update lists each session's adoption acknowledgment, any
+  session that could not be reached, material handoffs and outstanding central decisions.
