@@ -70,7 +70,7 @@ X.after((q, result, picked, mode, entry) => {
 });
 X.rendered((pane, view) => { seen.rendered[view] = (seen.rendered[view] || 0) + 1; });
 X.reading(html => html + '<p id="probeRead">probe reading</p>');
-X.paper(qs => { seen.paper = qs.map(q => q.id); return qs.slice().reverse(); });
+X.paper(qs => { seen.paperCalls = (seen.paperCalls || 0) + 1; seen.paper = qs.map(q => q.id); return qs.slice().reverse(); });
 X.settings({title: 'Probe settings', html: () => '<p><button class="chip" id="probeSet">probe setting</button></p>',
             wire: el => { el.querySelector('#probeSet').onclick = () => { seen.setting = true; }; }});
 X.start(() => { seen.start++; seen.startDB = !!(DB && DB.answers); });
@@ -211,6 +211,28 @@ const ALL = {'fx-probe': {version: 'v1', word: 'zz-word'}, 'fx-probe-throws': {v
     const paper = await page.evaluate(() => ({got: drawPaper().map(q => q.id), seen: window.__probe.paper}));
     check(paper.seen && paper.seen.length && JSON.stringify(paper.got) === JSON.stringify(paper.seen.slice().reverse()),
           'the paper hook gets a new paper\'s questions in order and what it returns is the paper', paper);
+    // the exam's opening page samples papers to describe its select-all items; those sample draws are not
+    // new papers, so X.paper does not run on them (a hook that saves, such as paper-picker's, would
+    // otherwise write the progress for papers nobody started; the porter's finding on #59)
+    const sampled = await page.evaluate(() => {
+      const before = window.__probe.paperCalls || 0;
+      if(EX){ clearInterval(EX.timer); EX = null; } clearExam(); EXAM_SATA_SEEN = null; show('exam');
+      return {calls: (window.__probe.paperCalls || 0) - before, page: !!document.getElementById('startExam'),
+              sampled: !!(EXAM_SATA_SEEN && EXAM_SATA_SEEN.key)};
+    });
+    check(sampled.page && sampled.sampled && sampled.calls === 0,
+          `the exam's opening page draws its sample papers without running the paper hook (${sampled.calls} hook calls)`, sampled);
+    const real = await page.evaluate(() => { const before = window.__probe.paperCalls || 0; drawPaper(); return (window.__probe.paperCalls || 0) - before; });
+    check(real === 1, `a paper drawn after the sampling still runs the paper hook once (${real})`, real);
+    // a draw that throws during the sampling still clears the flag: the next real paper runs the hook
+    const thrown = await page.evaluate(() => {
+      const keep = drawPaper; let n = 0;
+      drawPaper = function(){ if(++n === 3) throw new Error('probe: a draw that fails'); return keep.apply(this, arguments); };
+      EXAM_SATA_SEEN = null; examSataDrawn(); drawPaper = keep;
+      const flag = EXAM_SAMPLING, before = window.__probe.paperCalls || 0; drawPaper();
+      return {flag, calls: (window.__probe.paperCalls || 0) - before};
+    });
+    check(thrown.flag === false && thrown.calls === 1, `a sample draw that throws leaves the flag off, and the next paper runs the hook once`, thrown);
 
     // a reading tab's HTML
     await page.click('#nav button[data-v="ref"]');
