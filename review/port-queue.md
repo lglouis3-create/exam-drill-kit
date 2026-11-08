@@ -52,9 +52,9 @@ this table are from c2f87ae; the plan cites BDK at 05c36c3. `field-colours`
 | Order | Item | Source | Not before | Status |
 |---|---|---|---|---|
 | 11 | learn-mode (successive relearning in rounds) | BDK `startLearn` ~1755 | — | planned (part 2) |
-| 12 | compare-tab (drugs side by side, differences marked) | BDK ~2244 | — | planned (part 1) |
+| 12 | compare-tab (drugs side by side, differences marked) | BDK ~2244; at `05c36c3`: `viewCompare` 2301 | — | pending (part 1) |
 | 13 | cram-mode (time-boxed pass before a quiz, Last look) | BDK ~2018 | — | planned (part 2) |
-| 14 | drug-list-tab (table per page, search across pages) | BDK ~2496 | — | planned (part 1) |
+| 14 | drug-list-tab (table per page, search across pages) | BDK ~2496 | — | pending (part 1) |
 | 15 | match-game (timed pairs) | BDK ~2160 | — | planned (part 2) |
 | 16 | flashcards (flip, Know it / Still learning) | BDK ~1647 | — | planned (part 2) |
 | 17 | progress-dashboard (today's plan, readiness by page, trouble cards) | BDK `viewProgress` ~2320, `todaysPlan` ~1345 | — | planned (part 3, approval) |
@@ -62,6 +62,7 @@ this table are from c2f87ae; the plan cites BDK at 05c36c3. `field-colours`
 | 19 | pair-up and table-recall drills (drug ↔ receptor, poisoning table) | Intro to Pharmacology `app.js` 1923-2060 | 2026-11-02 11:00 CT | pending |
 | 20 | short-answer page and graphs drill | Intro to Pharmacology `app.js` 2308-2351, 3518-3580 | 2026-11-02 11:00 CT | pending |
 | 21 | flags, one-page layout, keyboard shortcuts, strict exam mode | Intro to Pharmacology; BDK | 2026-11-02 11:00 CT | pending |
+| 22 | field-colours (the fields a course names as hardest coloured; the field a question asked shaded after the answer) | BDK `assets/style.css` 369-383 and the `k-cat`/`k-ind` classes in `assets/app.js` (for example 2598) at `05c36c3`; from `bf91dc0` | — | pending (part 1) |
 
 ## Core changes found by the assessments (not nightly)
 
