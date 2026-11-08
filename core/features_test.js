@@ -75,7 +75,8 @@ X.paper(qs => { seen.paperCalls = (seen.paperCalls || 0) + 1; seen.paper = qs.ma
   if(mode === 'replace'){ const ids = new Set(qs.map(q => q.id)); const other = QUESTIONS.filter(q => !ids.has(q.id)).slice(0, qs.length);
     seen.replaced = other.map(q => q.id); return other.length === qs.length ? other : qs.slice().reverse(); }
   if(mode === 'short') return qs.slice(1);
-  if(mode === 'junk') return qs.map((q, i) => i ? q : null);
+  if(mode === 'junk') return qs.map((q, i) => i ? q : {id: q.id});
+  if(mode === 'twice') return qs.map((q, i) => i ? q : qs[1]);
   return qs.slice().reverse(); });
 X.settings({title: 'Probe settings', html: () => '<p><button class="chip" id="probeSet">probe setting</button></p>',
             wire: el => { el.querySelector('#probeSet').onclick = () => { seen.setting = true; }; }});
@@ -296,6 +297,17 @@ const ALL = {'fx-probe': {version: 'v1', word: 'zz-word'}, 'fx-probe-throws': {v
               err: FX.errors.filter(e => e.module === 'fx-probe').map(e => e.where)}; });
     check(JSON.stringify(short.got) === JSON.stringify(short.drawn) && short.on === false && short.err.includes('paper'),
           'a paper hook that returns another length is refused: the drawn paper is kept and the module is switched off', short);
+    // switching a module off lasts for the visit: after a reload, a copy that is not the bank's question,
+    // and a question given twice, are refused the same way (each on its own visit)
+    for(const [mode, what] of [['junk', 'an entry that is not a question of the bank'], ['twice', 'the same question twice']]){
+      await page.reload();
+      await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+      const r = await page.evaluate(m => { window.__paperMode = m; const got = drawPaper();
+        return {got: got.map(q => q.id), same: got.every(q => byId(q.id) === q), drawn: window.__probe.paper,
+                on: FX.modules().find(x => x.name === 'fx-probe').on, err: FX.errors.filter(e => e.module === 'fx-probe').map(e => e.where)}; }, mode);
+      check(JSON.stringify(r.got) === JSON.stringify(r.drawn) && r.same && r.on === false && r.err.includes('paper'),
+            `a paper hook that returns ${what} is refused: the drawn paper is kept and the module is switched off`, r);
+    }
     check(!errors.length, 'no page error', errors.slice(0, 3).join(' | '));
     await ctx.close();
   } finally {

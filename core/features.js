@@ -30,10 +30,11 @@
                               Reference) before it is drawn; returns the HTML
      X.paper(fn(qs))          the questions of a new exam paper, in order,
                               before it starts; returns a paper of the same
-                              length: these questions in another order, or
-                              other questions in their place (paper-picker
-                              draws another exam's paper); not run on the
-                              sample papers the exam's opening page draws
+                              length, each a question of the bank once: these
+                              questions in another order, or other questions
+                              in their place (paper-picker draws another
+                              exam's paper); not run on the sample papers
+                              the exam's opening page draws
      X.settings({title, html(), wire(el)})  a section at the end of Settings
      X.start(fn())            once, after the first progress load
      X.progress(fn(db))       on every saved progress read or imported, before
@@ -182,7 +183,7 @@ const FX = (() => {
   wrap('drawPaper', () => drawPaper, f => { drawPaper = f; }, orig => function(){
     let qs = orig.apply(this, arguments);
     if(typeof EXAM_SAMPLING !== 'undefined' && EXAM_SAMPLING) return qs;   // the opening page's sample draws are not new papers
-    papers.forEach(p => { qs = run(p.n, 'paper', () => { const out = p.f(qs.slice()); if(!Array.isArray(out) || out.length !== qs.length || !out.every(x => x && typeof x === 'object')) throw new Error('X.paper must return a paper of the same length'); return out; }, qs); });
+    papers.forEach(p => { qs = run(p.n, 'paper', () => { const out = p.f(qs.slice()); if(!Array.isArray(out) || out.length !== qs.length || !out.every(x => x && typeof x === 'object' && byId(x.id) === x) || new Set(out.map(x => x.id)).size !== out.length) throw new Error('X.paper must return a paper of the same length, each a question of the bank once'); return out; }, qs); });
     return qs;
   });
   wrap('load', () => load, f => { load = f; }, orig => function(){
