@@ -2,6 +2,10 @@
 
 Dated kit changes, newest first.
 
+## 2026-11-08 (build: link-preview tags)
+- `course.js` `share` (optional; requested by the DEENT session): `title`, `description`, `url` and `image` give the page its `<title>` and the og:/twitter: tags that iMessage, Slack and social sites read when its address is shared; every value HTML-escaped; og:url ends in `preview/` on a preview build; `image`, a PNG in `src/icons/`, is copied to the site root. A wrong value stops the build before it writes. Without `share` every file the build writes is byte for byte what it wrote before (`share_test.js`, against main's `build.py`).
+- `course.js` `manifest.short_name` (optional): the manifest's `short_name`, the name under the Home Screen icon; the page keeps `short`.
+
 ## 2026-11-08 (bookkeeping: registry)
 - `coordinator/improvements.json`: two candidates recorded at the DEENT session's request, `deent-narration-walkthroughs` (discovered) and `drug-list-persistent-outcomes` (proposed; new progress storage and Import behaviour wait for Louis); `bdk-study-features` set to implementing with #75, #82, #83 and #85. The header of the 2026-11-06 optional-topics entry names its merge (#72, efd9386).
 
