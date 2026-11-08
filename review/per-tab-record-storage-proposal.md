@@ -1,10 +1,106 @@
-# The per-tab record's storage cost: measurements and a proposal (2026-11-06)
+# The per-tab record's storage cost: measurements and a proposal (2026-11-06; revised 2026-11-08)
 
 Louis asked on 2026-11-06 for a measured proposal on the storage the per-tab record takes. He
 asked for it to reuse the Kit feature porter's evidence and to reproduce the refused Import
 independently. He also asked for a comparison of alternatives and one recommendation. He
 authorized investigation and a proposal only, so nothing on `main` or in any course changes,
 and the existing protection stays as it is.
+
+## Recommendation (2026-11-08)
+
+Approval: awaiting Louis. Nothing in `core/`, in production storage or in any course changes
+under this recommendation.
+
+Louis asked on 2026-11-08 for one storage approach, a measurable save-time target, the
+preservation and recovery guarantees, and the smallest useful validation plan, from the
+measurements already made, before any production storage change.
+
+**The approach: keep today's full copy (A) unchanged, and adopt neither compression in the page
+(F, T) nor compression in a Worker (W).**
+- A meets the proposed target in Chromium at CPU rate 4 on the measured sample of the progress
+  courses hold today, which have no module on. A generated profile at the core's 4,000-answer
+  cap holds 526,734 characters of progress (`logs/compress-timing.log`; 526,751 in the page, with the harness's
+  probe setting). Its slowest click during saves was 32 ms at rate 4 and 32 ms at rate 6
+  (`logs/latency-measure.log`). `review/storage-usage-proposal.md` gives 546,993 characters for a
+  profile's progress at both caps; that size was not timed.
+- T, the compressed record written only when three full copies would not fit, fails the target
+  at every size where it compresses: at rate 4 a save took 589 to 1,616 ms and a click waited
+  632 to 1,800 ms for its next paint (`logs/latency-large.log`).
+- W cannot be measured on a slowed CPU, because Chromium refuses CPU throttling for a Worker
+  (`logs/worker-throttle-probe.log`). On the ink samples it left the record one save behind
+  for 125 to 176 ms after each save at rate 1, which reopens the close-without-handover case
+  that kit #30's A1 fixed.
+- Only worksheets-ink (#17) makes progress large enough to reach A's limits. Before any course
+  switches worksheets-ink on, Louis decides between G (IndexedDB, kit #49 and #54) and a size
+  limit on ink progress. A's measured candidate for such a limit is about 1,747,620 characters,
+  the size at which three full copies stop fitting in 5,242,859 (5,242,859 / 3 = 1,747,619.7,
+  checked).
+
+**The save-time target (proposed for Louis to accept).** During saves, the slowest click waits
+200 ms or less for its next paint, and a save's own main-thread work has a median of 200 ms or
+less, both measured:
+- in Chromium at CPU rate 4, on the largest progress a course is expected to hold;
+- on an iPhone or iPad in Safari and on an Android phone, on the same progress.
+
+The 200 ms figure is web.dev's upper bound for good Interaction to Next Paint (INP), which
+web.dev measures at the 75th percentile of page loads, segmented across mobile and desktop
+devices.[1] INP is a site-wide field measure, so its use here as a limit for one save is a
+proposal, not web.dev's rule. Measured against it in Chromium at rate 4:
+
+| Progress (characters), A | A save, median ms | A slowest click, ms | Meets the target | Source |
+|---|---|---|---|---|
+| answers, 526,751 | 22 | 32 | yes | `logs/latency-measure.log` |
+| ink, random walk, 1,563,721 | 127 | 120 | yes | `logs/latency-measure.log` |
+| ink, random walk, 1,796,478 | 132-136 | 128-168 | yes | `logs/latency-large.log` |
+| ink, random walk, 2,604,462 | 179-213 | 216 | no | `logs/latency-large.log` |
+
+Ranges are over 3 runs; the first two rows are one run each.
+
+**The preservation rule** (Louis, kit #69, merged as b0f5046): a stored save is never removed
+until its replacement is stored and verified.
+
+**Guarantees.** The recommendation is A as it is on `main`, so its column and today's are the
+same; T is shown for comparison. Sizes assume an origin holding nothing else. Every drill shares
+`lglouis3-create.github.io`, so on Louis's devices the room is smaller by what the other drills
+and any `/preview/` copies store (`review/storage-usage-proposal.md`).
+
+| Case | Recommended = today's full copy (A) | T, compressed above three copies (not recommended) |
+|---|---|---|
+| Quota failure | The record fits while two copies fit, up to about 2,621,430 characters of progress (5,242,859 / 2 = 2,621,429.5, checked). Above that the record write is refused; the notice says so, and the core removes only this tab's own record, once it has read back that the stored progress holds it (kit #47). In the steady-state runs of `logs/latency-large.log` the progress itself was stored after every save, up to 4,453,234 characters. | The record is about 0.173 of the progress (310,886 to 310,899 of 1,796,478 and 769,982 to 769,999 of 4,453,234 characters) and was stored at every size measured, up to 4,453,234. A refused record write is handled as in A. |
+| Reload | The earlier page's record stays until the stored progress is shown to hold it, checked again at least 60 s later and unchanged in between. For about that minute three copies must fit: above about 1,747,620 characters the reloaded page's own record is refused, an Import of a second 1,475,679-character profile was refused (nothing stored changed), and at 2,621,000 the progress save itself was refused for up to about a minute, so closing the tab then lost the answers given since the reload (`logs/real-quota-*.log`, `logs/near-limit-2621000.log`). | The same rules; the minute holds about 1.346 copies (1 + 2 × 0.173 = 1.346, checked), so the reloaded page's record is refused above about 3,895,140 characters (5,242,859 / 1.346 = 3,895,140.4, checked). Not measured: a reload at these sizes under T. |
+| Profile switch | One record per return to a profile, under a new key each time (Louis, 2026-11-05). | The same. |
+| Cross-tab recovery | The next tab to hold the profile places each record by its last answer, as the progress or as a copy Import keeps; a module part the stored progress lacks is kept as a copy (kit #69); a record is removed only after the 60 s check. | The same rules, plus decompression checked against the record's length and hash; a record that fails is left in place. A tab on an older core skips a compressed record until a newer-core tab places it. |
+| Close without handover | No window while the record fits: the progress and the record are written in the same synchronous step, and a save still waiting on its 150 ms timer is written on `pagehide` and `visibilitychange` (kit #30, A1). Above about 2,621,430 characters there is no record, so a save another tab later covers is lost. | No window either (the compression is synchronous), but that step blocks the page for 589 to 1,616 ms at rate 4. W, by contrast, left the record one save behind for 125 to 176 ms at rate 1 on the ink samples. |
+
+**The smallest useful validation plan.**
+1. **Devices:** one iPhone or iPad in Safari and one Android phone in Chrome, with the browser
+   and system versions recorded.
+2. **Page:** a scratch template course built from `main`, with a measuring script injected, on
+   an origin other than `lglouis3-create.github.io`, so no drill's storage is touched. Where it
+   is hosted is a question for Louis.
+3. **Measurements**, each 3 runs of 5 saves:
+   - the save's own main-thread time (`performance.now` around the synchronous save), median and
+     maximum;
+   - the slowest click-to-next-paint during saves, where the browser provides the Event Timing
+     API (its support in Safari was not checked in this session);
+   - the localStorage limit, with `quota_probe.js`'s method, once per browser, because the
+     thresholds above come from Chromium's 5,242,859.
+   - Samples: the 4,000-answer profile (526,734 characters) and the random-walk ink profile of
+     1,796,478 characters.
+4. **Accept or reject:**
+   - **Accept A for the current courses** if, on both phones, the answers sample's median save is
+     200 ms or less. No production change follows.
+   - **Ink:** if the 1,796,478-character sample's median save is also 200 ms or less on both
+     phones, a size limit near 1,747,620 characters (recomputed from that browser's measured
+     limit) is a workable option for worksheets-ink beside G. If it exceeds 200 ms on either
+     phone, worksheets-ink waits for G or another approved design.
+   - **Reject A** if the answers sample exceeds 200 ms on either phone: a proposal to reduce the
+     save's own work then comes to Louis before any change.
+
+**NOT RUN** (details in "Not run" below): Safari on an iPhone or iPad, Android, WebKit page
+latency, and Firefox; any timing on a real phone; a CPU-slowed Worker (refused by Chromium);
+the localStorage limit and 15-bit counting outside Chromium; T or W inside the core; a reload or
+two-tab run under T; whether an IndexedDB write started at `pagehide` completes.
 
 ## What the per-tab record is
 
@@ -80,8 +176,8 @@ The arithmetic:
   progress (checked);
 - in the minute after a reload, three copies must fit: 5,242,859 / 3 = 1,747,620 characters
   (checked).
-- The review bracketed both. Three copies fit at 1,747,000, and the reloaded page's record was
-  refused at 1,748,500. The record was kept at 2,621,000 and absent at 2,622,000. The true limits
+- The review measured each limit from both sides. Three copies fit at 1,747,000, and the
+  reloaded page's record was refused at 1,748,500. The record was kept at 2,621,000 and absent at 2,622,000. The true limits
   are a few hundred characters lower, because of the record's wrapper (about 240 characters) and
   the other keys.
 
@@ -99,9 +195,11 @@ reloaded page's record was refused (`logs/real-quota-2620000.log`, `recOff: true
 (`logs/near-limit-2621000.log`):
 - From the first answer after the reload, the page held more answers than storage, which kept 2.
   Ten seconds later the answer history was refused as well.
-- The notice read: "This browser did not save your progress or answer history (storage is full
-  or blocked). It is kept on this page until you close or reload it; closing or reloading it
-  loses it."
+- After the first answer the notice read: "This browser did not save your progress (storage is
+  full or blocked). It is kept on this page until you close or reload it; closing or reloading
+  it loses it." From the second answer on, it read "did not save your progress or answer
+  history"; the log stores each notice cut at 170 characters (`near_limit.js`), so its end is not
+  recorded.
 - At the check 70 s after the first answer, storage held all 10 answers, the earlier page's
   record was gone, and this tab had no record. The check 60 s after the first answer still
   showed 2 answers stored. The notice text read at the 70 s check was still the "did not save"
@@ -112,8 +210,8 @@ reloaded page's record was refused (`logs/real-quota-2620000.log`, `recOff: true
 proven record (`dropOwnRecordIfStored`). It never removes the earlier page's record, which is
 what fills the room. So in the minute after a reload, a progress save is refused whenever the
 earlier record and the new progress together exceed the quota. Closing the tab in that minute
-loses the answers given since the reload. This happens for progress whose growth since the
-earlier record was written carries it over the limit. Ink can add thousands of characters in a
+loses the answers given since the reload. This happens whenever the progress has grown, since the earlier
+record was written, by more than the room left in the origin. Ink can add thousands of characters in a
 minute; one answer added about 250 here.
 
 ### What the record would take if compressed
@@ -223,8 +321,8 @@ compressed `db` text, `n` its length and `fp` its `fpOf` hash).
     (both checked; random-walk sample, empty origin).
   - The reloaded page's own record would be refused above about 3,895,140. The progress save
     itself would be refused in the reload minute when the earlier compressed record and the
-    progress no longer fit together, near 4,469,616. The M2 case moves to that size; it does not
-    disappear.
+    progress no longer fit together, near 4,469,616. The refusal of the progress save in the minute after a reload
+    then happens near that size instead of near 2,621,430.
 - **Placement and cleanup:** the same rules as A. Placement, the 60 s wait and the "unchanged"
   check are kept; only the record's size changes.
 - **Integrity:** raw deflate has no checksum, so a damaged stream can decompress to wrong text.
@@ -256,7 +354,8 @@ approved).
 **H. Records only in IndexedDB, the progress staying in localStorage** (the review's
 alternative).
 - **Quota:** localStorage holds only the progress, so a progress up to the whole 5,242,859
-  characters (less the other keys) saves. The reload-minute refusals and the M2 case go away.
+  characters (less the other keys) saves. Neither the reloaded page's record nor the progress save is refused in the minute after a
+  reload.
 - **Unchanged:** the progress key's format, Export and Import, and compression (none).
 - **Cost:** an IndexedDB put of the progress text completed in 3 to 15 ms at rate 1 and 6 to
   23 ms at rate 4 (`logs/compress-timing.log`). The put does not block the page.
@@ -277,31 +376,36 @@ scratch template course built from `main` at `3f8ba20`. Each row covers 8 saves 
 placed into the page's progress. After each change the script sent 10 clicks, 40 ms apart, to a
 button that repaints, and read the Event Timing API (time from the click to the next paint) and
 long tasks (over 50 ms). Rates 4 and 6 are Chrome DevTools Protocol CPU throttling of this
-container's desktop CPU. They are a stand-in for a slower device, not a phone. Each figure is
+container's desktop CPU: a slowed desktop CPU, not a phone. Each figure in this first table is
 from one run.
 
 - **A:** today's save: the progress and this tab's full record.
-- **F:** the same save with the record compressed in the page (fflate 0.8.2 `deflateSync`
+- **F (compress on every save):** the same save with the record compressed in the page (fflate 0.8.2 `deflateSync`
   level 6, then the bytes packed 15 bits to a character). This is a test harness injected into the
   scratch page only. It is not in `core/`, and its record cannot be placed by the core, so one
   tab was open.
 - **W:** the same compression in a Worker. The page writes the record when the Worker answers.
+  Chromium refuses CPU throttling for a Worker: `Emulation.setCPUThrottlingRate` sent to the
+  worker target answered "Operation is only supported for pages, not workers", and a loop in the
+  Worker took 45 ms before and 44 ms after it (`logs/worker-throttle-probe.log`). At rates 4 and
+  6 only the page was slowed, so W's figures at those rates do not describe a slow device and its
+  "record stored after the progress" time is given here at rate 1 only.
 
 Two progress sizes are 17 characters larger than in the tables above (1,563,721 against
 1,563,704; 526,751 against 526,734), because the harness's probe setting is part of the page's
 progress by then. The porter sample, measured first, is the same size (1,355,486).
 
-| Sample (progress characters) | Rate | A save, median ms | F save, median ms | F compress and pack, median ms | W save, median ms | Longest task, ms (A / F / W) | Slowest click to next paint, ms (A / F / W) | W: record stored after the progress, median ms |
+| Sample (progress characters) | Rate | A save, median ms | F (compress on every save) save, median ms | F compress and pack, median ms | W save, median ms | Longest task, ms (A / F / W) | Slowest click to next paint, ms (A / F / W) | W: record stored after the progress, median ms (rate 1 only) |
 |---|---|---|---|---|---|---|---|---|
 | ink, porter (1,355,486) | 1 | 25 | 179 | 157 | 20 | 0 / 218 / 0 | 24 / 200 / 16 | 176 |
-| ink, porter (1,355,486) | 4 | 115 | 671 | 556 | 85 | 143 / 696 / 133 | 120 / 696 / 128 | 178 |
-| ink, porter (1,355,486) | 6 | 150 | 972 | 835 | 133 | 240 / 1064 / 190 | 224 / 1040 / 168 | 170 |
+| ink, porter (1,355,486) | 4 | 115 | 671 | 556 | 85 | 143 / 696 / 133 | 120 / 696 / 128 | (Worker not slowed) |
+| ink, porter (1,355,486) | 6 | 150 | 972 | 835 | 133 | 240 / 1064 / 190 | 224 / 1040 / 168 | (Worker not slowed) |
 | ink, random walk (1,563,721) | 1 | 28 | 141 | 118 | 22 | 82 / 174 / 0 | 64 / 160 / 24 | 125 |
-| ink, random walk (1,563,721) | 4 | 127 | 609 | 498 | 95 | 140 / 642 / 123 | 120 / 632 / 104 | 163 |
-| ink, random walk (1,563,721) | 6 | 162 | 894 | 730 | 149 | 189 / 980 / 185 | 168 / 976 / 168 | 145 |
+| ink, random walk (1,563,721) | 4 | 127 | 609 | 498 | 95 | 140 / 642 / 123 | 120 / 632 / 104 | (Worker not slowed) |
+| ink, random walk (1,563,721) | 6 | 162 | 894 | 730 | 149 | 189 / 980 / 185 | 168 / 976 / 168 | (Worker not slowed) |
 | answers (526,751) | 1 | 6 | 28 | 23 | 5 | 0 / 0 / 0 | 16 / 16 / 16 | 25 |
-| answers (526,751) | 4 | 22 | 127 | 102 | 24 | 0 / 181 / 0 | 32 / 152 / 32 | 32 |
-| answers (526,751) | 6 | 37 | 193 | 153 | 39 | 57 / 209 / 62 | 32 / 200 / 48 | 36 |
+| answers (526,751) | 4 | 22 | 127 | 102 | 24 | 0 / 181 / 0 | 32 / 152 / 32 | (Worker not slowed) |
+| answers (526,751) | 6 | 37 | 193 | 153 | 39 | 57 / 209 / 62 | 32 / 200 / 48 | (Worker not slowed) |
 
 - "Longest task" 0 means no task over 50 ms was recorded. A click with no Event Timing entry took
   under 16 ms (the API's lowest threshold).
@@ -314,37 +418,70 @@ progress by then. The porter sample, measured first, is the same size (1,355,486
   that.
 - **A on the ink samples:** today's save alone already took 115 to 162 ms at rates 4 and 6, and
   at rate 6 a click waited up to 168 to 224 ms.
-- **W:** the page's work stayed close to A's, and the record reached storage 125 to 178 ms after
-  the progress on the ink samples. During that window the record holds the previous save. A tab
-  closed in that window leaves the previous save's record, which is the case kit #30's A1 fix
-  exists for.
+- **W:** the page's work stayed close to A's, which leaves out the record write the page makes
+  when the Worker answers. At rate 1 the record reached storage 125 to 176 ms after the progress
+  on the ink samples (a difference of medians); during that window the record holds the previous
+  save, and a tab closed in it leaves the previous save's record, which is the case kit #30's A1
+  fix exists for. On a slow device that window would be longer; it was not measured, because the
+  Worker cannot be slowed here.
 
 **A threshold for comparison.** web.dev's guidance on Interaction to Next Paint calls a page's
 responsiveness good when its INP is 200 ms or less, needing improvement above 200 ms up to
-500 ms, and poor above 500 ms, measured at the 75th percentile of page loads in the field.[1]
-That is a site-wide field measure, not a limit for one save; it is given here as a commonly used
-point of comparison. At rates 4 and 6, F's slowest click on the ink samples was above 500 ms in
-every row.
+500 ms, and poor above 500 ms, measured at the 75th percentile of page loads, segmented across
+mobile and desktop devices.[1] That is a site-wide field measure, not a limit for one save. At
+rates 4 and 6, F's slowest click on the ink samples was above 500 ms in every row.
 
-## Recommendation
+**The sizes where the threshold variant compresses** (2026-11-08, `latency_measure.js` with
+`LAT_MODES=A,T`, `LAT_RATES=1,4`, one sample per browser; `logs/latency-large.log`, summarised by
+`latency_summary.py`; scratch template course from `main` at 1bdc08e). T is the recommended form
+of F before this revision: the record is compressed only when three full copies of it, with the
+origin's other keys, would not fit in 5,242,859 characters; at every size below it compressed on
+every save (5 of 5). Each cell is the range over 3 runs of 5 saves.
 
-**F, the compressed record, written only when three full copies would not fit, as a separate
-core pull request for Louis's yes. It is gated on timing on real phones. Until that pull request
-is approved and live, A stays as it is.**
+| Progress (characters) | Rate | A save, median ms | A slowest click, ms | A's per-tab record | T save, median ms | T compress and pack, ms | T slowest click, ms | T record |
+|---|---|---|---|---|---|---|---|---|
+| 1,796,478 | 1 | 27-30 | 24 | stored | 118-150 | 95-129 | 128-184 | stored |
+| 1,796,478 | 4 | 132-136 | 128-168 | stored | 589-620 | 501-504 | 632-744 | stored |
+| 2,604,462 | 1 | 41-46 | 24-40 | stored | 195-234 | 149-201 | 216-240 | stored |
+| 2,604,462 | 4 | 179-213 | 216 | stored | 869-943 | 708-756 | 872-936 | stored |
+| 3,906,236 | 1 | 46-50 | 40 | refused (5 of 5) | 311-345 | 251-295 | 336-400 | stored |
+| 3,906,236 | 4 | 213-228 | 248-272 | refused (5 of 5) | 1359-1474 | 1097-1211 | 1384-1560 | stored |
+| 4,453,234 | 1 | 55-62 | 40-56 | refused (5 of 5) | 346-426 | 286-357 | 352-424 | stored |
+| 4,453,234 | 4 | 250-273 | 272-304 | refused (5 of 5) | 1436-1616 | 1164-1300 | 1696-1800 | stored |
 
-Below that size the record stays today's full copy, so most saves cost nothing more. On an empty
+- The progress itself was stored after every save in every row (`progressCurrent: true`).
+- At 3,906,236 and 4,453,234 characters today's save stores the progress but no per-tab record:
+  two full copies do not fit in the origin.
+- The compressed record took 310,886 to 310,899 of 1,796,478 characters at the smallest size
+  (0.173; 310,886 / 1,796,478 = 0.17305 and 310,899 / 1,796,478 = 0.17306, checked).
+- The 75th percentile of the clicks was 16 ms or less in every row; the slowest click differs.
+- The interrupted run of 2026-11-06 (branch `claude/elegant-ptolemy-pqxb8y-records-proposal-wip`)
+  is reused only for its complete logs: `logs/worker-throttle-probe.log` and
+  `logs/latency-measure-r2-171pages.log` (4,453,234 characters at rate 1, all four variants). Its
+  W rows there show slowest clicks of 8,016 and 23,648 ms in two runs, which no other row comes
+  near; they are left out as a measurement fault, not a result.
+
+## The compressed record (the earlier recommendation; not recommended now)
+
+**This was the recommendation at b8017ca: F, the compressed record, written only when three full
+copies would not fit (T in the table above). It is not recommended now: at CPU rate 4 every save
+that compresses blocked the page for 589 to 1,616 ms (see "The sizes where the threshold variant
+compresses"). F's design follows; it applies only if a faster compressor or a smaller record
+brings each save under the target in "Recommendation".**
+
+Below that size the record stays today's full copy, so saves below that size cost nothing more. On an empty
 origin that size is about 1,747,620 characters of progress, and the core would compute it from
 the room the origin has left at each save. Above it, a record exists where A writes none or
-refuses the progress save for a minute. H is not recommended: its record of the save written at
-close is the write least certain to complete, which is the case A1 fixed. G remains a separate
+refuses the progress save for a minute. H is not recommended: the record of the save written as the
+page closes would be an IndexedDB transaction started at `pagehide`, the case A1 fixed, and whether
+a browser completes that transaction was not run. G remains a separate
 decision; if it is approved first, F is not needed.
 
 **The gate, before any production pull request:**
 - Time fflate's deflate, the 15-bit packing and one full save, at 1,475,679 characters of ink
   progress, on a real iPhone or iPad in Safari and on an Android phone.
-- Compare the times with a per-save limit Louis sets: ____ ms. The figures for choosing it are in
-  "Save time and responsiveness in a real page" above. (Question for Louis: what is the
-  longest pause per answer or stroke you accept on a large worksheet profile?)
+- Compare the times with the save-time target proposed in "Recommendation" (200 ms; awaiting
+  Louis).
 - **If a phone exceeds the limit:** F is dropped and A stays. Worksheets-ink (#17) stays off for
   every course until G or another approved design covers large ink progress.
 
@@ -379,11 +516,13 @@ decision; if it is approved first, F is not needed.
 - at 2,621,000 characters, the progress save after a reload succeeding (it is refused today);
 - an older-core record still placed;
 - every `import_test.js`, `history_test.js` and `storage_test.js` check still passing;
-- the save time in Chromium and WebKit, against Louis's limit.
+- the save time in Chromium and WebKit, against the accepted target.
 
-## The module-part gap in placement
+## The module-part gap in placement (fixed by kit #69)
 
-The review reproduced this, in one page with planted records. It is present on `main`.
+Kit #69, merged to `main` as b0f5046 on Louis's approval of 2026-11-07, fixes this: a record's
+module part is kept as a copy, and a stored save is never removed to make room. The finding, as
+it stood before #69:
 - `placeOf` (`core/shell.html`) handles a record whose last answer the stored progress went on
   from. It compares only the record's `mark` and `settings`, and returns "nothing to add"
   otherwise.
@@ -403,18 +542,22 @@ The review reproduced this, in one page with planted records. It is present on `
 
 ## Not run
 
-- WebKit, and Safari on an iPhone or iPad; Android; Firefox's localStorage counting.
-- A real phone's compression and save time. Rate 4 throttling is a slowed desktop CPU.
+- WebKit, and Safari on an iPhone or iPad; Android; Firefox's localStorage counting and limit.
+- A real phone's compression and save time. Rate 4 and rate 6 throttling slow a desktop CPU.
+- CPU throttling of a Worker: Chromium refused it (`logs/worker-throttle-probe.log`), so W's
+  record window on a slow device was not measured.
 - The 15-bit packing step's time alone: `latency_measure.js` times compression and packing
   together.
-- Page latency in WebKit, and with more than one tab open (the F and W harnesses write a record
-  the core cannot place).
-- F or H implemented inside the core; whether an IndexedDB write started at `pagehide` completes.
-- The module-part gap under real two-tab lag (the review used planted records in one page).
+- Page latency in WebKit, and with more than one tab open (the F, T and W harnesses write a
+  record the core cannot place).
+- A reload, an Import or a two-tab run under T at the sizes in `logs/latency-large.log`.
+- F, T or H implemented inside the core; whether an IndexedDB write started at `pagehide`
+  completes.
 - Records written by an older core in a mixed-tab test.
 - `history_test.js` and `storage_test.js` on the D prototype.
+- Any measurement on Louis's own progress (§12.4): every sample is generated.
 
 ## References
 
-1. Wagner J. Interaction to Next Paint (INP). web.dev. Published May 6, 2022. Updated
+1. Wagner J, Pollard B. Interaction to Next Paint (INP). web.dev. Published May 6, 2022. Updated
    September 2, 2025. Accessed November 6, 2026. https://web.dev/articles/inp
