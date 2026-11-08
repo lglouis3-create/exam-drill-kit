@@ -37,7 +37,12 @@ heads).
   (`review/bdk-study-features-plan.md` at `fa579cd`), whose only part-1 difference leaves out
   compare-tab's "Learn these N drugs together" button: it starts Learn, which records answers, and
   comes with learn-mode in part 2. Their source is BDK `assets/app.js` and `assets/style.css` at `05c36c3`,
-  read-only. His approval covers development, not storage, import or recovery, scheduling,
+  read-only. One more source, for drug-list-tab's recall mode only (the plan's "hide and reveal of a
+  field for recall", which BDK's drug list at `05c36c3` does not have): DEENT `src/druglist_ui.js` at
+  DEENT's live commit, `main` `0281922`, read-only (its recall state, lines 31-32; the writing box, lines
+  168-172 and its style 70-71; the buttons, 203-209; their handlers, 236, 248-253 and 256-259). The central
+  session named this source on 2026-11-08 (its message to the porter at 14:18 UTC). Louis's
+  approval covers development, not storage, import or recovery, scheduling,
   migrations, destructive actions, test weakening or course publication; any of those goes to him
   with a concrete proposal. The other parts' items stay `planned` until he approves their part.
 - Read each item from the repository in its Source column. For items 18 and 21, use only Intro to
