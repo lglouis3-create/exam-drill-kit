@@ -40,8 +40,8 @@ Exam 1 release (Mon 11/09); nothing in it is a dependency of that release.
 | Saved personal lists | new keys `lists`, `seededLists` | 662, 675 |
 | Cram mode, Last look | each answer (`record`); `lastCram` (missed cards), read back by Last look | 2136; 2162, 2187 |
 | Match game | best time per set (`PROGRESS.match`); each wrong pair as a mix-up count (`confuse` → `PROGRESS.confusions`); no answers recorded | 2274; 2263, 609-613 |
-| Test, Written, Flashcards, Learn | each answer (`record`): the card's FSRS-4.5 state, the day's counts (`PROGRESS.days`) and the answer log (`logAnswer`) | 575-597 |
-| Test, Learn and Cram wrong picks | mix-up counts (`explainWrong` → `confuse` → `PROGRESS.confusions`) | 1015, 609-613 |
+| Test, Written, Flashcards, Learn | each answer (`record`): the card's FSRS-4.5 state, the day's counts (`PROGRESS.days`) and the answer log (`logAnswer`) | 568-597 |
+| Test, Written, Scroll, Learn and Cram wrong picks (all through `mountQuestion`) | mix-up counts (`explainWrong` → `confuse` → `PROGRESS.confusions`) | 1015, 609-613 |
 
 The FSRS-4.5 formula itself is at lines 471-481. The core records an answer through its own
 answer path (its scheduler state, the answer history), not through these BDK keys.
@@ -53,7 +53,7 @@ builds every part through `review/port-queue.md`, as it does now. Its nightly ta
 items whose status is `pending`; the items below are entered with status `planned`, so nothing
 starts until Louis says yes to a part, which then sets that part's items to `pending`. No
 scheduled task is created or changed. Each feature is built once, as a kit module under
-`features/`; BDK's move (F1-F18) then switches the module on for BDK instead of porting it a
+`features/`; BDK's move then switches the module on for BDK instead of porting it a
 second time, and the F-numbers are kept for cross-reference.
 
 **What stays with BDK's move, not this plan.** The plan places BDK F1-F8 and F14-F16. F9-F13
@@ -75,7 +75,7 @@ part's items to §1's order and names their source, BDK `assets/app.js` (read-on
   choices last for the visit only; remembering them across visits is storage (part 3).
 - `field-colours` (BDK F8): marks the fields a course names as hardest. Display only.
 - `compare-tab` (queue 12, BDK F7): drugs side by side with the differences marked. View
-  choices for the visit only. BDK's "Learn these drugs together" button starts Learn, which
+  choices for the visit only. BDK's "Learn these N drugs together" button starts Learn, which
   records answers; in part 1 the button is left out, and it comes with `learn-mode` in part 2.
 - DEENT's data shape and acceptance tests are the first course test of this part, after Exam 1.
 
