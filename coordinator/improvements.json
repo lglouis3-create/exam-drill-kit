@@ -240,8 +240,13 @@
     "deent",
     "intro-pharmacology"
    ],
-   "status": "proposed",
-   "prs": [],
+   "status": "implementing",
+   "prs": [
+    75,
+    82,
+    83,
+    85
+   ],
    "relatedQueueItems": [
     "port-queue 11 learn-mode",
     "port-queue 12 compare-tab",
@@ -254,7 +259,49 @@
     "improvements bdk-learn-workflow"
    ],
    "decision": "Louis, 2026-11-08: record and plan; parts start only on his yes to each part; new storage, saved lists, scheduling behaviour and recommendation policy keep their approval requirements; not a DEENT Exam 1 dependency",
-   "notes": "plan: review/bdk-study-features-plan.md; one owner (the kit feature porter, through review/port-queue.md); no new scheduled task; DEENT supplies its drug-list data shape and acceptance tests after Exam 1; context, not evidence (§12.4): the DEENT session relayed that Dr. Smith names drug-table recall as the key Exam 1 skill"
+   "notes": "plan: review/bdk-study-features-plan.md; one owner (the kit feature porter, through review/port-queue.md); no new scheduled task; DEENT supplies its drug-list data shape and acceptance tests after Exam 1; context, not evidence (§12.4): the DEENT session relayed that Dr. Smith names drug-table recall as the key Exam 1 skill; part 1 progress (2026-11-08): drug-list-tab merged (#83, 978391f), field-colours merged (#85, ac10d2c), compare-tab next (item 12, without the 'Learn these N drugs together' button)"
+  },
+  {
+   "id": "deent-narration-walkthroughs",
+   "title": "Guide walkthroughs with recorded narration (spoken whys and step walkthroughs)",
+   "sourceRepo": "lglouis3-create/DEENT",
+   "sourceCommit": "0281922",
+   "kind": "optional-feature",
+   "studentBenefit": "hear the reason for an answer and a guided walkthrough of a figure, in the professor's material, on the phone",
+   "evidence": "DEENT's release review of 2026-11-08 (334 clips listed on both pages; walk_test 60/60); no learning-outcome evidence",
+   "technicalRisk": "normal: a per-device resume key outside progress storage (DEENT session); audio files enlarge the page's assets",
+   "existsInKit": "no",
+   "candidateCourses": [
+    "deent"
+   ],
+   "status": "discovered",
+   "prs": [],
+   "relatedQueueItems": [],
+   "decision": "",
+   "notes": "source files in DEENT: walk_ui.js, why_ui.js (DEENT session, 2026-11-08); recorded at the DEENT session's request; not evaluated"
+  },
+  {
+   "id": "drug-list-persistent-outcomes",
+   "title": "Drug list: per-fact outcomes kept in each profile's progress (drug-list-tab v2)",
+   "sourceRepo": "lglouis3-create/DEENT",
+   "sourceCommit": "bad5e46",
+   "kind": "optional-feature",
+   "studentBenefit": "see which drug facts (drug and field) a student has recalled, partly recalled or missed, across visits",
+   "evidence": "DEENT's Drug List improvement plan (DEENT issue #1, DEENT session 2026-11-08); no learning-outcome evidence",
+   "technicalRisk": "high: new progress storage (a DB.drugs part, equation-drill pattern), Import behaviour (a module record that changes without an answer sends imports to a new profile more often, core/README.md 805-816), and a fact-to-question map so a Drug List answer on a fact with a bank question is recorded once and never through record() for synthetic items",
+   "existsInKit": "no: drug-list-tab v1 (#83) stores nothing",
+   "candidateCourses": [
+    "deent",
+    "bdk"
+   ],
+   "status": "proposed",
+   "prs": [],
+   "relatedQueueItems": [
+    "port-queue 14 drug-list-tab",
+    "improvements bdk-study-features part 3"
+   ],
+   "decision": "waits for Louis: progress storage and Import behaviour keep their own approval (decision 10; the BDK study-features plan part 3)",
+   "notes": "owner if approved: the kit feature porter; keyed by stable fact ids drugId:field (DEENT druglist_data.js); records outcome, recognition or recall, and self-rating, no raw text; DEENT's Phase 1 (no new storage) proceeds in DEENT under Louis's instruction there"
   }
  ]
 }
