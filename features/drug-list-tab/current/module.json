@@ -2,7 +2,7 @@
  "name": "drug-list-tab",
  "version": "v1",
  "does": "A Drug list tab over the course's DRUG_TABLES (a data file listed in course.js `files`): one table per page or section under its title, with its legend; group chips (the option `groups`, plus All pages) that narrow the tables shown; a search across every table, not only the chosen group's; a tap or Enter on a row opens the row's detail field split into its sections (key side effects, boxed warnings, other notes), tapped again to close; a jump strip to each table; a page-image view when every table gives an image. A Recall mode (from DEENT's drug list): each row shows only the fields named in recallShow, with a writing box and a Reveal button under it, Show class, Reveal all shown and Hide all. The choices and what is typed last for the visit only; nothing is stored.",
- "source": "BDK assets/app.js viewBrowse (lines 2553-2618), QUIZZES (line 42), ekHtml (lines 882-899), assets/style.css (lines 105, 262-276, 327-338, 355-356, 397-401) and tests/ui.js (lines 7-28), at 05c36c3; recall mode from DEENT src/druglist_ui.js (lines 31-32, 70-71, 160-174, 203-206, 209, 236, 248-253, 256-259) at 0281922",
+ "source": "BDK assets/app.js viewBrowse (lines 2553-2618), QUIZZES (line 42), ekHtml (lines 882-899), resolveSeeAbove (lines 331-347), assets/style.css (lines 105, 262-276, 327-338, 355-356, 397-401) and tests/ui.js (lines 7-28), at 05c36c3; recall mode from DEENT src/druglist_ui.js (lines 31-32, 70-71, 160-174, 203-206, 209, 236, 248-253, 256-259) at 0281922",
  "js": [
   "drug-list-tab.js"
  ],
@@ -90,7 +90,11 @@
   },
   "detailOwnField": {
    "default": "generic",
-   "about": "the row field that names the row's drug (BDK: generic): a section qualified with a drug of the same table, such as \"(only for ketorolac)\", is shown only on rows whose field holds every word of the qualifier; empty: every section on every row"
+   "about": "the row field that names the row's drug (BDK: generic): a section qualified with a drug of the same table, such as \"(only for ketorolac)\", is shown only on rows whose field holds every word of the qualifier; empty: every section on every row. A heuristic tuned on BDK's data (it gives each of BDK's 300 rows the sections its flashcards give it): a qualifier counts as naming a drug only when its first word, after \"only for\", is the first word of that field on a row of the same table, and the row must hold every word of the qualifier, so a qualifier such as \"(only for X and Y)\" or one using an abbreviation hides the section from the rows it names"
+  },
+  "detailSeeAbove": {
+   "default": "See above",
+   "about": "a regular expression without capturing groups, matched without case at the start of a qualified section's text (BDK: See above): such a section shows instead the texts of the same section and qualifier on every other row of every table that do not start so, in the data's order without repeats (BDK resolveSeeAbove); empty: off"
   },
   "noDetail": {
    "default": "No essential knowledge listed.",
@@ -129,7 +133,7 @@
     "generic",
     "brand"
    ],
-   "about": "the row fields recall mode keeps visible; every other cell is drawn empty until the row is revealed"
+   "about": "the row fields recall mode keeps visible; every other cell is drawn empty until the row is revealed. In recall mode the search looks only in these fields and recallClassField (DEENT's findText: name, other names, brands, class)"
   },
   "recallClassField": {
    "default": "category",

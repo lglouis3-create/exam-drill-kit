@@ -23,7 +23,10 @@
      marks it. BDK's gray "shared by every drug in this class" marking needs
      those items and is not ported;
      a section qualified with another drug of the same table ("(only for
-     ketorolac)") is shown only on that drug's row (dltParts, below);
+     ketorolac)") is shown only on that drug's row (dltOwnParts, below; a
+     heuristic tuned on BDK's data, see module.json detailOwnField); a
+     qualified section that says "See above" shows the shared texts, as BDK's
+     resolveSeeAbove (lines 331-347) does (dltShared, dltParts);
    - the chosen group and view last for the visit only (in memory): nothing is
      written to localStorage, sessionStorage, IndexedDB or the progress (DB);
    - the page-image view is offered only when every table gives an `image`;
@@ -48,10 +51,13 @@
      (BDK: category; empty, no chip); the box's label is the option recallPrompt,
      a neutral wording adapted from DEENT's "Write the target or mechanism
      first"; the Recall mode and Show class chips keep the search, as DEENT's do,
-     while a group chip clears it, as BDK's does; the search looks in the same
-     fields with recall on or off, hidden ones included, as DEENT's search
-     (findText: name, other names, brands, class) does; the image view has no
-     recall mode. DEENT's Flashcards (flash, fi) are not here (queue item 16);
+     while a group chip clears it, as BDK's does; in recall mode the search looks
+     only in recallShow and recallClassField, as DEENT's search (findText, line
+     99: name, other names, brands, class) does, and with recall off in
+     searchFields, as BDK's does; recall mode draws the table only: the Table /
+     page-image choice is hidden while it is on, and the view chosen before
+     comes back when it is turned off; in recall mode drug rows take no focus
+     and no pointer cursor, since Reveal opens them. DEENT's Flashcards (flash, fi) are not here (queue item 16);
    - left out: saved personal lists ("My drug lists"), the "Compare the N drugs
      in this class" button (compare-tab), Quizlet download files, the glossary
      pop-ups, the "· next" chip mark (date logic).
@@ -105,12 +111,38 @@ function dltSplit(text){
    on BDK's 300 rows this rule gives each row the sections and qualifiers its
    cards give it (features/drug-list-tab/current/test.js, BDK_SECTIONS). */
 const dltWords = s => String(s == null ? '' : s).toLowerCase().replace(/^only for\s+/, '').split(/[^a-z0-9]+/).filter(Boolean);
-function dltParts(t, i){
+function dltOwnParts(t, i){
   const row = t.rows[i], {lead, parts} = dltSplit(row[OPT.detailField]);
   const own = OPT.detailOwnField;
   if(!own) return {lead, parts};
   const firsts = new Set(t.rows.map(r => dltWords(r[own])[0]).filter(Boolean)), mine = dltWords(row[own]);
   return {lead, parts: parts.filter(p => { const w = dltWords(p.qual); return !w.length || !firsts.has(w[0]) || w.every(x => mine.includes(x)); })};
+}
+/* BDK resolveSeeAbove (app.js lines 331-347): a qualified section whose text starts with
+   the option detailSeeAbove (BDK: "See above"), such as "US Boxed Warnings (all opioid
+   analgesics): See above" on pages 25-26, takes the texts of the same section and
+   qualifier on every other row of every table that do not start so, gathered in the
+   data's order without repeats (BDK's Set per qualifier). Worked out once, from
+   DRUG_TABLES, in memory. */
+let DLT_SHARED = null;
+const dltSeeRe = () => OPT.detailSeeAbove ? new RegExp('^(?:' + OPT.detailSeeAbove + ')', 'i') : null;
+function dltShared(){
+  if(DLT_SHARED) return DLT_SHARED;
+  const re = dltSeeRe(), shared = {};
+  if(re) dltTables().forEach(t => (t.rows || []).forEach((r, i) => dltOwnParts(t, i).parts.forEach(p => {
+    if(!p.qual || re.test(p.text)) return;
+    (shared[p.k + '|' + p.qual] = shared[p.k + '|' + p.qual] || new Set()).add(p.text);
+  })));
+  return (DLT_SHARED = shared);
+}
+function dltParts(t, i){
+  const {lead, parts} = dltOwnParts(t, i), re = dltSeeRe();
+  if(!re) return {lead, parts};
+  const shared = dltShared();
+  return {lead, parts: parts.flatMap(p => {
+    const s = p.qual && re.test(p.text) && shared[p.k + '|' + p.qual];
+    return s ? [...s].map(text => Object.assign({}, p, {text, from: p.text})) : [p];
+  })};
 }
 function dltDetail(t, i){
   const {lead, parts} = dltParts(t, i);
@@ -148,7 +180,7 @@ function dltCell(row, c, open){
    a row under it, and the detail row, filled only once revealed (DEENT 174) */
 function dltRowHtml(T, ti, r, i){
   const C = dltCols(), ref = ti + ':' + i, open = dltOpen(ref), id = dltId(ref);
-  let h = `<tr data-ref="${ref}" id="dlt-r-${id}" tabindex="0">${C.map(c => dltCell(r, c, open)).join('')}</tr>`;
+  let h = `<tr data-ref="${ref}" id="dlt-r-${id}"${DLR.recall ? '' : ' tabindex="0"'}>${C.map(c => dltCell(r, c, open)).join('')}</tr>`;
   if(!DLR.recall) return h;
   h += `<tr class="dlt-recall" data-for="${ref}"><td colspan="${C.length}"><div class="detailin">
     <label for="dlt-w-${id}">${dltText(OPT.recallPrompt)}</label>
@@ -172,26 +204,30 @@ function dltRender(pane, keepTerm){
   if(!G[DLT.group]) DLT.group = -1;
   const imgs = dltImages();
   if(!imgs) DLT.view = 'table';
+  // recall mode draws the table only: the page images would show what it hides; the
+  // view chosen before comes back when recall mode is turned off
+  const view = DLR.recall ? 'table' : DLT.view;
   const oldQ = pane.querySelector('[data-q]'), term = keepTerm && oldQ ? oldQ.value : '';
   const shown = DLT.group < 0 ? T : G[DLT.group].tables;
   const chip = (i, label, ids) => `<button class="chip" data-listgroup="${i}" aria-pressed="${DLT.group === i}">${dltText(label)}${ids ? ` <span class="count">${dltText(dltTag(null, ids))}</span>` : ''}</button>`;
   const sortIds = ids => { const a = ids.slice(); if(a.every(x => !isNaN(+x))) a.sort((x, y) => x - y); return a.join(', '); };
-  const table = DLT.view === 'table';
+  const table = view === 'table';
   pane.innerHTML = `<h2>${dltText(OPT.label)}</h2>
     ${OPT.intro ? `<p class="sub">${dltText(OPT.intro)}</p>` : ''}
     ${G.length ? `<div class="dlt-row listgroup">${chip(-1, DLT_ALL.label)}${G.map((g, i) => chip(i, g.label, g.tables.length > 6 ? '' : sortIds(g.ids))).join('')}</div>` : ''}
-    ${imgs ? `<div class="seg listview" data-listview><button data-val="table" aria-pressed="${DLT.view === 'table'}">Table</button><button data-val="image" aria-pressed="${DLT.view === 'image'}">${dltText(OPT.imageLabel)}</button></div>` : ''}
-    ${table ? `<div class="dlt-row dlt-recallbar"><button type="button" class="chip" data-dl="recall" aria-pressed="${DLR.recall}">Recall mode</button>
+    ${imgs && !DLR.recall ? `<div class="seg listview" data-listview><button data-val="table" aria-pressed="${DLT.view === 'table'}">Table</button><button data-val="image" aria-pressed="${DLT.view === 'image'}">${dltText(OPT.imageLabel)}</button></div>` : ''}
+    ${`<div class="dlt-row dlt-recallbar"><button type="button" class="chip" data-dl="recall" aria-pressed="${DLR.recall}">Recall mode</button>
       ${DLR.recall ? `${OPT.recallClassField ? `<button type="button" class="chip" data-dl="showcls" aria-pressed="${DLR.showCls}">Show class</button>` : ''}
         <button type="button" class="chip" data-dl="revealall">Reveal all shown</button>
-        <button type="button" class="chip" data-dl="hideall">Hide all</button>` : ''}</div>` : ''}
-    ${table && DLR.recall ? '<p class="dlt-self" data-recallnote>Recall mode: each row shows the drug only. Write what you recall, then Reveal and compare. This is a self-check: what you type is not graded and not saved, and it is gone when the page reloads. The search still looks in every searched field, hidden ones included, so searching by class shows which drugs are in that class.</p>' : ''}
+        <button type="button" class="chip" data-dl="hideall">Hide all</button>` : ''}</div>`}
+    ${DLR.recall ? `<p class="dlt-self" data-recallnote>Recall mode: each row shows the drug only. Write what you recall, then Reveal and compare. This is a self-check: what you type is not graded and not saved, and it is gone when the page reloads. The search looks only in the fields shown${OPT.recallClassField ? ' and in the class, so searching by class shows which drugs are in that class' : ''}.</p>` : ''}
     <div class="jump">${shown.map(t => `<a href="#${dltAnchor(t)}" class="pchip" style="--pc:${dltText(t.color || 'var(--surface)')}">${dltText(t.id)}</a>`).join('')}</div>
     ${table ? `<input class="search" data-q type="search" placeholder="${dltText(OPT.placeholder)}" aria-label="Search">${OPT.rowNote && !DLR.recall ? `<p class="dlt-note">${dltText(OPT.rowNote)}</p>` : ''}`
       : '<p class="dlt-note">The pages as they appear in the PDF. Pinch to zoom, or tap a page to open it full size.</p>'}
     <div data-body></div>`;
   pane.querySelectorAll('[data-listgroup]').forEach(b => b.onclick = () => { DLT.group = +b.dataset.listgroup; dltRender(pane); });
   pane.querySelectorAll('[data-listview] button').forEach(b => b.onclick = () => { DLT.view = b.dataset.val; dltRender(pane); });
+  pane.querySelectorAll('[data-dl="recall"]').forEach(b => b.onclick = () => { DLR.recall = !DLR.recall; dltRender(pane, true); });
   const body = pane.querySelector('[data-body]');
   if(!table){
     body.innerHTML = shown.map(t => {
@@ -202,12 +238,13 @@ function dltRender(pane, keepTerm){
     return;
   }
   // DEENT 256-257: the recall and Show class chips redraw the pane, keeping the search
-  pane.querySelectorAll('[data-dl="recall"]').forEach(b => b.onclick = () => { DLR.recall = !DLR.recall; dltRender(pane, true); });
   pane.querySelectorAll('[data-dl="showcls"]').forEach(b => b.onclick = () => { DLR.showCls = !DLR.showCls; dltRender(pane, true); });
   // DEENT 258: every row shown now (after the group and the search); 259: every row
   pane.querySelectorAll('[data-dl="revealall"]').forEach(b => b.onclick = () => { body.querySelectorAll('tr[data-ref]').forEach(tr => DLR.revealed.add(tr.dataset.ref)); draw(input.value); });
   pane.querySelectorAll('[data-dl="hideall"]').forEach(b => b.onclick = () => { DLR.revealed.clear(); draw(input.value); });
-  const fields = OPT.searchFields;
+  // DEENT's search (findText, line 99) looks in the name, other names, brands and class:
+  // in recall mode the search looks only in recallShow and recallClassField
+  const fields = DLR.recall ? [...new Set((OPT.recallShow || []).concat(OPT.recallClassField ? [OPT.recallClassField] : []))] : OPT.searchFields;
   const draw = term => {
     const tq = term.trim().toLowerCase();
     let html = '';

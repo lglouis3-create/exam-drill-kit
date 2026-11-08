@@ -40,6 +40,10 @@ if(OPT.detailOwnField && !known(OPT.detailOwnField)) errs.push(`option detailOwn
   try { re = new RegExp('|' + s.label); } catch(e){ errs.push(`option detailSections label "${s.label}" is not a regular expression: ${e.message}`); return; }
   if(re.exec('').length > 1) errs.push(`option detailSections label "${s.label}" has a capturing group; write (?:...)`);
 });
+if(OPT.detailSeeAbove){
+  try { if(new RegExp('|' + OPT.detailSeeAbove).exec('').length > 1) errs.push(`option detailSeeAbove "${OPT.detailSeeAbove}" has a capturing group; write (?:...)`); }
+  catch(e){ errs.push(`option detailSeeAbove "${OPT.detailSeeAbove}" is not a regular expression: ${e.message}`); }
+}
 const labels = new Set();
 (Array.isArray(OPT.groups) ? OPT.groups : [null]).forEach((g, k) => {
   if(!g || typeof g.label !== 'string' || !g.label){ errs.push(`group ${k + 1} has no label`); return; }

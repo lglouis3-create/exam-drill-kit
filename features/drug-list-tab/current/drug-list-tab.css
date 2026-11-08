@@ -18,7 +18,7 @@ input.search{width:100%;padding:12px 14px;border-radius:10px;border:1px solid va
 .pagetable table{border-collapse:collapse;width:100%;font-size:14px;min-width:640px}
 .pagetable th,.pagetable td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
 .pagetable th{background:var(--surface);font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-dim)}
-.pagetable tr[data-ref]{cursor:pointer}
+.pagetable tr[data-ref][tabindex]{cursor:pointer}
 .pagetable .legend{font-size:13px;color:var(--text-dim);margin:6px 2px 0}
 .pagetable .act{font-size:13px;color:var(--text-dim);margin-top:4px}
 .pagetable .ekbox{display:grid;gap:10px;margin-top:8px}
