@@ -35,6 +35,8 @@
  */
 const child = require('child_process');
 const L = require('./check_lib');
+// test.js, run on a scratch copy, reads that copy, not a page named by the caller (the review of 70a6e41)
+const childEnv = Object.assign({}, process.env); delete childEnv.DRILL_PAGE;
 const NAME = 'optional_test.js';
 const {check} = L;
 L.PAGE.need(NAME);
@@ -187,10 +189,10 @@ const ANSWER = right => {
       check(!passes.wErr, 'the exam-weighted pass starts without an error', passes.wErr);
       none(passes.weighted, `the exam-weighted pass (${passes.weighted.length}) holds no optional question`);
       check(!passes.pErr, 'every one of 20 exam-paper draws completes without an error', {pErr: passes.pErr, draws: passes.draws});
-      if(passes.configured){
-        check(passes.draws === 20 && passes.empty === 0, `the course sets a question count: all 20 draws complete and none is empty (${passes.draws} drawn, ${passes.empty} empty)`);
-        none(passes.papers, `20 drawn exam papers (${passes.papers.length} items) hold no optional question`);
-      } else if(!passes.pErr) L.skip('exam papers', `the course sets no question count, so a paper draws no items (${passes.draws} empty draws)`);
+      if(passes.configured) check(passes.draws === 20 && passes.empty === 0, `the course sets a question count: all 20 draws complete and none is empty (${passes.draws} drawn, ${passes.empty} empty)`);
+      else if(!passes.pErr) check(passes.empty === passes.draws, `the course sets no question count: every draw is empty (${passes.empty} of ${passes.draws})`);
+      if(passes.papers.length) none(passes.papers, `the drawn exam papers (${passes.papers.length} items) hold no optional question`);
+      else if(!passes.pErr) L.skip('optional questions on exam papers', `no paper drew an item (${passes.draws} empty draws)`);
 
       // question cards: no exam label on an optional question
       const lbl = await page.evaluate(ids => {
@@ -213,7 +215,19 @@ const ANSWER = right => {
       for(const kind of ['single', 'multi']){
         const before = errors.length;
         const r = await page.evaluate(([ids, kind]) => {
-          const q = QUESTIONS.find(x => ids.includes(x.id) && (kind === 'multi' ? isMulti(x) : !isMulti(x)));
+          const keepDB = JSON.stringify(DB), keepLog = JSON.stringify(LOG || []);
+          let planted = null;
+          let q = QUESTIONS.find(x => ids.includes(x.id) && (kind === 'multi' ? isMulti(x) : !isMulti(x)));
+          // no optional select-all question in this course: one is planted for this page only, a copy of an
+          // optional question with two correct options, in the same (optional) topic
+          if(!q && kind === 'multi'){
+            const base = QUESTIONS.find(x => ids.includes(x.id) && Array.isArray(x.options) && x.options.length >= 3);
+            if(base){
+              q = JSON.parse(JSON.stringify(base)); q.id = base.id + '-planted-multi'; q.multi = true;
+              q.options.forEach((o, i) => { o.correct = i < 2; });
+              QUESTIONS.push(q); planted = q;
+            }
+          }
           if(!q) return null;
           Q = {pool: [q], label: 'check', sweep: [q.id], i: 0, current: null, answered: 0, lastId: null, examMode: false, picked: null, revealed: false};
           nextQuestion(); show('quiz');
@@ -226,7 +240,10 @@ const ANSWER = right => {
           const btn = document.querySelector('#v-quiz button.opt[data-o]');
           btn.click();
           if(kind === 'multi'){ const c = document.getElementById('btnCheck'); if(c) c.click(); }
-          return {kind, badge: true, afterBadge, recorded: DB.answers.length - ansN, revealed: !!Q.revealed};
+          const out = {kind, badge: true, planted: !!planted, afterBadge, recorded: DB.answers.length - ansN, revealed: !!Q.revealed};
+          // a planted question and its answer leave no trace: the bank, the progress and the history as they were
+          if(planted){ QUESTIONS.splice(QUESTIONS.indexOf(planted), 1); DB = JSON.parse(keepDB); LOG = JSON.parse(keepLog); save(); saveNow(); saveLog && saveLog(); }
+          return out;
         }, [info.ids, kind]);
         if(!r){ L.skip(`the Optional badge on a ${kind === 'multi' ? 'select-all' : 'single-answer'} question`, `no optional question of that kind in this course`); continue; }
         check(r.badge, `the ${r.kind} optional question card shows the Optional badge`, r);
@@ -308,7 +325,7 @@ const ANSWER = right => {
       check(!errors.length, 'no page error on the scratch page', errors.join(' | '));
       await ctx.close();
       // test.js on this well-formed copy: the optional topic shares no concept with the rest
-      const t1 = child.spawnSync('node', ['test.js'], {cwd: b.src, encoding: 'utf8', timeout: 600000});
+      const t1 = child.spawnSync('node', ['test.js'], {cwd: b.src, encoding: 'utf8', timeout: 600000, env: childEnv});
       check(/share no concept with the rest of the bank/.test(t1.stdout || ''), 'test.js reports that the optional topic shares no concept with the rest of the bank',
             (t1.stdout || '').split('\n').slice(-2).join(' | '));
     } finally { b.rm(); }
@@ -326,7 +343,7 @@ const ANSWER = right => {
     const b2 = L.scratchBuild('optional-share', {files: {'q99_optional_check.js': SHARE}});
     try {
       if(check(b2.code === 0, 'the copy with a shared concept builds', b2.out.split('\n').slice(-3).join(' | '))){
-        const t2 = child.spawnSync('node', ['test.js'], {cwd: b2.src, encoding: 'utf8', timeout: 600000});
+        const t2 = child.spawnSync('node', ['test.js'], {cwd: b2.src, encoding: 'utf8', timeout: 600000, env: childEnv});
         const out = t2.stdout || '';
         check(t2.status === 1 && /in optional topic ".+" but shares concept/.test(out),
               'test.js fails a question of an optional topic that shares its concept with a required question',

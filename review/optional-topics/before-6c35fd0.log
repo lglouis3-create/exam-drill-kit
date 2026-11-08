@@ -23,15 +23,18 @@
   ok    the exam-weighted pass (4) holds no optional question
   ok    every one of 20 exam-paper draws completes without an error
   ok    the course sets a question count: all 20 draws complete and none is empty (20 drawn, 0 empty)
-  ok    20 drawn exam papers (20 items) hold no optional question
+  ok    the drawn exam papers (20 items) hold no optional question
   ok    an optional question card carries no "Exam N" label
   ok    an optional question card says "Optional"
   ok    a card of another topic keeps its exam label
   ok    the single optional question card shows the Optional badge
   FAIL  tapping the Optional badge on an unrevealed single-answer question changes nothing (not revealed, nothing picked, nothing recorded)  — {"revealed":true,"picked":"NaN","picks":null,"log":0,"answers":0}
-  FAIL  then a real answer on that question records once and reveals it  — {"kind":"single","badge":true,"afterBadge":{"revealed":true,"picked":"NaN","picks":null,"log":0,"answers":0},"recorded":0,"revealed":true}
+  FAIL  then a real answer on that question records once and reveals it  — {"kind":"single","badge":true,"planted":false,"afterBadge":{"revealed":true,"picked":"NaN","picks":null,"log":0,"answers":0},"recorded":0,"revealed":true}
   FAIL  no page error from tapping the badge (single)  — Cannot read properties of undefined (reading 'correct')
-  skip  the Optional badge on a select-all question  — no optional question of that kind in this course
+  ok    the multi optional question card shows the Optional badge
+  FAIL  tapping the Optional badge on an unrevealed select-all question changes nothing (not revealed, nothing picked, nothing recorded)  — {"revealed":false,"picked":"NaN","picks":null,"log":0,"answers":0}
+  ok    then a real answer on that question records once and reveals it
+  ok    no page error from tapping the badge (multi)
   ok    the mastered count is over the 4 concepts outside the optional topic
   ok    What to review next counts the 4 not-solid questions outside the optional topic
   ok    "Drill all not-solid" holds no optional question
@@ -48,4 +51,4 @@
   ok    test.js reports that the optional topic shares no concept with the rest of the bank
   ok    the copy with a shared concept builds
   ok    test.js fails a question of an optional topic that shares its concept with a required question
-FAIL: optional_test.js: 4 of 47 checks failed: tapping the Optional badge on an unrevealed single-answer question changes nothing (not revealed, nothing picked, nothing recorded); then a real answer on that question records once and reveals it; no page error from tapping the badge (single) …
+FAIL: optional_test.js: 5 of 51 checks failed: tapping the Optional badge on an unrevealed single-answer question changes nothing (not revealed, nothing picked, nothing recorded); then a real answer on that question records once and reveals it; no page error from tapping the badge (single) …
