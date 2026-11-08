@@ -627,6 +627,8 @@ const stroke = n => ({t: 'pen', c: '#111111', w: 0.003, p: [0.1 * n, 0.2, 0.3, 0
       await a.evaluate(how => { if(how === 'profile'){ outsideClear(PROFILE); DB = BLANK(); save(); saveNow(); LOG = []; LOG_OK = true; saveLog(); pendingRetire(); }
         else if(how === 'part') outsideClear(PROFILE, 'ink'); else if(how === 'mark-free') pendingMark(); }, opts.erase);
       await a.waitForTimeout(400);
+      // the writer tab writes the page again after its Erase (S1: another tab writes the flagged page)
+      if(opts.afterWrite){ await put(a, {s: {parts: {work: [stroke(7)]}, room: {}, at: 7}}); await settled(a, ['s']); }
       // B's own later mark (it erases another page itself) must not hide A's earlier one
       if(opts.ownLaterMark) await b.evaluate(() => outsideRemove('ink', 'zz'));
       await a.close();
@@ -671,6 +673,55 @@ const stroke = n => ({t: 'pen', c: '#111111', w: 0.003, p: [0.1 * n, 0.2, 0.3, 0
         check(!ink.s && strokesOf(ink, 't').length === 1 && !(await b.evaluate(() => unsavedHere())), 'Leave it out: discards the named page only; the later page is stored (after a reload)', Object.keys(ink));
         await ctx.close();
       }
+    }
+    // S1: writing on the page whose earlier writing is set apart, here and from another tab
+    {
+      const r = await v3({erase: 'profile'});
+      if(r){
+        const {ctx, b} = r;
+        await put(b, {s: {parts: {work: [stroke(9)]}, room: {}, at: 9}}); await settled(b, ['s']);
+        await b.waitForTimeout(300);
+        const n = await staleNotice(b);
+        check(!!n && /"s" \(2 strokes\)/.test(n.text) && await b.evaluate(() => unsavedHere()), 'S1: after the student writes on the page, the writing from before the Erase is still set apart and named (2 strokes), and counts unsaved', n && n.text.slice(0, 140));
+        await clickIf(b, '#outwarn [data-outadd]'); await settled(b, ['s']);
+        await reload(b);
+        const got = strokesOf(await inkNow(b), 's');
+        check([1, 2, 9].every(x => got.includes(JSON.stringify(stroke(x)))) && got.length === 3, 'S1: Add it back then keeps both: after a reload the page has the 2 kept strokes and the new one', got.length);
+        await ctx.close();
+      }
+    }
+    {
+      const r = await v3({erase: 'profile', afterWrite: true});
+      if(r){
+        const {ctx, b} = r;
+        const n = await staleNotice(b);
+        check(!!n && /"s" \(2 strokes\)/.test(n.text), 'S1: when the other tab wrote the page after its Erase, the writing kept here from before it is still set apart and named (2 strokes)', n && n.text.slice(0, 140));
+        await clickIf(b, '#outwarn [data-outadd]'); await settled(b, ['s']);
+        await reload(b);
+        const got = strokesOf(await inkNow(b), 's');
+        check([1, 2, 7].every(x => got.includes(JSON.stringify(stroke(x)))) && got.length === 3, 'S1: Add it back then keeps both: after a reload the page has the kept strokes and the other tab\'s new one', got.length);
+        await ctx.close();
+      }
+    }
+    // an Erase whose mark the browser refuses (storage full) says so
+    {
+      const ctx = await newCtx();
+      const {page: p} = await open(ctx);
+      const said = await p.evaluate(() => { const set = Storage.prototype.setItem; Storage.prototype.setItem = function(k, v){ if(String(k).includes(':outside-mark:')) throw new DOMException('full', 'QuotaExceededError'); return set.apply(this, arguments); };
+        try { outsideClear(PROFILE); } finally { Storage.prototype.setItem = set; }
+        const d = document.getElementById('outwarn'); return d ? d.textContent : ''; });
+      check(/were not told of this erase/.test(said), 'marks: an Erase whose mark the browser refuses tells the student the other tabs were not told', said.slice(0, 120));
+      await ctx.close();
+    }
+    // the mark list stays bounded: past 100 marks the oldest become one whole-profile mark, which still sets apart
+    {
+      const ctx = await newCtx();
+      const {page: p} = await open(ctx);
+      const r = await p.evaluate(() => { const k = NS + ':outside-mark:' + PROFILE; const list = []; for(let i = 0; i < 100; i++) list.push({at: 1000 + i, tab: 'other-' + i, part: 'ink', page: 'pg' + i});
+        localStorage.setItem(k, JSON.stringify(list)); outsideMarkErased(PROFILE, 'ink', 'new'); const v = JSON.parse(localStorage.getItem(k));
+        return {n: v.length, first: v[0]}; });
+      check(r.n <= 100 && r.first.tab === '*' && !r.first.page && r.first.at === 1049, 'marks: past 100, the oldest 50 become one whole-profile mark at the latest of their times', r);
+      await ctx.close();
     }
     {
       const r = await v3({erase: 'mark-free'});

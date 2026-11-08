@@ -84,3 +84,9 @@ FAIL: outside_test.js: 7 of 71 checks failed: N1: with a refused page, leaving t
   FAIL  after Leave it out and a reload, the erased part stays erased  — ["s"]
   FAIL  two tabs' marks: this tab's own later mark does not hide the other tab's earlier Erase  — null
 FAIL: outside_test.js: 8 of 80 checks failed: Q1: with dialogs suppressed, writing kept from before another tab's Erase is kept, counted unsaved, and named on the notice with Add it back, Export it and Leave it out; Q1: 
+== the fourth review of #81: the same test on the core at 344745c (DRILL_PAGE: a template course built from 344745c)
+  FAIL  S1: after the student writes on the page, the writing from before the Erase is still set apart and named (2 strokes), and counts unsaved  — null
+  FAIL  S1: Add it back then keeps both: after a reload the page has the 2 kept strokes and the new one  — 1
+  FAIL  marks: an Erase whose mark the browser refuses tells the student the other tabs were not told
+  FAIL  marks: past 100, the oldest 50 become one whole-profile mark at the latest of their times  — {"n":100,"first":{"at":1001,"tab":"other-1","part":"ink","page":"pg1"}}
+FAIL: outside_test.js: 4 of 86 checks failed: S1: after the student writes on the page, the writing from before the Erase is still set apart and named (2 strokes), and counts unsaved; S1: Add it back then keeps both: aft

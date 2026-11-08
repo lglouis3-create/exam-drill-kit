@@ -373,7 +373,15 @@ With a part registered:
   covering its page is neither written nor deleted on its own (the third review of #81, Q1): it
   stays kept (unsaved, so leaving asks), out of the page on screen, and the notice names each page
   and its strokes, with "Add it back" (written), "Export it" (a file) and "Leave it out" (the only
-  way it is discarded, and only the pages it names). No dialog decides it. "Use it here" says where
+  way it is discarded, and only the pages it names). No dialog decides it. That writing is set apart from the page (`OUT.parked`):
+  what the student writes on the page afterwards is a new value, and no write of the page changes or
+  removes the set-apart writing; only Add it back, Leave it out or the student's own Erase releases it
+  (the fourth review of #81, S1). The page on screen drops it and reads the stored page again.
+  Limits: the mark list keeps at most 100 marks; past that the oldest 50 become one mark of the whole
+  profile at the latest of their times, which can set apart more writing than the marks it replaced,
+  never less. When the browser refuses to store a mark (storage full), the student is told that other
+  open tabs were not told of the Erase. An Erase made in a tab on an earlier core, or in a page where the
+  module that keeps the part is not switched on, writes no mark. "Use it here" says where
   the unsaved writing went: not into the copy of the progress, but merged into the stored writing,
   or named on the notice when it predates such an Erase.
 - Erase is final for this page too: a write that began before it is not recorded when it completes

@@ -61,7 +61,10 @@ What replaces each place that holds ink inline today (the porter's list for #17)
 - Leaving or reloading asks first while writing is refused or kept unwritten; kept writing from
   before another tab's Erase (of the profile, a part or a page) is neither written nor deleted on its
   own: the notice names it with Add it back, Export it and Leave it out (the second and third
-  reviews of #81, N1, V3, Q1). Put back and Import do not count as an Erase.
+  reviews of #81, N1, V3, Q1). Put back and Import do not count as an Erase. Writing the student
+  adds to such a page afterwards is kept separately and never replaces it (S1). Marks are bounded (100;
+  the oldest collapse into one whole-profile mark); a refused mark is reported; an Erase on an earlier
+  core, or with the module off, writes no mark.
 - Limits with mixed versions: a tab on an earlier core exports without the moved pages, and its
   Erase does not remove them from the database (they come back on the next load on this core).
 
