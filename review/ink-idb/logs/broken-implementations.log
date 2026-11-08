@@ -132,3 +132,7 @@ FAIL: outside_test.js: 4 of 118 checks failed: R5 with Web Locks: a tab that loa
   FAIL  H1: a returning tab whose kept writing the stored page already holds drops its copy, writes no record, and shows the stored page  — {"h1":{"held":1,"risk":false,"screen":1},"h1rec":true}
 FAIL: outside_test.js: 3 of 121 checks failed: none: with no part registered the page holds no tab lock (the ninth review of #81, C1); none, without Web Locks: with no part registered the page writes no tab-alive heartbeat (C1); H1: a returning tab whose kept writing the stored page already holds drops its copy, writes no record, and shows the stored page
 FAIL: outside_test.js: 3 of 121 checks failed: none: with no
+
+== The tenth review of #81: the bfcache tab-lock check on the core at 71fc43a (DRILL_PAGE)
+  FAIL  bfcache: a tab lock granted after the page went into the back/forward cache is let go at once, and taken again when the page is shown  — {"whileCached":true,"shown":true}
+FAIL: outside_test.js: 1 of 122 checks failed: bfcache: a tab lock granted after the page went into the back/forward cache is let go at once, and taken again when the page is shown

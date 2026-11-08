@@ -329,7 +329,11 @@ With a part registered:
   that finds a revision other than the one this page read merges the two (`outsideMerge`; the default
   keeps every element of every array, compared as JSON, so every stroke of both) and writes the
   merge, which this page then shows (`onOutside` reports `merged: true`). A merge can bring back a
-  stroke one tab erased while the other tab still had it; it never loses one.
+  stroke one tab erased while the other tab still had it; it never loses one. The same holds for a
+  tab whose recovery record another tab took over (in practice only without Web Locks, or for a tab
+  frozen in the background): when it finds the stored page already holds its kept writing, it shows
+  the stored page (H1), so a stroke this tab rubbed out after the other tab wrote the older copy comes
+  back. The notice does not list merge cases; `onOutside` reports such a page with `event: 'released'`.
 - Deleting. A page leaves the database only through `outsideRemove(part, page)` or `outsideClear(p,
   part)`: Settings' "Erase my history" calls `outsideClear` for the profile, and a module's own erase
   calls them. A page missing from `DB` (after a load, Import or Put back) is never taken for a
@@ -410,7 +414,9 @@ With a part registered:
   erased there since (the ninth review, H1). The tab lock and the heartbeat start with the first
   `registerOutside`: a course with no such module holds no tab lock and writes no heartbeat, as before
   (the ninth review, C1). The tab lock is let go when the page goes into the back/forward cache and
-  taken again when it comes back; whether Chromium then keeps the page in that cache was not checked
+  taken again when it comes back; a grant that arrives while the page is in that cache (pagehide came
+  before the grant) is let go at once (the tenth review). A page that is only hidden keeps the lock: it
+  is still open, and letting the lock go would let another tab take over its records; whether Chromium then keeps the page in that cache was not checked
   (headless Chromium runs with the cache switched off), and every course holds the writer lock of its
   progress (`<ns>:writer:<profile>`) all the same. Taken over,
   kept writing is checked against Erase marks; set-apart and unsure writing stays set apart. When a

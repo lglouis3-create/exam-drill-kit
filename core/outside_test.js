@@ -1009,6 +1009,29 @@ const stroke = n => ({t: 'pen', c: '#111111', w: 0.003, p: [0.1 * n, 0.2, 0.3, 0
         await ctx.close();
       }
     }
+    // the tenth review of #81: a tab lock granted while the page is in the back/forward cache is let go at once
+    // (pagehide is dispatched here as the browser does; headless Chromium runs with that cache switched off)
+    {
+      const gate = () => {
+        if(!(navigator.locks && navigator.locks.request)) return;
+        const orig = navigator.locks.request.bind(navigator.locks);
+        window.__tabGate = new Promise(r => { window.__grant = r; });
+        navigator.locks.request = function(name, ...rest){ if(String(name).startsWith('exam-drill-tab:') && !window.__tabPassed) return window.__tabGate.then(() => orig(name, ...rest)); return orig(name, ...rest); };
+      };
+      const ctx = await newCtx(gate);
+      const {page: p} = await open(ctx);
+      if(await p.evaluate(() => !!(navigator.locks && navigator.locks.query))){
+        const mine = () => p.evaluate(() => navigator.locks.query().then(q => (q.held || []).some(l => l.name === 'exam-drill-tab:' + TAB_ID)));
+        await p.evaluate(() => { window.dispatchEvent(new PageTransitionEvent('pagehide', {persisted: true})); window.__tabPassed = true; window.__grant(); });
+        await p.waitForTimeout(400);
+        const whileCached = await mine();
+        await p.evaluate(() => { window.dispatchEvent(new PageTransitionEvent('pageshow', {persisted: true})); });
+        await p.waitForFunction(() => navigator.locks.query().then(q => (q.held || []).some(l => l.name === 'exam-drill-tab:' + TAB_ID)), null, {timeout: 3000}).catch(() => {});
+        const shown = await mine();
+        check(!whileCached && shown, 'bfcache: a tab lock granted after the page went into the back/forward cache is let go at once, and taken again when the page is shown', {whileCached, shown});
+      } else L.skip('bfcache tab lock', 'no Web Locks');
+      await ctx.close();
+    }
     // the mark list stays bounded: past 100 marks the oldest become one whole-profile mark, which still sets apart
     {
       const ctx = await newCtx();
