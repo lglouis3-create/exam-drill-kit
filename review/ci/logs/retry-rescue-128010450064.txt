@@ -1,0 +1,23 @@
+2026-11-06T16:27:23.7526031Z   mirror: https://raw.githubusercontent.com/actions/python-versions/main
+2026-11-06T16:27:27.2190867Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+2026-11-06T16:27:30.8421963Z Fetched 12.9 MB in 1s (9448 kB/s)
+2026-11-06T16:27:32.4164997Z Need to get 114 MB of archives.
+2026-11-06T16:27:32.4166525Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+2026-11-06T16:30:31.9552140Z Ign:2 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-ipafont-gothic all 00303-21ubuntu1
+2026-11-06T16:33:36.3956457Z ##[error]The action 'Playwright 1.63.0, WebKit and pdfplumber 0.11.10' has timed out after 6 minutes.
+2026-11-06T16:33:36.4021829Z ##[group]Run # what the timed-out first attempt left: its processes, an interrupted dpkg
+2026-11-06T16:33:36.4022515Z [36;1m# what the timed-out first attempt left: its processes, an interrupted dpkg[0m
+2026-11-06T16:33:36.4023569Z [36;1mecho "The WebKit install needed a second attempt (the first failed or ran longer than 6 minutes)." >> "$GITHUB_STEP_SUMMARY"[0m
+2026-11-06T16:33:36.4024367Z [36;1m# every process of the first attempt carries "install --with-deps webkit" (npx, its shell and the[0m
+2026-11-06T16:33:36.4028099Z [36;1m# mirror list names other hosts, this attempt uses them[0m
+2026-11-06T16:33:36.4028509Z [36;1mecho "apt mirror list:"; cat /etc/apt/apt-mirrors.txt || true[0m
+2026-11-06T16:33:36.4029147Z [36;1mif [ -f /etc/apt/apt-mirrors.txt ] && grep -v '^[[:space:]]*$' /etc/apt/apt-mirrors.txt | grep -qv 'azure\.archive\.ubuntu\.com'; then[0m
+2026-11-06T16:33:36.4029812Z [36;1m  sudo sed -i '/azure\.archive\.ubuntu\.com/d' /etc/apt/apt-mirrors.txt[0m
+2026-11-06T16:33:36.4030364Z [36;1m  echo "second attempt, without azure.archive.ubuntu.com:"; cat /etc/apt/apt-mirrors.txt[0m
+2026-11-06T16:33:36.4955438Z apt mirror list:
+2026-11-06T16:33:36.5058061Z second attempt, without azure.archive.ubuntu.com:
+2026-11-06T16:33:38.4795184Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [93 B]
+2026-11-06T16:33:42.0491230Z Need to get 108 MB/114 MB of archives.
+2026-11-06T16:33:42.0492236Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [93 B]
+2026-11-06T16:34:20.0329903Z Fetched 105 MB in 38s (2792 kB/s)
+2026-11-06T16:40:24.7697841Z 32 PASS, 0 FAIL, 1 NOT RUN, 1 REPORT, 0 NOT RUN case(s); logs in /tmp/drill-checks-yTDNFQ
