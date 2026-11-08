@@ -125,3 +125,10 @@ FAIL: outside_test.js: page.evaluate: TypeError: Cannot read properties of undef
   FAIL  R5: a tab whose recovery record was taken over finds it gone, and writes it again (then leaving is not at risk)  — {"mid":null,"back":false}
 FAIL: outside_test.js: 4 of 118 checks failed: R5 with Web Locks: a tab that loads while another open tab keeps refused writing leaves that tab's recovery record alone; R5 without Web Locks: a tab that loads while another open tab keeps refused writing leaves that tab's recovery record alone; R5 without Web Locks: only a record whose tab has written neither it nor a heartbeat for 5 minutes counts as left behind …
 FAIL: outside_test.js: 4 of 118 checks failed: R5 with Web Locks: a tab that loa
+
+== The ninth review of #81: the C1 and H1 checks on the core at cfd39f1 (DRILL_PAGE)
+  FAIL  none: with no part registered the page holds no tab lock (the ninth review of #81, C1)  — ["course-id-drill:writer:me","exam-drill-tab:mw8e6edu-lq9ojeq1"]
+  FAIL  none, without Web Locks: with no part registered the page writes no tab-alive heartbeat (C1)  — ["course-id-drill:tab-alive:mw8e6eiu-q9gifcbe"]
+  FAIL  H1: a returning tab whose kept writing the stored page already holds drops its copy, writes no record, and shows the stored page  — {"h1":{"held":1,"risk":false,"screen":1},"h1rec":true}
+FAIL: outside_test.js: 3 of 121 checks failed: none: with no part registered the page holds no tab lock (the ninth review of #81, C1); none, without Web Locks: with no part registered the page writes no tab-alive heartbeat (C1); H1: a returning tab whose kept writing the stored page already holds drops its copy, writes no record, and shows the stored page
+FAIL: outside_test.js: 3 of 121 checks failed: none: with no

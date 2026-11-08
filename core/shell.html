@@ -811,6 +811,7 @@ function registerOutside(part, opts){
   if(typeof part !== 'string' || !part) return;
   const added = !OUT.parts.has(part);
   OUT.parts.add(part);
+  try { outsideTabAlive(); } catch(e){}
   if(opts && typeof opts.merge === 'function') OUT.merges[part] = opts.merge;
   if(OUT.state === 'off') outsideOpen();
   try { if(added && PROFILE && LOADED === PROFILE){ outsideOnLoad(PROFILE, DB, true); outsideAttachSoon(PROFILE); } } catch(e){ /* before load() exists */ }
@@ -1452,17 +1453,28 @@ function onOutside(fn){ if(typeof fn === 'function') OUT.listeners.push(fn); }
    check and writes it again, and until that commits it says the copy is being saved (R5). */
 const OUT_STALE_MS = 5 * 60 * 1000, OUT_BEAT_MS = 30 * 1000;
 const outAliveKey = tab => NS + ':tab-alive:' + tab;
-let OUT_TABLOCK = false;
+let OUT_TABLOCK = false, OUT_ALIVE = false, outTabRelease = null;
+/* Started by the first registerOutside (a course with no such module holds no tab lock and writes no
+   heartbeat; the ninth review of #81, C1). The tab lock is let go when the page goes into the
+   back/forward cache and taken again when it comes back, so it is not one more lock held by a page
+   in that cache; the writer lock of the progress is held by every course all the same. */
 function outsideTabAlive(){
+  if(OUT_ALIVE) return;
   if(typeof window === 'undefined' || typeof document === 'undefined' || typeof setInterval !== 'function') return;   // the checks' Node sandbox runs this code without a page
-  try { if(navigator.locks && navigator.locks.request){ navigator.locks.request('exam-drill-tab:' + TAB_ID, () => new Promise(() => {})).catch(() => {}); OUT_TABLOCK = !!navigator.locks.query; } } catch(e){ OUT_TABLOCK = false; }
-  const beat = () => { if(!OUT_TABLOCK) try { localStorage.setItem(outAliveKey(TAB_ID), String(Date.now())); } catch(e){} };
+  let id; try { id = TAB_ID; } catch(e){ return; }   // before TAB_ID exists: registerOutside calls again from start-up
+  OUT_ALIVE = true;
+  const lock = () => { try { if(navigator.locks && navigator.locks.request){ navigator.locks.request('exam-drill-tab:' + id, () => new Promise(r => { outTabRelease = r; })).catch(() => {}); OUT_TABLOCK = !!navigator.locks.query; } } catch(e){ OUT_TABLOCK = false; } };
+  lock();
+  const beat = () => { if(!OUT_TABLOCK) try { localStorage.setItem(outAliveKey(id), String(Date.now())); } catch(e){} };
   beat();
   if(!OUT_TABLOCK) setInterval(() => { beat(); outsideRecCheck(); }, OUT_BEAT_MS);
   try {
     document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible'){ beat(); outsideRecCheck(); } });
-    window.addEventListener('pageshow', e => { if(e.persisted){ beat(); outsideRecCheck(); } });
-    window.addEventListener('pagehide', e => { if(!e.persisted && !OUT_TABLOCK) try { localStorage.removeItem(outAliveKey(TAB_ID)); } catch(_){} });
+    window.addEventListener('pageshow', e => { if(e.persisted){ if(OUT_TABLOCK && !outTabRelease) lock(); beat(); outsideRecCheck(); } });
+    window.addEventListener('pagehide', e => {
+      if(e.persisted){ if(outTabRelease){ const r = outTabRelease; outTabRelease = null; r(); } }
+      else if(!OUT_TABLOCK) try { localStorage.removeItem(outAliveKey(id)); } catch(_){}
+    });
   } catch(e){}
 }
 /* The records of tabs that are gone, among those another tab wrote: `held` is the set of lock names
@@ -1473,17 +1485,31 @@ function outRecOrphan(r, held, now){
   let beat = 0; try { beat = +localStorage.getItem(outAliveKey(r.tab)) || 0; } catch(e){}
   return now - Math.max(beat, +r.at || 0) > OUT_STALE_MS;
 }
-/* This tab's own records: one taken over by another tab is gone from the store; its state is reset so
-   the notice says the copy is being saved, leaving asks first, and the record is written again. */
+/* This tab's own records: one taken over by another tab is gone from the store. Kept writing that the
+   stored page already contains (the tab that took it over wrote it) is dropped, and the page on screen
+   becomes the stored page, so this tab's copy does not bring back a stroke erased there since (the
+   ninth review of #81, H1). Otherwise its state is reset, so the notice says the copy is being saved,
+   leaving asks first, and the record is written again. */
 function outsideRecCheck(){
   if(OUT.state !== 'ready' || !OUT.db) return;
   const keys = Object.keys(OUT.recLast).filter(k => OUT.recState[k] === 'saved' && !OUT.recBusy[k]);
   if(!keys.length) return;
   let t; try { t = OUT.db.transaction('parts', 'readonly'); } catch(e){ return; }
   const s = t.objectStore('parts');
-  Promise.all(keys.map(k => outReq(s.count(outRecKey(k))).then(n => [k, n], () => [k, 1]))).then(rs => {
+  Promise.all(keys.map(k => Promise.all([outReq(s.count(outRecKey(k))), outReq(s.get(k))]).then(([n, page]) => [k, n, page], () => [k, 1, null]))).then(rs => {
     let lost = false;
-    for(const [k, n] of rs) if(!n && OUT.recState[k] === 'saved' && !OUT.recBusy[k]){ delete OUT.recLast[k]; delete OUT.recState[k]; lost = true; }
+    for(const [k, n, page] of rs){
+      if(n || OUT.recState[k] !== 'saved' || OUT.recBusy[k]) continue;
+      delete OUT.recLast[k]; delete OUT.recState[k]; lost = true;
+      const [kp, part, pg] = outSplit(k), hd = OUT.held[k];
+      if(hd === undefined || OUT.busy[k] || !page || typeof page !== 'object' || page.v === undefined) continue;
+      let inside = false; try { inside = sameVal(outsideMerge(part, page.v, hd), page.v); } catch(e){}
+      if(!inside) continue;
+      delete OUT.held[k]; delete OUT.heldAt[k]; delete OUT.heldBase[k]; delete OUT.heldSrc[k]; delete OUT.status[k]; delete OUT.sent[k];
+      if(!OUT.known[k] || (page.rev | 0) >= OUT.known[k].rev) OUT.known[k] = {v: page.v, rev: page.rev | 0};
+      if(kp === PROFILE && LOADED === PROFILE){ if(!isPlainObj(DB[part])) DB[part] = {}; DB[part][pg] = outClone(page.v); OUT.known[k].src = DB[part][pg]; }
+      outsideNotify(k, true, 'released');
+    }
     if(lost){ outsideRecSoon(); try { outsideWarn(); } catch(e){} }
   }, () => {});
 }
@@ -1727,7 +1753,7 @@ const HAS_LOCKS = (() => { try { return !!(window.isSecureContext && navigator.l
 let WRITER = HAS_LOCKS ? 'pending' : 'none';   // 'held' | 'other' (another tab has it) | 'pending' (asking) | 'none' (no Web Locks)
 let WRITER_FOR = '', WRITER_WHY = 'other', WRITE_WAITING = false, writerRelease = null, writerSeq = 0;
 const TAB_ID = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
-outsideTabAlive();
+if(OUT.parts.size) outsideTabAlive();   // a part registered before this line (none in practice)
 const writerName = p => NS + ':writer:' + p;
 let writerChan = null;
 try { if(HAS_LOCKS) writerChan = new BroadcastChannel(NS + ':writer'); } catch(e){ writerChan = null; }

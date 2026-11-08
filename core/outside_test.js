@@ -144,6 +144,16 @@ const stroke = n => ({t: 'pen', c: '#111111', w: 0.003, p: [0.1 * n, 0.2, 0.3, 0
       check(info.state === 'off' && !dbs.some(n => n.startsWith('exam-drill:')) && st && st.ink && same(st.ink.pg1.parts.work, [stroke(1)]),
         'none: with no part registered no database is opened and DB.ink stays inside the stored progress, as before', {state: info.state, dbs, stored: !!(st && st.ink)});
       check(!errors.length, 'none: no page error', errors);
+      const locks = await p.evaluate(() => navigator.locks && navigator.locks.query ? navigator.locks.query().then(q => (q.held || []).concat(q.pending || []).map(l => l.name)) : []);
+      check(!locks.some(n => n.startsWith('exam-drill-tab:')), 'none: with no part registered the page holds no tab lock (the ninth review of #81, C1)', locks);
+      await ctx.close();
+    }
+    {
+      const ctx = await newCtx("try { Object.defineProperty(navigator, 'locks', {value: undefined, configurable: true}); } catch(e){}");
+      const {page: p} = await open(ctx, L.PAGE.PAGE);
+      await put(p, {pg1: {parts: {work: [stroke(1)]}, room: {}, at: 1}});
+      const keys = await p.evaluate(() => Object.keys(localStorage).filter(k => k.includes(':tab-alive:')));
+      check(!keys.length, 'none, without Web Locks: with no part registered the page writes no tab-alive heartbeat (C1)', keys);
       await ctx.close();
     }
     // basic
@@ -986,6 +996,15 @@ const stroke = n => ({t: 'pen', c: '#111111', w: 0.003, p: [0.1 * n, 0.2, 0.3, 0
           await a.waitForFunction(() => Object.keys(OUT.held).every(k => (OUT.recState || {})[k] === 'saved' && OUT.recLast[k] !== undefined), null, {timeout: 5000}).catch(() => {});
           const back = (await recKeys(a)).some(k => k.endsWith('\u0001' + aTab));
           check(!!mid && back && !(await a.evaluate(() => outsideAtRisk())), 'R5: a tab whose recovery record was taken over finds it gone, and writes it again (then leaving is not at risk)', {mid: mid && {risk: mid.risk}, back});
+          // H1: the record taken over and its writing written as the page by the other tab (here put straight into the store,
+          // as that tab's write does): the returning tab drops its copy instead of writing it again
+          await b.evaluate(([tab, k, v]) => new Promise(res => { const t = OUT.db.transaction('parts', 'readwrite'); const st = t.objectStore('parts');
+            const r = st.getAllKeys(IDBKeyRange.bound('\u0002', '\u0003')); r.onsuccess = () => { r.result.filter(x => String(x).endsWith('\u0001' + tab)).forEach(x => st.delete(x)); };
+            st.put({v, rev: 7, at: Date.now(), tab: 'other'}, k); t.oncomplete = res; }), [aTab, await a.evaluate(() => Object.keys(OUT.held)[0]), {parts: {work: [stroke(1), stroke(9)]}, room: {}, at: 9}]);
+          await a.evaluate(() => typeof outsideRecCheck === 'function' && outsideRecCheck()); await a.waitForTimeout(600);
+          const h1 = await a.evaluate(() => ({held: Object.keys(OUT.held).length, risk: outsideAtRisk(), screen: (DB.ink && DB.ink.r && DB.ink.r.parts.work.length) || 0}));
+          const h1rec = (await recKeys(a)).some(k => k.endsWith('\u0001' + aTab));
+          check(h1.held === 0 && !h1rec && !h1.risk && h1.screen === 2, 'H1: a returning tab whose kept writing the stored page already holds drops its copy, writes no record, and shows the stored page', {h1, h1rec});
         }
         await ctx.close();
       }

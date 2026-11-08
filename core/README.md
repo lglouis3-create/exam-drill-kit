@@ -404,7 +404,15 @@ With a part registered:
   was taken over all the same (frozen in the background, or its heartbeat refused by full storage)
   finds the record gone when it checks (every 30 s without Web Locks, and whenever the page is shown
   again), says its recovery copy is being saved, asks before leaving, and writes the record again; the
-  writing is then held by both tabs, and neither deletes it (the eighth review of #81, R5). Taken over,
+  writing is then held by both tabs, and neither deletes it (the eighth review of #81, R5). When the
+  stored page already holds that writing (the other tab wrote it), the returning tab drops its copy and
+  shows the stored page instead of writing the record again, so the copy cannot bring back a stroke
+  erased there since (the ninth review, H1). The tab lock and the heartbeat start with the first
+  `registerOutside`: a course with no such module holds no tab lock and writes no heartbeat, as before
+  (the ninth review, C1). The tab lock is let go when the page goes into the back/forward cache and
+  taken again when it comes back; whether Chromium then keeps the page in that cache was not checked
+  (headless Chromium runs with the cache switched off), and every course holds the writer lock of its
+  progress (`<ns>:writer:<profile>`) all the same. Taken over,
   kept writing is checked against Erase marks; set-apart and unsure writing stays set apart. When a
   recovery record cannot be written (storage full), the writing is only in this tab's memory: the
   notice says so, offers Export, and leaving asks first. With the record saved, leaving does not ask.
