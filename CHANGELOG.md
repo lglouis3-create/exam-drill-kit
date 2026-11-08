@@ -2,6 +2,9 @@
 
 Dated kit changes, newest first.
 
+## 2026-11-06 (optional topics; depends on #70 and #62; waits for Louis)
+- A TOPICS entry may carry `optional: true`. Its questions stay in the bank and on their own topic (the topic's Start, each subtopic's Start, guide and atlas links), and the topic line shows an "Optional" label. They are left out of "Everything, adaptive" (filtered or not) and the count on Start practice, the pass of every question, the filtered pass, the exam pools (so exam papers, the exam-weighted pass, the pool cards on Weak spots, mark weights and the exam-day scheduling scope), What to review next and the mastered count, and a broad session's retry; a question card of the topic shows "Optional" instead of "Exam N · …". A course with no optional topic is unchanged. New check: `optional_test.js`. `test.js` fails a question of an optional topic that shares its `concept` with a question outside optional topics, since scheduling state is per concept (review of #72).
+
 ## 2026-11-06 (study pages, #70)
 - The Topics tab opens with a short Start here block: Learn a topic, Start practice, Review weak concepts, Practice exam (existing views only). The whole-bank passes move below the topic list.
 - On a narrow screen: a wide reading table keeps its first column in view while the rest scrolls, with a line that says which side has more columns; the tab bar shows a chevron on the side with more tabs and scrolls the opened tab into view; the tab bar no longer slides under a header that wraps to two lines.

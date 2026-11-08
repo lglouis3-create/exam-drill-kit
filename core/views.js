@@ -179,9 +179,12 @@ function matchesFilter(q){
   if(FILTER.tag  !== 'all' && !(q.types||[]).includes(FILTER.tag)) return false;
   return true;
 }
+/* A topic or subtopic set holds every question of it; with no topic named (Everything,
+   adaptive, the filtered pass, the count on Start practice) an optional topic is left
+   out (OPTIONAL_TOPICS, shell.html). */
 function poolFor(topicId, subId){
   return QUESTIONS.filter(q =>
-    (!topicId || q.topic === topicId) &&
+    (topicId ? q.topic === topicId : !isOptional(q)) &&
     (!subId   || q.sub   === subId)   &&
     matchesFilter(q));
 }
@@ -1323,7 +1326,8 @@ function renderTopics(){
 
   let h = `<h2>Pick a topic</h2>
   <p class="sub">${esc(EXAM.name)}: ${EXAM.questions} questions, ${EXAM.minutes} minutes${EXAM.date ? ', ' + esc(EXAM.date) : ''}.
-  ${EXAM.blurb ? esc(EXAM.blurb) + '. ' : ''}Question bank: ${QUESTIONS.length} across ${conceptsIn(QUESTIONS).length} concepts.
+  ${EXAM.blurb ? esc(EXAM.blurb) + '. ' : ''}Question bank: ${QUESTIONS.length} across ${conceptsIn(QUESTIONS).length} concepts${
+    requiredQs().length < QUESTIONS.length ? `, ${QUESTIONS.length - requiredQs().length} of them in optional topics outside ${esc(EXAM.name)}` : ''}.
   ${examCountdown() ? '<b>' + esc(examCountdown()) + '</b>' : ''}</p>
   ${startHere(poolFor(null, null).length)}
   <p class="stamp">Built ${esc(BUILD.stamp || '')}${(BUILD.changelog||[]).length ? ' · <a href="#" id="whatsnew">all changes</a>' : ''}</p>
@@ -1338,7 +1342,7 @@ function renderTopics(){
   // and samples the others in the paper's own proportion. Both whole-bank
   // passes come after the topic list: the Start here block above is the way in
   // for a first visit, and these are the advanced route.
-  const nAll = QUESTIONS.length, nFiltered = poolFor(null, null).length;
+  const REQ = requiredQs(), nAll = REQ.length, nFiltered = poolFor(null, null).length;
   const wp = weightedPool();
   // filters that select nothing: say why and offer to clear them, and offer no
   // Start, since every one would open an empty set or quietly ignore the filters
@@ -1350,7 +1354,7 @@ function renderTopics(){
       <small>Every question from the ${mainPool().marks}-mark pool, plus the other pools in the paper's ${EXAM.pools.map(p=>p.marks).join(' : ')} proportion. Shuffled, each once.</small></span>
       <button id="sweepWeighted">Start</button></div>
     <div class="subrow"><span class="sname"><b>All ${nAll} questions, one pass</b>
-      <small>Everything in the bank, shuffled, each asked once, nothing held back by scheduling</small></span>
+      <small>Everything in the bank${nAll < QUESTIONS.length ? ' outside the optional topics' : ''}, shuffled, each asked once, nothing held back by scheduling</small></span>
       <button id="sweepAll" class="ghost">Start</button></div>
     ${nFiltered < nAll ? `<div class="subrow"><span class="sname"><b>All ${nFiltered} under the current filters</b>
       <small>The same straight pass, limited to what the chips above select</small></span>
@@ -1362,9 +1366,11 @@ function renderTopics(){
     if(!pool.length) continue;
     const m = masteryOf(pool);
     const pct = m.total ? Math.round(100*m.mastered/m.total) : 0;
-    h += `<details class="topic"${t.open?' open':''}>
+    // an optional topic says so on its line, and that it is outside the active exam
+    h += `<details class="topic${t.optional ? ' optional' : ''}"${t.open?' open':''}>
       <summary>
-        <span class="tname">${esc(t.name)}<small>${esc(t.cite)}</small></span>
+        <span class="tname">${t.optional ? `<span class="lbl optional" data-optional>Optional</span> ` : ''}${esc(t.name)}<small>${esc(t.cite)}${
+          t.optional ? ` · optional practice, outside ${esc(EXAM.name)}: left out of Everything, the passes, exam papers and Weak spots` : ''}</small></span>
         ${profTag(t.prof)}
         <span class="meter"><i style="width:${pct}%"></i></span>
         <span class="counts">${m.mastered}/${m.total}</span>
@@ -1455,9 +1461,9 @@ function startQuiz(topicId, subId){
 const mainPool = () => EXAM.pools.reduce((a, b) => b.marks > a.marks ? b : a, EXAM.pools[0]);
 function weightedPool(){
   const main = mainPool();
-  const anchor = QUESTIONS.filter(main.test);
+  const anchor = requiredQs().filter(main.test);
   const rest = EXAM.pools.filter(p => p !== main).flatMap(p => {
-    const pool = QUESTIONS.filter(p.test);
+    const pool = requiredQs().filter(p.test);
     return drawN(pool, Math.min(pool.length, Math.round(anchor.length * p.marks / main.marks)));
   });
   return [...anchor, ...rest];
@@ -1465,7 +1471,7 @@ function weightedPool(){
 function startSweep(scope){
   const pool = scope === 'filtered' ? poolFor(null, null)
              : scope === 'weighted' ? weightedPool()
-             : QUESTIONS.slice();
+             : requiredQs().slice();
   if(!pool.length){ alert('No questions match those filters.'); return; }
   Q = {pool,
        label: scope === 'filtered' ? 'Every question under these filters'
@@ -1530,7 +1536,7 @@ const askedBefore = q => { const s = DB.concepts[q.concept]; return !!(s && s.as
    and the kind of thinking the question asks for. */
 function qLabel(q){
   const l = lecOf(q), k = skillOf(q);
-  return `${l ? `<span class="lbl">Exam ${l.exam} · ${esc(l.module)}</span>` : ''}<span class="lbl kind">${esc(SKILL_SHORT[k] || k)}</span>`;
+  return `${l && !isOptional(q) ? `<span class="lbl">Exam ${l.exam} · ${esc(l.module)}</span>` : ''}${isOptional(q) ? '<span class="lbl optional" data-optional>Optional</span>' : ''}<span class="lbl kind">${esc(SKILL_SHORT[k] || k)}</span>`;
 }
 /* Material that came from the lecture audio rather than a slide is marked
    wherever a citation is shown, in the quiz and in the exam review alike. */
@@ -1547,8 +1553,9 @@ function renderQuiz(){
     return;
   }
   if(!Q.current && Q.sweep){
-    const n = Q.repeat ? (Q.repeat === 'all' ? QUESTIONS.length : Q.pool.length) : Q.pool.length;
-    const whole = Q.pool.length >= QUESTIONS.length;
+    const nReq = requiredQs().length;
+    const n = Q.repeat ? (Q.repeat === 'all' ? nReq : Q.pool.length) : Q.pool.length;
+    const whole = Q.pool.length >= nReq;
     el.innerHTML = `<div class="empty">
       <p><b>That is every question in this set — ${n === 1 ? 'its 1 question' : `all ${n} of them`}.</b></p>
       <p style="margin:10px 0 16px">Everything you answered is recorded, so Weak spots now
@@ -1556,7 +1563,7 @@ function renderQuiz(){
       <p style="display:flex;gap:9px;flex-wrap:wrap;justify-content:center">
         <button class="btn" id="goGaps">See weak spots</button>
         <button class="btn ghost" id="goAgain">${Q.repeat === 'weighted' ? 'A new exam-weighted pass' : `Same ${n === 1 ? 'question' : 'questions'} again, reshuffled`} (${n})</button>
-        ${whole ? '' : `<button class="btn ghost" id="goWhole">Whole bank, one pass (${QUESTIONS.length})</button>`}
+        ${whole ? '' : `<button class="btn ghost" id="goWhole">Whole bank, one pass (${nReq})</button>`}
         <button class="btn ghost" onclick="show('topics')">Back to topics</button>
       </p></div>`;
     document.getElementById('goGaps').onclick = () => show('gaps');
@@ -1717,7 +1724,8 @@ function renderQuiz(){
   h += `</div></div>`;
   el.innerHTML = h;
 
-  el.querySelectorAll('.opt').forEach(b => b.onclick = () => multi ? toggleOption(+b.dataset.o) : answer(+b.dataset.o));
+  // only real answer buttons: a label inside the card (the Optional badge) is never an answer (ChatGPT review of #72)
+  el.querySelectorAll('button.opt[data-o]').forEach(b => b.onclick = () => multi ? toggleOption(+b.dataset.o) : answer(+b.dataset.o));
   const bc = $('#btnCheck'); if(bc) bc.onclick = submitMulti;
   const bn = $('#btnNext'); if(bn) bn.onclick = () => { Q.answered++; Q.lastId = Q.current.id; nextQuestion(); };
   wireConfidence();
@@ -1946,7 +1954,8 @@ function renderGaps(){
   // the answer log stores only "not sure" (conf 'shaky') and a guess (result 'guessed');
   // every other right answer counts as "Knew it", an exam paper's too (it asks no rating)
   const knew = right - shaky;
-  const m = masteryOf(QUESTIONS);
+  // mastered, What to review next and the pool cards count the exam's questions only
+  const m = masteryOf(requiredQs());
 
   let h = `<h2>Weak spots</h2>
   <p class="sub">Every answer you have logged, weighted by what it is worth on the paper.</p>
@@ -2003,7 +2012,7 @@ function renderGaps(){
     const r = (recent[q.id] || []).slice(-3);
     return r.length ? r.filter(solidEntry).length / r.length : null;
   };
-  const notSolid = QUESTIONS.filter(q => { const s = scoreOf(q); return s !== null && s < 1; });
+  const notSolid = requiredQs().filter(q => { const s = scoreOf(q); return s !== null && s < 1; });
   const topicName = id => (TOPICS.find(t => t.id === id) || {}).name || id;
   const areas = {};
   notSolid.forEach(q => {
@@ -2461,7 +2470,7 @@ function bpCat(q){
   return bp.rest || 'other';
 }
 function drawBlueprint(bp){
-  const elig = QUESTIONS.filter(q => !q.lowYield && !q.type);
+  const elig = requiredQs().filter(q => !q.lowYield && !q.type);
   const by = {};
   elig.forEach(q => (by[bpCat(q)] ||= []).push(q));
   // `used` holds the families on the paper (familyOf), the same rule as drawN
@@ -2503,7 +2512,7 @@ function drawBlueprint(bp){
 function drawPaper(){
   if(EXAM.blueprint && Array.isArray(EXAM.blueprint.parts) && EXAM.blueprint.parts.length)
     return drawBlueprint(EXAM.blueprint);
-  const examQ = QUESTIONS.filter(q => !q.lowYield && !q.type);
+  const examQ = requiredQs().filter(q => !q.lowYield && !q.type);
   const total = EXAM.pools.reduce((n, p) => n + p.marks, 0) || 1;
   const main = mainPool();
   let sataLeft = EXAM_SATA;
@@ -2611,7 +2620,7 @@ function renderExamQ(){
     <button class="btn ghost" id="exEnd">${answered < EX.qs.length ? 'Submit what I have answered' : 'Submit paper'}</button>
   </div></div>`;
   el.innerHTML = h;
-  el.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+  el.querySelectorAll('button.opt[data-o]').forEach(b=>b.onclick=()=>{
     const oi = +b.dataset.o;
     if(multi){ const p = EX.picks[EX.i]; EX.picks[EX.i] = p.includes(oi) ? p.filter(x=>x!==oi) : [...p, oi]; }
     else EX.picks[EX.i] = oi;
