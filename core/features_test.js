@@ -231,21 +231,15 @@ const ALL = {'fx-probe': {version: 'v1', word: 'zz-word'}, 'fx-probe-throws': {v
     const real = await page.evaluate(() => { const before = window.__probe.paperCalls || 0; drawPaper(); return (window.__probe.paperCalls || 0) - before; });
     check(real === 1, `a paper drawn after the sampling still runs the paper hook once (${real})`, real);
     // the hook contract: a paper of the same length, the same questions reordered or other questions in
-    // their place (paper-picker), is the paper; another length, or an entry that is not a question, is refused
+    // their place (paper-picker), is the paper (a refused result is checked last: it switches the module off)
     const contract = await page.evaluate(() => {
       const out = {};
       window.__paperMode = 'replace'; const r = drawPaper().map(q => q.id); out.replace = {got: r, want: window.__probe.replaced};
-      window.__paperMode = 'short'; const drawnS = () => window.__probe.paper; const s = drawPaper().map(q => q.id); out.short = {got: s, drawn: drawnS()};
-      window.__paperMode = 'junk'; const j = drawPaper(); out.junk = {got: j.map(q => q && q.id), drawn: window.__probe.paper};
       window.__paperMode = 'reverse';
       return out;
     });
     check(contract.replace.want && contract.replace.want.length && JSON.stringify(contract.replace.got) === JSON.stringify(contract.replace.want),
           'a paper hook may put other questions in place (same length): its paper is the one drawn', contract.replace);
-    check(JSON.stringify(contract.short.got) === JSON.stringify(contract.short.drawn),
-          'a paper hook that returns another length is refused, and the drawn paper is kept', contract.short);
-    check(JSON.stringify(contract.junk.got) === JSON.stringify(contract.junk.drawn),
-          'a paper hook that returns an entry that is not a question is refused, and the drawn paper is kept', contract.junk);
     // a draw that throws during the sampling still clears the flag: the next real paper runs the hook
     const thrown = await page.evaluate(() => {
       const keep = drawPaper; let n = 0;
@@ -295,6 +289,13 @@ const ALL = {'fx-probe': {version: 'v1', word: 'zz-word'}, 'fx-probe-throws': {v
     await page.click('#nav button[data-v="probe"]');
     check(await page.evaluate(() => (document.getElementById('probeTab') || {}).textContent === 'probe tab zz-word 1'),
           'the other modules keep working');
+    // a paper hook that returns another length is refused: the drawn paper is kept and the module is
+    // switched off, like any module whose hook throws (last, since fx-probe is off afterwards)
+    const short = await page.evaluate(() => { window.__paperMode = 'short'; const got = drawPaper().map(q => q.id);
+      return {got, drawn: window.__probe.paper, on: FX.modules().find(m => m.name === 'fx-probe').on,
+              err: FX.errors.filter(e => e.module === 'fx-probe').map(e => e.where)}; });
+    check(JSON.stringify(short.got) === JSON.stringify(short.drawn) && short.on === false && short.err.includes('paper'),
+          'a paper hook that returns another length is refused: the drawn paper is kept and the module is switched off', short);
     check(!errors.length, 'no page error', errors.slice(0, 3).join(' | '));
     await ctx.close();
   } finally {
