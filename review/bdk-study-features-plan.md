@@ -51,6 +51,17 @@ scheduled task is created or changed. Each feature is built once, as a kit modul
 `features/`; BDK's move (F1-F18) then switches the module on for BDK instead of porting it a
 second time, and the F-numbers are kept for cross-reference.
 
+**What stays with BDK's move, not this plan.** BDK's own versions of glossary-tap (queue 18)
+and of flags, one-page layout and keyboard shortcuts (queue 21) stay with BDK's migration, as
+`review/porter-policy.md` §1 says: those queue items use Intro to Pharmacology's implementation
+only. They come under this plan only if Louis adds them, so they are not built twice.
+
+**What changes in `review/porter-policy.md` when a part is approved.** Policy §1 orders the
+porter's work (Intro to Pharmacology's 18-21, then the remaining Pharmacokinetics items) and
+names only those courses' sources. When Louis says yes to a part, the same change adds that
+part's items to §1's order and names their source, BDK `assets/app.js` (read-only). Until then
+§1 and the "Kit feature port" task are unchanged.
+
 **Part 1: searchable drug lists, first.** No new storage, no scheduling change.
 - `drug-list-tab` (queue 14, BDK F16): the course's own table data, a table per page or
   section, search and filter across all of it, hide and reveal of a field for recall. View
