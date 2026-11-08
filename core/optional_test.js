@@ -241,10 +241,13 @@ const ANSWER = right => {
           const afterBadge = {revealed: !!Q.revealed, picked: Q.picked === null || Q.picked === undefined ? null : String(Q.picked),
                               picks: Array.isArray(Q.picks) ? Q.picks.map(String) : null, log: (LOG || []).length - logN, answers: DB.answers.length - ansN};
           const btn = document.querySelector('#v-quiz button.opt[data-o]');
-          if(!btn) return {kind, badge: true, noOption: true, afterBadge};
-          btn.click();
-          if(kind === 'multi'){ const c = document.getElementById('btnCheck'); if(c) c.click(); }
-          const out = {kind, badge: true, planted: !!planted, afterBadge, recorded: DB.answers.length - ansN, revealed: !!Q.revealed};
+          let out;
+          if(!btn) out = {kind, badge: true, noOption: true, planted: !!planted, afterBadge};
+          else {
+            btn.click();
+            if(kind === 'multi'){ const c = document.getElementById('btnCheck'); if(c) c.click(); }
+            out = {kind, badge: true, planted: !!planted, afterBadge, recorded: DB.answers.length - ansN, revealed: !!Q.revealed};
+          }
           // a planted question and its answer leave no trace: the bank, the progress and the history as they were
           if(planted){
             QUESTIONS.splice(QUESTIONS.indexOf(planted), 1); DB = JSON.parse(keepDB); LOG = JSON.parse(keepLog);
@@ -254,7 +257,7 @@ const ANSWER = right => {
           return out;
         }, [info.ids, kind]);
         if(!r){ L.skip(`the Optional badge on a ${kind === 'multi' ? 'select-all' : 'single-answer'} question`,
-          kind === 'multi' ? 'no optional select-all question, and none to plant from (no optional question with 3 or more options)' : 'no optional question of that kind in this course'); continue; }
+          kind === 'multi' ? 'no optional select-all question, and none to plant from (no optional question with option buttons and 3 or more options)' : 'no optional single-answer question with option buttons in this course (a calculation question has none)'); continue; }
         const how = r.planted ? ' (a question planted for this check)' : '';
         check(r.badge, `the ${r.kind} optional question card shows the Optional badge`, r);
         if(!r.badge) continue;
