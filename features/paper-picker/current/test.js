@@ -59,7 +59,7 @@ const sameIds = (a, b) => a.length === b.length && a.every((x, i) => x === b[i])
 (async () => {
   console.log('\n=== the course\'s own exams ===');
   L.PAGE.need(NAME);
-  const X = L.engine('({COURSE, QUESTIONS, EXAM, FX: typeof FX === "undefined" ? null : FX, lecOf, familyOf, poolFilter, isMulti})');
+  const X = L.engine('({COURSE, QUESTIONS, EXAM, FX: typeof FX === "undefined" ? null : FX, lecOf, familyOf, poolFilter, isMulti, OPTIONAL_TOPICS: typeof OPTIONAL_TOPICS === "undefined" ? null : OPTIONAL_TOPICS})');
   const S = X.FX && X.FX.api('paper-picker');
   if(!check(!!S, 'the page carries paper-picker, working', JSON.stringify((X.FX && X.FX.errors) || 'no feature modules in the page'))) L.finish(NAME);
   const n = X.EXAM.questions;
@@ -135,6 +135,55 @@ const sameIds = (a, b) => a.length === b.length && a.every((x, i) => x === b[i])
           `${e.name}: a pool with one single-answer question too few gives its share with one select-all question more, from its own questions`, {perT, sh});
   }
   check(S.drawFor(X.EXAM, X.QUESTIONS.length + 1) === null, 'a paper longer than the pools can fill is not drawn');
+
+  // optional topics: the core's papers leave them out (requiredQs), so a paper drawn for another exam does too.
+  // The smallest topic that still leaves another exam a full paper is marked optional here, in the page's own set,
+  // for this check only, so a paper is drawn and read.
+  {
+    const cands = [];
+    if(X.OPTIONAL_TOPICS) for(const e of X.COURSE.exams.filter(x => x !== X.EXAM && S.room(x, n) >= n)){
+      const tops = {};
+      S.drawFor(e, n) && X.QUESTIONS.forEach(q => { if(q.topic) tops[q.topic] = (tops[q.topic] || 0) + 1; });
+      for(const [t] of Object.entries(tops).sort((a, b) => a[1] - b[1])){
+        // a full paper must still be drawn (room alone is not enough: two wordings of one fact can leave a pool short)
+        X.OPTIONAL_TOPICS.add(t); const ok = [0, 1, 2].every(() => S.drawFor(e, n) !== null); X.OPTIONAL_TOPICS.delete(t);
+        if(ok){ const inPools = e.pools.map(p => X.poolFilter(p.filter)); if(X.QUESTIONS.some(q => q.topic === t && inPools.some(f => f(q)))){ cands.push([e, t]); break; } }
+      }
+      if(cands.length) break;
+    }
+    if(!X.OPTIONAL_TOPICS) L.skip('a paper for another exam leaves out optional topics', 'the core has no OPTIONAL_TOPICS');
+    else if(!cands.length) L.skip('a paper for another exam leaves out optional topics', 'no topic of another exam\'s pools can be left out with a full paper still drawn');
+    else {
+      const [e, t] = cands[0];
+      X.OPTIONAL_TOPICS.add(t);
+      const papers = [0, 1, 2, 3, 4].map(() => S.drawFor(e, n));
+      X.OPTIONAL_TOPICS.delete(t);
+      const back = S.drawFor(e, n);
+      check(papers.every(d => Array.isArray(d) && d.length === n && d.every(q => q.topic !== t)),
+            `on 5 papers drawn for ${e.name} with its topic ${t} marked optional, none of that topic's questions is drawn`, papers.map(d => d && d.filter(q => q.topic === t).length));
+      check(Array.isArray(back), `and with ${t} no longer optional, a paper for ${e.name} is drawn again`);
+    }
+  }
+  // chained-problem-sets on: drawFor's shuffled paper is put in the problem sets' order. A test-only exam whose one pool
+  // is a set's topic, for a paper of as many questions as the set has parts, draws exactly that set.
+  {
+    const C = X.FX.api('chained-problem-sets'), sets = C && typeof C.sets === 'function' ? C.sets() : [];
+    const set = sets.find(c => c.parts.length > 1 && c.parts.every(id => X.QUESTIONS.some(q => q.id === id)));
+    if(!C) L.skip('a paper for another exam keeps a problem set\'s parts together, in order', 'this course does not switch on chained-problem-sets');
+    else if(!set) L.skip('a paper for another exam keeps a problem set\'s parts together, in order', 'no problem set of two or more parts is in the bank');
+    else {
+      const qs = set.parts.map(id => X.QUESTIONS.find(q => q.id === id)), topics = [...new Set(qs.map(q => q.topic))];
+      const e = {id: 'pp-test-set', name: 'a test-only exam of one problem set', sata: 0, pools: [{marks: 1, filter: {topic: topics}}]};
+      const k = qs.length, drawable = q => !q.lowYield && (!q.type || X.EXAM.typed), all = X.QUESTIONS.filter(q => topics.includes(q.topic) && drawable(q));
+      if(qs.some(q => !drawable(q))) L.skip('a paper for another exam keeps a problem set\'s parts together, in order',
+        `NOT RUN: ${qs.filter(q => !drawable(q)).length} of the set's ${k} parts (${set.id}) are typed items (type ${[...new Set(qs.filter(q => q.type).map(q => q.type))].join(', ')}), which this course's exams do not draw (exams[].typed off), so no paper can hold them`);
+      else if(all.length !== k) L.skip('a paper for another exam keeps a problem set\'s parts together, in order', `the set's topic holds ${all.length} drawable questions, not only its ${k} parts`);
+      else {
+        const orders = [0, 1, 2, 3, 4, 5, 6, 7].map(() => (S.drawFor(e, k) || []).map(q => q.id).join(','));
+        check(orders.every(o => o === set.parts.join(',')), `on 8 papers drawn for ${e.name} (${set.id}, ${k} parts), the parts come in the set's order`, [...new Set(orders)]);
+      }
+    }
+  }
 
   console.log('\n=== the build step: which exams get a chip ===');
   const two = "COURSE.exams = [COURSE.exams.find(e => e.id === COURSE.activeExam) || COURSE.exams[0]]; COURSE.exams.push(Object.assign(JSON.parse(JSON.stringify(COURSE.exams[0])), {id: 'pp-other', name: 'Other paper'}));";
@@ -245,6 +294,9 @@ const sameIds = (a, b) => a.length === b.length && a.every((x, i) => x === b[i])
           `the page says the paper is drawn at ${E2.name}'s blueprint, with its ${E2.pools.length} pools, their ${E2.pools.map(p => p.marks).join('/')} split and what the bank holds (${b2.per.join('/')})`,
           {rows: p1.rows, cells: p1.cells, inBank: p1.inBank, bank: b2.per});
     check(p1.text.includes(E2.blurb.slice(0, 60)), `and shows ${E2.name}'s own blurb`);
+    check(!p1.text.includes(`blueprint of ${E3.name}`), `and no sentence of the engine's about ${E3.name}'s paper ("blueprint of ${E3.name}")`);
+    check(E2.sata ? p1.text.includes(`The draw aims for ${E2.sata} of the ${N} to be select-all`) && !/About \d+ of the/.test(p1.text) : !/select-all/.test(p1.text.split('This paper:')[1] || ''),
+          `the select-all count is stated as the draw's aim (${E2.sata || 0}), not as a fact about the paper`);
     check(p1.text.includes(`follow ${E3.name}, the course's current exam`), 'and says Topics, Weak spots and the weighted pass follow the current exam');
     await page.click('#startExam');
     const r1 = await ev(() => ({n: EX.qs.length, ids: EX.qs.map(q => q.id), mods: EX.qs.map(q => (lecOf(q) || {}).module), running: EX.running,

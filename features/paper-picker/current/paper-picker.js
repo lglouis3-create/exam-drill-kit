@@ -78,7 +78,8 @@ const testOf = p => p.test || (p.test = poolFilter(p.filter || {}));
 /* The questions in each pool of exam e: a question belongs to the first pool it matches. */
 function poolsOf(e){
   const out = e.pools.map(p => ({pool: p, qs: []}));
-  for(const q of QUESTIONS){
+  // the core's papers leave out optional topics (shell.html requiredQs); so does this draw
+  for(const q of (typeof requiredQs === 'function' ? requiredQs() : QUESTIONS)){
     if(!drawable(q)) continue;
     const i = e.pools.findIndex(p => testOf(p)(q));
     if(i >= 0) out[i].qs.push(q);
@@ -120,7 +121,10 @@ function drawFor(e, n){
   });
   // two wordings of one fact can leave a pool short: top up from the exam's other pools
   if(out.length < n) out.push(...drawN(by.flatMap(x => x.qs), n - out.length, used));
-  return out.length === n ? shuffle(out) : null;
+  if(out.length !== n) return null;
+  // the parts of one problem set sit together, in its order, as chained-problem-sets' own hook puts them
+  const C = typeof FX !== 'undefined' && FX.api && FX.api('chained-problem-sets'), mixed = shuffle(out);
+  return C && typeof C.paperOrder === 'function' ? C.paperOrder(mixed) : mixed;
 }
 X.paper(qs => {
   const e = chosen();
@@ -202,7 +206,7 @@ function otherHTML(e, n){
     its pools can supply ${have} of the ${n}. Until it holds more, a paper started here is drawn for ${esc(EXAM.name)},
     as described below.</div>${table}</div>`;
   return `<div data-pp="other"><p class="sub">This paper: ${n} questions drawn at the blueprint of ${esc(e.name)}${e.blurb ? ' — ' + esc(e.blurb) : ''} — ${clock}.
-  About ${e.sata || 0} of the ${n} are select-all, marked all-or-nothing. No explanations until you finish, same as the real thing.</p>${table}</div>`;
+  ${e.sata ? `The draw aims for ${e.sata} of the ${n} to be select-all, as many as each pool holds, marked all-or-nothing. ` : ''}No explanations until you finish, same as the real thing.</p>${table}</div>`;
 }
 
 /* While a paper runs: which exam it was drawn for, from the paper itself (its
@@ -232,7 +236,8 @@ X.rendered((pane, view) => {
   h2.insertAdjacentHTML('afterend', `<div data-pp="done">${pickerHTML(NOTE())}</div>`);
   const e = chosen(), n = typeof EXAM.questions === 'number' ? EXAM.questions : 0;
   if(e !== EXAM && n){
-    const sub = pane.querySelector('p.sub:not([data-pp])');
+    // the engine's description of the current exam's paper ("... drawn at the blueprint of <exam>"), found by what it says
+    const sub = [...pane.querySelectorAll('p')].find(x => !x.closest('[data-pp]') && x.textContent.includes('blueprint of ' + EXAM.name));
     if(sub && room(e, n) >= n) sub.remove();
     pane.querySelector('[data-pp="done"]').insertAdjacentHTML('beforeend', otherHTML(e, n));
   }
