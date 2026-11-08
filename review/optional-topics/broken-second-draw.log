@@ -1,0 +1,51 @@
+  browser  Chromium started
+  ok    the course's own page (no optional topic) shows no Optional label
+  ok    "Everything" holds every question (7 of 7)
+  ok    the pass of every question holds all 7
+  ok    the Topics header names no optional topics
+  ok    no page error on the course's own page
+  ok    the scratch copy builds
+  optional topic: topic1 (3 of 7 questions)
+  ok    Topics shows the optional topic with a visible "Optional" label
+  ok    no other topic carries the label
+  ok    the label is on the topic line, visible with the topic closed
+  ok    "Everything, adaptive" starts from its Topics button
+  ok    "Everything, adaptive" (no filter) holds no optional question
+  ok    the adaptive runner served 200 picks
+  ok    none of 200 adaptive picks is an optional question
+  ok    "Everything" filtered to Professor holds no optional question
+  ok    "Everything, adaptive" filtered to Professor starts with no optional question
+  ok    none of 60 filtered adaptive picks is an optional question
+  ok    the filtered pass holds no optional question
+  ok    the pass of every question holds no optional question
+  ok    the pass of every question holds every other question (4 of 4)
+  ok    the exam-weighted pass starts without an error
+  ok    the exam-weighted pass (4) holds no optional question
+  FAIL  every one of 20 exam-paper draws completes without an error  — {"pErr":"draw 2: broken copy: the second draw throws","draws":1}
+  FAIL  the course sets a question count: all 20 draws complete and none is empty (1 drawn, 0 empty)
+  ok    20 drawn exam papers (1 items) hold no optional question
+  ok    an optional question card carries no "Exam N" label
+  ok    an optional question card says "Optional"
+  ok    a card of another topic keeps its exam label
+  ok    the single optional question card shows the Optional badge
+  ok    tapping the Optional badge on an unrevealed single-answer question changes nothing (not revealed, nothing picked, nothing recorded)
+  ok    then a real answer on that question records once and reveals it
+  ok    no page error from tapping the badge (single)
+  skip  the Optional badge on a select-all question  — no optional question of that kind in this course
+  ok    the mastered count is over the 4 concepts outside the optional topic
+  ok    What to review next counts the 4 not-solid questions outside the optional topic
+  ok    "Drill all not-solid" holds no optional question
+  ok    What to review next's section drills (4 items) hold no optional question
+  ok    What to review next shows 2 section(s)
+  ok    What to review next shows no optional question
+  ok    each pool card counts only the concepts outside the optional topic
+  ok    the pool cards' buttons (4 items) start no optional question
+  ok    the topic's own Start holds all 3 of its questions
+  ok    the adaptive runner on the topic serves one of its questions
+  ok    each subtopic's Start holds its questions
+  ok    the topic's drill keeps to its questions (1 answered)
+  ok    no page error on the scratch page
+  ok    test.js reports that the optional topic shares no concept with the rest of the bank
+  ok    the copy with a shared concept builds
+  ok    test.js fails a question of an optional topic that shares its concept with a required question
+FAIL: optional_test.js: 2 of 47 checks failed: every one of 20 exam-paper draws completes without an error; the course sets a question count: all 20 draws complete and none is empty (1 drawn, 0 empty)

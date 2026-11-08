@@ -169,18 +169,28 @@ const ANSWER = right => {
         FILTER.prof = FILTER.tier = FILTER.tag = 'all';
         out.all = (startSweep('all'), Q.sweep.slice());
         out.weighted = [];
-        if(document.getElementById('sweepWeighted') || true){ try { startSweep('weighted'); out.weighted = Q.sweep.slice(); } catch(e){ out.wErr = e.message; } }
-        out.papers = [];
-        for(let i = 0; i < 20; i++){ try { out.papers.push(...drawPaper().map(q => q.id)); } catch(e){ out.pErr = e.message; break; } }
+        try { startSweep('weighted'); out.weighted = Q.sweep.slice(); } catch(e){ out.wErr = String(e && e.message || e); }
+        // a course that sets a question count (or a blueprint) draws a paper; one that does not draws an empty one
+        out.configured = !!(EXAM.blueprint && Array.isArray(EXAM.blueprint.parts) && EXAM.blueprint.parts.length) ||
+          EXAM.pools.some(p => typeof p.marks === 'number' && p.marks > 0);
+        out.papers = []; out.draws = 0; out.empty = 0;
+        for(let i = 0; i < 20; i++){
+          try { const ids = drawPaper().map(q => q.id); out.papers.push(...ids); out.draws++; if(!ids.length) out.empty++; }
+          catch(e){ out.pErr = `draw ${i + 1}: ` + String(e && e.message || e); break; }
+        }
         out.required = QUESTIONS.length;
         return out;
       });
       none(passes.filtered, 'the filtered pass holds no optional question');
       none(passes.all, 'the pass of every question holds no optional question');
       check(passes.all.length === info.n - info.ids.length, `the pass of every question holds every other question (${passes.all.length} of ${info.n - info.ids.length})`);
+      check(!passes.wErr, 'the exam-weighted pass starts without an error', passes.wErr);
       none(passes.weighted, `the exam-weighted pass (${passes.weighted.length}) holds no optional question`);
-      if(passes.papers.length) none(passes.papers, `20 drawn exam papers (${passes.papers.length} items) hold no optional question`);
-      else L.skip('exam papers', passes.pErr || 'the paper draws no items on this course');
+      check(!passes.pErr, 'every one of 20 exam-paper draws completes without an error', {pErr: passes.pErr, draws: passes.draws});
+      if(passes.configured){
+        check(passes.draws === 20 && passes.empty === 0, `the course sets a question count: all 20 draws complete and none is empty (${passes.draws} drawn, ${passes.empty} empty)`);
+        none(passes.papers, `20 drawn exam papers (${passes.papers.length} items) hold no optional question`);
+      } else if(!passes.pErr) L.skip('exam papers', `the course sets no question count, so a paper draws no items (${passes.draws} empty draws)`);
 
       // question cards: no exam label on an optional question
       const lbl = await page.evaluate(ids => {
@@ -197,6 +207,36 @@ const ANSWER = right => {
       check(lbl.opt.includes('Optional'), 'an optional question card says "Optional"', lbl.opt);
       if(lbl.other) check(lbl.other.some(t => /^Exam\b/.test(t)) && !lbl.other.includes('Optional'), 'a card of another topic keeps its exam label', lbl.other);
       else L.skip('another card keeps its exam label', 'no question names a lecture deck');
+
+      // the Optional badge is a label, not an answer: tapping it on an unrevealed optional question
+      // records nothing, and a real answer afterwards records as usual (ChatGPT review of #72)
+      for(const kind of ['single', 'multi']){
+        const before = errors.length;
+        const r = await page.evaluate(([ids, kind]) => {
+          const q = QUESTIONS.find(x => ids.includes(x.id) && (kind === 'multi' ? isMulti(x) : !isMulti(x)));
+          if(!q) return null;
+          Q = {pool: [q], label: 'check', sweep: [q.id], i: 0, current: null, answered: 0, lastId: null, examMode: false, picked: null, revealed: false};
+          nextQuestion(); show('quiz');
+          const logN = (LOG || []).length, ansN = DB.answers.length;
+          const badge = [...document.querySelectorAll('#v-quiz .lbl')].find(e => e.textContent.trim() === 'Optional');
+          if(!badge) return {kind, badge: false};
+          badge.click();
+          const afterBadge = {revealed: !!Q.revealed, picked: Q.picked === null || Q.picked === undefined ? null : String(Q.picked),
+                              picks: Array.isArray(Q.picks) ? Q.picks.map(String) : null, log: (LOG || []).length - logN, answers: DB.answers.length - ansN};
+          const btn = document.querySelector('#v-quiz button.opt[data-o]');
+          btn.click();
+          if(kind === 'multi'){ const c = document.getElementById('btnCheck'); if(c) c.click(); }
+          return {kind, badge: true, afterBadge, recorded: DB.answers.length - ansN, revealed: !!Q.revealed};
+        }, [info.ids, kind]);
+        if(!r){ L.skip(`the Optional badge on a ${kind === 'multi' ? 'select-all' : 'single-answer'} question`, `no optional question of that kind in this course`); continue; }
+        check(r.badge, `the ${r.kind} optional question card shows the Optional badge`, r);
+        if(!r.badge) continue;
+        const a = r.afterBadge;
+        check(!a.revealed && a.picked === null && !(a.picks || []).some(x => x === 'NaN') && a.log === 0 && a.answers === 0,
+          `tapping the Optional badge on an unrevealed ${r.kind === 'multi' ? 'select-all' : 'single-answer'} question changes nothing (not revealed, nothing picked, nothing recorded)`, a);
+        check(r.recorded === 1 && r.revealed, `then a real answer on that question records once and reveals it`, r);
+        check(errors.length === before, `no page error from tapping the badge (${r.kind})`, errors.slice(before).join(' | '));
+      }
 
       // Weak spots, after every question in the bank is answered wrong once
       await page.evaluate(() => {

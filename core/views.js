@@ -1369,7 +1369,7 @@ function renderTopics(){
     // an optional topic says so on its line, and that it is outside the active exam
     h += `<details class="topic${t.optional ? ' optional' : ''}"${t.open?' open':''}>
       <summary>
-        <span class="tname">${t.optional ? `<span class="lbl opt" data-optional>Optional</span> ` : ''}${esc(t.name)}<small>${esc(t.cite)}${
+        <span class="tname">${t.optional ? `<span class="lbl optional" data-optional>Optional</span> ` : ''}${esc(t.name)}<small>${esc(t.cite)}${
           t.optional ? ` · optional practice, outside ${esc(EXAM.name)}: left out of Everything, the passes, exam papers and Weak spots` : ''}</small></span>
         ${profTag(t.prof)}
         <span class="meter"><i style="width:${pct}%"></i></span>
@@ -1536,7 +1536,7 @@ const askedBefore = q => { const s = DB.concepts[q.concept]; return !!(s && s.as
    and the kind of thinking the question asks for. */
 function qLabel(q){
   const l = lecOf(q), k = skillOf(q);
-  return `${l && !isOptional(q) ? `<span class="lbl">Exam ${l.exam} · ${esc(l.module)}</span>` : ''}${isOptional(q) ? '<span class="lbl opt">Optional</span>' : ''}<span class="lbl kind">${esc(SKILL_SHORT[k] || k)}</span>`;
+  return `${l && !isOptional(q) ? `<span class="lbl">Exam ${l.exam} · ${esc(l.module)}</span>` : ''}${isOptional(q) ? '<span class="lbl optional" data-optional>Optional</span>' : ''}<span class="lbl kind">${esc(SKILL_SHORT[k] || k)}</span>`;
 }
 /* Material that came from the lecture audio rather than a slide is marked
    wherever a citation is shown, in the quiz and in the exam review alike. */
@@ -1724,7 +1724,8 @@ function renderQuiz(){
   h += `</div></div>`;
   el.innerHTML = h;
 
-  el.querySelectorAll('.opt').forEach(b => b.onclick = () => multi ? toggleOption(+b.dataset.o) : answer(+b.dataset.o));
+  // only real answer buttons: a label inside the card (the Optional badge) is never an answer (ChatGPT review of #72)
+  el.querySelectorAll('button.opt[data-o]').forEach(b => b.onclick = () => multi ? toggleOption(+b.dataset.o) : answer(+b.dataset.o));
   const bc = $('#btnCheck'); if(bc) bc.onclick = submitMulti;
   const bn = $('#btnNext'); if(bn) bn.onclick = () => { Q.answered++; Q.lastId = Q.current.id; nextQuestion(); };
   wireConfidence();
@@ -2619,7 +2620,7 @@ function renderExamQ(){
     <button class="btn ghost" id="exEnd">${answered < EX.qs.length ? 'Submit what I have answered' : 'Submit paper'}</button>
   </div></div>`;
   el.innerHTML = h;
-  el.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+  el.querySelectorAll('button.opt[data-o]').forEach(b=>b.onclick=()=>{
     const oi = +b.dataset.o;
     if(multi){ const p = EX.picks[EX.i]; EX.picks[EX.i] = p.includes(oi) ? p.filter(x=>x!==oi) : [...p, oi]; }
     else EX.picks[EX.i] = oi;
