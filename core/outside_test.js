@@ -632,6 +632,10 @@ const stroke = n => ({t: 'pen', c: '#111111', w: 0.003, p: [0.1 * n, 0.2, 0.3, 0
       // B's own later mark (it erases another page itself) must not hide A's earlier one
       if(opts.ownLaterMark) await b.evaluate(() => outsideRemove('ink', 'zz'));
       await a.close();
+      // V13: B draws on the page after the Erase, before it takes the profile
+      if(opts.lateStroke){ await b.evaluate(s => { DB.ink.s = {parts: {work: [s[0], s[1], s[2]]}, room: {}, at: 3}; save(); }, [stroke(1), stroke(2), stroke(3)]); await b.waitForTimeout(300); }
+      // V12: a module listens for its pages
+      await b.evaluate(() => { window.__ev = []; onOutside(e => { if(e && e.event) window.__ev.push(e.page + ':' + e.event); }); });
       await b.evaluate(() => takeOver(false));
       await b.waitForFunction(() => WRITER === 'held', null, {timeout: 8000}).catch(() => {});
       await ready(b); await b.waitForTimeout(800);
@@ -712,6 +716,54 @@ const stroke = n => ({t: 'pen', c: '#111111', w: 0.003, p: [0.1 * n, 0.2, 0.3, 0
         const d = document.getElementById('outwarn'); return d ? d.textContent : ''; });
       check(/were not told of this erase/.test(said), 'marks: an Erase whose mark the browser refuses tells the student the other tabs were not told', said.slice(0, 120));
       await ctx.close();
+    }
+    // the fifth review of #81 at 7f359e7: V12 (module events), V13 (late strokes named), V11 (Export carries set-apart writing)
+    {
+      const r = await v3({erase: 'profile'});
+      if(r){
+        const {ctx, b} = r;
+        const ev1 = await b.evaluate(() => window.__ev.slice());
+        check(ev1.includes('s:parked'), 'V12: a page set apart sends the module an event ("parked") so it reloads its own copy of the page', ev1);
+        await b.evaluate(() => show('settings'));
+        let file = {db: {}};
+        if(await b.$('#btnExport')){ const [dl] = await Promise.all([b.waitForEvent('download'), b.click('#btnExport')]); file = JSON.parse(fs.readFileSync(await dl.path(), 'utf8')); }
+        check(strokesOf(file.db.ink || {}, 's').length === 2, 'V11: Export progress for the profile on screen carries the writing set apart from before the Erase', file.db.ink && Object.keys(file.db.ink));
+        await clickIf(b, '#outwarn [data-outadd]'); await settled(b, ['s']);
+        const ev2 = await b.evaluate(() => window.__ev.slice());
+        check(ev2.includes('s:released'), 'V12: Add it back sends the module a "released" event for the page', ev2);
+        await reload(b);
+        check(strokesOf(await inkNow(b), 's').length === 2, 'V12: after Add it back and a reload, the page has both strokes', strokesOf(await inkNow(b), 's'));
+        await ctx.close();
+      }
+    }
+    {
+      const r = await v3({erase: 'profile', lateStroke: true});
+      if(r){
+        const {ctx, b} = r;
+        const n = await staleNotice(b);
+        check(!!n && /"s" \(2 strokes\)/.test(n.text) && /restores the writing from before the erase/.test(n.text) && /in this tab's memory/.test(n.text),
+          'V13: only the writing from before the Erase is set apart and named (2 strokes); Add it back says it restores writing from before the erase; the notice says it is only in memory', n && n.text.slice(0, 260));
+        await clickIf(b, '#outwarn [data-outdrop]');
+        await settled(b, ['s']);
+        await reload(b);
+        const got = strokesOf(await inkNow(b), 's');
+        check(got.length === 1 && got[0] === JSON.stringify(stroke(3)), 'V13: Leave it out deletes only the named writing: the stroke drawn after the Erase is stored (after a reload)', got);
+        await ctx.close();
+      }
+    }
+    // Export it removes nothing
+    {
+      const r = await v3({erase: 'profile'});
+      if(r){
+        const {ctx, b} = r;
+        if(await b.$('#outwarn [data-outexp]')){ await Promise.all([b.waitForEvent('download'), b.click('#outwarn [data-outexp]')]); }
+        await b.waitForTimeout(300);
+        const after = await b.evaluate(() => ({parked: Object.keys(OUT.parked).length, notice: !!document.querySelector('#outwarn .outstale')}));
+        check(after.parked === 1 && after.notice, 'Export it removes nothing: the writing stays set apart and named after the export', after);
+        await clickIf(b, '#outwarn [data-outadd]'); await settled(b, ['s']); await reload(b);
+        check(strokesOf(await inkNow(b), 's').length === 2, 'Export it removes nothing: Add it back afterwards still restores both strokes (after a reload)', strokesOf(await inkNow(b), 's'));
+        await ctx.close();
+      }
     }
     // the mark list stays bounded: past 100 marks the oldest become one whole-profile mark, which still sets apart
     {

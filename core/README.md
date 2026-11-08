@@ -376,7 +376,13 @@ With a part registered:
   way it is discarded, and only the pages it names). No dialog decides it. That writing is set apart from the page (`OUT.parked`):
   what the student writes on the page afterwards is a new value, and no write of the page changes or
   removes the set-apart writing; only Add it back, Leave it out or the student's own Erase releases it
-  (the fourth review of #81, S1). The page on screen drops it and reads the stored page again.
+  (the fourth review of #81, S1). The page on screen drops it and reads the stored page again. Only
+  what predates the Erase is set apart: the kept value as it was at the Erase (from its last 20 changes);
+  strokes drawn here since stay kept as new writing, and Leave it out never removes them (V13; with more
+  than 20 changes since, the notice says strokes drawn after the erase go too).
+- Saved or only in memory: writing that is refused, kept for a profile not yet written, or set apart is
+  held only in this tab's memory (`OUT.held`, `OUT.parked`). Leaving asks first, but a crash, the phone
+  ending the page, or leaving after confirming loses it; the notice says so and offers Export.
   Limits: the mark list keeps at most 100 marks; past that the oldest 50 become one mark of the whole
   profile at the latest of their times, which can set apart more writing than the marks it replaced,
   never less. When the browser refuses to store a mark (storage full), the student is told that other
@@ -397,6 +403,12 @@ With a part registered:
   Erase does not remove them from the database, so they come back on the next load on this core.
   Keep every tab of a course on one version (the "new version" card) before erasing or exporting.
 
+A module that keeps its own copy of a page (worksheets-ink's `INK.data`) must reload that page
+from `DB[part][page]` when `onOutside` reports `event: 'parked'` (its writing from before another tab's
+Erase was set apart and taken off the page) or `event: 'released'` (Add it back or Leave it out);
+otherwise its next save writes the set-apart strokes back without the student's choice (the fifth
+review of #81, V12). Export progress carries set-apart writing too.
+
 What a module calls (the API for worksheets-ink, #17). It must not delete pages with `delete
 DB.ink[...]` or `delete DB.ink` (a deletion of a page from `DB` is never written; it comes back on
 the next load), and must not decide what is saved by comparing `JSON.stringify(DB)` with the stored
@@ -404,7 +416,7 @@ progress (the ink is not in it):
 `registerOutside(part, {merge})`; `outsideReady()` (a Promise: the profile's pages are in `DB`;
 show a page only after it); `outsideState(part, page)` (`'saved'`, `'saving'`, `'unsaved'`,
 `'refused'`, `'failed'`, `'none'`; with the database unavailable the same states follow the
-progress's own write); `onOutside(fn)` (called with `{profile, part, page, state, merged}` after
+progress's own write); `onOutside(fn)` (called with `{profile, part, page, state, merged, event}` after
 each change of state, `null` after a load); `outsideRemove(part, page)`; `outsideClear(PROFILE,
 part)`. It writes a page by putting a new object in `DB[part][page]` and calling `save()`.
 

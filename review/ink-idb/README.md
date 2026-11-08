@@ -64,7 +64,21 @@ What replaces each place that holds ink inline today (the porter's list for #17)
   reviews of #81, N1, V3, Q1). Put back and Import do not count as an Erase. Writing the student
   adds to such a page afterwards is kept separately and never replaces it (S1). Marks are bounded (100;
   the oldest collapse into one whole-profile mark); a refused mark is reported; an Erase on an earlier
-  core, or with the module off, writes no mark.
+  core, or with the module off, writes no mark. A module reloads its own copy of a page on the `parked`
+  and `released` events. Only what predates the Erase is set apart (the kept value as it was then);
+  strokes drawn on the page here since stay kept and are written as new writing, and Leave it out does
+  not touch them (Louis, 2026-11-08: "'Leave it out' must delete only the writing identified by that
+  action, without removing later strokes or unrelated pages"). Export it and Export progress carry the
+  set-apart writing and remove nothing.
+
+**What is saved and what is only in memory.** A page whose transaction completed is saved: it survives
+a reload, a crash and the phone ending the page. Writing that is refused, kept for a profile not yet
+written, or set apart from before an Erase is held only in this tab's memory. The leave question and
+the Reload question ask before such writing is lost, but they are not a way to keep it: a crash, the
+phone ending the page, or leaving after confirming loses it. It is not written to a second store,
+because the commonest case (a refused write) is refused there too, and a second store needs a database
+version change that every open tab of the drill must allow. Export (the notice's buttons) is the way to
+keep it before choosing.
 - Limits with mixed versions: a tab on an earlier core exports without the moved pages, and its
   Erase does not remove them from the database (they come back on the next load on this core).
 

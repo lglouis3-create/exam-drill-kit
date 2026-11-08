@@ -90,3 +90,10 @@ FAIL: outside_test.js: 8 of 80 checks failed: Q1: with dialogs suppressed, writi
   FAIL  marks: an Erase whose mark the browser refuses tells the student the other tabs were not told
   FAIL  marks: past 100, the oldest 50 become one whole-profile mark at the latest of their times  — {"n":100,"first":{"at":1001,"tab":"other-1","part":"ink","page":"pg1"}}
 FAIL: outside_test.js: 4 of 86 checks failed: S1: after the student writes on the page, the writing from before the Erase is still set apart and named (2 strokes), and counts unsaved; S1: Add it back then keeps both: aft
+== the fifth review of #81 and Louis's restore decision: the same test on the core at 7f359e7 (DRILL_PAGE: a template course built from 7f359e7)
+  FAIL  V12: a page set apart sends the module an event ("parked") so it reloads its own copy of the page  — []
+  FAIL  V11: Export progress for the profile on screen carries the writing set apart from before the Erase
+  FAIL  V12: Add it back sends the module a "released" event for the page  — []
+  FAIL  V13: only the writing from before the Erase is set apart and named (2 strokes); Add it back says it restores writing from before the erase; the notice says it is only in memory  — This page 
+  FAIL  V13: Leave it out deletes only the named writing: the stroke drawn after the Erase is stored (after a reload)  — []
+FAIL: outside_test.js: 5 of 94 checks failed: V12: a page set apart sends the module an event ("parked") so it reloads its own copy of the page; V11: Export progress for the profile on screen carries 
