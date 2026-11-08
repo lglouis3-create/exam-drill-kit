@@ -267,6 +267,10 @@ const sameIds = (a, b) => a.length === b.length && a.every((x, i) => x === b[i])
     check(back.running && sameIds(back.ids, r1.ids) && back.i === 3 && back.drawn === 2,
           `after a reload during the paper it is the same paper, at question 4, still recorded as drawn for ${E2.name}`, {running: back.running, i: back.i, drawn: back.drawn});
     for(let i = back.i; i < N; i++){ await page.click('#v-exam .opt'); await page.click('#exNext'); }
+    // since kit #59 the last question's "Review answers" opens the overview, which grades and records nothing;
+    // the student submits from it (the page's confirm is accepted, line 142)
+    check(await ev(() => !!document.getElementById('exRevSubmit') && !!EX && EX.running && !EX.done), 'the last question\'s Review answers opens the overview, the paper still running');
+    await page.click('#exRevSubmit');
     await page.waitForSelector('#v-exam [data-pp="result"]', {timeout: 5000}).catch(() => {});
     const r2 = await ev(() => ({done: EX && EX.done, right: EX.qs.filter((q, i) => examRight(q, EX.picks[i])).length,
       line: (document.querySelector('#v-exam [data-pp="result"]') || {}).textContent || '', papers: JSON.parse(JSON.stringify(DB.paperPicker.papers || []))}));
