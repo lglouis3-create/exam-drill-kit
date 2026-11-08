@@ -1021,14 +1021,20 @@ const stroke = n => ({t: 'pen', c: '#111111', w: 0.003, p: [0.1 * n, 0.2, 0.3, 0
       const ctx = await newCtx(gate);
       const {page: p} = await open(ctx);
       if(await p.evaluate(() => !!(navigator.locks && navigator.locks.query))){
-        const mine = () => p.evaluate(() => navigator.locks.query().then(q => (q.held || []).some(l => l.name === 'exam-drill-tab:' + TAB_ID)));
+        const count = () => p.evaluate(() => navigator.locks.query().then(q => (q.held || []).filter(l => l.name === 'exam-drill-tab:' + TAB_ID).length));
         await p.evaluate(() => { window.dispatchEvent(new PageTransitionEvent('pagehide', {persisted: true})); window.__tabPassed = true; window.__grant(); });
         await p.waitForTimeout(400);
-        const whileCached = await mine();
+        const whileCached = await count();
         await p.evaluate(() => { window.dispatchEvent(new PageTransitionEvent('pageshow', {persisted: true})); });
         await p.waitForFunction(() => navigator.locks.query().then(q => (q.held || []).some(l => l.name === 'exam-drill-tab:' + TAB_ID)), null, {timeout: 3000}).catch(() => {});
-        const shown = await mine();
-        check(!whileCached && shown, 'bfcache: a tab lock granted after the page went into the back/forward cache is let go at once, and taken again when the page is shown', {whileCached, shown});
+        const shown = await count();
+        check(whileCached === 0 && shown === 1, 'bfcache: a tab lock granted after the page went into the back/forward cache is let go at once, and taken again (exactly once) when the page is shown', {whileCached, shown});
+        // a page that is only hidden (visibilitychange, no pagehide) is still open and keeps its lock
+        await p.evaluate(() => { Object.defineProperty(document, 'visibilityState', {value: 'hidden', configurable: true}); document.dispatchEvent(new Event('visibilitychange')); });
+        await p.waitForTimeout(400);
+        const hidden = await count();
+        await p.evaluate(() => { delete document.visibilityState; document.dispatchEvent(new Event('visibilitychange')); });
+        check(hidden === 1, 'bfcache: a page that is only hidden (no pagehide) keeps its tab lock', {hidden});
       } else L.skip('bfcache tab lock', 'no Web Locks');
       await ctx.close();
     }
