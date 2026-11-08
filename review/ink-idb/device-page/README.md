@@ -28,7 +28,7 @@ Louis then turns Pages on, once: in the repository, Settings → Pages → Deplo
 
 The page is then at `https://<organization>.github.io/ink-validation/`.
 
-To check that the published file is this one, compare the SHA-256 of `index.html` here (3133b43b79089c65267e70a69388ba172bac3c1d8310e2032d3ed4ca5af66c64, built from 7596e6e) with the one served. Open the page and read the panel's top line, which shows the browser, Event Timing and the database state.
+To check that the published file is this one: every rebuild differs only in its BUILD stamp line (the time of the build), so compare the SHA-256 of the file with that line removed: `grep -v '^const BUILD = ' index.html | sha256sum` (HASH_PLACEHOLDER for the `index.html` here); the published copy, fetched with `curl -s https://<organization>.github.io/ink-validation/ | grep -v '^const BUILD = ' | sha256sum`, gives the same. Open the page and read the panel's top line, which shows the browser, Event Timing and the database state.
 
 ## On the devices
 

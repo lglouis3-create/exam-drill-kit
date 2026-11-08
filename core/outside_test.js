@@ -621,7 +621,12 @@ const stroke = n => ({t: 'pen', c: '#111111', w: 0.003, p: [0.1 * n, 0.2, 0.3, 0
       if(await a.evaluate(() => WRITER) !== 'held'){ await ctx.close(); return null; }
       await put(a, {s: {parts: {work: [stroke(1)]}, room: {}, at: 1}, u: {parts: {work: [stroke(5)]}, room: {}, at: 1}}); await settled(a, ['s', 'u']);
       const {page: b} = await open(ctx);
-      await b.evaluate(s => { DB.ink.s = {parts: {work: [s[0], s[1]]}, room: {}, at: 2}; save(); }, [stroke(1), stroke(2)]);
+      // B behaves as a module that keeps its own copy of the page (worksheets-ink's INK.data.parts) and
+      // follows the core's contract: on 'parked' and 'released' it reloads that copy from DB.ink.s (V12)
+      await b.evaluate(() => { window.__ev = []; onOutside(e => { if(e && e.event){ window.__ev.push(e.page + ':' + e.event);
+        if(e.page === 's') window.__parts = DB.ink && DB.ink.s ? JSON.parse(JSON.stringify(DB.ink.s.parts)) : {work: []}; } }); });
+      // opts.inPlace: B keeps one strokes array and pushes into it, as worksheets-ink does; otherwise a new array each time
+      await b.evaluate(s => { window.__parts = {work: [s[0], s[1]]}; DB.ink.s = {parts: window.__parts, room: {}, at: 2}; save(); }, [stroke(1), stroke(2)]);
       await b.waitForTimeout(300);
       if(opts.ownLaterMark){ await a.waitForTimeout(20); }
       await a.evaluate(how => { if(how === 'profile'){ outsideClear(PROFILE); DB = BLANK(); save(); saveNow(); LOG = []; LOG_OK = true; saveLog(); pendingRetire(); }
@@ -633,9 +638,12 @@ const stroke = n => ({t: 'pen', c: '#111111', w: 0.003, p: [0.1 * n, 0.2, 0.3, 0
       if(opts.ownLaterMark) await b.evaluate(() => outsideRemove('ink', 'zz'));
       await a.close();
       // V13: B draws on the page after the Erase, before it takes the profile
-      if(opts.lateStroke){ await b.evaluate(s => { DB.ink.s = {parts: {work: [s[0], s[1], s[2]]}, room: {}, at: 3}; save(); }, [stroke(1), stroke(2), stroke(3)]); await b.waitForTimeout(300); }
-      // V12: a module listens for its pages
-      await b.evaluate(() => { window.__ev = []; onOutside(e => { if(e && e.event) window.__ev.push(e.page + ':' + e.event); }); });
+      if(opts.lateStroke){
+        if(opts.inPlace){ const n = opts.lateStroke === true ? 1 : opts.lateStroke;
+          for(let i = 0; i < n; i++) await b.evaluate(i => { window.__parts.work.push({t: 'pen', c: '#111111', w: 0.003, p: [0.3 + i / 1000, 0.2, 0.3, 0.43]}); DB.ink.s = {parts: window.__parts, room: {}, at: 3 + i}; save(); }, i);
+          await b.waitForTimeout(300); }
+        else { await b.evaluate(s => { window.__parts = {work: window.__parts.work.concat([s])}; DB.ink.s = {parts: window.__parts, room: {}, at: 3}; save(); }, stroke(3)); await b.waitForTimeout(300); }
+      }
       await b.evaluate(() => takeOver(false));
       await b.waitForFunction(() => WRITER === 'held', null, {timeout: 8000}).catch(() => {});
       await ready(b); await b.waitForTimeout(800);
@@ -748,6 +756,20 @@ const stroke = n => ({t: 'pen', c: '#111111', w: 0.003, p: [0.1 * n, 0.2, 0.3, 0
         await reload(b);
         const got = strokesOf(await inkNow(b), 's');
         check(got.length === 1 && got[0] === JSON.stringify(stroke(3)), 'V13: Leave it out deletes only the named writing: the stroke drawn after the Erase is stored (after a reload)', got);
+        await ctx.close();
+      }
+    }
+    // A1: strokes changed in place, as worksheets-ink changes them, cannot reach what is set apart
+    for(const late of [1, 25]){
+      const r = await v3({erase: 'profile', lateStroke: late, inPlace: true});
+      if(r){
+        const {ctx, b} = r;
+        const n = await staleNotice(b);
+        check(!!n && /"s" \(2 strokes\)/.test(n.text), `A1: with strokes pushed in place (${late} after the Erase${late > 20 ? ', more than 20 changes' : ''}), only the 2 strokes from before it are set apart and named`, n && n.text.slice(0, 200));
+        await clickIf(b, '#outwarn [data-outdrop]'); await settled(b, ['s']);
+        await reload(b);
+        const got = strokesOf(await inkNow(b), 's');
+        check(got.length === late && !got.includes(JSON.stringify(stroke(1))) && !got.includes(JSON.stringify(stroke(2))), `A1: Leave it out deletes only those 2; the ${late} stroke${late === 1 ? '' : 's'} drawn after the Erase ${late === 1 ? 'is' : 'are'} stored (after a reload)`, got.length);
         await ctx.close();
       }
     }

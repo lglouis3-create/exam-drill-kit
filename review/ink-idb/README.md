@@ -69,7 +69,11 @@ What replaces each place that holds ink inline today (the porter's list for #17)
   strokes drawn on the page here since stay kept and are written as new writing, and Leave it out does
   not touch them (Louis, 2026-11-08: "'Leave it out' must delete only the writing identified by that
   action, without removing later strokes or unrelated pages"). Export it and Export progress carry the
-  set-apart writing and remove nothing.
+  set-apart writing and remove nothing. Every value the layer keeps is a copy, so strokes a module
+  pushes in place (as worksheets-ink does) cannot reach it; an open tab sets writing apart when the
+  other tab's mark arrives (a storage event), so later strokes are never mixed in. A tab that missed
+  the event and has more than 20 changes since is the one case where Leave it out also removes strokes
+  drawn after the erase; the notice says so.
 
 **What is saved and what is only in memory.** A page whose transaction completed is saved: it survives
 a reload, a crash and the phone ending the page. Writing that is refused, kept for a profile not yet
@@ -122,6 +126,12 @@ pages (4,452,807 characters), each added to that profile.
 | + ink 69 pages | 24, 20, 25 ms; 37 ms | 44, 46, 49 ms; 61 ms | 64 ms | 66 ms |
 | + ink 171 pages | 19, 19, 22 ms; 30 ms | 41, 44, 43 ms; 75 ms | 96 ms | 79 ms |
 | baseline: + ink 69 pages inside the progress | 497, 504, 484 ms; 554 ms | 260, 286, 278 ms; 332 ms | 344 ms | 335 ms |
+
+After the sixth review (every value the layer keeps is a copy) the rate-4 runs were repeated again
+(`logs/timing-idb-copies.log`): save (commit) medians 19 to 37 ms, largest 44 ms; the save() call's
+largest 19 ms; the slowest click 72 ms (Event Timing), the fallback's largest 97 ms; every page saved.
+An unchanged page is recognised by the identity of its outer object, so a save copies only the page
+that changed.
 
 After the fixes for the independent review of d0da191 the rate-4 runs were repeated on the changed
 core (`logs/timing-idb-after-review.log`): save (commit) medians 20 to 26 ms, largest 37 ms; the

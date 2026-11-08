@@ -97,3 +97,9 @@ FAIL: outside_test.js: 4 of 86 checks failed: S1: after the student writes on th
   FAIL  V13: only the writing from before the Erase is set apart and named (2 strokes); Add it back says it restores writing from before the erase; the notice says it is only in memory  — This page 
   FAIL  V13: Leave it out deletes only the named writing: the stroke drawn after the Erase is stored (after a reload)  — []
 FAIL: outside_test.js: 5 of 94 checks failed: V12: a page set apart sends the module an event ("parked") so it reloads its own copy of the page; V11: Export progress for the profile on screen carries 
+== the sixth review of #81: the same test on the core at 8986ab1 (DRILL_PAGE: a template course built from 8986ab1)
+  FAIL  A1: with strokes pushed in place (1 after the Erase), only the 2 strokes from before it are set apart and named  — This page kept writing of "me" from before it was erased in another tab or window: "s" (3 strok
+  FAIL  A1: Leave it out deletes only those 2; the 1 stroke drawn after the Erase is stored (after a reload)  — 0
+  FAIL  A1: with strokes pushed in place (25 after the Erase, more than 20 changes), only the 2 strokes from before it are set apart and named  — This page kept writing of "me" from before it was erased in another tab 
+  FAIL  A1: Leave it out deletes only those 2; the 25 strokes drawn after the Erase are stored (after a reload)  — 0
+FAIL: outside_test.js: 4 of 98 checks failed: A1: with strokes pushed in place (1 after the Erase), only the 2 strokes from before it are set apart and named; A1: Leave it out deletes only those 2; the 1 stroke drawn aft

@@ -315,8 +315,11 @@ With a part registered:
   tab's per-tab record of it (#45, #69) and the copies Import and "Use it here" keep, is `progText(DB)`:
   the progress without the registered parts. Each page is one record of the database
   `exam-drill:<ns>`, store `parts`, key `<profile>␁<part>␁<page>`, value `{v, rev, at, tab}`. A save
-  writes only the pages whose value changed (compared by identity, so a module puts a new object in
-  `DB[part][page]` when it changes a page, as worksheets-ink does).
+  writes only the pages whose value changed (compared by identity: a module puts a new outer object in
+  `DB[part][page]` when it changes a page, as worksheets-ink's `inkSave` does). worksheets-ink keeps
+  one `INK.data.parts` and pushes strokes into it; that alone does not meet the layer's needs, so the
+  layer copies (`structuredClone`, else JSON) every value it keeps, snapshots, sets apart or writes,
+  and in-place changes cannot reach them (the sixth review of #81, A1).
 - When it is written. `save()` starts the page's write at once (the progress itself still waits
   150 ms), `saveNow()` (pagehide, hidden page, profile switch) and every write of the progress
   through `store` start it too. "Saved" means the transaction's `complete` event fired, with
@@ -403,11 +406,16 @@ With a part registered:
   Erase does not remove them from the database, so they come back on the next load on this core.
   Keep every tab of a course on one version (the "new version" card) before erasing or exporting.
 
-A module that keeps its own copy of a page (worksheets-ink's `INK.data`) must reload that page
-from `DB[part][page]` when `onOutside` reports `event: 'parked'` (its writing from before another tab's
-Erase was set apart and taken off the page) or `event: 'released'` (Add it back or Leave it out);
-otherwise its next save writes the set-apart strokes back without the student's choice (the fifth
-review of #81, V12). Export progress carries set-apart writing too.
+**Requirement for #17 (worksheets-ink).** A module that keeps its own copy of a page (worksheets-ink's
+`INK.data`) must reload that page from `DB[part][page]` on both events `onOutside` reports:
+`event: 'parked'` (its writing from before another tab's Erase was set apart and taken off the page)
+and `event: 'released'` (Add it back or Leave it out). Otherwise its next save writes the set-apart
+strokes back without the student's choice (the fifth and sixth reviews of #81, V12). Export progress
+carries set-apart writing too. Another tab's Erase reaches an open tab as a storage event on its mark
+key, and the writing is set apart at that moment, so strokes drawn after it are never mixed in; a tab
+that missed the event (asleep, closed) compares on its next load from its last 20 snapshots, and with
+more changes than that since, the notice says strokes drawn after the erase go too. That is the one
+case Leave it out can delete later strokes, and the notice says so.
 
 What a module calls (the API for worksheets-ink, #17). It must not delete pages with `delete
 DB.ink[...]` or `delete DB.ink` (a deletion of a page from `DB` is never written; it comes back on
