@@ -103,3 +103,16 @@ FAIL: outside_test.js: 5 of 94 checks failed: V12: a page set apart sends the mo
   FAIL  A1: with strokes pushed in place (25 after the Erase, more than 20 changes), only the 2 strokes from before it are set apart and named  — This page kept writing of "me" from before it was erased in another tab 
   FAIL  A1: Leave it out deletes only those 2; the 25 strokes drawn after the Erase are stored (after a reload)  — 0
 FAIL: outside_test.js: 4 of 98 checks failed: A1: with strokes pushed in place (1 after the Erase), only the 2 strokes from before it are set apart and named; A1: Leave it out deletes only those 2; the 1 stroke drawn aft
+== Louis's decisions of 2026-11-08 and the seventh review of #81: the same test on the core at fb659a6 (DRILL_PAGE; the run stops at the killed-browser case, which needs the recovery records fb659a6 does not have)
+  FAIL  race: after a reload A has all 3 strokes and B stays erased  — {"A":2,"B":false}
+  FAIL  B1: erasing and drawing during a write ends in a few writes (27952) and "saved"  — {"puts":27953,"state":"saving"}
+  FAIL  B1: after a profile switch and after a reload, the page is strokes 1, 3 and 4; the erased stroke 2 does not come back  — {"switch":4,"reload":4}
+  FAIL  X4: a page changed in place under the same object is not reported saved  — saved
+  FAIL  X4: it is written: after a reload the page has both strokes  — 1
+  FAIL  mark race: a write that finds the page erased elsewhere writes nothing and keeps the writing apart, named as unsure  — {"v":{"amb":0,"notice":""},"keys":["me\u0001ink\u0001s"]}
+  FAIL  20 snapshots: with 25 changes after a missed mark, only the 2 strokes proven from before it can be left out; the rest in between is named as unsure  — This page kept writing of "me" from before it was erased in
+  FAIL  20 snapshots: Leave it out deletes only the 2; the unsure writing stays until Add it back; after a reload all 25 later strokes are stored  — {"mid":{"amb":0,"page":0},"got":0}
+  FAIL  recovery: set-apart writing is saved as a recovery record (only after its transaction), and leaving is then not at risk  — This page kept writing of "me" from before it was erased in another tab or window: "s" 
+  FAIL  recovery: after a reload the set-apart writing is back, still set apart (not active ink)  — null
+  FAIL  recovery: Add it back after the reload moves it into the page (after another reload)  — 0
+FAIL: outside_test.js: page.evaluate: TypeError: Cannot read properties of undefined (reading 'meinkr')

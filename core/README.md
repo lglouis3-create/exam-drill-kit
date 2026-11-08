@@ -380,12 +380,29 @@ With a part registered:
   what the student writes on the page afterwards is a new value, and no write of the page changes or
   removes the set-apart writing; only Add it back, Leave it out or the student's own Erase releases it
   (the fourth review of #81, S1). The page on screen drops it and reads the stored page again. Only
-  what predates the Erase is set apart: the kept value as it was at the Erase (from its last 20 changes);
-  strokes drawn here since stay kept as new writing, and Leave it out never removes them (V13; with more
-  than 20 changes since, the notice says strokes drawn after the erase go too).
-- Saved or only in memory: writing that is refused, kept for a profile not yet written, or set apart is
-  held only in this tab's memory (`OUT.held`, `OUT.parked`). Leaving asks first, but a crash, the phone
-  ending the page, or leaving after confirming loses it; the notice says so and offers Export.
+  writing proven to be from before the Erase is set apart for Leave it out: the kept value at its last
+  snapshot before the Erase. Strokes drawn here since stay kept as new writing. When snapshots between
+  the first (always kept) and the next one after the Erase were dropped (more than 20 changes), what
+  lies between them is kept as unsure writing (`OUT.amb`): named, with Add it back and Export, and Leave
+  it out never deletes it (Louis, 2026-11-08: "If the boundary cannot be determined safely, preserve
+  the ambiguous writing"). A write that finds its page gone (erased in another tab before its mark
+  reached this tab) writes nothing and keeps the writing as unsure too.
+- While this tab writes a page, the kept value is the page as it is now (an erased stroke stays erased;
+  the seventh review of #81, B1); writing from another tab or from before an Erase is merged.
+- An Erase is scoped: erasing page B (`outsideRemove`) or a part (`outsideClear(p, part)`) invalidates
+  only the writes of what it erased, not another page's waiting save (ChatGPT, comment 6723699881).
+- Recovery records (Louis, 2026-11-08): writing that is kept (refused, waiting for a profile to be
+  opened, being written), set apart or unsure is also saved in the same database and store under the
+  key prefix `\u0002` (`\u0002<profile>\u0001<part>\u0001<page>\u0001<tab>`), with no version change:
+  active pages are read only in the range `<profile>\u0001…`, so a recovery record is never read as a
+  page and cannot undo an Erase. It counts as saved only once its transaction committed. Each open tab
+  holds the lock `exam-drill-tab:<tab>`; a load takes over the records of tabs without that lock
+  (closed, crashed, killed) and deletes them in the same transaction as it writes its own. Taken over,
+  kept writing is checked against Erase marks; set-apart and unsure writing stays set apart. When a
+  recovery record cannot be written (storage full), the writing is only in this tab's memory: the
+  notice says so, offers Export, and leaving asks first. With the record saved, leaving does not ask.
+- 'saved' is never shown for a page changed in place under the same object: `outsideState` compares
+  the stored copy with the page, and writes it when they differ (X4).
   Limits: the mark list keeps at most 100 marks; past that the oldest 50 become one mark of the whole
   profile at the latest of their times, which can set apart more writing than the marks it replaced,
   never less. When the browser refuses to store a mark (storage full), the student is told that other
@@ -409,13 +426,14 @@ With a part registered:
 **Requirement for #17 (worksheets-ink).** A module that keeps its own copy of a page (worksheets-ink's
 `INK.data`) must reload that page from `DB[part][page]` on both events `onOutside` reports:
 `event: 'parked'` (its writing from before another tab's Erase was set apart and taken off the page)
-and `event: 'released'` (Add it back or Leave it out). Otherwise its next save writes the set-apart
+and `event: 'released'` (Add it back or Leave it out), and `event: 'erased'` (the page was erased in another tab and taken off the page on screen). Otherwise its next save writes the set-apart
 strokes back without the student's choice (the fifth and sixth reviews of #81, V12). Export progress
 carries set-apart writing too. Another tab's Erase reaches an open tab as a storage event on its mark
 key, and the writing is set apart at that moment, so strokes drawn after it are never mixed in; a tab
-that missed the event (asleep, closed) compares on its next load from its last 20 snapshots, and with
-more changes than that since, the notice says strokes drawn after the erase go too. That is the one
-case Leave it out can delete later strokes, and the notice says so.
+that missed the event compares on its next load, and anything whose side of the Erase cannot be told
+is kept as unsure writing, never offered for deletion. Cases that set nothing apart, and so save the
+writing back (none delete it): a mark the browser refused to store (the student is told), and an
+Erase made in a tab on an earlier core or with the module off (no mark).
 
 What a module calls (the API for worksheets-ink, #17). It must not delete pages with `delete
 DB.ink[...]` or `delete DB.ink` (a deletion of a page from `DB` is never written; it comes back on

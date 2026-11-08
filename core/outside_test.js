@@ -650,7 +650,7 @@ const stroke = n => ({t: 'pen', c: '#111111', w: 0.003, p: [0.1 * n, 0.2, 0.3, 0
       return {ctx, b};
     };
     // a notice button that is not there fails the checks that follow instead of stopping the run
-    const clickIf = async (pg, sel) => { const el = await pg.$(sel); if(el) await el.click(); return !!el; };
+    const clickIf = async (pg, sel) => { for(let i = 0; i < 5; i++){ const el = await pg.$(sel); if(!el) return false; try { await el.click(); return true; } catch(e){ await pg.waitForTimeout(100); } } return false; };   // the notice may be redrawn between finding and clicking
     const staleNotice = b => b.evaluate(() => { const d = document.querySelector('#outwarn .outstale'); return d ? {text: d.textContent, add: !!d.querySelector('[data-outadd]'), exp: !!d.querySelector('[data-outexp]'), drop: !!d.querySelector('[data-outdrop]')} : null; });
     {
       const r = await v3({erase: 'profile'});
@@ -680,9 +680,13 @@ const stroke = n => ({t: 'pen', c: '#111111', w: 0.003, p: [0.1 * n, 0.2, 0.3, 0
         const n = await staleNotice(b);
         check(!!n && /"s"/.test(n.text) && !/"t"/.test(n.text), 'Leave it out: the notice names only the page kept from before the Erase', n && n.text.slice(0, 160));
         await clickIf(b, '#outwarn [data-outdrop]');
+        // its recovery record is deleted in a transaction the click starts; the reload follows its commit
+        await b.waitForFunction(() => !Object.keys(OUT.recLast).length, null, {timeout: 3000}).catch(() => {});
         await reload(b);
         const ink = await inkNow(b);
-        check(!ink.s && strokesOf(ink, 't').length === 1 && !(await b.evaluate(() => unsavedHere())), 'Leave it out: discards the named page only; the later page is stored (after a reload)', Object.keys(ink));
+        await b.waitForFunction(() => !unsavedHere(), null, {timeout: 3000}).catch(() => {});   // the load's own read and writes settle first
+        const un = await b.evaluate(() => ({u: unsavedHere(), o: outsideUnsaved(), p: progUnsavedHere(), l: logUnsavedHere(), held: Object.keys(OUT.held).length, parked: Object.keys(OUT.parked).length, amb: Object.keys(OUT.amb).length, busy: Object.keys(OUT.busy).filter(k => OUT.busy[k]).length}));
+        check(!ink.s && strokesOf(ink, 't').length === 1 && !un.u, 'Leave it out: discards the named page only; the later page is stored (after a reload)', {keys: Object.keys(ink), un});
         await ctx.close();
       }
     }
@@ -749,7 +753,7 @@ const stroke = n => ({t: 'pen', c: '#111111', w: 0.003, p: [0.1 * n, 0.2, 0.3, 0
       if(r){
         const {ctx, b} = r;
         const n = await staleNotice(b);
-        check(!!n && /"s" \(2 strokes\)/.test(n.text) && /restores the writing from before the erase/.test(n.text) && /in this tab's memory/.test(n.text),
+        check(!!n && /"s" \(2 strokes\)/.test(n.text) && /restores the writing from before the erase/.test(n.text) && /(recovery copy of it is saved|in this tab's memory)/.test(n.text),
           'V13: only the writing from before the Erase is set apart and named (2 strokes); Add it back says it restores writing from before the erase; the notice says it is only in memory', n && n.text.slice(0, 260));
         await clickIf(b, '#outwarn [data-outdrop]');
         await settled(b, ['s']);
@@ -786,6 +790,170 @@ const stroke = n => ({t: 'pen', c: '#111111', w: 0.003, p: [0.1 * n, 0.2, 0.3, 0
         check(strokesOf(await inkNow(b), 's').length === 2, 'Export it removes nothing: Add it back afterwards still restores both strokes (after a reload)', strokesOf(await inkNow(b), 's'));
         await ctx.close();
       }
+    }
+    // ---- Louis's decisions of 2026-11-08 and the seventh review of #81 at fb659a6 ----
+    const holdInit = () => {   // window.__hold keeps a write of page "A" waiting inside its transaction; __puts counts writes of A
+      window.__puts = 0;
+      const g = IDBObjectStore.prototype.get, put = IDBObjectStore.prototype.put;
+      IDBObjectStore.prototype.put = function(val, key){ if(String(key).endsWith('\u0001ink\u0001A')) window.__puts++; return put.apply(this, arguments); };
+      IDBObjectStore.prototype.get = function(key){
+        if(!(window.__hold && String(key).endsWith('\u0001ink\u0001A') && this.transaction.mode === 'readwrite')) return g.apply(this, arguments);
+        const store = this, fake = {};
+        const spin = () => { const r = g.call(store, key); r.onsuccess = () => { if(window.__hold) spin(); else { fake.result = r.result; if(fake.onsuccess) fake.onsuccess(); } }; };
+        spin(); return fake;
+      };
+    };
+    // ChatGPT, comment 6723699881: erasing page B does not discard page A's waiting save
+    {
+      const ctx = await newCtx(holdInit);
+      const {page: p} = await open(ctx);
+      await put(p, {A: {parts: {work: [stroke(1)]}, room: {}, at: 1}, B: {parts: {work: [stroke(5)]}, room: {}, at: 1}}); await settled(p, ['A', 'B']);
+      await p.evaluate(s => { window.__hold = true; DB.ink.A = {parts: {work: [s[0], s[1]]}, room: {}, at: 2}; save(); DB.ink.A = {parts: {work: [s[0], s[1], s[2]]}, room: {}, at: 3}; save(); }, [stroke(1), stroke(2), stroke(3)]);
+      await p.waitForTimeout(200);
+      await p.evaluate(() => { outsideRemove('ink', 'B'); });
+      await p.waitForTimeout(200);
+      await p.evaluate(() => { window.__hold = false; });
+      await settled(p, ['A']);
+      check(!(await p.evaluate(() => typeof outsideAtRisk === 'function' && outsideAtRisk())), 'race: erasing B while A\'s save waits leaves nothing of A at risk once it settles', null);
+      await reload(p);
+      const ink = await inkNow(p);
+      check(strokesOf(ink, 'A').length === 3 && !ink.B, 'race: after a reload A has all 3 strokes and B stays erased', {A: strokesOf(ink, 'A').length, B: !!ink.B});
+      // a real erase of A while its save waits still keeps A from coming back
+      await p.evaluate(s => { window.__hold = true; DB.ink.A = {parts: {work: [s[0], s[1], s[2], s[3]]}, room: {}, at: 4}; save(); }, [stroke(1), stroke(2), stroke(3), stroke(4)]);
+      await p.waitForTimeout(200);
+      await p.evaluate(() => { outsideRemove('ink', 'A'); });
+      await p.evaluate(() => { window.__hold = false; });
+      await p.waitForTimeout(800);
+      await reload(p);
+      check(!(await inkNow(p)).A, 'race: erasing A itself while its save waits keeps A erased (after a reload)', Object.keys(await inkNow(p)));
+      await ctx.close();
+    }
+    // B1: erase a stroke and draw during a write: a few writes, 'saved', the erased stroke stays erased
+    {
+      const ctx = await newCtx(holdInit);
+      const {page: p} = await open(ctx);
+      const P0 = await p.evaluate(() => PROFILE);
+      await put(p, {A: {parts: {work: [stroke(1), stroke(2)]}, room: {}, at: 1}}); await settled(p, ['A']);
+      await p.evaluate(s => { window.__hold = true; DB.ink.A = {parts: {work: [s[0], s[1], s[2]]}, room: {}, at: 2}; save();
+        DB.ink.A = {parts: {work: [s[0], s[2]]}, room: {}, at: 3}; save();          // the eraser removes stroke 2
+        DB.ink.A = {parts: {work: [s[0], s[2], s[3]]}, room: {}, at: 4}; save(); }, [stroke(1), stroke(2), stroke(3), stroke(4)]);
+      await p.waitForTimeout(150);
+      const before = await p.evaluate(() => window.__puts);
+      await p.evaluate(() => { window.__hold = false; });
+      await settled(p, ['A']); await p.waitForTimeout(600);
+      const after = await p.evaluate(() => ({puts: window.__puts, state: outsideState('ink', 'A')}));
+      check(after.puts - before <= 4 && after.state === 'saved', `B1: erasing and drawing during a write ends in a few writes (${after.puts - before}) and "saved"`, after);
+      await p.evaluate(() => useProfile('Other')); await ready(p);
+      await p.evaluate(P0 => useProfile(P0), P0); await ready(p);
+      const sw = strokesOf(await inkNow(p), 'A');
+      await reload(p);
+      const rl = strokesOf(await inkNow(p), 'A');
+      const want = [1, 3, 4].map(n => JSON.stringify(stroke(n)));
+      check([sw, rl].every(g => g.length === 3 && want.every(w => g.includes(w)) && !g.includes(JSON.stringify(stroke(2)))), 'B1: after a profile switch and after a reload, the page is strokes 1, 3 and 4; the erased stroke 2 does not come back', {switch: sw.length, reload: rl.length});
+      await ctx.close();
+    }
+    // X4: a page changed in place, same outer object, is not shown saved and is written
+    {
+      const ctx = await newCtx();
+      const {page: p} = await open(ctx);
+      await put(p, {A: {parts: {work: [stroke(1)]}, room: {}, at: 1}}); await settled(p, ['A']);
+      const st = await p.evaluate(s => { DB.ink.A.parts.work.push(s); save(); return outsideState('ink', 'A'); }, stroke(2));
+      check(st !== 'saved', 'X4: a page changed in place under the same object is not reported saved', st);
+      await settled(p, ['A']); await p.waitForTimeout(300);
+      await reload(p);
+      check(strokesOf(await inkNow(p), 'A').length === 2, 'X4: it is written: after a reload the page has both strokes', strokesOf(await inkNow(p), 'A').length);
+      await ctx.close();
+    }
+    // should-fix 2: a write that finds its page erased by another tab before the mark arrived keeps the writing apart
+    {
+      const ctx = await newCtx(() => { try { Object.defineProperty(navigator, 'locks', {value: undefined, configurable: true}); } catch(e){} });
+      const {page: a} = await open(ctx);
+      await put(a, {s: {parts: {work: [stroke(1)]}, room: {}, at: 1}}); await settled(a, ['s']);
+      const {page: b} = await open(ctx, PART_PAGE, () => { const ae = window.addEventListener; window.addEventListener = function(type){ if(type === 'storage') return; return ae.apply(this, arguments); }; });
+      await a.evaluate(() => outsideRemove('ink', 's'));
+      await a.waitForTimeout(300);
+      await b.evaluate(s => { DB.ink.s = {parts: {work: [s[0], s[1]]}, room: {}, at: 2}; save(); }, [stroke(1), stroke(2)]);
+      await b.waitForTimeout(500);
+      const v = await b.evaluate(() => ({amb: Object.keys(OUT.amb || {}).length, notice: (document.querySelector('#outwarn .outstale') || {}).textContent || ''}));
+      const truth = await idbPages(b);
+      check(v.amb === 1 && /not known whether drawn before or after/.test(v.notice) && !Object.keys(truth || {}).some(k => k.endsWith('\u0001ink\u0001s')), 'mark race: a write that finds the page erased elsewhere writes nothing and keeps the writing apart, named as unsure', {v, keys: Object.keys(truth || {})});
+      await ctx.close();
+    }
+    // the 20-snapshot boundary: a tab that missed the mark, 25 changes after it: nothing ambiguous is offered for deletion
+    {
+      const ctx = await newCtx();
+      const {page: a} = await open(ctx);
+      if(await a.evaluate(() => WRITER) === 'held'){
+        await put(a, {s: {parts: {work: [stroke(1)]}, room: {}, at: 1}}); await settled(a, ['s']);
+        const {page: b} = await open(ctx, PART_PAGE, () => { const ae = window.addEventListener; window.addEventListener = function(type){ if(type === 'storage') return; return ae.apply(this, arguments); }; });
+        await b.evaluate(s => { window.__parts = {work: [s[0], s[1]]}; DB.ink.s = {parts: window.__parts, room: {}, at: 2}; save(); }, [stroke(1), stroke(2)]);
+        await b.waitForTimeout(300);
+        await a.evaluate(() => { outsideClear(PROFILE); DB = BLANK(); save(); saveNow(); });
+        await a.waitForTimeout(400); await a.close();
+        for(let i = 0; i < 25; i++) await b.evaluate(i => { window.__parts.work.push({t: 'pen', c: '#111111', w: 0.003, p: [0.5 + i / 1000, 0.2, 0.3, 0.4]}); DB.ink.s = {parts: window.__parts, room: {}, at: 10 + i}; save(); }, i);
+        await b.waitForTimeout(300);
+        await b.evaluate(() => { window.__ev = []; onOutside(e => { if(e && e.event && e.page === 's') window.__parts = DB.ink && DB.ink.s ? JSON.parse(JSON.stringify(DB.ink.s.parts)) : {work: []}; }); takeOver(false); });
+        await b.waitForFunction(() => WRITER === 'held', null, {timeout: 8000}).catch(() => {});
+        await ready(b); await b.waitForTimeout(1000);
+        const n = await staleNotice(b);
+        check(!!n && /"s" \(2 strokes\)/.test(n.text) && /not known whether drawn before or after/.test(n.text), '20 snapshots: with 25 changes after a missed mark, only the 2 strokes proven from before it can be left out; the rest in between is named as unsure', n && n.text.slice(0, 260));
+        await clickIf(b, '#outwarn [data-outdrop]'); await settled(b, ['s']);
+        const mid = await b.evaluate(() => ({amb: Object.keys(OUT.amb || {}).length, page: (DB.ink && DB.ink.s ? DB.ink.s.parts.work.length : 0)}));
+        await clickIf(b, '#outwarn [data-outadd]'); await settled(b, ['s']);
+        await reload(b);
+        const got = strokesOf(await inkNow(b), 's');
+        check(mid.amb === 1 && got.length === 25 && !got.includes(JSON.stringify(stroke(1))) && !got.includes(JSON.stringify(stroke(2))), '20 snapshots: Leave it out deletes only the 2; the unsure writing stays until Add it back; after a reload all 25 later strokes are stored', {mid, got: got.length});
+      } else L.skip('20 snapshots', 'no Web Locks');
+      await ctx.close();
+    }
+    // recovery records: set-apart writing survives a reload; refused and profile-switch writing survive a killed browser
+    {
+      const r = await v3({erase: 'profile'});
+      if(r){
+        const {ctx, b} = r;
+        await b.waitForFunction(() => Object.keys(OUT.parked).every(k => (OUT.recState || {})[k] === 'saved'), null, {timeout: 5000}).catch(() => {});
+        const n1 = await staleNotice(b);
+        check(!!n1 && /recovery copy of it is saved/.test(n1.text) && !(await b.evaluate(() => typeof outsideAtRisk === 'function' && outsideAtRisk())), 'recovery: set-apart writing is saved as a recovery record (only after its transaction), and leaving is then not at risk', n1 && n1.text.slice(0, 200));
+        await reload(b); await b.waitForTimeout(800);
+        const n2 = await staleNotice(b);
+        check(!!n2 && /"s" \(2 strokes\)/.test(n2.text) && !(await inkNow(b)).s, 'recovery: after a reload the set-apart writing is back, still set apart (not active ink)', n2 && n2.text.slice(0, 120));
+        await clickIf(b, '#outwarn [data-outadd]'); await settled(b, ['s']); await reload(b);
+        check(strokesOf(await inkNow(b), 's').length === 2 && !(await b.evaluate(() => Object.keys(OUT.parked).length)), 'recovery: Add it back after the reload moves it into the page (after another reload)', strokesOf(await inkNow(b), 's').length);
+        const recs = await b.evaluate(() => new Promise(res => { const t = OUT.db.transaction('parts'); const r = t.objectStore('parts').getAllKeys(IDBKeyRange.bound('\u0002', '\u0003')); r.onsuccess = () => res(r.result.length); }));
+        check(recs === 0, 'recovery: once added back and written, no recovery record is left', recs);
+        await ctx.close();
+      }
+    }
+    {
+      const fsx = require('fs'), os = require('os'), cp = require('child_process');
+      const dir = fsx.mkdtempSync(path.join(process.env.TMPDIR || os.tmpdir(), 'outside-kill-'));
+      const type = L.browserType(NAME);
+      const start = async init => { const c = await type.launchPersistentContext(dir, Object.assign({}, L.OPEN_CTX)); await c.addInitScript(() => { window.prompt = () => 'TestUser'; }); if(init) await c.addInitScript(init); return c; };
+      const kill = () => { try { cp.execSync(`pkill -9 -f ${JSON.stringify(dir)}`); } catch(e){} };
+      let c = await start(() => { const put = IDBObjectStore.prototype.put; IDBObjectStore.prototype.put = function(val, key){ if(window.__refuse && this.name === 'parts' && !String(key).startsWith('\u0002')) throw new DOMException('planted', 'QuotaExceededError'); return put.apply(this, arguments); }; });
+      let {page: p} = await open(c);
+      const P0 = await p.evaluate(() => PROFILE);
+      await p.evaluate(() => { window.__refuse = true; });
+      await put(p, {r: {parts: {work: [stroke(1)]}, room: {}, at: 1}}); await settled(p, ['r']);
+      await p.evaluate(() => useProfile('Other')); await ready(p);
+      await put(p, {o: {parts: {work: [stroke(2)]}, room: {}, at: 2}}); await settled(p, ['o']);
+      await p.waitForFunction(() => Object.keys(OUT.held).length >= 2 && Object.keys(OUT.held).every(k => (OUT.recState || {})[k] === 'saved'), null, {timeout: 5000}).catch(() => {});
+      const saved = await p.evaluate(() => Object.keys(OUT.held).map(k => OUT.recState[k]));
+      kill();
+      await c.close().catch(() => {});
+      c = await start();
+      ({page: p} = await open(c));
+      await p.waitForTimeout(500);
+      await p.evaluate(() => { if(PROFILE !== 'Other') useProfile('Other'); }); await ready(p); await p.waitForTimeout(1000);
+      await settled(p, ['o']);
+      const oNow = strokesOf(await inkNow(p), 'o').length;
+      await p.evaluate(P0 => useProfile(P0), P0); await ready(p); await p.waitForTimeout(1000);
+      await settled(p, ['r']);
+      await p.reload(); await ready(p);
+      const rNow = strokesOf(await inkNow(p), 'r').length;
+      check(saved.every(x => x === 'saved') && oNow === 1 && rNow === 1, 'recovery: refused writing and writing kept for another profile survive a killed browser and are written when opened again', {saved, oNow, rNow});
+      await c.close().catch(() => {});
+      try { fsx.rmSync(dir, {recursive: true, force: true}); } catch(e){}
     }
     // the mark list stays bounded: past 100 marks the oldest become one whole-profile mark, which still sets apart
     {

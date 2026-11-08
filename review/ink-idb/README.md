@@ -71,18 +71,18 @@ What replaces each place that holds ink inline today (the porter's list for #17)
   action, without removing later strokes or unrelated pages"). Export it and Export progress carry the
   set-apart writing and remove nothing. Every value the layer keeps is a copy, so strokes a module
   pushes in place (as worksheets-ink does) cannot reach it; an open tab sets writing apart when the
-  other tab's mark arrives (a storage event), so later strokes are never mixed in. A tab that missed
-  the event and has more than 20 changes since is the one case where Leave it out also removes strokes
-  drawn after the erase; the notice says so.
+  other tab's mark arrives (a storage event), so later strokes are never mixed in. When the boundary
+  cannot be told (a tab that missed the mark, more than 20 changes since), that writing is kept as
+  unsure: Add it back or Export, and Leave it out never deletes it.
 
-**What is saved and what is only in memory.** A page whose transaction completed is saved: it survives
-a reload, a crash and the phone ending the page. Writing that is refused, kept for a profile not yet
-written, or set apart from before an Erase is held only in this tab's memory. The leave question and
-the Reload question ask before such writing is lost, but they are not a way to keep it: a crash, the
-phone ending the page, or leaving after confirming loses it. It is not written to a second store,
-because the commonest case (a refused write) is refused there too, and a second store needs a database
-version change that every open tab of the drill must allow. Export (the notice's buttons) is the way to
-keep it before choosing.
+**What is saved, and what is a recovery copy.** A page whose transaction completed is saved: it
+survives a reload, a crash and the phone ending the page. Writing that is refused, kept for a profile
+not yet written, set apart from before an Erase, or unsure is kept in this tab's memory and also saved
+as a recovery record in the same database (key prefix `\u0002`, never read as a page, so it cannot
+undo an Erase; no version change). It is "saved" only after its transaction commits; then it survives a
+reload, a crash and a killed browser, and comes back as what it was (kept, set apart, unsure). A
+recovery record the browser refuses (storage full, as for a refused page) leaves the writing only in
+memory: the notice says so, offers Export, and leaving asks first.
 - Limits with mixed versions: a tab on an earlier core exports without the moved pages, and its
   Erase does not remove them from the database (they come back on the next load on this core).
 

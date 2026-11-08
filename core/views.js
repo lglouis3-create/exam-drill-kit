@@ -506,11 +506,11 @@ function exportProgress(){
   if(OUT.parts.size && OUT.readFailed[PROFILE]) setTimeout(() => alert('The writing kept in this browser\'s database could not be read (' + OUT.readFailed[PROFILE] + '), so this file holds only the writing this page has open, not the writing saved before.'), 0);
   // writing set apart from before another tab's Erase goes into the file too (the fifth review of #81, V11)
   let fileDb = DB;
-  if(OUT.parts.size && Object.keys(OUT.parked).length){
+  if(OUT.parts.size && (Object.keys(OUT.parked).length || Object.keys(OUT.amb).length)){
     fileDb = Object.assign({}, DB);
-    for(const k of Object.keys(OUT.parked)){ const [kp, part, page] = k.split('\u0001'); if(kp !== PROFILE) continue;
+    for(const src of [OUT.parked, OUT.amb]) for(const k of Object.keys(src)){ const [kp, part, page] = k.split('\u0001'); if(kp !== PROFILE) continue;
       fileDb[part] = Object.assign({}, isPlainObj(fileDb[part]) ? fileDb[part] : {});
-      fileDb[part][page] = fileDb[part][page] === undefined ? OUT.parked[k] : outsideMerge(part, fileDb[part][page], OUT.parked[k]); }
+      fileDb[part][page] = fileDb[part][page] === undefined ? src[k] : outsideMerge(part, fileDb[part][page], src[k]); }
   }
   const blob = new Blob([JSON.stringify({app:'exam-drill', course:COURSE.id, ns:NS, exported:new Date().toISOString(),
                                          profile:PROFILE, db:fileDb, log:LOG}, null, 1)], {type:'application/json'});
