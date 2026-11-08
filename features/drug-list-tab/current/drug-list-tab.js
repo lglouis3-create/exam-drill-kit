@@ -58,6 +58,9 @@
      page-image choice is hidden while it is on, and the view chosen before
      comes back when it is turned off; in recall mode drug rows take no focus
      and no pointer cursor, since Reveal opens them. DEENT's Flashcards (flash, fi) are not here (queue item 16);
+   - each column heading carries data-field="<field>", the hook the module
+     field-colours colours (BDK marks its two coloured headings th.k-cat and
+     th.k-ind, app.js line 2598);
    - left out: saved personal lists ("My drug lists"), the "Compare the N drugs
      in this class" button (compare-tab), Quizlet download files, the glossary
      pop-ups, the "· next" chip mark (date logic).
@@ -194,7 +197,7 @@ function dltRowHtml(T, ti, r, i){
 function dltTable(t, ti, rows){
   const C = dltCols(), T = dltTables();
   return `<section class="pagetable" id="${dltAnchor(t)}" data-table="${dltText(t.id)}"><h3 class="pagehead" style="--pc:${dltText(t.color || 'var(--surface)')}">${dltText(t.title)} <span class="ed">${dltText(dltTag(t, t.id))}</span></h3>
-    <div class="table-wrap"><table><thead><tr>${C.map(c => `<th>${dltText(c[1])}</th>`).join('')}</tr></thead><tbody>
+    <div class="table-wrap"><table><thead><tr>${C.map(c => `<th data-field="${dltText(c[0])}">${dltText(c[1])}</th>`).join('')}</tr></thead><tbody>
     ${rows.map(([r, i]) => dltRowHtml(T, ti, r, i)).join('')}
     </tbody></table></div>${t.legend ? `<p class="legend">${dltText(t.legend)}</p>` : ''}</section>`;
 }

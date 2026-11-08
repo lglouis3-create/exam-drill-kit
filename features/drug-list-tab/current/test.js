@@ -179,12 +179,14 @@ async function bdkView(browser, file, width){
   await page.click(`${pane} [data-listgroup="-1"]`);
   const tables = await page.$$eval(`${pane} [data-body] section[data-table]`, s => s.map(e => ({id: e.dataset.table,
     title: e.querySelector('h3').firstChild.textContent.trim(), ed: e.querySelector('h3 .ed').textContent,
-    th: [...e.querySelectorAll('th')].map(x => x.textContent), rows: e.querySelectorAll('tbody tr[data-ref]').length,
+    th: [...e.querySelectorAll('th')].map(x => x.textContent), thf: [...e.querySelectorAll('th')].map(x => x.dataset.field), rows: e.querySelectorAll('tbody tr[data-ref]').length,
     legend: (e.querySelector('.legend') || {}).textContent || ''})));
   const heads = BDK_OPT.columns.map(c => c[1]);
   const badT = FIX.tables.filter((t, k) => { const g = tables[k]; return !g || g.id !== String(t.id) || g.title !== t.title || g.ed !== 'p' + t.id ||
     JSON.stringify(g.th) !== JSON.stringify(heads) || g.rows !== t.rows.length || g.legend !== (t.legend || ''); }).map(t => t.id);
   check(tables.length === FIX.tables.length && !badT.length, `All pages: ${tables.length} tables, each with its title, p<page>, BDK's five headings, its legend and every row (${FIX.tables.reduce((n, t) => n + t.rows.length, 0)} rows)` + tag, badT);
+  const badF = tables.filter(g => JSON.stringify(g.thf) !== JSON.stringify(BDK_OPT.columns.map(c => c[0]))).map(g => g.id);
+  check(tables.length && !badF.length, 'every column heading carries its column\'s field (data-field), the hook field-colours colours' + tag, badF);
   const cell = await page.$eval(`${pane} tr[data-ref="${FIX.tables.findIndex(t => t.id === 10)}:0"]`, tr => [...tr.children].map(td => td.textContent.trim()));
   const r10 = FIX.tables.find(t => t.id === 10).rows[0];
   check(cell.length === 5 && cell[1] === r10.generic && cell[4] === r10.indication + 'Activity against: ' + r10.activity, 'a row\'s cells hold its fields, with "Activity against:" under the indications', cell);

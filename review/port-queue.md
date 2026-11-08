@@ -62,7 +62,7 @@ this table are from c2f87ae; the plan cites BDK at 05c36c3. `field-colours`
 | 19 | pair-up and table-recall drills (drug ↔ receptor, poisoning table) | Intro to Pharmacology `app.js` 1923-2060 | 2026-11-02 11:00 CT | pending |
 | 20 | short-answer page and graphs drill | Intro to Pharmacology `app.js` 2308-2351, 3518-3580 | 2026-11-02 11:00 CT | pending |
 | 21 | flags, one-page layout, keyboard shortcuts, strict exam mode | Intro to Pharmacology; BDK | 2026-11-02 11:00 CT | pending |
-| 22 | field-colours (the fields a course names as hardest coloured; the field a question asked shaded after the answer) | BDK at `05c36c3`: `assets/app.js` 903-934 (`ROW_KEY`, `ASKED_ROW`, the `asked` class, `kindClass`), the `k-cat`/`k-ind` classes in the list and Compare (for example 2598 and 2325), and `assets/style.css` 367-383; from `bf91dc0` | — | pending (part 1) |
+| 22 | field-colours (the fields a course names as hardest coloured; the field a question asked shaded after the answer) | BDK at `05c36c3`: `assets/app.js` 903-934 (`ROW_KEY`, `ASKED_ROW`, the `asked` class, `kindClass`), the `k-cat`/`k-ind` classes in the list and Compare (for example 2598 and 2325), and `assets/style.css` 367-383; from `bf91dc0` | — | done (part 1: the headings; the after-answer card and its shading not ported, see FEATURES.md) |
 
 ## Core changes found by the assessments (not nightly)
 
