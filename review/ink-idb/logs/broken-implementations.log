@@ -58,3 +58,10 @@ FAIL: outside_test.js: 2 of 63 checks failed: M1: back on the first profile the 
   FAIL  M5: an erased page whose write was still running does not come back after a switch away and back, and is not reported saved  — {"keys":["x"],"state":"saved"}
   FAIL  M5: a page erased in another tab does not come back in a tab that switches away and back  — {"keys":["x"],"state":"saved"}
 FAIL: outside_test.js: 9 of 63 checks failed: unavailable: a notice says the database could not be used and the writing is kept in the other storage; M1: after a switch to another profile, the refused writing of the firs
+== WebKit on GitHub (run 42483391800, head b1f9fb9): M1 failed; the writer lock was granted after the database read, and nothing wrote the kept page then
+  FAIL  M1: back on the first profile the refused page is written; after a reload it is stored  — {}
+== the same in Chromium, with M1's lock granted 300 ms late, on the core of b1f9fb9 (before flushWaiting writes the pages)
+  FAIL  M1: back on the first profile the refused page is written; after a reload it is stored  — {}
+FAIL: outside_test.js: 1 of 63 checks failed: M1: back on the first profile the refused page is written; after a reload it is stored
+== and with the fix
+PASS: outside_test.js: 63 checks passed (1 skipped: quota (Chromium): a real quota of 2 MB for the origin)

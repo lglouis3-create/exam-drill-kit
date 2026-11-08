@@ -1424,6 +1424,9 @@ function claimWriter(p, how){
 }
 function flushWaiting(){
   if(WRITE_WAITING && mayWrite()){ WRITE_WAITING = false; save(); saveLog(); }
+  // pages kept in IndexedDB that waited for the lock (writing kept through a switch, a moved page):
+  // written now; the database read may have finished before the lock was granted (WebKit, #81)
+  if(OUT.parts.size && mayWrite()){ try { outsideWrite(PROFILE); } catch(e){} }
   // a paper submitted while the lock was being asked for is cleared now (#32's review of 4311133)
   if(EXAM_CLEAR_WAITING && EXAM_CLEAR_WAITING === PROFILE && mayWrite()){ EXAM_CLEAR_WAITING = ''; try { clearExam(); } catch(e){} }
 }

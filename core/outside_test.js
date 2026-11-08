@@ -400,9 +400,13 @@ const stroke = n => ({t: 'pen', c: '#111111', w: 0.003, p: [0.1 * n, 0.2, 0.3, 0
     const refuseInit = () => { const put = IDBObjectStore.prototype.put; IDBObjectStore.prototype.put = function(){ if(window.__refuse && this.name === 'parts') throw new DOMException('planted refusal', 'QuotaExceededError'); return put.apply(this, arguments); }; };
     const noLocks = () => { try { Object.defineProperty(navigator, 'locks', {value: undefined, configurable: true}); } catch(e){} };
     const wait = ms => new Promise(r => setTimeout(r, ms));
-    // M1: a refused page kept through a profile switch, named by the notice, written when the profile is opened again
+    // M1: a refused page kept through a profile switch, named by the notice, written when the profile is opened again.
+    // The writer lock is granted 300 ms late (as WebKit on GitHub granted it after the database read), so the
+    // page must be written when the lock comes, not only when the read finishes.
     {
-      const ctx = await newCtx(refuseInit);
+      const lateLock = () => { try { const r = LockManager.prototype.request; LockManager.prototype.request = function(){ const a = arguments; return new Promise(res => setTimeout(res, 300)).then(() => r.apply(this, a)); }; } catch(e){} };
+      const ctx = await newCtx(() => {});
+      await ctx.addInitScript(refuseInit); await ctx.addInitScript(lateLock);
       const {page: p} = await open(ctx);
       const P0 = await p.evaluate(() => PROFILE);
       const R = {parts: {work: [stroke(1)]}, room: {}, at: 1};
