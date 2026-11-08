@@ -493,6 +493,16 @@ async function optionView(browser, file, o){
   check(await page.$eval(`${p} [data-dl="recall"]`, b => b.getAttribute('aria-pressed')) === 'true' && rc.length && rc.every(x => x === 'HV'),
         `options: recallDefault true opens in recall mode, and recallShow ['label'] keeps only the Listed as column visible`, rc.slice(0, 3));
   check(!(await page.$(`${p} [data-dl="showcls"]`)) && !!(await page.$(`${p} [data-dl="revealall"]`)), 'options: recallClassField empty, no Show class chip');
+  // a shown column's sub-field (here BDK's activity under Listed as) stays hidden until Reveal: it is not in recallShow
+  const actAt = (() => { for(const [ti, t] of FIX.tables.entries()) for(const [i, r] of t.rows.entries()) if(r.activity) return {ref: `${ti}:${i}`, text: r.activity}; return null; })();
+  if(!actAt) check(false, 'BDK\'s tables hold a row with activity text');
+  else {
+    const before = await page.evaluate(([p, a]) => { const pane = document.querySelector(p); return {inPage: pane.innerHTML.includes(a.text) || pane.textContent.includes(a.text), row: !!pane.querySelector(`tr[data-ref="${a.ref}"]`)}; }, [p, actAt]);
+    await page.click(`${p} [data-reveal="${actAt.ref}"]`);
+    const after = await page.evaluate(([p, a]) => { const tr = document.querySelector(`${p} tr[data-ref="${a.ref}"]`); return !!tr && tr.textContent.includes(a.text); }, [p, actAt]);
+    check(before.row && !before.inPage && after, `in recall mode a shown column's sub-field is hidden until Reveal (activity of row ${actAt.ref}: absent from the page before, in its row after)`, {before, after});
+    await page.click(`${p} [data-dl="hideall"]`);
+  }
   check(!(await page.$(`${p} [data-listview]`)) && !(await page.$(`${p} .pdfpage`)) && (await page.$$(`${p} section[data-table] table`)).length === FIX.tables.length,
         'recall mode draws the table only: no Table / page-image choice while it is on');
   await page.click(`${p} [data-dl="recall"]`);
@@ -573,7 +583,7 @@ async function optionView(browser, file, o){
   console.log('\n=== BDK\'s list in the browser (scratch copy) ===');
   const s = build('dlt-bdk', T, BDK_OPT);
   if(s.code !== 0) L.notRun(NAME, 'the scratch copy with BDK\'s tables does not build: ' + s.out.split('\n').pop());
-  const o2 = opts({tab: 'druglist', label: 'Drugs', columns: [['generic', 'Generic'], ['label', 'Listed as']], searchFields: ['generic'], groups: [], defaultGroup: '',
+  const o2 = opts({tab: 'druglist', label: 'Drugs', columns: [['generic', 'Generic'], ['label', 'Listed as', 'activity', 'Activity against: ']], searchFields: ['generic'], groups: [], defaultGroup: '',
     recallDefault: true, recallShow: ['label'], recallClassField: ''});
   const s2 = build('dlt-opts', T.map(t => Object.assign({}, t, {image: `pages/p${t.id}.webp`, imageSize: BDK_PAGE_IMG[t.id]})), o2);
   const {browser} = await L.launch(NAME);

@@ -174,7 +174,8 @@ function dltCell(row, c, open){
   // DEENT line 174 draws the answer only when the card is open: a hidden cell holds none of its text
   if(!open && !dltShows(f)) return `<td class="dlt-hid" data-hidden="1"><span class="dlt-vh">hidden</span></td>`;
   const v = row[f];
-  return `<td>${dltText(v)}${sub && row[sub] ? `<div class="act">${dltText(subLabel || '')}${dltText(row[sub])}</div>` : ''}</td>`;
+  // a column's sub-field is its own field: in recall mode it shows only when its row is open or it is shown itself
+  return `<td>${dltText(v)}${sub && row[sub] && (open || dltShows(sub)) ? `<div class="act">${dltText(subLabel || '')}${dltText(row[sub])}</div>` : ''}</td>`;
 }
 /* one drug: its row; in recall mode also the writing box with Reveal (DEENT 168-173) in
    a row under it, and the detail row, filled only once revealed (DEENT 174) */
