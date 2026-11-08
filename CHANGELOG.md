@@ -2,6 +2,9 @@
 
 Dated kit changes, newest first.
 
+## 2026-11-08 (bookkeeping: registry)
+- `coordinator/improvements.json`: two candidates recorded at the DEENT session's request, `deent-narration-walkthroughs` (discovered) and `drug-list-persistent-outcomes` (proposed; new progress storage and Import behaviour wait for Louis); `bdk-study-features` set to implementing with #75, #82, #83 and #85. The header of the 2026-11-06 optional-topics entry names its merge (#72, efd9386).
+
 ## 2026-11-08 (feature modules: the paper hook)
 - `X.paper` again accepts a paper of the same length with other questions in place, as before #80 (paper-picker draws another exam's paper; #80's same-questions rule refused it and paper-picker's test failed 3 of 3). A result of another length, with an entry that is not a question of the bank, or with a question twice, is refused, the drawn paper kept and the module switched off for the visit. #80's protection stays: the hooks do not run on the opening page's sample draws. `features_test.js` checks a replacing hook and each refusal (wrong length; a copy that is not the bank's question; a question twice; each on its own visit); the throw test clears the sampled count after it (the review of #80).
 
@@ -25,7 +28,7 @@ Dated kit changes, newest first.
 - Exam overview: the question opened from it takes the focus; with more than six unanswered the "Not answered" line gives the count and the first five. A chosen answer has an inner ring as well as the filled letter, so it differs from an answer under the pointer.
 - Exam overview: its Submit, numbers and Back do nothing when left on screen after a switch to another profile (no error, nothing recorded for either profile).
 
-## 2026-11-06 (optional topics; depends on #70 and #62; waits for Louis)
+## 2026-11-06 (optional topics; merged as #72, efd9386, on 2026-11-08)
 - A TOPICS entry may carry `optional: true`. Its questions stay in the bank and on their own topic (the topic's Start, each subtopic's Start, guide and atlas links), and the topic line shows an "Optional" label. They are left out of "Everything, adaptive" (filtered or not) and the count on Start practice, the pass of every question, the filtered pass, the exam pools (so exam papers, the exam-weighted pass, the pool cards on Weak spots, mark weights and the exam-day scheduling scope), What to review next and the mastered count, and a broad session's retry; a question card of the topic shows "Optional" instead of "Exam N · …". A course with no optional topic is unchanged. New check: `optional_test.js`. `test.js` fails a question of an optional topic that shares its `concept` with a question outside optional topics, since scheduling state is per concept (review of #72).
 
 ## 2026-11-06 (study pages, #70)
