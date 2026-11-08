@@ -2,6 +2,9 @@
 
 Dated kit changes, newest first.
 
+## 2026-11-08 (plan)
+- BDK's study features are planned as kit modules any course can switch on, in four parts (`review/bdk-study-features-plan.md`, Louis 2026-11-08): the drug list, comparison and field colours first; existing study tools next; new storage, scheduling behaviour and the builder's recommendation keep their own approvals. Recorded as `bdk-study-features` in `coordinator/improvements.json`; port queue items 11-17 are `planned` by part. Nothing is built by this change.
+
 ## 2026-11-06 (exam paper)
 - Exam paper: the last question's "Review" no longer grades and submits the paper. It is now "Review answers" and opens an overview of the paper (each question number, answered or not answered, a way back to any question, one submit button). The overview shows no answers, grades or explanations and records nothing; its submit asks the same question as "Submit paper", and Cancel keeps the paper running (`exam_review_test.js`).
 - Exam paper: a chosen answer is drawn in the neutral selection colour (blue), the same for a right and a wrong choice; green and red appear only on the result page.
