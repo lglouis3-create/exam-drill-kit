@@ -50,7 +50,13 @@ const ANS = right => {
   let want;
   if(isMulti(q)){ const c = correctSet(q), w = q.options.findIndex(o => !o.correct); want = right ? c : (w >= 0 ? [w] : c.slice(0, 1)); }
   else want = [q.options.findIndex(o => right ? o.correct : !o.correct)];
-  for(const oi of want) document.querySelector(`#v-exam button.opt[data-o="${oi}"]`).click();
+  // set the choice, not toggle it: a select-all option clicked a second time is taken off again, so a question
+  // answered earlier (question 1 in Next and Back) would lose its answer when answered again. Click only the
+  // options whose state differs from the wanted one (aria-pressed is the drawn state).
+  const btn = oi => document.querySelector(`#v-exam button.opt[data-o="${oi}"]`);
+  const on = oi => btn(oi).getAttribute('aria-pressed') === 'true';
+  if(isMulti(q)){ q.options.forEach((o, oi) => { if(want.includes(oi) !== on(oi)) btn(oi).click(); }); return; }
+  for(const oi of want) if(!on(oi)) btn(oi).click();
 };
 const state = page => page.evaluate(() => ({running: !!(EX && EX.running), done: !!(EX && EX.done), i: EX ? EX.i : -1, n: EX && EX.qs ? EX.qs.length : 0,
   ids: EX && EX.qs ? EX.qs.map(q => q.id).join() : '', picks: EX ? JSON.stringify(EX.picks) : '', ends: EX ? EX.ends : undefined,
@@ -152,6 +158,9 @@ async function flow(page, label, opts){
   let s = await state(page);
   if(!check(s.running && s.n > 0, `${label}: the Start button draws a running paper (${s.n} questions)`, s)) return;
   const n = s.n;
+  // a select-all item first, when the paper has one: question 1 is answered twice below (Next and Back, then
+  // the loop), and a select-all answer is the one a second answer could take off (the failure fixed by #78)
+  const multiFirst = await page.evaluate(() => { const j = EX.qs.findIndex(isMulti); if(j > 0){ for(const a of [EX.qs, EX.picks, EX.orders]) if(Array.isArray(a)) [a[0], a[j]] = [a[j], a[0]]; EX.i = 0; renderExamQ(); saveExam(); } return j >= 0; });
   // Next and Back
   if(n > 1){
     await page.evaluate(ANS, true);
@@ -170,6 +179,11 @@ async function flow(page, label, opts){
     if(k !== blankAt) await page.evaluate(ANS, k < right);
   }
   await page.evaluate(() => { EX.i = 0; renderExamQ(); });
+  if(multiFirst){
+    const q1 = await page.evaluate(() => ({multi: isMulti(EX.qs[0]), picks: (EX.picks[0] || []).slice().sort((a, b) => a - b), want: correctSet(EX.qs[0]).slice().sort((a, b) => a - b)}));
+    check(q1.multi && JSON.stringify(q1.picks) === JSON.stringify(q1.want),
+      `${label}: question 1, a select-all item, keeps exactly its right answer after it is answered a second time`, q1);
+  } else L.skip(`${label}: question 1 answered twice as a select-all item`, 'no select-all item on this paper');
   await toLast(page);
   s = await state(page);
   const before = s;
