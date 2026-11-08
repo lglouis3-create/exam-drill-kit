@@ -932,7 +932,8 @@ function outsideRead(p){
       const out = {};
       ks.forEach((k, i) => { const r = vs[i]; if(r && typeof r === 'object') out[k] = {v: r.v, rev: r.rev | 0}; });
       // recovery records of other tabs that are gone (no tab lock held), to be taken over by this tab
-      Object.defineProperty(out, '__rec', {value: rks.map((rk, i) => ({rk, r: rvs[i]})).filter(x => x.r && x.r.tab !== TAB_ID && !(held && held.has('exam-drill-tab:' + x.r.tab))), enumerable: false});
+      const now = Date.now();
+      Object.defineProperty(out, '__rec', {value: rks.map((rk, i) => ({rk, r: rvs[i]})).filter(x => outRecOrphan(x.r, held, now)), enumerable: false});
       return out;
     });
   });
@@ -1442,7 +1443,49 @@ function onOutside(fn){ if(typeof fn === 'function') OUT.listeners.push(fn); }
    and unsure writing stay set apart. A record goes when its writing is committed as a page, added back
    and written, left out, or erased by the student. When a record cannot be written (storage full), the
    writing stays in this tab's memory, the notice says so and offers Export, and leaving asks first. */
-try { if(navigator.locks && navigator.locks.request) navigator.locks.request('exam-drill-tab:' + TAB_ID, () => new Promise(() => {})).catch(() => {}); } catch(e){}
+/* Whether a recovery record's tab is still open. With Web Locks each tab holds `exam-drill-tab:<tab>`
+   (requested in outsideTabAlive below, once TAB_ID exists). Without them (an older browser, a page
+   opened from disk) each tab writes a heartbeat `<ns>:tab-alive:<tab>` every 30 s; a record is taken
+   over only when neither its heartbeat nor its own write time is newer than OUT_STALE_MS (5 minutes:
+   a hidden tab's timers can be slowed to one a minute). A tab whose records were taken over all the
+   same (a frozen tab, or a heartbeat the browser refused to store) sees its record gone on its next
+   check and writes it again, and until that commits it says the copy is being saved (R5). */
+const OUT_STALE_MS = 5 * 60 * 1000, OUT_BEAT_MS = 30 * 1000;
+const outAliveKey = tab => NS + ':tab-alive:' + tab;
+let OUT_TABLOCK = false;
+function outsideTabAlive(){
+  try { if(navigator.locks && navigator.locks.request){ navigator.locks.request('exam-drill-tab:' + TAB_ID, () => new Promise(() => {})).catch(() => {}); OUT_TABLOCK = !!navigator.locks.query; } } catch(e){ OUT_TABLOCK = false; }
+  const beat = () => { if(!OUT_TABLOCK) try { localStorage.setItem(outAliveKey(TAB_ID), String(Date.now())); } catch(e){} };
+  beat();
+  if(!OUT_TABLOCK) setInterval(() => { beat(); outsideRecCheck(); }, OUT_BEAT_MS);
+  try {
+    document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible'){ beat(); outsideRecCheck(); } });
+    window.addEventListener('pageshow', e => { if(e.persisted){ beat(); outsideRecCheck(); } });
+    window.addEventListener('pagehide', e => { if(!e.persisted && !OUT_TABLOCK) try { localStorage.removeItem(outAliveKey(TAB_ID)); } catch(_){} });
+  } catch(e){}
+}
+/* The records of tabs that are gone, among those another tab wrote: `held` is the set of lock names
+   (null without Web Locks). */
+function outRecOrphan(r, held, now){
+  if(!r || r.tab === TAB_ID) return false;
+  if(held) return !held.has('exam-drill-tab:' + r.tab);
+  let beat = 0; try { beat = +localStorage.getItem(outAliveKey(r.tab)) || 0; } catch(e){}
+  return now - Math.max(beat, +r.at || 0) > OUT_STALE_MS;
+}
+/* This tab's own records: one taken over by another tab is gone from the store; its state is reset so
+   the notice says the copy is being saved, leaving asks first, and the record is written again. */
+function outsideRecCheck(){
+  if(OUT.state !== 'ready' || !OUT.db) return;
+  const keys = Object.keys(OUT.recLast).filter(k => OUT.recState[k] === 'saved' && !OUT.recBusy[k]);
+  if(!keys.length) return;
+  let t; try { t = OUT.db.transaction('parts', 'readonly'); } catch(e){ return; }
+  const s = t.objectStore('parts');
+  Promise.all(keys.map(k => outReq(s.count(outRecKey(k))).then(n => [k, n], () => [k, 1]))).then(rs => {
+    let lost = false;
+    for(const [k, n] of rs) if(!n && OUT.recState[k] === 'saved' && !OUT.recBusy[k]){ delete OUT.recLast[k]; delete OUT.recState[k]; lost = true; }
+    if(lost){ outsideRecSoon(); try { outsideWarn(); } catch(e){} }
+  }, () => {});
+}
 const outRecKey = k => '\u0002' + k + '\u0001' + TAB_ID;
 function outRecValue(k){
   const r = {};
@@ -1503,6 +1546,7 @@ function outsideRecTake(p, recs){
     if(r.parked !== undefined) OUT.parked[k] = OUT.parked[k] !== undefined ? outsideMerge(part, OUT.parked[k], r.parked) : r.parked;
     if(r.amb !== undefined) OUT.amb[k] = OUT.amb[k] !== undefined ? outsideMerge(part, OUT.amb[k], r.amb) : r.amb;
     (OUT.recAdopt[k] = OUT.recAdopt[k] || []).push(rk);
+    if(r.tab) try { localStorage.removeItem(outAliveKey(r.tab)); } catch(e){}
   }
   if(recs.length) outsideRecSoon();
 }
@@ -1682,6 +1726,7 @@ const HAS_LOCKS = (() => { try { return !!(window.isSecureContext && navigator.l
 let WRITER = HAS_LOCKS ? 'pending' : 'none';   // 'held' | 'other' (another tab has it) | 'pending' (asking) | 'none' (no Web Locks)
 let WRITER_FOR = '', WRITER_WHY = 'other', WRITE_WAITING = false, writerRelease = null, writerSeq = 0;
 const TAB_ID = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+outsideTabAlive();
 const writerName = p => NS + ':writer:' + p;
 let writerChan = null;
 try { if(HAS_LOCKS) writerChan = new BroadcastChannel(NS + ':writer'); } catch(e){ writerChan = null; }

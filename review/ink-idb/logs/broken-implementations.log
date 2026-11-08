@@ -116,3 +116,12 @@ FAIL: outside_test.js: 4 of 98 checks failed: A1: with strokes pushed in place (
   FAIL  recovery: after a reload the set-apart writing is back, still set apart (not active ink)  — null
   FAIL  recovery: Add it back after the reload moves it into the page (after another reload)  — 0
 FAIL: outside_test.js: page.evaluate: TypeError: Cannot read properties of undefined (reading 'meinkr')
+
+== The eighth review of #81: the R5 checks on the core at f92b886 (DRILL_PAGE). With Web Locks too the tab lock was never held: its request ran before TAB_ID was defined (a ReferenceError caught at start-up), so a loading tab took over every open tab's recovery records.
+  FAIL  R5 with Web Locks: a tab that loads while another open tab keeps refused writing leaves that tab's recovery record alone  — {"keys":1,"mine":false,"bHeld":1}
+  ok    R5 without Web Locks: the page runs with navigator.locks absent
+  FAIL  R5 without Web Locks: a tab that loads while another open tab keeps refused writing leaves that tab's recovery record alone  — {"keys":0,"mine":false,"bHeld":0}
+  FAIL  R5 without Web Locks: only a record whose tab has written neither it nor a heartbeat for 5 minutes counts as left behind  — false
+  FAIL  R5: a tab whose recovery record was taken over finds it gone, and writes it again (then leaving is not at risk)  — {"mid":null,"back":false}
+FAIL: outside_test.js: 4 of 118 checks failed: R5 with Web Locks: a tab that loads while another open tab keeps refused writing leaves that tab's recovery record alone; R5 without Web Locks: a tab that loads while another open tab keeps refused writing leaves that tab's recovery record alone; R5 without Web Locks: only a record whose tab has written neither it nor a heartbeat for 5 minutes counts as left behind …
+FAIL: outside_test.js: 4 of 118 checks failed: R5 with Web Locks: a tab that loa

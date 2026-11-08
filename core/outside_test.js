@@ -955,6 +955,41 @@ const stroke = n => ({t: 'pen', c: '#111111', w: 0.003, p: [0.1 * n, 0.2, 0.3, 0
       await c.close().catch(() => {});
       try { fsx.rmSync(dir, {recursive: true, force: true}); } catch(e){}
     }
+    // ---- the eighth review of #81 at f92b886: R5 (a live tab's recovery records are not taken over) ----
+    {
+      // an init script is sent to the page as source text, so the choice is written into it (a closure's variable would not reach the page)
+      const refuse = noLocks => '(' + (() => {
+        const put = IDBObjectStore.prototype.put;
+        IDBObjectStore.prototype.put = function(val, key){ if(window.__refuse && this.name === 'parts' && !String(key).startsWith('\u0002')) throw new DOMException('planted', 'QuotaExceededError'); return put.apply(this, arguments); };
+      }).toString() + ')();' + (noLocks ? "try { Object.defineProperty(navigator, 'locks', {value: undefined, configurable: true}); } catch(e){}" : '');
+      const recKeys = pg => pg.evaluate(() => new Promise(res => { const t = OUT.db.transaction('parts'); const r = t.objectStore('parts').getAllKeys(IDBKeyRange.bound('\u0002', '\u0003')); r.onsuccess = () => res(r.result.map(String)); }));
+      for(const noLocks of [false, true]){
+        const label = noLocks ? 'without Web Locks' : 'with Web Locks';
+        const hasLocks = await (async () => { const c = await newCtx(); const {page} = await open(c); const v = await page.evaluate(() => !!(navigator.locks && navigator.locks.query)); await c.close(); return v; })();
+        if(!noLocks && !hasLocks){ L.skip('R5 ' + label, 'no Web Locks'); continue; }
+        const ctx = await newCtx(refuse(noLocks));
+        const {page: a} = await open(ctx);
+        await a.evaluate(() => { window.__refuse = true; });
+        await put(a, {r: {parts: {work: [stroke(1)]}, room: {}, at: 1}}); await settled(a, ['r']);
+        await a.waitForFunction(() => Object.keys(OUT.held).length === 1 && Object.keys(OUT.held).every(k => (OUT.recState || {})[k] === 'saved'), null, {timeout: 5000}).catch(() => {});
+        const aTab = await a.evaluate(() => TAB_ID);
+        if(noLocks) check(await a.evaluate(() => navigator.locks === undefined), 'R5 without Web Locks: the page runs with navigator.locks absent', null);
+        const {page: b} = await open(ctx); await b.waitForTimeout(800);
+        const keys = await recKeys(b), bHeld = await b.evaluate(() => Object.keys(OUT.held).length);
+        check(keys.some(k => k.endsWith('\u0001' + aTab)) && bHeld === 0, 'R5 ' + label + ': a tab that loads while another open tab keeps refused writing leaves that tab\'s recovery record alone', {keys: keys.length, mine: keys.some(k => k.endsWith('\u0001' + aTab)), bHeld});
+        if(noLocks){
+          const r = await b.evaluate(() => typeof outRecOrphan === 'function' && {old: outRecOrphan({tab: 'x', at: Date.now() - 6 * 60000}, null, Date.now()), fresh: outRecOrphan({tab: 'x', at: Date.now() - 1000}, null, Date.now())});
+          check(r && r.old === true && r.fresh === false, 'R5 without Web Locks: only a record whose tab has written neither it nor a heartbeat for 5 minutes counts as left behind', r);
+          // a record taken over all the same (here deleted, as a takeover does): the owning tab notices, asks before leaving, and writes it again
+          await b.evaluate(tab => new Promise(res => { const t = OUT.db.transaction('parts', 'readwrite'); const st = t.objectStore('parts'); const r = st.getAllKeys(IDBKeyRange.bound('\u0002', '\u0003')); r.onsuccess = () => { r.result.filter(k => String(k).endsWith('\u0001' + tab)).forEach(k => st.delete(k)); }; t.oncomplete = res; }), aTab);
+          const mid = await a.evaluate(() => new Promise(res => { if(typeof outsideRecCheck !== 'function') return res(null); outsideRecCheck(); setTimeout(() => res({risk: outsideAtRisk(), notice: ((document.getElementById('outwarn') || {}).textContent || '')}), 0); }));
+          await a.waitForFunction(() => Object.keys(OUT.held).every(k => (OUT.recState || {})[k] === 'saved' && OUT.recLast[k] !== undefined), null, {timeout: 5000}).catch(() => {});
+          const back = (await recKeys(a)).some(k => k.endsWith('\u0001' + aTab));
+          check(!!mid && back && !(await a.evaluate(() => outsideAtRisk())), 'R5: a tab whose recovery record was taken over finds it gone, and writes it again (then leaving is not at risk)', {mid: mid && {risk: mid.risk}, back});
+        }
+        await ctx.close();
+      }
+    }
     // the mark list stays bounded: past 100 marks the oldest become one whole-profile mark, which still sets apart
     {
       const ctx = await newCtx();

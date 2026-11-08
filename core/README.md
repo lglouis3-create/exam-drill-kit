@@ -397,12 +397,25 @@ With a part registered:
   active pages are read only in the range `<profile>\u0001…`, so a recovery record is never read as a
   page and cannot undo an Erase. It counts as saved only once its transaction committed. Each open tab
   holds the lock `exam-drill-tab:<tab>`; a load takes over the records of tabs without that lock
-  (closed, crashed, killed) and deletes them in the same transaction as it writes its own. Taken over,
+  (closed, crashed, killed) and deletes them in the same transaction as it writes its own. Without
+  Web Locks (an older browser, a page opened from disk) each tab writes a heartbeat
+  `<ns>:tab-alive:<tab>` to localStorage every 30 s, and a load takes over a record only when neither
+  its tab's heartbeat nor the record's own write time is less than 5 minutes old. A tab whose record
+  was taken over all the same (frozen in the background, or its heartbeat refused by full storage)
+  finds the record gone when it checks (every 30 s without Web Locks, and whenever the page is shown
+  again), says its recovery copy is being saved, asks before leaving, and writes the record again; the
+  writing is then held by both tabs, and neither deletes it (the eighth review of #81, R5). Taken over,
   kept writing is checked against Erase marks; set-apart and unsure writing stays set apart. When a
   recovery record cannot be written (storage full), the writing is only in this tab's memory: the
   notice says so, offers Export, and leaving asks first. With the record saved, leaving does not ask.
 - 'saved' is never shown for a page changed in place under the same object: `outsideState` compares
-  the stored copy with the page, and writes it when they differ (X4).
+  the stored copy with the page, and writes it when they differ (X4). `save()` itself does not find
+  such a change: it recognises an unchanged page by the identity of its outer object, so that a save
+  does not compare every page. **A module that changes a page in place (pushes a stroke into the
+  object already in `DB[part][page]`) must either put a new outer object in `DB[part][page]` before
+  calling `save()`, as #17 does, or call `outsideState(part, page)` after the change; otherwise the
+  change is not written until something calls `outsideState` for that page or the page object is
+  replaced.**
   Limits: the mark list keeps at most 100 marks; past that the oldest 50 become one mark of the whole
   profile at the latest of their times, which can set apart more writing than the marks it replaced,
   never less. When the browser refuses to store a mark (storage full), the student is told that other
@@ -452,7 +465,17 @@ What is protected, and when (`outside_test.js` checks each from a fresh page aft
   write starts when the module calls `save()`, so that window is the transaction's own time
   (timings in the pull request), not the 150 ms wait of the progress;
 - a phone that ends the page while it is in the background: the same as a crash; the write of a
-  change started when it was made, and `saveNow()` runs when the page is hidden.
+  change started when it was made, and `saveNow()` runs when the page is hidden;
+- the recovery record follows the screen one transaction behind: it is written after each change of
+  kept, set-apart or unsure writing, and until that write commits the record still holds the writing
+  as it was. If the browser is killed in that window, the next load takes over the earlier record. So
+  a stroke the student rubs out of kept writing (writing not yet stored as a page, for example after a
+  refused write), followed by a kill before the rewritten record commits, comes back as kept writing
+  after the reload; Leave it out followed by such a kill brings the writing back as set-apart writing,
+  named on the notice again; and a stroke added to kept writing in that window is lost with the kill,
+  like any change whose transaction had not completed (the eighth review of #81). Settings' Erase,
+  `outsideRemove` and `outsideClear` delete the recovery records in the same transaction as the pages,
+  so once that Erase has committed no record can bring its writing back.
 
 ## Start-up and the saved progress
 
