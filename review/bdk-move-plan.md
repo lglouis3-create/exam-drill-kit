@@ -92,11 +92,11 @@ K and F numbers are the assessment's.
 | 32 | `COURSES.md` and `FEATURES.md` updates | bookkeeping | |
 
 K1 (the core reads `course.js` `features`) merged in pull request #6.
-F1-F18 are now planned as kit modules for any course, in four parts with their own approvals
-(`review/bdk-study-features-plan.md`, Louis 2026-11-08); the move switches the built modules
-on for BDK instead of porting them a second time. The port queue's
-BDK items 11-17 are covered by F1-F18 and are marked `BDK move` there, so the nightly
-porter does not port them a second time.
+F1-F8 and F14-F16 are now planned as kit modules for any course, in four parts with their own
+approvals (`review/bdk-study-features-plan.md`, Louis 2026-11-08); the move switches the built
+modules on for BDK instead of porting them a second time. F9-F13, F17 and F18 stay with this
+move. The port queue's BDK items 11-17 are marked `planned (part N)` there; the nightly porter
+takes only `pending` items, so it does not start them.
 
 ## Course work in the BDK repository (assessment §5)
 

@@ -45,7 +45,8 @@ read-only assessments of 2026-11-01; the port re-reads them).
 Items 11-17 were `BDK move` (Louis, 2026-11-01). Since 2026-11-08 they are planned as kit
 modules for any course (`review/bdk-study-features-plan.md`): each is built once and BDK's
 move then switches it on. Their status is `planned (part N)`; the nightly porter takes only
-`pending`, and an item becomes `pending` only when Louis says yes to its part. `field-colours`
+`pending`, and an item becomes `pending` only when Louis says yes to its part. The BDK line numbers in
+this table are from c2f87ae; the plan cites BDK at 05c36c3. `field-colours`
 (BDK F8) is in part 1 with the drug list; it has no row of its own here.
 
 | Order | Item | Source | Not before | Status |

@@ -92,7 +92,7 @@ after Phase 1 and overrides earlier sections where they differ.
   course move in progress. The plan, the pre-move decisions and the order of its pull
   requests: `review/bdk-move-plan.md`; the three move assessments are kept in
   `review/assessments/`. Since 2026-11-08 BDK's study features (port queue 11-17, move plan
-  F1-F18) are planned as kit modules any course can switch on, built once by the kit feature
+  F1-F8 and F14-F16; F9-F13, F17 and F18 stay with the move) are planned as kit modules any course can switch on, built once by the kit feature
   porter, in four parts each started only on Louis's yes (`review/bdk-study-features-plan.md`);
   the move switches the built modules on for BDK.
 - **Kit pull requests merged 2026-11-02 to 2026-11-03 (UTC)** (merge commit, from the

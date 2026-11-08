@@ -231,7 +231,7 @@
    "sourceRepo": "lglouis3-create/BDK",
    "sourceCommit": "05c36c3",
    "kind": "optional-feature",
-   "studentBenefit": "drug-table recall in any course with a drug chart (searchable lists, side-by-side comparison, flashcards, matching, cram); for DEENT, Dr. Smith names drug-table recall as the key Exam 1 skill (relayed by the DEENT session, 2026-11-08)",
+   "studentBenefit": "drug-table recall in any course with a drug chart (searchable lists, side-by-side comparison, flashcards, matching, cram)",
    "evidence": "Louis's request (2026-11-08, this session); BDK's own features and tests; no learning-outcome evidence",
    "technicalRisk": "parts 1-2 low (no new storage, no scheduler change); part 3 adds storage or scheduling and keeps its own approval; part 4 is a SKILL.md recommendation change",
    "existsInKit": "partial: FEATURES.md entries learn-mode, card-modes, match-game, cram-mode, compare-tab, field-colours (Used by: BDK only); no module under features/; no drug-list entry",
@@ -254,7 +254,7 @@
     "improvements bdk-learn-workflow"
    ],
    "decision": "Louis, 2026-11-08: record and plan; parts start only on his yes to each part; new storage, saved lists, scheduling behaviour and recommendation policy keep their approval requirements; not a DEENT Exam 1 dependency",
-   "notes": "plan: review/bdk-study-features-plan.md; one owner (the kit feature porter, through review/port-queue.md); no new scheduled task; DEENT supplies its drug-list data shape and acceptance tests after Exam 1"
+   "notes": "plan: review/bdk-study-features-plan.md; one owner (the kit feature porter, through review/port-queue.md); no new scheduled task; DEENT supplies its drug-list data shape and acceptance tests after Exam 1; context, not evidence (§12.4): the DEENT session relayed that Dr. Smith names drug-table recall as the key Exam 1 skill"
   }
  ]
 }
