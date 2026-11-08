@@ -331,7 +331,9 @@ const badWords = page => page.evaluate(src => {
             for(let i = 0; i < 10; i++) add(qb[i % qb.length], i < 2);
             show('gaps');
             const h = [...document.querySelectorAll('#v-gaps h3')].find(x => x.textContent.trim() === 'Accuracy by topic');
-            let t = h && h.nextElementSibling; while(t && !t.matches('table')) t = t.nextElementSibling;
+            // the table, or the box that lets it scroll on a phone (div.gapwrap)
+            let t = h && h.nextElementSibling; while(t && !t.matches('table') && !t.querySelector(':scope > table')) t = t.nextElementSibling;
+            if(t && !t.matches('table')) t = t.querySelector(':scope > table');
             const rows = t ? [...t.querySelectorAll('tbody tr')].map(r => ({name: r.children[0].childNodes[0].textContent.trim(),
               pct: Number((r.lastElementChild.textContent.match(/(\d+)%/) || [])[1])})) : [];
             const cards = [...document.querySelectorAll('#v-gaps .nextcard')].map(c => ({name: c.querySelector('.nexthead b').textContent, head: c.querySelector('.nexthead span').textContent}));

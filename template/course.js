@@ -6,6 +6,13 @@
    id, title, short   names shown in the header and the page title
    output             file name of the built page (the site serves it under this name)
    atlas              true only when atlas.js carries drawn structures for an Atlas tab
+   atlasTitle, atlasNoun, atlasExampleLabel
+                      optional, the Atlas's own words: its heading (default
+                      'Functional group atlas'); what one tile is, a word
+                      ('structure', plural + "s") or [one, many] (default
+                      ['group', 'groups']), used in its intro, search box and
+                      count; the label before a tile's `e` line (default 'e.g.';
+                      '' drops it, for `e` lines that are facts, not examples)
    ns                 storage namespace: keep it the same for the whole course so
                       progress carries from Exam 1 through the final
    oldCachePrefix     optional, only for a drill that had its own service worker
