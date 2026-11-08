@@ -222,9 +222,11 @@ every automated check; only an adversarial review against the sources (Mode 4) f
   `.git/config` (§7.10).
 - A push that changes a live course's site needs Louis's approval of that change: his
   request for it in this session, or his yes to a summary of it (`KIT_DESIGN.md` §12
-  decision 10, reading 7, which Louis accepted on 2026-11-03). Until then the work
-  waits at `/preview/` or on a branch. An unattended run (a scheduled task) never
-  changes a live site without his reply. With that approval, push to the course repo
+  decision 10, reading 7, which Louis accepted on 2026-11-03), except a routine kit update
+  under his standing authorization of 2026-11-08 (Mode 7, "The kit-update run", steps 2
+  and 3). Until then the work waits at `/preview/` or on a branch. An unattended run (a
+  scheduled task) never changes a live site without his reply, with the same exception
+  for the kit-update run. With that approval, push to the course repo
   following its own rule in `CLAUDE.md` (course repos merge automatically, decision 1).
   Confirm the deploy from the Pages workflow run for the
   pushed commit: `gh api 'repos/<owner>/<repo>/actions/runs?head_sha=<sha>'` and the run
@@ -409,11 +411,13 @@ For each course, not paused, that benefits from a change in the kit:
    decision with the specific risk and the evidence stated, when it could lose or convert
    saved progress incompatibly, removes content or a feature, changes an answer key without
    adequate source support, changes study or exam behaviour substantially, redesigns a drill
-   close to an assessment, rests on a consequential trade-off that is not resolved with
-   confidence, or would weaken a required check (Louis's list, `review/standing-autonomy-2026-11-08.md`
-   §1; before 2026-11-08 every update waited for his reply, and before 2026-11-03 a
-   bookkeeping or `small-fix` update could go live without one). No update is published on
-   an exam day of that course.
+   close to an assessment, rests on conflicting requirements or a consequential trade-off
+   that is not resolved with confidence, would weaken a required check, or carries any other
+   meaningful decision or unresolved risk (Louis's list is open, "such as", and he asks for
+   judgment: `review/standing-autonomy-2026-11-08.md` §1; before 2026-11-08 every update
+   waited for his reply, and before 2026-11-03 a bookkeeping or `small-fix` update could go
+   live without one). Claude's own design choice, not in his text: no update is published
+   on an exam day of that course.
 3. Publish a routine update, or a waiting one after Louis's reply "approve updates for
    <course>": verify that the candidate on the branch is the one the checks ran on, build the
    live page from it and confirm that it matches the validated preview apart from the preview

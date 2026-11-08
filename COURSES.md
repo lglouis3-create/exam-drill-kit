@@ -36,12 +36,12 @@ Mid-course design changes:
   2026-10-17  port of PH shared features R1, R2, R4 to R9 (`30154d4`, `52156ed`); why: Louis approved them, "Initiate R1 & R2 and R3 isn’t a priority for this course so don’t include it. And do R4 to R9" (PK notes §4); preview approved: no preview step existed.
   2026-10-21 to 10-26  Worksheets tab first built on 10-21 (`e839844`), re-laid out twice on 10-26 in ways Louis did not want (`59f1fa6`, `ca436c1`; PK notes §2), then built to his folder layout of 2026-10-26 20:18 (`e6ea184`, `2759b31`); preview approved: no preview step existed.
   2026-10-26  guide walkthroughs (`bc8321d`); why: Louis asked for them built as PH built its walkthroughs; preview approved: no preview step existed.
+  2026-11-08  Louis: migrate this course onto the kit core, with the other courses awaiting migration (`review/standing-autonomy-2026-11-08.md` §3; for Pharmacokinetics and Intro to Pharmacology this supersedes his 2026-11-01 decision). Claude's note: the owner and the order are set by the central session and recorded in `review/bdk-move-plan.md` or a migrations record; "no kit pin" is the expected status until the move.
 Proposals declined: 2026-10-17, R3 "Mark verbatim items and test them against STYLE.md" (`notes/PORT_EVALUATION_2026-10-17.md:71`); Louis's reason: "R3 isn’t a priority for this course".
 Exam outcomes: none recorded in the repo or the notes.
 Louis's notes:
 
 ---
-  2026-11-08  Louis: migrate onto the kit core, with BDK and the other courses awaiting migration (`review/standing-autonomy-2026-11-08.md` §3; this supersedes the 2026-11-01 decision for Pharmacokinetics and Intro to Pharmacology). Owner and order: set by the central session and recorded in `review/bdk-move-plan.md` or the migrations record. "No kit pin" is its expected status until then.
 
 ## PHAR 4344 Pharmacotherapeutics II: Introduction to Pharmacology   repo: Intro-Pharmacology-   site: https://lglouis3-create.github.io/Intro-Pharmacology-   term: Fall 2026
 Material profile: lecture course taught by two professors in sequence; drug tables (Exam 1 drug list, drug ↔ receptor); pathways and processes (step-through figures, scenes); the professor's polls, quizzes and Jeopardy items kept verbatim; assigned readings (chapters and articles) tested as discussed; four exams (50, 50, 54 questions; Exam 4 count `null`, "about 55" per the professor on 10/28, `exam1-drill/src/course.js:55-111`). Exam 4 is Mon Nov 2 (`exam1-drill/src/course.js:100`).
@@ -51,12 +51,12 @@ Mid-course design changes:
   2026-10-22  Exam 3 bank rewritten to her quiz format with "Most likely" buttons (`b41039d` (branch)); why: her format (4 options, no absolute words, no length cue; PH notes §1); preview approved: no preview step existed.
   2026-10-23  Exam 3 guide rewritten to teach the reasoning (`a243a93` (branch)); why: Louis: "Make it isn't just reiterated what was said but giving the student a proper explanation" (PH notes §4); preview approved: no preview step existed.
   2026-10-26  focus switch states what it hides (`54a3c4a` (branch)); why: Louis asked why Exam 3 material disappeared; preview approved: no preview step existed.
+  2026-11-08  Louis: migrate this course onto the kit core, with the other courses awaiting migration (`review/standing-autonomy-2026-11-08.md` §3; for Pharmacokinetics and Intro to Pharmacology this supersedes his 2026-11-01 decision). Claude's note: the owner and the order are set by the central session and recorded in `review/bdk-move-plan.md` or a migrations record; "no kit pin" is the expected status until the move.
 Proposals declined: 2026-11-01, moving this drill onto the kit core (options A, a full move of about 42 kit pull requests, and C, a minimal move that drops many tabs and the audio, in the move assessment of 2026-11-01); Louis chose option B, the drill stays as it is and its features are ported into the kit from its code: "Lets do what you recommend that will result in the least mistakes". UX review items R2 to R9 of 2026-10-17 are recorded as waiting on Louis, not declined (PH notes §5).
 Exam outcomes: Quiz 4: "quiz 4 is correct as i got a 100" (Louis, PH notes §4; a quiz, not an exam). No exam score recorded.
 Louis's notes:
 
 ---
-  2026-11-08  Louis: migrate onto the kit core, with BDK and the other courses awaiting migration (`review/standing-autonomy-2026-11-08.md` §3; this supersedes the 2026-11-01 decision for Pharmacokinetics and Intro to Pharmacology). Owner and order: set by the central session and recorded in `review/bdk-move-plan.md` or the migrations record. "No kit pin" is its expected status until then.
 
 ## PHAR 4232 APC III, Basic Drug Knowledge (BDK) quizzes   repo: BDK   site: https://lglouis3-create.github.io/BDK/   term: Fall 2026
 Material profile: drug tables only: the BDK list PDF, 300 drugs on 26 pages (BDK notes §1); weekly quizzes on set pages (`QUIZZES`, `assets/app.js:42`); no lecture decks, transcripts or professor questions supplied (BDK notes §3); Louis also studies in Quizlet. Built from Louis's "BDK QUIZLET DECK SPEC", not from the skill.
@@ -70,12 +70,12 @@ Mid-course design changes:
   2026-11-01  offline cache cleanup scoped to `bdk-*`, slow-network fallback, progress kept when saving fails (`c78e78d`, v16); why: the old cleanup deleted other drill sites' offline copies on the shared origin; approved by Louis in chat; no preview step existed.
   2026-11-01  Home Screen card (`080d5fa`, v17); why: Safari deletes a site's data after 7 days without use unless it is on the Home Screen, and a Home Screen copy keeps separate storage; approved by Louis ("a neat tool to utilize"); no preview step existed.
   2026-11-01  answer history for fitting FSRS-7 later (`c2f87ae`, v18); why: BDK keeps only the last 10 results per card, without times; approved by Louis ("Whatever you recommend"); no preview step existed.
+  2026-11-08  Louis: migrate this course onto the kit core, with the other courses awaiting migration (`review/standing-autonomy-2026-11-08.md` §3; for Pharmacokinetics and Intro to Pharmacology this supersedes his 2026-11-01 decision). Claude's note: the owner and the order are set by the central session and recorded in `review/bdk-move-plan.md` or a migrations record; "no kit pin" is the expected status until the move.
 Proposals declined: none recorded. Two offers have no decision (per-column colour in Compare; the daily review reading an exported progress file; both from session memory, unverified, BDK notes §5).
 Exam outcomes: none recorded.
 Louis's notes:
 
 ---
-  2026-11-08  Louis: migrate onto the kit core, with BDK and the other courses awaiting migration (`review/standing-autonomy-2026-11-08.md` §3; this supersedes the 2026-11-01 decision for Pharmacokinetics and Intro to Pharmacology). Owner and order: set by the central session and recorded in `review/bdk-move-plan.md` or the migrations record. "No kit pin" is its expected status until then.
 
 ## PHAR 4346 DEENT   repo: DEENT   site: https://lglouis3-create.github.io/DEENT/   term: Fall 2026
 Material profile: two professors (pools "Dr. Smith (pharmacology)" and "Dr. Sikazwe (medicinal chemistry)" in DEENT `src/course.js`); slide decks and recorded lectures; drug structures (an Atlas of 91 structures drawn with RDKit from SMILES and checked against PubChem and ChEMBL, on the working branch only, unreleased: its files are not on `main`); four exams, each Monday 9:00-10:30 am: Exam 1 11/09 (50 questions, Lectures 1-4), Exam 2 11/16 (50, Lectures 1-4 30% and 5-8 70%), Exam 3 11/23 (50, Lectures 9-13), Final 12/07 (60, Lectures 14-18 50% and prior material 50%); the syllabus calls the dates tentative (its "Tentative exam dates" table, as recorded in DEENT `reviews/COURSE_STATUS.json` at `3ce3c20`; the dates also from Louis, 2026-11-06). Only Exam 1 is released on the site; the others are known to the coordinator (`coordinator/courses.json`) and not shown (DEENT `src/course.js` on `main` at `b2c2523`, read 2026-11-06).

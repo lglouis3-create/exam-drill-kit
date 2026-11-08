@@ -59,6 +59,10 @@ after Phase 1 and overrides earlier sections where they differ.
   logged in `37c5daf`), after Louis's reply in that session at 12:48 UTC ("The preview
   appears to work correctly on my device. [...] Then approve of the updates and continue
   forward"); that update changed only checks and tests, not the page students use.
+  **Superseded 2026-11-08** for Pharmacokinetics and Intro to Pharmacology: Louis decided
+  that BDK, Basic-Pharmacokinetics- and Intro-Pharmacology- are all migrated onto the core
+  (`review/standing-autonomy-2026-11-08.md` §3); the decisions below of 2026-11-01 to leave
+  the two on their own engines are history, and BDK is no longer the only move.
   Read-only assessments (2026-11-01) of a move for the other three: Pharmacokinetics
   about 35 kit pull requests (a straight move broke start-up and lost most features),
   BDK about 33 (quizzes still on 11/17-11/19 and 11/30), Intro to Pharmacology about
@@ -191,7 +195,8 @@ after Phase 1 and overrides earlier sections where they differ.
     routine updates under his standing authorization of 2026-11-08
     (`review/standing-autonomy-2026-11-08.md`; `KIT_DESIGN.md` §12 decision 10, amended):
     the nightly kit-update run publishes a routine update after validating the exact
-    candidate and confirming the published build matches it, and leaves at `/preview/`
+    candidate, with required checks and an independent review passed, confirming the
+    published build matches it and keeping rollback available, and leaves at `/preview/`
     any update that carries a meaningful decision or an unresolved risk. The same text
     decides that BDK, Basic-Pharmacokinetics- and Intro-Pharmacology- are migrated onto
     the core (one owner each, order by progress and assessments; superseding the
