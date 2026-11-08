@@ -2,7 +2,7 @@
 
 `index.html` here is the page for the phone and tablet runs of `../README.md` §6. It was built
 by `build.sh`:
-- the core of kit commit 3ba9360 (the core of this pull request at that commit);
+- the core of kit commit 7596e6e (this pull request merged with main 09b3f9a);
 - Medicinal-chemistry at 97ecf8b (public repository);
 - `../make_device_page.js`.
 
@@ -28,7 +28,7 @@ Louis then turns Pages on, once: in the repository, Settings → Pages → Deplo
 
 The page is then at `https://<organization>.github.io/ink-validation/`.
 
-To check that the published file is this one, compare the SHA-256 of `index.html` here (cca415046240cf6b2eaad9c0ca10c9b95a115a3028675114cefe1656ae105789 at 3ba9360) with the one served. Open the page and read the panel's top line, which shows the browser, Event Timing and the database state.
+To check that the published file is this one, compare the SHA-256 of `index.html` here (3133b43b79089c65267e70a69388ba172bac3c1d8310e2032d3ed4ca5af66c64, built from 7596e6e) with the one served. Open the page and read the panel's top line, which shows the browser, Event Timing and the database state.
 
 ## On the devices
 
