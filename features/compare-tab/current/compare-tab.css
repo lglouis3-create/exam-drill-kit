@@ -1,0 +1,31 @@
+/* Compare (BDK assets/style.css at 05c36c3, lines 90, 106, 310-323), in the kit's colours:
+   --border -> --line, --surface-2 -> --surface, --muted -> --text-dim, --good -> --ok */
+.ct-card{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin:0 0 14px;min-width:0}
+.ct-card h3{margin:0 0 8px;font-size:17px}
+.ct-spread{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.ct-check{display:flex;align-items:center;gap:8px;font-size:14px;min-height:44px}
+.ct-check input{width:18px;height:18px}
+.ct-dim{font-size:13px;color:var(--text-dim);margin:4px 0 0}
+.ct-row{display:flex;flex-wrap:wrap;gap:6px}
+.ct-actions{margin-top:12px}
+.group-label{display:flex;align-items:center;gap:6px;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-dim);font-weight:700;margin:12px 0 6px}
+.linkbtn{border:0;background:none;color:var(--accent);font-weight:650;padding:4px 6px;font-size:14px;min-height:44px}
+.pdot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--pc);margin-right:6px;vertical-align:0}
+.pagepick{border:0;font-size:12.5px;padding:3px 8px;cursor:pointer;min-height:32px}
+.pagepick.on{outline:2px solid var(--text);outline-offset:1px}
+.ct-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--paper);position:relative}
+.cmp{border-collapse:collapse;width:100%;font-size:14px;min-width:0}
+.cmp th,.cmp td{min-width:150px;text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+.cmp thead th{text-transform:none;letter-spacing:0;font-size:14px;color:var(--text);vertical-align:top;background:var(--surface)}
+.cmp tbody th{position:sticky;left:0;background:var(--surface);z-index:1;min-width:110px;max-width:130px;font-size:12.5px;text-transform:uppercase;letter-spacing:.03em;color:var(--text-dim)}
+.cmp thead th:first-child{position:sticky;left:0;z-index:2;min-width:110px}
+.cmp ul{margin:0;padding-left:16px}
+.cmp li{margin:2px 0}
+.cmp li.shared{color:var(--text-dim)}
+.cmp li.diff{font-weight:700}
+.samebadge{display:block;font-size:11px;font-weight:800;color:var(--ok);margin-top:2px}
+.onlydiff tr.same{display:none}
+.diffkey{font-weight:800;color:var(--text)}
+/* the table picker's chips, as drug-list-tab draws them (BDK style.css 105, 263-264), for a course without it */
+.jump{display:flex;flex-wrap:wrap;gap:4px}
+.pchip{display:inline-block;background:var(--pc);color:#1c2033;border-radius:6px;font-weight:750}

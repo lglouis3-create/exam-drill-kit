@@ -1,0 +1,34 @@
+{
+ "name": "compare-tab",
+ "version": "v1",
+ "does": "A Compare tab over the course's DRUG_TABLES (a data file listed in course.js `files`, the one drug-list-tab reads): choose 2 to 5 drugs (a table picker, Whole class chips, one at a time; the sixth drops the oldest) and see them side by side, one row per field, each item marked shared (every drug has it) or different, a row the same for all marked same, and Only differences. With drug-list-tab on, its detail row offers \"Compare the N drugs in this class\". The choices last for the visit only; nothing is stored.",
+ "source": "BDK assets/app.js viewCompare (lines 2301-2376), COMPARE_ROWS (2290-2293), factList (2294-2299), classmates (879), d.short (297-299), the Drug list's Compare button (2611), splitDepth0 (108-120) and assets/style.css (lines 90, 106, 310-323), at 05c36c3",
+ "js": ["compare-tab.js"],
+ "css": ["compare-tab.css"],
+ "step": "step.js",
+ "options": {
+  "tab": {"default": "compare", "about": "the tab's id (its pane is #v-<tab>)"},
+  "label": {"default": "Compare", "about": "the tab's name in the nav and its heading"},
+  "before": {"default": "settings", "about": "the tab it is placed before"},
+  "rows": {"default": [
+    {"key": "cat", "heading": "Drug class", "field": "category"},
+    {"key": "brand", "heading": "Brand", "field": "brand", "blank": "---"},
+    {"key": "cls", "heading": "Rx / OTC / schedule", "field": "classification", "split": [", "], "empty": "Rx only"},
+    {"key": "ind", "heading": "Indications", "field": "indication", "split": [", "]},
+    {"key": "kse", "heading": "Key side effects", "field": "essential", "section": 0, "split": ["; ", ", "]},
+    {"key": "bw", "heading": "US boxed warnings", "field": "essential", "section": 1, "split": ["; "]},
+    {"key": "notes", "heading": "Other notes", "field": "essential", "section": 2, "split": ["; "]},
+    {"key": "org", "heading": "Activity against", "field": "activity", "split": [", "]}],
+   "about": "the rows, in order (BDK's COMPARE_ROWS): key, heading, the row field it comes from, and optionally section (an index into sectionLabels: that section of the field), split (separators, applied in order at parentheses' depth 0), blank (a value meaning none, BDK's \"---\" brand) and empty (shown when the drug has nothing, BDK's \"Rx only\")"},
+  "sectionLabels": {"default": ["Key Side Effects?", "US Boxed Warnings?", "Other Notes?"], "about": "the labels a field's sections start with (regular expressions without capturing groups, matched without case, followed by an optional (qualifier) and a colon), as drug-list-tab's detailSections"},
+  "ownField": {"default": "generic", "about": "as drug-list-tab's detailOwnField: a section qualified with another drug of the same table, such as \"(only for ketorolac)\", counts only for the rows whose field holds every word of the qualifier (a heuristic tuned on BDK's data); empty: off"},
+  "seeAbove": {"default": "See above", "about": "as drug-list-tab's detailSeeAbove: a qualified section starting so takes the texts of the same section and qualifier on every row of every table (BDK resolveSeeAbove); empty: off"},
+  "classField": {"default": "category", "about": "the field that names a drug's class: Whole class chips and the Drug list's Compare button group by it; empty: neither"},
+  "classSkip": {"default": ["See individual drug components"], "about": "class values that get no Whole class chip (BDK line 2310)"},
+  "labelField": {"default": "label", "about": "the field shown as a drug's name in the column headings; its chip shows it without the trailing \"(brands)\" when the drug has a brand (BDK d.short)"},
+  "brandField": {"default": "brand", "about": "the field that holds a drug's brands, for the chip's short name; empty: the chip shows the label"},
+  "max": {"default": 5, "about": "how many drugs at most side by side (BDK: 5)"},
+  "defaultTable": {"default": "", "about": "the id of the table the picker opens on, written as text (\"25\"); empty: the first table (BDK opens on its next quiz's first page, a date rule not ported)"}
+ },
+ "test": "test.js"
+}

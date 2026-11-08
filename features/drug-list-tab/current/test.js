@@ -260,7 +260,7 @@ async function bdkView(browser, file, width){
   const emptyAt = FIX.tables.flatMap((t, ti) => t.rows.map((r, i) => [ti, i, r])).find(([, , r]) => !r.essential);
   await page.fill(`${pane} [data-q]`, emptyAt[2].generic);
   await page.click(`${pane} tr[data-ref="${emptyAt[0]}:${emptyAt[1]}"] td:nth-child(2)`);
-  check(await page.$eval(`${pane} tr[data-ref="${emptyAt[0]}:${emptyAt[1]}"] + tr.detail`, d => d.textContent.trim()) === 'No essential knowledge listed.',
+  check(await page.$eval(`${pane} tr[data-ref="${emptyAt[0]}:${emptyAt[1]}"] + tr.detail`, d => !d.querySelector('.ekbox') && (d.querySelector('.detailin > .dlt-note') || {}).textContent) === 'No essential knowledge listed.',
         `a row with no essential knowledge (${emptyAt[2].generic}) says so` + tag);
 
   // every row's sections, against what BDK's own cards give it
