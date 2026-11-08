@@ -6,6 +6,12 @@
    here. Keep this array at the top of the first question file so it is
    declared before any question uses it.
 
+   A topic with `optional: true` is kept in the bank but outside the active exam
+   (material a professor left off the assigned pages): its line on Topics says
+   "Optional", its own Start and subtopics reach it, and it is left out of
+   "Everything", the passes, exam papers, Weak spots' review list and the mastered
+   and pool counts. The mark is per topic; put such questions in a topic of their own.
+
    The questions below are SAMPLES showing every field and every kind the
    engine renders (single answer, select all, numeric, matching). Replace them
    with the course's own; do not ship them. Every fact in a real question comes
