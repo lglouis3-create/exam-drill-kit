@@ -8,24 +8,24 @@
 .ct-dim{font-size:13px;color:var(--text-dim);margin:4px 0 0}
 .ct-row{display:flex;flex-wrap:wrap;gap:6px}
 .ct-actions{margin-top:12px}
-.group-label{display:flex;align-items:center;gap:6px;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-dim);font-weight:700;margin:12px 0 6px}
-.linkbtn{border:0;background:none;color:var(--accent);font-weight:650;padding:4px 6px;font-size:14px;min-height:44px}
-.pdot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--pc);margin-right:6px;vertical-align:0}
-.pagepick{border:0;font-size:12.5px;padding:3px 8px;cursor:pointer;min-height:32px}
-.pagepick.on{outline:2px solid var(--text);outline-offset:1px}
+.ct-group-label{display:flex;align-items:center;gap:6px;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-dim);font-weight:700;margin:12px 0 6px}
+.ct-linkbtn{border:0;background:none;color:var(--accent);font-weight:650;padding:4px 6px;font-size:14px;min-height:44px}
+.ct-pdot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--pc);margin-right:6px;vertical-align:0}
+.ct-pagepick{border:0;font-size:12.5px;padding:3px 8px;cursor:pointer;min-height:32px}
+.ct-pagepick.on{outline:2px solid var(--text);outline-offset:1px}
 .ct-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--paper);position:relative}
-.cmp{border-collapse:collapse;width:100%;font-size:14px;min-width:0}
-.cmp th,.cmp td{min-width:150px;text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
-.cmp thead th{text-transform:none;letter-spacing:0;font-size:14px;color:var(--text);vertical-align:top;background:var(--surface)}
-.cmp tbody th{position:sticky;left:0;background:var(--surface);z-index:1;min-width:110px;max-width:130px;font-size:12.5px;text-transform:uppercase;letter-spacing:.03em;color:var(--text-dim)}
-.cmp thead th:first-child{position:sticky;left:0;z-index:2;min-width:110px}
-.cmp ul{margin:0;padding-left:16px}
-.cmp li{margin:2px 0}
-.cmp li.shared{color:var(--text-dim)}
-.cmp li.diff{font-weight:700}
-.samebadge{display:block;font-size:11px;font-weight:800;color:var(--ok);margin-top:2px}
-.onlydiff tr.same{display:none}
-.diffkey{font-weight:800;color:var(--text)}
+.ct-cmp{border-collapse:collapse;width:100%;font-size:14px;min-width:0}
+.ct-cmp th,.ct-cmp td{min-width:150px;text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+.ct-cmp thead th{text-transform:none;letter-spacing:0;font-size:14px;color:var(--text);vertical-align:top;background:var(--surface)}
+.ct-cmp tbody th{position:sticky;left:0;background:var(--surface);z-index:1;min-width:110px;max-width:130px;font-size:12.5px;text-transform:uppercase;letter-spacing:.03em;color:var(--text-dim)}
+.ct-cmp thead th:first-child{position:sticky;left:0;z-index:2;min-width:110px}
+.ct-cmp ul{margin:0;padding-left:16px}
+.ct-cmp li{margin:2px 0}
+.ct-cmp li.shared{color:var(--text-dim)}
+.ct-cmp li.diff{font-weight:700}
+.ct-samebadge{display:block;font-size:11px;font-weight:800;color:var(--ok);margin-top:2px}
+.ct-onlydiff tr.same{display:none}
+.ct-diffkey{font-weight:800;color:var(--text)}
 /* the table picker's chips, as drug-list-tab draws them (BDK style.css 105, 263-264), for a course without it */
-.jump{display:flex;flex-wrap:wrap;gap:4px}
-.pchip{display:inline-block;background:var(--pc);color:#1c2033;border-radius:6px;font-weight:750}
+.ct-jump{display:flex;flex-wrap:wrap;gap:4px}
+.ct-pchip{display:inline-block;background:var(--pc);color:#1c2033;border-radius:6px;font-weight:750}

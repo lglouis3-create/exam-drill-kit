@@ -145,6 +145,9 @@ async function compareView(browser, file, width){
   const ls0 = await page.evaluate(() => JSON.stringify({ls: Object.assign({}, localStorage), db: JSON.stringify(DB)}));
   const nav = await page.$(`#nav button[data-v="${DEFAULTS.tab}"]`);
   check(!!nav && (await nav.textContent()) === DEFAULTS.label, 'the nav has the Compare tab' + tag);
+  const coreCmp = await page.evaluate(() => { const d = document.createElement('div'); d.className = 'cmp'; d.innerHTML = '<h5>x</h5>'; document.body.appendChild(d);
+    const cs = getComputedStyle(d), r = [cs.marginBottom, cs.fontSize, cs.borderCollapse]; d.remove(); return r; });
+  check(coreCmp[0] === '14px' && coreCmp[2] === 'separate', 'a core .cmp strip keeps the core\'s margin (14px) and is not restyled as the compare table' + tag, coreCmp);
   await nav.click();
   let st = await state(page);
   check(st.page === 0 && await page.$eval(`${P} [data-pickpage="0"]`, b => b.classList.contains('on')) && !(await page.$(`${P} [data-side]`)) && !(await page.$(`${P} [data-one]`)),
@@ -167,11 +170,11 @@ async function compareView(browser, file, width){
   check(one === `Selected: ${FIX.tables.find(t => t.id === 3).rows[0].label}. Add at least one more drug.` && !(await page.$(`${P} [data-side]`)), 'one drug: "Add at least one more drug."' + tag, one);
   for(let i = 1; i < 6; i++) await page.click(`${P} [data-toggle="${ref(3, i)}"]`);
   st = await state(page);
-  const cols = await page.$$eval(`${P} .cmp thead th[scope="col"]`, t => t.length);
+  const cols = await page.$$eval(`${P} .ct-cmp thead th[scope="col"]`, t => t.length);
   check(JSON.stringify(st.sel) === JSON.stringify([1, 2, 3, 4, 5].map(i => ref(3, i))) && cols === 5, 'six picked one at a time: the first is dropped, five side by side' + tag, st.sel);
   await page.click(`${P} [data-remove="${ref(3, 2)}"]`);
   st = await state(page);
-  check(JSON.stringify(st.sel) === JSON.stringify([1, 3, 4, 5].map(i => ref(3, i))) && (await page.$$(`${P} .cmp thead th[scope="col"]`)).length === 4, 'Remove takes that drug\'s column out' + tag, st.sel);
+  check(JSON.stringify(st.sel) === JSON.stringify([1, 3, 4, 5].map(i => ref(3, i))) && (await page.$$(`${P} .ct-cmp thead th[scope="col"]`)).length === 4, 'Remove takes that drug\'s column out' + tag, st.sel);
   await page.click(`${P} [data-toggle="${ref(3, 1)}"]`);
   check(JSON.stringify((await state(page)).sel) === JSON.stringify([3, 4, 5].map(i => ref(3, i))), 'a chip picked again unselects it' + tag);
   await page.click(`${P} [data-clear]`);
@@ -180,12 +183,12 @@ async function compareView(browser, file, width){
   await pickTable(page, 25);
   await page.click(`${P} [data-compare^="${ref(25, 0)}"]`);
   st = await state(page);
-  check(JSON.stringify(st.sel) === JSON.stringify([0, 1, 2, 3, 4].map(i => ref(25, i))) && (await page.$$(`${P} .cmp thead th[scope="col"]`)).length === 5,
+  check(JSON.stringify(st.sel) === JSON.stringify([0, 1, 2, 3, 4].map(i => ref(25, i))) && (await page.$$(`${P} .ct-cmp thead th[scope="col"]`)).length === 5,
         'Whole class "Opioid analgesic 6" (page 25) puts its first five side by side' + tag, st.sel);
   await page.click(`${P} [data-clear]`);
   // the known pair: oxycodone and methadone, page 25
   await page.click(`${P} [data-toggle="${ref(25, 4)}"]`); await page.click(`${P} [data-toggle="${ref(25, 5)}"]`);
-  const T = await page.$$eval(`${P} .cmp tbody tr`, rs => rs.map(r => ({key: r.dataset.row, same: r.classList.contains('same'), badge: !!r.querySelector('.samebadge'),
+  const T = await page.$$eval(`${P} .ct-cmp tbody tr`, rs => rs.map(r => ({key: r.dataset.row, same: r.classList.contains('same'), badge: !!r.querySelector('.ct-samebadge'),
     field: r.querySelector('th').dataset.field, cells: [...r.querySelectorAll('td')].map(td => [...td.querySelectorAll('li')].map(li => (li.className === 'shared' ? 'S ' : 'D ') + li.textContent))})));
   const row = k => T.find(r => r.key === k) || {cells: [[], []]};
   check(JSON.stringify(T.map(r => r.key)) === JSON.stringify(['cat', 'brand', 'cls', 'ind', 'kse', 'bw']), 'oxycodone and methadone: the rows with a fact (no Other notes, no Activity against)' + tag, T.map(r => r.key));
@@ -202,14 +205,14 @@ async function compareView(browser, file, width){
   check(row('ind').cells.flat().every(x => x[0] === 'D') && row('brand').cells.flat().every(x => x[0] === 'D'), 'Indications and Brand: every item different' + tag);
   check(T.every(r => r.field === DEFAULTS.rows.find(d => d.key === r.key).field), 'each row heading carries its field (data-field)' + tag, T.map(r => r.field));
   await page.check(`${P} [data-onlydiff]`);
-  const vis = await page.$$eval(`${P} .cmp tbody tr`, rs => rs.map(r => [r.dataset.row, getComputedStyle(r).display !== 'none']));
+  const vis = await page.$$eval(`${P} .ct-cmp tbody tr`, rs => rs.map(r => [r.dataset.row, getComputedStyle(r).display !== 'none']));
   check(JSON.stringify(vis.filter(v => v[1]).map(v => v[0])) === JSON.stringify(['brand', 'ind', 'kse', 'bw']), 'Only differences hides the rows marked same' + tag, vis);
   check(!(await sideways(page)), 'no sideways scroll with two drugs side by side' + tag);
   // a fact written in other capitals: budesonide's "Asthma" and montelukast's "asthma" (page 9)
   await page.uncheck(`${P} [data-onlydiff]`);
   await page.click(`${P} [data-clear]`); await pickTable(page, 9);
   await page.click(`${P} [data-toggle="${ref(9, 0)}"]`); await page.click(`${P} [data-toggle="${ref(9, 8)}"]`);
-  const asth = await page.$eval(`${P} .cmp tbody tr[data-row="ind"]`, r => [...r.querySelectorAll('td')].map(td => [...td.querySelectorAll('li')].map(li => (li.className === 'shared' ? 'S ' : 'D ') + li.textContent)));
+  const asth = await page.$eval(`${P} .ct-cmp tbody tr[data-row="ind"]`, r => [...r.querySelectorAll('td')].map(td => [...td.querySelectorAll('li')].map(li => (li.className === 'shared' ? 'S ' : 'D ') + li.textContent)));
   // spaces: no item in BDK's list differs from another only in spacing, so the rule is checked on page 2's
   // "Elevated IOP" written here with a doubled inner space and a trailing one
   const sp = await page.evaluate(() => FX.api('compare-tab').mark([['Elevated  IOP '], ['elevated IOP']]));
@@ -220,7 +223,7 @@ async function compareView(browser, file, width){
   await page.click(`${P} [data-toggle="${ref(25, 4)}"]`); await page.click(`${P} [data-toggle="${ref(25, 5)}"]`);
   await page.check(`${P} [data-onlydiff]`);
   await page.uncheck(`${P} [data-onlydiff]`);
-  check((await page.$$eval(`${P} .cmp tbody tr`, rs => rs.filter(r => getComputedStyle(r).display !== 'none').length)) === 6, 'unchecked, every row is back' + tag);
+  check((await page.$$eval(`${P} .ct-cmp tbody tr`, rs => rs.filter(r => getComputedStyle(r).display !== 'none').length)) === 6, 'unchecked, every row is back' + tag);
   // the choices last for the visit
   await page.check(`${P} [data-onlydiff]`);
   await page.evaluate(() => show('topics'));
@@ -246,6 +249,17 @@ async function compareView(browser, file, width){
   hasOwn = !!X.T;
   check(X.T && X.FX.tabs().includes((X.FX.modules().find(m => m.name === 'compare-tab') || {options: {}}).options.tab || DEFAULTS.tab) && !X.FX.errors.length,
         `the course's ${X.T ? X.T.length : 0} tables have the Compare tab, and the module throws nothing`, X.FX.errors);
+
+  console.log('\n=== the styles stay inside the module ===');
+  // every class a compare-tab.css rule names is the module's own (ct-), or a state
+  // class used only beside one (on, same, shared, diff); so the core's .cmp strip
+  // (core/views.js, shell.html) and other modules' classes keep their own look
+  const css = fs.readFileSync(path.join(__dirname, 'compare-tab.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+  const sels = [...css.matchAll(/([^{}]+)\{[^{}]*\}/g)].flatMap(m => m[1].split(',').map(x => x.trim())).filter(Boolean);
+  const STATE = new Set(['on', 'same', 'shared', 'diff']);
+  const bad = sels.filter(x => { const cls = [...x.matchAll(/\.([\w-]+)/g)].map(m => m[1]);
+    return !cls.some(c => c.startsWith('ct-')) || cls.some(c => !c.startsWith('ct-') && !STATE.has(c)); });
+  check(sels.length > 0 && !bad.length, `each of the ${sels.length} selectors in compare-tab.css names a ct- class and no other module's class`, bad);
 
   console.log('\n=== the build step refuses bad options ===');
   for(const [what, o, re] of [
@@ -312,7 +326,7 @@ async function compareView(browser, file, width){
         await page.click(`#v-drugs tr[data-ref="${ref(25, 5)}"] + tr.detail [data-ct-compare]`);
         const st = await state(page);
         check(await page.evaluate(p => !document.querySelector(p).classList.contains('hide'), P) && JSON.stringify(st.sel) === JSON.stringify([0, 1, 2, 3, 4].map(i => ref(25, i))) &&
-              st.page === FIX.tables.findIndex(t => t.id === 25) && (await page.$$(`${P} .cmp thead th[scope="col"]`)).length === 5, 'the button opens Compare with them, on their page' + tag, st);
+              st.page === FIX.tables.findIndex(t => t.id === 25) && (await page.$$(`${P} .ct-cmp thead th[scope="col"]`)).length === 5, 'the button opens Compare with them, on their page' + tag, st);
         check(!errors.length && !(await page.evaluate(() => FX.errors.length)), 'no page or module error (with drug-list-tab)' + tag, errors);
         await ctx.close();
       }
@@ -330,7 +344,7 @@ async function compareView(browser, file, width){
         await page.click(`${P} [data-pickpage="${FIX.tables.findIndex(t => t.id === 25)}"]`);
         await page.click(`${P} [data-toggle="${ref(25, 4)}"]`); await page.click(`${P} [data-toggle="${ref(25, 5)}"]`);
         const fields = JSON.parse(fs.readFileSync(path.join(FC_DIR, 'module.json'), 'utf8')).options.fields.default;
-        const hs = await page.$$eval(`${P} .cmp tbody th`, t => t.map(x => [x.dataset.field, getComputedStyle(x).color]));
+        const hs = await page.$$eval(`${P} .ct-cmp tbody th`, t => t.map(x => [x.dataset.field, getComputedStyle(x).color]));
         const want = Object.fromEntries(fields.map(([f, l]) => [f, 'rgb(' + [1, 3, 5].map(i => parseInt(l.slice(i, i + 2), 16)).join(', ') + ')']));
         const okC = hs.filter(([f]) => want[f]), others = hs.filter(([f]) => !want[f]);
         check(okC.length === 2 && okC.every(([f, c]) => c === want[f]) && others.length && others.every(([, c]) => !Object.values(want).includes(c)),

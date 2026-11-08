@@ -144,16 +144,16 @@ function ctRender(pane){
       const lists = CT.sel.map(ref => ctFacts(ref, def));
       if(lists.every(l => !l.length)) return '';
       const {shared, same} = ctMark(lists);
-      return `<tr class="${same ? 'same' : ''}" data-row="${ctText(def.key)}"><th scope="row" data-field="${ctText(def.field)}">${ctText(def.heading)}${same ? '<span class="samebadge">same</span>' : ''}</th>${lists.map(l =>
+      return `<tr class="${same ? 'same' : ''}" data-row="${ctText(def.key)}"><th scope="row" data-field="${ctText(def.field)}">${ctText(def.heading)}${same ? '<span class="ct-samebadge">same</span>' : ''}</th>${lists.map(l =>
         `<td>${l.length ? `<ul>${l.map(x => `<li class="${shared.has(ctKey(x)) ? 'shared' : 'diff'}">${ctText(x)}</li>`).join('')}</ul>` : '<span class="ct-dim">—</span>'}</td>`).join('')}</tr>`;
     }).join('');
     table = `<div class="ct-card" data-side>
       <div class="ct-spread"><h3>Side by side</h3>
         <label class="ct-check"><input type="checkbox" data-onlydiff ${CT.onlyDiff ? 'checked' : ''}> Only differences</label></div>
-      <p class="ct-dim"><span class="diffkey">Bold</span> = differs between these drugs · gray = the same for all of them.</p>
-      <div class="ct-wrap cmp-wrap${CT.onlyDiff ? ' onlydiff' : ''}"><table class="cmp">
-        <thead><tr><th></th>${sel.map((x, k) => `<th scope="col"><span class="pdot" style="--pc:${ctText(x.t.color || 'var(--line)')}" aria-hidden="true"></span>${ctText(x.r[OPT.labelField])}<div class="ct-dim">${ctText(ctTag(x.t))}</div>
-          <button class="linkbtn" data-remove="${CT.sel[k]}" aria-label="Remove ${ctText(x.r[OPT.labelField])}">Remove</button></th>`).join('')}</tr></thead>
+      <p class="ct-dim"><span class="ct-diffkey">Bold</span> = differs between these drugs · gray = the same for all of them.</p>
+      <div class="ct-wrap ct-cmp-wrap${CT.onlyDiff ? ' ct-onlydiff' : ''}"><table class="ct-cmp">
+        <thead><tr><th></th>${sel.map((x, k) => `<th scope="col"><span class="ct-pdot" style="--pc:${ctText(x.t.color || 'var(--line)')}" aria-hidden="true"></span>${ctText(x.r[OPT.labelField])}<div class="ct-dim">${ctText(ctTag(x.t))}</div>
+          <button class="ct-linkbtn" data-remove="${CT.sel[k]}" aria-label="Remove ${ctText(x.r[OPT.labelField])}">Remove</button></th>`).join('')}</tr></thead>
         <tbody>${rows}</tbody></table></div>
     </div>`;
   }
@@ -161,14 +161,14 @@ function ctRender(pane){
   pane.innerHTML = `<h2>${ctText(OPT.label)}</h2>
     <p class="sub">Put look-alike drugs side by side to see exactly how they differ.</p>
     ${table}
-    ${sel.length === 1 ? `<div class="ct-card" data-one><p>Selected: <span class="pdot" style="--pc:${ctText(sel[0].t.color || 'var(--line)')}" aria-hidden="true"></span><b>${ctText(sel[0].r[OPT.labelField])}</b>. Add at least one more drug.</p></div>` : ''}
+    ${sel.length === 1 ? `<div class="ct-card" data-one><p>Selected: <span class="ct-pdot" style="--pc:${ctText(sel[0].t.color || 'var(--line)')}" aria-hidden="true"></span><b>${ctText(sel[0].r[OPT.labelField])}</b>. Add at least one more drug.</p></div>` : ''}
     <div class="ct-card">
       <h3>Choose drugs</h3>
-      <div class="jump">${T.map((t, k) => `<button class="pchip pagepick${k === CT.page ? ' on' : ''}" style="--pc:${ctText(t.color || 'var(--surface)')}" data-pickpage="${k}" aria-pressed="${k === CT.page}">${ctText(t.id)}</button>`).join('')}</div>
+      <div class="ct-jump">${T.map((t, k) => `<button class="ct-pchip ct-pagepick${k === CT.page ? ' on' : ''}" style="--pc:${ctText(t.color || 'var(--surface)')}" data-pickpage="${k}" aria-pressed="${k === CT.page}">${ctText(t.id)}</button>`).join('')}</div>
       ${pick ? `<p class="ct-dim" style="margin-top:10px">${ctText(ctTag(pick))} · ${ctText(pick.title)}</p>` : ''}
-      ${multi.length ? `<div class="group-label">Whole class</div><div class="ct-row">${multi.map(g =>
+      ${multi.length ? `<div class="ct-group-label">Whole class</div><div class="ct-row">${multi.map(g =>
         `<button class="chip" data-compare="${g.refs.slice(0, OPT.max).join(',')}">${ctText(g.name)} <span class="count">${g.refs.length}</span></button>`).join('')}</div>` : ''}
-      <div class="group-label">One at a time (up to ${OPT.max})</div>
+      <div class="ct-group-label">One at a time (up to ${OPT.max})</div>
       <div class="ct-row">${pick ? pick.rows.map((r, j) => `<button class="chip" data-toggle="${CT.page}:${j}" aria-pressed="${CT.sel.includes(CT.page + ':' + j)}">${ctText(ctShort(r))}</button>`).join('') : ''}</div>
       ${CT.sel.length ? '<div class="ct-actions"><button class="btn ghost" data-clear>Clear selection</button></div>' : ''}
     </div>`;
@@ -184,7 +184,7 @@ function ctRender(pane){
   const clear = pane.querySelector('[data-clear]');
   if(clear) clear.onclick = () => { CT.sel = []; again(); };
   const od = pane.querySelector('[data-onlydiff]');
-  if(od) od.onchange = e => { CT.onlyDiff = e.target.checked; pane.querySelector('.cmp-wrap').classList.toggle('onlydiff', e.target.checked); };
+  if(od) od.onchange = e => { CT.onlyDiff = e.target.checked; pane.querySelector('.ct-cmp-wrap').classList.toggle('ct-onlydiff', e.target.checked); };
 }
 /* open Compare with these drugs, on their table (BDK go('compare', refs), line 1250) */
 function ctOpen(refs){
@@ -203,7 +203,7 @@ function ctDecorate(pane){
     const mates = ctClassmates(ref);
     if(mates.length < 2) return;
     const b = document.createElement('button');
-    b.className = 'linkbtn'; b.type = 'button';
+    b.className = 'ct-linkbtn'; b.type = 'button';
     b.setAttribute('data-ct-compare', mates.slice(0, OPT.max).join(','));
     b.textContent = `Compare the ${mates.length} drugs in this class`;
     b.onclick = e => { e.stopPropagation(); ctOpen(b.dataset.ctCompare.split(',')); };
