@@ -30,7 +30,12 @@ measurements already made, before any production storage change.
   (`logs/worker-throttle-probe.log`). On the ink samples it left the record one save behind
   for 125 to 176 ms after each save at rate 1, which reopens the close-without-handover case
   that kit #30's A1 fixed.
-- Only worksheets-ink (#17) makes progress large enough to reach A's limits. Before any course
+- Of the modules measured, only worksheets-ink (#17) made progress large enough to reach A's
+  limits. The ink sizes are generated, not taken from a course: the porter sample has 60 pages
+  (1,355,486 characters) and the random-walk samples 60, 69, 100, 150 and 171 pages (1,563,704,
+  1,796,478, 2,604,462, 3,906,236 and 4,453,234 characters), each page 30 strokes of 60 points.
+  How much ink a real course's worksheets hold was not measured, and no other module's part
+  (equation-drill's `DB.eq`, for one) was measured. Before any course
   switches worksheets-ink on, Louis decides between G (IndexedDB, kit #49 and #54) and a size
   limit on ink progress. A's measured candidate for such a limit is about 1,747,620 characters,
   the size at which three full copies stop fitting in 5,242,859 (5,242,859 / 3 = 1,747,619.7,
@@ -67,9 +72,9 @@ and any `/preview/` copies store (`review/storage-usage-proposal.md`).
 | Case | Recommended = today's full copy (A) | T, compressed above three copies (not recommended) |
 |---|---|---|
 | Quota failure | The record fits while two copies fit, up to about 2,621,430 characters of progress (5,242,859 / 2 = 2,621,429.5, checked). Above that the record write is refused; the notice says so, and the core removes only this tab's own record, once it has read back that the stored progress holds it (kit #47). In the steady-state runs of `logs/latency-large.log` the progress itself was stored after every save, up to 4,453,234 characters. | The record is about 0.173 of the progress (310,886 to 310,899 of 1,796,478 and 769,982 to 769,999 of 4,453,234 characters) and was stored at every size measured, up to 4,453,234. A refused record write is handled as in A. |
-| Reload | The earlier page's record stays until the stored progress is shown to hold it, checked again at least 60 s later and unchanged in between. For about that minute three copies must fit: above about 1,747,620 characters the reloaded page's own record is refused, an Import of a second 1,475,679-character profile was refused (nothing stored changed), and at 2,621,000 the progress save itself was refused for up to about a minute, so closing the tab then lost the answers given since the reload (`logs/real-quota-*.log`, `logs/near-limit-2621000.log`). | The same rules; the minute holds about 1.346 copies (1 + 2 × 0.173 = 1.346, checked), so the reloaded page's record is refused above about 3,895,140 characters (5,242,859 / 1.346 = 3,895,140.4, checked). Not measured: a reload at these sizes under T. |
-| Profile switch | One record per return to a profile, under a new key each time (Louis, 2026-11-05). | The same. |
-| Cross-tab recovery | The next tab to hold the profile places each record by its last answer, as the progress or as a copy Import keeps; a module part the stored progress lacks is kept as a copy (kit #69); a record is removed only after the 60 s check. | The same rules, plus decompression checked against the record's length and hash; a record that fails is left in place. A tab on an older core skips a compressed record until a newer-core tab places it. |
+| Reload | The earlier page's record stays until the stored progress is shown to hold it, checked again at least 60 s later and unchanged in between. For about that minute three copies must fit: above about 1,747,620 characters the reloaded page's own record is refused, an Import of a second 1,475,679-character profile was refused (nothing stored changed), and at 2,621,000 the progress save itself was refused from the first answer after the reload until a check between 60 and 70 s later (`savedAgainAfterSeconds: 70`). Closing the tab in that time would lose the answers given since the reload; no close was performed (`logs/real-quota-*.log`, `logs/near-limit-2621000.log`). | The same rules; the minute holds about 1.346 copies (1 + 2 × 0.173 = 1.346, checked), so the reloaded page's record is refused above about 3,895,140 characters (5,242,859 / 1.346 = 3,895,140.4, checked). Not measured: a reload at these sizes under T. |
+| Profile switch | On each return to a profile, the tab writes its record under a new key when an earlier record of that profile from this tab is still stored, so that record is checked and placed like another tab's (`newRecordTime`, `core/shell.html`; Louis, 2026-11-05). | The same. |
+| Cross-tab recovery | The next tab to hold the profile places each record by its last answer, as the progress or as a copy Import keeps; a module part the stored progress lacks is kept as a copy (kit #69); a record is removed only after the 60 s check. | The same rules, plus decompression checked against the record's length and hash; a record that fails is left in place. A tab on an older core would skip a compressed record until a newer-core tab placed it. |
 | Close without handover | No window while the record fits: the progress and the record are written in the same synchronous step, and a save still waiting on its 150 ms timer is written on `pagehide` and `visibilitychange` (kit #30, A1). Above about 2,621,430 characters there is no record, so a save another tab later covers is lost. | No window either (the compression is synchronous), but that step blocks the page for 589 to 1,616 ms at rate 4. W, by contrast, left the record one save behind for 125 to 176 ms at rate 1 on the ink samples. |
 
 **The smallest useful validation plan.**
@@ -81,26 +86,42 @@ and any `/preview/` copies store (`review/storage-usage-proposal.md`).
 3. **Measurements**, each 3 runs of 5 saves:
    - the save's own main-thread time (`performance.now` around the synchronous save), median and
      maximum;
-   - the slowest click-to-next-paint during saves, where the browser provides the Event Timing
-     API (its support in Safari was not checked in this session);
+   - the slowest click-to-next-paint during saves, from the Event Timing API. Can I use lists
+     `PerformanceEventTiming` as supported in Safari 26.2 and later and in Safari on iOS 26.2
+     and later, not supported before 26.2, and supported in Chrome for Android 157.[2] The
+     phone's Safari version is recorded before the run;
    - the localStorage limit, with `quota_probe.js`'s method, once per browser, because the
      thresholds above come from Chromium's 5,242,859.
-   - Samples: the 4,000-answer profile (526,734 characters) and the random-walk ink profile of
-     1,796,478 characters.
-4. **Accept or reject:**
-   - **Accept A for the current courses** if, on both phones, the answers sample's median save is
-     200 ms or less. No production change follows.
-   - **Ink:** if the 1,796,478-character sample's median save is also 200 ms or less on both
-     phones, a size limit near 1,747,620 characters (recomputed from that browser's measured
-     limit) is a workable option for worksheets-ink beside G. If it exceeds 200 ms on either
-     phone, worksheets-ink waits for G or another approved design.
-   - **Reject A** if the answers sample exceeds 200 ms on either phone: a proposal to reduce the
-     save's own work then comes to Louis before any change.
+   - Samples: the profile at both caps, 546,993 characters of progress after 5,000 answers
+     (`review/storage-measure/measure.js`; `review/storage-usage-proposal.md` §2), and the
+     random-walk ink profile of 69 pages, 1,796,478 characters. The 546,993-character profile
+     was not timed in Chromium; the 526,734-character sample (4,000 answers on 600 concepts,
+     20,259 characters smaller: 546,993 − 526,734 = 20,259, checked) is the nearest timed size.
+     The plan's first step is to time the 546,993-character profile in Chromium at rate 4 with
+     `latency_measure.js`.
+4. **Accept or reject.** A sample meets the target on a phone when its median save is 200 ms
+   or less and its slowest click-to-next-paint is 200 ms or less.
+   - **Accept A for the current courses** if the 546,993-character profile meets the target on
+     both phones. No production change follows.
+   - **Ink:** if the 1,796,478-character sample also meets the target on both phones, a size
+     limit near 1,747,620 characters (recomputed from that browser's measured limit) is a
+     workable option for worksheets-ink beside G. If it fails on either phone, worksheets-ink
+     waits for G or another approved design.
+   - **Reject A** if the 546,993-character profile fails on either phone, on the median save or
+     on the slowest click: a proposal to reduce the save's work then comes to Louis before any
+     change.
+   - **A browser without the Event Timing API** (Safari before 26.2, per [2]): the slowest-click
+     part is NOT RUN on it, so that phone cannot meet the target and cannot give an accept. A
+     click that arrives as a save starts waits for the whole save, so a maximum save above
+     200 ms there is a reject. A maximum save of 200 ms or less there is reported as partial,
+     and the run is repeated on Safari 26.2 or later before any accept.
 
 **NOT RUN** (details in "Not run" below): Safari on an iPhone or iPad, Android, WebKit page
 latency, and Firefox; any timing on a real phone; a CPU-slowed Worker (refused by Chromium);
 the localStorage limit and 15-bit counting outside Chromium; T or W inside the core; a reload or
-two-tab run under T; whether an IndexedDB write started at `pagehide` completes.
+two-tab run under T; whether an IndexedDB write started at `pagehide` completes; the
+546,993-character profile at both caps in Chromium's latency harness; Event Timing on a real
+Safari (its support is from Can I use only); real-course ink volume and any other module's part.
 
 ## What the per-tab record is
 
@@ -123,7 +144,11 @@ credited to "the review" come from the independent review of #66 (2026-11-06, of
 whose own scripts were not committed.
 
 **The limit.** One origin's localStorage took 5,242,859 characters (key and value) and refused
-more (`logs/quota-probe.log`; the review measured the same).
+more (`logs/quota-probe.log`; the review measured the same). `review/storage-usage-proposal.md`
+gives 5,242,873 for Chromium 153 over HTTP, which it states is a lower bound because its script's
+smallest piece is 10 characters plus its key. The two figures differ by 14 characters
+(5,242,873 − 5,242,859 = 14, checked), from different scripts; this proposal's thresholds use
+5,242,859.
 
 **A progress of 1,475,679 characters**, made of two answers and a module part holding ink as
 worksheets-ink does (`logs/real-quota-1475679.log`):
@@ -458,8 +483,10 @@ every save (5 of 5). Each cell is the range over 3 runs of 5 saves.
 - The interrupted run of 2026-11-06 (branch `claude/elegant-ptolemy-pqxb8y-records-proposal-wip`)
   is reused only for its complete logs: `logs/worker-throttle-probe.log` and
   `logs/latency-measure-r2-171pages.log` (4,453,234 characters at rate 1, all four variants). Its
-  W rows there show slowest clicks of 8,016 and 23,648 ms in two runs, which no other row comes
-  near; they are left out as a measurement fault, not a result.
+  W rows there show slowest clicks of 8,016 and 23,648 ms in runs 2 and 3. They are excluded and
+  their cause was not found. In those two runs the longest task was 73 and 80 ms, so no long task
+  on the page accounts for the waits, and the run ended with "Target page, context or browser has
+  been closed" after the IndexedDB measurement.
 
 ## The compressed record (the earlier recommendation; not recommended now)
 
@@ -556,8 +583,13 @@ it stood before #69:
 - Records written by an older core in a mixed-tab test.
 - `history_test.js` and `storage_test.js` on the D prototype.
 - Any measurement on Louis's own progress (§12.4): every sample is generated.
+- Save latency for the 546,993-character profile at both caps; real-course ink volume; any
+  module part other than worksheets-ink's.
+- Event Timing in Safari on a device: its support comes from Can I use [2], not from a run.
 
 ## References
 
 1. Wagner J, Pollard B. Interaction to Next Paint (INP). web.dev. Published May 6, 2022. Updated
    September 2, 2025. Accessed November 6, 2026. https://web.dev/articles/inp
+2. PerformanceEventTiming API. Can I use. Accessed November 8, 2026.
+   https://caniuse.com/mdn-api_performanceeventtiming
