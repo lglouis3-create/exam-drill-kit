@@ -179,8 +179,11 @@ async function flow(page, label, opts){
     if(k !== blankAt) await page.evaluate(ANS, k < right);
   }
   await page.evaluate(() => { EX.i = 0; renderExamQ(); });
-  if(multiFirst) check(await page.evaluate(() => isMulti(EX.qs[0]) && Array.isArray(EX.picks[0]) && EX.picks[0].length > 0),
-    `${label}: question 1, a select-all item, keeps its answer after it is answered a second time`, await page.evaluate(() => EX.picks[0]));
+  if(multiFirst){
+    const q1 = await page.evaluate(() => ({multi: isMulti(EX.qs[0]), picks: (EX.picks[0] || []).slice().sort((a, b) => a - b), want: correctSet(EX.qs[0]).slice().sort((a, b) => a - b)}));
+    check(q1.multi && JSON.stringify(q1.picks) === JSON.stringify(q1.want),
+      `${label}: question 1, a select-all item, keeps exactly its right answer after it is answered a second time`, q1);
+  } else L.skip(`${label}: question 1 answered twice as a select-all item`, 'no select-all item on this paper');
   await toLast(page);
   s = await state(page);
   const before = s;
