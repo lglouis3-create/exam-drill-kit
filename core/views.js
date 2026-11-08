@@ -494,6 +494,15 @@ function refreshHomeCards(){
 /* The progress file: this profile's progress and its answer history, for a
    second device, a Home Screen copy, or a retro that reads the history. */
 function exportProgress(){
+  // a part kept outside localStorage (worksheet ink) is put into DB first, so the file carries it
+  if(outsidePending()){
+    let done = false;
+    outsideReady().then(() => { if(!done){ done = true; exportProgress(); } });
+    // the database did not answer: the file is made from what this page holds, and the page says so
+    setTimeout(() => { if(done) return; done = true; OUT.attached[PROFILE] = DB; exportProgress();
+      alert('The writing kept in this browser\'s database could not be read in time, so the file holds only the writing this page has open.'); }, 10000);
+    return;
+  }
   const blob = new Blob([JSON.stringify({app:'exam-drill', course:COURSE.id, ns:NS, exported:new Date().toISOString(),
                                          profile:PROFILE, db:DB, log:LOG}, null, 1)], {type:'application/json'});
   const a = document.createElement('a');
@@ -719,7 +728,7 @@ function importPlan(f){
   if(!canSave()) return {block: LOAD_FAIL};
   // site data cleared while this page was open: the page's copy is saved again first, as
   // its next save would, so the plan compares the file with what is stored
-  if(storedGone() && !changedElsewhere()){ store.set(keyFor(PROFILE), JSON.stringify(DB)); saveLog(); }
+  if(storedGone() && !changedElsewhere()){ store.set(keyFor(PROFILE), progText(DB)); saveLog(); }
   if(FAILED.has(keyFor(PROFILE))) return {block: UNSAVED};
   if(changedElsewhere()) return {block: elsewhere()};
   const here = DB.answers, there = f.db.answers;
@@ -913,16 +922,18 @@ function runImport(plan){
   if(saveTimer || cleared){
     clearTimeout(saveTimer); saveTimer = null;
     // store.set keeps the refused change on this page and flags it, as any save does
-    if(!store.set(keyFor(PROFILE), JSON.stringify(DB))) return {text: `${refused}, so nothing was imported. Your progress is kept on this page until you leave it; export it now.`};
+    if(!store.set(keyFor(PROFILE), progText(DB))) return {text: `${refused}, so nothing was imported. Your progress is kept on this page until you leave it; export it now.`};
   }
   if(plan.action === 'separate'){
     const name = plan.name, db = JSON.parse(JSON.stringify(f.db));
-    if(!store.trySet(keyFor(name), JSON.stringify(db))) return {text: `${refused}, so nothing was imported. Your progress is unchanged.`};
+    if(!store.trySet(keyFor(name), progText(db, name))) return {text: `${refused}, so nothing was imported. Your progress is unchanged.`};
     const log = mergedLog([], f.log);
     if(log.length && !store.trySet(NS + ':log:' + name, JSON.stringify(log))){
       store.del(keyFor(name));
       return {text: `${refused}, so nothing was imported. Your progress is unchanged.`};
     }
+    // the file's pages kept outside localStorage (worksheet ink) go into the new profile's database records
+    outsideImport(name, db).then(ok => { if(!ok) alert(`The browser did not save the writing in the file for the profile "${name}" (storage is full or blocked). The file still holds it; importing it again adds it.`); });
     return {text: `The file's progress is now the profile "${esc(name)}" (${nAnswers(db.answers.length)}). The progress of "${esc(PROFILE)}" is unchanged.`, open: name};
   }
   let text = '';
@@ -935,7 +946,7 @@ function runImport(plan){
     const db = JSON.parse(JSON.stringify(f.db));
     db.settings = Object.assign({}, db.settings || {});
     for(const k of IMPORT_DEVICE){ if(DB.settings && k in DB.settings) db.settings[k] = DB.settings[k]; else delete db.settings[k]; }
-    const dbText = JSON.stringify(db);
+    const dbText = progText(db);
     pendingMark();
     if(!store.trySet(keyFor(PROFILE), dbText)){
       // the copy written just before is not needed: the list goes back as it was
@@ -949,6 +960,7 @@ function runImport(plan){
     SEEN = dbText;
     pendingRetire();   // other tabs' older records of this profile cannot bring back what was replaced
     DB = db;
+    outsideAdopt(PROFILE);   // the file's pages kept outside localStorage, merged with the ones stored
     try { fsFromHistory(); } catch(e){ FS_ERROR = String(e && e.message || e); }
     text = `Imported: "${esc(PROFILE)}" now has the file's progress (${nAnswers(db.answers.length)}). The progress it replaced is kept; Settings can put it back.`;
   }
@@ -1014,7 +1026,7 @@ function restoreBackup(){
   // progress on screen) holds it; refused, it stays on this page, flagged, and nothing is put back
   if(saveTimer){
     clearTimeout(saveTimer); saveTimer = null;
-    if(!store.set(keyFor(PROFILE), JSON.stringify(DB))){
+    if(!store.set(keyFor(PROFILE), progText(DB))){
       alert('The browser refused to save (storage is full or blocked), so nothing was put back. Your latest change is kept on this page until you leave it; export your progress now.');
       return;
     }
@@ -1033,6 +1045,7 @@ function restoreBackup(){
   clearTimeout(saveTimer); saveTimer = null;
   SEEN = b.data;
   DB = db;
+  outsideAdopt(PROFILE, true);   // the copy's pages kept outside localStorage stay with it until moved
   try { fsFromHistory(); } catch(e){ FS_ERROR = String(e && e.message || e); }
   // a copy kept by "Use it here" may hold history entries that were never stored: they go into the
   // history before the copy leaves the list; refused, the copy stays on the list (#32's review of 1b9d5a6)
@@ -3458,7 +3471,7 @@ function renderSettings(){
       // the question may have stayed open while another tab or window saved this profile
       if(changedElsewhere()){ staleWarn(); alert(elsewhereShort() + ', so nothing was erased. Reload this page first.'); return; }
       // erasing replaces a stored history that could not be read, too
-      DB = BLANK(); save(); LOG = []; LOG_OK = true; saveLog(); pendingRetire(); alert('History erased.'); renderSettings();
+      outsideClear(PROFILE); DB = BLANK(); save(); LOG = []; LOG_OK = true; saveLog(); pendingRetire(); alert('History erased.'); renderSettings();
     }
   };
 }

@@ -2,6 +2,9 @@
 
 Dated kit changes, newest first.
 
+## 2026-11-08 (ink in IndexedDB; waits for Louis)
+- Core: a module part with no upper size can be kept in IndexedDB instead of inside the stored progress (Louis, 2026-11-08: "use IndexedDB for worksheet ink"). A module calls `registerOutside(part)`; nothing changes for a course without one (no database opened, the same stored progress). Each page is one database record with a revision, written when the module calls `save()`; two tabs' writes of one page are merged, never written over; a page leaves the database only through Erase; a page an earlier core kept in localStorage stays there until its database copy is read back equal; a refused write is shown as not saved with Export offered and tried again on the next save; with no database every page stays in localStorage as before. Export carries the pages; Import puts them back, into this profile or a new one. `core/README.md` "A module part kept in IndexedDB"; `outside_test.js`; timings and the device page in `review/ink-idb/`. No course switches it on.
+
 ## 2026-11-08 (plan)
 - BDK's study features are planned as kit modules any course can switch on, in four parts (`review/bdk-study-features-plan.md`, Louis 2026-11-08): the drug list, comparison and field colours first; existing study tools next; new storage, scheduling behaviour and the builder's recommendation keep their own approvals. Recorded as `bdk-study-features` in `coordinator/improvements.json`; port queue items 11-17 are `planned` by part. Nothing is built by this change.
 
