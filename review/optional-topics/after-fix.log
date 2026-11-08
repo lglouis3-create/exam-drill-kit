@@ -32,7 +32,7 @@
   ok    then a real answer on that question records once and reveals it
   ok    no page error from tapping the badge (single)
   ok    the multi optional question card shows the Optional badge
-  ok    tapping the Optional badge on an unrevealed select-all question changes nothing (not revealed, nothing picked, nothing recorded)
+  ok    tapping the Optional badge on an unrevealed select-all question (a question planted for this check) changes nothing (not revealed, nothing picked, nothing recorded)
   ok    then a real answer on that question records once and reveals it
   ok    no page error from tapping the badge (multi)
   ok    the mastered count is over the 4 concepts outside the optional topic

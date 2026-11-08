@@ -216,6 +216,7 @@ const ANSWER = right => {
         const before = errors.length;
         const r = await page.evaluate(([ids, kind]) => {
           const keepDB = JSON.stringify(DB), keepLog = JSON.stringify(LOG || []);
+          const keepNew = (NEW_LOGS[PROFILE] || []).length;   // this tab's own new history entries, for its per-tab record
           let planted = null;
           let q = QUESTIONS.find(x => ids.includes(x.id) && (kind === 'multi' ? isMulti(x) : !isMulti(x)));
           // no optional select-all question in this course: one is planted for this page only, a copy of an
@@ -242,15 +243,21 @@ const ANSWER = right => {
           if(kind === 'multi'){ const c = document.getElementById('btnCheck'); if(c) c.click(); }
           const out = {kind, badge: true, planted: !!planted, afterBadge, recorded: DB.answers.length - ansN, revealed: !!Q.revealed};
           // a planted question and its answer leave no trace: the bank, the progress and the history as they were
-          if(planted){ QUESTIONS.splice(QUESTIONS.indexOf(planted), 1); DB = JSON.parse(keepDB); LOG = JSON.parse(keepLog); save(); saveNow(); saveLog && saveLog(); }
+          if(planted){
+            QUESTIONS.splice(QUESTIONS.indexOf(planted), 1); DB = JSON.parse(keepDB); LOG = JSON.parse(keepLog);
+            if(Array.isArray(NEW_LOGS[PROFILE])) NEW_LOGS[PROFILE].length = keepNew;   // so the tab's record no longer carries the planted entry
+            save(); saveNow(); saveLog && saveLog();
+          }
           return out;
         }, [info.ids, kind]);
-        if(!r){ L.skip(`the Optional badge on a ${kind === 'multi' ? 'select-all' : 'single-answer'} question`, `no optional question of that kind in this course`); continue; }
+        if(!r){ L.skip(`the Optional badge on a ${kind === 'multi' ? 'select-all' : 'single-answer'} question`,
+          kind === 'multi' ? 'no optional select-all question, and none to plant from (no optional question with 3 or more options)' : 'no optional question of that kind in this course'); continue; }
+        const how = r.planted ? ' (a question planted for this check)' : '';
         check(r.badge, `the ${r.kind} optional question card shows the Optional badge`, r);
         if(!r.badge) continue;
         const a = r.afterBadge;
         check(!a.revealed && a.picked === null && !(a.picks || []).some(x => x === 'NaN') && a.log === 0 && a.answers === 0,
-          `tapping the Optional badge on an unrevealed ${r.kind === 'multi' ? 'select-all' : 'single-answer'} question changes nothing (not revealed, nothing picked, nothing recorded)`, a);
+          `tapping the Optional badge on an unrevealed ${r.kind === 'multi' ? 'select-all' : 'single-answer'} question${how} changes nothing (not revealed, nothing picked, nothing recorded)`, a);
         check(r.recorded === 1 && r.revealed, `then a real answer on that question records once and reveals it`, r);
         check(errors.length === before, `no page error from tapping the badge (${r.kind})`, errors.slice(before).join(' | '));
       }
