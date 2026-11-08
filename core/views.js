@@ -2489,16 +2489,22 @@ const EXAM_SATA = EXAM.sata || 0;
    select-all" beside a paper that held none. */
 const EXAM_SAMPLE = 20;
 let EXAM_SATA_SEEN = null;
+/* True while the opening page draws its sample papers: they are not new papers, so the
+   feature modules' X.paper hooks (core/features.js) do not run on them. A hook only
+   reorders a paper's questions, so the select-all count is the same either way. */
+let EXAM_SAMPLING = false;
 function examSataDrawn(){
   const key = JSON.stringify([EXAM.id, EXAM.questions, EXAM.sata, EXAM.blueprint || null, (EXAM.pools || []).map(p => [p.key, p.marks]), QUESTIONS.length]);
   if(EXAM_SATA_SEEN && EXAM_SATA_SEEN.key === key) return EXAM_SATA_SEEN;
   let lo = Infinity, hi = 0;
   try {
+    EXAM_SAMPLING = true;
     for(let k = 0; k < EXAM_SAMPLE; k++){
       const c = (drawPaper() || []).filter(isMulti).length;
       lo = Math.min(lo, c); hi = Math.max(hi, c);
     }
   } catch(e){ lo = hi = 0; }
+  finally { EXAM_SAMPLING = false; }
   if(lo === Infinity) lo = 0;
   return (EXAM_SATA_SEEN = {key, lo, hi});
 }
