@@ -43,7 +43,7 @@ Reusable logic goes to the kit; one course's data stays in its repo.
 | "set up nightly ingest for <course>" / "set up a daily review for <course>" / "stop …" | 5 Scheduled ingest or review |
 | "retro the drill skill against <course>" | 6 Retro |
 | "update the <course> drill to the latest kit" | 7 Update a drill |
-| "approve updates for <course>" | 7 Update a drill (make the waiting preview live) |
+| "approve updates for <course>" | 7 Update a drill (make a preview live that waits for Louis's decision) |
 | "undo the last kit update for <course>" | 7 Update a drill (revert it) |
 | "exam <N> outcome for <course>" | 8 Exam outcome |
 | "Show my Exam Drill Dashboard" / "run the coordinator" | 9 Coordinator and dashboard |
@@ -199,8 +199,10 @@ suggestion on its merits, address the valid findings, and reply on GitHub with t
 reasoning and validation for each one accepted or rejected. A fix is `small-fix` only if
 it meets every condition in §12.9, and the pull request states each one; when in doubt,
 it is a core change.
-Courses get kit changes only through Mode 7, and no course update goes live without
-Louis's reply. Louis's own words: `review/standing-autonomy-2026-11-03.md`.
+Courses get kit changes only through Mode 7. A routine course update is published under
+Louis's standing authorization of 2026-11-08 after the validation it names; an update that
+carries a meaningful decision or an unresolved risk waits for his reply. Louis's own words:
+`review/standing-autonomy-2026-11-03.md` and `review/standing-autonomy-2026-11-08.md`.
 
 ## Checks
 
@@ -220,9 +222,11 @@ every automated check; only an adversarial review against the sources (Mode 4) f
   `.git/config` (§7.10).
 - A push that changes a live course's site needs Louis's approval of that change: his
   request for it in this session, or his yes to a summary of it (`KIT_DESIGN.md` §12
-  decision 10, reading 7, which Louis accepted on 2026-11-03). Until then the work
-  waits at `/preview/` or on a branch. An unattended run (a scheduled task) never
-  changes a live site without his reply. With that approval, push to the course repo
+  decision 10, reading 7, which Louis accepted on 2026-11-03), except a routine kit update
+  under his standing authorization of 2026-11-08 (Mode 7, "The kit-update run", steps 2
+  and 3). Until then the work waits at `/preview/` or on a branch. An unattended run (a
+  scheduled task) never changes a live site without his reply, with the same exception
+  for the kit-update run. With that approval, push to the course repo
   following its own rule in `CLAUDE.md` (course repos merge automatically, decision 1).
   Confirm the deploy from the Pages workflow run for the
   pushed commit: `gh api 'repos/<owner>/<repo>/actions/runs?head_sha=<sha>'` and the run
@@ -368,7 +372,16 @@ Pages last deployed from it, or at its head when the deployment cannot be read, 
 coordinator does; never from the repository's default branch, which can hold unreleased work
 (DEENT's default branch is its working branch). It compares the `kit` pins there with the
 kit's `main`, and reads the kit-update state of each course: `node coordinator/coord.js
-kitupdate --json` on the kit's `origin/main`. A course in `COURSES.md` with no entry in
+kitupdate --json` on the kit's `origin/main`. A pin difference, or a new kit commit, is not
+by itself a reason to build anything (Louis, 2026-11-08, `review/standing-autonomy-2026-11-08.md`
+§4): the run reads what changed in `core/` and `features/` since the course's pin and judges
+whether the course benefits, by the features it uses and by newly available features that fit
+its material. A course whose last exam has passed (Medicinal-chemistry, Louis 2026-11-08;
+the coordinator's lifecycle "completed") gets no update for a pin difference alone and stays
+eligible for improvements that fit it. A course with no `kit` pin (BDK, Basic-Pharmacokinetics-,
+Intro-Pharmacology-, 2026-11-08) is awaiting its migration onto the core: "no kit pin" is an
+expected status, not a failure; the run checks that the repository answers and leaves the
+migration to its owning session. A course in `COURSES.md` with no entry in
 `coordinator/courses.json` has no pause recorded and is active. If that command fails, exits
 non-zero, or reports any course as "invalid", or the kit's `main` has no `coordinator/`, the
 run builds no kit-update preview for any course in that run and reports FAILED with the
@@ -387,25 +400,40 @@ command's output; its read-only checks still run.
   branch or the working branch, would be overwritten. Only then does it set `previews` to
   "active" in a bookkeeping pull request, and the next run prepares a separate kit-update
   preview. The run itself never lifts a pause.
-For each course that is behind and not paused:
-1. Build the update at `/preview/`, run every check, and append the result to the
-   course's `reviews/LOG.md`.
-2. Leave the preview waiting and send Louis a summary: what changed in plain words,
-   the check results, the preview address, and whether an exam is today. No update
-   goes live without his reply (`KIT_DESIGN.md` §12, decision 10, 2026-11-03; before
-   that date a bookkeeping or `small-fix` update could go live without one).
-3. His reply "approve updates for <course>" makes it live: one commit "kit update:
-   <old pins> → <new pins>", `preview/` deleted, pushed. Then wait for that commit's
+For each course, not paused, that benefits from a change in the kit:
+1. Bring in the newer core and feature files on a branch `kit/update-<kit sha>`, build the
+   update at `/preview/`, run every check, compare the preview with the live page, and
+   append the result to the course's `reviews/LOG.md`, with the student benefit stated.
+2. Decide whether the update is routine. It is routine when it keeps every question, answer,
+   explanation, figure, exam setting and saved progress as they are, changes no study or
+   exam behaviour substantially, and every required check and the independent review the
+   kit's rules call for have passed. It is not routine, and waits at `/preview/` for Louis's
+   decision with the specific risk and the evidence stated, when it could lose or convert
+   saved progress incompatibly, removes content or a feature, changes an answer key without
+   adequate source support, changes study or exam behaviour substantially, redesigns a drill
+   close to an assessment, rests on conflicting requirements or a consequential trade-off
+   that is not resolved with confidence, would weaken a required check, or carries any other
+   meaningful decision or unresolved risk (Louis's list is open, "such as", and he asks for
+   judgment: `review/standing-autonomy-2026-11-08.md` §1; before 2026-11-08 every update
+   waited for his reply, and before 2026-11-03 a bookkeeping or `small-fix` update could go
+   live without one). Claude's own design choice, not in his text: no update is published
+   on an exam day of that course.
+3. Publish a routine update, or a waiting one after Louis's reply "approve updates for
+   <course>": verify that the candidate on the branch is the one the checks ran on, build the
+   live page from it and confirm that it matches the validated preview apart from the preview
+   note and stamps, then one commit "kit update: <old pins> → <new pins>", `preview/`
+   deleted, the course `CLAUDE.md` pin paragraph updated, pushed. Then wait for that commit's
    "pages build and deployment" run to complete, for up to 10 minutes (a design
    choice: the longest of BDK's last five Pages deploys, 2026-10-30 to 2026-11-01, took
-   2 min 51 s). On success, log it. On failure, or with no completed run after 10
-   minutes, revert the update commit, push, confirm that deploy the same way, log
-   both, and report FAILED.
+   2 min 51 s). On success, log it; the previous commit stays as the rollback (a revert).
+   On failure, or with no completed run after 10 minutes, revert the update commit, push,
+   confirm that deploy the same way, log both, and report FAILED.
 A run that could not build, check, push or confirm the deploy reports failure and never
 ends as succeeded. The run sends Louis a push notification only when a new course needs
-attaching, a preview waits for his reply, an update went live or was reverted, or the
-run failed; a run with nothing
-behind ends with one line per course and no notification.
+attaching, an update that needs his decision waits for his reply, a meaningful improvement
+went live, an update was reverted, or the run failed; never for an unchanged pause, a pin
+difference, or a run with nothing to do, which ends with one line per course and no
+notification.
 
 Bringing in a newer core means copying every file of the kit's `core/` except
 `README.md`, and `core/vendor/`, into the course's `src/`. A course with feature modules on
