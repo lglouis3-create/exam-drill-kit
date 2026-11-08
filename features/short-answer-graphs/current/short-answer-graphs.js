@@ -27,9 +27,14 @@
    - the exam folds are one per exam number that has a figure; a number
      with no exam in COURSE.exams is named "Exam <n>";
    - the professor is named as "the professor", not "he" or "she";
-   - left out: that course's tidySpeech clean-up of transcript quotes (the
-     quote is shown as written, as the core's quiz shows q.quote), its page
-     cache (memoHTML) and its focus-one-exam mode.
+   - a prompt's quote is shown through that course's tidySpeech (below): the
+     data keeps the transcript word for word, and only the page shows it
+     without fillers, as that course's vSa does;
+   - left out: that course's tidying of Dr. Smith's question quotes, notes and
+     explanations, which rewrote QUESTIONS when the page loaded (the core's
+     quiz shows a question's quote as written, and a module does not rewrite
+     the course's questions), its page cache (memoHTML) and its
+     focus-one-exam mode.
    ========================================================================== */
 const HAS_SA = typeof SHORT_ANSWERS !== 'undefined' && Array.isArray(SHORT_ANSWERS) && SHORT_ANSWERS.length > 0;
 const HAS_GR = typeof GRAPHS !== 'undefined' && Array.isArray(GRAPHS) && GRAPHS.length > 0;
@@ -41,6 +46,27 @@ const EXAMS = typeof GRAPH_EXAMS === 'undefined' ? {} : GRAPH_EXAMS;
 const SA_LIST = HAS_SA ? SHORT_ANSWERS : [];
 const SA = {i: 0, order: null, shown: false};
 const FORM = {her: " · the professor's wording", key: " · the professor's key"};
+/* The professor's spoken words read without fillers (um, uh, a tag "OK?" or "right?", stutters such as
+   "they're, they're"): Intro-Pharmacology's TIDY_REPEAT and tidySpeech (exam1-drill/src/app.js 404-421
+   at 929cd62), verbatim. Only the quote shown on the page is tidied (that course's vSa, app.js 2428). */
+const TIDY_REPEAT = 'i|a|an|the|it|it\'s|we|we\'re|you|you\'re|they|they\'re|he|she|that|this|those|these|to|and|so|is|are|was|of|in|on|at|be|can|do|if|or|but|for|with|what|my|our|your|their|them|there|then|just|like|not|have|has|will|would';
+function tidySpeech(s) {
+  let t = ' ' + String(s).replace(/\.\.\./g, '…') + ' ', lead = /^\s*[a-z]/.test(s);   // keep "..." (words left out) apart from full stops
+  t = t.replace(/([a-z,])\s+(?:um+|uh+|uhm|erm|hmm)\.\s+([A-Z][a-z])/g, (m, x, y) => x + ' ' + y.toLowerCase());   // "considered um. The": one sentence
+  t = t.replace(/\b(?:um+|uh+|uhm|erm|hmm)\b[,.]?/gi, ' ');                                   // um, uh
+  t = t.replace(/,?\s*\b(?:OK|okay)\b\s*[?!]+/gi, '.');                                        // tag "..., OK?"
+  t = t.replace(/,?\s*\b(?:OK|okay)\b\s*\.(?=\s)/gi, '.');                                     // "..., OK."
+  t = t.replace(/,\s*right\s*\?/gi, '.');                                                       // tag "..., right?"
+  t = t.replace(/(^\s*|[.?!…]\s+)(?:OK|okay|all right|alright)\s*[,.]?\s+/gi, '$1');      // "OK, so" / "All right." opening a sentence
+  t = t.replace(/,\s*(?:OK|okay)\s*,/gi, ',');                                                  // "..., OK, ..."
+  t = t.replace(/\b(?:you know|I mean)\s*,\s*/gi, ' ').replace(/\blike\s*,\s*/gi, ' ');
+  t = t.replace(new RegExp('\\b(' + TIDY_REPEAT + ')(?:,?\\s+\\1\\b)+', 'gi'), '$1');           // stutters: "I, I", "the the", "those, those"
+  t = t.replace(/\s+([,.?!;:])/g, '$1').replace(/([,;:])(?:\s*[,;:])+/g, '$1').replace(/,\s*([.?!])/g, '$1')
+       .replace(/([.?!])(?:\s*[.,])+/g, '$1').replace(/^\s*[,.;:]\s*/, '').replace(/\s{2,}/g, ' ').trim();
+  t = t.replace(/([.?!]\s+)([a-z])/g, (m, a, b) => a + b.toUpperCase());                     // a sentence that now opens lower-case
+  if (!lead && /^[a-z]/.test(t)) t = t[0].toUpperCase() + t.slice(1);
+  return t.replace(/…/g, '...');
+}
 const saLec = id => { const l = (COURSE.lectures || []).find(x => x.id === id); return l ? l.label : (id || ''); };
 const saState = () => (DB.sa && typeof DB.sa === 'object' ? DB.sa : {});
 /* A saved progress read in (page load, profile switch, Import), before the page
@@ -86,7 +112,7 @@ function vSa(pane){
       <fieldset class="sapts"><legend>Key points (tick the ones your answer has)</legend>${p.points.map((t, k) => `<label class="row"><input type="checkbox" data-sapt="${k}" ${ticks.includes(k) ? 'checked' : ''}><span>${esc(t)}</span></label>`).join('')}</fieldset>
       <div class="meta" id="sascore">${ticks.length} of ${p.points.length} key points</div>`;
     if(p.note) h += `<p class="sub sanote">${esc(p.note)}</p>`;
-    if(p.quote) h += `<div class="cite"><span class="quote">“${esc(p.quote)}”</span></div>`;
+    if(p.quote) h += `<div class="cite"><span class="quote">“${esc(tidySpeech(p.quote))}”</span></div>`;
     if(p.cite) h += `<div class="cite">${esc(p.cite)}</div>`;
   }
   h += `</div><div class="row"><button type="button" class="btn ghost" id="saprev" ${SA.i ? '' : 'disabled'}>Previous</button><button type="button" class="btn ghost" id="sanext" ${SA.i < SA_LIST.length - 1 ? '' : 'disabled'}>Next</button><button type="button" class="btn ghost" id="sashuf">Shuffle</button></div>`;

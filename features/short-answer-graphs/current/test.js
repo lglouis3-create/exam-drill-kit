@@ -70,6 +70,9 @@ const EXAMS = {1: {intro: "Dose–response curves from his PollEV polls, Jeopard
       noun: 'tracing', other: 'Tissue tracings', miss: IP.miss2}};
 /* app.js vSa's subtitle, its first sentence, verbatim */
 const SA_ABOUT = "Her exam has two short-answer questions graded with partial credit.";
+/* SA4-01's quote as Intro-Pharmacology's tidySpeech (app.js 404-421 at 929cd62) shows it: the stutter
+   "they're, they're" read once. Computed with that function; written out here so the check does not use the module's copy. */
+const SA0_SHOWN = "they're variant, homozygous variant for VQRC1, and homozygous variant for 2C9. The target has low activity and the metabolizing enzymes have low activity. ... they need the lowest drug, lowest amount of drug";
 const qpre = id => 'sag-' + id;
 
 function fixtureFiles(own, opts){
@@ -268,10 +271,12 @@ const build = (label, own, opts) => L.scratchBuild(label, {files: fixtureFiles(o
       want: SHORT_ANSWERS[0].points.length, m: SHORT_ANSWERS[0].model, checked: (DB.sa[SHORT_ANSWERS[0].id] || {}).checked,
       head: document.querySelector('#v-sa .sahead .meta').textContent, cite: [...document.querySelectorAll('#v-sa .cite')].map(c => c.textContent).join(' | '),
       src: SHORT_ANSWERS[0].cite || '', quote: SHORT_ANSWERS[0].quote || '',
+      shownQuote: ((document.querySelector('#v-sa .cite .quote') || {}).textContent || ''),
       btn: document.querySelector('#sacheck').textContent}));
     check(shown.model.includes(shown.m) && shown.pts === shown.want && shown.checked === true && shown.head === '1 checked' && shown.btn === 'Hide the model answer',
           'Check my answer shows the model answer and each key point to tick, and counts the prompt checked', shown);
-    check(shown.cite.includes(shown.src) && shown.cite.includes(shown.quote.slice(0, 40)), 'the quote and the source are shown with it', shown.cite.slice(0, 120));
+    check(shown.cite.includes(shown.src) && shown.shownQuote === '“' + SA0_SHOWN + '”', 'the quote and the source are shown with it, the quote without its stutter', {src: shown.src, shown: shown.shownQuote.slice(0, 120)});
+    check(shown.quote === IP.sa[0].quote && shown.quote.startsWith("they're, they're "), 'the prompt\'s quote stays word for word in the data; only the page tidies it', shown.quote.slice(0, 60));
     await page.click('#v-sa [data-sapt="0"]'); await page.click('#v-sa [data-sapt="2"]');
     const sc = await ev(() => ({score: document.querySelector('#sascore').textContent, ticks: DB.sa[SHORT_ANSWERS[0].id].ticks}));
     check(sc.score === `2 of ${shown.want} key points` && JSON.stringify(sc.ticks) === '[0,2]', 'ticking key points counts them and keeps them', sc);
