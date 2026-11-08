@@ -3636,7 +3636,7 @@ function offerReload(text){
   bar(text, 'Reload', () => {
     // a stopped page, or one whose writes the browser refused (storage full): what it has not saved
     // is lost on reload, unless exported (#32's review of 4311133; Louis, 2026-11-05)
-    if((STALE || WRITER === 'other' || FAILED.size) && atRiskAll() && !confirm('The answers and settings this page has not saved are lost on reload unless you export them first (the button on the notice). Reload anyway?')) return;
+    if((STALE || WRITER === 'other' || FAILED.size || outsideAtRisk()) && atRiskAll() && !confirm('The answers, settings or writing this page has not saved are lost on reload unless you export them first (the button on the notice). Reload anyway?')) return;
     if(EX && EX.running && !confirm('A paper is running. It is saved and its clock keeps running. Reload now?')) return;
     placeSave();
     LEAVE_ASKED = true;   // asked here already: the browser's leave question is not shown again
@@ -3795,7 +3795,8 @@ bootStep('keeping the place across a reload', () => {
   // exported: the browser asks its own "leave this page?" question (its wording, not this page's;
   // Louis, 2026-11-05). Not every browser shows it: see core/README.md.
   window.addEventListener('beforeunload', e => {
-    try { if(!LEAVE_ASKED && FAILED.size && atRiskAll()){ e.preventDefault(); e.returnValue = ''; } } catch(err){}
+    // writing kept in IndexedDB that is refused, or kept for a profile not yet written, counts too (#81, N1)
+    try { if(!LEAVE_ASKED && (FAILED.size || outsideAtRisk()) && atRiskAll()){ e.preventDefault(); e.returnValue = ''; } } catch(err){}
   });
 });
 

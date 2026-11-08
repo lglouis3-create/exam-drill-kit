@@ -58,6 +58,9 @@ What replaces each place that holds ink inline today (the porter's list for #17)
 - An Erase, here or in another tab, is not undone by a write still running or by what this page
   knew before (M5). A merge never writes the page from before the merge (M3). With no database the
   states follow the progress's own write (M4).
+- Leaving or reloading asks first while writing is refused or kept unwritten; kept writing from
+  before another tab's Erase, Put back or Import is added back only if the student says so (the
+  second review of #81, N1, V3).
 - Limits with mixed versions: a tab on an earlier core exports without the moved pages, and its
   Erase does not remove them from the database (they come back on the next load on this core).
 

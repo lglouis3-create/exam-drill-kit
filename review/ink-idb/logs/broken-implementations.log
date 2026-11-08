@@ -65,3 +65,12 @@ FAIL: outside_test.js: 9 of 63 checks failed: unavailable: a notice says the dat
 FAIL: outside_test.js: 1 of 63 checks failed: M1: back on the first profile the refused page is written; after a reload it is stored
 == and with the fix
 PASS: outside_test.js: 63 checks passed (1 skipped: quota (Chromium): a real quota of 2 MB for the origin)
+== the second review of #81: the same test on the core at 8790d8c (DRILL_PAGE: a template course built from 8790d8c)
+  FAIL  N1: with a refused page, leaving the page is asked about (beforeunload prevented)  — null
+  FAIL  N1: with a refused page, the in-app Reload asks first  — null
+  FAIL  N1: with writing kept for another profile, leaving the page is asked about  — 1
+  FAIL  N1: with writing kept for another profile, the in-app Reload asks first  — null
+  FAIL  V2: a page kept with the same content as the stored page is saved, not kept unsaved  — {"state":"unsaved","held":1,"unsaved":true}
+  FAIL  V3: after another tab erased the profile, the student is asked about this tab's kept writing; Cancel leaves it out (after a reload)  — {"asked":"","keys":["s"]}
+  FAIL  V3: OK adds the kept writing back (after a reload)  — {"asked":"","strokes":2}
+FAIL: outside_test.js: 7 of 71 checks failed: N1: with a refused page, leaving the page is asked about (beforeunload prevented); N1: with a refused page, the in-app Reload asks first; N1: with writing kept for another pr

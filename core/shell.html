@@ -758,6 +758,7 @@ const OUT = {
   known: {},           // key -> {v, rev}: the page as the database held it when this page last read or wrote it
   sent: {},            // key -> the value last handed to a write (compared by identity)
   held: {},            // key -> a value this page holds that the database has not committed
+  heldAt: {},          // key -> when this page first held it (compared with an Erase, Put back or Import in another tab)
   status: {},          // key -> 'saving' | 'saved' | 'refused' | 'failed'
   busy: {}, again: {}, // a write runs for key; a newer value waits for it
   inline: {},          // profile -> {part: Set(page)}: pages still inside the stored progress, not yet moved
@@ -915,8 +916,9 @@ function outsideHold(p){
     for(const page of Object.keys(pages)){
       const k = outKey(p, part, page), v = pages[page];
       if(OUT.state === 'unavailable') continue;   // inside the stored progress: localStorage's own rules
-      if(OUT.known[k] && OUT.known[k].v === v && !OUT.busy[k]) continue;
+      if(OUT.known[k] && (OUT.known[k].v === v || sameVal(OUT.known[k].v, v)) && !OUT.busy[k] && OUT.held[k] === undefined) continue;   // stored as it is (V2)
       if(OUT.held[k] === v) continue;
+      if(OUT.held[k] === undefined) OUT.heldAt[k] = Date.now();
       OUT.held[k] = OUT.held[k] !== undefined && !sameVal(OUT.held[k], v) ? outsideMerge(part, OUT.held[k], v) : v;
     }
   }
@@ -973,11 +975,15 @@ function outsideAdopt(p, fromStored){
     for(const part of OUT.parts) if(isPlainObj(DB[part])){ inl[part] = inl[part] || new Set(); Object.keys(DB[part]).forEach(pg => inl[part].add(pg)); }
   }
   if(OUT.state !== 'ready' || p !== PROFILE || !OUT.have[p]) return;
+  outsideHeldAfterMark(p);
   const keys = new Set(outKeysOf(OUT.known, p).concat(outKeysOf(OUT.held, p)));
   for(const k of keys){
     const [, part, page] = outSplit(k);
     if(!OUT.parts.has(part)) continue;
-    const st = OUT.known[k] ? OUT.known[k].v : undefined, hd = OUT.held[k];
+    const st = OUT.known[k] ? OUT.known[k].v : undefined;
+    // kept equal to the committed page: nothing to keep (V2)
+    if(OUT.held[k] !== undefined && st !== undefined && !OUT.busy[k] && sameVal(OUT.held[k], st)){ delete OUT.held[k]; delete OUT.heldAt[k]; }
+    const hd = OUT.held[k];
     if(!isPlainObj(DB[part])) DB[part] = {};
     let v = DB[part][page];
     if(v === undefined || sameVal(v, st)) v = st;
@@ -989,6 +995,24 @@ function outsideAdopt(p, fromStored){
   }
   OUT.attached[p] = DB;
   outsideWrite(p);
+}
+/* Erase, Put back and a replacing Import mark the profile (pendingMark), in localStorage, so every
+   tab sees it: `<ns>:outside-mark:<profile>` = {at, tab}. (The second review of #81, V3: writing
+   kept in a read-only tab undid an Erase made in the writer tab, after "Use it here".) */
+function outsideMarkReplaced(p){
+  if(!OUT.parts.size || !p) return;
+  try { localStorage.setItem(NS + ':outside-mark:' + p, JSON.stringify({at: Date.now(), tab: TAB_ID})); } catch(e){}
+}
+/* Writing this page kept from before another tab erased, put back or replaced the profile: the
+   student decides whether it is added back; dropped, it is gone from this page. */
+function outsideHeldAfterMark(p){
+  let mark = null;
+  try { mark = JSON.parse(localStorage.getItem(NS + ':outside-mark:' + p) || 'null'); } catch(e){ mark = null; }
+  if(!mark || mark.tab === TAB_ID || typeof mark.at !== 'number') return;
+  const old = outKeysOf(OUT.held, p).filter(k => (OUT.heldAt[k] || 0) < mark.at && !OUT.busy[k]);
+  if(!old.length) return;
+  const keep = confirm('This page kept writing of "' + p + '" (' + old.length + ' page' + (old.length === 1 ? '' : 's') + ') from before that profile was erased, put back or replaced by an import in another tab or window. OK adds that writing back to the profile; Cancel leaves it out.');
+  for(const k of old){ if(keep) OUT.heldAt[k] = Date.now(); else { delete OUT.held[k]; delete OUT.heldAt[k]; delete OUT.status[k]; } }
 }
 /* Pages found in another place than the database (a per-tab record an earlier core wrote with its
    module part inside): merged into what this page holds for the profile, and written. */
@@ -1027,8 +1051,9 @@ function outsideWrite(p){
 }
 function outsideWriteOne(p, part, page, v, verify){
   const k = outKey(p, part, page);
-  if(!outMay(p) || OUT.state !== 'ready'){ OUT.held[k] = v; outsideNotify(k); return; }
+  if(!outMay(p) || OUT.state !== 'ready'){ if(OUT.held[k] === undefined) OUT.heldAt[k] = Date.now(); OUT.held[k] = v; outsideNotify(k); return; }
   OUT.sent[k] = v;
+  if(OUT.held[k] === undefined) OUT.heldAt[k] = Date.now();
   OUT.held[k] = v;   // until the database commits it
   if(OUT.busy[k]){ OUT.again[k] = true; return; }
   OUT.busy[k] = true; OUT.status[k] = 'saving'; outsideNotify(k);
@@ -1049,7 +1074,7 @@ function outsideWriteOne(p, part, page, v, verify){
   };
   outTx(t).then(() => {
     // an Erase since this write began: its delete runs after this write; nothing of it is kept here
-    if((OUT.gen[p] || 0) !== gen){ OUT.busy[k] = false; OUT.again[k] = false; delete OUT.status[k]; delete OUT.held[k]; outsideNotify(k); return; }
+    if((OUT.gen[p] || 0) !== gen){ OUT.busy[k] = false; OUT.again[k] = false; delete OUT.status[k]; delete OUT.held[k]; delete OUT.heldAt[k]; outsideNotify(k); return; }
     if(!OUT.known[k] || rev >= OUT.known[k].rev) OUT.known[k] = {v: finalV, rev};
     if(merged && p === PROFILE && isPlainObj(DB[part]) && DB[part][page] !== undefined){
       // the merge is shown here; a change made here while it was written is merged into it, never dropped
@@ -1057,7 +1082,7 @@ function outsideWriteOne(p, part, page, v, verify){
       else { DB[part][page] = outsideMerge(part, finalV, DB[part][page]); OUT.again[k] = true; }
     }
     // committed: the value this page held is in the database (a newer one stays held)
-    if(OUT.held[k] === v || OUT.held[k] === finalV) delete OUT.held[k];
+    if(OUT.held[k] === v || OUT.held[k] === finalV){ delete OUT.held[k]; delete OUT.heldAt[k]; }
     else if(OUT.held[k] !== undefined && !OUT.again[k]) OUT.again[k] = true;
     // a page moved from localStorage leaves it only once its copy here is read back equal
     const check = verify ? outsideReadBack(k, finalV).then(ok => {
@@ -1138,6 +1163,15 @@ function outsideState(part, page, p){
   if(OUT.known[k] && OUT.known[k].v === here) return 'saved';
   return 'unsaved';
 }
+/* Writing that leaving or reloading would lose: kept and not being written, or refused (not a write
+   that is merely running). The leave question and the in-app Reload ask about it (N1). */
+function outsideAtRisk(){
+  try {
+    if(!OUT.parts.size || OUT.state === 'unavailable') return false;
+    if(Object.keys(OUT.held).some(k => !OUT.busy[k])) return true;
+    return Object.keys(OUT.status).some(k => OUT.status[k] === 'refused' || OUT.status[k] === 'failed');
+  } catch(e){ return false; }
+}
 /* Any page this page holds that is not stored: of the profile on screen, or kept for another. */
 function outsideUnsaved(){
   try {
@@ -1159,9 +1193,10 @@ function outsideClear(p, part){
   p = p || PROFILE;
   if(!OUT.parts.size) return Promise.resolve();
   OUT.gen[p] = (OUT.gen[p] || 0) + 1;
+  if(!part) outsideMarkReplaced(p);   // other tabs' kept writing of the profile is from before this Erase (V3)
   for(const k of new Set(Object.keys(OUT.known).concat(Object.keys(OUT.sent), Object.keys(OUT.status), Object.keys(OUT.held)))){
     const s = outSplit(k);
-    if(s[0] === p && (!part || s[1] === part)){ delete OUT.known[k]; delete OUT.sent[k]; delete OUT.status[k]; delete OUT.held[k]; OUT.again[k] = false; }
+    if(s[0] === p && (!part || s[1] === part)){ delete OUT.known[k]; delete OUT.sent[k]; delete OUT.status[k]; delete OUT.held[k]; delete OUT.heldAt[k]; OUT.again[k] = false; }
   }
   if(p === PROFILE){ if(part) delete DB[part]; else for(const pt of OUT.parts) delete DB[pt]; }
   if(OUT.inline[p]){ if(part) delete OUT.inline[p][part]; else OUT.inline[p] = {}; }
@@ -1178,7 +1213,7 @@ function outsideRemove(part, page, p){
   p = p || PROFILE;
   const k = outKey(p, part, page);
   OUT.gen[p] = (OUT.gen[p] || 0) + 1;
-  delete OUT.known[k]; delete OUT.sent[k]; delete OUT.status[k]; delete OUT.held[k]; OUT.again[k] = false;
+  delete OUT.known[k]; delete OUT.sent[k]; delete OUT.status[k]; delete OUT.held[k]; delete OUT.heldAt[k]; OUT.again[k] = false;
   if(p === PROFILE && isPlainObj(DB[part])) delete DB[part][page];
   if(OUT.inline[p] && OUT.inline[p][part]) OUT.inline[p][part].delete(page);
   return outsideOpen().then(() => {
@@ -1466,7 +1501,9 @@ function takeOver(force){
   // roll back to; if the browser refuses that, they go into a copy as before
   const logOnly = !progUnsavedHere() && logUnsavedHere() && LOG_OK ? JSON.stringify(LOG) : null;
   const dbHere = progText(DB);
-  let keepMine = logOnly === null && unsavedHere() ? dbHere : null;
+  // writing kept in IndexedDB is kept by OUT.held, not by a copy of the progress (#81's second review)
+  let keepMine = logOnly === null && (progUnsavedHere() || logUnsavedHere()) ? dbHere : null;
+  const inkHere = OUT.parts.size ? (outsideHold(PROFILE), outKeysOf(OUT.held, p).length) : 0;
   let keepLog = keepMine !== null && LOG_OK && JSON.stringify(LOG) !== (storedNow(logKey()) || '[]') ? JSON.stringify(LOG) : null;
   let gave = null, granted = false, done = false;
   const onMsg = e => { const m = e.data || {}; if(m.type === 'gave' && m.p === p && m.to === TAB_ID) gave = m.vals; };
@@ -1523,8 +1560,10 @@ function takeOver(force){
         try { if(typeof EX !== 'undefined' && EX){ clearInterval(EX.timer); EX = null; } } catch(e){}
         stopWall(null);
         NEW_LOGS[p] = []; WROTE_SINCE_CLAIM = false; settlePendingSoon(); capNotice();
-        if(KEPT_COPY){ KEPT_COPY = false; setTimeout(() => alert('The answers and settings this page had not saved are kept as a copy: Settings, "Put back the progress from …". The progress on screen now is the stored one.'), 0); }
-        else if(addedLog) setTimeout(() => alert('The answer history entries this page had not saved are added to the saved answer history.'), 0);
+        const INK_KEPT = inkHere ? ' The writing this page had not saved is not in that copy: it stays on this page and is merged into the writing now stored, and saved.' : '';
+        if(KEPT_COPY){ KEPT_COPY = false; setTimeout(() => alert('The answers and settings this page had not saved are kept as a copy: Settings, "Put back the progress from …". The progress on screen now is the stored one.' + INK_KEPT), 0); }
+        else if(addedLog) setTimeout(() => alert('The answer history entries this page had not saved are added to the saved answer history.' + INK_KEPT), 0);
+        else if(inkHere) setTimeout(() => alert(INK_KEPT.trim()), 0);
         try { if(typeof show === 'function') show(typeof VIEW !== 'undefined' ? VIEW : 'study'); } catch(e){}
         return;
       }
@@ -1641,7 +1680,7 @@ function saveProgress(){
 /* The other tabs' records of profile p go (Erase, Put back, a replacing Import, Delete the copies). */
 /* Erase, Put back and a replacing Import call this before they write, so the record written with
    that write already carries the mark (the review of c9254dc, P2). */
-function pendingMark(){ MARK = Date.now(); }
+function pendingMark(){ MARK = Date.now(); outsideMarkReplaced(PROFILE); }
 function pendingRetire(){
   // nothing is deleted: a record seen now is older than what the student chose and is not placed
   // again while it stays as it is; a record that changes after this (a newer save of a leaving tab
@@ -2413,7 +2452,8 @@ function save(){
   // a page kept in IndexedDB (worksheet ink) is written now, not after the 150 ms wait below: a
   // reload within that wait lost it in Chromium (outside_test.js "closing"); the database's own
   // transaction keeps the main thread free, and a second change while it runs waits for it
-  if(OUT.parts.size){ try { if(!profileSavedElsewhere()) outsideWrite(PROFILE); } catch(e){} }
+  // a changed page is kept (with the time of the change) at once, also in a tab that may not write it
+  if(OUT.parts.size){ try { outsideHold(PROFILE); if(!profileSavedElsewhere()) outsideWrite(PROFILE); } catch(e){} }
   clearTimeout(saveTimer);
   saveTimer=setTimeout(()=>{
     saveTimer=null;

@@ -363,6 +363,13 @@ With a part registered:
   `DB` and written. Until then it counts as unsaved (leaving asks first), and the notice names the
   profile it belongs to, with Export for it. A record an earlier core wrote with `ink` inside it is
   merged the same way (`outsideAbsorb`); the record is then compared without the part.
+- Leaving or reloading asks first (the second review of #81, N1): the browser's leave question and
+  the in-app Reload's question also come when writing is refused or kept for a profile not yet
+  written (`outsideAtRisk`), unless it was exported since. A write that is only running does not ask.
+- Writing kept in a tab from before another tab erased, put back or replaced the profile (a mark in
+  `<ns>:outside-mark:<profile>`, written by Erase and by `pendingMark`) is not merged back on its own:
+  the student is asked; OK adds it back, Cancel leaves it out (V3). "Use it here" says where that
+  writing went: not into the copy of the progress, but merged into the writing now stored.
 - Erase is final for this page too: a write that began before it is not recorded when it completes
   (its delete runs after it), and each load replaces what the page knows of the profile with what
   the database holds, so a page erased here or in another tab does not come back.

@@ -575,6 +575,67 @@ const stroke = n => ({t: 'pen', c: '#111111', w: 0.003, p: [0.1 * n, 0.2, 0.3, 0
       check(s[0] === 'saved' && same((await inkNow(q)).c, C), 'closing: a page reported saved is stored after its tab is closed without unload handlers', s);
       await ctx.close();
     }
+    // ---- the second review of #81 at 8790d8c (N1, V2, V3) ----
+    // N1: leaving or reloading asks about writing that is refused, or kept for another profile
+    {
+      const ctx = await newCtx(refuseInit);
+      const {page: p} = await open(ctx);
+      // the leave question (a cancelable beforeunload the page prevents), and the in-app Reload's question
+      const leave = () => p.evaluate(() => { const e = new Event('beforeunload', {cancelable: true}); window.dispatchEvent(e); return e.defaultPrevented; });
+      // the Reload button's question is answered "no"; a Reload that does not ask is stopped before it reloads
+      // (placeSave, which it calls just before location.reload, throws), so the check reports instead of reloading
+      const reloadAsks = () => p.evaluate(() => { let asked = ''; const c = window.confirm, ps = placeSave; window.confirm = m => { asked = m; return false; };
+        placeSave = () => { throw new Error('stopped before the reload'); };
+        try { offerReload('test'); const b = document.querySelector('#swbar [data-reload]'); if(b) b.click(); } finally { window.confirm = c; placeSave = ps; }
+        const bar = document.getElementById('swbar'); if(bar) bar.remove(); return asked; });
+      check(!(await leave()), 'N1: with nothing unsaved, leaving is not asked about', null);
+      await p.evaluate(() => { window.__refuse = true; });
+      await put(p, {r: {parts: {work: [stroke(1)]}, room: {}, at: 1}}); await settled(p, ['r']);
+      check(await leave(), 'N1: with a refused page, leaving the page is asked about (beforeunload prevented)', null);
+      check(/not saved/.test(await reloadAsks()), 'N1: with a refused page, the in-app Reload asks first', null);
+      await p.evaluate(() => { useProfile('Other'); }); await ready(p);
+      check(await leave(), 'N1: with writing kept for another profile, leaving the page is asked about', await p.evaluate(() => Object.keys(OUT.held).length));
+      check(/not saved/.test(await reloadAsks()), 'N1: with writing kept for another profile, the in-app Reload asks first', null);
+      await ctx.close();
+    }
+    // V2: a kept value equal to the stored page does not stay unsaved
+    {
+      const ctx = await newCtx();
+      const {page: p} = await open(ctx);
+      const P0 = await p.evaluate(() => PROFILE);
+      await put(p, {s: {parts: {work: [stroke(1)]}, room: {}, at: 1}}); await settled(p, ['s']);
+      await p.evaluate(() => { DB.ink.s = JSON.parse(JSON.stringify(DB.ink.s)); });   // the same content in a new object
+      await p.evaluate(() => useProfile('Other')); await ready(p);
+      await p.evaluate(P0 => useProfile(P0), P0); await ready(p); await p.waitForTimeout(500);
+      const v2 = await p.evaluate(() => ({state: outsideState('ink', 's'), held: Object.keys(OUT.held).length, unsaved: unsavedHere()}));
+      check(v2.state === 'saved' && v2.held === 0 && !v2.unsaved, 'V2: a page kept with the same content as the stored page is saved, not kept unsaved', v2);
+      await ctx.close();
+    }
+    // V3: writing kept in a read-only tab, the profile erased in the writer tab, then "Use it here":
+    // the student is asked; Cancel leaves it out (the Erase stands), OK adds it back
+    for(const keep of [false, true]){
+      const ctx = await newCtx();
+      await ctx.addInitScript(keep => { const c = window.confirm; window.confirm = m => /erased, put back or replaced/.test(m) ? (window.__asked = m, keep) : c.call(window, m); }, keep);
+      const {page: a} = await open(ctx);
+      if(await a.evaluate(() => WRITER) !== 'held'){ L.skip('V3', 'no Web Locks in this browser'); await ctx.close(); break; }
+      await put(a, {s: {parts: {work: [stroke(1)]}, room: {}, at: 1}}); await settled(a, ['s']);
+      const {page: b} = await open(ctx);
+      await b.evaluate(s => { DB.ink.s = {parts: {work: [s[0], s[1]]}, room: {}, at: 2}; save(); }, [stroke(1), stroke(2)]);
+      await b.waitForTimeout(300);
+      await a.waitForTimeout(100);
+      await a.evaluate(() => { outsideClear(PROFILE); DB = BLANK(); save(); saveNow(); LOG = []; LOG_OK = true; saveLog(); pendingRetire(); });
+      await a.waitForTimeout(500);
+      await a.close();
+      await b.evaluate(() => takeOver(false));
+      await b.waitForFunction(() => WRITER === 'held', null, {timeout: 8000}).catch(() => {});
+      await ready(b); await b.waitForTimeout(800);
+      const asked = await b.evaluate(() => window.__asked || '');
+      await reload(b);
+      const ink = await inkNow(b);
+      if(!keep) check(!!asked && !ink.s, 'V3: after another tab erased the profile, the student is asked about this tab\'s kept writing; Cancel leaves it out (after a reload)', {asked: asked.slice(0, 60), keys: Object.keys(ink)});
+      else check(!!asked && strokesOf(ink, 's').length === 2, 'V3: OK adds the kept writing back (after a reload)', {asked: asked.slice(0, 60), strokes: strokesOf(ink, 's').length});
+      await ctx.close();
+    }
     // closing: a change still on save()'s 150 ms timer when the page is reloaded (pagehide writes it)
     {
       const ctx = await newCtx();
