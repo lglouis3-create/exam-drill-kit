@@ -45,6 +45,7 @@ that course's repository. Both folders come from the recovered exam-drill templa
 | `state_check.js` | core | the course's root `CLAUDE.md` was updated with or after the newest lecture (§7.8) |
 | `state_check_test.js` | core | `state_check.js` on repositories with known histories |
 | `oldcache_test.js` | core | `course.js` `oldCachePrefix`: an old worker's caches deleted, every other cache kept |
+| `share_test.js` | core | `course.js` `share` and `manifest.short_name`: without `share` the page's `<head>` is the shell's and every file is what a base `build.py` writes (`SHARE_BASE_BUILD=<file>`; skipped when it is not set); with it the title and the link-preview tags, HTML-escaped; og:url on a preview; the image copied to the root; each value the build refuses; `short_name` in the manifest only |
 | `scheduler_test.js` | core | the scheduler (`review/scheduler-proposal.md` §4-§5), with a fixed clock, on scratch builds with a test topic |
 | `features.js` | core | the hooks a feature module uses (tab, question type, step after an answer, pass after a view is drawn, reading-tab HTML, a new exam paper, Settings section, start-up step, progress converter); in the page only when `course.js` `features` switches a module on |
 | `exam_typed.js`, `exam_typed_test.js` | core | `course.js` `exams[].typed`: numeric and matching items drawn onto that exam's papers, typed and picked there, graded and reviewed; in the page and run only when an exam sets it |
@@ -191,8 +192,26 @@ serves:
 | the `output` name in `course.js` | a redirect to `index.html`, so old links keep working |
 | `version.json` | `{"built": "<UTC time of the build>"}`, the same value as `BUILD.built` in the page |
 | `sw.js` | the service worker, from `src/sw.js` with the course's cache prefix and file list filled in |
-| `manifest.json` | the web manifest: `title` and `short` from `course.js`, start page `index.html`; `description` and `orientation` too when `course.js` `manifest` gives them (Medicinal-chemistry's manifest before the core had both; `orientation` takes the values the web manifest allows, and any other value or field stops the build) |
+| `manifest.json` | the web manifest: `title` and `short` from `course.js`, start page `index.html`; `description` and `orientation` too when `course.js` `manifest` gives them (Medicinal-chemistry's manifest before the core had both; `orientation` takes the values the web manifest allows, and any other value or field stops the build); `manifest.short_name`, when given, replaces the manifest's `short_name` (the name under the Home Screen icon) and nothing else: the page keeps `short` |
+| the `share.image` name in `course.js` | the link-preview image, copied from `src/icons/` when `share.image` is set (below) |
 | `icon-192.png`, `icon-512.png`, `icon-maskable-512.png`, `apple-touch-icon.png` | copied from `src/icons/` when the course supplies them; otherwise a plain square in the accent colour, and the build says so |
+
+`course.js` `share` (optional) is what a link preview shows when the site's address is
+shared: iMessage, Slack and social sites read the page's static `<head>`, not what its
+script draws. Without it the page keeps the shell's `<title>Exam drill</title>` and has no
+link-preview tags, so the page is byte for byte what the build wrote before `share`
+existed. Its keys, each optional and a non-empty string:
+
+| Key | In the `<head>` |
+|---|---|
+| `title` | `<title>` (without `title`, `course.js` `title`), `og:title`, `twitter:title`; not `apple-mobile-web-app-title`, so on an iPhone or iPad the Home Screen name stays the manifest's `short_name` |
+| `description` | `description`, `og:description`, `twitter:description` |
+| `url` | the site's address, `https://` and ending in `/`: `og:type` `website` and `og:url` (`<url>preview/` on a preview build) |
+| `image` | a PNG file name under `src/icons/`; needs `url`: `og:image` (`<url><image>`), `og:image:type` `image/png`, `twitter:card` `summary_large_image`, `twitter:image`. The live build copies the file to the root; a preview build points at the live copy |
+
+Every value is HTML-escaped. Any other key, an empty value, a `url` that is not `https://`
+or does not end in `/`, an `image` without `url`, and an `image` that is not a PNG file name
+in `src/icons/` stop the build before it writes anything (`share_test.js`).
 
 `python3 src/build.py --preview` writes only `preview/index.html` and
 `preview/version.json`, which Pages serves at `<site>/preview/`; every file of the live

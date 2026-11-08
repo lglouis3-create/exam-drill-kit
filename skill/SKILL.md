@@ -92,7 +92,8 @@ COURSE = {id, title, short, ns, output, professors:[…],
   scheduler:{model:'concept' | 'fsrs' | 'concept-fsrs', compare?:true, preset?:'calc'},
   numeric?:{margin?}, exams[].typed?:true,
   files:['atlas.js', 'diagrams.js', 'q1_topics.js', 'q2_<lecture>.js', …],
-  oldCachePrefix?, manifest?:{description?, orientation?},
+  oldCachePrefix?, manifest?:{description?, orientation?, short_name?},
+  share?:{title?, description?, url?, image?},
   tools?:{citeAliases?, citeLectures?, citeBareMap?, explainTerms?, harvestMasks?},
   features:{<name>:{version, ...options}},
   kit:{core:'<kit commit or tag>'}}
@@ -113,6 +114,10 @@ COURSE = {id, title, short, ns, output, professors:[…],
   started with, so one in progress stays untimed if a time limit is added later
   (`core/nullexam.js`, `core/views.js`;
   `core/README.md` "Exam draw").
+- `share` gives the link preview a shared address shows (title, description, the
+  site's `https://…/` address and a PNG from `src/icons/`); without it the page is
+  unchanged. `manifest.short_name` names the Home Screen icon; the page keeps `short`
+  (`core/README.md` "What the build writes").
 - `files` lists the data files in build order; every new question file goes there. A
   core update replaces `build.py`, never `course.js`, so the list is kept
   (`core/README.md` "The course's files").
