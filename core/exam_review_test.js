@@ -61,7 +61,10 @@ const state = page => page.evaluate(() => ({running: !!(EX && EX.running), done:
 const secs = t => { const m = /(\d+):(\d+)/.exec(t || ''); return m ? (+m[1]) * 60 + (+m[2]) : NaN; };
 // this tab holds its profile's lock (or the browser has none): a clear asked for while the lock is
 // still being asked for waits for it (views.js clearExam), so a paper would come back
-const settled = page => page.waitForFunction(() => typeof WRITER === 'undefined' || WRITER === 'held' || WRITER === 'none', null, {timeout: 5000}).catch(() => {});
+// a lock that never settles is a failing check naming the state seen, not a silent carry-on (the confirmation of 25a6c5b)
+const settled = page => page.waitForFunction(() => typeof WRITER === 'undefined' || WRITER === 'held' || WRITER === 'none', null, {timeout: 5000})
+  .then(() => true, async () => { const w = await page.evaluate(() => typeof WRITER === 'undefined' ? 'undefined' : String(WRITER)).catch(() => 'unreadable');
+    check(false, `the writer lock settles within 5 s before the next step`, {WRITER: w}); return false; });
 const start = async page => {
   await settled(page);
   await page.evaluate(() => { if(EX){ clearInterval(EX.timer); EX = null; } clearExam(); show('exam'); });
@@ -254,6 +257,7 @@ async function staleOverview(page, label){
   await toLast(page);
   await page.click('#exNext');
   const from = await page.evaluate(() => PROFILE);
+  const logBefore = await page.evaluate(() => LOG.length);   // this page's history before the stale actions
   const r = await page.evaluate(() => {
     const count = p => { let a = 0, l = 0; try { a = (JSON.parse(localStorage.getItem(NS + ':data:' + p) || 'null') || {answers: []}).answers.length; } catch(e){}
       try { l = JSON.parse(localStorage.getItem(NS + ':log:' + p) || '[]').length; } catch(e){} return a + '/' + l; };
@@ -275,7 +279,7 @@ async function staleOverview(page, label){
   await settled(page);
   await page.evaluate(() => show('exam'));
   const s = await state(page);
-  check(s.running && s.log === (await page.evaluate(() => LOG.length)), `${label}: back on "${from}", the paper is still running`, {running: s.running, profile: from});
+  check(s.running && s.log === logBefore, `${label}: back on "${from}", the paper is still running and the history is as it was before the stale actions (${logBefore} → ${s.log})`, {running: s.running, profile: from, logBefore, log: s.log});
 }
 
 /* The overview's "Not answered" line names a count and the first few, not every number. */
