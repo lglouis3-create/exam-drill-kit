@@ -33,6 +33,18 @@
  * without images; no sideways scroll; nothing written to localStorage,
  * sessionStorage, IndexedDB or the progress (DB), apart from the core's own place
  * record (sessionStorage <NS>:place, written for every tab); no page or console error.
+ * Recall mode (DEENT src/druglist_ui.js at 0281922), on the same copy at 390 px and
+ * 820 px: off by default; on, each row shows only its recallShow fields and the other
+ * cells say only "hidden", with no hidden field's text in the DOM and every detail row
+ * empty; a tap on the row opens nothing; Reveal shows that row's cells and detail and
+ * only that row's, with aria-expanded, aria-controls and the focus kept; Hide again;
+ * Enter and Space on the button; Show class; the search still finds rows by a hidden
+ * field (as DEENT's does) and they stay hidden; what is typed is kept through a group
+ * change and a search and is gone after a reload; Reveal all shown takes the chosen
+ * group's rows, then the search's, and no other; Hide all; no sideways scroll; nothing
+ * stored. The options copy opens in recall mode (recallDefault) with only Listed as
+ * shown (recallShow ['label']) and no Show class chip (recallClassField empty). The build step
+ * also refuses a recallShow field or a recallClassField that no row has.
  * On a second scratch copy with other options (tab, label, columns, searched fields,
  * no groups, an image per table): the columns and the searched fields follow the
  * options, and the image view shows each table's image (the image files are
@@ -241,6 +253,144 @@ async function bdkView(browser, file, width){
   return after;
 }
 
+/* the storage check of a page (see bdkView): the core's own place record is the one write allowed */
+async function storageCheck(page, before, tab, label){
+  const after = await snapshot(page);
+  const {writes, placeKey, place} = await page.evaluate(() => ({writes: window.__writes, placeKey: PLACE_KEY, place: sessionStorage.getItem(PLACE_KEY)}));
+  const B = JSON.parse(before), A = JSON.parse(after);
+  const placeOk = place === null || (() => { const p = JSON.parse(place); return JSON.stringify(Object.keys(p).sort()) === JSON.stringify(['a', 'at', 'open', 'v', 'y']) && p.v === tab; })();
+  delete A.ss[placeKey]; delete B.ss[placeKey];
+  const other = writes.filter(w => !(w[0] === 'setItem' && w[1] === 'ss' && w[2] === placeKey));
+  check(!other.length && JSON.stringify(A) === JSON.stringify(B) && placeOk, label, {other, placeOk, same: JSON.stringify(A) === JSON.stringify(B)});
+}
+
+/* recall mode (DEENT src/druglist_ui.js at 0281922, lines 31-32, 160-174, 203-209, 236, 248-259) */
+async function recallView(browser, file, width){
+  const tag = ` (recall, ${width} px)`;
+  const {ctx, page, errors} = await L.openPage(browser, file, {viewport: {width, height: 900}}, consoleTrap);
+  const cerr = []; page.on('console', m => { if(m.type() === 'error') cerr.push(m.text()); });
+  const before = await snapshot(page);
+  await page.evaluate(() => { window.__writes = []; });
+  await page.click(`#nav button[data-v="${BDK_OPT.tab}"]`);
+  const off = await page.evaluate(p => ({pressed: document.querySelector(p + ' [data-dl="recall"]').getAttribute('aria-pressed'),
+    hid: document.querySelectorAll(p + ' td[data-hidden]').length, rows: document.querySelectorAll(p + ' tr.dlt-recall').length,
+    note: !!document.querySelector(p + ' [data-recallnote]'), extra: document.querySelectorAll(p + ' [data-dl="revealall"], ' + p + ' [data-dl="showcls"]').length}), pane);
+  check(off.pressed === 'false' && !off.hid && !off.rows && !off.note && !off.extra, 'recall mode is off by default (recallDefault false): no hidden cell, no writing box, no recall buttons' + tag, off);
+  await page.click(`${pane} [data-dl="recall"]`);
+  check(await page.$eval(`${pane} [data-recallnote]`, e => e.textContent) === 'Recall mode: each row shows the drug only. Write what you recall, then Reveal and compare. This is a self-check: what you type is not graded and not saved, and it is gone when the page reloads. The search still looks in every searched field, hidden ones included, so searching by class shows which drugs are in that class.', 'the Recall mode chip turns it on, with its note' + tag);
+  check(JSON.stringify(await shownIds(page)) === JSON.stringify(['5', '9']), 'the group stays as chosen' + tag);
+  // what each shown row holds: recallShow fields as written, every other cell empty but for "hidden", no hidden text anywhere in the DOM
+  const look = () => page.evaluate(([p, cols, show]) => {
+    const out = {bad: [], leak: [], n: 0, hidden: 0};
+    const body = document.querySelector(p + ' [data-body]'), text = body.innerHTML;
+    for(const tr of body.querySelectorAll('tr[data-ref]')){
+      const [ti, i] = tr.dataset.ref.split(':').map(Number), r = DRUG_TABLES[ti].rows[i], cells = [...tr.children];
+      out.n++;
+      const visible = new Set(show.map(f => String(r[f] || '')));
+      cols.forEach((c, k) => {
+        const td = cells[k];
+        if(show.includes(c[0])){ if(!td.textContent.includes(String(r[c[0]] || ''))) out.bad.push(tr.dataset.ref + ' ' + c[0]); }
+        else {
+          out.hidden++;
+          if(td.dataset.hidden !== '1' || td.textContent !== 'hidden') out.bad.push(tr.dataset.ref + ' ' + c[0] + ': ' + td.textContent.slice(0, 40));
+        }
+      });
+      const det = tr.parentElement.querySelector(`tr.detail[data-for="${tr.dataset.ref}"]`);
+      if(!det || det.textContent.trim() || !det.hidden) out.bad.push(tr.dataset.ref + ' detail');
+      for(const f of ['essential', 'indication', 'activity', 'category', 'classification']){
+        const v = String(r[f] || '');
+        if(v.length >= 6 && !show.includes(f) && ![...visible].some(x => x.includes(v)) && text.includes(v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'))) out.leak.push(tr.dataset.ref + ' ' + f);
+      }
+    }
+    return out;
+  }, [pane, BDK_OPT.columns, BDK_OPT.recallShow]);
+  const N14 = FIX.tables.filter(t => [5, 9].includes(t.id)).reduce((n, t) => n + t.rows.length, 0);
+  let o = await look();
+  check(o.n === N14 && !o.bad.length && o.hidden === o.n * 3, `each of the ${o.n} rows shows only its ${BDK_OPT.recallShow.join(' and ')}; the other ${o.hidden} cells say only "hidden", and every detail row is empty` + tag, o.bad.slice(0, 4));
+  check(!o.leak.length, 'no hidden field\'s text is anywhere in the list\'s DOM' + tag, o.leak.slice(0, 4));
+  const r0 = (await page.$$eval(`${pane} tr[data-ref]`, t => t.map(x => x.dataset.ref)))[0], r1 = (await page.$$eval(`${pane} tr[data-ref]`, t => t.map(x => x.dataset.ref)))[1];
+  await page.click(`${pane} tr[data-ref="${r0}"] td:nth-child(2)`);
+  check(await page.$eval(`${pane} tr[data-ref="${r0}"]`, tr => tr.nextElementSibling.classList.contains('dlt-recall') &&
+        ![...tr.closest('[data-body]').querySelectorAll('tr.detail')].some(d => d.textContent.trim())), 'in recall mode a tap on the row does not open it' + tag);
+  // Reveal: that row's cells and detail, and only that row's
+  const rowState = ref => page.evaluate(([p, ref]) => { const tr = document.querySelector(`${p} tr[data-ref="${ref}"]`), b = document.querySelector(`${p} [data-reveal="${ref}"]`),
+    d = document.querySelector(`${p} tr.detail[data-for="${ref}"]`), [ti, i] = ref.split(':').map(Number), r = DRUG_TABLES[ti].rows[i];
+    return {hidden: tr.querySelectorAll('td[data-hidden]').length, cat: tr.children[0].textContent === r.category, text: b.textContent, exp: b.getAttribute('aria-expanded'),
+      ctl: b.getAttribute('aria-controls').split(' ').every(id => !!document.getElementById(id)) && b.getAttribute('aria-controls').split(' ').length === 2,
+      det: !d.hidden && !!d.querySelector('.ekbox, .dlt-note'), focus: document.activeElement === b}; }, [pane, ref]);
+  await page.click(`${pane} [data-reveal="${r0}"]`);
+  let a = await rowState(r0), b = await rowState(r1);
+  check(!a.hidden && a.cat && a.det && a.text === 'Hide again' && a.exp === 'true' && a.ctl && a.focus, 'Reveal shows that row\'s cells and its detail; the button reads Hide again, aria-expanded true, aria-controls naming the row and its detail, and keeps the focus' + tag, a);
+  const only = JSON.stringify(await page.evaluate(() => FX.api('drug-list-tab').state().revealed));
+  await page.click(`${pane} [data-listgroup="${FIX.groups.findIndex(g => g.label === 'Week 14')}"]`);
+  const openRows = await page.$$eval(`${pane} tr[data-ref]`, t => t.filter(tr => !tr.querySelector('td[data-hidden]')).map(tr => tr.dataset.ref));
+  check(b.hidden === 3 && !b.det && only === JSON.stringify([r0]) && JSON.stringify(openRows) === JSON.stringify([r0]), 'and only that row: the next row stays hidden, and after a redraw only that row is open' + tag, {b, only, openRows});
+  await page.focus(`${pane} [data-reveal="${r0}"]`);
+  await page.click(`${pane} [data-reveal="${r0}"]`);
+  a = await rowState(r0);
+  check(a.hidden === 3 && !a.det && a.text === 'Reveal' && a.exp === 'false' && a.focus, 'Hide again hides it again' + tag, a);
+  await page.keyboard.press('Enter');
+  a = await rowState(r0);
+  check(!a.hidden && a.det && a.focus, 'Enter on Reveal reveals' + tag, a);
+  await page.keyboard.press(' ');
+  a = await rowState(r0);
+  check(a.hidden === 3 && !a.det, 'Space on Hide again hides' + tag, a);
+  // Show class
+  await page.click(`${pane} [data-dl="showcls"]`);
+  const cls = await page.evaluate(p => [...document.querySelectorAll(p + ' tr[data-ref]')].map(tr => { const [ti, i] = tr.dataset.ref.split(':').map(Number);
+    return tr.children[0].textContent === DRUG_TABLES[ti].rows[i].category && tr.querySelectorAll('td[data-hidden]').length === 2; }), pane);
+  check(cls.length === N14 && cls.every(Boolean), `Show class shows every row's ${BDK_OPT.recallClassField} and nothing else` + tag, cls);
+  await page.click(`${pane} [data-dl="showcls"]`);
+  check(await page.$$eval(`${pane} tr[data-ref]`, t => t.every(tr => tr.querySelectorAll('td[data-hidden]').length === 3)), 'Show class again hides the class' + tag);
+  // typed text: kept through a group change and a search, for the visit
+  await page.fill(`${pane} textarea[data-typed="${r1}"]`, 'beta blocker, my guess');
+  await page.click(`${pane} [data-listgroup="-1"]`);
+  const g1 = await page.$eval(`${pane} textarea[data-typed="${r1}"]`, t => t.value);
+  await page.click(`${pane} [data-listgroup="${FIX.groups.findIndex(g => g.label === 'Week 14')}"]`);
+  await page.fill(`${pane} [data-q]`, 'NSAID');
+  const nsaid = await page.$$eval(`${pane} tr[data-ref]`, t => t.length);
+  check(nsaid === expectRows(FIX.tables, BDK_OPT.searchFields, 'NSAID').length && nsaid > 0, `in recall mode the search still looks in hidden fields, as DEENT's does: "NSAID" (a category) finds its ${nsaid} rows` + tag);
+  check(await page.$$eval(`${pane} tr[data-ref]`, t => t.every(tr => tr.querySelectorAll('td[data-hidden]').length === 3)), 'and the rows found stay hidden' + tag);
+  await page.fill(`${pane} [data-q]`, '');
+  const g2 = await page.$eval(`${pane} textarea[data-typed="${r1}"]`, t => t.value);
+  check(g1 === 'beta blocker, my guess' && g2 === g1, 'what is typed is kept through a group change and a search' + tag, {g1, g2});
+  // Reveal all shown honours the group and the search; Hide all
+  const revealed = () => page.evaluate(() => FX.api('drug-list-tab').state().revealed.sort());
+  await page.click(`${pane} [data-dl="revealall"]`);
+  const wk = await page.$$eval(`${pane} tr[data-ref]`, t => t.map(x => x.dataset.ref).sort());
+  check(JSON.stringify(await revealed()) === JSON.stringify(wk) && await page.$$eval(`${pane} tr[data-ref]`, t => t.every(tr => !tr.querySelector('td[data-hidden]'))),
+        `Reveal all shown reveals the ${wk.length} rows of the chosen group` + tag);
+  await page.click(`${pane} [data-listgroup="-1"]`);
+  const others = await page.$$eval(`${pane} tr[data-ref]`, t => t.filter(tr => !!tr.querySelector('td[data-hidden]')).length);
+  check(others === FIX.tables.reduce((n, t) => n + t.rows.length, 0) - wk.length, 'and no row outside it' + tag, others);
+  await page.click(`${pane} [data-dl="hideall"]`);
+  check(!(await revealed()).length && await page.$$eval(`${pane} tr[data-ref]`, t => t.every(tr => tr.querySelectorAll('td[data-hidden]').length === 3)), 'Hide all hides every row' + tag);
+  await page.fill(`${pane} [data-q]`, 'NSAID');
+  await page.click(`${pane} [data-dl="revealall"]`);
+  const want = expectRows(FIX.tables, BDK_OPT.searchFields, 'NSAID').map(r => { const [id, i] = r.split(':'); return FIX.tables.findIndex(u => String(u.id) === id) + ':' + i; }).sort();
+  check(JSON.stringify(await revealed()) === JSON.stringify(want), `with a search, Reveal all shown reveals exactly the ${want.length} rows found` + tag);
+  check(!(await sideways(page)), 'no sideways scroll in recall mode with rows revealed' + tag);
+  await page.click(`${pane} [data-dl="hideall"]`);
+  check(!(await revealed()).length, 'Hide all again' + tag);
+  await page.fill(`${pane} [data-q]`, '');
+  check(!(await sideways(page)), 'no sideways scroll in recall mode with every table shown' + tag);
+  await page.click(`${pane} [data-dl="recall"]`);
+  check(!(await page.$(`${pane} td[data-hidden]`)) && !(await page.$(`${pane} tr.dlt-recall`)), 'Recall mode off shows every cell again' + tag);
+  await storageCheck(page, before, BDK_OPT.tab, 'recall mode: nothing written to localStorage, sessionStorage, IndexedDB or the progress (DB), apart from the core\'s place record' + tag);
+  const cAll = cerr.concat(await page.evaluate(() => window.__cerr || [])), fxErr = await page.evaluate(() => FX.errors.length);
+  check(!errors.length && !cAll.length && !fxErr, 'no page, console or module error in recall mode' + tag, errors.concat(cAll).slice(0, 3));
+  // a reload: what was typed is gone
+  await page.reload();
+  await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3);
+  await page.click(`#nav button[data-v="${BDK_OPT.tab}"]`).catch(() => {});
+  await page.evaluate(t => show(t), BDK_OPT.tab);
+  await page.click(`${pane} [data-dl="recall"]`);
+  await page.click(`${pane} [data-listgroup="${FIX.groups.findIndex(g => g.label === 'Week 14')}"]`);
+  const after = await page.$eval(`${pane} textarea[data-typed="${r1}"]`, t => t.value);
+  check(after === '' && !(await revealed()).length, 'after a reload what was typed is gone and nothing is revealed' + tag, after);
+  await ctx.close();
+}
+
 async function optionView(browser, file, o){
   const {ctx, page, errors} = await L.openPage(browser, file, {viewport: {width: 390, height: 900}}, consoleTrap);
   const PX = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=', 'base64');
@@ -251,6 +401,11 @@ async function optionView(browser, file, o){
   const nav = await page.$(`#nav button[data-v="${o.tab}"]`);
   check(!!nav && (await nav.textContent()) === o.label && !(await page.$(`#nav button[data-v="${BDK_OPT.tab}"]`)), `options: the tab is "${o.label}" at #v-${o.tab}`);
   await nav.click();
+  const rc = await page.evaluate(p => [...document.querySelectorAll(p + ' tr[data-ref]')].slice(0, 30).map(tr => [...tr.children].map(td => td.dataset.hidden === '1' ? 'H' : 'V').join('')), p);
+  check(await page.$eval(`${p} [data-dl="recall"]`, b => b.getAttribute('aria-pressed')) === 'true' && rc.length && rc.every(x => x === 'HV'),
+        `options: recallDefault true opens in recall mode, and recallShow ['label'] keeps only the Listed as column visible`, rc.slice(0, 3));
+  check(!(await page.$(`${p} [data-dl="showcls"]`)) && !!(await page.$(`${p} [data-dl="revealall"]`)), 'options: recallClassField empty, no Show class chip');
+  await page.click(`${p} [data-dl="recall"]`);
   check(!(await page.$(`${p} [data-listgroup]`)), 'options: no groups, no chips');
   const ids = await page.$$eval(`${p} [data-body] section[data-table]`, s => s.map(e => e.dataset.table));
   check(JSON.stringify(ids) === JSON.stringify(FIX.tables.map(t => String(t.id))), 'options: with no default group the tab opens on every table');
@@ -309,6 +464,8 @@ async function optionView(browser, file, o){
     ['a group naming a table that does not exist', 'nogroup', T, opts(Object.assign({}, BDK_OPT, {groups: FIX.groups.concat([{label: 'Week 99', tables: [99]}])})), /group "Week 99" names the table "99", which DRUG_TABLES does not have/],
     ['a column naming a field no row has', 'nocol', T, opts(Object.assign({}, BDK_OPT, {columns: BDK_OPT.columns.concat([['schedule', 'Schedule']])})), /option columns names the field "schedule", which no row has/],
     ['images for some tables but not all', 'someimg', (() => { const t = clone(T); t[0].image = 'pages/p2.webp'; return t; })(), BDK_OPT, /1 of 26 tables give an image: give every table an image, or none/],
+    ['a recallShow field no row has', 'norecallshow', T, opts(Object.assign({}, BDK_OPT, {recallShow: ['generic', 'schedule']})), /option recallShow names the field "schedule", which no row has/],
+    ['a recallClassField no row has', 'norecallcls', T, opts(Object.assign({}, BDK_OPT, {recallClassField: 'schedule'})), /option recallClassField names the field "schedule", which no row has/],
     ['a default group that is not a group', 'nodefault', T, opts(Object.assign({}, BDK_OPT, {defaultGroup: 'Week 15'})), /option defaultGroup is "Week 15", which is not the label of a group/],
   ];
   for(const [what, label, tables, o, re] of refuse){
@@ -320,11 +477,13 @@ async function optionView(browser, file, o){
   console.log('\n=== BDK\'s list in the browser (scratch copy) ===');
   const s = build('dlt-bdk', T, BDK_OPT);
   if(s.code !== 0) L.notRun(NAME, 'the scratch copy with BDK\'s tables does not build: ' + s.out.split('\n').pop());
-  const o2 = opts({tab: 'druglist', label: 'Drugs', columns: [['generic', 'Generic'], ['label', 'Listed as']], searchFields: ['generic'], groups: [], defaultGroup: ''});
+  const o2 = opts({tab: 'druglist', label: 'Drugs', columns: [['generic', 'Generic'], ['label', 'Listed as']], searchFields: ['generic'], groups: [], defaultGroup: '',
+    recallDefault: true, recallShow: ['label'], recallClassField: ''});
   const s2 = build('dlt-opts', T.map(t => Object.assign({}, t, {image: `pages/p${t.id}.webp`, imageSize: BDK_PAGE_IMG[t.id]})), o2);
   const {browser} = await L.launch(NAME);
   try {
     for(const w of [390, 820]){ console.log(`\n--- ${w} px ---`); await bdkView(browser, s.page, w); }
+    for(const w of [390, 820]){ console.log(`\n--- recall mode, ${w} px ---`); await recallView(browser, s.page, w); }
     console.log('\n=== other options (scratch copy: tab, label, columns, searched fields, no groups, an image per table) ===');
     if(s2.code !== 0) check(false, 'the scratch copy with other options builds', s2.out.split('\n').pop());
     else await optionView(browser, s2.page, o2);

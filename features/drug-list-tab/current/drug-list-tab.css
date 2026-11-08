@@ -34,3 +34,13 @@ input.search{width:100%;padding:12px 14px;border-radius:10px;border:1px solid va
 @media (min-width:812px){.detailin{width:auto;position:static}}
 .pdfpage{display:block;background:#fff;border:1px solid var(--line);border-top:0;border-radius:0 0 var(--r) var(--r);overflow:hidden}
 .pdfpage img{display:block;width:100%;height:auto}
+/* recall mode (DEENT src/druglist_ui.js at 0281922: the writing box, lines 70-71; the note, line 42;
+   the small button, line 75), in a row under each drug row */
+.dlt-recallbar{margin:0 0 8px}
+.dlt-self{font-size:13px;background:var(--accent-bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin:0 0 12px}
+.pagetable td.dlt-hid{background:var(--surface);position:relative}
+.dlt-vh{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.pagetable tr.dlt-recall td{border-bottom:1px solid var(--line-soft)}
+.dlt-recall textarea{width:100%;min-height:58px;font:inherit;font-size:16px;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text);resize:vertical}
+.dlt-recall label{display:block;font-size:12.5px;color:var(--text-dim);margin-bottom:3px}
+.dlt-recall .btn.sm{padding:6px 12px;font-size:14px;margin-top:6px;min-height:44px}

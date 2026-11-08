@@ -1,8 +1,8 @@
 {
  "name": "drug-list-tab",
  "version": "v1",
- "does": "A Drug list tab over the course's DRUG_TABLES (a data file listed in course.js `files`): one table per page or section under its title, with its legend; group chips (the option `groups`, plus All pages) that narrow the tables shown; a search across every table, not only the chosen group's; a tap or Enter on a row opens the row's detail field split into its sections (key side effects, boxed warnings, other notes), tapped again to close; a jump strip to each table; a page-image view when every table gives an image. The choices last for the visit only; nothing is stored.",
- "source": "BDK assets/app.js viewBrowse (lines 2553-2618), QUIZZES (line 42), ekHtml (lines 882-899), assets/style.css (lines 105, 262-276, 327-338, 355-356, 397-401) and tests/ui.js (lines 7-28), at 05c36c3",
+ "does": "A Drug list tab over the course's DRUG_TABLES (a data file listed in course.js `files`): one table per page or section under its title, with its legend; group chips (the option `groups`, plus All pages) that narrow the tables shown; a search across every table, not only the chosen group's; a tap or Enter on a row opens the row's detail field split into its sections (key side effects, boxed warnings, other notes), tapped again to close; a jump strip to each table; a page-image view when every table gives an image. A Recall mode (from DEENT's drug list): each row shows only the fields named in recallShow, with a writing box and a Reveal button under it, Show class, Reveal all shown and Hide all. The choices and what is typed last for the visit only; nothing is stored.",
+ "source": "BDK assets/app.js viewBrowse (lines 2553-2618), QUIZZES (line 42), ekHtml (lines 882-899), assets/style.css (lines 105, 262-276, 327-338, 355-356, 397-401) and tests/ui.js (lines 7-28), at 05c36c3; recall mode from DEENT src/druglist_ui.js (lines 31-32, 70-71, 160-174, 203-206, 209, 236, 248-253, 256-259) at 0281922",
  "js": [
   "drug-list-tab.js"
  ],
@@ -119,6 +119,25 @@
   "imageLabel": {
    "default": "PDF pages",
    "about": "the name of the page-image view, offered only when every table gives an image"
+  },
+  "recallDefault": {
+   "default": false,
+   "about": "whether the tab opens in recall mode (DEENT opens its list with recall on); false: the list opens as BDK's does, and the Recall mode chip turns it on"
+  },
+  "recallShow": {
+   "default": [
+    "generic",
+    "brand"
+   ],
+   "about": "the row fields recall mode keeps visible; every other cell is drawn empty until the row is revealed"
+  },
+  "recallClassField": {
+   "default": "category",
+   "about": "the field the Show class chip shows on every row in recall mode (DEENT's Show class); empty: no Show class chip"
+  },
+  "recallPrompt": {
+   "default": "Write what you recall first (self-check: not graded, not saved)",
+   "about": "the label of each row's writing box in recall mode (adapted from DEENT's \"Write the target or mechanism first (self-check: not graded, not saved)\")"
   }
  },
  "test": "test.js"

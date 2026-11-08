@@ -27,6 +27,31 @@
    - the chosen group and view last for the visit only (in memory): nothing is
      written to localStorage, sessionStorage, IndexedDB or the progress (DB);
    - the page-image view is offered only when every table gives an `image`;
+   - recall mode, from DEENT src/druglist_ui.js at 0281922 (cards there, table
+     rows here): DEENT's state recall/showCls and its memory-only revealed and
+     typed (lines 31-32) are DLR; its open rule (160) is dltOpen; the hiding
+     (163-164, 174) is dltCell, which draws a hidden cell empty but for a
+     visually hidden "hidden" so the table keeps its shape and no hidden text is
+     in the page until the row is revealed; the writing box and Reveal / Hide
+     again button with aria-expanded and aria-controls (168-173; style 70-71) go
+     in a row of their own under the drug row, because a cell of the 640 px table
+     is too narrow to write in and the row spans the table as the detail row
+     does; the detail row is filled only once the row is revealed (174), and a
+     tap on the row opens nothing in recall mode; the chips Recall mode, Show
+     class, Reveal all shown and Hide all (203-206) and their handlers (256-259)
+     are as DEENT's, Reveal all shown taking the rows the group and the search
+     show; the note (209) is adapted to the table; Reveal redraws one drug and
+     keeps the focus (248-253); what is typed is kept for the visit (236).
+     Differences: DEENT opens in recall mode, the kit only when the option
+     recallDefault is true; which fields stay visible is the option recallShow
+     (BDK: generic, brand) and Show class shows the option recallClassField
+     (BDK: category; empty, no chip); the box's label is the option recallPrompt,
+     a neutral wording adapted from DEENT's "Write the target or mechanism
+     first"; the Recall mode and Show class chips keep the search, as DEENT's do,
+     while a group chip clears it, as BDK's does; the search looks in the same
+     fields with recall on or off, hidden ones included, as DEENT's search
+     (findText: name, other names, brands, class) does; the image view has no
+     recall mode. DEENT's Flashcards (flash, fi) are not here (queue item 16);
    - left out: saved personal lists ("My drug lists"), the "Compare the N drugs
      in this class" button (compare-tab), Quizlet download files, the glossary
      pop-ups, the "· next" chip mark (date logic).
@@ -103,40 +128,72 @@ function dltDetail(t, i){
   return `<div class="ekbox">${out}</div>`;
 }
 
-function dltCell(row, c){
+/* ---- recall mode (DEENT src/druglist_ui.js at 0281922, lines 31-32, 160-174, 203-209,
+   236, 248-259; its style 70-71): the visit's recall choices, in memory only. DEENT keeps
+   `revealed` and `typed` the same way (line 32: "memory only, never stored"). ---- */
+const DLR = {recall: !!OPT.recallDefault, showCls: false, revealed: new Set(), typed: {}};
+const dltShows = f => (OPT.recallShow || []).includes(f) || (DLR.showCls && OPT.recallClassField && f === OPT.recallClassField);
+/* DEENT line 160: a row is open when recall mode is off or the row was revealed */
+const dltOpen = ref => !DLR.recall || DLR.revealed.has(ref);
+const dltId = ref => ref.replace(':', '-');
+
+function dltCell(row, c, open){
   const [f, , sub, subLabel] = c;
+  // DEENT line 174 draws the answer only when the card is open: a hidden cell holds none of its text
+  if(!open && !dltShows(f)) return `<td class="dlt-hid" data-hidden="1"><span class="dlt-vh">hidden</span></td>`;
   const v = row[f];
   return `<td>${dltText(v)}${sub && row[sub] ? `<div class="act">${dltText(subLabel || '')}${dltText(row[sub])}</div>` : ''}</td>`;
 }
+/* one drug: its row; in recall mode also the writing box with Reveal (DEENT 168-173) in
+   a row under it, and the detail row, filled only once revealed (DEENT 174) */
+function dltRowHtml(T, ti, r, i){
+  const C = dltCols(), ref = ti + ':' + i, open = dltOpen(ref), id = dltId(ref);
+  let h = `<tr data-ref="${ref}" id="dlt-r-${id}" tabindex="0">${C.map(c => dltCell(r, c, open)).join('')}</tr>`;
+  if(!DLR.recall) return h;
+  h += `<tr class="dlt-recall" data-for="${ref}"><td colspan="${C.length}"><div class="detailin">
+    <label for="dlt-w-${id}">${dltText(OPT.recallPrompt)}</label>
+    <textarea id="dlt-w-${id}" autocomplete="off" autocapitalize="off" data-typed="${ref}">${dltText(DLR.typed[ref] || '')}</textarea>
+    <button type="button" class="btn sm${open ? ' ghost' : ''}" data-reveal="${ref}" aria-expanded="${open}" aria-controls="dlt-r-${id} dlt-a-${id}">${open ? 'Hide again' : 'Reveal'}</button></div></td></tr>`;
+  h += open ? `<tr class="detail" id="dlt-a-${id}" data-for="${ref}"><td colspan="${C.length}"><div class="detailin">${dltDetail(T[ti], i) || `<p class="dlt-note">${dltText(OPT.noDetail)}</p>`}</div></td></tr>`
+            : `<tr class="detail" id="dlt-a-${id}" data-for="${ref}" hidden></tr>`;
+  return h;
+}
 function dltTable(t, ti, rows){
-  const C = dltCols();
+  const C = dltCols(), T = dltTables();
   return `<section class="pagetable" id="${dltAnchor(t)}" data-table="${dltText(t.id)}"><h3 class="pagehead" style="--pc:${dltText(t.color || 'var(--surface)')}">${dltText(t.title)} <span class="ed">${dltText(dltTag(t, t.id))}</span></h3>
     <div class="table-wrap"><table><thead><tr>${C.map(c => `<th>${dltText(c[1])}</th>`).join('')}</tr></thead><tbody>
-    ${rows.map(([r, i]) => `<tr data-ref="${ti}:${i}" tabindex="0">${C.map(c => dltCell(r, c)).join('')}</tr>`).join('')}
+    ${rows.map(([r, i]) => dltRowHtml(T, ti, r, i)).join('')}
     </tbody></table></div>${t.legend ? `<p class="legend">${dltText(t.legend)}</p>` : ''}</section>`;
 }
 
-function dltRender(pane){
+function dltRender(pane, keepTerm){
   dltStart();
   const T = dltTables(), G = dltGroups();
   if(!G[DLT.group]) DLT.group = -1;
   const imgs = dltImages();
   if(!imgs) DLT.view = 'table';
+  const oldQ = pane.querySelector('[data-q]'), term = keepTerm && oldQ ? oldQ.value : '';
   const shown = DLT.group < 0 ? T : G[DLT.group].tables;
   const chip = (i, label, ids) => `<button class="chip" data-listgroup="${i}" aria-pressed="${DLT.group === i}">${dltText(label)}${ids ? ` <span class="count">${dltText(dltTag(null, ids))}</span>` : ''}</button>`;
   const sortIds = ids => { const a = ids.slice(); if(a.every(x => !isNaN(+x))) a.sort((x, y) => x - y); return a.join(', '); };
+  const table = DLT.view === 'table';
   pane.innerHTML = `<h2>${dltText(OPT.label)}</h2>
     ${OPT.intro ? `<p class="sub">${dltText(OPT.intro)}</p>` : ''}
     ${G.length ? `<div class="dlt-row listgroup">${chip(-1, DLT_ALL.label)}${G.map((g, i) => chip(i, g.label, g.tables.length > 6 ? '' : sortIds(g.ids))).join('')}</div>` : ''}
     ${imgs ? `<div class="seg listview" data-listview><button data-val="table" aria-pressed="${DLT.view === 'table'}">Table</button><button data-val="image" aria-pressed="${DLT.view === 'image'}">${dltText(OPT.imageLabel)}</button></div>` : ''}
+    ${table ? `<div class="dlt-row dlt-recallbar"><button type="button" class="chip" data-dl="recall" aria-pressed="${DLR.recall}">Recall mode</button>
+      ${DLR.recall ? `${OPT.recallClassField ? `<button type="button" class="chip" data-dl="showcls" aria-pressed="${DLR.showCls}">Show class</button>` : ''}
+        <button type="button" class="chip" data-dl="revealall">Reveal all shown</button>
+        <button type="button" class="chip" data-dl="hideall">Hide all</button>` : ''}</div>` : ''}
+    ${table && DLR.recall ? '<p class="dlt-self" data-recallnote>Recall mode: each row shows the drug only. Write what you recall, then Reveal and compare. This is a self-check: what you type is not graded and not saved, and it is gone when the page reloads. The search still looks in every searched field, hidden ones included, so searching by class shows which drugs are in that class.</p>' : ''}
     <div class="jump">${shown.map(t => `<a href="#${dltAnchor(t)}" class="pchip" style="--pc:${dltText(t.color || 'var(--surface)')}">${dltText(t.id)}</a>`).join('')}</div>
-    ${DLT.view === 'table' ? `<input class="search" data-q type="search" placeholder="${dltText(OPT.placeholder)}" aria-label="Search">${OPT.rowNote ? `<p class="dlt-note">${dltText(OPT.rowNote)}</p>` : ''}`
+    ${table ? `<input class="search" data-q type="search" placeholder="${dltText(OPT.placeholder)}" aria-label="Search">${OPT.rowNote && !DLR.recall ? `<p class="dlt-note">${dltText(OPT.rowNote)}</p>` : ''}`
       : '<p class="dlt-note">The pages as they appear in the PDF. Pinch to zoom, or tap a page to open it full size.</p>'}
     <div data-body></div>`;
   pane.querySelectorAll('[data-listgroup]').forEach(b => b.onclick = () => { DLT.group = +b.dataset.listgroup; dltRender(pane); });
   pane.querySelectorAll('[data-listview] button').forEach(b => b.onclick = () => { DLT.view = b.dataset.val; dltRender(pane); });
   const body = pane.querySelector('[data-body]');
-  if(DLT.view === 'image'){
+  if(!table){
     body.innerHTML = shown.map(t => {
       const [w, h] = Array.isArray(t.imageSize) ? t.imageSize : [1636, 1200];
       return `<section class="pagetable" id="${dltAnchor(t)}" data-table="${dltText(t.id)}"><h3 class="pagehead" style="--pc:${dltText(t.color || 'var(--surface)')}">${dltText(t.title)} <span class="ed">${dltText(dltTag(t, t.id))}</span></h3>
@@ -144,6 +201,12 @@ function dltRender(pane){
     }).join('');
     return;
   }
+  // DEENT 256-257: the recall and Show class chips redraw the pane, keeping the search
+  pane.querySelectorAll('[data-dl="recall"]').forEach(b => b.onclick = () => { DLR.recall = !DLR.recall; dltRender(pane, true); });
+  pane.querySelectorAll('[data-dl="showcls"]').forEach(b => b.onclick = () => { DLR.showCls = !DLR.showCls; dltRender(pane, true); });
+  // DEENT 258: every row shown now (after the group and the search); 259: every row
+  pane.querySelectorAll('[data-dl="revealall"]').forEach(b => b.onclick = () => { body.querySelectorAll('tr[data-ref]').forEach(tr => DLR.revealed.add(tr.dataset.ref)); draw(input.value); });
+  pane.querySelectorAll('[data-dl="hideall"]').forEach(b => b.onclick = () => { DLR.revealed.clear(); draw(input.value); });
   const fields = OPT.searchFields;
   const draw = term => {
     const tq = term.trim().toLowerCase();
@@ -160,14 +223,32 @@ function dltRender(pane){
     const nxt = tr.nextElementSibling;
     if(nxt && nxt.classList.contains('detail')) return nxt.remove();
     const [ti, i] = tr.dataset.ref.split(':').map(Number);
-        tr.insertAdjacentHTML('afterend', `<tr class="detail"><td colspan="${dltCols().length}"><div class="detailin">${dltDetail(T[ti], i) || `<p class="dlt-note">${dltText(OPT.noDetail)}</p>`}</div></td></tr>`);
+    tr.insertAdjacentHTML('afterend', `<tr class="detail"><td colspan="${dltCols().length}"><div class="detailin">${dltDetail(T[ti], i) || `<p class="dlt-note">${dltText(OPT.noDetail)}</p>`}</div></td></tr>`);
   };
-  body.onclick = e => { const tr = e.target.closest('tr[data-ref]'); if(tr && !e.target.closest('button')) toggleRow(tr); };
-  body.onkeydown = e => { const tr = e.target.closest('tr[data-ref]'); if(tr && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); toggleRow(tr); } };
+  /* DEENT 248-253: Reveal / Hide again redraws that one drug and puts the focus back on its button */
+  const reveal = ref => {
+    if(DLR.revealed.has(ref)) DLR.revealed.delete(ref); else DLR.revealed.add(ref);
+    const tr = body.querySelector(`tr[data-ref="${ref}"]`); if(!tr) return;
+    body.querySelectorAll(`tr[data-for="${ref}"]`).forEach(x => x.remove());
+    const [ti, i] = ref.split(':').map(Number);
+    tr.insertAdjacentHTML('afterend', dltRowHtml(T, ti, T[ti].rows[i], i));
+    tr.remove();
+    const nb = body.querySelector(`[data-reveal="${ref}"]`); if(nb) nb.focus();
+  };
+  body.onclick = e => {
+    const rb = e.target.closest('[data-reveal]');
+    if(rb) return reveal(rb.dataset.reveal);
+    if(DLR.recall) return;            // in recall mode Reveal opens a row
+    const tr = e.target.closest('tr[data-ref]'); if(tr && !e.target.closest('button')) toggleRow(tr);
+  };
+  body.onkeydown = e => { if(DLR.recall) return; const tr = e.target.closest('tr[data-ref]'); if(tr && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); toggleRow(tr); } };
+  // DEENT 236: what is typed is kept for the visit, so a redraw (group, search) puts it back
+  body.oninput = e => { const t = e.target; if(t.dataset && t.dataset.typed) DLR.typed[t.dataset.typed] = t.value; };
   const input = pane.querySelector('[data-q]');
+  input.value = term;
   input.oninput = () => draw(input.value);
-  draw('');
+  draw(term);
 }
 
 X.tab({id: OPT.tab, label: OPT.label, before: OPT.before, render: pane => dltRender(pane)});
-X.api({split: dltSplit, parts: dltParts, groups: dltGroups, state: () => ({group: DLT.group, view: DLT.view})});
+X.api({split: dltSplit, parts: dltParts, groups: dltGroups, state: () => ({group: DLT.group, view: DLT.view, recall: DLR.recall, showCls: DLR.showCls, revealed: [...DLR.revealed]})});

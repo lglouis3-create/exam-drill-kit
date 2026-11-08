@@ -49,6 +49,9 @@ const labels = new Set();
   if(!Array.isArray(g.tables) || !g.tables.length){ errs.push(`group "${g.label}" names no tables (a list of table ids, or 'all')`); return; }
   g.tables.forEach(id => { if(!ids.has(String(id))) errs.push(`group "${g.label}" names the table "${id}", which DRUG_TABLES does not have`); });
 });
+if(!Array.isArray(OPT.recallShow) || OPT.recallShow.some(f => typeof f !== 'string')) errs.push('option recallShow must be a list of row fields');
+else OPT.recallShow.forEach(f => { if(!known(f)) errs.push(`option recallShow names the field "${f}", which no row has`); });
+if(OPT.recallClassField && !known(OPT.recallClassField)) errs.push(`option recallClassField names the field "${OPT.recallClassField}", which no row has`);
 if(OPT.defaultGroup && !labels.has(OPT.defaultGroup)) errs.push(`option defaultGroup is "${OPT.defaultGroup}", which is not the label of a group`);
 if(typeof OPT.tab !== 'string' || !/^[a-z][a-z0-9-]*$/.test(OPT.tab)) errs.push(`option tab "${OPT.tab}" must be lowercase letters, digits and hyphens`);
 if(errs.length) throw new Error(errs.slice(0, 6).join('; ') + (errs.length > 6 ? ` (and ${errs.length - 6} more)` : ''));
