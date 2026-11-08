@@ -94,7 +94,7 @@
   },
   "detailSeeAbove": {
    "default": "See above",
-   "about": "a regular expression without capturing groups, matched without case at the start of a qualified section's text (BDK: See above): such a section shows instead the texts of the same section and qualifier on every other row of every table that do not start so, in the data's order without repeats (BDK resolveSeeAbove); empty: off"
+   "about": "a regular expression without capturing groups, matched without case at the start of a qualified section's text (BDK: See above): such a section shows instead the texts of the same section and qualifier on every row of every table (the row's own included) that do not start so, in the data's order without repeats (BDK resolveSeeAbove); empty: off"
   },
   "noDetail": {
    "default": "No essential knowledge listed.",
@@ -115,6 +115,10 @@
   "placeholder": {
    "default": "Search generic, brand, category, indication…",
    "about": "the search box's placeholder"
+  },
+  "recallPlaceholder": {
+   "default": "Search generic, brand, category…",
+   "about": "the search box's placeholder in recall mode, where the search looks only in the recallShow fields and recallClassField (BDK: generic, brand, category)"
   },
   "rowNote": {
    "default": "Tap a row for essential knowledge.",

@@ -344,6 +344,7 @@ async function recallView(browser, file, width){
   check(off.pressed === 'false' && !off.hid && !off.rows && !off.note && !off.extra, 'recall mode is off by default (recallDefault false): no hidden cell, no writing box, no recall buttons' + tag, off);
   await page.click(`${pane} [data-dl="recall"]`);
   check(await page.$eval(`${pane} [data-recallnote]`, e => e.textContent) === 'Recall mode: each row shows the drug only. Write what you recall, then Reveal and compare. This is a self-check: what you type is not graded and not saved, and it is gone when the page reloads. The search looks only in the fields shown and in the class, so searching by class shows which drugs are in that class.', 'the Recall mode chip turns it on, with its note' + tag);
+  check(await page.$eval(`${pane} [data-q]`, e => e.placeholder) === 'Search generic, brand, category…', 'in recall mode the search box names only what it searches (recallPlaceholder)' + tag);
   check(JSON.stringify(await shownIds(page)) === JSON.stringify(['5', '9']), 'the group stays as chosen' + tag);
   // what each shown row holds: recallShow fields as written, every other cell empty but for "hidden", no hidden text anywhere in the DOM
   const look = () => page.evaluate(([p, cols, show]) => {

@@ -121,7 +121,7 @@ function dltOwnParts(t, i){
 /* BDK resolveSeeAbove (app.js lines 331-347): a qualified section whose text starts with
    the option detailSeeAbove (BDK: "See above"), such as "US Boxed Warnings (all opioid
    analgesics): See above" on pages 25-26, takes the texts of the same section and
-   qualifier on every other row of every table that do not start so, gathered in the
+   qualifier on every row of every table (the row's own included) that do not start so, gathered in the
    data's order without repeats (BDK's Set per qualifier). Worked out once, from
    DRUG_TABLES, in memory. */
 let DLT_SHARED = null;
@@ -222,7 +222,7 @@ function dltRender(pane, keepTerm){
         <button type="button" class="chip" data-dl="hideall">Hide all</button>` : ''}</div>`}
     ${DLR.recall ? `<p class="dlt-self" data-recallnote>Recall mode: each row shows the drug only. Write what you recall, then Reveal and compare. This is a self-check: what you type is not graded and not saved, and it is gone when the page reloads. The search looks only in the fields shown${OPT.recallClassField ? ' and in the class, so searching by class shows which drugs are in that class' : ''}.</p>` : ''}
     <div class="jump">${shown.map(t => `<a href="#${dltAnchor(t)}" class="pchip" style="--pc:${dltText(t.color || 'var(--surface)')}">${dltText(t.id)}</a>`).join('')}</div>
-    ${table ? `<input class="search" data-q type="search" placeholder="${dltText(OPT.placeholder)}" aria-label="Search">${OPT.rowNote && !DLR.recall ? `<p class="dlt-note">${dltText(OPT.rowNote)}</p>` : ''}`
+    ${table ? `<input class="search" data-q type="search" placeholder="${dltText(DLR.recall ? OPT.recallPlaceholder : OPT.placeholder)}" aria-label="Search">${OPT.rowNote && !DLR.recall ? `<p class="dlt-note">${dltText(OPT.rowNote)}</p>` : ''}`
       : '<p class="dlt-note">The pages as they appear in the PDF. Pinch to zoom, or tap a page to open it full size.</p>'}
     <div data-body></div>`;
   pane.querySelectorAll('[data-listgroup]').forEach(b => b.onclick = () => { DLT.group = +b.dataset.listgroup; dltRender(pane); });
