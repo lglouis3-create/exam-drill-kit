@@ -34,7 +34,8 @@ Reusable logic goes to the kit; one course's data stays in its repo.
      or compared, together with any registry this file says to read beside it; in other
      modes, the entries of the features the course's `course.js` switches on and of any
      feature the task names, and a search of `FEATURES.md` before any proposal names a
-     feature (§7.2).
+     feature (§7.2); in Mode 7, also the `FEATURES.md` entries added or changed since the
+     course's kit pin.
    - `core/README.md`: its section list (`grep -n '^## ' core/README.md`) and each section
      the task touches. Read "Storage", "Start-up and the saved progress", "Offline", "A
      newer version, and the place after a reload" and "Answer history and the Home Screen
@@ -43,8 +44,12 @@ Reusable logic goes to the kit; one course's data stays in its repo.
      scheduler" for any scheduling change. Mode 1, and moving a course onto the core,
      read the whole file.
    - Mode 7: the `CHANGELOG.md` entries since the course's kit pin, `git log --stat
-     <pin>..origin/main -- core/ features/ template/`, and the `core/README.md` sections
-     they concern.
+     <pin>..origin/main -- core/ features/ template/`, the `core/README.md` sections they
+     concern, and, whenever the update brings in any file of `core/`, the storage sections
+     listed above in full before deciding whether the update is routine.
+   - Mode 7, and moving a course onto the core, also read
+     `review/standing-autonomy-2026-11-08.md` in full (his words govern routine
+     publication and migrations).
    - Before repeating an investigation, review or check, read the newest handoff note on
      the pull request concerned and compare the inputs it lists (`review/handoff-format.md`):
      not only the head, also the base, comments, runs, sources, instructions and Louis's

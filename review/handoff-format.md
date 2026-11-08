@@ -60,8 +60,9 @@ Compare each of these with the note:
 7. Louis's decisions and approvals given since the note;
 8. dates that change priorities: an exam within 7 days in `coordinator/courses.json` or the
    course's `course.js` (the coordinator's `defaults.approachDays`), or a deadline Louis set.
-   Such a date changes the order of work; it is not an approval and not a reason to repeat
-   completed checks or reviews.
+   Such a date changes the order of work and what may be proposed or published
+   (`coordinator/RUN.md` "exam-approaching"; `skill/SKILL.md` Mode 7 step 2); it is not an
+   approval and not a reason to repeat completed checks or reviews.
 
 ## Reading one before starting work
 
@@ -99,8 +100,9 @@ and is not started. An additional independent review, focused on its reason, is 
 - Louis asks for one.
 
 Decision 10's requirement of an independent review before an automatic merge is unchanged. For a
-merge under decision 10, the independent reviews posted must together cover the whole diff of the
-final head against the current base; a review of a delta counts only with an earlier review of its
+merge or a routine course publication under decision 10, the independent reviews posted must
+together cover the whole diff of the final head (for a publication, the exact candidate against
+the live commit) against the current base; a review of a delta counts only with an earlier review of its
 parent head, and a base change since that review is reviewed as its own delta.
 
 ## Examples

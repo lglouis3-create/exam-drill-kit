@@ -253,8 +253,10 @@ change to the design, a policy or an approval rule.
   already-reviewed scope is not started. An additional independent review, focused on its
   reason, is started for an unresolved consequential defect, new evidence, coverage an earlier
   review did not reach, a high-risk change (progress storage, import or recovery, scheduling, a
-  live course), or Louis's request. For a merge under decision 10, the independent reviews
-  posted must together cover the whole diff of the final head against the current base; a
+  live course), or Louis's request. For a merge or a routine course publication under
+  decision 10, the independent reviews posted must together cover the whole diff of the
+  final head (for a publication, the exact candidate against the live commit) against the
+  current base; a
   review of a delta counts only with an earlier review of its parent head, and a base change
   since that review is reviewed as its own delta. Run agents in parallel only for items that
   share no branch, worktree or module. The coordinator's own checkpoints
