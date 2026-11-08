@@ -158,6 +158,9 @@ async function flow(page, label, opts){
   let s = await state(page);
   if(!check(s.running && s.n > 0, `${label}: the Start button draws a running paper (${s.n} questions)`, s)) return;
   const n = s.n;
+  // a select-all item first, when the paper has one: question 1 is answered twice below (Next and Back, then
+  // the loop), and a select-all answer is the one a second answer could take off (the failure fixed by #78)
+  const multiFirst = await page.evaluate(() => { const j = EX.qs.findIndex(isMulti); if(j > 0){ for(const a of [EX.qs, EX.picks, EX.orders]) if(Array.isArray(a)) [a[0], a[j]] = [a[j], a[0]]; EX.i = 0; renderExamQ(); saveExam(); } return j >= 0; });
   // Next and Back
   if(n > 1){
     await page.evaluate(ANS, true);
@@ -176,6 +179,8 @@ async function flow(page, label, opts){
     if(k !== blankAt) await page.evaluate(ANS, k < right);
   }
   await page.evaluate(() => { EX.i = 0; renderExamQ(); });
+  if(multiFirst) check(await page.evaluate(() => isMulti(EX.qs[0]) && Array.isArray(EX.picks[0]) && EX.picks[0].length > 0),
+    `${label}: question 1, a select-all item, keeps its answer after it is answered a second time`, await page.evaluate(() => EX.picks[0]));
   await toLast(page);
   s = await state(page);
   const before = s;
