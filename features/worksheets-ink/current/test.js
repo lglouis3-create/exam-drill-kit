@@ -38,7 +38,13 @@
  * says how much is kept and erases it keeping the answers; the size of a stroke and of
  * the progress is printed; Practice in the drill asks the sheet's problems in its order.
  * Practice in the drill with chained-problem-sets off (one pass in the sheet's order) and on (a sheet that is
- * one whole problem set starts that set), the second when the course carries that module.
+ * one whole problem set starts that set; Homework 2, a sheet of several sets, is one run of parts, the first part
+ * of each set showing that set's own vignette line, and its again button starts the sheet again), the second when
+ * the course carries that module. The From line under an answer (Basic-Pharmacokinetics fromLineHTML): after an
+ * answer in the quiz, under its citation, with Worksheet (which opens that worksheet) and Original (the Drive
+ * link); none for a question on no document; on an exam's result page, one under each question from a document.
+ * The work area of a matching question (option calcSkills, Basic-Pharmacokinetics' kindOf): m4-m-battery and
+ * inf-c7, verbatim, rendered as worksheet parts. A calcSkills entry naming no skill of the course stops the build.
  * Persistence, with much writing (61 pages, 1801 strokes): saved whole and back after a reload; Export
  * progress holds it and Import brings it back into a fresh profile; each profile keeps its own after a switch;
  * a stroke survives a reload at once and after 300 ms (the core's own 150 ms wait for an answer is reported);
@@ -91,6 +97,13 @@ const PK_OPT = {
   originalIds: '^' + PRE + '(hwo|hw7o-|nl-hwo-)', changedIds: '^' + PRE + '(hw\\d|hw7-|nl-hw-)',
   drillWorked: 'no worked answer|without a worked answer|does not record|stated no final value|did not state|ends before she states|not one she asks|computed here|chosen here|recording stops|does not work|applied to that example|her spoken values',
   spokenOnly: 'recording|aloud|spoken', writtenWorking: 'written working|her key|her sheet|worked on the|worked answers'};
+
+PK_OPT.calcSkills = PK.skills.filter(k => k.kind === 'calc').map(k => k.id);   // Basic-Pharmacokinetics' calculation skills (course.js `kind`)
+/* Two of Basic-Pharmacokinetics' matching questions, verbatim at ac2eb73 (src/q4_module4.js line 492 and
+   src/q3_module3.js): m4-m-battery, a clearance battery whose every answer is a quantity (a calculation by
+   kindOf, src/views.js lines 213-219), and inf-c7, a figure-reading item (skill read, a concept) whose answers
+   are percentages. No document of the course holds either; they are rendered as a worksheet part directly. */
+const PK_MATCH = [{"id":"m4-m-battery","type":"match","prof":"Mosley","tier":"new","exam":2,"module":4,"lecture":"L05","topic":"clearance","sub":"clcalc","concept":"clearance-battery","skill":"clearance","source":"both","stem":"Five hundred mg of a drug was administered by rapid IV injection. The VD is 15 L and the elimination half-life is 8 hours. Urine samples were collected for 48 hours and 300 mg of unchanged drug was recovered. Match each quantity to its value.","left":["fe","k","ke","ClT","ClR","ClH"],"right":["0.6","0.0866 hr⁻¹","0.052 hr⁻¹","1.3 L/hr","0.78 L/hr","0.52 L/hr"],"pairs":[{"l":"fe","r":"0.6","why":"The 300 mg recovered unchanged divided by the 500 mg dose gives six tenths, and the milligrams cancel so the answer carries no units. This is the only quantity in the battery that comes from the urine collection alone."},{"l":"k","r":"0.0866 hr⁻¹","why":"The overall elimination rate constant is 0.693 divided by the 8-hour half-life. It carries reciprocal hours, and it is the constant every other line except fe depends on."},{"l":"ke","r":"0.052 hr⁻¹","why":"The excretion rate constant is the fraction excreted unchanged multiplied by the overall constant, 0.6 times 0.0866 per hour. It must be smaller than k, since excretion is only one of the routes k contains."},{"l":"ClT","r":"1.3 L/hr","why":"Total body clearance is the overall rate constant multiplied by the 15 L volume of distribution. Reciprocal hours times litres gives litres per hour, which distinguishes the clearances from the rate constants at a glance."},{"l":"ClR","r":"0.78 L/hr","why":"Renal clearance is the fraction excreted unchanged multiplied by total clearance, 0.6 times 1.3 litres per hour. The same fraction that converted k to ke converts the total clearance to the renal clearance."},{"l":"ClH","r":"0.52 L/hr","why":"Hepatic clearance is the total minus the renal part, 1.3 minus 0.78 litres per hour, or equivalently 0.4 times 1.3. It is obtained by difference because metabolism cannot be sampled directly."}],"teach":[{"h":"The chain","list":["The urine collection gives fe (fraction excreted unchanged): fe = {{frac:Du^(∞)|D0}}.","The half-life gives k (overall elimination rate constant): k = {{frac:0.693|t½}}.","fe and k together give ke (excretion rate constant): ke = fe x k, because fe = {{frac:ke|k}}.","k and VD (volume of distribution) give ClT (total body clearance): ClT = k x VD.","fe splits ClT into a renal part, ClR = fe x ClT; the remainder is hepatic, ClH = ClT − ClR.","Rate constants are in reciprocal hours; clearances are in litres per hour."]}],"teachImg":"slide_4ClearanceandElimi_p12","cite":"4---Clearance-and-Elimination.pdf slide 22","quote":"Calculate k, ke, ClT, ClR and ClH."},{"id":"inf-c7","type":"match","prof":"Mosley","tier":"new","exam":1,"module":3,"lecture":"L04","topic":"infusion","sub":"pre","concept":"halflife-table","skill":"read","source":"both","stem":"A drug is infused at a constant rate with no loading dose. Match each elapsed number of half-lives to the percentage of the steady-state concentration reached.","left":["1 half-life","2 half-lives","3 half-lives","10 half-lives"],"right":["50%","75%","87.5%","99.9%"],"pairs":[{"l":"1 half-life","r":"50%","why":"Putting t equal to one half-life into one minus e to the minus kt makes the exponent equal to 0.693, the exponential equal to one half, and the bracket equal to 0.5. Half the gap to the plateau is closed in the first half-life. This is the same 50 per cent that a bolus loses in one half-life, read in the opposite direction."},{"l":"2 half-lives","r":"75%","why":"After the first half-life half the gap remains, and the second half-life closes half of what is left, leaving a quarter. Three quarters of the plateau has therefore been reached. The pattern is the bolus table run upward rather than downward."},{"l":"3 half-lives","r":"87.5%","why":"Each half-life halves the remaining shortfall, so after three the shortfall is one eighth and 87.5 per cent of steady state has been achieved. This is the lower end of the three to five half-life rule for practical steady state."},{"l":"10 half-lives","r":"99.9%","why":"Ten halvings leave about one thousandth of the gap, so the concentration is 99.9 per cent of the plateau. It is the same 10 half-lives that give 99.9 per cent elimination after a bolus, which is why the two tables are mirror images."}],"teach":[{"h":"The idea","list":["The approach to steady state and the decay after a bolus follow the same exponential.","In both, each half-life halves what is left: half the dose still to be eliminated, or half the gap to the plateau still to be closed.","The fraction reached, 1 − e^(−kt), contains only k (the elimination rate constant) and t, so the percentages are the same for every drug once time is counted in half-lives."]},{"h":"Where to read more","t":"3IntravenousInfusions.pdf, slide \"Drug Concentration Prior to Reaching Steady-State\"."}],"teachImg":"slide_3IntravenousInfusi_p9","cite":"3IntravenousInfusions.pdf, slide \"Drug Concentration Prior to Reaching Steady-State\"; 09-02 lecture","quote":"one half-life. Gets us maybe 50% of the steady-state concentration","note":"Four half-lives gives 93.75 per cent, since 1 − {{frac:1|16}} = 0.9375.","audit":"The captions record the four-half-life figure as \"93.25\" in the 09-02 lecture and \"93\" in the 09-09 review; one minus one sixteenth is 93.75 per cent. The four-half-life row is left out for that reason."}];
 
 /* The scratch course's data: the four documents, their questions (pushed onto the
    bank), problem sets and topics; `own` says what the course already declares. */
@@ -147,7 +160,8 @@ const countOf = (h, re) => (h.match(re) || []).length;
     ['a document of an unknown type', {mutate: s => { s[1].type = 'poster'; }}, /has type "poster"/],
     ['a problem set CHAINS does not have', {mutate: s => { s[0].chains = ['wsi-noset']; }}, /names problem set wsi-noset, which CHAINS does not have/],
     ['a question on two documents', {mutate: s => { s[1].items.push({q: s[0].items[0].q, label: '9'}); }}, /question wsi-\S+ is on both "wsi-[^"]+" and "wsi-[^"]+"/],
-    ['an option holding a lookbehind', {opt: {originalIds: LB + 'hwo'}}, /option originalIds holds a lookbehind/]];
+    ['an option holding a lookbehind', {opt: {originalIds: LB + 'hwo'}}, /option originalIds holds a lookbehind/],
+    ['a calcSkills entry naming a skill the course does not have', {opt: {calcSkills: ['clearance', 'nosuchskill']}}, /option calcSkills names the skill "nosuchskill"/]];
   for(const [label, o, want] of refusals){
     const r = L.scratchBuild('ws-refuse', {files: fixtureFiles(own, o.mutate), courseLine: courseLine(o.opt)});
     check(r.code !== 0 && want.test(r.out), `${label} stops the build and says so`, r.out.split('\n').slice(-2).join(' '));
@@ -247,6 +261,53 @@ const countOf = (h, re) => (h.match(re) || []).length;
       const pr = await page.evaluate(() => ({view: VIEW, sweep: Q.sweep.slice(), cur: Q.current && Q.current.id}));
       const want = EXPECT['dp-m1-3'].main.flat().map(pre);
       check(pr.view === 'quiz' && JSON.stringify(pr.sweep) === JSON.stringify(want) && pr.cur === want[0], 'Practice in the drill asks the sheet\'s problems in the sheet\'s order', pr);
+
+      // the From line under an answer (Basic-Pharmacokinetics src/views.js fromLineHTML, line 5342): the
+      // document, the question's number on it, Worksheet and Original; Worksheet opens that worksheet
+      await page.click('#v-quiz button[data-o]');
+      await page.waitForTimeout(200);
+      const fl = await page.evaluate(() => { const f = document.querySelectorAll('#v-quiz .fromline'), c = document.querySelectorAll('#v-quiz .why .cite');
+        return {n: f.length, text: f[0] ? f[0].textContent.replace(/\s+/g, ' ').trim() : '', afterCite: !!(f[0] && c.length && c[c.length - 1].nextElementSibling === f[0]),
+                ws: f[0] ? [...f[0].querySelectorAll('[data-ink]')].map(b => b.dataset.ink + ':' + b.dataset.var) : [],
+                orig: f[0] ? [...f[0].querySelectorAll('a')].map(a => a.href) : [], revealed: Q.revealed}; });
+      const doc = PK.sources.find(d => d.id === 'dp-m1-3');
+      check(fl.revealed && fl.n === 1 && fl.afterCite && fl.text === `From: ${doc.title}, 1a · Worksheet · Original` && JSON.stringify(fl.ws) === JSON.stringify([pre('dp-m1-3') + ':main'])
+            && fl.orig.length === 1 && fl.orig[0] === `https://drive.google.com/file/d/${doc.drive.id}/view`,
+            'after an answer, the line under its citation says which document and number it came from, with Worksheet and Original', fl);
+      // each step below runs only when the one before it found what it needs, so every check reports on its own
+      if(await page.locator('#v-quiz .fromline [data-ink]').count()) await page.click('#v-quiz .fromline [data-ink]');
+      await page.waitForTimeout(300);
+      const flOpen = await page.evaluate(() => { const i = document.getElementById('ink'); return {open: !!(i && !i.hidden), src: i && i.querySelector('.wsdoc') ? i.querySelector('.wsdoc').dataset.src : null}; });
+      check(flOpen.open && flOpen.src === pre('dp-m1-3'), 'Worksheet on that line opens the worksheet to write on', flOpen);
+      await page.evaluate(() => { if(document.getElementById('ink')) FX.api('worksheets-ink').inkClose(); });
+      const flNone = await page.evaluate(id => { const A = FX.api('worksheets-ink'); if(typeof A.fromLineHTML !== 'function') return {off: 'no fromLineHTML in the module'}; return {off: A.fromLineHTML(byId(id)), on: A.fromLineHTML(byId(A.SRC_BY[Object.keys(A.SRC_BY)[0]].items[0].q)) !== ''}; }, pre('m1-ord-n16'));
+      check(flNone.off === '' && flNone.on, 'a question on no document has no From line', flNone);
+
+      // a matching question of a calculation skill whose answers are all quantities gets the tall work area
+      // (Basic-Pharmacokinetics src/views.js isCalcPart, line 5253, and its work area, line 5279)
+      const g5 = await page.evaluate(Qs => { const A = FX.api('worksheets-ink'); if(typeof A.sheetPartHTML !== 'function') return {battery: 'no sheetPartHTML in the module'};
+        const work = q => { const d = document.createElement('div'); d.innerHTML = A.sheetPartHTML(q, '1', q.stem, false, ''); const w = d.querySelector('.wswork'); return w ? w.className : null; };
+        const [bat, inf] = Qs;
+        return {battery: work(bat), infusion: work(inf), batteryAsRecall: work(Object.assign({}, bat, {skill: 'recall'}))}; }, PK_MATCH);
+      check(g5.battery === 'wswork' && g5.infusion === 'wswork short' && g5.batteryAsRecall === 'wswork short',
+            'on a worksheet, m4-m-battery (clearance, every answer a quantity) gets the tall work area; inf-c7 (a figure-reading skill) and the battery under a concept skill get the short one', g5);
+
+      // the From line on an exam's result page (source line 3457), under each question's citation; the paper's
+      // first question is replaced by one of Quiz 1's, as the Scratch paper check below replaces one
+      const exs = await page.evaluate(id => { show('exam'); const b = document.getElementById('startExam'); if(b) b.click();
+        if(!EX || !EX.qs) return {started: false};
+        const q = byId(id); EX.qs[0] = q; EX.orders[0] = (q.options || []).map((o, i) => i); EX.picks[0] = null;
+        finishExam(true); return {started: true}; }, pre('cq1-2'));
+      await page.waitForTimeout(200);   // the module's lines come from its rendered hook, after the result page is drawn
+      const exr = !exs.started ? exs : await page.evaluate(() => {
+        const cards = [...document.querySelectorAll('#v-exam .qcard')].filter(c => c.querySelector('.cite'));
+        const want = EX.qs.map(x => SOURCES.some(d => d.items.some(it => it.q === x.id)) ? 1 : 0);   // on a document, by the course's own SOURCES
+        return {started: true, done: EX.done, cards: cards.length, qs: EX.qs.length,
+                lines: cards.map(c => c.querySelectorAll('.fromline').length), want,
+                first: cards[0] && cards[0].querySelector('.fromline') ? cards[0].querySelector('.fromline').textContent.replace(/\s+/g, ' ').trim() : ''}; });
+      const quiz1 = PK.sources.find(d => d.id === 'quiz-1');
+      check(exr.started && exr.done && exr.cards === exr.qs && JSON.stringify(exr.lines) === JSON.stringify(exr.want) && exr.first === `From: ${quiz1.title}, Question 2 · Worksheet`,
+            `on the exam's result page each question from a document has its From line, and the others none (${exr.want.filter(Boolean).length} of ${exr.qs})`, exr);
       await ctx.close();
     }
 
@@ -579,8 +640,32 @@ const countOf = (h, re) => (h.match(re) || []).length;
           check(!one.on && one.view === 'quiz' && !one.chain && JSON.stringify(one.sweep) === JSON.stringify(want1) && one.cur === want1[0],
                 `with chained-problem-sets off, the same sheet is asked as one pass in the sheet's order ${JSON.stringify(one)}`);
         }
-        check(two.view === 'quiz' && !two.chain && JSON.stringify(two.sweep) === JSON.stringify(want2),
-              `a sheet of two problem sets is asked as one pass in the sheet's order (chained-problem-sets ${how}) ${JSON.stringify([two.chain, two.sweep.length])}`);
+        if(how === 'on'){
+          // several problem sets on one sheet: one run of parts, each part with its own set's vignette line
+          // (Basic-Pharmacokinetics src/views.js startSheetSet, lines 5359-5361, shown at line 1804)
+          const sets = await o.page.evaluate(([P, ids]) => { const A = FX.api('worksheets-ink'), g = A.sheetPlan(A.SRC_BY[P + 'hw-2']).main;
+            return g.map(x => ({first: ids.indexOf(x.ids[0]), setup: x.chain ? x.chain.setup || '' : ''})); }, ['wsi-', want2]);
+          const at = async k => { await o.page.evaluate(k => { Q.i = k; Q.current = null; Q.revealed = false; Q.picked = null; nextQuestion(); show('quiz'); }, k); await o.page.waitForTimeout(200);
+            return o.page.evaluate(() => ({cur: Q.current && Q.current.id, prog: (document.querySelector('#v-quiz .qprog span') || {}).textContent || '',
+              cset: (document.querySelector('#v-quiz .cset') || {}).innerHTML || ''})); };
+          const lines = [];
+          for(const g of sets) lines.push(Object.assign({want: g.setup}, await at(g.first)));
+          const distinct = new Set(sets.map(g => g.setup)).size;
+          check(two.view === 'quiz' && two.chain === 'src:' + pre('hw-2') + ':main' && JSON.stringify(two.sweep) === JSON.stringify(want2) && two.prog === `part 1 of ${want2.length}`
+                && sets.length > 1 && distinct === sets.length && lines.every((l, i) => l.cur === want2[sets[i].first] && l.want && l.cset === l.want),
+                `a sheet of ${sets.length} problem sets is one run of ${want2.length} parts in the sheet's order, the first part of each set showing that set's own vignette line`, {two: [two.chain, two.prog], lines: lines.map(l => [l.cur, l.prog, l.cset === l.want])});
+          await o.page.evaluate(n => { Q.i = n; Q.current = null; nextQuestion(); show('quiz'); }, want2.length);
+          await o.page.waitForTimeout(200);
+          const end = await o.page.evaluate(() => ({text: (document.querySelector('#v-quiz .empty b') || {}).textContent || '', again: (document.getElementById('goAgain') || {}).textContent || ''}));
+          await o.page.click('#goAgain');
+          await o.page.waitForTimeout(300);
+          const again = await o.page.evaluate(() => ({chain: Q && Q.chain ? Q.chain.id : null, i: Q && Q.i, cur: Q && Q.current ? Q.current.id : null}));
+          check(end.text === `That is every part of ${PK.sources.find(d => d.id === 'hw-2').title} — all ${want2.length}.` && again.chain === two.chain && again.cur === want2[0] && again.i === 1,
+                'at the end of that run, the again button starts the same worksheet from its first part', {end, again});
+        } else {
+          check(two.view === 'quiz' && !two.chain && JSON.stringify(two.sweep) === JSON.stringify(want2),
+                `with chained-problem-sets off, a sheet of two problem sets is asked as one pass in the sheet's order ${JSON.stringify([two.chain, two.sweep.length])}`);
+        }
         check(!o.errors.length, `no page or console errors (chained-problem-sets ${how})`, o.errors.slice(0, 3).join('; '));
         await o.ctx.close(); b.rm();
       }

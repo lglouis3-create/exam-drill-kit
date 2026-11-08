@@ -1,6 +1,6 @@
 /* worksheets-ink: Basic-Pharmacokinetics src/shell.html lines 787-808, 813-856 and 902-934 at ac2eb73
-   (the Worksheets tab, the worksheet markup, the writing layer). Not ported: .fromline and the printed-sheet
-   page (body.wsprint), which belong to the PDF files the course built with gen/sheets.py. Changed here: the
+   (the Worksheets tab, the worksheet markup, the writing layer) and line 810 (.fromline). Not ported: the
+   printed-sheet page (body.wsprint), which belongs to the PDF files the course built with gen/sheets.py. Changed here: the
    class .wsby.her is .wsby.prof, and the user-select rule that inkOpen wrote into the page is below .inkreg. */
 .srcnote{font-size:13.5px;color:var(--text-dim);border-left:3px solid var(--line);padding:4px 10px;margin:0 0 14px}
 .srcmod{margin:0 0 10px;scroll-margin-top:110px}
@@ -108,3 +108,5 @@ body.inking{overflow:hidden}
   body.inking .inkimg{display:block;position:absolute;left:0;top:0;width:100%;height:100%;z-index:2}
   body.inking .inkpaper .wswork{background-image:none}
 }
+.fromline{margin:8px 0 0;font-size:13px;color:var(--text-dim);overflow-wrap:anywhere}
+.fromline button{font:inherit;color:var(--accent);background:none;border:0;padding:0;text-decoration:underline;cursor:pointer}

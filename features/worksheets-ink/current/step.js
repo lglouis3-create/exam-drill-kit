@@ -41,5 +41,10 @@ for(const k of ['originalIds', 'changedIds', 'drillWorked', 'spokenOnly', 'writt
   if(/\(\?<[=!]/.test(v)) errs.push(`option ${k} holds a lookbehind, which older Safari cannot read`);
   try { new RegExp(v, 'i'); } catch(e){ errs.push(`option ${k} is not a regular expression: ${e.message}`); }
 }
+if(OPT.calcSkills != null){
+  const ids = new Set(((typeof COURSE !== 'undefined' && COURSE && COURSE.skills) || []).map(k => k && k.id));
+  if(!Array.isArray(OPT.calcSkills) || OPT.calcSkills.some(k => typeof k !== 'string')) errs.push('option calcSkills must be a list of skill ids');
+  else OPT.calcSkills.filter(k => !ids.has(k)).forEach(k => errs.push(`option calcSkills names the skill ${JSON.stringify(k)}, which COURSE.skills does not have`));
+}
 if(errs.length) throw new Error(errs.slice(0, 6).join('; ') + (errs.length > 6 ? ` (and ${errs.length - 6} more)` : ''));
 STEP = {of, documents: list.length, questions: Object.keys(of).length};

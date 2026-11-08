@@ -170,7 +170,15 @@ function wsOrder(q){
   return idx;
 }
 const qKind = q => q.type === 'numeric' ? 'numeric' : q.type === 'match' ? 'match' : 'choice';
-const isCalcPart = q => q.type === 'numeric' || (q.type !== 'match' && Array.isArray(q.steps) && q.steps.length > 0);
+/* A matching question is a calculation when its skill is one of the course's
+   calculation skills (option calcSkills) and every pair's answer is a quantity
+   (Basic-Pharmacokinetics src/views.js kindOf and QUANTITY, lines 210-219 at
+   ac2eb73); on a worksheet it gets the tall work area. */
+const CALC_SKILLS = new Set(Array.isArray(OPT.calcSkills) ? OPT.calcSkills : []);
+const QUANTITY = /^[<>\u2248~]?\s*-?[\d.]/;
+const quantityMatch = q => q.type === 'match' && CALC_SKILLS.has(q.skill) && Array.isArray(q.pairs) && q.pairs.length > 0
+  && q.pairs.every(p => QUANTITY.test(String(p.r).trim()));
+const isCalcPart = q => q.type === 'numeric' || quantityMatch(q) || (q.type !== 'match' && Array.isArray(q.steps) && q.steps.length > 0);
 /* The professor's key, or worked by the drill: the professor's key only where
    the document is the professor's own solved sheet and nothing recorded on the
    question (audit, note) matches the course's OPT.drillWorked; where the audit
@@ -276,6 +284,42 @@ function sheetHTML(sourceId, mode){
   return h + `</article>`;
 }
 
+/* ---- where a question came from, under its answer ------------------------ */
+/* Which worksheet a question is on (source line 5209, SHEET_OF), and the line
+   under its answer in the quiz and on an exam's result page (source line 5342,
+   fromLineHTML): the document, the question's number on it, Worksheet (here it
+   opens the worksheet to write on; the source links its PDF file) and Original. */
+const SHEET_RUN = 'src:';
+let SHEET_OF_MEMO = null;
+function sheetOf(id){
+  if(!SHEET_OF_MEMO){
+    SHEET_OF_MEMO = {};
+    SRC_LIST.forEach(s => { const p = sheetPlan(s);
+      ['main', 'changed'].forEach(v => p[v].forEach(g => g.ids.forEach(i => { if(!SHEET_OF_MEMO[i]) SHEET_OF_MEMO[i] = {s, variant: v}; }))); });
+  }
+  return SHEET_OF_MEMO[id] || null;
+}
+function fromLineHTML(q){
+  const so = q && SRC_OF[q.id], s = so && SRC_BY[so.src];
+  if(!s) return '';
+  const on = sheetOf(q.id), plan = sheetPlan(s), links = [];
+  if(on || plan.main.length) links.push(`<button type="button" class="linkish" data-ink="${esc(s.id)}" data-var="${on ? on.variant : 'main'}">Worksheet</button>`);
+  if(s.drive && s.drive.id) links.push(`<a href="${esc(driveView(s.drive.id))}" target="_blank" rel="noopener">Original</a>`);
+  return `<p class="fromline">From: ${esc(s.title)}, ${esc(so.label)}${links.length ? ' · ' + links.join(' · ') : ''}</p>`;
+}
+function fromLines(pane, view){
+  if(view === 'quiz'){
+    if(typeof Q === 'undefined' || !Q || !Q.current || !Q.revealed || pane.querySelector('.fromline')) return;
+    const cites = pane.querySelectorAll('.why .cite'), at = cites[cites.length - 1];
+    if(at) at.insertAdjacentHTML('afterend', fromLineHTML(Q.current));
+  }else if(view === 'exam'){
+    if(typeof EX === 'undefined' || !EX || !EX.done || !Array.isArray(EX.qs) || pane.querySelector('.fromline')) return;
+    const cards = [...pane.querySelectorAll('.qcard')].filter(c => c.querySelector('.cite'));
+    if(cards.length !== EX.qs.length) return;   // the result page's cards, one per question, in the paper's order
+    cards.forEach((c, i) => { const cs = c.querySelectorAll('.cite'); cs[cs.length - 1].insertAdjacentHTML('afterend', fromLineHTML(EX.qs[i])); });
+  }
+}
+
 /* ---- the tab --------------------------------------------------------------- */
 /* The document's problems, in the sheet's order, as one pass in the drill. A
    single whole problem set starts as that set (chained-problem-sets, when on). */
@@ -285,8 +329,16 @@ function startSheetSet(id, variant){
   if(!ids.length){ alert('That worksheet has no questions in the drill yet.'); return; }
   const C = FX.api('chained-problem-sets');
   if(C && groups.length === 1 && groups[0].chain && groups[0].ids.length === groups[0].chain.parts.length && C.startChain(groups[0].chain.id)) return;
-  Q = {pool: ids.map(byId), label: s.title + (variant === 'changed' ? ', changed numbers' : ''), sweep: ids.slice(), i: 0,
+  const label = s.title + (variant === 'changed' ? ', changed numbers' : '');
+  Q = {pool: ids.map(byId), label, sweep: ids.slice(), i: 0,
        current: null, answered: 0, lastId: null, examMode: false, picked: null, revealed: false};
+  /* with chained-problem-sets on, the run is one set of parts, each part with
+     its own problem set's vignette line (source lines 5359-5361, shown at 1804) */
+  if(C){
+    const setupOf = {};
+    groups.forEach(g => g.ids.forEach(i => { setupOf[i] = g.chain ? g.chain.setup || '' : ''; }));
+    Q.chain = {id: SHEET_RUN + id + ':' + variant, name: label, setup: '', setupOf, parts: ids.slice()};
+  }
   nextQuestion();
   show('quiz');
 }
@@ -731,6 +783,7 @@ function scratchButton(pane, input, q, variant){
   const box = input.closest('.numin') || input.parentElement;
   box.insertAdjacentHTML('beforeend', `<button type="button" class="chip inkscratch" data-ink="q:${esc(q.id)}" data-var="${esc(variant)}">✍️ Scratch paper</button>`);
 }
+X.rendered((pane, view) => fromLines(pane, view));
 X.rendered((pane, view) => {
   if(view === 'quiz' && typeof Q !== 'undefined' && Q && Q.current && Q.current.type === 'numeric' && !Q.revealed)
     scratchButton(pane, pane.querySelector('#numIn'), Q.current, 'scratch');
@@ -764,7 +817,14 @@ X.progress(db => {
 });
 X.start(() => {
   document.addEventListener('click', e => { if(e.target.closest && e.target.closest('[data-inkdone]')) return inkClose(); FX.run(X.name, 'click', () => onClick(e)); });
+  // the end of a worksheet run: "again" starts the same worksheet again (chained-problem-sets would look for a problem set of that id)
+  document.addEventListener('click', e => FX.run(X.name, 'again', () => {
+    const b = e.target.closest && e.target.closest('#goAgain');
+    if(!b || typeof Q === 'undefined' || !Q || !Q.chain || String(Q.chain.id).indexOf(SHEET_RUN) !== 0) return;
+    const m = /^src:(.*):(main|changed)$/.exec(Q.chain.id); if(!m) return;
+    e.stopImmediatePropagation(); e.preventDefault(); startSheetSet(m[1], m[2]);
+  }), true);
   document.addEventListener('keydown', e => FX.run(X.name, 'keydown', () => onKey(e)));
 });
 X.api({sheetPlan, sheetHTML, solvedBy, setNumbers, sharedLead, dropCarry, dropMarker, wsOrder, inkRecognize, inkOpen, inkClose,
-       inkCount, inkBytes, inkKey, renderSheets, startSheetSet, state: () => INK, SRC_BY, SRC_OF});
+       inkCount, inkBytes, inkKey, renderSheets, startSheetSet, sheetPartHTML, isCalcPart, fromLineHTML, sheetOf, state: () => INK, SRC_BY, SRC_OF});
