@@ -2,6 +2,9 @@
 
 Dated kit changes, newest first.
 
+## 2026-11-08 (exam opening page and feature modules)
+- The exam's opening page draws 20 sample papers to describe its select-all items (#59). A feature module's `X.paper` hook no longer runs on those sample draws, only on a paper that starts (`EXAM_SAMPLING` in `views.js`, read by `features.js`). Before, a hook ran 20 times on opening the Exam tab; a hook that saves (paper-picker, not merged) wrote the progress for papers nobody started. A hook only reorders a paper, so the select-all count is unchanged. `features_test.js` checks it (20 hook calls before, 0 after; a real draw still runs the hook once).
+
 ## 2026-11-08 (checks)
 - `optional_test.js` decides from `exams[].questions` alone whether the course sets a question count. With `marks: null` and a count set, `nullexam.js` draws full papers, and the test had expected empty ones (DEENT: questions 50, marks null; 1 of 47 checks failed while its 20 papers held 1,000 items, none optional). Test only.
 - `optional_test.js`: the Optional-badge check takes an optional question that has option buttons; on a course whose optional questions are calculations (plan-the-problem, quiz-prep-cards) it skips with that reason instead of stopping with a TypeError. A card that draws no option button fails a named check. Test only.
