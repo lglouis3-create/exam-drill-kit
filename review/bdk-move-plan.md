@@ -91,7 +91,10 @@ K and F numbers are the assessment's.
 | 26-31 | F13-F18: themes, today's plan with predicted recall, Progress dashboard, drug List tab, page colours, keyboard shortcuts | feature | |
 | 32 | `COURSES.md` and `FEATURES.md` updates | bookkeeping | |
 
-K1 (the core reads `course.js` `features`) merged in pull request #6. The port queue's
+K1 (the core reads `course.js` `features`) merged in pull request #6.
+F1-F18 are now planned as kit modules for any course, in four parts with their own approvals
+(`review/bdk-study-features-plan.md`, Louis 2026-11-08); the move switches the built modules
+on for BDK instead of porting them a second time. The port queue's
 BDK items 11-17 are covered by F1-F18 and are marked `BDK move` there, so the nightly
 porter does not port them a second time.
 

@@ -42,19 +42,21 @@ Sources: BDK = lglouis3-create/BDK `assets/app.js` at c2f87ae; Intro to Pharmaco
 lglouis3-create/Intro-Pharmacology- `exam1-drill/src/app.js` at d0d3d2d (line ranges from the
 read-only assessments of 2026-11-01; the port re-reads them).
 
-Items 11-17 have status `BDK move`: Louis decided on 2026-11-01 that BDK moves onto the
-core now, and `review/bdk-move-plan.md` ports these features as part of that move, so the
-nightly porter takes only items whose status is `pending`.
+Items 11-17 were `BDK move` (Louis, 2026-11-01). Since 2026-11-08 they are planned as kit
+modules for any course (`review/bdk-study-features-plan.md`): each is built once and BDK's
+move then switches it on. Their status is `planned (part N)`; the nightly porter takes only
+`pending`, and an item becomes `pending` only when Louis says yes to its part. `field-colours`
+(BDK F8) is in part 1 with the drug list; it has no row of its own here.
 
 | Order | Item | Source | Not before | Status |
 |---|---|---|---|---|
-| 11 | learn-mode (successive relearning in rounds) | BDK `startLearn` ~1755 | — | BDK move |
-| 12 | compare-tab (drugs side by side, differences marked) | BDK ~2244 | — | BDK move |
-| 13 | cram-mode (time-boxed pass before a quiz, Last look) | BDK ~2018 | — | BDK move |
-| 14 | drug-list-tab (table per page, search across pages) | BDK ~2496 | — | BDK move |
-| 15 | match-game (timed pairs) | BDK ~2160 | — | BDK move |
-| 16 | flashcards (flip, Know it / Still learning) | BDK ~1647 | — | BDK move |
-| 17 | progress-dashboard (today's plan, readiness by page, trouble cards) | BDK `viewProgress` ~2320, `todaysPlan` ~1345 | — | BDK move |
+| 11 | learn-mode (successive relearning in rounds) | BDK `startLearn` ~1755 | — | planned (part 2) |
+| 12 | compare-tab (drugs side by side, differences marked) | BDK ~2244 | — | planned (part 1) |
+| 13 | cram-mode (time-boxed pass before a quiz, Last look) | BDK ~2018 | — | planned (part 2) |
+| 14 | drug-list-tab (table per page, search across pages) | BDK ~2496 | — | planned (part 1) |
+| 15 | match-game (timed pairs) | BDK ~2160 | — | planned (part 2) |
+| 16 | flashcards (flip, Know it / Still learning) | BDK ~1647 | — | planned (part 2) |
+| 17 | progress-dashboard (today's plan, readiness by page, trouble cards) | BDK `viewProgress` ~2320, `todaysPlan` ~1345 | — | planned (part 3, approval) |
 | 18 | glossary-tap (tap a term for its definition; upgrade of the Terms work in item 3) | BDK; Intro to Pharmacology `app.js` 1769-1922 | 2026-11-02 11:00 CT | pending |
 | 19 | pair-up and table-recall drills (drug ↔ receptor, poisoning table) | Intro to Pharmacology `app.js` 1923-2060 | 2026-11-02 11:00 CT | pending |
 | 20 | short-answer page and graphs drill | Intro to Pharmacology `app.js` 2308-2351, 3518-3580 | 2026-11-02 11:00 CT | pending |
