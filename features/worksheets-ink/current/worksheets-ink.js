@@ -176,7 +176,10 @@ const qKind = q => q.type === 'numeric' ? 'numeric' : q.type === 'match' ? 'matc
    ac2eb73); on a worksheet it gets the tall work area. */
 const CALC_SKILLS = new Set(Array.isArray(OPT.calcSkills) ? OPT.calcSkills : []);
 const QUANTITY = /^[<>\u2248~]?\s*-?[\d.]/;
-const quantityMatch = q => q.type === 'match' && CALC_SKILLS.has(q.skill) && Array.isArray(q.pairs) && q.pairs.length > 0
+// the source's skillOf (src/views.js 193-194): a question's own skill when the course has it, else the course's first
+const SKILL_IDS = new Set(((typeof COURSE !== 'undefined' && COURSE.skills) || []).map(k => k.id));
+const skillOfSrc = q => SKILL_IDS.has(q.skill) ? q.skill : (((COURSE.skills || [])[0]) || {}).id;
+const quantityMatch = q => q.type === 'match' && CALC_SKILLS.has(skillOfSrc(q)) && Array.isArray(q.pairs) && q.pairs.length > 0
   && q.pairs.every(p => QUANTITY.test(String(p.r).trim()));
 const isCalcPart = q => q.type === 'numeric' || quantityMatch(q) || (q.type !== 'match' && Array.isArray(q.steps) && q.steps.length > 0);
 /* The professor's key, or worked by the drill: the professor's key only where
@@ -332,12 +335,15 @@ function startSheetSet(id, variant){
   const label = s.title + (variant === 'changed' ? ', changed numbers' : '');
   Q = {pool: ids.map(byId), label, sweep: ids.slice(), i: 0,
        current: null, answered: 0, lastId: null, examMode: false, picked: null, revealed: false};
-  /* with chained-problem-sets on, the run is one set of parts, each part with
-     its own problem set's vignette line (source lines 5359-5361, shown at 1804) */
+  /* with chained-problem-sets on, any sheet that is not one whole problem set
+     (several sets, or problems in no set) runs as one set of parts: "part i of
+     n", each part with its own problem set's vignette line where it has one, and
+     at the end "That is every part of <sheet>" with Work the set again (source
+     lines 5359-5363, shown at 1804) */
   if(C){
     const setupOf = {};
     groups.forEach(g => g.ids.forEach(i => { setupOf[i] = g.chain ? g.chain.setup || '' : ''; }));
-    Q.chain = {id: SHEET_RUN + id + ':' + variant, name: label, setup: '', setupOf, parts: ids.slice()};
+    Q.chain = {id: SHEET_RUN + id + ':' + variant, name: label, setup: '', setupOf, parts: ids.slice(), sheet: {id, variant}};
   }
   nextQuestion();
   show('quiz');
@@ -820,9 +826,9 @@ X.start(() => {
   // the end of a worksheet run: "again" starts the same worksheet again (chained-problem-sets would look for a problem set of that id)
   document.addEventListener('click', e => FX.run(X.name, 'again', () => {
     const b = e.target.closest && e.target.closest('#goAgain');
-    if(!b || typeof Q === 'undefined' || !Q || !Q.chain || String(Q.chain.id).indexOf(SHEET_RUN) !== 0) return;
-    const m = /^src:(.*):(main|changed)$/.exec(Q.chain.id); if(!m) return;
-    e.stopImmediatePropagation(); e.preventDefault(); startSheetSet(m[1], m[2]);
+    // a run this module started carries .sheet; a problem set of CHAINS never does
+    if(!b || typeof Q === 'undefined' || !Q || !Q.chain || !Q.chain.sheet) return;
+    e.stopImmediatePropagation(); e.preventDefault(); startSheetSet(Q.chain.sheet.id, Q.chain.sheet.variant);
   }), true);
   document.addEventListener('keydown', e => FX.run(X.name, 'keydown', () => onKey(e)));
 });

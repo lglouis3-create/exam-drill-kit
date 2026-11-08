@@ -288,9 +288,15 @@ const countOf = (h, re) => (h.match(re) || []).length;
       const g5 = await page.evaluate(Qs => { const A = FX.api('worksheets-ink'); if(typeof A.sheetPartHTML !== 'function') return {battery: 'no sheetPartHTML in the module'};
         const work = q => { const d = document.createElement('div'); d.innerHTML = A.sheetPartHTML(q, '1', q.stem, false, ''); const w = d.querySelector('.wswork'); return w ? w.className : null; };
         const [bat, inf] = Qs;
-        return {battery: work(bat), infusion: work(inf), batteryAsRecall: work(Object.assign({}, bat, {skill: 'recall'}))}; }, PK_MATCH);
-      check(g5.battery === 'wswork' && g5.infusion === 'wswork short' && g5.batteryAsRecall === 'wswork short',
-            'on a worksheet, m4-m-battery (clearance, every answer a quantity) gets the tall work area; inf-c7 (a figure-reading skill) and the battery under a concept skill get the short one', g5);
+        // test variants of the battery: one answer a word, not a quantity (its first pair's answer, 0.6, is the
+        // extraction ratio); and no skill, which the source reads as the course's first skill
+        const word = Object.assign({}, bat, {pairs: bat.pairs.map((p, i) => i ? p : Object.assign({}, p, {r: 'the extraction ratio'}))});
+        const first = COURSE.skills[0].id, firstCalc = !!(COURSE.features['worksheets-ink'].calcSkills || []).includes(first);
+        return {battery: work(bat), infusion: work(inf), batteryAsRecall: work(Object.assign({}, bat, {skill: 'recall'})), oneWord: work(word),
+                noSkill: work(Object.assign({}, bat, {skill: undefined})), first, firstCalc}; }, PK_MATCH);
+      check(g5.battery === 'wswork' && g5.infusion === 'wswork short' && g5.batteryAsRecall === 'wswork short' && g5.oneWord === 'wswork short'
+            && g5.noSkill === (g5.firstCalc ? 'wswork' : 'wswork short'),
+            `on a worksheet, m4-m-battery (clearance, every answer a quantity) gets the tall work area; inf-c7 (a figure-reading skill), the battery under a concept skill and the battery with one answer a word get the short one; with no skill it follows the course's first skill (${g5.first})`, g5);
 
       // the From line on an exam's result page (source line 3457), under each question's citation; the paper's
       // first question is replaced by one of Quiz 1's, as the Scratch paper check below replaces one
