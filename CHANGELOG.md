@@ -2,6 +2,13 @@
 
 Dated kit changes, newest first.
 
+## 2026-11-06 (exam paper)
+- Exam paper: the last question's "Review" no longer grades and submits the paper. It is now "Review answers" and opens an overview of the paper (each question number, answered or not answered, a way back to any question, one submit button). The overview shows no answers, grades or explanations and records nothing; its submit asks the same question as "Submit paper", and Cancel keeps the paper running (`exam_review_test.js`).
+- Exam paper: a chosen answer is drawn in the neutral selection colour (blue), the same for a right and a wrong choice; green and red appear only on the result page.
+- Exam opening page: it describes select-all items from papers drawn by the engine's own draw (20 sample papers per exam and bank), worded as a sample about practice papers, not a guarantee or the official exam format: "Practice papers drawn from this bank carry about N" (one count seen, N > 0) or "carry between lo and hi select-all items" (several) "...; yours may differ.", or "... are not expected to carry select-all items (none in 20 sample draws)"; never "about 0". It replaces "about 0 of the 50 are select-all". "No explanations until you finish" no longer adds "same as the real thing".
+- Exam overview: the question opened from it takes the focus; with more than six unanswered the "Not answered" line gives the count and the first five. A chosen answer has an inner ring as well as the filled letter, so it differs from an answer under the pointer.
+- Exam overview: its Submit, numbers and Back do nothing when left on screen after a switch to another profile (no error, nothing recorded for either profile).
+
 ## 2026-11-06 (optional topics; depends on #70 and #62; waits for Louis)
 - A TOPICS entry may carry `optional: true`. Its questions stay in the bank and on their own topic (the topic's Start, each subtopic's Start, guide and atlas links), and the topic line shows an "Optional" label. They are left out of "Everything, adaptive" (filtered or not) and the count on Start practice, the pass of every question, the filtered pass, the exam pools (so exam papers, the exam-weighted pass, the pool cards on Weak spots, mark weights and the exam-day scheduling scope), What to review next and the mastered count, and a broad session's retry; a question card of the topic shows "Optional" instead of "Exam N · …". A course with no optional topic is unchanged. New check: `optional_test.js`. `test.js` fails a question of an optional topic that shares its `concept` with a question outside optional topics, since scheduling state is per concept (review of #72).
 
