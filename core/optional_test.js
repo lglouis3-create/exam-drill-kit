@@ -172,9 +172,10 @@ const ANSWER = right => {
         out.all = (startSweep('all'), Q.sweep.slice());
         out.weighted = [];
         try { startSweep('weighted'); out.weighted = Q.sweep.slice(); } catch(e){ out.wErr = String(e && e.message || e); }
-        // a course that sets a question count (or a blueprint) draws a paper; one that does not draws an empty one
-        out.configured = !!(EXAM.blueprint && Array.isArray(EXAM.blueprint.parts) && EXAM.blueprint.parts.length) ||
-          EXAM.pools.some(p => typeof p.marks === 'number' && p.marks > 0);
+        // a course that sets a question count draws a paper; one that does not (questions: null or missing) draws an
+        // empty one. The count decides, not the marks: with marks: null and a count set, nullexam.js draws the paper as
+        // one pool of `questions` items (DEENT, 2026-11-08: questions 50, marks null).
+        out.configured = typeof EXAM.questions === 'number' && EXAM.questions > 0;
         out.papers = []; out.draws = 0; out.empty = 0;
         for(let i = 0; i < 20; i++){
           try { const ids = drawPaper().map(q => q.id); out.papers.push(...ids); out.draws++; if(!ids.length) out.empty++; }
