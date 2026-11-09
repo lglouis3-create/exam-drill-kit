@@ -2,7 +2,9 @@
    checked before anything is written. A table needs an id (unique) and its
    rows; every column, searched field and the detail field is a field some row
    has; a group names only tables that exist; the group the tab opens on is one
-   of the groups; images are given for every table or for none. */
+   of the groups; images are given for every table or for none. v2: recallFields are [field, name]
+   pairs of fields some row has, not kept visible; with them, every row has an id of its
+   own, and DRUG_FACTS, when the course has it, names bank questions and facts that exist. */
 if(typeof DRUG_TABLES === 'undefined' || !Array.isArray(DRUG_TABLES))
   throw new Error('DRUG_TABLES is not declared: put the tables in a data file listed in course.js `files`');
 const errs = [], ids = new Set(), fields = new Set();
@@ -56,7 +58,40 @@ const labels = new Set();
 if(!Array.isArray(OPT.recallShow) || OPT.recallShow.some(f => typeof f !== 'string')) errs.push('option recallShow must be a list of row fields');
 else OPT.recallShow.forEach(f => { if(!known(f)) errs.push(`option recallShow names the field "${f}", which no row has`); });
 if(OPT.recallClassField && !known(OPT.recallClassField)) errs.push(`option recallClassField names the field "${OPT.recallClassField}", which no row has`);
+/* v2: the fields recall mode rates, the drug ids and the course's DRUG_FACTS ({question id: [fact ids]}) */
+const rf = OPT.recallFields, slug = v => String(v == null ? '' : v).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+let facts = 0;
+if(!Array.isArray(rf) || rf.some(e => !Array.isArray(e) || e.length !== 2 || e.some(x => typeof x !== 'string' || !x))) errs.push('option recallFields must be a list of [field, name] pairs');
+else if(rf.length){
+  const seen = new Set();
+  rf.forEach(([f]) => {
+    if(!known(f)) errs.push(`option recallFields names the field "${f}", which no row has`);
+    if(seen.has(f)) errs.push(`option recallFields names the field "${f}" twice`);
+    seen.add(f);
+    if((OPT.recallShow || []).includes(f) || f === OPT.recallClassField) errs.push(`option recallFields names "${f}", which recall mode keeps visible (recallShow or recallClassField)`);
+  });
+  if(!known(OPT.idField)) errs.push(`option idField names the field "${OPT.idField}", which no row has`);
+  else {
+    const drug = {};
+    DRUG_TABLES.forEach(t => (t.rows || []).forEach((r, i) => {
+      const id = slug(r && r[OPT.idField]), at = `table "${t.id}" row ${i + 1}`;
+      if(!id) errs.push(`${at} has no id: its ${OPT.idField} is empty`);
+      else if(drug[id]) errs.push(`${drug[id]} and ${at} have the same id "${id}" (option idField ${OPT.idField})`);
+      else drug[id] = at;
+    }));
+    if(typeof DRUG_FACTS !== 'undefined'){
+      const qids = new Set((typeof QUESTIONS !== 'undefined' ? QUESTIONS : []).map(q => q.id));
+      if(!DRUG_FACTS || typeof DRUG_FACTS !== 'object' || Array.isArray(DRUG_FACTS)) errs.push('DRUG_FACTS must be an object {question id: [fact ids]}');
+      else for(const [qid, fs] of Object.entries(DRUG_FACTS)){
+        if(!qids.has(qid)) errs.push(`DRUG_FACTS names the question "${qid}", which the bank does not have`);
+        if(!Array.isArray(fs) || !fs.length){ errs.push(`DRUG_FACTS gives the question "${qid}" no fact ids`); continue; }
+        fs.forEach(x => { const [d, f, more] = String(x).split(':'); facts++;
+          if(more !== undefined || !drug[d] || !seen.has(f)) errs.push(`DRUG_FACTS gives "${qid}" the fact "${x}": a fact is <drug id>:<field>, with a drug id of DRUG_TABLES and a field of recallFields`); });
+      }
+    }
+  }
+}
 if(OPT.defaultGroup && !labels.has(OPT.defaultGroup)) errs.push(`option defaultGroup is "${OPT.defaultGroup}", which is not the label of a group`);
 if(typeof OPT.tab !== 'string' || !/^[a-z][a-z0-9-]*$/.test(OPT.tab)) errs.push(`option tab "${OPT.tab}" must be lowercase letters, digits and hyphens`);
 if(errs.length) throw new Error(errs.slice(0, 6).join('; ') + (errs.length > 6 ? ` (and ${errs.length - 6} more)` : ''));
-STEP = {tables: DRUG_TABLES.length, rows: DRUG_TABLES.reduce((n, t) => n + t.rows.length, 0), groups: (OPT.groups || []).length};
+STEP = {tables: DRUG_TABLES.length, rows: DRUG_TABLES.reduce((n, t) => n + t.rows.length, 0), groups: (OPT.groups || []).length, recallFields: (OPT.recallFields || []).length, facts};
