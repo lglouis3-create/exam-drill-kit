@@ -246,6 +246,7 @@ function engine(exportsExpr){
    a build can run without touching the real one. */
 function scratchRepo(srcDir, label){
   const root = fs.mkdtempSync(path.join(os.tmpdir(), (label || 'drill') + '-'));
+  scratchRoots.push(root);
   fs.cpSync(srcDir, path.join(root, 'src'), {recursive: true,
     filter: f => !/(^|\/)(node_modules|__pycache__|decks|ingest)(\/|$)/.test(path.relative(srcDir, f))});
   return root;
@@ -271,7 +272,38 @@ function scratchBuild(label, opts){
   if(opts.edit) opts.edit(src);
   const r = child.spawnSync('python3', ['build.py'], {cwd: src, encoding: 'utf8', timeout: 600000});
   return {repo, src, page: path.join(repo, 'index.html'), code: r.status, out: ((r.stdout || '') + (r.stderr || '')).trim(),
-          rm: () => fs.rmSync(repo, {recursive: true, force: true})};
+          rm: () => { if(!KEEP_TMP) fs.rmSync(repo, {recursive: true, force: true}); }};
+}
+
+/* Scratch copies are removed when the check passes and kept when it fails.
+   Every folder scratchRepo (and so scratchBuild) made in this process is listed
+   in scratchRoots; nothing else is ever removed. When the process exits with
+   code 0 (PASS or REPORT) or 2 (NOT RUN) and no check failed, the listed folders
+   are removed by their exact paths. On a FAIL, a crash (an uncaught error exits
+   1), any other exit code, or with KEEP_TEST_TMP=1 in the environment, they are
+   kept and one line names them: "kept for inspection: <paths>" (run_checks.sh
+   reads a check's summary from the last line before it). A check stopped by a
+   signal (run_checks.sh's 900 s timeout) keeps them and names them too.
+   Folders a check makes with its own fs.mkdtempSync are the check's to remove. */
+const KEEP_TMP = process.env.KEEP_TEST_TMP === '1';
+const scratchRoots = [];
+/* a folder this check made beside a scratch copy (state_check_test.js's shallow
+   clone), listed so the same rule applies to it */
+function scratchAdd(dir){ scratchRoots.push(dir); return dir; }
+function keptLine(why){
+  const left = scratchRoots.filter(r => fs.existsSync(r));
+  if(left.length) process.stdout.write(`kept for inspection: ${left.join(' ')}${why ? '  (' + why + ')' : ''}\n`);
+}
+let signalled = false;   // after SIGTERM or SIGINT nothing is removed, whatever the exit code
+process.on('exit', code => {
+  if(!scratchRoots.length || signalled) return;
+  if(KEEP_TMP) return keptLine('KEEP_TEST_TMP=1');
+  if((code === 0 || code === 2) && !fails){
+    for(const r of scratchRoots){ try { fs.rmSync(r, {recursive: true, force: true}); } catch(e){ process.stdout.write(`kept for inspection: ${r}  (could not remove it: ${e.message})\n`); } }
+  } else keptLine();
+});
+for(const sig of ['SIGTERM', 'SIGINT']){
+  process.once(sig, () => { signalled = true; keptLine(sig); process.kill(process.pid, sig); });
 }
 /* `course.js` line that switches module `name` on with these options (kept
    with any other module the course has on), at the version in its module.json. */
@@ -291,5 +323,5 @@ const quizOn = (page, ids) => page.evaluate(ids => {
 }, [].concat(ids));
 
 module.exports = {browserType, BROWSER, BROWSER_NAME, PAGE, check, skip, notRun, notRunCase, finish, playwright, launch, openFile, serve, engine, scratchRepo,
-                  scratchBuild, featureOn, openPage, quizOn, pageUrl, openFromDisk, OPEN_CTX,
+                  scratchBuild, scratchAdd, featureOn, openPage, quizOn, pageUrl, openFromDisk, OPEN_CTX,
                   counts: () => ({fails, passes, skipped: skipped.length, notRun: notRunCases.length})};
