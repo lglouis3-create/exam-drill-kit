@@ -427,7 +427,7 @@ function fixtureFiles(own, have, copies){
     let leftErr = null;
     page.on('dialog', async d => { asked = d.message(); const left = page.keyboard.press('ArrowLeft').catch(e => { leftErr = String(e.message || e).split('\n')[0]; }); await page.waitForTimeout(150); await d.dismiss(); await left; });
     await page.keyboard.press('ArrowRight'); await page.waitForTimeout(400);
-    page.removeAllListeners('dialog'); page.on('dialog', d => d.accept());
+    page.removeAllListeners('dialog'); page.on('dialog', d => d.accept().catch(() => {}));
     const r8 = await ev(() => ({i: EX.i, prev: !!document.getElementById('exPrev'), left: window.__scLeft}));
     // An observation, not a check: whether a key pressed while the native box is open reaches the
     // page is up to the engine, and this test does not show that the module blocks it (no module
