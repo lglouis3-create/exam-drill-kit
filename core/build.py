@@ -96,6 +96,7 @@ def course_fields():
           "oldCachePrefix:C.oldCachePrefix||'',files:C.files===undefined?null:C.files,"
           "manifest:C.manifest===undefined?null:C.manifest,tools:C.tools===undefined?null:C.tools,"
           "features:C.features===undefined?null:C.features,numeric:C.numeric===undefined?null:C.numeric,"
+          "share:C.share===undefined?null:C.share,"
           "typedExams:(C.exams||[]).filter(e=>e&&e.typed!==undefined).map(e=>({id:e.id,typed:e.typed})),"
           "unset:(E=>E?{questions:E.questions==null,marks:(E.pools||[]).some(p=>p&&p.marks==null),minutes:E.minutes==null}:null)"
           "((C.exams||[]).find(e=>e&&e.id===C.activeExam)||(C.exams||[])[0])}))")
@@ -146,17 +147,81 @@ def manifest_extra(c):
     """course.js `manifest`: the two optional web-manifest members a course had
     in its own manifest before the core (Medicinal-chemistry's: description and
     orientation). orientation takes the values the Web Application Manifest
-    names for it. Checked before anything is written."""
+    names for it. `short_name` (optional) replaces the manifest's short_name,
+    the name a phone shows under the Home Screen icon; the page header keeps
+    course.js `short`. Checked before anything is written."""
     extra = c.get('manifest')
     if extra is None:
         return {}
-    if not isinstance(extra, dict) or set(extra) - {'description', 'orientation'}:
-        sys.exit('ERROR: course.js `manifest` takes only `description` and `orientation`')
+    if not isinstance(extra, dict) or set(extra) - {'description', 'orientation', 'short_name'}:
+        sys.exit('ERROR: course.js `manifest` takes only `description`, `orientation` and `short_name`')
     if 'description' in extra and not (isinstance(extra['description'], str) and extra['description'].strip()):
         sys.exit('ERROR: course.js `manifest.description` must be a non-empty string')
+    if 'short_name' in extra and not (isinstance(extra['short_name'], str) and extra['short_name'].strip()):
+        sys.exit('ERROR: course.js `manifest.short_name` must be a non-empty string')
     if 'orientation' in extra and extra['orientation'] not in ORIENTATIONS:
         sys.exit(f"ERROR: course.js `manifest.orientation` is {extra['orientation']!r}; it must be one of {ORIENTATIONS}")
     return extra
+
+
+SHARE_KEYS = ['title', 'description', 'url', 'image']
+
+
+def share_fields(c):
+    """course.js `share`: what a link preview shows when the site's address is
+    shared (iMessage, Slack and social sites read the static <head>, not what
+    the page's script draws). Optional string keys: `title` (default: course.js
+    `title`), `description`, `url` (the site's address, https and ending in
+    "/"), `image` (a PNG file name under src/icons/; it needs `url`, because a
+    link preview reads the image from an absolute address). Checked before
+    anything is written. Returns None when the course has no `share`."""
+    sh = c.get('share')
+    if sh is None:
+        return None
+    keys = ', '.join(f'`{k}`' for k in SHARE_KEYS)
+    if not isinstance(sh, dict):
+        sys.exit(f'ERROR: course.js `share` must be an object with the optional keys {keys}')
+    unknown = sorted(set(sh) - set(SHARE_KEYS))
+    if unknown:
+        sys.exit(f'ERROR: course.js `share` has {unknown}; it takes only {keys}')
+    for k in SHARE_KEYS:
+        if k in sh and not (isinstance(sh[k], str) and sh[k].strip()):
+            sys.exit(f'ERROR: course.js `share.{k}` must be a non-empty string')
+    if 'url' in sh and not re.fullmatch(r'https://[^\s"<>]+/', sh['url']):
+        sys.exit(f"ERROR: course.js `share.url` is {sh['url']!r}; it must be the site's https address, ending in \"/\"")
+    if 'image' in sh:
+        if 'url' not in sh:
+            sys.exit('ERROR: course.js `share.image` needs `share.url`: a link preview reads the image from an absolute address')
+        if not re.fullmatch(r'[A-Za-z0-9._-]+\.png', sh['image']):
+            sys.exit(f"ERROR: course.js `share.image` is {sh['image']!r}; it must be a PNG file name under src/icons/, with no folder")
+        if not os.path.isfile(os.path.join(HERE, 'icons', sh['image'])):
+            sys.exit(f"ERROR: course.js `share.image` names {sh['image']!r}, which is not in src/icons/")
+    return sh
+
+
+def share_head(sh, preview):
+    """The <meta> lines for course.js `share`, every value HTML-escaped. On a
+    preview build og:url is the preview's address."""
+    out = []
+
+    def meta(attr, key, val):
+        out.append(f'<meta {attr}="{key}" content="{htmlmod.escape(val, quote=True)}">')
+    if 'title' in sh:
+        meta('property', 'og:title', sh['title'])
+        meta('name', 'twitter:title', sh['title'])
+    if 'description' in sh:
+        meta('name', 'description', sh['description'])
+        meta('property', 'og:description', sh['description'])
+        meta('name', 'twitter:description', sh['description'])
+    if 'url' in sh:
+        meta('property', 'og:type', 'website')
+        meta('property', 'og:url', sh['url'] + ('preview/' if preview else ''))
+    if 'image' in sh:
+        meta('property', 'og:image', sh['url'] + sh['image'])
+        meta('property', 'og:image:type', 'image/png')
+        meta('name', 'twitter:card', 'summary_large_image')
+        meta('name', 'twitter:image', sh['url'] + sh['image'])
+    return out
 
 
 ORIENTATIONS = ['any', 'natural', 'landscape', 'portrait', 'portrait-primary', 'portrait-secondary',
@@ -329,6 +394,7 @@ def unset_counts(c):
 COURSE_FIELDS = course_fields()
 DATA_FILES = data_files(COURSE_FIELDS)
 MANIFEST_EXTRA = manifest_extra(COURSE_FIELDS)
+SHARE = share_fields(COURSE_FIELDS)
 tool_tables(COURSE_FIELDS)
 MODULES = feature_modules(COURSE_FIELDS)
 CALC_FILES = calc_options(COURSE_FIELDS)
@@ -427,6 +493,15 @@ for f in SOURCES + ['sw.js']:
 print(f'  {len(SOURCES)} sources and sw.js parse cleanly')
 
 shell = scheduler_library(open('shell.html', encoding='utf-8').read())
+# The page title, which tabs and link previews read. Left as the shell has it
+# unless course.js `share` is set, so a course without `share` gets the same page.
+TITLE_TAG = '<title>Exam drill</title>'
+if shell.count(TITLE_TAG) != 1:
+    sys.exit(f'ERROR: shell.html must hold {TITLE_TAG} exactly once; it holds it {shell.count(TITLE_TAG)} times')
+if SHARE is not None:
+    share_title = SHARE.get('title') or COURSE_FIELDS.get('title') or 'Exam drill'
+    shell = shell.replace(TITLE_TAG, '\n'.join([f'<title>{htmlmod.escape(share_title, quote=True)}</title>']
+                                                + share_head(SHARE, PREVIEW)), 1)
 images = json.load(open('images.json'))
 
 # the course manifest goes first, then a build stamp so the page can say which
@@ -628,6 +703,10 @@ if PREVIEW:
 # Pages runs Jekyll over the repository unless this file exists, and Jekyll
 # leaves out files and folders whose names start with an underscore.
 write_root('.nojekyll', '')
+# course.js `share.image`, beside the page, where its og:image address points.
+if SHARE is not None and 'image' in SHARE:
+    write_root(SHARE['image'], open(os.path.join(HERE, 'icons', SHARE['image']), 'rb').read())
+    print(f"wrote {SHARE['image']}  (the link-preview image, from src/icons/)")
 
 legacy = COURSE_FIELDS.get('output') or ''
 legacy = legacy if legacy != OUTPUT_NAME else ''
@@ -667,6 +746,8 @@ if placeholders:
 extra = MANIFEST_EXTRA
 man = {'name': COURSE_FIELDS.get('title') or 'Exam drill',
        'short_name': COURSE_FIELDS.get('short') or COURSE_FIELDS.get('title') or 'Drill'}
+if 'short_name' in extra:
+    man['short_name'] = extra['short_name']
 if 'description' in extra:
     man['description'] = extra['description']
 man.update({'start_url': './index.html', 'scope': './', 'display': 'standalone'})

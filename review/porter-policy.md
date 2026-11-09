@@ -24,10 +24,46 @@ heads).
 
 - Course repositories stay read-only. No push to them, no pull request in them, and no live-course
   update without Louis's separate approval.
-- Take pending items in `review/port-queue.md`: Intro to Pharmacology's 18-21 first, then the
-  remaining Pharmacokinetics items. Skip items that are not pending, items already represented by
+- Take pending items in `review/port-queue.md`: Intro to Pharmacology's 18-21 first, then BDK's
+  part-1 items (below), then the remaining Pharmacokinetics items. Skip items that are not pending, items already represented by
   an open pull request or a pushed port branch, and the section "Core changes found by the
   assessments (not nightly)". There is no two-open-PR limit.
+- BDK study features, part 1 (Louis, 2026-11-08: "I approve the reviewed plan at 84736dc and
+  authorize implementing its defined Part 1 scope"; his message in the central session, event
+  `3eb3c4d9-f3b1-4af6-ac5e-a162e7dd853a`). After Intro to Pharmacology's items and before the
+  remaining Pharmacokinetics items, take queue items 14 (drug-list-tab), 22 (field-colours) and 12
+  (compare-tab), in that order; for these three, this order replaces the queue's row order (§8).
+  Louis approved the plan at `84736dc`. They are built in the narrower scope of the plan as merged
+  (`review/bdk-study-features-plan.md` at `fa579cd`), whose only part-1 difference leaves out
+  compare-tab's "Learn these N drugs together" button: it starts Learn, which records answers, and
+  comes with learn-mode in part 2. Their source is BDK `assets/app.js` and `assets/style.css` at `05c36c3`,
+  read-only. One more source, for drug-list-tab's recall mode only, the form the plan's "hide and
+  reveal of a field for recall" takes here (BDK's drug list at `05c36c3` has none; DEENT's Recall mode
+  hides each card's whole answer, not one field): DEENT `src/druglist_ui.js` at DEENT's live commit,
+  `main` `0281922`, read-only. Its parts: the state, `recall` and `showCls` on line 31 and line 32; the
+  hiding, lines 160, 163-164 and 174; the writing box and Reveal button, 168-173, and their style,
+  70-71; the buttons, 203-206, and the note, 209; the handlers, 236, 248-253 and 256-259. Line 31's
+  `flash` and `fi` and the Flashcards button at 207 are not part of it (Flashcards are queue item 16,
+  part 2). The central session named this source on 2026-11-08 (its message to the porter at 14:18
+  UTC). Louis's
+  approval covers development, not storage, import or recovery, scheduling,
+  migrations, destructive actions, test weakening or course publication; any of those goes to him
+  with a concrete proposal. The other parts' items stay `planned` until he approves their part.
+- Drug list outcomes kept in progress, queue item 23 (`drug-list-persistent-outcomes`, proposed by the DEENT
+  session; `coordinator/improvements.json`). Louis, 2026-11-09, answering the central session's recommendation:
+  "Whatever you recommend is the best" (the central session's message to the porter at 01:06 UTC). The
+  recommendation, now his decision: develop and test it, and bring the pull request to him before any merge or
+  any course switches it on. It is new progress storage with Import consequences, so it is handled as #81
+  (the worksheet ink storage, waiting for Louis) is:
+  it does not merge under decision 10, and it is built as drug-list-tab v2, off by default. Scope: a `DB.drugs`
+  progress part (the equation-drill pattern) keyed by a stable fact id `drugId:field`, recording the outcome,
+  recognition or recall, and the self-rating, never typed text; a fact-to-bank-question map, so that an answer
+  on a fact that has a bank question is recorded once, on that question, and nothing is recorded through
+  `record()` for an item that is not a bank question; the Import behaviour of a module record that changes
+  without an answer (`core/README.md` 805-816) measured, with a proposal for it; profile isolation, Export and
+  Import round trip, Reset and the per-tab record (#69); each test reads its data back after a reload and fails
+  on a deliberately broken version. Source: DEENT at `main` `b747e49` or later, read-only, for the data shape
+  and the fact ids, with the shape agreed with the DEENT session.
 - Read each item from the repository in its Source column. For items 18 and 21, use only Intro to
   Pharmacology's implementation; BDK's versions belong to BDK's migration.
 - The queue is not finished because every item has a branch or a pull request.
