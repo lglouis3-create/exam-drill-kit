@@ -265,9 +265,13 @@ function dloStatus(ref){
 /* whether the rating is stored: the stored progress of this profile is this page's progress,
    and the browser did not refuse the write (the core's FAILED); a write that was refused, a
    save another tab or window got in before (the core shows its notice and writes nothing) or
-   a save still waiting on its timer is not stored (the review of #92, M1) */
+   a save still waiting on its timer is not stored (the review of #92, M1). The stored text is
+   compared with what the core writes: progText(DB) where the core has it (a course with a part
+   kept outside localStorage, such as #81's ink, writes the progress without that part), else
+   JSON.stringify(DB) (the follow-up review of #92) */
 function dloStored(){
-  try { const k = keyFor(PROFILE); return !FAILED.has(k) && localStorage.getItem(k) === JSON.stringify(DB); } catch(e){ return false; }
+  try { const k = keyFor(PROFILE), txt = typeof progText === 'function' ? progText(DB) : JSON.stringify(DB);
+    return !FAILED.has(k) && localStorage.getItem(k) === txt; } catch(e){ return false; }
 }
 function dloRateBlock(ref){
   const open = dloMine(), cur = open[ref] ? open[ref].r : '';
@@ -426,5 +430,5 @@ function dltRender(pane, keepTerm){
 }
 
 X.tab({id: OPT.tab, label: OPT.label, before: OPT.before, render: pane => dltRender(pane)});
-X.api({split: dltSplit, parts: dltParts, groups: dltGroups, fact: dloFact, bank: dloBank,
+X.api({split: dltSplit, parts: dltParts, groups: dltGroups, fact: dloFact, bank: dloBank, stored: dloStored,
   state: () => ({group: DLT.group, view: DLT.view, recall: DLR.recall, showCls: DLR.showCls, revealed: [...DLR.revealed], ask: DLO.ask, notKnew: DLO.notKnew})});

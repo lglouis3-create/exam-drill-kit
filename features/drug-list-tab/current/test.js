@@ -787,6 +787,13 @@ async function v2Saved(browser, file){
     const n = await noteOf(page, R0), st = await storedEv(page);
     check(n[0] === '1' && n[1] === 'Saved in this profile\'s progress: Knew.' && Array.isArray(st) && st.length === 1 && st[0].r === 'knew',
           'save: right after the click the note says Saved, and the stored progress holds the rating', {n, st});
+    // where the core writes progText(DB) (a part kept outside localStorage, #81), the comparison uses it:
+    // a stored text equal to progText(DB) and not to JSON.stringify(DB) is stored; without progText it is not
+    const pt = await page.evaluate(() => { const k = keyFor(PROFILE), was = localStorage.getItem(k), api = FX.api('drug-list-tab');
+      window.progText = db => 'progress-as-written:' + db.answers.length;
+      localStorage.setItem(k, progText(DB)); const withPt = api.stored();
+      delete window.progText; const withoutPt = api.stored(); localStorage.setItem(k, was); return {withPt, withoutPt, back: api.stored()}; });
+    check(pt.withPt === true && pt.withoutPt === false && pt.back === true, 'save: the stored text is compared with progText(DB) when the core has it, else with JSON.stringify(DB)', pt);
     await ctx.close();
   }
   // the browser refuses the write of the progress
