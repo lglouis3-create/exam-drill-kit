@@ -748,7 +748,8 @@ async function v2Days(browser, file){
   const ids = FIX.tables[0].rows.map(r => slugOf(r.generic));
   const day = (d, h, m) => [d, h, m || 0];      // made into a time in the page, in its time zone (November 2026)
   const cases = [
-    ['2:0', [['knew', day(2, 12)], ['knew', day(3, 12)]], /\(2 ratings; Kept on a later day\)$/, 'Knew on 11/2, then Knew on 11/3: Kept on a later day'],
+    // row 0's fact also has bank questions, whose part follows the ratings
+    ['2:0', [['knew', day(2, 12)], ['knew', day(3, 12)]], /\(2 ratings; Kept on a later day\) · bank questions: /, 'Knew on 11/2, then Knew on 11/3: Kept on a later day'],
     ['2:1', [['knew', day(2, 9)], ['knew', day(2, 20)]], /on Nov 2, 2026 \(2 ratings\)$/, 'Knew twice on one day: Knew, not Kept (same-day repeats never count)'],
     ['2:2', [['knew', day(2, 12)], ['partly', day(3, 12)], ['knew', day(4, 12)]], /last rated Knew on Nov 4, 2026 \(3 ratings\)$/, 'Knew, Partly, Knew on three days: the Partly breaks the run, not Kept'],
     ['2:3', [['knew', day(2, 12)], ['knew', day(3, 12)], ['forgot', day(4, 12)]], /last rated Forgot on Nov 4, 2026 \(3 ratings\)$/, 'two Knew days, then Forgot: Forgot'],
