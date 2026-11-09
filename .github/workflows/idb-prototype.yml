@@ -1,0 +1,49 @@
+# IndexedDB cross-tab prototype (review/idb-investigation): investigation only, not a kit check.
+# Runs the prototype in Chromium and in WebKit (Safari's engine on Linux, not the Safari app)
+# when the prototype changes, or by hand, and keeps the logs as an artifact. It changes no
+# course and no core file. Louis asked for the WebKit run on 2026-11-05.
+name: IndexedDB prototype
+
+on:
+  pull_request:
+    paths:
+      - 'review/idb-investigation/proto/**'
+      - '.github/workflows/idb-prototype.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  prototype:
+    name: IndexedDB prototype · ${{ matrix.engine }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
+        with:
+          node-version: '22'
+      - name: Playwright 1.63.0 and the browser
+        run: |
+          npm install -g playwright@1.63.0
+          npx --yes playwright@1.63.0 install --with-deps ${{ matrix.engine }}
+      - name: Run the prototype twice, then the hold tests
+        working-directory: review/idb-investigation/proto
+        shell: bash   # -o pipefail: a crash under "| tee" fails the job (the review of fa9f1f6)
+        run: |
+          export NODE_PATH=$(npm root -g)
+          mkdir -p ../logs-ci
+          node run.js ${{ matrix.engine }} | tee ../logs-ci/${{ matrix.engine }}-run1.log
+          node run.js ${{ matrix.engine }} | tee ../logs-ci/${{ matrix.engine }}-run2.log
+          node hold.js ${{ matrix.engine }} | tee ../logs-ci/${{ matrix.engine }}-hold.log
+          ! grep -h "LAUNCH FAILED" ../logs-ci/*.log   # a browser that did not start fails the job
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
+        if: always()
+        with:
+          name: idb-prototype-${{ matrix.engine }}
+          path: review/idb-investigation/logs-ci/

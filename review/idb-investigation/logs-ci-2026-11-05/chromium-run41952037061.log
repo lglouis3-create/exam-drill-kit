@@ -1,0 +1,58 @@
+[chromium] launched 153.0.8010.12
+[chromium] serving http://localhost:43307/page.html
+[chromium] T0 probe {"default":"default","strict":"strict","relaxed":"relaxed","hasCommit":true,"hasLocks":true}
+[chromium] T1 idb durability=default tabs=3 tx per tab=500 results per tab=[{"complete":500},{"complete":500},{"complete":500}] elapsed_ms~1167
+[chromium] T1 idb durability=default count=1500 seq.length=1500 expected=1500 lost=0 saw==position:1500 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=195 per tab={"T1":500,"T0":500,"T2":500}
+[chromium] T1 idb durability=relaxed tabs=3 tx per tab=300 results per tab=[{"complete":300},{"complete":300},{"complete":300}] elapsed_ms~533
+[chromium] T1 idb durability=relaxed count=900 seq.length=900 expected=900 lost=0 saw==position:900 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=97 per tab={"T0":300,"T2":300,"T1":300}
+[chromium] T1 idb durability=strict tabs=3 tx per tab=300 results per tab=[{"complete":300},{"complete":300},{"complete":300}] elapsed_ms~517
+[chromium] T1 idb durability=strict count=900 seq.length=900 expected=900 lost=0 saw==position:900 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=97 per tab={"T1":300,"T2":300,"T0":300}
+[chromium] T2 close rep=1 victim created at close=130 victim complete events at close=100 victim complete events total=100 victim abort events=0 victim entries persisted=100 victim marks persisted=100 complete-but-missing=0 persisted-without-complete-event=0 entry-without-mark=0 mark-without-entry=0 gaps below highest persisted i=0
+[chromium] T2 close rep=1 survivor tx complete=300/300 survivor snapshots=629 snapshots with a half-done transaction=0
+[chromium] T2 close rep=1 count=400 seq.length=400 expected=400 lost=0 saw==position:400 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=34 per tab={"S":300,"V":100}
+[chromium] T2 close rep=2 victim created at close=275 victim complete events at close=200 victim complete events total=200 victim abort events=0 victim entries persisted=200 victim marks persisted=200 complete-but-missing=0 persisted-without-complete-event=0 entry-without-mark=0 mark-without-entry=0 gaps below highest persisted i=0
+[chromium] T2 close rep=2 survivor tx complete=300/300 survivor snapshots=567 snapshots with a half-done transaction=0
+[chromium] T2 close rep=2 count=500 seq.length=500 expected=500 lost=0 saw==position:500 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=78 per tab={"S":300,"V":200}
+[chromium] T2 close rep=3 victim created at close=460 victim complete events at close=300 victim complete events total=300 victim abort events=0 victim entries persisted=300 victim marks persisted=300 complete-but-missing=0 persisted-without-complete-event=0 entry-without-mark=0 mark-without-entry=0 gaps below highest persisted i=0
+[chromium] T2 close rep=3 survivor tx complete=300/300 survivor snapshots=536 snapshots with a half-done transaction=0
+[chromium] T2 close rep=3 count=600 seq.length=600 expected=600 lost=0 saw==position:600 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=122 per tab={"S":300,"V":300}
+[chromium] T3 localStorage gap=none(sync) count=824 seq.length=824 expected=900 lost=76 saw==position:824 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=86 per tab={"T0":275,"T1":259,"T2":290}
+[chromium] T3 localStorage gap=1ms count=100 seq.length=100 expected=300 lost=200 saw==position:100 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=0 per tab={"T1":100}
+[chromium] T4 versionchange old-tab policy=keep old tab events=["versionchange 1->2"] new tab after 700ms: events=["blocked"] result=null
+[chromium] T4 versionchange old-tab policy=keep after old tab close(): new tab events=["blocked"] result=opened v2
+[chromium] T4 versionchange old-tab policy=close old tab events=["versionchange 1->2"] new tab after 700ms: events=[] result=opened v2
+[chromium] T5 old tab page.close() before: events=["blocked"] result=null after: events=["blocked"] result=opened v2
+[chromium] done
+[chromium] launched 153.0.8010.12
+[chromium] serving http://localhost:36839/page.html
+[chromium] T0 probe {"default":"default","strict":"strict","relaxed":"relaxed","hasCommit":true,"hasLocks":true}
+[chromium] T1 idb durability=default tabs=3 tx per tab=500 results per tab=[{"complete":500},{"complete":500},{"complete":500}] elapsed_ms~1185
+[chromium] T1 idb durability=default count=1500 seq.length=1500 expected=1500 lost=0 saw==position:1500 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=153 per tab={"T1":500,"T0":500,"T2":500}
+[chromium] T1 idb durability=relaxed tabs=3 tx per tab=300 results per tab=[{"complete":300},{"complete":300},{"complete":300}] elapsed_ms~523
+[chromium] T1 idb durability=relaxed count=900 seq.length=900 expected=900 lost=0 saw==position:900 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=88 per tab={"T2":300,"T0":300,"T1":300}
+[chromium] T1 idb durability=strict tabs=3 tx per tab=300 results per tab=[{"complete":300},{"complete":300},{"complete":300}] elapsed_ms~524
+[chromium] T1 idb durability=strict count=900 seq.length=900 expected=900 lost=0 saw==position:900 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=132 per tab={"T0":300,"T1":300,"T2":300}
+[chromium] T2 close rep=1 victim created at close=130 victim complete events at close=100 victim complete events total=100 victim abort events=0 victim entries persisted=101 victim marks persisted=101 complete-but-missing=0 persisted-without-complete-event=1 entry-without-mark=0 mark-without-entry=0 gaps below highest persisted i=0
+[chromium] T2 close rep=1 survivor tx complete=300/300 survivor snapshots=627 snapshots with a half-done transaction=0
+[chromium] T2 close rep=1 count=401 seq.length=401 expected=401 lost=0 saw==position:401 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=38 per tab={"S":300,"V":101}
+[chromium] T2 close rep=2 victim created at close=270 victim complete events at close=200 victim complete events total=200 victim abort events=0 victim entries persisted=200 victim marks persisted=200 complete-but-missing=0 persisted-without-complete-event=0 entry-without-mark=0 mark-without-entry=0 gaps below highest persisted i=0
+[chromium] T2 close rep=2 survivor tx complete=300/300 survivor snapshots=570 snapshots with a half-done transaction=0
+[chromium] T2 close rep=2 count=500 seq.length=500 expected=500 lost=0 saw==position:500 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=76 per tab={"S":300,"V":200}
+[chromium] T2 close rep=3 victim created at close=425 victim complete events at close=300 victim complete events total=300 victim abort events=0 victim entries persisted=300 victim marks persisted=300 complete-but-missing=0 persisted-without-complete-event=0 entry-without-mark=0 mark-without-entry=0 gaps below highest persisted i=0
+[chromium] T2 close rep=3 survivor tx complete=300/300 survivor snapshots=541 snapshots with a half-done transaction=0
+[chromium] T2 close rep=3 count=600 seq.length=600 expected=600 lost=0 saw==position:600 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=118 per tab={"S":300,"V":300}
+[chromium] T3 localStorage gap=none(sync) count=686 seq.length=686 expected=900 lost=214 saw==position:686 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=81 per tab={"T0":299,"T1":247,"T2":140}
+[chromium] T3 localStorage gap=1ms count=100 seq.length=100 expected=300 lost=200 saw==position:100 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=0 per tab={"T1":100}
+[chromium] T4 versionchange old-tab policy=keep old tab events=["versionchange 1->2"] new tab after 700ms: events=["blocked"] result=null
+[chromium] T4 versionchange old-tab policy=keep after old tab close(): new tab events=["blocked"] result=opened v2
+[chromium] T4 versionchange old-tab policy=close old tab events=["versionchange 1->2"] new tab after 700ms: events=[] result=opened v2
+[chromium] T5 old tab page.close() before: events=["blocked"] result=null after: events=["blocked"] result=opened v2
+[chromium] done
+[chromium] T6 rep=1 A created=0 A first request done=+1ms A finished=+1000ms A gets=14723 A=complete | B created=+204ms B first request done=+1000ms B finished=+1000ms B=complete B first request after A finished=true
+[chromium] T6 rep=2 A created=0 A first request done=+1ms A finished=+1000ms A gets=15428 A=complete | B created=+202ms B first request done=+1000ms B finished=+1000ms B=complete B first request after A finished=true
+[chromium] T6 rep=3 A created=0 A first request done=+0ms A finished=+1000ms A gets=15470 A=complete | B created=+203ms B first request done=+1000ms B finished=+1000ms B=complete B first request after A finished=true
+[chromium] T6b readonly in B while A holds readwrite B waited ms=797 B saw={"by":"A","at":1793843959501} A=complete A holding ms=1000
+[chromium] T7 rep=1 A closed while its readwrite tx (with a put) was open B created=+0ms A page.close at=+300ms B read done=+346ms B=complete B saw hold record=undefined
+[chromium] T7 rep=2 A closed while its readwrite tx (with a put) was open B created=+0ms A page.close at=+302ms B read done=+309ms B=complete B saw hold record=undefined
+[chromium] T7 rep=3 A closed while its readwrite tx (with a put) was open B created=+0ms A page.close at=+300ms B read done=+307ms B=complete B saw hold record=undefined
+[chromium] done
