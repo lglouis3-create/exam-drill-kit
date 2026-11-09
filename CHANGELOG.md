@@ -2,6 +2,9 @@
 
 Dated kit changes, newest first.
 
+## 2026-11-09 (fill in the blank)
+- New core item type `type:'blank'`: the student types the missing words; `accept` lists the right answers, the first one shown. Grading ignores case, spaces at the ends, a run of spaces, hyphens or en dashes, a final period, and reads α β γ δ κ as their names; digits and % are kept. A one-letter slip in an answer of 5 or more characters is wrong with "Close: check the spelling"; `course.js` `blank: {typo: 1}` counts it right with the note. Recorded like a calculation (the typed text as `picked`); no new storage. Weak spots, the missed list and the bank export show the typed and accepted answers. On exam papers with `exams[].typed: true`, blank items are drawn, typed, kept through a reload, graded and reviewed; `exams[].blanks: n` asks for n per paper within the pools' marks and `dupOf` (DEENT Exam 1: about 5 of 50 questions were fill in the blank). `test.js` rejects a blank item without a non-empty `accept` or with duplicate entries; the build stops on `blanks` without `typed` and on a bad `blank`. New check `blank_test.js`; the answer helpers of the other checks answer a blank item too. A course with no blank item is unchanged apart from the new code in the page.
+
 ## 2026-11-09 (bookkeeping: drug list outcomes queued)
 - `review/port-queue.md` item 23 and `review/porter-policy.md` section 1: drug-list-tab v2, the Drug list's per-fact outcomes kept in each profile's progress (`drug-list-persistent-outcomes`). Louis, 2026-11-09: develop and test it; the pull request goes to him before any merge or any course switches it on. Source: DEENT at `main` `b747e49`, read-only. `coordinator/improvements.json`: the entry set to implementing, with his decision. Nothing is built by this change.
 

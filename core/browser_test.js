@@ -103,6 +103,11 @@ function sourceCounts(){
   await page.evaluate(() => {
     window.answerCurrent = (allCorrect) => {
       const q = Q && Q.current; if(!q) return false;
+      if(q.type === 'blank'){
+        const inp = document.getElementById('blankIn'); if(!inp) return false;
+        inp.value = allCorrect ? q.accept[0] : 'zzzz not the answer';
+        document.getElementById('btnCheck').click(); return true;
+      }
       if(q.type === 'numeric'){
         const inp = document.getElementById('numIn'); if(!inp) return false;
         inp.value = allCorrect ? String(q.answer) : String(q.answer + 1000);
