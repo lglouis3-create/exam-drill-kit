@@ -61,6 +61,31 @@
  * options, and the image view shows each table's image (the image files are
  * answered by the test with a 1x1 image: BDK's pages/*.webp are not copied).
  *
+ * v2, ratings kept in the progress (queue item 23), on a third scratch copy with BDK's
+ * tables, recallFields [indication, essential] and a DRUG_FACTS that maps the template
+ * bank's questions s1-1 and s1-2 to two BDK facts, at 390 px and 820 px: Ask for lists
+ * every hidden field, then each recall field; with every hidden field asked there is no
+ * rating (v1); asking stores nothing; the status line before any rating (not rated yet,
+ * the bank questions Not practised; no bank part for an unmapped fact); no rating before
+ * Reveal; DEENT's Forgot / Partly / Knew criteria; a rating adds {f, r, at} and no
+ * answer, answer count or history entry; the pressed rating keeps the focus; a second
+ * rating of one opening replaces the first, a new opening is a new rating; a reload at
+ * once after a rating keeps it, with nothing typed in any stored record; the status
+ * line reads the stored ratings after the reload; Not yet Knew; each field its own fact;
+ * bank answers to the mapped questions give DEENT's status words (Remembered, then
+ * Forgot over two questions) and add no rating, a rating adds no answer; this tab's own
+ * record (#69) holds the ratings; another profile holds none, and its own rating stays
+ * under it; the first profile's ratings after a switch back and a reload; Export holds
+ * them; Erase my history clears them, also after a reload; Import of the exported file
+ * puts them back, also after a reload; no sideways scroll; no error. Import measured
+ * with only the ratings differing (reported, and checked against core/README.md
+ * 792-840): the same file, nothing; an older file one rating behind, a new profile; a
+ * file with one more rating, a new profile; a file without the ratings, nothing. The
+ * build step refuses recallFields naming a missing or a visible field or not given as
+ * [field, name], two rows with one id, and a DRUG_FACTS naming a missing question or a
+ * field that is not a recall field. With recallFields empty (the default) recall mode has
+ * no Ask for and every v1 check above holds, nothing stored included.
+ *
  *     node features/drug-list-tab/test.js
  */
 const fs = require('fs'), path = require('path');
@@ -736,7 +761,9 @@ async function v2ImportMeasure(browser, file){
   const C = JSON.parse(JSON.stringify(B)); C.db.drugs.ev.push({f: ID1 + ':essential', r: 'forgot', at: Date.now()});
   res.push(['M3 a file with the same answers and one more rating (rated on another device)', kind(await planOf(JSON.stringify(C))), 'separate']);
   const D = JSON.parse(JSON.stringify(B)); delete D.db.drugs;
-  res.push(['M4 a file with the same answers and no ratings', kind(await planOf(JSON.stringify(D))), 'separate']);
+  // the file adds nothing this profile lacks (Import compares every part of the file with this profile's, addsTo,
+  // core/README.md 792-800), so nothing changes and nothing is lost
+  res.push(['M4 a file with the same answers and no ratings', kind(await planOf(JSON.stringify(D))), 'nothing']);
   console.log('\n  Import with ratings only differing (REPORT, core/README.md 805-816):');
   res.forEach(([what, got, rule], k) => console.log(`  report  ${what}: ${got} (the README's rule: ${rule}); the plan: "${texts[k]}"`));
   for(const [what, got, rule] of res){
