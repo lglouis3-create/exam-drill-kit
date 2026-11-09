@@ -586,7 +586,7 @@ const v2Reload = async page => { await page.reload(); await page.waitForFunction
 async function v2View(browser, file, width){
   const tag = ` (${width} px)`;
   const {ctx, page, errors} = await L.openPage(browser, file, {viewport: {width, height: 900}}, consoleTrap);
-  page.on('dialog', d => d.accept());
+  page.on('dialog', d => d.accept().catch(() => {}));
   const R0 = '0:0', R1 = '0:1', F0 = ID0 + ':indication';
   await v2Open(page);
   const opts0 = await page.$$eval(`${pane} [data-dl="ask"] option`, o => o.map(x => [x.value, x.textContent]));
@@ -711,7 +711,7 @@ async function v2View(browser, file, width){
    reported, and checked against the rule as the README states it. */
 async function v2ImportMeasure(browser, file){
   const {ctx, page} = await L.openPage(browser, file, {viewport: {width: 820, height: 900}}, consoleTrap);
-  page.on('dialog', d => d.accept());
+  page.on('dialog', d => d.accept().catch(() => {}));
   const exportNow = async () => { await page.evaluate(() => show('settings'));
     const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#btnExport')]); return fs.readFileSync(await dl.path(), 'utf8'); };
   const planOf = async text => { const f = path.join(require('os').tmpdir(), `dlo-m-${process.pid}-${Math.random().toString(36).slice(2)}.json`); fs.writeFileSync(f, text);
