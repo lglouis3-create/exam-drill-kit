@@ -373,6 +373,13 @@ pull request; update `FEATURES.md` versions, "best for", "weaker at" and evidenc
 retiring a version only where evidence shows a newer one is better at everything the
 older one was best for.
 
+The coordinator also starts a retro without being asked (`coordinator/RUN.md` step 2):
+when a course becomes recently completed, when a registry item is adopted, when a major
+feature merges, and when a technical problem is resolved. Each retro is written to
+`coordinator/retros/<course>-<date>.md` and its reusable findings go to
+`coordinator/improvements.json`. A passing test is not evidence that a feature helps
+learning; say what was observed.
+
 ## Mode 7: update a drill
 
 **Moving a course onto the core, or any update Louis asks for by name:** build the
@@ -505,12 +512,17 @@ answer log, and turn what it shows into improvement proposals.
   - recently completed: weekly;
   - completed: monthly, with a quarterly deep audit;
   - archived: only on change.
-- It skips unchanged code and records every improvement it finds in
-  `coordinator/improvements.json`. Preparing improvements (branches, pull requests, port-queue
-  entries) and starting retrospectives on its own are a separate proposal for Louis's yes or
-  no; until it is merged, a run prepares nothing and a retrospective happens only when Louis
-  asks for one (Mode 6).
+- It skips unchanged code, tracks every improvement in `coordinator/improvements.json`,
+  and hands reusable features to the port queue.
 - It never publishes a course site or merges a course repository's main.
+
+### Choosing features from the registry
+
+When a course is set up or its design is checked (Mode 1 step 3, Mode 2), read
+`coordinator/improvements.json` alongside `FEATURES.md`. Offer an adopted improvement only
+where the course's material calls for it, and say when it would add complexity for no gain.
+Professor-taught exam content and optional supplemental material stay apart; the rules for
+scored questions are unchanged.
 
 ## The scheduler
 
