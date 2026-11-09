@@ -289,8 +289,9 @@ changes an earlier section, this section is current.
 
 1. **Every course session attaches the kit first** (Louis, 2026-10-31). Before
    doing anything, a course session attaches `exam-drill-kit` alongside the course
-   repo, with push access, reads `FEATURES.md`, `COURSES.md` and `core/` from it,
-   and opens kit pull requests for new features, upgrades and catalog updates. If
+   repo, with push access, reads `FEATURES.md`, `COURSES.md` and `core/` from it
+   (amended on Louis's yes to #64: what a session reads from these files is set by
+   `skill/SKILL.md` "Before anything else" step 2), and opens kit pull requests for new features, upgrades and catalog updates. If
    push access to the kit is refused, the session stops and tells Louis. Course
    content stays in the course repo (§7.3).
 2. **The core is assembled from the best version of each part**, not taken whole

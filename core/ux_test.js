@@ -282,6 +282,44 @@ const NAMES = ['Zylonol', 'Quarbate', 'Fenmorine'];
         check(place.y0 > 0 && place.y1 === place.y0 && place.y2 === place.y0 && place.y3 === place.y0,
           `Enlarge, then Escape or Close, leaves the page where it was (${where === 'top' ? 'figure at the top of the screen' : 'page scrolled to its end'})`, JSON.stringify(place));
       }
+      // a figure of fractional height (487.45 px, which offsetHeight rounds to 487)
+      // with a 0.6 px spacer after it, the page scrolled to its end: the exact scroll
+      // position and page height stay the same while enlarged and after Close and
+      // Escape (kit #90; the rounded checks above pass with this defect present)
+      const frac = await page.evaluate(async () => {
+        const raf = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+        show('diagrams'); await raf();
+        const figs = [...document.querySelectorAll('#v-diagrams figure')].filter(f => f.querySelector('[data-go="big"]'));
+        const fig = figs[figs.length - 1];
+        if(!fig) return null;
+        const oldH = fig.style.height;
+        const spacer = document.createElement('div');
+        spacer.id = 'ux-frac-spacer'; spacer.style.height = '0.6px';
+        fig.style.height = '487.45px'; fig.after(spacer);
+        const big = () => fig.querySelector('[data-go="big"]');
+        const at = () => ({y: window.scrollY, h: document.documentElement.scrollHeight});
+        const out = {};
+        try {
+          await raf();
+          window.scrollTo(0, document.documentElement.scrollHeight); await raf();
+          out.before = at();
+          big().click(); await raf(); out.enlarged = at();
+          big().click(); await raf(); out.afterClose = at();
+          big().click(); await raf(); out.enlarged2 = at();
+          document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape', bubbles: true})); await raf();
+          out.afterEscape = at();
+        } finally {
+          if(fig.classList.contains('big')) big().click();
+          spacer.remove(); fig.style.height = oldH;
+          window.scrollTo(0, 0); await raf();
+        }
+        out.cleaned = !document.getElementById('ux-frac-spacer') && fig.style.height === oldH && !document.querySelector('figure.big');
+        return out;
+      });
+      const same = frac && ['enlarged', 'afterClose', 'enlarged2', 'afterEscape'].every(k =>
+        frac[k].y === frac.before.y && frac[k].h === frac.before.h);
+      check(!!frac && frac.before.y > 0 && same && frac.cleaned,
+        'a figure of fractional height at the end of the page: the exact scroll position and page height stay the same through Enlarge, Close and Escape', JSON.stringify(frac));
     }
     check(!errors.length, 'no page error on the Diagrams tab', errors.join(' | '));
     await ctx.close();
