@@ -42,9 +42,11 @@ hits += stemHits;
 
 console.log('=== Style check (rebuilt questions only) ===');
 const teachText = t => Array.isArray(t) ? t.map(p=>[p.h,p.t].filter(Boolean).join('. ')).join(' ') : (t||'');
-const rebuilt = Q.filter(q=>q.teach);
+// a fill-in-the-blank item may carry its explanation as `why` with no concept block
+const rebuilt = Q.filter(q=>q.teach || (q.type==='blank' && q.why));
 for(const q of rebuilt){
-  scan(teachText(q.teach), q.id+' · concept block');
+  if(q.teach) scan(teachText(q.teach), q.id+' · concept block');
+  if(q.type==='blank' && q.why) scan(q.why, q.id+' · explanation');
   (q.options||[]).forEach((o,i)=>scan(o.why, q.id+' · option '+'ABCDEFGHIJ'[i]));
   (q.steps||[]).forEach((st,i)=>scan(st.why, q.id+' · step '+(i+1)));
   (q.pairs||[]).forEach((p,i)=>scan(p.why, q.id+' · pair '+(i+1)));
