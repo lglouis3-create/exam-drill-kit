@@ -402,6 +402,16 @@ function dltRender(pane, keepTerm){
   const reveal = ref => {
     if(DLR.revealed.has(ref)) DLR.revealed.delete(ref); else DLR.revealed.add(ref);
     delete DLO.open[ref];                 // a new opening is a new rating (DEENT's openTok)
+    // Not yet Knew is on and this row's last rating is Knew: hiding it ends its place in the list,
+    // so it is dropped now and the focus goes to the next row's Reveal, else to the filter chip
+    if(!DLR.revealed.has(ref) && DLR.recall && DLO.ask && DLO.notKnew && !dloNotKnew(ref)){
+      const refs = [...body.querySelectorAll('tr[data-ref]')].map(x => x.dataset.ref);
+      const nxt = refs[refs.indexOf(ref) + 1];
+      draw(input.value);
+      const nb = (nxt && body.querySelector('[data-reveal="' + nxt + '"]')) || pane.querySelector('[data-dl="notknew"]');
+      if(nb) nb.focus();
+      return;
+    }
     redraw(ref, '[data-reveal="' + ref + '"]');
   };
   const redraw = (ref, focus) => {

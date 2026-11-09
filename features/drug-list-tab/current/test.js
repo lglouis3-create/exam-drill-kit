@@ -677,6 +677,17 @@ async function v2View(browser, file, width){
   await page.click(`${pane} [data-dl="notknew"]`);
   const refs = await page.$$eval(`${pane} tr[data-ref]`, t => t.map(x => x.dataset.ref));
   check(refs.length === all - 1 && !refs.includes(R1) && refs.includes(R0), `Not yet Knew hides the one row last rated Knew (${all} rows, then ${refs.length})` + tag, {all, n: refs.length});
+  // the filter stays right after a rating: a row rated Knew stays while open, and leaves on Hide again
+  const R2 = '0:2';
+  await page.click(`${pane} [data-reveal="${R2}"]`); await page.click(`${pane} [data-rate="${R2}"][data-r="knew"]`);
+  check(refs.length === (await page.$$eval(`${pane} tr[data-ref]`, t => t.length)) && !!(await page.$(`${pane} tr[data-ref="${R2}"]`)), 'Not yet Knew: a row just rated Knew stays while it is open' + tag);
+  const order = await page.$$eval(`${pane} tr[data-ref]`, t => t.map(x => x.dataset.ref));
+  const nextRef = order[order.indexOf(R2) + 1];
+  await page.click(`${pane} [data-reveal="${R2}"]`);     // Hide again
+  const left = await page.$$eval(`${pane} tr[data-ref]`, t => t.map(x => x.dataset.ref));
+  check(!left.includes(R2) && left.join() === order.filter(x => x !== R2).join(), 'Not yet Knew: Hide again on a row last rated Knew drops it from the list' + tag, {left});
+  const foc = await page.evaluate(() => { const a = document.activeElement; return a && (a.dataset.reveal || a.dataset.dl || null); });
+  check(foc === (nextRef || 'notknew'), 'the focus goes to the next row\'s Reveal, else to the Not yet Knew chip' + tag, {foc, nextRef});
   await page.click(`${pane} [data-dl="notknew"]`);
   await page.selectOption(`${pane} [data-dl="ask"]`, 'essential');
   check(/^Essential knowledge: not rated yet · bank question: Not practised$/.test(await statusOf(page, R1) || ''), 'each field is its own fact: R1\'s essential knowledge is not rated, with its own bank question' + tag, await statusOf(page, R1));
