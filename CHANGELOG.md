@@ -2,6 +2,9 @@
 
 Dated kit changes, newest first.
 
+## 2026-11-09 (checks: scratch folders)
+- The checks' scratch folders are removed when their run passes and kept when it fails (reported by the DEENT session on 2026-11-08: 4,121 leftover folders, about 22 GB, filled its container's disk and stopped browser checks mid-run). `check_lib.js` records each folder `scratchRepo` makes (and so `scratchBuild`) and removes those, by exact path, when the check exits with no failed check; on a FAIL, a crash or a timeout it keeps them and prints `kept for inspection: <paths>`. `run_checks.sh` removes its `drill-checks-*` log folder when no check failed (it reads a check's summary from the line before the "kept" line, so every PASS, FAIL, NOT RUN and REPORT line reads as before). `ci_course.sh` removes its `kit-ci-*` work folder and the log folder when it exits 0, from a trap on EXIT, and otherwise keeps and names them. `state_check_test.js` lists its shallow clone (`state-test-*-shallow`) with its scratch copy. `KEEP_TEST_TMP=1` keeps everything. No check's assertions or results change. Test only.
+
 ## 2026-11-08 (build: link-preview tags)
 - `course.js` `share` (optional; requested by the DEENT session): `title`, `description`, `url` and `image` give the page its `<title>` and the og:/twitter: tags that iMessage, Slack and social sites read when its address is shared; every value HTML-escaped; og:url ends in `preview/` on a preview build; `image`, a PNG in `src/icons/`, is copied to the site root. A wrong value stops the build before it writes. Without `share` every file the build writes is byte for byte what it wrote before (`share_test.js`, against main's `build.py`).
 - `course.js` `manifest.short_name` (optional): the manifest's `short_name`, the name under the Home Screen icon; the page keeps `short`.

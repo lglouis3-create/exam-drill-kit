@@ -78,7 +78,8 @@ const views = path.join(src, 'views.js'), viewsText = fs.readFileSync(views, 'ut
 fs.writeFileSync(views, viewsText + `\nconst __planted = /${LB}a)b/;\n`);
 r = run('device_lint.js');
 check(r.code === 1 && /views\.js:\d+/.test(r.out), 'device_lint.js fails on a lookbehind in a shipped source and names the line', `exit ${r.code}: ${r.last.slice(0, 120)}`);
-const rc = run('run_checks.sh', ['device_lint.js', 'test.js']);
+// its log folder, kept because a check fails, is made inside the scratch copy and goes with it
+const rc = run('run_checks.sh', ['device_lint.js', 'test.js'], {TMPDIR: repo});
 check(rc.code === 1 && /^FAIL +device_lint\.js /m.test(rc.out), 'run_checks.sh prints FAIL for it and exits 1', `exit ${rc.code}: ${rc.out.slice(-200)}`);
 fs.writeFileSync(views, viewsText);
 child.spawnSync('python3', ['build.py'], {cwd: src});
