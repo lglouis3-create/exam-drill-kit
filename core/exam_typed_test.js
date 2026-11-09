@@ -46,7 +46,7 @@ QUESTIONS.push({id:'et-match', type:'match', prof:COURSE.professors[0], tier:'ne
   concept:'et-match', skill:COURSE.skills[0].id, source:'slide', tags:[], stem:'Match each quantity to its unit.', left:'Quantity', right:'Unit',
   pairs:[{l:'Infusion rate', r:'mg/hr', why:'An amount per time.'}, {l:'Volume of distribution', r:'L', why:'A volume.'}, {l:'Elimination rate constant', r:'hr⁻¹', why:'A reciprocal time.'}],
   teach:'Each quantity carries its own unit.', cite:'Test (' + COURSE.lectures[0].deck + ') slide 1'});\n`;
-const paperLine = typed => `COURSE.activeExam = COURSE.exams[0].id; Object.assign(COURSE.exams[0], {typed: ${typed}, questions: 10, sata: 0, blueprint: undefined,
+const paperLine = typed => `COURSE.activeExam = COURSE.exams[0].id; Object.assign(COURSE.exams[0], {typed: ${typed}, blanks: undefined, questions: 10, sata: 0, blueprint: undefined,
   pools: [{key: 'all', name: 'The whole bank', marks: 10, filter: {}}]});`;
 
 (async () => {
