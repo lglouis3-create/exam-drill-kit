@@ -66,6 +66,11 @@ const startAndPick = page => page.evaluate(() => {
   show('exam');
   const s = document.getElementById('startExam'); if(!s) return null;
   s.click();
+  // a paper with exams[].typed may open on a typed item (no options): an item with options is put first
+  if(EX && EX.qs[0] && !EX.qs[0].options){
+    const k = EX.qs.findIndex(q => q.options);
+    if(k > 0){ for(const f of ['qs', 'picks', 'orders']){ const t = EX[f][0]; EX[f][0] = EX[f][k]; EX[f][k] = t; } saveExam(); renderExamQ(); }
+  }
   const b = document.querySelector('#v-exam .opt'); if(!b) return null;
   const oi = +b.dataset.o; b.click();
   return oi;

@@ -107,8 +107,8 @@ const next = p => p.evaluate(() => { const b = document.getElementById('btnNext'
     } else {
       await p.evaluate(() => {
         const b = document.querySelector('#v-exam button.opt'); if(b) b.click();
-        else { const q = EX.qs[EX.i], n = document.getElementById('exNum');   // a calculation or matching item first (exams[].typed)
-          if(n){ n.value = String(q.answer); n.dispatchEvent(new Event('input')); } else if(q.pairs){ EX.picks[EX.i] = q.pairs.map((p, i) => i); saveExam(); } } });
+        else { const q = EX.qs[EX.i], n = document.getElementById('exNum'), t = document.getElementById('exBlank');   // a calculation, fill-in-the-blank or matching item first (exams[].typed)
+          if(n){ n.value = String(q.answer); n.dispatchEvent(new Event('input')); } else if(t){ t.value = q.accept[0]; t.dispatchEvent(new Event('input')); } else if(q.pairs){ EX.picks[EX.i] = q.pairs.map((p, i) => i); saveExam(); } } });
       await p.click('#exEnd');
       await p.waitForTimeout(300);
       log = await readLog(p);

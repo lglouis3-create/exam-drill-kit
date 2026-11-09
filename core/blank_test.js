@@ -101,7 +101,7 @@ const QF = `;(() => {
 // course.js runs before the question files, so the two pools name the topics by the ids q1_topics.js gives them
 const topicIds = (fs.readFileSync(path.join(L.PAGE.SRC, 'q1_topics.js'), 'utf8').match(/\{\s*id\s*:\s*'[^']+'[^{}]*subs\s*:/g) || [])
   .map(t => t.match(/'([^']+)'/)[1]);
-const paperLine = (typed, extra) => `COURSE.activeExam = COURSE.exams[0].id; Object.assign(COURSE.exams[0], {typed: ${typed}, questions: 10, sata: 0, blueprint: undefined,
+const paperLine = (typed, extra) => `COURSE.activeExam = COURSE.exams[0].id; Object.assign(COURSE.exams[0], {typed: ${typed}, blanks: undefined, questions: 10, sata: 0, blueprint: undefined,
   pools: [{key: 'a', name: 'First topic', marks: 5, filter: {topic: ${JSON.stringify(topicIds[0])}}}, {key: 'b', name: 'Second topic', marks: 5, filter: {topic: ${JSON.stringify(topicIds[1])}}}]}, ${extra || '{}'});`;
 
 const testJs = src => child.spawnSync('node', ['test.js'], {cwd: src, encoding: 'utf8', env: childEnv, timeout: 300000});
@@ -215,9 +215,12 @@ const testJs = src => child.spawnSync('node', ['test.js'], {cwd: src, encoding: 
       check(same(d3.sizes, 10) && same(d3.poolA, 5) && same(d3.poolB, 5), 'each paper keeps its size and both pools their 5 marks', {s: d3.sizes.join(), a: d3.poolA.join(), b: d3.poolB.join()});
       check(d3.dup === 0 && d3.typesKept, 'no paper holds two wordings of one fact (dupOf) or a question twice, and the items keep their type', d3);
       const d50 = await draws(page, 50);
-      // 5 families of blank items in the first topic (pool of 5 marks) and 1 in the second: 6 at most
-      check(same(d50.counts, 6) && same(d50.poolA, 5) && same(d50.poolB, 5) && d50.dup === 0,
-            'blanks: 50 on a bank with 6 blank families gives the 6 it has, within the pools\' marks and dupOf', {c: d50.counts.join(), dup: d50.dup});
+      // the most a paper can hold: per pool (the two are disjoint, by topic), its blank families, at most its marks
+      // (on the template: 5 families in the first topic, a pool of 5 marks, and 1 in the second: 6)
+      const most = await page.evaluate(() => EXAM.pools.reduce((n, p) => n + Math.min(p.marks,
+        new Set(requiredQs().filter(q => q.type === 'blank' && !q.lowYield && p.test(q)).map(familyOf)).size), 0));
+      check(same(d50.counts, most) && same(d50.poolA, 5) && same(d50.poolB, 5) && d50.dup === 0,
+            `blanks: 50 on a bank with fewer gives the ${most} it can, within the pools' marks and dupOf`, {c: d50.counts.join(), dup: d50.dup});
       const d0 = await draws(page, 0);
       check(same(d0.counts, 0) && same(d0.sizes, 10), 'blanks: 0 keeps them off the paper', d0.counts.join(','));
       const du = await draws(page, 'unset');

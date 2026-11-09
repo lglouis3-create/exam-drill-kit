@@ -316,7 +316,8 @@ const badWords = page => page.evaluate(src => {
     if(!A || !B) L.skip('pools with and without marks', 'the course has no two topics with questions a paper can draw (one with two concepts)');
     else {
       const n = A.qs.length + B.qs.length;
-      const line = `{ ${ACTIVE} E.questions = ${n}; delete E.blueprint;
+      // the paper's size is the two topics' untyped items, so typed items (exams[].typed, blanks) stay off it
+      const line = `{ ${ACTIVE} E.questions = ${n}; delete E.blueprint; E.typed = false; delete E.blanks;
         E.pools = [{key:'za', name:'Section A', marks:1, filter:{topic:${JSON.stringify(A.id)}}}, {key:'zb', name:'Section B', marks:null, filter:{topic:${JSON.stringify(B.id)}}}]; }`;
       const b = L.scratchBuild('nullexam-test', {courseLine: line});
       built.push(b);
