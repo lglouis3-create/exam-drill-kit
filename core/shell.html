@@ -393,6 +393,7 @@ body.swbar-on{padding-bottom:76px}
 .numin{display:flex;align-items:center;gap:10px;margin:14px 0 6px}
 .numin input{font:inherit;font-size:17px;padding:9px 12px;border:1.5px solid var(--line);border-radius:8px;width:180px;max-width:60%}
 .numin .units{font-size:15px;color:var(--text-dim)}
+.blankin input{width:320px;max-width:100%}
 .steps{margin:10px 0 6px;padding-left:22px}
 .steps li{margin:6px 0}
 .steps .stepk{display:inline-block;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--text-dim);width:118px}
@@ -1531,7 +1532,8 @@ function load(){
                   "Knew it"), 'unsure' ("Not sure"), 'guessed' ("I guessed"),
                   'sure' ("I was sure of that" on a miss), or '' when none
                   was given (a miss left as it was, an exam paper)
-   item type      'mc', 'multi' (select all), 'numeric', 'match'
+   item type      'mc', 'multi' (select all), 'numeric', 'match', 'blank'
+                  (fill in the blank)
    scheduler      the model that schedules the question's concept and, in
                   mode 'quiz', picked the question: 'concept', 'fsrs' or
                   'concept-fsrs' (scheduler proposal §5)
