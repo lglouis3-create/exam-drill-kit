@@ -143,10 +143,11 @@ under an answered question.
 
 ```
 {id, skill, prof, tier:'new'|'old', topic, sub, concept, tags, source:'slide'|'transcript'|'both',
- multi, lowYield, dupOf, type:'numeric'|'match',
+ multi, lowYield, dupOf, type:'numeric'|'match'|'blank',
  stem, img, options:[{t, correct, why}], teach, teachImg, svg, note, quote, cite, read}
 numeric: units, answer, tol, steps:[{k:'setup'|'unit'|'algebra'|'round', t, why}]
 match:   left, right, pairs:[{l, r, why}]
+blank:   stem with ___, accept:['shown answer', 'other accepted wording', …], why (no options)
 ```
 
 Rules the checks enforce: one correct option (or `multi` with two or more and a

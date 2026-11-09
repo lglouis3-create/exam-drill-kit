@@ -56,7 +56,7 @@ L.check(/preview:false/.test(livePage) && !/id="previewnote"/.test(livePage), 't
     const page = await ctx.newPage();
     const errors = [];
     page.on('pageerror', e => errors.push(e.message));
-    page.on('dialog', d => d.accept());
+    page.on('dialog', d => d.accept().catch(() => {}));
     // The live drill first, with an answer saved.
     await page.goto(site.url + 'index.html');
     await page.waitForFunction(() => typeof NS === 'string' && typeof store === 'object' && document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
