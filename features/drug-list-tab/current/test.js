@@ -791,7 +791,8 @@ async function v2Days(browser, file){
    2,000-rating cap, by time, with its storage measured. */
 const noteOf = (page, ref) => page.$eval(`${pane} tr.dlt-recall[data-for="${ref}"] [data-ratenote]`, p => [p.dataset.saved, p.textContent.replace(/\s+/g, ' ').trim()]).catch(() => [null, null]);
 const storedEv = page => page.evaluate(() => { try { const d = JSON.parse(localStorage.getItem(NS + ':data:' + PROFILE) || 'null'); return d && d.drugs ? d.drugs.ev : null; } catch(e){ return 'unreadable'; } });
-async function v2Saved(browser, file){
+async function v2Saved(browser, file, tag){
+  tag = tag || '';
   const R0 = '0:0';
   // the normal path: the note is read at once after the click
   {
@@ -800,7 +801,7 @@ async function v2Saved(browser, file){
     await page.click(`${pane} [data-reveal="${R0}"]`); await page.click(`${pane} [data-rate="${R0}"][data-r="knew"]`);
     const n = await noteOf(page, R0), st = await storedEv(page);
     check(n[0] === '1' && n[1] === 'Saved in this profile\'s progress: Knew.' && Array.isArray(st) && st.length === 1 && st[0].r === 'knew',
-          'save: right after the click the note says Saved, and the stored progress holds the rating', {n, st});
+          'save: right after the click the note says Saved, and the stored progress holds the rating' + tag, {n, st});
     // where the core writes progText(DB) (a part kept outside localStorage, #81), the comparison uses it:
     // a stored text equal to progText(DB) and not to JSON.stringify(DB) is stored; without progText it is not
     const ptCheck = () => page.evaluate(() => { const k = keyFor(PROFILE), was = localStorage.getItem(k), api = FX.api('drug-list-tab');
@@ -812,12 +813,12 @@ async function v2Saved(browser, file){
       if(core) window.progText = core; else { delete window.progText; withoutPt = api.stored(); }
       localStorage.setItem(k, was); return {core: !!core, withPt, withoutPt, back: api.stored()}; });
     const pt = await ptCheck();
-    check(pt.withPt === true && pt.withoutPt === false && pt.back === true, 'save: the stored text is compared with progText(DB) when the core has it, else with JSON.stringify(DB)', pt);
+    check(pt.withPt === true && (pt.core ? pt.withoutPt === null : pt.withoutPt === false) && pt.back === true, 'save: the stored text is compared with progText(DB) when the core has it, else with JSON.stringify(DB)' + tag, pt);
     // a core with a top-level progText of its own (the follow-up review of #92): it is put back, and the note reads it
     await page.evaluate(() => { const sc = document.createElement('script'); sc.textContent = 'function progText(db){ return JSON.stringify(db); }'; document.head.appendChild(sc); });
     const pt2 = await ptCheck();
     check(pt2.core === true && pt2.withPt === true && pt2.back === true && (await page.evaluate(() => typeof progText === 'function' && progText({answers: []}) === '{"answers":[]}')),
-          'save: with a top-level progText in the core, the check stubs it and puts the core\'s own back, and the stored progress still reads as stored', pt2);
+          'save: with a top-level progText in the core, the check stubs it and puts the core\'s own back, and the stored progress still reads as stored' + tag, pt2);
     await ctx.close();
   }
   // the browser refuses the write of the progress
@@ -829,7 +830,7 @@ async function v2Saved(browser, file){
     await page.click(`${pane} [data-reveal="${R0}"]`); await page.click(`${pane} [data-rate="${R0}"][data-r="knew"]`);
     const n = await noteOf(page, R0), st = await storedEv(page), failed = await page.evaluate(() => FAILED.has(keyFor(PROFILE)));
     check(failed && st === null && n[0] === '0' && /^Not saved: Knew is on this page only\./.test(n[1] || ''),
-          'save: with the write refused (FAILED), the note says Not saved, and nothing is stored', {failed, st, n});
+          'save: with the write refused (FAILED), the note says Not saved, and nothing is stored' + tag, {failed, st, n});
     await ctx.close();
   }
   // a stale second tab, without Web Locks: the other tab saved since this one loaded
@@ -844,7 +845,7 @@ async function v2Saved(browser, file){
     await b.click(`${pane} [data-reveal="${R0}"]`); await b.click(`${pane} [data-rate="${R0}"][data-r="forgot"]`);
     const na = await noteOf(a, R0), nb = await noteOf(b, R0), st = await storedEv(b);
     check(locks === false && na[0] === '1' && nb[0] === '0' && /^Not saved: Forgot is on this page only\./.test(nb[1] || '') && Array.isArray(st) && st.length === 1 && st[0].r === 'knew',
-          'save: in a stale second tab without Web Locks, the note says Not saved; the store holds only the other tab\'s rating', {locks, na, nb, st});
+          'save: in a stale second tab without Web Locks, the note says Not saved; the store holds only the other tab\'s rating' + tag, {locks, na, nb, st});
     await ctx.close();
   }
 }
@@ -972,6 +973,9 @@ async function v2ImportMeasure(browser, file){
     recallDefault: true, recallShow: ['generic', 'activity'], recallClassField: ''});
   const s3 = build('dlt-subshow', actTables, o3);
   const s4 = buildV2('dlt-v2', T, V2_OPT, V2_FACTS);
+  // a course whose core has a top-level progText (as #81's ink layer has), declared in course.js
+  const s5 = L.scratchBuild('dlt-v2pt', {files: {[FILE]: dataFileV2(T, V2_FACTS)},
+    courseLine: `COURSE.files = (COURSE.files || ['atlas.js', 'diagrams.js', 'q1_topics.js']).concat([${JSON.stringify(FILE)}]);` + L.featureOn(__dirname, V2_OPT) + '\nfunction progText(db){ return JSON.stringify(db); }\n'});
   const {browser} = await L.launch(NAME);
   try {
     for(const w of [390, 820]){ console.log(`\n--- ${w} px ---`); await bdkView(browser, s.page, w); }
@@ -1000,6 +1004,8 @@ async function v2ImportMeasure(browser, file){
       await v2Days(browser, s4.page);
       console.log('\n--- v2, the note says Saved only when stored ---');
       await v2Saved(browser, s4.page);
+      if(s5.code !== 0) check(false, 'the scratch copy with a top-level progText in course.js builds', s5.out.split('\n').pop());
+      else { console.log('\n--- v2, the Saved note with a top-level progText in the core ---'); await v2Saved(browser, s5.page, ' (a core with a top-level progText)'); }
       console.log('\n--- v2, the 2,000-rating cap ---');
       await v2Cap(browser, s4.page);
       console.log('\n--- v2, Import measured ---');
@@ -1013,7 +1019,7 @@ async function v2ImportMeasure(browser, file){
     }
   } finally {
     await browser.close();
-    s.rm(); s2.rm(); s3.rm(); s4.rm();
+    s.rm(); s2.rm(); s3.rm(); s4.rm(); s5.rm();
   }
   L.finish(NAME);
 })().catch(e => { console.log('FAIL: ' + NAME + ': crashed: ' + (e && e.stack || e)); process.exit(1); });
