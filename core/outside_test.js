@@ -1028,7 +1028,9 @@ const stroke = n => ({t: 'pen', c: '#111111', w: 0.003, p: [0.1 * n, 0.2, 0.3, 0
         await p.evaluate(() => { window.dispatchEvent(new PageTransitionEvent('pageshow', {persisted: true})); });
         await p.waitForFunction(() => navigator.locks.query().then(q => (q.held || []).some(l => l.name === 'exam-drill-tab:' + TAB_ID)), null, {timeout: 3000}).catch(() => {});
         const shown = await count();
-        check(whileCached === 0 && shown === 1, 'bfcache: a tab lock granted after the page went into the back/forward cache is let go at once, and taken again (exactly once) when the page is shown', {whileCached, shown});
+        await p.waitForTimeout(300);
+        const pending = await p.evaluate(() => navigator.locks.query().then(q => (q.pending || []).filter(l => l.name === 'exam-drill-tab:' + TAB_ID).length));
+        check(whileCached === 0 && shown === 1 && pending === 0, 'bfcache: a tab lock granted after the page went into the back/forward cache is let go at once, and taken again (exactly once, with no second request waiting) when the page is shown', {whileCached, shown, pending});
         // a page that is only hidden (visibilitychange, no pagehide) is still open and keeps its lock
         await p.evaluate(() => { Object.defineProperty(document, 'visibilityState', {value: 'hidden', configurable: true}); document.dispatchEvent(new Event('visibilitychange')); });
         await p.waitForTimeout(400);
