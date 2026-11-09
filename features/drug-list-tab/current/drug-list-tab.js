@@ -203,7 +203,10 @@ const DLO_RATE = [['forgot', 'Forgot', 'I could not produce it.'], ['partly', 'P
 const DLO_NAME = {forgot: 'Forgot', partly: 'Partly', knew: 'Knew'};
 /* the visit's choices (memory only): the field asked, the Not yet Knew filter, and each
    row's rating of its current opening (DEENT's openTok) */
-const DLO = {ask: '', notKnew: false, open: {}};
+const DLO = {ask: '', notKnew: false, open: {}, db: null};
+/* the openings belong to the progress on screen: a profile switch, an Import or Erase my
+   history (a new DB) starts them again, so no rating of another profile shows or is replaced */
+const dloMine = () => { if(DLO.db !== DB){ DLO.open = {}; DLO.db = DB; } return DLO.open; };
 const dloSlug = s => String(s == null ? '' : s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 const dloRow = ref => { const [ti, i] = ref.split(':').map(Number); return dltTables()[ti].rows[i]; };
 const dloFact = (ref, f) => dloSlug(dloRow(ref)[OPT.idField]) + ':' + f;
@@ -248,7 +251,7 @@ function dloStatus(ref){
   return `<p class="dlo-status" data-status="${dltText(fact)}">${out}</p>`;
 }
 function dloRateBlock(ref){
-  const cur = DLO.open[ref] ? DLO.open[ref].r : '';
+  const open = dloMine(), cur = open[ref] ? open[ref].r : '';
   return `<div class="dlo-rate" role="group" aria-label="How well did you recall it?">${DLO_RATE.map(([r, l]) =>
     `<button type="button" class="chip" data-rate="${ref}" data-r="${r}" aria-pressed="${cur === r}">${l}</button>`).join('')}</div>
     <ul class="dlo-crit">${DLO_RATE.map(([, l, c]) => `<li><b>${l}:</b> ${dltText(c)}</li>`).join('')}</ul>
@@ -258,7 +261,7 @@ function dloRateBlock(ref){
 function dloRate(ref, r){
   if(!DLO_RATE.some(x => x[0] === r) || !DLO.ask) return;
   if(!DB.drugs || !Array.isArray(DB.drugs.ev)) DB.drugs = {v: 1, ev: []};
-  const fact = dloFact(ref, DLO.ask), mine = DLO.open[ref];
+  const fact = dloFact(ref, DLO.ask), mine = dloMine()[ref];
   const keep = mine && mine.f === fact && DB.drugs.ev.indexOf(mine) >= 0;
   if(keep){ mine.r = r; mine.at = Date.now(); }
   else { const e = {f: fact, r, at: Date.now()}; DB.drugs.ev.push(e); DLO.open[ref] = e; }

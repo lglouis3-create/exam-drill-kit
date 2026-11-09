@@ -603,7 +603,8 @@ const v2Open = async (page, field) => {
   await page.click(`#nav button[data-v="${V2_OPT.tab}"]`);
   await page.click(`${pane} [data-listgroup="-1"]`);
   if(await page.$eval(`${pane} [data-dl="recall"]`, b => b.getAttribute('aria-pressed')) !== 'true') await page.click(`${pane} [data-dl="recall"]`);
-  if(field !== undefined) await page.selectOption(`${pane} [data-dl="ask"]`, field);
+  // only a different field is chosen: choosing the same one again would start the openings again
+  if(field !== undefined && await page.$eval(`${pane} [data-dl="ask"]`, s => s.value) !== field) await page.selectOption(`${pane} [data-dl="ask"]`, field);
 };
 const statusOf = (page, ref) => page.$eval(`${pane} tr.dlt-recall[data-for="${ref}"] [data-status]`, p => p.textContent.replace(/\s+/g, ' ').trim()).catch(() => null);
 const v2Reload = async page => { await page.reload(); await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000}); };
