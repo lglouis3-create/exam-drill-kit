@@ -49,6 +49,20 @@ heads).
   approval covers development, not storage, import or recovery, scheduling,
   migrations, destructive actions, test weakening or course publication; any of those goes to him
   with a concrete proposal. The other parts' items stay `planned` until he approves their part.
+- Drug list outcomes kept in progress, queue item 23 (`drug-list-persistent-outcomes`, proposed by the DEENT
+  session; `coordinator/improvements.json`). Louis, 2026-11-09, answering the central session's recommendation:
+  "Whatever you recommend is the best" (the central session's message to the porter at 01:06 UTC). The
+  recommendation, now his decision: develop and test it, and bring the pull request to him before any merge or
+  any course switches it on. It is new progress storage with Import consequences, so it is handled as #81 is:
+  it does not merge under decision 10, and it is built as drug-list-tab v2, off by default. Scope: a `DB.drugs`
+  progress part (the equation-drill pattern) keyed by a stable fact id `drugId:field`, recording the outcome,
+  recognition or recall, and the self-rating, never typed text; a fact-to-bank-question map, so that an answer
+  on a fact that has a bank question is recorded once, on that question, and nothing is recorded through
+  `record()` for an item that is not a bank question; the Import behaviour of a module record that changes
+  without an answer (`core/README.md` 805-816) measured, with a proposal for it; profile isolation, Export and
+  Import round trip, Reset and the per-tab record (#69); each test reads its data back after a reload and fails
+  on a deliberately broken version. Source: DEENT at `main` `b747e49` or later, read-only, for the data shape
+  and the fact ids, with the shape agreed with the DEENT session.
 - Read each item from the repository in its Source column. For items 18 and 21, use only Intro to
   Pharmacology's implementation; BDK's versions belong to BDK's migration.
 - The queue is not finished because every item has a branch or a pull request.
