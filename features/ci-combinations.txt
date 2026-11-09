@@ -19,3 +19,12 @@ theme,*
 # (with equation-drill off they are SKIPPED). Not one Louis named; added by the port of queue
 # item 3, 2026-11-02.
 terms-variables,equation-drill
+drug-list-tab,field-colours
+# field-colours' ci/oncourse.js switches drug-list-tab on itself (copied in, with its own
+# ci/oncourse.js) when the course does not have it on; drug-list-tab's script stops on a
+# course that already has it, so no line may name drug-list-tab after field-colours. The
+# line above names drug-list-tab first, so a change to drug-list-tab alone also runs
+# field-colours' test.
+# compare-tab with the two modules it works with: drug-list-tab's Compare button and
+# field-colours on its row headings (in this order: drug-list-tab first, as above).
+drug-list-tab,field-colours,compare-tab

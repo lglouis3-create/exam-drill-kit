@@ -2452,16 +2452,23 @@ const EXAM_SATA = EXAM.sata || 0;
    select-all" beside a paper that held none. */
 const EXAM_SAMPLE = 20;
 let EXAM_SATA_SEEN = null;
+/* True while the opening page draws its sample papers: they are not new papers, so the
+   feature modules' X.paper hooks (core/features.js) do not run on them. The samples
+   describe this exam's own draw; a hook may reorder the questions or put others in
+   their place (paper-picker), and such a module describes its own paper. */
+let EXAM_SAMPLING = false;
 function examSataDrawn(){
   const key = JSON.stringify([EXAM.id, EXAM.questions, EXAM.sata, EXAM.blueprint || null, (EXAM.pools || []).map(p => [p.key, p.marks]), QUESTIONS.length]);
   if(EXAM_SATA_SEEN && EXAM_SATA_SEEN.key === key) return EXAM_SATA_SEEN;
   let lo = Infinity, hi = 0;
   try {
+    EXAM_SAMPLING = true;
     for(let k = 0; k < EXAM_SAMPLE; k++){
       const c = (drawPaper() || []).filter(isMulti).length;
       lo = Math.min(lo, c); hi = Math.max(hi, c);
     }
   } catch(e){ lo = hi = 0; }
+  finally { EXAM_SAMPLING = false; }
   if(lo === Infinity) lo = 0;
   return (EXAM_SATA_SEEN = {key, lo, hi});
 }
@@ -2887,7 +2894,7 @@ function figBig(fig, on, keepFocus){
     const cs = getComputedStyle(fig);
     ph = document.createElement('div');
     ph.className = 'figph'; ph.setAttribute('aria-hidden', 'true');
-    ph.style.height = fig.offsetHeight + 'px';
+    ph.style.height = fig.getBoundingClientRect().height + 'px';   // the exact height: offsetHeight rounds, and a fractional figure then shortened the page while enlarged (DEENT ux_test)
     ph.style.marginTop = cs.marginTop; ph.style.marginBottom = cs.marginBottom;
     fig.dataset.y = String(window.scrollY);
   }
