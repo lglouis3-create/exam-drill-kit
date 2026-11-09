@@ -52,7 +52,7 @@ this table are from c2f87ae; the plan cites BDK at 05c36c3. `field-colours`
 | Order | Item | Source | Not before | Status |
 |---|---|---|---|---|
 | 11 | learn-mode (successive relearning in rounds) | BDK `startLearn` ~1755 | — | planned (part 2) |
-| 12 | compare-tab (drugs side by side, differences marked) | BDK ~2244; at `05c36c3`: `viewCompare` 2301 | — | pending (part 1) |
+| 12 | compare-tab (drugs side by side, differences marked) | BDK ~2244; at `05c36c3`: `viewCompare` 2301 | — | done (part 1: without Learn these drugs together, Drugs you have mixed up and the links from question feedback, see FEATURES.md) |
 | 13 | cram-mode (time-boxed pass before a quiz, Last look) | BDK ~2018 | — | planned (part 2) |
 | 14 | drug-list-tab (table per page, search across pages; recall mode) | BDK ~2496; at `05c36c3`: `viewBrowse` 2553; recall mode: DEENT `src/druglist_ui.js` at `main` `0281922` | — | done |
 | 15 | match-game (timed pairs) | BDK ~2160 | — | planned (part 2) |
@@ -62,7 +62,8 @@ this table are from c2f87ae; the plan cites BDK at 05c36c3. `field-colours`
 | 19 | pair-up and table-recall drills (drug ↔ receptor, poisoning table) | Intro to Pharmacology `app.js` 1923-2060 | 2026-11-02 11:00 CT | pending |
 | 20 | short-answer page and graphs drill | Intro to Pharmacology `app.js` 2308-2351, 3518-3580 | 2026-11-02 11:00 CT | pending |
 | 21 | flags, one-page layout, keyboard shortcuts, strict exam mode | Intro to Pharmacology; BDK | 2026-11-02 11:00 CT | pending |
-| 22 | field-colours (the fields a course names as hardest coloured; the field a question asked shaded after the answer) | BDK at `05c36c3`: `assets/app.js` 903-934 (`ROW_KEY`, `ASKED_ROW`, the `asked` class, `kindClass`), the `k-cat`/`k-ind` classes in the list and Compare (for example 2598 and 2325), and `assets/style.css` 367-383; from `bf91dc0` | — | pending (part 1) |
+| 22 | field-colours (the fields a course names as hardest coloured; the field a question asked shaded after the answer) | BDK at `05c36c3`: `assets/app.js` 903-934 (`ROW_KEY`, `ASKED_ROW`, the `asked` class, `kindClass`), the `k-cat`/`k-ind` classes in the list and Compare (for example 2598 and 2325), and `assets/style.css` 367-383; from `bf91dc0` | — | done (part 1: the headings; the after-answer card and its shading not ported, see FEATURES.md) |
+| 23 | drug-list-tab v2: per-fact outcomes kept in each profile's progress (`drug-list-persistent-outcomes`; a `DB.drugs` part keyed `drugId:field`; recognition or recall, outcome and self-rating, no typed text; a fact-to-question map so an answer on a fact with a bank question is counted once, on that question) | DEENT at `main` `b747e49`, read-only: `src/druglist_ui.js` 98-99 and 415-428 (this visit's ratings, `{key: 'drug:field', form, rating}`), 117-118 (Forgot, Partly, Knew); `src/drugfacts.js` 38-40 (fields and the question-to-fact map) and 128-142 (`status()`); `src/druglist_data.js` 120 onward (the card ids) | — | pending (develop and test only; merge and any course switching it on wait for Louis) |
 
 ## Core changes found by the assessments (not nightly)
 
