@@ -2,6 +2,9 @@
 
 Dated kit changes, newest first.
 
+## 2026-11-09 (figures)
+- Enlarge: the placeholder that holds a figure's place takes the figure's exact height (`getBoundingClientRect`), not the rounded `offsetHeight`. A figure with a fractional height (DEENT's acne-cascade, 487.22 px at 390x420) made the page 0.22 px shorter while enlarged, so at the end of the page Enlarge then Close moved the scroll by 1 px (DEENT's ux_test, y 18062 then 18061).
+
 ## 2026-11-08 (build: link-preview tags)
 - `course.js` `share` (optional; requested by the DEENT session): `title`, `description`, `url` and `image` give the page its `<title>` and the og:/twitter: tags that iMessage, Slack and social sites read when its address is shared; every value HTML-escaped; og:url ends in `preview/` on a preview build; `image`, a PNG in `src/icons/`, is copied to the site root. A wrong value stops the build before it writes. Without `share` every file the build writes is byte for byte what it wrote before (`share_test.js`, against main's `build.py`).
 - `course.js` `manifest.short_name` (optional): the manifest's `short_name`, the name under the Home Screen icon; the page keeps `short`.

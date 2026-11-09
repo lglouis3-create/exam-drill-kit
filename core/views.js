@@ -2894,7 +2894,7 @@ function figBig(fig, on, keepFocus){
     const cs = getComputedStyle(fig);
     ph = document.createElement('div');
     ph.className = 'figph'; ph.setAttribute('aria-hidden', 'true');
-    ph.style.height = fig.offsetHeight + 'px';
+    ph.style.height = fig.getBoundingClientRect().height + 'px';   // the exact height: offsetHeight rounds, and a fractional figure then shortened the page while enlarged (DEENT ux_test)
     ph.style.marginTop = cs.marginTop; ph.style.marginBottom = cs.marginBottom;
     fig.dataset.y = String(window.scrollY);
   }
