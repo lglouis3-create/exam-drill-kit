@@ -24,7 +24,8 @@ const readLog = p => p.evaluate(() => { try { return JSON.parse(localStorage.get
 // answers the question on screen through its controls, right or wrong, and reports what it was
 const ANSWER = right => {
   const q = Q && Q.current; if(!q) return null;
-  if(q.type === 'numeric'){ document.getElementById('numIn').value = String(right ? q.answer : q.answer + 1000); document.getElementById('btnCheck').click(); }
+  if(q.type === 'blank'){ document.getElementById('blankIn').value = right ? q.accept[0] : 'zzzz not the answer'; document.getElementById('btnCheck').click(); }
+  else if(q.type === 'numeric'){ document.getElementById('numIn').value = String(right ? q.answer : q.answer + 1000); document.getElementById('btnCheck').click(); }
   else if(q.type === 'match'){
     const sels = [...document.querySelectorAll('#v-quiz select[data-row]')];
     sels.forEach((s, i) => { s.value = String(right ? i : (i + 1) % sels.length); s.dispatchEvent(new Event('change')); });
@@ -106,8 +107,8 @@ const next = p => p.evaluate(() => { const b = document.getElementById('btnNext'
     } else {
       await p.evaluate(() => {
         const b = document.querySelector('#v-exam button.opt'); if(b) b.click();
-        else { const q = EX.qs[EX.i], n = document.getElementById('exNum');   // a calculation or matching item first (exams[].typed)
-          if(n){ n.value = String(q.answer); n.dispatchEvent(new Event('input')); } else if(q.pairs){ EX.picks[EX.i] = q.pairs.map((p, i) => i); saveExam(); } } });
+        else { const q = EX.qs[EX.i], n = document.getElementById('exNum'), t = document.getElementById('exBlank');   // a calculation, fill-in-the-blank or matching item first (exams[].typed)
+          if(n){ n.value = String(q.answer); n.dispatchEvent(new Event('input')); } else if(t){ t.value = q.accept[0]; t.dispatchEvent(new Event('input')); } else if(q.pairs){ EX.picks[EX.i] = q.pairs.map((p, i) => i); saveExam(); } } });
       await p.click('#exEnd');
       await p.waitForTimeout(300);
       log = await readLog(p);
@@ -263,7 +264,7 @@ const next = p => p.evaluate(() => { const b = document.getElementById('btnNext'
     await a.waitForTimeout(400);
     const mine = await a.evaluate(() => LOG[LOG.length - 1]);
     const b = await c3.newPage();
-    b.on('dialog', x => x.accept());
+    b.on('dialog', x => x.accept().catch(() => {}));
     await b.goto(a.url());
     await b.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
     await b.waitForFunction(() => WRITER === 'other', null, {timeout: 5000}).catch(() => {});
@@ -313,7 +314,7 @@ const next = p => p.evaluate(() => { const b = document.getElementById('btnNext'
     // another tab opens the profile this page left, and answers there: while it has that profile,
     // this page's saves write nothing under it
     const t = await c4.newPage();
-    t.on('dialog', x => x.accept());
+    t.on('dialog', x => x.accept().catch(() => {}));
     await t.goto(m.url());
     await t.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
     await t.evaluate(p => useProfile(p), me.p);
@@ -699,7 +700,7 @@ const next = p => p.evaluate(() => { const b = document.getElementById('btnNext'
     await x.waitForFunction(() => WRITER === 'held' || WRITER === 'none', null, {timeout: 5000}).catch(() => {});
     await x.evaluate(() => { window.__logCap = null; });
     const y = await c8.newPage();
-    y.on('dialog', d => d.accept());
+    y.on('dialog', d => d.accept().catch(() => {}));
     await y.goto(x.url());
     await y.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
     await y.evaluate(p => useProfile(p), me.p);
@@ -733,7 +734,7 @@ const next = p => p.evaluate(() => { const b = document.getElementById('btnNext'
     const first = await a.evaluate(() => { LOG[0][5] = 'unsure'; saveLog(); return LOG[0]; });
     await a.waitForTimeout(400);
     const b = await c6.newPage();
-    b.on('dialog', x => x.accept());
+    b.on('dialog', x => x.accept().catch(() => {}));
     await b.goto(a.url());
     await b.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
     await b.waitForFunction(() => WRITER === 'other', null, {timeout: 5000}).catch(() => {});
