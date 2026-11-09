@@ -298,14 +298,14 @@
     "deent",
     "bdk"
    ],
-   "status": "proposed",
+   "status": "implementing",
    "prs": [],
    "relatedQueueItems": [
     "port-queue 14 drug-list-tab",
     "improvements bdk-study-features part 3"
    ],
-   "decision": "waits for Louis: progress storage and Import behaviour keep their own approval (decision 10; the BDK study-features plan part 3)",
-   "notes": "owner if approved: the kit feature porter; keyed by a proposed fact id drugId:field, built from the stable drug ids in DEENT src/druglist_data.js; records outcome, recognition or recall, and self-rating, no raw text; DEENT's Phase 1 (no new storage) proceeds in DEENT under Louis's instruction there"
+   "decision": "Louis, 2026-11-09 (\"Whatever you recommend is the best\", answering the central session's recommendation): develop and test as drug-list-tab v2, off by default; the pull request goes to him before any merge or any course switches it on (handled as #81; not a decision 10 merge); port-queue item 23, porter policy section 1",
+   "notes": "owner: the kit feature porter; keyed by a proposed fact id drugId:field, built from the stable drug ids in DEENT src/druglist_data.js; records outcome, recognition or recall, and self-rating, no raw text; DEENT's Phase 1 (no new storage) proceeds in DEENT under Louis's instruction there"
   }
  ]
 }
