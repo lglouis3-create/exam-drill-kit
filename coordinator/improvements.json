@@ -293,18 +293,20 @@
    "studentBenefit": "see which drug facts (drug and field) a student has recalled, partly recalled or missed, across visits",
    "evidence": "DEENT issue #1 (student walkthrough review, 2026-11-08; open) and the DEENT session's plan (2026-11-08); no learning-outcome evidence",
    "technicalRisk": "high: new progress storage (a DB.drugs part, equation-drill pattern), Import behaviour (a module record that changes without an answer sends imports to a new profile more often, core/README.md 805-816), and a fact-to-question map so a Drug List answer on a fact with a bank question is recorded once and never through record() for synthetic items",
-   "existsInKit": "no: drug-list-tab v1 (#83) stores nothing",
+   "existsInKit": "yes: drug-list-tab v2, merged 2026-11-09 as 299da7b (kit pull request #92), off by default",
    "candidateCourses": [
     "deent",
     "bdk"
    ],
-   "status": "implementing",
-   "prs": [],
+   "status": "awaiting-approval",
+   "prs": [
+    "lglouis3-create/exam-drill-kit#92"
+   ],
    "relatedQueueItems": [
     "port-queue 14 drug-list-tab",
     "improvements bdk-study-features part 3"
    ],
-   "decision": "Louis, 2026-11-09 (\"Whatever you recommend is the best\", answering the central session's recommendation): develop and test as drug-list-tab v2, off by default; the pull request goes to him before any merge or any course switches it on (handled as #81; not a decision 10 merge); port-queue item 23, porter policy section 1",
+   "decision": "Louis, 2026-11-09 (\"Whatever you recommend is the best\", answering the central session's recommendation): develop and test as drug-list-tab v2, off by default; the pull request goes to him before any merge or any course switches it on (handled as #81; not a decision 10 merge); port-queue item 23, porter policy section 1; merged 2026-11-09 on Louis's \"fix and then approve it\" after the fix and independent reviews; switching it on for a course needs his separate yes; the Import comparison of per-fact ratings (D2) is a separate core proposal",
    "notes": "owner: the kit feature porter; keyed by a proposed fact id drugId:field, built from the stable drug ids in DEENT src/druglist_data.js; records outcome, recognition or recall, and self-rating, no raw text; DEENT's Phase 1 (no new storage) proceeds in DEENT under Louis's instruction there"
   },
   {
@@ -316,17 +318,19 @@
    "studentBenefit": "practise typed recall of single terms and values, the format of about 5 of the 50 questions on DEENT Exam 1",
    "evidence": "Louis, 2026-11-09, after DEENT Exam 1: \"Drill questions were not reflective of the exam, the questions were harder and need more fill in blanks\"; around 5 of 50 were fill in the blank, mainly Dr. Smith's (examples: calcipotriene's receptor, salicylic acid's maximum percentage, tacrolimus's binding protein). The live DEENT bank (main 4d3b3f6) has 596 questions, none fill in the blank (528 single-answer, 60 select-all, 8 matching); the Drug list tab's Recall mode has ungraded typed recall; the three example facts are in the bank as multiple choice only (L2-039, L2-103 to L2-105, L2-060). DEENT src/course.js (main 4d3b3f6), Exam 1 blurb: \"Dr. Smith says her questions are mostly multiple choice with a few fill-in-the-blanks on drug mechanisms\" and \"These practice papers draw single-answer questions only\". No learning-outcome evidence.",
    "technicalRisk": "normal: a new item type in the quiz, the exam paper (exams[].typed), the result and review views and test.js validation; inert in a course with no blank items",
-   "existsInKit": "no: exams[].typed covers numeric and matching items only (core/exam_typed.js)",
+   "existsInKit": "yes: type:'blank' in the core, merged 2026-11-09 as 6c877b6 (kit pull request #97), off by default",
    "candidateCourses": [
     "deent"
    ],
-   "status": "proposed",
-   "prs": [],
+   "status": "awaiting-approval",
+   "prs": [
+    "lglouis3-create/exam-drill-kit#97"
+   ],
    "relatedQueueItems": [
     "port-queue \"Core changes found by the assessments (not nightly)\": true/false, fill-in and typed-recall item types"
    ],
-   "decision": "kit work off by default, merged under decision 10 after an independent review and all applicable final-head checks; switching it on for DEENT and writing blank items are DEENT changes that need Louis's approval in the DEENT session",
-   "notes": "owner: the central kit session; strict grading by default (normalized text), a one-edit near miss shown as a spelling note and counted right only with the course option blank.typo; Exam 2 is Mon 2026-11-16; being built on branch claude/elegant-ptolemy-pqxb8y-blank-type (its pull request is linked here once opened)"
+   "decision": "kit part merged under decision 10 after three independent reviews and 24 of 24 final-head jobs; Louis chose strict spelling on 2026-11-09; switching it on for DEENT (a kit update, typed:true and blanks:n, and the blank items) needs his approval in the DEENT session, and typed:true also draws matching items on papers",
+   "notes": "owner: the central kit session; strict grading by default (normalized text), a one-edit near miss shown as a spelling note and counted right only with the course option blank.typo; Exam 2 is Mon 2026-11-16"
   },
   {
    "id": "deent-exam-difficulty",
