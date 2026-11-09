@@ -494,8 +494,26 @@ function refreshHomeCards(){
 /* The progress file: this profile's progress and its answer history, for a
    second device, a Home Screen copy, or a retro that reads the history. */
 function exportProgress(){
+  // a part kept outside localStorage (worksheet ink) is put into DB first, so the file carries it
+  if(outsidePending()){
+    let done = false;
+    outsideReady().then(() => { if(!done){ done = true; exportProgress(); } });
+    // the database did not answer: the file is made from what this page holds, and the page says so
+    setTimeout(() => { if(done) return; done = true; OUT.readFailed[PROFILE] = OUT.readFailed[PROFILE] || 'no answer within 10 s'; exportProgress(); }, 10000);
+    return;
+  }
+  // the stored writing could not be read: the file holds the writing this page has, and says so
+  if(OUT.parts.size && OUT.readFailed[PROFILE]) setTimeout(() => alert('The writing kept in this browser\'s database could not be read (' + OUT.readFailed[PROFILE] + '), so this file holds only the writing this page has open, not the writing saved before.'), 0);
+  // writing set apart from before another tab's Erase goes into the file too (the fifth review of #81, V11)
+  let fileDb = DB;
+  if(OUT.parts.size && (Object.keys(OUT.parked).length || Object.keys(OUT.amb).length)){
+    fileDb = Object.assign({}, DB);
+    for(const src of [OUT.parked, OUT.amb]) for(const k of Object.keys(src)){ const [kp, part, page] = k.split('\u0001'); if(kp !== PROFILE) continue;
+      fileDb[part] = Object.assign({}, isPlainObj(fileDb[part]) ? fileDb[part] : {});
+      fileDb[part][page] = fileDb[part][page] === undefined ? src[k] : outsideMerge(part, fileDb[part][page], src[k]); }
+  }
   const blob = new Blob([JSON.stringify({app:'exam-drill', course:COURSE.id, ns:NS, exported:new Date().toISOString(),
-                                         profile:PROFILE, db:DB, log:LOG}, null, 1)], {type:'application/json'});
+                                         profile:PROFILE, db:fileDb, log:LOG}, null, 1)], {type:'application/json'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `${COURSE.id}-progress-${PROFILE.replace(/\W+/g,'_')}.json`;
@@ -719,7 +737,7 @@ function importPlan(f){
   if(!canSave()) return {block: LOAD_FAIL};
   // site data cleared while this page was open: the page's copy is saved again first, as
   // its next save would, so the plan compares the file with what is stored
-  if(storedGone() && !changedElsewhere()){ store.set(keyFor(PROFILE), JSON.stringify(DB)); saveLog(); }
+  if(storedGone() && !changedElsewhere()){ store.set(keyFor(PROFILE), progText(DB)); saveLog(); }
   if(FAILED.has(keyFor(PROFILE))) return {block: UNSAVED};
   if(changedElsewhere()) return {block: elsewhere()};
   const here = DB.answers, there = f.db.answers;
@@ -895,7 +913,17 @@ function withOtherProfile(plan, fn){
     {text: `The profile "${esc(name)}" is open in another tab or window of this browser, which saves it, so nothing was imported, and that profile and "${esc(PROFILE)}" are unchanged. Import in that tab, or close it and import again.`})
     .catch(e => ({text: 'The import could not start: ' + esc(String(e && e.message || e)) + '. Nothing was imported.'}));
 }
+/* With a part kept in IndexedDB, a replacing Import's result is shown once the file's pages are
+   written (or refused, which it then says). */
+let IMPORT_WAIT = null;
 function runImport(plan){
+  IMPORT_WAIT = null;
+  const r = runImportNow(plan);
+  if(!IMPORT_WAIT || !r || typeof r.then === 'function') return r;
+  const keys = IMPORT_WAIT; IMPORT_WAIT = null;
+  return outsideSettled(keys).then(ok => ok ? r : Object.assign({}, r, {text: r.text + ' The browser did not save the writing from the file (storage is full or blocked). It is kept on this page, the notice offers Export, and the file still holds it.'}));
+}
+function runImportNow(plan){
   if(!canSave()) return {text: esc(LOAD_FAIL) + ' The file was not imported.'};
   // the plan was made from what this page holds: check again that it is what is stored
   if(FAILED.has(keyFor(PROFILE))) return {text: esc(UNSAVED)};
@@ -913,17 +941,21 @@ function runImport(plan){
   if(saveTimer || cleared){
     clearTimeout(saveTimer); saveTimer = null;
     // store.set keeps the refused change on this page and flags it, as any save does
-    if(!store.set(keyFor(PROFILE), JSON.stringify(DB))) return {text: `${refused}, so nothing was imported. Your progress is kept on this page until you leave it; export it now.`};
+    if(!store.set(keyFor(PROFILE), progText(DB))) return {text: `${refused}, so nothing was imported. Your progress is kept on this page until you leave it; export it now.`};
   }
   if(plan.action === 'separate'){
     const name = plan.name, db = JSON.parse(JSON.stringify(f.db));
-    if(!store.trySet(keyFor(name), JSON.stringify(db))) return {text: `${refused}, so nothing was imported. Your progress is unchanged.`};
+    if(!store.trySet(keyFor(name), progText(db, name))) return {text: `${refused}, so nothing was imported. Your progress is unchanged.`};
     const log = mergedLog([], f.log);
     if(log.length && !store.trySet(NS + ':log:' + name, JSON.stringify(log))){
       store.del(keyFor(name));
       return {text: `${refused}, so nothing was imported. Your progress is unchanged.`};
     }
-    return {text: `The file's progress is now the profile "${esc(name)}" (${nAnswers(db.answers.length)}). The progress of "${esc(PROFILE)}" is unchanged.`, open: name};
+    const done = {text: `The file's progress is now the profile "${esc(name)}" (${nAnswers(db.answers.length)}). The progress of "${esc(PROFILE)}" is unchanged.`, open: name};
+    // the file's pages kept outside localStorage (worksheet ink) go into the new profile's database
+    // records; the result is shown once the database committed them (the review of #81, should-fix 4)
+    if(!OUT.parts.size) return done;
+    return outsideImport(name, db).then(ok => ok ? done : Object.assign({}, done, {text: done.text + ` The browser did not save the writing in the file for "${esc(name)}" (storage is full or blocked); the file still holds it, and importing it again adds it.`}));
   }
   let text = '';
   if(plan.action === 'replace'){
@@ -935,7 +967,7 @@ function runImport(plan){
     const db = JSON.parse(JSON.stringify(f.db));
     db.settings = Object.assign({}, db.settings || {});
     for(const k of IMPORT_DEVICE){ if(DB.settings && k in DB.settings) db.settings[k] = DB.settings[k]; else delete db.settings[k]; }
-    const dbText = JSON.stringify(db);
+    const dbText = progText(db);
     pendingMark();
     if(!store.trySet(keyFor(PROFILE), dbText)){
       // the copy written just before is not needed: the list goes back as it was
@@ -948,7 +980,10 @@ function runImport(plan){
     clearTimeout(saveTimer); saveTimer = null;
     SEEN = dbText;
     pendingRetire();   // other tabs' older records of this profile cannot bring back what was replaced
+    outsideHold(PROFILE);   // this page's uncommitted writing is kept through the import
     DB = db;
+    outsideAdopt(PROFILE);   // the file's pages kept outside localStorage, merged with the ones stored
+    if(OUT.parts.size && OUT.state === 'ready') IMPORT_WAIT = outsidePageKeys(PROFILE, DB);
     try { fsFromHistory(); } catch(e){ FS_ERROR = String(e && e.message || e); }
     text = `Imported: "${esc(PROFILE)}" now has the file's progress (${nAnswers(db.answers.length)}). The progress it replaced is kept; Settings can put it back.`;
   }
@@ -1014,7 +1049,7 @@ function restoreBackup(){
   // progress on screen) holds it; refused, it stays on this page, flagged, and nothing is put back
   if(saveTimer){
     clearTimeout(saveTimer); saveTimer = null;
-    if(!store.set(keyFor(PROFILE), JSON.stringify(DB))){
+    if(!store.set(keyFor(PROFILE), progText(DB))){
       alert('The browser refused to save (storage is full or blocked), so nothing was put back. Your latest change is kept on this page until you leave it; export your progress now.');
       return;
     }
@@ -1032,7 +1067,9 @@ function restoreBackup(){
   }
   clearTimeout(saveTimer); saveTimer = null;
   SEEN = b.data;
+  outsideHold(PROFILE);   // this page's uncommitted writing is kept through the put-back
   DB = db;
+  outsideAdopt(PROFILE, true);   // the copy's pages kept outside localStorage stay with it until moved
   try { fsFromHistory(); } catch(e){ FS_ERROR = String(e && e.message || e); }
   // a copy kept by "Use it here" may hold history entries that were never stored: they go into the
   // history before the copy leaves the list; refused, the copy stays on the list (#32's review of 1b9d5a6)
@@ -3465,7 +3502,7 @@ function renderSettings(){
       // the question may have stayed open while another tab or window saved this profile
       if(changedElsewhere()){ staleWarn(); alert(elsewhereShort() + ', so nothing was erased. Reload this page first.'); return; }
       // erasing replaces a stored history that could not be read, too
-      DB = BLANK(); save(); LOG = []; LOG_OK = true; saveLog(); pendingRetire(); alert('History erased.'); renderSettings();
+      outsideClear(PROFILE); DB = BLANK(); save(); LOG = []; LOG_OK = true; saveLog(); pendingRetire(); alert('History erased.'); renderSettings();
     }
   };
 }
@@ -3614,7 +3651,7 @@ function offerReload(text){
   bar(text, 'Reload', () => {
     // a stopped page, or one whose writes the browser refused (storage full): what it has not saved
     // is lost on reload, unless exported (#32's review of 4311133; Louis, 2026-11-05)
-    if((STALE || WRITER === 'other' || FAILED.size) && atRiskAll() && !confirm('The answers and settings this page has not saved are lost on reload unless you export them first (the button on the notice). Reload anyway?')) return;
+    if((STALE || WRITER === 'other' || FAILED.size || outsideAtRisk()) && atRiskAll() && !confirm('The answers, settings or writing this page has not saved are lost on reload unless you export them first (the button on the notice). Reload anyway?')) return;
     if(EX && EX.running && !confirm('A paper is running. It is saved and its clock keeps running. Reload now?')) return;
     placeSave();
     LEAVE_ASKED = true;   // asked here already: the browser's leave question is not shown again
@@ -3773,7 +3810,8 @@ bootStep('keeping the place across a reload', () => {
   // exported: the browser asks its own "leave this page?" question (its wording, not this page's;
   // Louis, 2026-11-05). Not every browser shows it: see core/README.md.
   window.addEventListener('beforeunload', e => {
-    try { if(!LEAVE_ASKED && FAILED.size && atRiskAll()){ e.preventDefault(); e.returnValue = ''; } } catch(err){}
+    // writing kept in IndexedDB that is refused, or kept for a profile not yet written, counts too (#81, N1)
+    try { if(!LEAVE_ASKED && (FAILED.size || outsideAtRisk()) && atRiskAll()){ e.preventDefault(); e.returnValue = ''; } } catch(err){}
   });
 });
 

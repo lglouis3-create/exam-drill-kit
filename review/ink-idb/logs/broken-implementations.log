@@ -1,0 +1,138 @@
+== OUTSIDE_BREAK=no-inline
+  FAIL  interrupted: while the database refuses every write, localStorage keeps every page of the earlier format
+  FAIL  migrate: after a reload every moved page is back, each stroke once  — {}
+  FAIL  migrate: the database holds the two pages  — []
+  FAIL  mixed: the next new page keeps both the moved stroke and the earlier-core tab's stroke  — ["{\"t\":\"pen\",\"c\":\"#111111\",\"w\":0.003,\"p\":[0.9,0.2,0.3,0.49]}"]
+  FAIL  mixed: after a reload both strokes are there, once each  — ["{\"t\":\"pen\",\"c\":\"#111111\",\"w\":0.003,\"p\":[0.9,0.2,0.3,0.49]}"]
+FAIL: outside_test.js: 5 of 63 checks failed: interrupted: while the database refuses every write, localStorage keeps every page of the earlier format; migrate: after a reload every moved page is back, each stroke once; 
+== OUTSIDE_BREAK=no-rev
+  FAIL  two tabs: a tab that wrote over another tab's newer page keeps both tabs' strokes (read back in a third tab)  — ["{\"t\":\"pen\",\"c\":\"#111111\",\"w\":0.003,\"p\":[0.1,0.2,0.3,0.41000000000000003]}","{\"t\":\
+  FAIL  two tabs: the tab whose write was merged shows the merged page  — ["{\"t\":\"pen\",\"c\":\"#111111\",\"w\":0.003,\"p\":[0.1,0.2,0.3,0.41000000000000003]}","{\"t\":\"pen\",\"c\":\"#111111\",\"w\":0.003,\"p\":[0.
+  FAIL  M3: in 106 reads of the database during a merged write with a later change waiting, none lacks the other tab's stroke  — [3,4]
+  FAIL  M3: after both tabs closed, a new tab reads every stroke of both  — 3
+FAIL: outside_test.js: 4 of 63 checks failed: two tabs: a tab that wrote over another tab's newer page keeps both tabs' strokes (read back in a third tab); two tabs: the tab whose write was merged shows the merged page; 
+== OUTSIDE_BREAK=saved-on-fail
+  FAIL  quota: a write the database refuses reports refused, never saved  — ["unsaved","unsaved"]
+  FAIL  quota: a notice says the writing was not saved and offers Export  — null
+FAIL: outside_test.js: page.click: Timeout 30000ms exceeded.
+== OUTSIDE_BREAK=no-import
+  FAIL  export: a file Import puts into a new profile (this browser holds other answers) has its pages there after a reload  — {"result":"The file's progress is now the profile \"me (imported 2026-11-08)\" (1 answer). 
+FAIL: outside_test.js: 1 of 63 checks failed: export: a file Import puts into a new profile (this browser holds other answers) has its pages there after a reload
+== OUTSIDE_BREAK=no-profile
+  FAIL  basic: after a reload the page is back in DB.ink as written  — {}
+  FAIL  basic: the database holds the page under its profile, with a revision  — {"keys":["x\u0001ink\u0001pg1"]}
+  FAIL  large: after a reload every one of the 171 pages is back as written  — 0
+  FAIL  migrate: after a reload every moved page is back, each stroke once  — {}
+  FAIL  mixed: after a reload both strokes are there, once each  — []
+  FAIL  quota: a notice says the writing was not saved and offers Export  — {"text":"Writing of \"x\" is not saved yet. It is kept on this page and saved when that profile is opened again here; closing or reloading thi
+FAIL: outside_test.js: page.waitForEvent: Timeout 30000ms exceeded while waiting for event "download"
+== OUTSIDE_BREAK=no-attach
+  FAIL  profiles: Erase on one profile leaves another profile's page  — []
+  FAIL  export: a file Import puts into a new profile (this browser holds other answers) has its pages there after a reload  — {"result":"The file's progress is now the profile \"me (imported 2026-11-08)\" (1 answer). 
+  FAIL  M1: after a switch to another profile, the refused writing of the first counts as unsaved and the notice names that profile  — {"unsaved":true,"notice":"This browser did not save your latest writing (its storag
+  FAIL  M5: a page erased in another tab does not come back in a tab that switches away and back  — {"keys":["x"],"state":"saved"}
+FAIL: outside_test.js: 4 of 63 checks failed: profiles: Erase on one profile leaves another profile's page; export: a file Import puts into a new profile (this browser holds other answers) has its pages there after a rel
+== OUTSIDE_BREAK=drop-unavailable
+  FAIL  unavailable: with no database the page stays inside the stored progress
+  FAIL  unavailable: after a reload the page is back  — {}
+  FAIL  M4: with no database, a tab that does not hold the profile reports its change "unsaved"  — saved
+  FAIL  M4: a new tab reads the saved page and not the read-only tab's change  — []
+FAIL: outside_test.js: 4 of 63 checks failed: unavailable: with no database the page stays inside the stored progress; unavailable: after a reload the page is back; M4: with no database, a tab that does not hold the prof
+== OUTSIDE_BREAK=readback-true
+  FAIL  read-back: a database copy that reads back different from the page leaves the page in localStorage
+  FAIL  read-back: the next visit (copies read back equal) has both strokes after a reload  — ["{\"t\":\"pen\",\"c\":\"#111111\",\"w\":0.003,\"p\":[0.30000000000000004,0.2,0.3,0.43000000000000005]}"]
+  FAIL  read-back: a page closed between the database write and its read-back leaves the page in localStorage
+FAIL: outside_test.js: 3 of 63 checks failed: read-back: a database copy that reads back different from the page leaves the page in localStorage; read-back: the next visit (copies read back equal) has both strokes after 
+== OUTSIDE_BREAK=no-hold
+  FAIL  M1: back on the first profile the refused page is written; after a reload it is stored  — {}
+  FAIL  M2: a page refused in a tab whose profile another tab took, then taken back, is stored (after a reload)  — {}
+FAIL: outside_test.js: 2 of 63 checks failed: M1: back on the first profile the refused page is written; after a reload it is stored; M2: a page refused in a tab whose profile another tab took, then taken back, is stored
+== the same test on the core at d0da191 (DRILL_PAGE: a template course built from d0da191)
+  FAIL  unavailable: a notice says the database could not be used and the writing is kept in the other storage  — none; problem: undefined; state: unavailable
+  FAIL  M1: after a switch to another profile, the refused writing of the first counts as unsaved and the notice names that profile  — {"unsaved":true,"notice":""}
+  FAIL  M1: back on the first profile the refused page is written; after a reload it is stored  — {}
+  FAIL  M2: a page refused in a tab whose profile another tab took, then taken back, is stored (after a reload)  — {}
+  FAIL  M3: in 105 reads of the database during a merged write with a later change waiting, none lacks the other tab's stroke  — [4,4]
+  FAIL  M4: with no database, right after save() (before the 150 ms write) the page is "saving", not "saved"  — saved
+  FAIL  M4: with no database, a tab that does not hold the profile reports its change "unsaved"  — saved
+  FAIL  M5: an erased page whose write was still running does not come back after a switch away and back, and is not reported saved  — {"keys":["x"],"state":"saved"}
+  FAIL  M5: a page erased in another tab does not come back in a tab that switches away and back  — {"keys":["x"],"state":"saved"}
+FAIL: outside_test.js: 9 of 63 checks failed: unavailable: a notice says the database could not be used and the writing is kept in the other storage; M1: after a switch to another profile, the refused writing of the firs
+== WebKit on GitHub (run 42483391800, head b1f9fb9): M1 failed; the writer lock was granted after the database read, and nothing wrote the kept page then
+  FAIL  M1: back on the first profile the refused page is written; after a reload it is stored  — {}
+== the same in Chromium, with M1's lock granted 300 ms late, on the core of b1f9fb9 (before flushWaiting writes the pages)
+  FAIL  M1: back on the first profile the refused page is written; after a reload it is stored  — {}
+FAIL: outside_test.js: 1 of 63 checks failed: M1: back on the first profile the refused page is written; after a reload it is stored
+== and with the fix
+PASS: outside_test.js: 63 checks passed (1 skipped: quota (Chromium): a real quota of 2 MB for the origin)
+== the second review of #81: the same test on the core at 8790d8c (DRILL_PAGE: a template course built from 8790d8c)
+  FAIL  N1: with a refused page, leaving the page is asked about (beforeunload prevented)  — null
+  FAIL  N1: with a refused page, the in-app Reload asks first  — null
+  FAIL  N1: with writing kept for another profile, leaving the page is asked about  — 1
+  FAIL  N1: with writing kept for another profile, the in-app Reload asks first  — null
+  FAIL  V2: a page kept with the same content as the stored page is saved, not kept unsaved  — {"state":"unsaved","held":1,"unsaved":true}
+  FAIL  V3: after another tab erased the profile, the student is asked about this tab's kept writing; Cancel leaves it out (after a reload)  — {"asked":"","keys":["s"]}
+  FAIL  V3: OK adds the kept writing back (after a reload)  — {"asked":"","strokes":2}
+FAIL: outside_test.js: 7 of 71 checks failed: N1: with a refused page, leaving the page is asked about (beforeunload prevented); N1: with a refused page, the in-app Reload asks first; N1: with writing kept for another pr
+== the third review of #81: the same test on the core at 75b016b (DRILL_PAGE: a template course built from 75b016b)
+  FAIL  Q1: with dialogs suppressed, writing kept from before another tab's Erase is kept, counted unsaved, and named on the notice with Add it back, Export it and Leave it out  — null
+  FAIL  Q1: Export it gives a file with the kept writing
+  FAIL  Q1: Add it back writes it; after a reload the page has both strokes  — []
+  FAIL  Leave it out: the notice names only the page kept from before the Erase  — null
+  FAIL  V6: Put back and a replacing Import (pendingMark) set no mark; kept writing is merged and stored (after a reload)  — {"marks":"{\"at\":1794147644278,\"tab\":\"mw7x6fpc-rrd2evet\"}","s":1}
+  FAIL  a module's erase of its part (outsideClear(p, part)) is marked: the kept writing waits for the student  — null
+  FAIL  after Leave it out and a reload, the erased part stays erased  — ["s"]
+  FAIL  two tabs' marks: this tab's own later mark does not hide the other tab's earlier Erase  — null
+FAIL: outside_test.js: 8 of 80 checks failed: Q1: with dialogs suppressed, writing kept from before another tab's Erase is kept, counted unsaved, and named on the notice with Add it back, Export it and Leave it out; Q1: 
+== the fourth review of #81: the same test on the core at 344745c (DRILL_PAGE: a template course built from 344745c)
+  FAIL  S1: after the student writes on the page, the writing from before the Erase is still set apart and named (2 strokes), and counts unsaved  — null
+  FAIL  S1: Add it back then keeps both: after a reload the page has the 2 kept strokes and the new one  — 1
+  FAIL  marks: an Erase whose mark the browser refuses tells the student the other tabs were not told
+  FAIL  marks: past 100, the oldest 50 become one whole-profile mark at the latest of their times  — {"n":100,"first":{"at":1001,"tab":"other-1","part":"ink","page":"pg1"}}
+FAIL: outside_test.js: 4 of 86 checks failed: S1: after the student writes on the page, the writing from before the Erase is still set apart and named (2 strokes), and counts unsaved; S1: Add it back then keeps both: aft
+== the fifth review of #81 and Louis's restore decision: the same test on the core at 7f359e7 (DRILL_PAGE: a template course built from 7f359e7)
+  FAIL  V12: a page set apart sends the module an event ("parked") so it reloads its own copy of the page  — []
+  FAIL  V11: Export progress for the profile on screen carries the writing set apart from before the Erase
+  FAIL  V12: Add it back sends the module a "released" event for the page  — []
+  FAIL  V13: only the writing from before the Erase is set apart and named (2 strokes); Add it back says it restores writing from before the erase; the notice says it is only in memory  — This page 
+  FAIL  V13: Leave it out deletes only the named writing: the stroke drawn after the Erase is stored (after a reload)  — []
+FAIL: outside_test.js: 5 of 94 checks failed: V12: a page set apart sends the module an event ("parked") so it reloads its own copy of the page; V11: Export progress for the profile on screen carries 
+== the sixth review of #81: the same test on the core at 8986ab1 (DRILL_PAGE: a template course built from 8986ab1)
+  FAIL  A1: with strokes pushed in place (1 after the Erase), only the 2 strokes from before it are set apart and named  — This page kept writing of "me" from before it was erased in another tab or window: "s" (3 strok
+  FAIL  A1: Leave it out deletes only those 2; the 1 stroke drawn after the Erase is stored (after a reload)  — 0
+  FAIL  A1: with strokes pushed in place (25 after the Erase, more than 20 changes), only the 2 strokes from before it are set apart and named  — This page kept writing of "me" from before it was erased in another tab 
+  FAIL  A1: Leave it out deletes only those 2; the 25 strokes drawn after the Erase are stored (after a reload)  — 0
+FAIL: outside_test.js: 4 of 98 checks failed: A1: with strokes pushed in place (1 after the Erase), only the 2 strokes from before it are set apart and named; A1: Leave it out deletes only those 2; the 1 stroke drawn aft
+== Louis's decisions of 2026-11-08 and the seventh review of #81: the same test on the core at fb659a6 (DRILL_PAGE; the run stops at the killed-browser case, which needs the recovery records fb659a6 does not have)
+  FAIL  race: after a reload A has all 3 strokes and B stays erased  — {"A":2,"B":false}
+  FAIL  B1: erasing and drawing during a write ends in a few writes (27952) and "saved"  — {"puts":27953,"state":"saving"}
+  FAIL  B1: after a profile switch and after a reload, the page is strokes 1, 3 and 4; the erased stroke 2 does not come back  — {"switch":4,"reload":4}
+  FAIL  X4: a page changed in place under the same object is not reported saved  — saved
+  FAIL  X4: it is written: after a reload the page has both strokes  — 1
+  FAIL  mark race: a write that finds the page erased elsewhere writes nothing and keeps the writing apart, named as unsure  — {"v":{"amb":0,"notice":""},"keys":["me\u0001ink\u0001s"]}
+  FAIL  20 snapshots: with 25 changes after a missed mark, only the 2 strokes proven from before it can be left out; the rest in between is named as unsure  — This page kept writing of "me" from before it was erased in
+  FAIL  20 snapshots: Leave it out deletes only the 2; the unsure writing stays until Add it back; after a reload all 25 later strokes are stored  — {"mid":{"amb":0,"page":0},"got":0}
+  FAIL  recovery: set-apart writing is saved as a recovery record (only after its transaction), and leaving is then not at risk  — This page kept writing of "me" from before it was erased in another tab or window: "s" 
+  FAIL  recovery: after a reload the set-apart writing is back, still set apart (not active ink)  — null
+  FAIL  recovery: Add it back after the reload moves it into the page (after another reload)  — 0
+FAIL: outside_test.js: page.evaluate: TypeError: Cannot read properties of undefined (reading 'meinkr')
+
+== The eighth review of #81: the R5 checks on the core at f92b886 (DRILL_PAGE). With Web Locks too the tab lock was never held: its request ran before TAB_ID was defined (a ReferenceError caught at start-up), so a loading tab took over every open tab's recovery records.
+  FAIL  R5 with Web Locks: a tab that loads while another open tab keeps refused writing leaves that tab's recovery record alone  — {"keys":1,"mine":false,"bHeld":1}
+  ok    R5 without Web Locks: the page runs with navigator.locks absent
+  FAIL  R5 without Web Locks: a tab that loads while another open tab keeps refused writing leaves that tab's recovery record alone  — {"keys":0,"mine":false,"bHeld":0}
+  FAIL  R5 without Web Locks: only a record whose tab has written neither it nor a heartbeat for 5 minutes counts as left behind  — false
+  FAIL  R5: a tab whose recovery record was taken over finds it gone, and writes it again (then leaving is not at risk)  — {"mid":null,"back":false}
+FAIL: outside_test.js: 4 of 118 checks failed: R5 with Web Locks: a tab that loads while another open tab keeps refused writing leaves that tab's recovery record alone; R5 without Web Locks: a tab that loads while another open tab keeps refused writing leaves that tab's recovery record alone; R5 without Web Locks: only a record whose tab has written neither it nor a heartbeat for 5 minutes counts as left behind …
+FAIL: outside_test.js: 4 of 118 checks failed: R5 with Web Locks: a tab that loa
+
+== The ninth review of #81: the C1 and H1 checks on the core at cfd39f1 (DRILL_PAGE)
+  FAIL  none: with no part registered the page holds no tab lock (the ninth review of #81, C1)  — ["course-id-drill:writer:me","exam-drill-tab:mw8e6edu-lq9ojeq1"]
+  FAIL  none, without Web Locks: with no part registered the page writes no tab-alive heartbeat (C1)  — ["course-id-drill:tab-alive:mw8e6eiu-q9gifcbe"]
+  FAIL  H1: a returning tab whose kept writing the stored page already holds drops its copy, writes no record, and shows the stored page  — {"h1":{"held":1,"risk":false,"screen":1},"h1rec":true}
+FAIL: outside_test.js: 3 of 121 checks failed: none: with no part registered the page holds no tab lock (the ninth review of #81, C1); none, without Web Locks: with no part registered the page writes no tab-alive heartbeat (C1); H1: a returning tab whose kept writing the stored page already holds drops its copy, writes no record, and shows the stored page
+FAIL: outside_test.js: 3 of 121 checks failed: none: with no
+
+== The tenth review of #81: the bfcache tab-lock check on the core at 71fc43a (DRILL_PAGE)
+  FAIL  bfcache: a tab lock granted after the page went into the back/forward cache is let go at once, and taken again when the page is shown  — {"whileCached":true,"shown":true}
+FAIL: outside_test.js: 1 of 122 checks failed: bfcache: a tab lock granted after the page went into the back/forward cache is let go at once, and taken again when the page is shown

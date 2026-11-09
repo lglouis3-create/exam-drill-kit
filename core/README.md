@@ -36,6 +36,7 @@ that course's repository. Both folders come from the recovered exam-drill templa
 | `history_test.js` | core | the answer history: its fields, Export, Import, Erase; a refused write keeps every entry, shows the notice, is in Export, counts as unsaved on the stop wall and in "Use it here", asks before a switch, and is written by the next save the browser keeps, also for a profile switched away from; the whole site's storage full |
 | `flow_test.js` | core | the study flow: "again, reshuffled" after any set asks the same question ids (a pass of everything and the exam-weighted pass are drawn again), the whole bank is its own button; a partial exam names answered, unanswered and the accuracy on the answered; Weak spots names answer accuracy (matched the key), confidence, solid and mastered for what each counts; the retry button counts questions; the empty Quiz tab and Weak spots states each offer a next step; a filter with no questions offers no Start and a Clear filters button |
 | `ux_test.js` | core | the first screen, the narrow screen and the Atlas: Start here on the Topics tab and where each of its buttons goes; a wide reading table keeps its first column in view with a cue for the side that has more; the tab bar's cue, the opened tab scrolled into view and the bar below a wrapped header; step-through controls 44 px, the step in words, arrow keys, Enlarge and Escape; the Atlas's course words (`atlasTitle`, `atlasNoun`, `atlasExampleLabel`), reveal buttons, Hide names with no name left in a label or heading, a count that leaves out tiles hidden by a class, "Back to the atlas" |
+| `outside_test.js` | core | a module part kept in IndexedDB on a copy of the page with `registerOutside('ink')`: no database and the same stored progress with no part registered; a page saved, left out of localStorage and back after a reload; 171 generated pages; the move of an earlier format (pages left in localStorage until written and read back), an interrupted move, a tab on an earlier core; the database refusing writes (state, notice, Export, retry; Chromium's real quota when the DevTools protocol can set it); no database; profiles and Erase; two tabs without Web Locks (both tabs' strokes kept) and with them (the read-only tab writes nothing); Export and Import (a new export, an earlier core's backup, a new profile); `OUTSIDE_BREAK=<name>` runs it on a deliberately broken page |
 | `optional_test.js` | core | a topic marked `optional: true` on a scratch copy: the Optional label on Topics; none of its questions in Everything, adaptive (filtered or not, 200 picks), the passes, exam papers, What to review next, the mastered count or the pool cards, and no exam label on its cards; its own Start and subtopics reach every question of it; `test.js` fails a question of an optional topic that shares its `concept` with a question outside optional topics (scheduling state is per concept); the course's own page, with no optional topic, unchanged |
 | `import_test.js` | core | Import progress: files of another course or app, files that name no course, and damaged files refused; older files converted; a file replaces this profile only when it continues it or this profile holds no progress, after a confirmed plan, with a copy to put back; conflicting copies of one answer, another origin, a cut answer list, answers out of order, and matching or empty answer lists with other concept progress, settings, scheduling state or module part go into a new profile; repeats change nothing and make no second profile; Put back and refused reads and writes leave both records stored |
 | `storage_use_test.js` | core | Settings' storage figures (the site's total against 5,242,880, this drill's progress, history, preview copies and copies kept by Import, the answers kept and recorded) and the warning in Settings and the Quiz tab (its Export and Delete buttons in each), absent when the space left equals the need and present one character below it, for each of the two needs; the estimate wording; Delete the copies only after a confirm; the pending records' own line; another drill named by its namespace; on a preview build, the copies counted are the ones its button deletes |
@@ -319,6 +320,195 @@ this on a progress object and history saved by the `5014f27` core (recorded with
 `--print-progress`): every saved field reads back unchanged, `last` is rebuilt, the
 scheduler ranks every test question as `5014f27` did, the seven-field history reads back
 unchanged, and under `fsrs` and the comparison the rebuilt cards equal the library's own.
+
+**A module part kept in IndexedDB** (`shell.html`, "PARTS OF THE PROGRESS KEPT IN INDEXEDDB";
+Louis, 2026-11-08: "use IndexedDB for worksheet ink"). A module whose part of the progress has no
+upper size calls `registerOutside(part)` while it loads (worksheets-ink: `registerOutside('ink')`).
+A module that registers after the first load has the profile on screen read in at once.
+Nothing changes for a course with no such module: no database is opened and `progText(db)` is
+`JSON.stringify(db)`, so its stored progress is the same text as before (`outside_test.js` "none").
+With a part registered:
+- In memory nothing changes. `DB[part]` is `{<page>: <value>}`, read and changed by the module as
+  before, and everything that reads `DB` (Export, Import's comparisons, the module) sees it.
+- On disk the part leaves the stored progress. The progress written to localStorage, and so this
+  tab's per-tab record of it (#45, #69) and the copies Import and "Use it here" keep, is `progText(DB)`:
+  the progress without the registered parts. Each page is one record of the database
+  `exam-drill:<ns>`, store `parts`, key `<profile>␁<part>␁<page>`, value `{v, rev, at, tab}`. A save
+  writes only the pages whose value changed (compared by identity: a module puts a new outer object in
+  `DB[part][page]` when it changes a page, as worksheets-ink's `inkSave` does). worksheets-ink keeps
+  one `INK.data.parts` and pushes strokes into it; that alone does not meet the layer's needs, so the
+  layer copies (`structuredClone`, else JSON) every value it keeps, snapshots, sets apart or writes,
+  and in-place changes cannot reach them (the sixth review of #81, A1).
+- When it is written. `save()` starts the page's write at once (the progress itself still waits
+  150 ms), `saveNow()` (pagehide, hidden page, profile switch) and every write of the progress
+  through `store` start it too. "Saved" means the transaction's `complete` event fired, with
+  `durability: 'strict'` where the browser takes that option.
+- Two tabs. A page is written only while this tab may write the profile (the writer lock, the
+  stale-page guard: a tab stopped by either writes no page). Each record carries a revision; a write
+  that finds a revision other than the one this page read merges the two (`outsideMerge`; the default
+  keeps every element of every array, compared as JSON, so every stroke of both) and writes the
+  merge, which this page then shows (`onOutside` reports `merged: true`). A merge can bring back a
+  stroke one tab erased while the other tab still had it; it never loses one. The same holds for a
+  tab whose recovery record another tab took over (in practice only without Web Locks, or for a tab
+  frozen in the background): when it finds the stored page already holds its kept writing, it shows
+  the stored page (H1), so a stroke this tab rubbed out after the other tab wrote the older copy comes
+  back. The notice does not list merge cases; `onOutside` reports such a page with `event: 'released'`.
+- Deleting. A page leaves the database only through `outsideRemove(part, page)` or `outsideClear(p,
+  part)`: Settings' "Erase my history" calls `outsideClear` for the profile, and a module's own erase
+  calls them. A page missing from `DB` (after a load, Import or Put back) is never taken for a
+  deletion: the stored page is put back into `DB` (`outsideAdopt`), merged with what `DB` holds.
+- Moving an earlier format. A page found inside the stored progress (an earlier core kept `DB.ink`
+  there, or this layer while the database was unavailable) stays there (`OUT.inline`) until its copy
+  in the database is written and read back equal; only the next progress save after that leaves it
+  out. A move stopped at any point (a closed page, a refused write) leaves it in localStorage, and
+  the next load moves it again; a page in both places is merged, each stroke once.
+- Mixed versions. A tab on an earlier core sees no moved page and writes the pages it changes
+  inside the progress; the next load of a page on this core merges them into the database.
+- Storage full. The database refusing a write (`QuotaExceededError`) leaves the page on this page in
+  state `refused`, never `saved`; a notice (`#outwarn`) says the latest writing was not saved, that it
+  stays on this page until it is closed or reloaded, and offers Export, whose file carries every
+  page, saved or not; the page counts as unsaved (`unsavedHere`), so leaving it asks first; each
+  later save tries again, and the notice goes once every page is saved. There is no size limit on a
+  part. In Chromium a refusal can last until another database is written or the page is replaced
+  (`review/idb-investigation/REPORT.md` §2c on #54).
+- No database. When IndexedDB cannot be opened (or does not open within 5 s) every page stays inside
+  the stored progress, as before this layer (`OUT.state` 'unavailable'), with localStorage's limits
+  and notices.
+- Export and Import. Export waits until the profile's pages are in `DB` (`outsidePending`,
+  `outsideReady`), so the file has `db.<part>` as an earlier core's file did, and an earlier core
+  imports it. An Import into this profile puts the file's pages into `DB` and merges them with the
+  stored ones (`outsideAdopt`); an Import into a new profile writes them for that profile
+  (`outsideImport`). Exporting another profile reads its pages from the database (`outsideFill`).
+- A preview (`/preview/`) has its own database (`exam-drill:<ns>-preview`); the first time it opens it
+  copies the live database's records, when the browser lists that database (`indexedDB.databases`).
+
+- Writing not yet stored is never dropped (the review of #81 at d0da191, M1, M2). Every page value
+  the database has not committed (still being written, refused, or changed in a tab that may not
+  write) is kept on the page (`OUT.held`) whatever replaces `DB`: a load, a profile switch, "Use it
+  here", Import, Put back. When the profile is open with the writer lock, it is merged back into
+  `DB` and written. Until then it counts as unsaved (leaving asks first), and the notice names the
+  profile it belongs to, with Export for it. A record an earlier core wrote with `ink` inside it is
+  merged the same way (`outsideAbsorb`); the record is then compared without the part.
+- Leaving or reloading asks first (the second review of #81, N1): the browser's leave question and
+  the in-app Reload's question also come when writing is refused or kept for a profile not yet
+  written (`outsideAtRisk`), unless it was exported since. A write that is only running does not ask.
+- An Erase marks what it erased for every tab: `<ns>:outside-mark:<profile>` is a list of {at, tab,
+  part, page}, the latest per tab and scope. Settings' Erase marks the profile; a module's erase of its
+  part (`outsideClear(p, part)`) or of a page (`outsideRemove`) marks that part or page. Put back and
+  a replacing Import do not mark (they merge). Writing a tab kept from before another tab's mark
+  covering its page is neither written nor deleted on its own (the third review of #81, Q1): it
+  stays kept (unsaved, so leaving asks), out of the page on screen, and the notice names each page
+  and its strokes, with "Add it back" (written), "Export it" (a file) and "Leave it out" (the only
+  way it is discarded, and only the pages it names). No dialog decides it. That writing is set apart from the page (`OUT.parked`):
+  what the student writes on the page afterwards is a new value, and no write of the page changes or
+  removes the set-apart writing; only Add it back, Leave it out or the student's own Erase releases it
+  (the fourth review of #81, S1). The page on screen drops it and reads the stored page again. Only
+  writing proven to be from before the Erase is set apart for Leave it out: the kept value at its last
+  snapshot before the Erase. Strokes drawn here since stay kept as new writing. When snapshots between
+  the first (always kept) and the next one after the Erase were dropped (more than 20 changes), what
+  lies between them is kept as unsure writing (`OUT.amb`): named, with Add it back and Export, and Leave
+  it out never deletes it (Louis, 2026-11-08: "If the boundary cannot be determined safely, preserve
+  the ambiguous writing"). A write that finds its page gone (erased in another tab before its mark
+  reached this tab) writes nothing and keeps the writing as unsure too.
+- While this tab writes a page, the kept value is the page as it is now (an erased stroke stays erased;
+  the seventh review of #81, B1); writing from another tab or from before an Erase is merged.
+- An Erase is scoped: erasing page B (`outsideRemove`) or a part (`outsideClear(p, part)`) invalidates
+  only the writes of what it erased, not another page's waiting save (ChatGPT, comment 6723699881).
+- Recovery records (Louis, 2026-11-08): writing that is kept (refused, waiting for a profile to be
+  opened, being written), set apart or unsure is also saved in the same database and store under the
+  key prefix `\u0002` (`\u0002<profile>\u0001<part>\u0001<page>\u0001<tab>`), with no version change:
+  active pages are read only in the range `<profile>\u0001…`, so a recovery record is never read as a
+  page and cannot undo an Erase. It counts as saved only once its transaction committed. Each open tab
+  holds the lock `exam-drill-tab:<tab>`; a load takes over the records of tabs without that lock
+  (closed, crashed, killed) and deletes them in the same transaction as it writes its own. Without
+  Web Locks (an older browser, a page opened from disk) each tab writes a heartbeat
+  `<ns>:tab-alive:<tab>` to localStorage every 30 s, and a load takes over a record only when neither
+  its tab's heartbeat nor the record's own write time is less than 5 minutes old. A tab whose record
+  was taken over all the same (frozen in the background, or its heartbeat refused by full storage)
+  finds the record gone when it checks (every 30 s without Web Locks, and whenever the page is shown
+  again), says its recovery copy is being saved, asks before leaving, and writes the record again; the
+  writing is then held by both tabs, and neither deletes it (the eighth review of #81, R5). When the
+  stored page already holds that writing (the other tab wrote it), the returning tab drops its copy and
+  shows the stored page instead of writing the record again, so the copy cannot bring back a stroke
+  erased there since (the ninth review, H1). The tab lock and the heartbeat start with the first
+  `registerOutside`: a course with no such module holds no tab lock and writes no heartbeat, as before
+  (the ninth review, C1). The tab lock is let go when the page goes into the back/forward cache and
+  taken again when it comes back; a grant that arrives while the page is in that cache (pagehide came
+  before the grant) is let go at once (the tenth review). A page that is only hidden keeps the lock: it
+  is still open, and letting the lock go would let another tab take over its records; whether Chromium then keeps the page in that cache was not checked
+  (headless Chromium runs with the cache switched off), and every course holds the writer lock of its
+  progress (`<ns>:writer:<profile>`) all the same. Taken over,
+  kept writing is checked against Erase marks; set-apart and unsure writing stays set apart. When a
+  recovery record cannot be written (storage full), the writing is only in this tab's memory: the
+  notice says so, offers Export, and leaving asks first. With the record saved, leaving does not ask.
+- 'saved' is never shown for a page changed in place under the same object: `outsideState` compares
+  the stored copy with the page, and writes it when they differ (X4). `save()` itself does not find
+  such a change: it recognises an unchanged page by the identity of its outer object, so that a save
+  does not compare every page. **A module that changes a page in place (pushes a stroke into the
+  object already in `DB[part][page]`) must either put a new outer object in `DB[part][page]` before
+  calling `save()`, as #17 does, or call `outsideState(part, page)` after the change; otherwise the
+  change is not written until something calls `outsideState` for that page or the page object is
+  replaced.**
+  Limits: the mark list keeps at most 100 marks; past that the oldest 50 become one mark of the whole
+  profile at the latest of their times, which can set apart more writing than the marks it replaced,
+  never less. When the browser refuses to store a mark (storage full), the student is told that other
+  open tabs were not told of the Erase. An Erase made in a tab on an earlier core, or in a page where the
+  module that keeps the part is not switched on, writes no mark. "Use it here" says where
+  the unsaved writing went: not into the copy of the progress, but merged into the stored writing,
+  or named on the notice when it predates such an Erase.
+- Erase is final for this page too: a write that began before it is not recorded when it completes
+  (its delete runs after it), and each load replaces what the page knows of the profile with what
+  the database holds, so a page erased here or in another tab does not come back.
+- A database read that fails, or a database that does not open within 5 s, shows a notice. After a
+  failed read the page shows, writes and exports none of the stored writing, and Export says so.
+- Import's result is shown once the file's pages are written (into this profile or a new one), and
+  it says so when the database refused them. A replacing Import does not put the file's pages into
+  the stored progress until they are moved (Put back does, because its copy came from there): the
+  file is the copy until the database commits them, and a large file would not fit in localStorage.
+- Mixed versions, limits: a tab on an earlier core exports a file without the moved pages, and its
+  Erase does not remove them from the database, so they come back on the next load on this core.
+  Keep every tab of a course on one version (the "new version" card) before erasing or exporting.
+
+**Requirement for #17 (worksheets-ink).** A module that keeps its own copy of a page (worksheets-ink's
+`INK.data`) must reload that page from `DB[part][page]` on each of the three events `onOutside` reports:
+`event: 'parked'` (its writing from before another tab's Erase was set apart and taken off the page),
+`event: 'released'` (Add it back or Leave it out) and `event: 'erased'` (the page was erased in another tab and taken off the page on screen). Otherwise its next save writes the set-apart
+strokes back without the student's choice (the fifth and sixth reviews of #81, V12). Export progress
+carries set-apart writing too. Another tab's Erase reaches an open tab as a storage event on its mark
+key, and the writing is set apart at that moment, so strokes drawn after it are never mixed in; a tab
+that missed the event compares on its next load, and anything whose side of the Erase cannot be told
+is kept as unsure writing, never offered for deletion. Cases that set nothing apart, and so save the
+writing back (none delete it): a mark the browser refused to store (the student is told), and an
+Erase made in a tab on an earlier core or with the module off (no mark).
+
+What a module calls (the API for worksheets-ink, #17). It must not delete pages with `delete
+DB.ink[...]` or `delete DB.ink` (a deletion of a page from `DB` is never written; it comes back on
+the next load), and must not decide what is saved by comparing `JSON.stringify(DB)` with the stored
+progress (the ink is not in it):
+`registerOutside(part, {merge})`; `outsideReady()` (a Promise: the profile's pages are in `DB`;
+show a page only after it); `outsideState(part, page)` (`'saved'`, `'saving'`, `'unsaved'`,
+`'refused'`, `'failed'`, `'none'`; with the database unavailable the same states follow the
+progress's own write); `onOutside(fn)` (called with `{profile, part, page, state, merged, event}` after
+each change of state, `null` after a load); `outsideRemove(part, page)`; `outsideClear(PROFILE,
+part)`. It writes a page by putting a new object in `DB[part][page]` and calling `save()`.
+
+What is protected, and when (`outside_test.js` checks each from a fresh page after a reload):
+- an orderly close or reload after the page's transaction completed: kept;
+- a page closed, reloaded or killed before its transaction completed: the change is lost; the
+  write starts when the module calls `save()`, so that window is the transaction's own time
+  (timings in the pull request), not the 150 ms wait of the progress;
+- a phone that ends the page while it is in the background: the same as a crash; the write of a
+  change started when it was made, and `saveNow()` runs when the page is hidden;
+- the recovery record follows the screen one transaction behind: it is written after each change of
+  kept, set-apart or unsure writing, and until that write commits the record still holds the writing
+  as it was. If the browser is killed in that window, the next load takes over the earlier record. So
+  a stroke the student rubs out of kept writing (writing not yet stored as a page, for example after a
+  refused write), followed by a kill before the rewritten record commits, comes back as kept writing
+  after the reload; Leave it out followed by such a kill brings the writing back as set-apart writing,
+  named on the notice again; and a stroke added to kept writing in that window is lost with the kill,
+  like any change whose transaction had not completed (the eighth review of #81). Settings' Erase,
+  `outsideRemove` and `outsideClear` delete the recovery records in the same transaction as the pages,
+  so once that Erase has committed no record can bring its writing back.
 
 ## Start-up and the saved progress
 

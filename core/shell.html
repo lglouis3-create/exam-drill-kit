@@ -681,18 +681,977 @@ const store = {
   // stored, so a later save by another tab still shows as one
   set(k, v){
     MEM[k] = v;
-    try { localStorage.setItem(k, v); keptNow(k); KEPT[k] = v; seenAs(k, v); pendingAfter(k, v); return true; }
-    catch(e){ FAILED.add(k); saveWarn(k); return false; }
+    try { localStorage.setItem(k, v); keptNow(k); KEPT[k] = v; seenAs(k, v); pendingAfter(k, v); outsideAfterSave(k); return true; }
+    catch(e){ FAILED.add(k); saveWarn(k); outsideAfterSave(k); return false; }
   },
   del(k){ delete MEM[k]; keptNow(k); KEPT[k] = null; seenAs(k, null); try { localStorage.removeItem(k); } catch(e){ /* nothing to remove */ } pendingAfter(k, null); },
   // Import's writes: true when the browser kept it; false when it refused, and then
   // nothing changes, not even the copy kept for this visit, so a refused import
   // leaves the progress on screen and in storage exactly as it was
   trySet(k, v){
-    try { localStorage.setItem(k, v); MEM[k] = v; keptNow(k); KEPT[k] = v; seenAs(k, v); pendingAfter(k, v); return true; }
+    try { localStorage.setItem(k, v); MEM[k] = v; keptNow(k); KEPT[k] = v; seenAs(k, v); pendingAfter(k, v); outsideAfterSave(k); return true; }
     catch(e){ return false; }
   },
 };
+/* ==========================================================================
+   PARTS OF THE PROGRESS KEPT IN INDEXEDDB (Louis, 2026-11-08: "use IndexedDB
+   for worksheet ink")
+   ==========================================================================
+   localStorage holds about 5 MB for the whole site (lglouis3-create.github.io,
+   every drill together), and each save of the progress there is written in full,
+   once under the profile's key and once more in this tab's per-tab record (#45,
+   #69). A part a module keeps that has no upper size, worksheet ink, does not fit
+   that way (review/per-tab-record-storage-proposal.md, #66). Such a part is kept
+   in IndexedDB instead, one record per page, so a save writes only the page that
+   changed.
+
+   Nothing here runs unless a module calls registerOutside(part) while it loads;
+   a course without such a module opens no database, and progText(db) is then
+   JSON.stringify(db), so its stored progress is byte for byte what it was.
+
+   In memory nothing changes: DB[part] = {<page>: <value>} as before, so Export,
+   Import's comparisons, the module's own code and everything that reads DB see
+   the part. Only the write changes: progText(db) is the progress written to
+   localStorage, without the registered parts; each page of a part is written to
+   the database `exam-drill:<ns>`, store `parts`, key
+   `<profile>\u0001<part>\u0001<page>`, value {v, rev, at, tab}.
+
+   The rules:
+   - A page is written after every progress save that finds it changed (save()'s
+     150 ms timer, saveNow() on pagehide and when the page is hidden, a profile
+     switch), never only at close. "saved" means the transaction's complete event
+     fired (durability 'strict' where the browser offers it).
+   - A write never replaces a page another tab wrote since this page read it: each
+     record carries a revision; when the stored revision is not the one this page
+     read, the two are merged (outsideMerge: every stroke of both is kept), the
+     merge is written and then shown here. Nothing a page wrote is written over.
+   - A page leaves the database only through outsideRemove or outsideClear, which
+     the student's own Erase calls; a page missing from DB (a load, an Import, Put
+     back) is never taken for a deletion.
+   - A page an earlier core kept inside the stored progress (DB.ink in localStorage)
+     stays there until its copy in the database is written and read back equal; only
+     the next progress save after that leaves it out (OUT.inline). A move stopped at
+     any point leaves it in localStorage, and the next load moves it again; a page in
+     both places is merged.
+   - The database refuses a write (storage full, QuotaExceededError): the page stays
+     on this page, its state is 'refused', a notice says the writing was not saved
+     and offers Export (which carries every page, saved or not), and each later save
+     tries again. A refused write is never shown as saved.
+   - IndexedDB cannot be opened (some private windows, a page opened from a file, a
+     broken database): every page stays inside the stored progress, as before this
+     layer (OUT.state 'unavailable'); localStorage's own limits and notices apply.
+   - One writer per profile (Web Locks), as for the rest of the progress: a tab
+     writes a profile's pages only while it may write that profile.
+   - Writing not yet stored is kept on the page through anything that replaces DB
+     (OUT.held, below), and an Erase is not undone by a write still running or by
+     what this page knew before it (the review of #81 at d0da191).
+   ========================================================================== */
+/* Kept on this page, whatever replaces DB (a load, a profile switch, "Use it here", Import, Put back):
+   every page value this page holds that the database has not committed (OUT.held). A load puts it
+   back into DB, merged with the stored page, and writes it again; leaving the page asks first
+   (unsavedHere); the notice names it. It goes only when the database commits it, or Erase removes it.
+   (The review of #81 at d0da191, M1 and M2.) */
+const OUT = {
+  parts: new Set(), merges: {},
+  state: 'off',        // 'off' (no part registered) | 'opening' | 'ready' | 'unavailable'
+  why: '', problem: '', db: null, opening: null,
+  known: {},           // key -> {v, rev}: the page as the database held it when this page last read or wrote it
+  sent: {},            // key -> the value last handed to a write (compared by identity)
+  held: {},            // key -> a value this page holds that the database has not committed
+  heldAt: {},          // key -> when this page first held it (compared with another tab's Erase)
+  heldLast: {},        // key -> when the kept value last changed (the notice says when strokes were drawn after the Erase)
+  heldSrc: {},         // key -> the page object the held copy was taken from (compared by identity)
+  heldBase: {},        // key -> the stored revision this tab's kept value continues (its own page: no union with it)
+  amb: {},             // key -> writing kept from around another tab's Erase whose side of it is not known:
+                       // never deleted by Leave it out; Add it back or Export (Louis, 2026-11-08)
+  snapTrim: {},        // key -> snapshots between the first and the last 19 were dropped
+  genP: {}, genPart: {}, genKey: {},   // Erases in this visit, by profile, part and page (a write that began before one is not recorded)
+  recLast: {}, recState: {}, recBusy: {}, recAgain: {}, recAdopt: {}, recTimer: 0,   // recovery records (below)
+  snaps: {},           // key -> [{at, v}]: the kept value as it changed (at most 20), to set apart only what predates an Erase
+  parkedLate: {},      // key -> the set-apart value also holds strokes drawn after the Erase
+  parked: {},          // key -> writing kept from before another tab's Erase, apart from the page: no write of the
+                       // page changes it; only Add it back, Leave it out or the student's own Erase releases it (S1)
+  status: {},          // key -> 'saving' | 'saved' | 'refused' | 'failed'
+  busy: {}, again: {}, // a write runs for key; a newer value waits for it
+  inline: {},          // profile -> {part: Set(page)}: pages still inside the stored progress, not yet moved
+  reading: {},         // profile -> the read of its records now running
+  have: {},            // profile -> true once its records were read in this visit
+  readFailed: {},      // profile -> why the last read of its records failed
+  attached: {},        // profile -> the DB object its pages were put into
+  clearing: {},        // profile -> an Erase's delete now running
+  gen: {},             // profile -> the number of Erases in this visit (a write started before one is not recorded)
+  ready: {},           // profile -> {promise, resolve}
+  listeners: [],
+};
+const outKey = (p, part, page) => p + '\u0001' + part + '\u0001' + page;
+/* Every page value the layer keeps (held, snapshots, set apart, known) is a copy: a module that changes
+   its strokes in place (worksheets-ink pushes into INK.data.parts) cannot reach it (the sixth review of #81, A1). */
+const outClone = v => { if(v === undefined) return v; try { return structuredClone(v); } catch(e){ return JSON.parse(JSON.stringify(v)); } };
+const outSnap = (k, v) => { const l = OUT.snaps[k] = OUT.snaps[k] || []; l.push({at: Date.now(), v: outClone(v)}); if(l.length > 20){ l.splice(1, l.length - 20); OUT.snapTrim[k] = true; } };   // the first is always kept: it is from before any later Erase
+const outContains = (big, small) => small === undefined || !outHasContent(outsideMinus(small, big));
+/* What b lacks of a: array elements not in b (compared as JSON), object keys recursively, a's other values. */
+function outsideMinus(a, b){
+  if(b === undefined) return a;
+  if(Array.isArray(a)){ const have = new Set((Array.isArray(b) ? b : []).map(x => JSON.stringify(x))); return a.filter(x => !have.has(JSON.stringify(x))); }
+  if(isPlainObj(a)){ const out = {}; for(const k of Object.keys(a)) out[k] = isPlainObj(b) ? outsideMinus(a[k], b[k]) : a[k]; return out; }
+  return a;
+}
+const outHasContent = v => Array.isArray(v) ? v.length > 0 : isPlainObj(v) ? Object.values(v).some(outHasContent) : false;
+const outSplit = k => k.split('\u0001');
+const isPlainObj = v => !!v && typeof v === 'object' && !Array.isArray(v);
+const outKeysOf = (obj, p) => Object.keys(obj).filter(k => outSplit(k)[0] === p);
+// the Erases that can reach key k: of its profile, of its part, of the page itself (ChatGPT, comment 6723699881)
+const outGen = k => { const [p, part] = outSplit(k); return (OUT.genP[p] | 0) + '.' + (OUT.genPart[p + '\u0001' + part] | 0) + '.' + (OUT.genKey[k] | 0); };
+/* A module's part kept in IndexedDB. merge(a, b): the value that keeps everything of both
+   pages (used when two tabs wrote one page, or a moved page differs from the stored one);
+   the default keeps every element of every array (compared as JSON), the larger of two
+   numbers, and b's value for anything else. Registered after the first load (a module that
+   loads late), the profile on screen is read in at once. */
+function registerOutside(part, opts){
+  if(typeof part !== 'string' || !part) return;
+  const added = !OUT.parts.has(part);
+  OUT.parts.add(part);
+  try { outsideTabAlive(); } catch(e){}
+  if(opts && typeof opts.merge === 'function') OUT.merges[part] = opts.merge;
+  if(OUT.state === 'off') outsideOpen();
+  try { if(added && PROFILE && LOADED === PROFILE){ outsideOnLoad(PROFILE, DB, true); outsideAttachSoon(PROFILE); } } catch(e){ /* before load() exists */ }
+}
+function outsideMerge(part, a, b){
+  if(a === undefined) return b;
+  if(b === undefined) return a;
+  if(OUT.merges[part]){ try { return OUT.merges[part](a, b); } catch(e){ /* the default below */ } }
+  return deepUnion(a, b);
+}
+function deepUnion(a, b){
+  if(a === undefined) return b;
+  if(b === undefined) return a;
+  if(Array.isArray(a) && Array.isArray(b)){
+    const seen = new Set(a.map(x => JSON.stringify(x))), out = a.slice();
+    for(const x of b){ const j = JSON.stringify(x); if(!seen.has(j)){ seen.add(j); out.push(x); } }
+    return out;
+  }
+  if(isPlainObj(a) && isPlainObj(b)){
+    const out = Object.assign({}, a);
+    for(const k of Object.keys(b)) out[k] = k in a ? deepUnion(a[k], b[k]) : b[k];
+    return out;
+  }
+  if(typeof a === 'number' && typeof b === 'number') return Math.max(a, b);
+  return b;
+}
+const sameVal = (a, b) => a === b || JSON.stringify(a) === JSON.stringify(b);
+const outReq = r => new Promise((res, rej) => { r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+const outTx = t => new Promise((res, rej) => { t.oncomplete = () => res(); t.onabort = () => rej(t.error || new Error('aborted')); t.onerror = () => {}; });
+function outsideDbName(ns){ return 'exam-drill:' + ns; }
+function outsideOpen(){
+  if(OUT.opening) return OUT.opening;
+  OUT.state = 'opening';
+  OUT.opening = new Promise(resolve => {
+    let done = false, fresh = false;
+    const fail = why => {
+      if(done) return; done = true;
+      OUT.state = 'unavailable'; OUT.why = String(why || 'unknown');
+      OUT.problem = 'This browser\'s database for the writing could not be used (' + OUT.why + '), so the writing is kept inside the progress in this browser\'s other storage, which holds less.';
+      for(const p of Object.keys(OUT.ready)) if(OUT.ready[p]) OUT.ready[p].resolve();
+      // every page goes inside the stored progress again, as before this layer
+      try { if(canSave()) save(); } catch(e){}
+      outsideNotify(null);
+      resolve();
+    };
+    // a database that neither opens nor fails counts as unavailable
+    const timer = setTimeout(() => fail('it did not open within 5 s'), 5000);
+    let r;
+    try { r = indexedDB.open(outsideDbName(NS), 1); } catch(e){ clearTimeout(timer); fail(e && e.name || e); return; }
+    r.onupgradeneeded = e => { fresh = e.oldVersion === 0; try { r.result.createObjectStore('parts'); } catch(err){} };
+    r.onerror = () => { clearTimeout(timer); fail(r.error && r.error.name); };
+    r.onsuccess = () => {
+      clearTimeout(timer);
+      if(done){ try { r.result.close(); } catch(e){} return; }
+      done = true;
+      OUT.db = r.result; OUT.state = 'ready';
+      OUT.db.onversionchange = () => { try { OUT.db.close(); } catch(e){} };
+      (fresh && BUILD.preview ? outsideCopyLive() : Promise.resolve()).then(() => {
+        // a load that ran while the database was opening: its profile's pages now
+        try { if(PROFILE && LOADED === PROFILE) outsideAttachSoon(PROFILE); } catch(e){}
+        resolve();
+      });
+    };
+  });
+  return OUT.opening;
+}
+/* A preview (served at /preview/ on the same origin) copies the live drill's pages the first
+   time it opens, as it copies the live localStorage keys. It only reads the live database,
+   and only when the browser lists it (indexedDB.databases), so it never creates one. */
+function outsideCopyLive(){
+  try {
+    if(!indexedDB.databases) return Promise.resolve();
+    const live = outsideDbName(COURSE.ns);
+    return indexedDB.databases().then(list => {
+      if(!list.some(d => d.name === live)) return;
+      return new Promise(res => {
+        const r = indexedDB.open(live);
+        r.onerror = () => res();
+        r.onupgradeneeded = () => { try { r.transaction.abort(); } catch(e){} };
+        r.onsuccess = () => {
+          const ldb = r.result;
+          if(!ldb.objectStoreNames.contains('parts')){ ldb.close(); res(); return; }
+          const t = ldb.transaction('parts', 'readonly'), s = t.objectStore('parts');
+          Promise.all([outReq(s.getAllKeys()), outReq(s.getAll())]).then(([ks, vs]) => {
+            ldb.close();
+            const w = OUT.db.transaction('parts', 'readwrite'), ws = w.objectStore('parts');
+            ks.forEach((k, i) => ws.put(vs[i], k));
+            return outTx(w);
+          }).then(res, res);
+        };
+      });
+    }).catch(() => {});
+  } catch(e){ return Promise.resolve(); }
+}
+function outsideReadyOf(p){
+  if(!OUT.ready[p]){ let resolve; const promise = new Promise(r => { resolve = r; }); OUT.ready[p] = {promise, resolve}; }
+  return OUT.ready[p];
+}
+/* Resolves when the profile's pages are in DB (or nothing is kept outside, or the database
+   is unavailable, or its read failed: then OUT.readFailed[p] says why). A module waits for it
+   before it shows a page. */
+function outsideReady(p){
+  p = p || PROFILE;
+  if(!OUT.parts.size || OUT.state === 'unavailable' || OUT.readFailed[p]) return Promise.resolve();
+  if(OUT.attached[p] && OUT.attached[p] === DB && p === PROFILE) return Promise.resolve();
+  // read in this visit and DB replaced since (Erase, Import, Put back): its pages go into DB now
+  if(OUT.state === 'ready' && OUT.have[p] && p === PROFILE && !OUT.reading[p]){ outsideAdopt(p); if(OUT.attached[p] === DB) return Promise.resolve(); }
+  return outsideReadyOf(p).promise;
+}
+// the stored pages of profile p, read from the database: {key: {v, rev}}
+function outsideRead(p){
+  return (OUT.clearing[p] || Promise.resolve()).then(() => outsideOpen()).then(() => {
+    if(OUT.state !== 'ready') return {};
+    const lo = p + '\u0001', hi = p + '\u0001￿';
+    const t = OUT.db.transaction('parts', 'readonly'), s = t.objectStore('parts'), range = IDBKeyRange.bound(lo, hi);
+    const rr = IDBKeyRange.bound('\u0002' + lo, '\u0002' + hi);
+    const live = (() => { try { return navigator.locks && navigator.locks.query ? navigator.locks.query().then(q => new Set((q.held || []).map(l => l.name)), () => null) : Promise.resolve(null); } catch(e){ return Promise.resolve(null); } })();
+    return Promise.all([outReq(s.getAllKeys(range)), outReq(s.getAll(range)), outReq(s.getAllKeys(rr)), outReq(s.getAll(rr)), live]).then(([ks, vs, rks, rvs, held]) => {
+      const out = {};
+      ks.forEach((k, i) => { const r = vs[i]; if(r && typeof r === 'object') out[k] = {v: r.v, rev: r.rev | 0}; });
+      // recovery records of other tabs that are gone (no tab lock held), to be taken over by this tab
+      const now = Date.now();
+      Object.defineProperty(out, '__rec', {value: rks.map((rk, i) => ({rk, r: rvs[i]})).filter(x => outRecOrphan(x.r, held, now)), enumerable: false});
+      return out;
+    });
+  });
+}
+/* Before DB is replaced (load(), Import, Put back): each page of profile p (the profile DB holds)
+   that the database has not committed as it is in DB is kept on this page (OUT.held). */
+function outsideHold(p){
+  if(!OUT.parts.size || !p || !isPlainObj(DB)) return;
+  for(const part of OUT.parts){
+    const pages = DB[part];
+    if(!isPlainObj(pages)) continue;
+    for(const page of Object.keys(pages)){
+      const k = outKey(p, part, page), v = pages[page];
+      if(OUT.state === 'unavailable') continue;   // inside the stored progress: localStorage's own rules
+      // the same outer object as stored (identity: a module puts a new outer object in DB when it changes a
+      // page, so an unchanged page costs nothing here); else the same content (V2)
+      if(OUT.known[k] && (OUT.known[k].v === v || OUT.known[k].src === v) && !OUT.busy[k] && OUT.held[k] === undefined) continue;
+      if(OUT.heldSrc[k] === v) continue;
+      if(OUT.known[k] && !OUT.busy[k] && OUT.held[k] === undefined && sameVal(OUT.known[k].v, v)){ OUT.known[k].src = v; continue; }
+      if(OUT.held[k] === undefined){ OUT.heldAt[k] = Date.now(); OUT.heldBase[k] = OUT.known[k] ? OUT.known[k].rev : 0; }
+      else if(sameVal(OUT.held[k], v)){ OUT.heldSrc[k] = v; continue; }
+      const cv = outClone(v);
+      // the page on screen is this tab's own writing: once DB holds what is kept (attached), the kept value
+      // is the page as it is now, so an erased stroke stays erased; before that, the two are merged
+      // (the seventh review of #81, B1)
+      OUT.held[k] = OUT.held[k] !== undefined && OUT.attached[p] !== DB ? outsideMerge(part, OUT.held[k], cv) : cv; OUT.heldSrc[k] = v;
+      OUT.heldLast[k] = Date.now(); outSnap(k, OUT.held[k]);
+    }
+  }
+}
+/* load() calls this with the progress it read from localStorage: the pages found inside it
+   (an earlier core's format, or a fallback while the database was unavailable) are to be moved.
+   keep: the progress was not replaced (registerOutside after the load): add, do not reset. */
+function outsideOnLoad(p, db, keep){
+  if(!OUT.parts.size) return;
+  const inl = keep && OUT.inline[p] ? OUT.inline[p] : (OUT.inline[p] = {});
+  for(const part of OUT.parts) if(isPlainObj(db[part])){ inl[part] = inl[part] || new Set(); Object.keys(db[part]).forEach(pg => inl[part].add(pg)); }
+  OUT.attached[p] = null;
+}
+function outsideAttachSoon(p){
+  if(OUT.state !== 'ready') return;
+  // read again at each load: another tab may have written or erased since this page last read
+  const r = OUT.reading[p] = outsideRead(p).then(m => { if(OUT.reading[p] === r){ OUT.reading[p] = null; delete OUT.readFailed[p]; outsideAttach(p, m); } }, err => {
+    if(OUT.reading[p] !== r) return;
+    OUT.reading[p] = null;
+    OUT.readFailed[p] = String(err && err.name || err);
+    OUT.problem = 'The writing kept in this browser\'s database could not be read (' + OUT.readFailed[p] + '). Nothing of it is shown, written or exported until it can be; reload the page to try again.';
+    outsideReadyOf(p).resolve(); OUT.ready[p] = null;
+    outsideNotify(null);
+  });
+}
+/* The stored pages, as read, become what this page knows of the profile (a page erased in
+   another tab is gone from it; a page this page wrote since the read began keeps the later
+   revision); then they go into DB. */
+function outsideAttach(p, m){
+  const gone = [];
+  for(const k of outKeysOf(OUT.known, p)) if(!(k in m) && !OUT.busy[k]){
+    // erased in another tab: the page on screen, if it is still the copy this tab read, goes with it
+    // (otherwise a later save would keep it again as new writing); a page changed here is kept
+    const prev = OUT.known[k], [, part, page] = outSplit(k);
+    if(p === PROFILE && isPlainObj(DB[part]) && DB[part][page] !== undefined && (DB[part][page] === prev.v || DB[part][page] === prev.src) && OUT.held[k] === undefined){ delete DB[part][page]; delete OUT.sent[k]; gone.push(k); }
+    delete OUT.known[k];
+  }
+  setTimeout(() => { for(const k of gone) outsideNotify(k, false, 'erased'); }, 0);
+  for(const k of Object.keys(m)){
+    const [kp, part] = outSplit(k);
+    if(kp !== p || !OUT.parts.has(part)) continue;
+    const prev = OUT.known[k];
+    if(!prev || m[k].rev >= prev.rev) OUT.known[k] = m[k];
+  }
+  OUT.have[p] = true;
+  outsideRecTake(p, m.__rec || []);
+  if(!OUT.readFailed[p] && /could not be read/.test(OUT.problem)) OUT.problem = '';
+  if(p !== PROFILE || LOADED !== p) return;
+  outsideAdopt(p);
+  const r = outsideReadyOf(p);
+  OUT.ready[p] = null;   // a later load waits again
+  r.resolve();
+  outsideNotify(null);
+}
+/* DB is the object to keep (after a load, an Import, Put back): every stored page of the
+   profile, and every page this page holds uncommitted, go into it, merged with what DB holds
+   for that page; then the pages are written. fromStored: DB came from a stored progress (Put
+   back writes a kept copy as it is): its pages stay inside the stored progress until moved. */
+function outsideAdopt(p, fromStored){
+  if(!OUT.parts.size) return;
+  if(fromStored){
+    const inl = OUT.inline[p] = OUT.inline[p] || {};
+    for(const part of OUT.parts) if(isPlainObj(DB[part])){ inl[part] = inl[part] || new Set(); Object.keys(DB[part]).forEach(pg => inl[part].add(pg)); }
+  }
+  // a read of the profile is running (after a load): what this page knew before it may be stale (a
+  // page erased in another tab since); the read's attach adopts
+  if(OUT.state !== 'ready' || p !== PROFILE || !OUT.have[p] || OUT.reading[p]) return;
+  outsideHeldAfterMark(p);
+  const keys = new Set(outKeysOf(OUT.known, p).concat(outKeysOf(OUT.held, p)));
+  for(const k of keys){
+    const [, part, page] = outSplit(k);
+    if(!OUT.parts.has(part)) continue;
+    const st = OUT.known[k] ? OUT.known[k].v : undefined;
+    // kept equal to the committed page: nothing to keep (V2)
+    if(OUT.held[k] !== undefined && st !== undefined && !OUT.busy[k] && sameVal(OUT.held[k], st)){ delete OUT.held[k]; delete OUT.heldAt[k]; }
+    const hd = OUT.held[k];
+    if(!isPlainObj(DB[part])) DB[part] = {};
+    let v = DB[part][page];
+    if(v === undefined || sameVal(v, st)) v = st;
+    else if(st !== undefined) v = outsideMerge(part, st, v);
+    // what this tab kept continues the stored revision it started from: it is the page (an erased stroke
+    // stays erased); the stored page moved on since (another tab wrote): both are kept (B1)
+    if(hd !== undefined && !sameVal(v, hd)) v = v === undefined || (OUT.heldBase[k] !== undefined && OUT.known[k] && OUT.known[k].rev === OUT.heldBase[k]) ? hd : outsideMerge(part, v, hd);
+    if(v === undefined) continue;
+    DB[part][page] = v;
+    OUT.sent[k] = v === st ? st : undefined;
+  }
+  OUT.attached[p] = DB;
+  outsideWrite(p);
+}
+/* An Erase marks what it erased, in localStorage, so every tab sees it: `<ns>:outside-mark:<profile>`
+   is a list of {at, tab, part, page} (part and page empty for the whole profile), the latest per tab
+   and scope. Settings' Erase marks the profile; a module's own erase of its part or of a page
+   (outsideClear(p, part), outsideRemove) marks that part or page. Put back and a replacing Import do
+   not mark: they merge the stored pages. (The second and third reviews of #81, V3, V6.) */
+function outsideMarks(p){
+  try { const v = JSON.parse(localStorage.getItem(NS + ':outside-mark:' + p) || '[]'); return Array.isArray(v) ? v.filter(m => m && typeof m.at === 'number') : []; } catch(e){ return []; }
+}
+function outsideMarkErased(p, part, page){
+  if(!OUT.parts.size || !p) return;
+  try {
+    const list = outsideMarks(p).filter(m => !(m.tab === TAB_ID && (m.part || '') === (part || '') && (m.page || '') === (page || '')));
+    list.push({at: Date.now(), tab: TAB_ID, part: part || '', page: page || ''});
+    // at most 100 marks: the oldest 50 become one mark of the whole profile at the latest of their
+    // times, from every tab ('*'); it can set apart more writing than the marks it replaces, never less
+    let out = list;
+    if(out.length > 100){ const old = out.slice(0, 50); out = [{at: Math.max(...old.map(m => m.at)), tab: '*', part: '', page: ''}].concat(out.slice(50)); }
+    localStorage.setItem(NS + ':outside-mark:' + p, JSON.stringify(out));
+    return true;
+  } catch(e){
+    // storage full: the other open tabs are not told of this Erase; the student is (S1, should-fix 1)
+    OUT.problem = 'This browser\'s storage is full, so other open tabs of this drill were not told of this erase: writing they kept from before it can be saved back. Close the other tabs of this drill first, or erase again once storage has room.';
+    outsideNotify(null);
+    return false;
+  }
+}
+/* A mark written by another tab reaches this tab as a storage event: the writing this tab keeps of
+   what it erased is set apart at once, so strokes drawn here after it are kept apart from it (the
+   sixth review of #81, should-fix 1). A tab that misses the event (asleep, closed) compares on its
+   next load or notice, from its last 20 snapshots. */
+try { window.addEventListener('storage', e => {
+  try {
+    if(!OUT.parts.size || !e.key || !e.key.startsWith(NS + ':outside-mark:')) return;
+    const p = e.key.slice((NS + ':outside-mark:').length);
+    if(p === PROFILE) outsideHold(PROFILE);
+    outsideHeldAfterMark(p);
+    outsideNotify(null);
+  } catch(err){}
+}); } catch(e){}
+/* Writing this page kept from before another tab erased it (a mark of another tab, covering its
+   page, later than when this page first kept it): not written on its own and never deleted on its
+   own. It stays kept (unsaved: leaving asks first), out of DB, and the notice names it with three
+   choices: Add it back, Export it, Leave it out (the third review of #81, Q1). */
+function outsideHeldAfterMark(p){
+  const marks = outsideMarks(p).filter(m => m.tab !== TAB_ID);
+  if(!marks.length) return;
+  let reread = false; const parkedNow = [];
+  for(const k of outKeysOf(OUT.held, p)){
+    if(OUT.busy[k]) continue;
+    const [, part, page] = outSplit(k), at = OUT.heldAt[k] || 0;
+    if(!marks.some(m => m.at > at && (m.tab === '*' || m.tab !== TAB_ID) && (!m.part || m.part === part) && (!m.page || m.page === page))) continue;
+    // set apart: what is written on the page from now on is a new value, never this one
+    const markAt = Math.max(...marks.filter(m => m.at > at && (!m.part || m.part === part) && (!m.page || m.page === page)).map(m => m.at));
+    // only what predates the Erase is set apart: the kept value as it was at the Erase (its last snapshot
+    // before it); strokes drawn here since stay kept as new writing (the fifth review of #81, V13)
+    // Only writing proven to be from before the Erase can be left out. With snapshots dropped between
+    // the first (from before it) and the next one kept (after it), what lies between them is not known
+    // to be on either side: it is kept apart for Add it back or Export, never deleted (Louis, 2026-11-08:
+    // "If the boundary cannot be determined safely, preserve the ambiguous writing").
+    const cur = OUT.held[k], snaps = OUT.snaps[k] || [], before = snaps.filter(x => x.at <= markAt).pop();
+    let pre = cur, later, unsure;
+    if((OUT.heldLast[k] || at) > markAt){
+      const next = snaps.find(x => x.at > markAt);
+      if(before && OUT.snapTrim[k] && before === snaps[0] && next){ pre = before.v; unsure = outsideMinus(next.v, pre); later = outsideMinus(cur, next.v); }
+      else if(before){ pre = before.v; later = outsideMinus(cur, pre); }
+      else { pre = undefined; unsure = cur; }
+    }
+    if(pre !== undefined && outHasContent(pre)) OUT.parked[k] = OUT.parked[k] !== undefined ? outsideMerge(part, OUT.parked[k], pre) : pre;
+    if(unsure !== undefined && outHasContent(unsure)) OUT.amb[k] = OUT.amb[k] !== undefined ? outsideMerge(part, OUT.amb[k], unsure) : unsure;
+    delete OUT.held[k]; delete OUT.heldAt[k]; delete OUT.heldLast[k]; delete OUT.heldBase[k]; delete OUT.snaps[k]; delete OUT.snapTrim[k]; if(OUT.status[k] !== 'saving') delete OUT.status[k];
+    if(later !== undefined && outHasContent(later)){ OUT.held[k] = later; OUT.heldAt[k] = OUT.heldLast[k] = Date.now(); outSnap(k, later); }
+    parkedNow.push(k);
+    // and off the page on screen, which showed it: otherwise the next save would keep it again as new writing
+    // (the stored page, if any, comes back from the next read of the database: what this page knew
+    // before may be from before the Erase)
+    if(p === PROFILE && isPlainObj(DB[part]) && DB[part][page] !== undefined){ delete DB[part][page]; delete OUT.sent[k]; reread = true; }
+  }
+  // the stored page comes back from a fresh read (what this page knew may be from before the Erase)
+  if(reread && OUT.state === 'ready') outsideAttachSoon(p);
+  for(const k of parkedNow) outsideNotify(k, false, 'parked');
+}
+const outStaleOf = p => outKeysOf(OUT.parked, p);
+const outAmbOf = p => outKeysOf(OUT.amb, p);
+const outCount = v => { let n = 0; const walk = x => { if(Array.isArray(x)) n += x.length; else if(isPlainObj(x)) Object.values(x).forEach(walk); }; walk(v && v.parts !== undefined ? v.parts : v); return n; };
+/* The student's choices on the notice. */
+function outsideStaleAdd(p){
+  const keys = [...new Set(outStaleOf(p).concat(outAmbOf(p)))];
+  for(const k of keys){ const [, part] = outSplit(k);
+    for(const v of [OUT.parked[k], OUT.amb[k]]) if(v !== undefined) OUT.held[k] = OUT.held[k] !== undefined ? outsideMerge(part, OUT.held[k], v) : v;
+    OUT.heldAt[k] = OUT.heldLast[k] = Date.now(); delete OUT.heldBase[k]; delete OUT.parked[k]; delete OUT.amb[k]; delete OUT.parkedLate[k]; }
+  if(p === PROFILE && OUT.have[p]) outsideAdopt(p);
+  for(const k of keys) outsideNotify(k, false, 'released');
+  outsideNotify(null);
+}
+function outsideStaleDrop(p, keys){
+  for(const k of keys){ delete OUT.parked[k]; delete OUT.parkedLate[k]; }   // only the set-apart writing it named; the page as written since stays
+  for(const k of keys) outsideNotify(k, false, 'released');
+  outsideRecSync();   // the recovery record goes now, in a transaction started by the click
+  outsideNotify(null);
+}
+/* Pages found in another place than the database (a per-tab record an earlier core wrote with its
+   module part inside): merged into what this page holds for the profile, and written. */
+function outsideAbsorb(p, db){
+  if(!OUT.parts.size || !isPlainObj(db) || OUT.state === 'unavailable') return;
+  for(const part of OUT.parts){
+    if(!isPlainObj(db[part])) continue;
+    for(const page of Object.keys(db[part])){
+      const k = outKey(p, part, page), v = db[part][page];
+      const st = OUT.known[k] ? OUT.known[k].v : undefined;
+      if(st !== undefined && (sameVal(st, v) || sameVal(outsideMerge(part, st, v), st))) continue;   // nothing new in it
+      OUT.held[k] = OUT.held[k] !== undefined ? outsideMerge(part, OUT.held[k], outClone(v)) : outClone(v);
+    }
+  }
+  if(p === PROFILE && OUT.attached[p] === DB) outsideAdopt(p);
+}
+/* After a write of the progress on screen (store.set and store.trySet call it): the pages
+   that changed are written. */
+function outsideAfterSave(k){
+  try { if(OUT.parts.size && k === keyFor(PROFILE)) outsideWrite(PROFILE); } catch(e){}
+}
+const outMay = p => { try { return canSave() && p === PROFILE && !STALE && (WRITER === 'none' || (WRITER === 'held' && WRITER_FOR === p)); } catch(e){ return false; } };
+function outsideWrite(p){
+  if(OUT.state !== 'ready' || p !== PROFILE || !OUT.have[p] || OUT.readFailed[p] || OUT.reading[p]) return;
+  if(OUT.attached[p] !== DB){ outsideAdopt(p); return; }
+  if(!outMay(p)) return;
+  for(const part of OUT.parts){
+    const pages = DB[part];
+    if(!isPlainObj(pages)) continue;
+    for(const page of Object.keys(pages)){
+      const k = outKey(p, part, page);
+      const inl = !!(OUT.inline[p] && OUT.inline[p][part] && OUT.inline[p][part].has(page));
+      if(OUT.sent[k] !== pages[page] || (inl && !OUT.busy[k])) outsideWriteOne(p, part, page, pages[page], inl);
+    }
+  }
+}
+function outsideWriteOne(p, part, page, v, verify){
+  const k = outKey(p, part, page);
+  const keep = () => { if(OUT.held[k] === undefined){ OUT.heldAt[k] = Date.now(); OUT.heldBase[k] = OUT.known[k] ? OUT.known[k].rev : 0; } if(OUT.heldSrc[k] !== v){ OUT.heldLast[k] = Date.now(); outSnap(k, v); OUT.held[k] = outClone(v); OUT.heldSrc[k] = v; } };
+  if(!outMay(p) || OUT.state !== 'ready'){ keep(); outsideNotify(k); return; }
+  OUT.sent[k] = v;
+  keep();   // until the database commits it
+  if(OUT.busy[k]){ OUT.again[k] = true; return; }
+  OUT.busy[k] = true; OUT.status[k] = 'saving'; outsideNotify(k);
+  const gen = outGen(k);
+  const vw = outClone(v);   // the value written: a copy taken now, which a later change in place cannot reach
+  let finalV = vw, merged = false, rev = 0, t, putErr = null, gone = false;
+  try { t = OUT.db.transaction('parts', 'readwrite', {durability: 'strict'}); }
+  catch(e){ try { t = OUT.db.transaction('parts', 'readwrite'); } catch(err){ outsideFailed(k, err, p, part, page); return; } }
+  const s = t.objectStore('parts');
+  const g = s.get(k);
+  g.onsuccess = () => {
+    const cur = g.result, base = OUT.known[k];
+    // the page this tab read is gone: another tab erased it (its mark may not have reached this tab
+    // yet); nothing is written, and the writing is kept apart (the seventh review of #81, should-fix 2)
+    if(!cur && base){ gone = true; return; }
+    if(cur && (!base || (cur.rev | 0) !== base.rev)){
+      // another tab wrote this page since this page read it: both are kept
+      finalV = outsideMerge(part, cur.v, vw); merged = !sameVal(finalV, vw);
+      rev = (cur.rev | 0) + 1;
+    } else rev = Math.max(base ? base.rev : 0, cur ? cur.rev | 0 : 0) + 1;
+    try { s.put({v: finalV, rev, at: Date.now(), tab: TAB_ID}, k); } catch(e){ putErr = e; try { t.abort(); } catch(_){} }
+  };
+  outTx(t).then(() => {
+    // an Erase since this write began: its delete runs after this write; nothing of it is kept here
+    if(outGen(k) !== gen){ OUT.busy[k] = false; OUT.again[k] = false; delete OUT.status[k]; delete OUT.held[k]; delete OUT.heldAt[k]; delete OUT.heldSrc[k]; outsideNotify(k); return; }
+    if(gone){
+      // whole, as writing whose side of that Erase is not known: Add it back or Export, never deleted
+      OUT.busy[k] = false; OUT.again[k] = false; delete OUT.known[k]; delete OUT.status[k];
+      const v0 = OUT.held[k] !== undefined ? OUT.held[k] : vw;
+      OUT.amb[k] = OUT.amb[k] !== undefined ? outsideMerge(part, OUT.amb[k], v0) : v0;
+      delete OUT.held[k]; delete OUT.heldAt[k]; delete OUT.heldSrc[k]; delete OUT.heldBase[k]; delete OUT.snaps[k];
+      if(p === PROFILE && isPlainObj(DB[part])){ delete DB[part][page]; delete OUT.sent[k]; }
+      outsideNotify(k, false, 'parked');
+      return;
+    }
+    if(!OUT.known[k] || rev >= OUT.known[k].rev) OUT.known[k] = {v: finalV, rev, src: merged ? undefined : v};
+    if(merged && p === PROFILE && isPlainObj(DB[part]) && DB[part][page] !== undefined){
+      // the merge is shown here; a change made here while it was written is merged into it, never dropped
+      if(DB[part][page] === v && sameVal(v, vw)){ DB[part][page] = outClone(finalV); OUT.sent[k] = DB[part][page]; OUT.known[k].src = DB[part][page]; }
+      else { DB[part][page] = outsideMerge(part, finalV, DB[part][page]); OUT.again[k] = true; }
+    }
+    // committed: the value this page held is in the database (a newer one stays held)
+    if(OUT.held[k] !== undefined && outContains(finalV, OUT.held[k])){ delete OUT.held[k]; delete OUT.heldAt[k]; delete OUT.heldLast[k]; delete OUT.snaps[k]; delete OUT.heldSrc[k]; }
+    else if(OUT.held[k] !== undefined && !OUT.again[k]) OUT.again[k] = true;
+    // a page moved from localStorage leaves it only once its copy here is read back equal
+    const check = verify ? outsideReadBack(k, finalV).then(ok => {
+      if(ok && OUT.inline[p] && OUT.inline[p][part]){ OUT.inline[p][part].delete(page); try { if(p === PROFILE && canSave()) save(); } catch(e){} }
+    }) : Promise.resolve();
+    return check.then(() => {
+      OUT.busy[k] = false;
+      OUT.status[k] = OUT.again[k] ? 'saving' : 'saved';
+      outsideNotify(k, merged);
+      outsideAgain(p, part, page, k);
+    });
+  }, err => outsideFailed(k, putErr || err, p, part, page));
+}
+function outsideReadBack(k, v){
+  try {
+    const t = OUT.db.transaction('parts', 'readonly');
+    return outReq(t.objectStore('parts').get(k)).then(r => !!r && sameVal(r.v, v), () => false);
+  } catch(e){ return Promise.resolve(false); }
+}
+function outsideFailed(k, err, p, part, page){
+  OUT.busy[k] = false;
+  OUT.status[k] = err && err.name === 'QuotaExceededError' ? 'refused' : 'failed';
+  OUT.why = String(err && (err.name || err.message) || err);
+  OUT.sent[k] = undefined;   // the next save tries again; the value stays in OUT.held
+  outsideNotify(k);
+  outsideAgain(p, part, page, k);
+}
+/* A newer value handed over while a write ran: the page as DB holds it now (after a merge, the
+   merged page), or, when DB holds another profile now, the value kept for it. Written only while
+   this tab may write the profile; otherwise it stays held and is written when the profile is
+   opened again. (The review of #81, M3: the value from before the merge removed a stroke.) */
+function outsideAgain(p, part, page, k){
+  if(!OUT.again[k]) return;
+  OUT.again[k] = false;
+  const v = p === PROFILE && isPlainObj(DB[part]) && DB[part][page] !== undefined ? DB[part][page] : OUT.held[k];
+  if(v !== undefined && outMay(p)) outsideWriteOne(p, part, page, v, false);
+  else { if(OUT.status[k] === 'saving') OUT.status[k] = OUT.held[k] !== undefined ? 'unsaved' : 'saved'; outsideNotify(k); }
+}
+/* The progress as it is written to localStorage: without the parts kept in the database,
+   except their pages not yet moved there. With no part registered it is JSON.stringify(db). */
+function progText(db, p){
+  if(!OUT.parts.size || OUT.state === 'unavailable' || !isPlainObj(db)) return JSON.stringify(db);
+  p = p === undefined ? PROFILE : p;
+  let copy = null;
+  for(const part of OUT.parts){
+    if(!(part in db)) continue;
+    copy = copy || Object.assign({}, db);
+    const keep = OUT.inline[p] && OUT.inline[p][part];
+    const pages = db[part];
+    if(keep && keep.size && isPlainObj(pages)){
+      const sub = {};
+      for(const page of Object.keys(pages)) if(keep.has(page)) sub[page] = pages[page];
+      if(Object.keys(sub).length) copy[part] = sub; else delete copy[part];
+    } else delete copy[part];
+  }
+  return JSON.stringify(copy || db);
+}
+/* What the module shows for one page: 'saved' (stored as shown), 'saving' (a write runs or
+   waits), 'unsaved' (changed here and not written: the database is still opening, its read
+   failed, or this tab may not write the profile), 'refused' (storage full), 'failed' (another
+   error), 'none' (no such page, here or stored). With the database unavailable the page is inside
+   the progress, and the same states
+   follow the progress's own write (the review of #81, M4). */
+function outsideState(part, page, p){
+  p = p || PROFILE;
+  if(OUT.state === 'unavailable'){
+    if(FAILED.has(keyFor(p))) return 'refused';
+    if(p !== PROFILE) return 'saved';
+    if(!outMay(p)) return progText(DB) === SEEN ? 'saved' : 'unsaved';
+    if(saveTimer) return 'saving';
+    return progText(DB) === SEEN ? 'saved' : 'unsaved';
+  }
+  const k = outKey(p, part, page), here = p === PROFILE && isPlainObj(DB[part]) ? DB[part][page] : undefined;
+  if(OUT.status[k] === 'refused' || OUT.status[k] === 'failed') return OUT.status[k];
+  if(OUT.busy[k]) return 'saving';
+  if(OUT.held[k] !== undefined) return 'unsaved';
+  if(here === undefined) return OUT.known[k] ? 'saved' : 'none';   // no such page here or stored
+  if(OUT.known[k] && (OUT.known[k].v === here || OUT.known[k].src === here)){
+    if(sameVal(OUT.known[k].v, here)) return 'saved';
+    // the same object changed in place (the module did not put a new one): not saved; it is written now (X4)
+    delete OUT.sent[k]; try { setTimeout(() => { try { if(canSave() && !profileSavedElsewhere()) outsideWrite(PROFILE); } catch(e){} }, 0); } catch(e){}
+    return 'unsaved';
+  }
+  return 'unsaved';
+}
+/* Writing that leaving or reloading would lose: kept and not being written, or refused (not a write
+   that is merely running). The leave question and the in-app Reload ask about it (N1). */
+function outsideAtRisk(){
+  try {
+    if(!OUT.parts.size || OUT.state === 'unavailable') return false;
+    // kept writing whose recovery record is committed comes back after a reload: not at risk
+    const unsafe = k => OUT.recState[k] !== 'saved' || OUT.recLast[k] !== outRecJson(k);
+    if(Object.keys(OUT.parked).concat(Object.keys(OUT.amb)).some(unsafe) || Object.keys(OUT.held).some(k => !OUT.busy[k] && unsafe(k))) return true;
+    return Object.keys(OUT.status).some(k => (OUT.status[k] === 'refused' || OUT.status[k] === 'failed') && unsafe(k));
+  } catch(e){ return false; }
+}
+/* Any page this page holds that is not stored: of the profile on screen, or kept for another. */
+function outsideUnsaved(){
+  try {
+    if(!OUT.parts.size || OUT.state === 'unavailable') return false;
+    if(Object.keys(OUT.held).length || Object.keys(OUT.parked).length || Object.keys(OUT.amb).length) return true;
+    for(const k of Object.keys(OUT.status)) if(OUT.busy[k] || OUT.status[k] === 'refused' || OUT.status[k] === 'failed') return true;
+    for(const part of OUT.parts){
+      const pages = DB[part];
+      if(!isPlainObj(pages)) continue;
+      for(const page of Object.keys(pages)) if(outsideState(part, page) !== 'saved') return true;
+    }
+  } catch(e){}
+  return false;
+}
+/* Erase: the profile's pages leave the database, DB and what this page holds. Only the student's
+   own Erase, or a module's own erase of its part, calls these. A write that began before it is
+   not recorded when it completes (its delete runs after it: one store, transactions in order). */
+function outsideClear(p, part){
+  p = p || PROFILE;
+  if(!OUT.parts.size) return Promise.resolve();
+  if(part) OUT.genPart[p + '\u0001' + part] = (OUT.genPart[p + '\u0001' + part] | 0) + 1; else OUT.genP[p] = (OUT.genP[p] | 0) + 1;
+  outsideMarkErased(p, part);   // other tabs' kept writing of what this erases is from before it (V3)
+  for(const k of new Set(Object.keys(OUT.known).concat(Object.keys(OUT.sent), Object.keys(OUT.status), Object.keys(OUT.held)))){
+    const s = outSplit(k);
+    if(s[0] === p && (!part || s[1] === part)){ delete OUT.known[k]; delete OUT.sent[k]; delete OUT.status[k]; delete OUT.held[k]; delete OUT.heldAt[k]; delete OUT.heldSrc[k]; delete OUT.parked[k]; delete OUT.parkedLate[k]; delete OUT.snaps[k]; delete OUT.amb[k]; delete OUT.recLast[k]; delete OUT.recState[k]; OUT.again[k] = false; }
+  }
+  if(p === PROFILE){ if(part) delete DB[part]; else for(const pt of OUT.parts) delete DB[pt]; }
+  if(OUT.inline[p]){ if(part) delete OUT.inline[p][part]; else OUT.inline[p] = {}; }
+  const run = OUT.clearing[p] = outsideOpen().then(() => {
+    if(OUT.state !== 'ready') return;
+    const t = OUT.db.transaction('parts', 'readwrite');
+    const lo = p + '\u0001' + (part ? part + '\u0001' : ''), hi = lo + '￿';
+    t.objectStore('parts').delete(IDBKeyRange.bound(lo, hi));
+    t.objectStore('parts').delete(IDBKeyRange.bound('\u0002' + lo, '\u0002' + hi));   // recovery records of every tab: the student's own Erase
+    return outTx(t);
+  }).catch(err => { OUT.why = String(err && err.name || err); }).then(() => { if(OUT.clearing[p] === run) OUT.clearing[p] = null; outsideNotify(null); });
+  return run;
+}
+function outsideRemove(part, page, p){
+  p = p || PROFILE;
+  const k = outKey(p, part, page);
+  OUT.genKey[k] = (OUT.genKey[k] | 0) + 1;
+  outsideMarkErased(p, part, page);
+  delete OUT.known[k]; delete OUT.sent[k]; delete OUT.status[k]; delete OUT.held[k]; delete OUT.heldAt[k]; delete OUT.heldSrc[k]; delete OUT.parked[k]; delete OUT.parkedLate[k]; delete OUT.snaps[k]; delete OUT.amb[k]; delete OUT.recLast[k]; delete OUT.recState[k]; OUT.again[k] = false;
+  if(p === PROFILE && isPlainObj(DB[part])) delete DB[part][page];
+  if(OUT.inline[p] && OUT.inline[p][part]) OUT.inline[p][part].delete(page);
+  return outsideOpen().then(() => {
+    if(OUT.state !== 'ready') return;
+    const t = OUT.db.transaction('parts', 'readwrite'); t.objectStore('parts').delete(k); t.objectStore('parts').delete(IDBKeyRange.bound('\u0002' + k + '\u0001', '\u0002' + k + '\u0001￿')); return outTx(t);
+  }).catch(err => { OUT.why = String(err && err.name || err); }).then(() => outsideNotify(k));
+}
+/* Import into another profile (a new one, "separate"): the file's pages are written for it,
+   merged with any page stored there. Resolves true once the database committed them; what this
+   page knows of them is the committed revision (no read of that profile is assumed stale). */
+function outsideImport(p, db){
+  if(!OUT.parts.size || !isPlainObj(db) || ![...OUT.parts].some(part => isPlainObj(db[part]) && Object.keys(db[part]).length)) return Promise.resolve(true);
+  if(OUT.state === 'unavailable') return Promise.resolve(true);   // the pages are inside the progress written for it
+  return outsideRead(p).then(m => {
+    if(OUT.state !== 'ready') return false;
+    const t = OUT.db.transaction('parts', 'readwrite'), s = t.objectStore('parts'), done = {};
+    for(const part of OUT.parts){
+      if(!isPlainObj(db[part])) continue;
+      for(const page of Object.keys(db[part])){
+        const k = outKey(p, part, page), cur = m[k];
+        const v = cur ? outsideMerge(part, cur.v, db[part][page]) : db[part][page];
+        const rev = (cur ? cur.rev : 0) + 1;
+        s.put({v, rev, at: Date.now(), tab: TAB_ID}, k); done[k] = {v, rev};
+      }
+    }
+    return outTx(t).then(() => { for(const k of Object.keys(done)) if(!OUT.known[k] || done[k].rev >= OUT.known[k].rev) OUT.known[k] = done[k]; return true; }, () => false);
+  }, () => false);
+}
+/* Resolves once no write of these keys runs; true when each is stored (none refused or failed). */
+function outsideSettled(keys){
+  return new Promise(res => {
+    const t0 = Date.now();
+    const tick = () => {
+      if(keys.some(k => OUT.busy[k]) && Date.now() - t0 < 30000){ setTimeout(tick, 20); return; }
+      res(keys.every(k => !OUT.busy[k] && OUT.status[k] !== 'refused' && OUT.status[k] !== 'failed' && OUT.held[k] === undefined));
+    };
+    tick();
+  });
+}
+const outsidePageKeys = (p, db) => { const out = []; for(const part of OUT.parts) if(isPlainObj(db && db[part])) for(const page of Object.keys(db[part])) out.push(outKey(p, part, page)); return out; };
+/* Another profile's pages put into a copy of its progress (Export of a profile this page left),
+   with the pages this page holds for it uncommitted. */
+function outsideFill(p, db){
+  if(!OUT.parts.size || !isPlainObj(db)) return Promise.resolve(db);
+  const add = (part, page, v) => { if(!OUT.parts.has(part) || v === undefined) return; if(!isPlainObj(db[part])) db[part] = {}; db[part][page] = db[part][page] === undefined ? v : outsideMerge(part, v, db[part][page]); };
+  return outsideRead(p).then(m => {
+    for(const k of Object.keys(m)){ const [, part, page] = outSplit(k); add(part, page, m[k].v); }
+    for(const k of outKeysOf(OUT.held, p)){ const [, part, page] = outSplit(k); add(part, page, OUT.held[k]); }
+    for(const k of outKeysOf(OUT.parked, p)){ const [, part, page] = outSplit(k); add(part, page, OUT.parked[k]); }
+    for(const k of outKeysOf(OUT.amb, p)){ const [, part, page] = outSplit(k); add(part, page, OUT.amb[k]); }
+    return db;
+  }, () => { for(const k of outKeysOf(OUT.held, p).concat(outKeysOf(OUT.parked, p))){ const [, part, page] = outSplit(k); add(part, page, OUT.held[k] !== undefined ? OUT.held[k] : OUT.parked[k]); } return db; });
+}
+/* Export waits until the profile's pages are in DB. */
+const outsidePending = () => { try { return OUT.parts.size > 0 && canSave() && !OUT.readFailed[PROFILE] && (OUT.state === 'opening' || (OUT.state === 'ready' && OUT.attached[PROFILE] !== DB)); } catch(e){ return false; } };
+function onOutside(fn){ if(typeof fn === 'function') OUT.listeners.push(fn); }
+/* ---- Recovery records (Louis, 2026-11-08: "persistent recovery for held/parked ink in IndexedDB.
+   Keep recovery records separate from active worksheet ink, so persistence does not automatically
+   undo an erase") ----
+   What this tab keeps and has not committed (OUT.held), sets apart (OUT.parked) or keeps as unsure
+   (OUT.amb) is also written to the same database and store under its own key prefix,
+   `\u0002<profile>\u0001<part>\u0001<page>\u0001<tab>`. No version change is needed: one store holds any
+   keys, and the active pages are read only in the range `<profile>\u0001…`, so a recovery record is
+   never read as a page. A record says "saved" only when its transaction committed (OUT.recState). Each
+   tab holds the lock `exam-drill-tab:<tab>` while it is open; a load takes over the records of tabs
+   that hold no such lock (closed, crashed, killed), writing them under its own key and deleting theirs
+   in the same transaction. Taken over, held writing is checked against Erase marks as always; set-apart
+   and unsure writing stay set apart. A record goes when its writing is committed as a page, added back
+   and written, left out, or erased by the student. When a record cannot be written (storage full), the
+   writing stays in this tab's memory, the notice says so and offers Export, and leaving asks first. */
+/* Whether a recovery record's tab is still open. With Web Locks each tab holds `exam-drill-tab:<tab>`
+   (requested in outsideTabAlive below, once TAB_ID exists). Without them (an older browser, a page
+   opened from disk) each tab writes a heartbeat `<ns>:tab-alive:<tab>` every 30 s; a record is taken
+   over only when neither its heartbeat nor its own write time is newer than OUT_STALE_MS (5 minutes:
+   a hidden tab's timers can be slowed to one a minute). A tab whose records were taken over all the
+   same (a frozen tab, or a heartbeat the browser refused to store) sees its record gone on its next
+   check and writes it again, and until that commits it says the copy is being saved (R5). */
+const OUT_STALE_MS = 5 * 60 * 1000, OUT_BEAT_MS = 30 * 1000;
+const outAliveKey = tab => NS + ':tab-alive:' + tab;
+let OUT_TABLOCK = false, OUT_ALIVE = false, outTabRelease = null, outTabAsked = false, outCached = false;
+/* Started by the first registerOutside (a course with no such module holds no tab lock and writes no
+   heartbeat; the ninth review of #81, C1). The tab lock is let go when the page goes into the
+   back/forward cache and taken again when it comes back, so it is not one more lock held by a page
+   in that cache; the writer lock of the progress is held by every course all the same. */
+function outsideTabAlive(){
+  if(OUT_ALIVE) return;
+  if(typeof window === 'undefined' || typeof document === 'undefined' || typeof setInterval !== 'function') return;   // the checks' Node sandbox runs this code without a page
+  let id; try { id = TAB_ID; } catch(e){ return; }   // before TAB_ID exists: registerOutside calls again from start-up
+  OUT_ALIVE = true;
+  // a grant that arrives while the page is in the back/forward cache (pagehide came before the grant)
+  // is let go at once; pageshow asks again (the tenth review of #81)
+  const lock = () => {
+    if(outTabAsked || outTabRelease) return;
+    try { if(navigator.locks && navigator.locks.request){
+      outTabAsked = true;
+      navigator.locks.request('exam-drill-tab:' + id, () => { outTabAsked = false; if(outCached) return Promise.resolve(); return new Promise(r => { outTabRelease = r; }); }).catch(() => { outTabAsked = false; });
+      OUT_TABLOCK = !!navigator.locks.query;
+    } } catch(e){ OUT_TABLOCK = false; outTabAsked = false; }
+  };
+  lock();
+  const beat = () => { if(!OUT_TABLOCK) try { localStorage.setItem(outAliveKey(id), String(Date.now())); } catch(e){} };
+  beat();
+  if(!OUT_TABLOCK) setInterval(() => { beat(); outsideRecCheck(); }, OUT_BEAT_MS);
+  try {
+    document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible'){ beat(); outsideRecCheck(); } });
+    window.addEventListener('pageshow', e => { if(e.persisted){ outCached = false; if(OUT_TABLOCK) lock(); beat(); outsideRecCheck(); } });
+    window.addEventListener('pagehide', e => {
+      if(e.persisted){ outCached = true; if(outTabRelease){ const r = outTabRelease; outTabRelease = null; r(); } }
+      else if(!OUT_TABLOCK) try { localStorage.removeItem(outAliveKey(id)); } catch(_){}
+    });
+  } catch(e){}
+}
+/* The records of tabs that are gone, among those another tab wrote: `held` is the set of lock names
+   (null without Web Locks). */
+function outRecOrphan(r, held, now){
+  if(!r || r.tab === TAB_ID) return false;
+  if(held) return !held.has('exam-drill-tab:' + r.tab);
+  let beat = 0; try { beat = +localStorage.getItem(outAliveKey(r.tab)) || 0; } catch(e){}
+  return now - Math.max(beat, +r.at || 0) > OUT_STALE_MS;
+}
+/* This tab's own records: one taken over by another tab is gone from the store. Kept writing that the
+   stored page already contains (the tab that took it over wrote it) is dropped, and the page on screen
+   becomes the stored page, so this tab's copy does not bring back a stroke erased there since (the
+   ninth review of #81, H1). Otherwise its state is reset, so the notice says the copy is being saved,
+   leaving asks first, and the record is written again. */
+function outsideRecCheck(){
+  if(OUT.state !== 'ready' || !OUT.db) return;
+  const keys = Object.keys(OUT.recLast).filter(k => OUT.recState[k] === 'saved' && !OUT.recBusy[k]);
+  if(!keys.length) return;
+  let t; try { t = OUT.db.transaction('parts', 'readonly'); } catch(e){ return; }
+  const s = t.objectStore('parts');
+  Promise.all(keys.map(k => Promise.all([outReq(s.count(outRecKey(k))), outReq(s.get(k))]).then(([n, page]) => [k, n, page], () => [k, 1, null]))).then(rs => {
+    let lost = false;
+    for(const [k, n, page] of rs){
+      if(n || OUT.recState[k] !== 'saved' || OUT.recBusy[k]) continue;
+      delete OUT.recLast[k]; delete OUT.recState[k]; lost = true;
+      const [kp, part, pg] = outSplit(k), hd = OUT.held[k];
+      if(hd === undefined || OUT.busy[k] || !page || typeof page !== 'object' || page.v === undefined) continue;
+      let inside = false; try { inside = sameVal(outsideMerge(part, page.v, hd), page.v); } catch(e){}
+      if(!inside) continue;
+      delete OUT.held[k]; delete OUT.heldAt[k]; delete OUT.heldBase[k]; delete OUT.heldSrc[k]; delete OUT.status[k]; delete OUT.sent[k];
+      if(!OUT.known[k] || (page.rev | 0) >= OUT.known[k].rev) OUT.known[k] = {v: page.v, rev: page.rev | 0};
+      if(kp === PROFILE && LOADED === PROFILE){ if(!isPlainObj(DB[part])) DB[part] = {}; DB[part][pg] = outClone(page.v); OUT.known[k].src = DB[part][pg]; }
+      outsideNotify(k, true, 'released');
+    }
+    if(lost){ outsideRecSoon(); try { outsideWarn(); } catch(e){} }
+  }, () => {});
+}
+const outRecKey = k => '\u0002' + k + '\u0001' + TAB_ID;
+function outRecValue(k){
+  const r = {};
+  // kept writing whose page write is running needs no new recovery copy (the write itself stores it; a
+  // refused or failed write leaves it kept and not running, when the copy is made); a copy that exists
+  // (writing added back, or taken over after a reload) stays until the page write commits
+  if(OUT.held[k] !== undefined && (!OUT.busy[k] || OUT.recLast[k] !== undefined)){ r.held = OUT.held[k]; r.heldAt = OUT.heldAt[k] || 0; if(OUT.heldBase[k] !== undefined) r.heldBase = OUT.heldBase[k]; }
+  if(OUT.parked[k] !== undefined) r.parked = OUT.parked[k];
+  if(OUT.amb[k] !== undefined) r.amb = OUT.amb[k];
+  return Object.keys(r).length ? r : null;
+}
+const outRecJson = k => { const r = outRecValue(k); return r ? JSON.stringify(r) : undefined; };
+function outsideRecSoon(){
+  if(OUT.recTimer || OUT.state !== 'ready') return;
+  OUT.recTimer = setTimeout(() => { OUT.recTimer = 0; outsideRecSync(); }, 0);
+}
+function outsideRecSync(){
+  if(OUT.state !== 'ready') return;
+  const keys = new Set(Object.keys(OUT.held).concat(Object.keys(OUT.parked), Object.keys(OUT.amb), Object.keys(OUT.recLast), Object.keys(OUT.recAdopt)));
+  for(const k of keys){
+    const json = outRecJson(k);
+    if(json === OUT.recLast[k] && !(OUT.recAdopt[k] && OUT.recAdopt[k].length)) continue;
+    if(OUT.recBusy[k]){ OUT.recAgain[k] = true; continue; }
+    OUT.recBusy[k] = true; OUT.recState[k] = 'saving';
+    const old = (OUT.recAdopt[k] || []).slice();
+    let t;
+    try { t = OUT.db.transaction('parts', 'readwrite', {durability: 'strict'}); } catch(e){ try { t = OUT.db.transaction('parts', 'readwrite'); } catch(err){ OUT.recBusy[k] = false; OUT.recState[k] = 'failed'; continue; } }
+    const st = t.objectStore('parts');
+    try {
+      if(json === undefined) st.delete(outRecKey(k));
+      else st.put(Object.assign({tab: TAB_ID, at: Date.now()}, JSON.parse(json)), outRecKey(k));
+      for(const rk of old) st.delete(rk);   // the records of a closed tab this tab took over
+    } catch(e){ try { t.abort(); } catch(_){} }
+    outTx(t).then(() => {
+      OUT.recBusy[k] = false;
+      if(json === undefined){ delete OUT.recLast[k]; delete OUT.recState[k]; } else { OUT.recLast[k] = json; OUT.recState[k] = 'saved'; }
+      if(OUT.recAdopt[k]){ OUT.recAdopt[k] = OUT.recAdopt[k].filter(rk => !old.includes(rk)); if(!OUT.recAdopt[k].length) delete OUT.recAdopt[k]; }
+      if(OUT.recAgain[k] || outRecJson(k) !== OUT.recLast[k]){ OUT.recAgain[k] = false; outsideRecSoon(); }
+      try { outsideWarn(); } catch(e){}
+    }, () => {
+      OUT.recBusy[k] = false; OUT.recState[k] = 'failed'; OUT.recAgain[k] = false;
+      try { outsideWarn(); } catch(e){}
+    });
+  }
+}
+/* A load takes over the records of closed tabs for profile p: their writing goes into this tab's
+   memory (kept, set apart or unsure, as it was), and is written under this tab's key. */
+function outsideRecTake(p, recs){
+  for(const {rk, r} of recs){
+    const rest = rk.slice(1).split('\u0001'); if(rest.length < 4) continue;
+    const k = rest.slice(0, 3).join('\u0001');
+    const [kp, part] = outSplit(k);
+    if(kp !== p || !OUT.parts.has(part)) continue;
+    if(r.held !== undefined){
+      if(OUT.held[k] === undefined){ OUT.held[k] = r.held; OUT.heldAt[k] = r.heldAt || 0; if(r.heldBase !== undefined) OUT.heldBase[k] = r.heldBase; outSnap(k, r.held); }
+      else { OUT.held[k] = outsideMerge(part, OUT.held[k], r.held); OUT.heldAt[k] = Math.min(OUT.heldAt[k] || Infinity, r.heldAt || 0); delete OUT.heldBase[k]; }
+    }
+    if(r.parked !== undefined) OUT.parked[k] = OUT.parked[k] !== undefined ? outsideMerge(part, OUT.parked[k], r.parked) : r.parked;
+    if(r.amb !== undefined) OUT.amb[k] = OUT.amb[k] !== undefined ? outsideMerge(part, OUT.amb[k], r.amb) : r.amb;
+    (OUT.recAdopt[k] = OUT.recAdopt[k] || []).push(rk);
+    if(r.tab) try { localStorage.removeItem(outAliveKey(r.tab)); } catch(e){}
+  }
+  if(recs.length) outsideRecSoon();
+}
+/* event: 'parked' (the page's writing from before another tab's Erase was set apart and taken off
+   the page on screen), 'released' (Add it back or Leave it out), or 'erased' (erased in another tab): a module that keeps its own copy of
+   the page reloads it from DB[part][page] then (the fifth review of #81, V12). */
+function outsideNotify(k, merged, event){
+  outsideRecSoon();
+  for(const fn of OUT.listeners){
+    try { const s = k ? outSplit(k) : null; fn(s ? {profile: s[0], part: s[1], page: s[2], state: OUT.status[k], merged: !!merged, event: event || ''} : null); } catch(e){}
+  }
+  try { outsideWarn(); } catch(e){}
+}
+/* The notice: writing the database refused or could not take, for the profile on screen or for
+   another one this page holds writing of, and a database that cannot be used or read. */
+/* the notice's own escaping: it can be drawn while the page's script is still starting (views.js's esc not yet defined) */
+const outEsc = v => String(v).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'})[c]);
+function outsideWarn(){
+  if(typeof document === 'undefined') return;
+  if(!document.body){ document.addEventListener('DOMContentLoaded', () => outsideWarn(), {once: true}); return; }
+  let refused = false, failed = false; const others = new Set();
+  for(const k of Object.keys(OUT.status)){
+    const s = OUT.status[k], p = outSplit(k)[0];
+    if(s !== 'refused' && s !== 'failed') continue;
+    if(p === PROFILE){ if(s === 'refused') refused = true; else failed = true; } else others.add(p);
+  }
+  // kept from before another tab's Erase: named, with the student's three choices (Q1)
+  for(const hp of new Set(Object.keys(OUT.held).map(k => outSplit(k)[0]))) outsideHeldAfterMark(hp);
+  const staleBy = {}, ambBy = {};
+  for(const k of Object.keys(OUT.parked)){ const sp = outSplit(k)[0]; (staleBy[sp] = staleBy[sp] || []).push(k); }
+  for(const k of Object.keys(OUT.amb)){ const sp = outSplit(k)[0]; (ambBy[sp] = ambBy[sp] || []).push(k); }
+  for(const k of Object.keys(OUT.held)){ const p = outSplit(k)[0]; if(p !== PROFILE && !OUT.busy[k]) others.add(p); }
+  let d = document.getElementById('outwarn');
+  if(!refused && !failed && !others.size && !OUT.problem && !Object.keys(staleBy).length && !Object.keys(ambBy).length){ if(d) d.remove(); return; }
+  if(!d){ d = document.createElement('div'); d.id = 'outwarn'; d.setAttribute('role', 'alert'); document.body.appendChild(d); }
+  // saved as a recovery record (it comes back after a reload, a crash or the phone ending the page), or only in memory
+  const recSaved = keys => keys.length > 0 && keys.every(k => OUT.recState[k] === 'saved' && OUT.recLast[k] === outRecJson(k));
+  const where = keys => recSaved(keys)
+    ? ' A recovery copy of it is saved in this browser (apart from your writing): it comes back after a reload, a crash or the phone ending the page.'
+    : ' It is only in this tab\'s memory' + (keys.some(k => OUT.recState[k] === 'failed') ? ' (the browser refused to save a recovery copy)' : ' (its recovery copy is being saved)') + ': a crash, the phone ending the page, or leaving after you confirm loses it. Export keeps it in a file.';
+  const heldKeys = p => Object.keys(OUT.held).filter(k => outSplit(k)[0] === p);
+  const parts = [];
+  if(refused || failed) parts.push((refused ? 'This browser did not save your latest writing (its storage is full).' : 'This browser did not save your latest writing (' + outEsc(OUT.why) + ').') +
+    ' Each later change tries to save it again.' + where(heldKeys(PROFILE)) + ' Export progress keeps it in a file; Import progress adds it back.');
+  if(others.size) parts.push('Writing of ' + [...others].map(p => '"' + outEsc(p) + '"').join(', ') + ' is not saved yet; it is saved when that profile is opened again here.' + where([...others].flatMap(heldKeys)));
+  if(OUT.problem) parts.push(outEsc(OUT.problem));
+  const count = (src, k) => { const [, , page] = outSplit(k), n = outCount(src[k]); return '"' + outEsc(page) + '" (' + n + ' stroke' + (n === 1 ? '' : 's') + ')'; };
+  const sps = [...new Set(Object.keys(staleBy).concat(Object.keys(ambBy)))];
+  const staleHtml = sps.map(sp => {
+    const list = (staleBy[sp] || []).map(k => count(OUT.parked, k)), amb = (ambBy[sp] || []).map(k => count(OUT.amb, k));
+    const all = list.concat(amb.map(x => x + ', not known whether drawn before or after the erase'));
+    return '<div class="outstale" data-profile="' + outEsc(sp) + '">This page kept writing of "' + outEsc(sp) + '" ' +
+      (list.length ? 'from before it was erased in another tab or window: ' + list.join(', ') + '. ' : '') +
+      (amb.length ? 'It also kept writing that was drawn around the time of that erase, with no way to tell whether before or after it: ' + amb.join(', ') + '; this writing is kept until you add it back or export it, and Leave it out never deletes it. ' : '') +
+      'Nothing of it is added back or deleted unless you choose.' + where((staleBy[sp] || []).concat(ambBy[sp] || [])) + ' ' +
+      '<button type="button" class="btn" data-outadd="' + outEsc(sp) + '">Add it back (restores the writing from before the erase: ' + all.join(', ') + ')</button> ' +
+      '<button type="button" class="btn" data-outexp="' + outEsc(sp) + '">Export it (a file; nothing is removed)</button>' +
+      (list.length ? ' <button type="button" class="btn ghost" data-outdrop="' + outEsc(sp) + '">Leave it out (deletes only that writing: ' + list.join(', ') + ')</button>' : '') + '</div>';
+  }).join('');
+  d.innerHTML = parts.join(' ') + (refused || failed ? ' <button type="button" class="btn" id="outwarnExport">Export progress</button>' : '') +
+    [...others].map(p => ' <button type="button" class="btn" data-outaway="' + outEsc(p) + '">Export "' + outEsc(p) + '"</button>').join('') + staleHtml + ' <button type="button" class="btn ghost" data-outok="">OK</button>';
+  const ex = d.querySelector('#outwarnExport');
+  if(ex) ex.onclick = () => { try { exportProgress(); } catch(e){ alert('The export did not work: ' + (e && e.message || e)); } };
+  d.querySelectorAll('button[data-outaway]').forEach(b => { b.onclick = () => exportAway(b.dataset.outaway); });
+  d.querySelectorAll('button[data-outadd]').forEach(b => { b.onclick = () => outsideStaleAdd(b.dataset.outadd); });
+  d.querySelectorAll('button[data-outexp]').forEach(b => { b.onclick = () => exportAway(b.dataset.outexp); });
+  d.querySelectorAll('button[data-outdrop]').forEach(b => { const sp = b.dataset.outdrop, keys = (staleBy[sp] || []).slice(); b.onclick = () => outsideStaleDrop(sp, keys); });
+  d.querySelector('button[data-outok]').onclick = () => d.remove();
+}
 /* What this page last read under the profile's own progress and history keys, or wrote
    there with the browser keeping it (SEEN, SEEN_LOG, below); kept by every write through
    `store` that succeeds (saveLog writes through `store` too). A refused write does not change it. A save
@@ -803,6 +1762,7 @@ const HAS_LOCKS = (() => { try { return !!(window.isSecureContext && navigator.l
 let WRITER = HAS_LOCKS ? 'pending' : 'none';   // 'held' | 'other' (another tab has it) | 'pending' (asking) | 'none' (no Web Locks)
 let WRITER_FOR = '', WRITER_WHY = 'other', WRITE_WAITING = false, writerRelease = null, writerSeq = 0;
 const TAB_ID = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+if(OUT.parts.size) outsideTabAlive();   // a part registered before this line (none in practice)
 const writerName = p => NS + ':writer:' + p;
 let writerChan = null;
 try { if(HAS_LOCKS) writerChan = new BroadcastChannel(NS + ':writer'); } catch(e){ writerChan = null; }
@@ -849,6 +1809,9 @@ function claimWriter(p, how){
 }
 function flushWaiting(){
   if(WRITE_WAITING && mayWrite()){ WRITE_WAITING = false; save(); saveLog(); }
+  // pages kept in IndexedDB that waited for the lock (writing kept through a switch, a moved page):
+  // written now; the database read may have finished before the lock was granted (WebKit, #81)
+  if(OUT.parts.size && mayWrite()){ try { outsideWrite(PROFILE); } catch(e){} }
   // a paper submitted while the lock was being asked for is cleared now (#32's review of 4311133)
   if(EXAM_CLEAR_WAITING && EXAM_CLEAR_WAITING === PROFILE && mayWrite()){ EXAM_CLEAR_WAITING = ''; try { clearExam(); } catch(e){} }
 }
@@ -887,8 +1850,10 @@ function takeOver(force){
   // the stored history instead (logOnly), so no copy of progress is made that Put back could
   // roll back to; if the browser refuses that, they go into a copy as before
   const logOnly = !progUnsavedHere() && logUnsavedHere() && LOG_OK ? JSON.stringify(LOG) : null;
-  const dbHere = JSON.stringify(DB);
-  let keepMine = logOnly === null && unsavedHere() ? dbHere : null;
+  const dbHere = progText(DB);
+  // writing kept in IndexedDB is kept by OUT.held, not by a copy of the progress (#81's second review)
+  let keepMine = logOnly === null && (progUnsavedHere() || logUnsavedHere()) ? dbHere : null;
+  const inkHere = OUT.parts.size ? (outsideHold(PROFILE), outKeysOf(OUT.held, p).length) : 0;
   let keepLog = keepMine !== null && LOG_OK && JSON.stringify(LOG) !== (storedNow(logKey()) || '[]') ? JSON.stringify(LOG) : null;
   let gave = null, granted = false, done = false;
   const onMsg = e => { const m = e.data || {}; if(m.type === 'gave' && m.p === p && m.to === TAB_ID) gave = m.vals; };
@@ -945,8 +1910,10 @@ function takeOver(force){
         try { if(typeof EX !== 'undefined' && EX){ clearInterval(EX.timer); EX = null; } } catch(e){}
         stopWall(null);
         NEW_LOGS[p] = []; WROTE_SINCE_CLAIM = false; settlePendingSoon(); capNotice();
-        if(KEPT_COPY){ KEPT_COPY = false; setTimeout(() => alert('The answers and settings this page had not saved are kept as a copy: Settings, "Put back the progress from …". The progress on screen now is the stored one.'), 0); }
-        else if(addedLog) setTimeout(() => alert('The answer history entries this page had not saved are added to the saved answer history.'), 0);
+        const INK_KEPT = inkHere ? ' The writing this page had not saved is not in that copy: it stays on this page and is merged into the writing now stored, and saved; writing from before an erase in another tab is named on the notice instead, to add back, export or leave out.' : '';
+        if(KEPT_COPY){ KEPT_COPY = false; setTimeout(() => alert('The answers and settings this page had not saved are kept as a copy: Settings, "Put back the progress from …". The progress on screen now is the stored one.' + INK_KEPT), 0); }
+        else if(addedLog) setTimeout(() => alert('The answer history entries this page had not saved are added to the saved answer history.' + INK_KEPT), 0);
+        else if(inkHere) setTimeout(() => alert(INK_KEPT.trim()), 0);
         try { if(typeof show === 'function') show(typeof VIEW !== 'undefined' ? VIEW : 'study'); } catch(e){}
         return;
       }
@@ -1056,7 +2023,7 @@ function dropOwnRecordIfStored(){
 /* The progress write, with one more try when the browser refused it and this tab's own record,
    proven stored, could be removed to make room. */
 function saveProgress(){
-  const v = JSON.stringify(DB);
+  const v = progText(DB);
   if(store.set(keyFor(PROFILE), v)) return true;
   return dropOwnRecordIfStored() && store.set(keyFor(PROFILE), v);
 }
@@ -1174,14 +2141,23 @@ function readCopiesList(){
    an answer, so answers the stored progress went on from do not show that it holds the record's
    part (the review of kit #66, 2026-11-06: such a record was removed and the part lost). */
 function moduleAhead(db, st){
-  // the same parts, emptiness and key-order-free comparison Import uses (views.js, in this page's script)
-  return Object.keys(db).some(k => !NOT_COMPARED.includes(k) && !(k in ENTRY_MAPS) && !isEmptyPart(db[k]) && canon(db[k]) !== canon(st ? st[k] : undefined));
+  // the same parts, emptiness and key-order-free comparison Import uses (views.js, in this page's script);
+  // a part kept in IndexedDB is not in the stored progress, and placeOf has merged a record's pages of it
+  return Object.keys(db).some(k => !NOT_COMPARED.includes(k) && !(k in ENTRY_MAPS) && !OUT.parts.has(k) && !isEmptyPart(db[k]) && canon(db[k]) !== canon(st ? st[k] : undefined));
 }
 /* Where the record stands against what is stored: 'in', 'conflict' (same point, other progress),
    'continues' (its last answer missing; the record holds the stored last answer) or 'apart'.
    own: this tab's own record, whose stored progress is this tab's own later write (a module part
    it changed since is newer there), checked by dropOwnRecordIfStored. */
 function placeOf(rec, st, own){
+  // a record or stored progress an earlier core wrote with a part now kept in IndexedDB inside it:
+  // the record's pages are merged into this page's writing (written to the database), and both are
+  // compared without the part
+  if(OUT.parts.size && rec && isPlainObj(rec.db)){
+    if(!own && [...OUT.parts].some(pt => pt in rec.db)) outsideAbsorb(PROFILE, rec.db);
+    const strip = d => { if(!isPlainObj(d) || ![...OUT.parts].some(pt => pt in d)) return d; const c = Object.assign({}, d); for(const pt of OUT.parts) delete c[pt]; return c; };
+    rec = Object.assign({}, rec, {db: strip(rec.db)}); st = strip(st);
+  }
   const pAns = rec.db.answers, sAns = st && Array.isArray(st.answers) ? st.answers : [];
   const dbStr = JSON.stringify(rec.db), stStr = st ? JSON.stringify(st) : null;
   if(dbStr === stStr) return 'in';
@@ -1227,7 +2203,7 @@ function settleOne(k, raw, rec){
   let st = null;
   try { const v = storedNow(keyFor(PROFILE)); st = v ? JSON.parse(v) : null; } catch(e){ return; }
   const place = placeOf(rec, st), dbStr = JSON.stringify(rec.db);
-  const unchangedHere = !WROTE_SINCE_CLAIM && JSON.stringify(DB) === (SEEN === null ? LOADED_DB : SEEN) && !FAILED.has(keyFor(PROFILE));
+  const unchangedHere = !WROTE_SINCE_CLAIM && progText(DB) === (SEEN === null ? LOADED_DB : SEEN) && !FAILED.has(keyFor(PROFILE));
   // the record replaces the stored progress only when that loses no module part the stored progress
   // holds (a tab that changed DB.eq without an answer; the review of #69): otherwise it is a copy
   if(place === 'continues' && unchangedHere && !moduleAhead(st || {}, rec.db)){
@@ -1295,7 +2271,7 @@ if(typeof window.addEventListener === 'function') window.addEventListener('stora
   try { if(e.key && e.key.startsWith(NS + ':pending:' + PROFILE + ':')) settlePending(); } catch(err){}
 });
 /* What this page holds that is not what it last read from storage or had kept there. */
-function unsavedHere(){ return progUnsavedHere() || logUnsavedHere(); }
+function unsavedHere(){ return progUnsavedHere() || logUnsavedHere() || outsideUnsaved(); }
 /* its two parts: the progress, and the answer history ("Use it here" treats them apart) */
 function progUnsavedHere(){
   try {
@@ -1304,7 +2280,7 @@ function progUnsavedHere(){
     if(FAILED.has(keyFor(PROFILE))) return true;
     // against what is stored as this page knows it (SEEN), or, for a profile never stored, the
     // progress as load() opened it: a changed setting with no answer counts too (ChatGPT, f53ac75)
-    const dbNow = JSON.stringify(DB);
+    const dbNow = progText(DB);
     return SEEN === null ? dbNow !== LOADED_DB : (dbNow !== SEEN && dbNow !== LOADED_DB);
   } catch(e){ return false; }
 }
@@ -1486,6 +2462,8 @@ function upgradeDB(raw){
   return db;
 }
 function load(){
+  // the uncommitted writing of the profile DB held is kept before DB is replaced (#81, M1, M2)
+  try { if(LOADED) outsideHold(LOADED); } catch(e){}
   LOADED = '';
   if(!PROFILE) return;
   try{
@@ -1501,7 +2479,8 @@ function load(){
       if(!v || typeof v !== 'object' || Array.isArray(v)) throw new Error('the stored value is not a progress object');
       db = upgradeDB(v);
     }
-    DB = db; LOADED = PROFILE; LOADED_DB = JSON.stringify(db);
+    outsideOnLoad(PROFILE, db);   // first: the pages inside the stored progress stay in progText until moved
+    DB = db; LOADED = PROFILE; LOADED_DB = progText(db); outsideAttachSoon(PROFILE);
   }catch(e){
     DB = BLANK();
     console.error('The saved progress could not be loaded; nothing is saved during this visit.', e);
@@ -1748,13 +2727,19 @@ function exportAway(p){
     let db = null, log = [];
     try { const raw = FAILED.has(dk) ? MEM[dk] : storedNow(dk); db = raw ? JSON.parse(raw) : null; } catch(e){ db = null; }
     try { const raw = FAILED.has(lk) && MEM[lk] !== undefined ? MEM[lk] : storedNow(lk); const v = raw ? JSON.parse(raw) : []; log = Array.isArray(v) ? v : []; } catch(e){ log = []; }
-    const blob = new Blob([JSON.stringify({app: 'exam-drill', course: COURSE.id, ns: NS, exported: new Date().toISOString(),
-      profile: p, db: db || BLANK(), log}, null, 1)], {type: 'application/json'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `${COURSE.id}-progress-${p.replace(/\W+/g, '_')}.json`;
-    document.body.appendChild(a); a.click(); a.remove();
-    AWAY_EXPORTED[p] = awaySnap(p);
+    const snap = awaySnap(p);
+    const give = full => {
+      const blob = new Blob([JSON.stringify({app: 'exam-drill', course: COURSE.id, ns: NS, exported: new Date().toISOString(),
+        profile: p, db: full, log}, null, 1)], {type: 'application/json'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `${COURSE.id}-progress-${p.replace(/\W+/g, '_')}.json`;
+      document.body.appendChild(a); a.click(); a.remove();
+      AWAY_EXPORTED[p] = snap;
+    };
+    // that profile's pages kept outside localStorage (worksheet ink) go into the file too
+    if(OUT.parts.size) outsideFill(p, db || BLANK()).then(give, () => give(db || BLANK()));
+    else give(db || BLANK());
   } catch(e){ alert('The export did not work: ' + (e && e.message || e)); }
 }
 function awayChanged(k, p){
@@ -1814,6 +2799,11 @@ function mergeLog(entries){
 let saveTimer=null;
 function save(){
   if(!canSave()) return;
+  // a page kept in IndexedDB (worksheet ink) is written now, not after the 150 ms wait below: a
+  // reload within that wait lost it in Chromium (outside_test.js "closing"); the database's own
+  // transaction keeps the main thread free, and a second change while it runs waits for it
+  // a changed page is kept (with the time of the change) at once, also in a tab that may not write it
+  if(OUT.parts.size){ try { outsideHold(PROFILE); if(!profileSavedElsewhere()) outsideWrite(PROFILE); } catch(e){} }
   clearTimeout(saveTimer);
   saveTimer=setTimeout(()=>{
     saveTimer=null;
@@ -1883,7 +2873,7 @@ function useProfile(n){
   if(PROFILE && n !== PROFILE && canSave() && mayWrite() && !STALE){
     // what this profile's last writes left refused is tried once more before it is left; still
     // refused, it would stay only in this page: asked first, with the export offered (#47's review, M1)
-    if(FAILED.has(keyFor(PROFILE)) && !profileSavedElsewhere()) store.set(keyFor(PROFILE), JSON.stringify(DB));
+    if(FAILED.has(keyFor(PROFILE)) && !profileSavedElsewhere()) store.set(keyFor(PROFILE), progText(DB));
     if(FAILED.has(logKey())) saveLog();
     if(FAILED.has(keyFor(PROFILE)) || FAILED.has(logKey())){
       if(confirm('This browser did not save some of the progress or answer history of "' + PROFILE + '" (storage is full or blocked). It is kept on this page until it is closed or reloaded, and saved when the browser has room. Export it to a file before switching?'))
