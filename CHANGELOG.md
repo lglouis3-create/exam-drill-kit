@@ -2,6 +2,28 @@
 
 Dated kit changes, newest first.
 
+## 2026-11-09 (bookkeeping: drug list outcomes queued)
+- `review/port-queue.md` item 23 and `review/porter-policy.md` section 1: drug-list-tab v2, the Drug list's per-fact outcomes kept in each profile's progress (`drug-list-persistent-outcomes`). Louis, 2026-11-09: develop and test it; the pull request goes to him before any merge or any course switches it on. Source: DEENT at `main` `b747e49`, read-only. `coordinator/improvements.json`: the entry set to implementing, with his decision. Nothing is built by this change.
+
+## 2026-11-09 (figures)
+- Enlarge: the placeholder that holds a figure's place takes the figure's exact height (`getBoundingClientRect`), not the rounded `offsetHeight`. A figure with a fractional height (DEENT's acne-cascade, 487.22 px at 390x420) made the page 0.22 px shorter while enlarged, so at the end of the page Enlarge then Close moved the scroll by 1 px (DEENT's ux_test, y 18062 then 18061).
+
+## 2026-11-09 (checks: scratch folders)
+- The checks' scratch folders are removed when their run passes and kept when it fails (reported by the DEENT session on 2026-11-08: 4,121 leftover folders, about 22 GB, filled its container's disk and stopped browser checks mid-run). `check_lib.js` records each folder `scratchRepo` makes (and so `scratchBuild`) and removes those, by exact path, when the check exits with no failed check; on a FAIL, a crash or a timeout it keeps them and prints `kept for inspection: <paths>`. `run_checks.sh` removes its `drill-checks-*` log folder when no check failed (it reads a check's summary from the line before the "kept" line, so every PASS, FAIL, NOT RUN and REPORT line reads as before). `ci_course.sh` removes its `kit-ci-*` work folder and the log folder when it exits 0, from a trap on EXIT, and otherwise keeps and names them. `state_check_test.js` lists its shallow clone (`state-test-*-shallow`) with its scratch copy. `KEEP_TEST_TMP=1` keeps everything. After SIGTERM or SIGINT nothing is removed, even if another handler then exits 0; `ci_course.sh` removes the log folder only when it is directly in `$TMPDIR`. `checks_test.js` section 7 checks the rule: a passing check removes its folder, a failing one keeps and names it, `KEEP_TEST_TMP=1` keeps it, and `run_checks.sh` still reads a REPORT as REPORT with the kept line after it. No other check's assertions or results change. Test only.
+
+## 2026-11-08 (build: link-preview tags)
+- `course.js` `share` (optional; requested by the DEENT session): `title`, `description`, `url` and `image` give the page its `<title>` and the og:/twitter: tags that iMessage, Slack and social sites read when its address is shared; every value HTML-escaped; og:url ends in `preview/` on a preview build; `image`, a PNG in `src/icons/`, is copied to the site root. A wrong value stops the build before it writes. Without `share` every file the build writes is byte for byte what it wrote before (`share_test.js`, against main's `build.py`).
+- `course.js` `manifest.short_name` (optional): the manifest's `short_name`, the name under the Home Screen icon; the page keeps `short`.
+
+## 2026-11-08 (bookkeeping: registry)
+- `coordinator/improvements.json`: two candidates recorded at the DEENT session's request, `deent-narration-walkthroughs` (discovered) and `drug-list-persistent-outcomes` (proposed; new progress storage and Import behaviour wait for Louis); `bdk-study-features` set to implementing with #75, #82, #83 and #85. The header of the 2026-11-06 optional-topics entry names its merge (#72, efd9386).
+
+## 2026-11-08 (feature modules: the paper hook)
+- `X.paper` again accepts a paper of the same length with other questions in place, as before #80 (paper-picker draws another exam's paper; #80's same-questions rule refused it and paper-picker's test failed 3 of 3). A result of another length, with an entry that is not a question of the bank, or with a question twice, is refused, the drawn paper kept and the module switched off for the visit. #80's protection stays: the hooks do not run on the opening page's sample draws. `features_test.js` checks a replacing hook and each refusal (wrong length; a copy that is not the bank's question; a question twice; each on its own visit); the throw test clears the sampled count after it (the review of #80).
+
+## 2026-11-08 (exam opening page and feature modules)
+- The exam's opening page draws 20 sample papers to describe its select-all items (#59). A feature module's `X.paper` hook no longer runs on those sample draws, only on a paper that starts (`EXAM_SAMPLING` in `views.js`, read by `features.js`). Before, a hook ran 20 times on opening the Exam tab; a hook that saves (paper-picker, not merged) wrote the progress for papers nobody started. A hook only reorders a paper, so the select-all count is unchanged. `features_test.js` checks it (20 hook calls before, 0 after; a real draw still runs the hook once).
+
 ## 2026-11-08 (checks)
 - `optional_test.js` decides from `exams[].questions` alone whether the course sets a question count. With `marks: null` and a count set, `nullexam.js` draws full papers, and the test had expected empty ones (DEENT: questions 50, marks null; 1 of 47 checks failed while its 20 papers held 1,000 items, none optional). Test only.
 - `optional_test.js`: the Optional-badge check takes an optional question that has option buttons; on a course whose optional questions are calculations (plan-the-problem, quiz-prep-cards) it skips with that reason instead of stopping with a TypeError. A card that draws no option button fails a named check. Test only.
@@ -19,7 +41,7 @@ Dated kit changes, newest first.
 - Exam overview: the question opened from it takes the focus; with more than six unanswered the "Not answered" line gives the count and the first five. A chosen answer has an inner ring as well as the filled letter, so it differs from an answer under the pointer.
 - Exam overview: its Submit, numbers and Back do nothing when left on screen after a switch to another profile (no error, nothing recorded for either profile).
 
-## 2026-11-06 (optional topics; depends on #70 and #62; waits for Louis)
+## 2026-11-06 (optional topics; merged as #72, efd9386, on 2026-11-08)
 - A TOPICS entry may carry `optional: true`. Its questions stay in the bank and on their own topic (the topic's Start, each subtopic's Start, guide and atlas links), and the topic line shows an "Optional" label. They are left out of "Everything, adaptive" (filtered or not) and the count on Start practice, the pass of every question, the filtered pass, the exam pools (so exam papers, the exam-weighted pass, the pool cards on Weak spots, mark weights and the exam-day scheduling scope), What to review next and the mastered count, and a broad session's retry; a question card of the topic shows "Optional" instead of "Exam N · …". A course with no optional topic is unchanged. New check: `optional_test.js`. `test.js` fails a question of an optional topic that shares its `concept` with a question outside optional topics, since scheduling state is per concept (review of #72).
 
 ## 2026-11-06 (study pages, #70)
