@@ -90,7 +90,7 @@ COURSE = {id, title, short, ns, output, professors:[…],
           pools:[{key, name, marks | null, filter:{exam:N} | {prof:'X', tier:'new'} | {lecture:[…]} | {module:N}}]}],
   activeExam, skills:[{id, label, short}], paceDefault:'cram'|'weekly'|'semester',
   scheduler:{model:'concept' | 'fsrs' | 'concept-fsrs', compare?:true, preset?:'calc'},
-  numeric?:{margin?}, exams[].typed?:true,
+  numeric?:{margin?}, exams[].typed?:true, exams[].blanks?:n, blank?:{typo:1},
   files:['atlas.js', 'diagrams.js', 'q1_topics.js', 'q2_<lecture>.js', …],
   oldCachePrefix?, manifest?:{description?, orientation?, short_name?},
   share?:{title?, description?, url?, image?},
@@ -114,6 +114,16 @@ COURSE = {id, title, short, ns, output, professors:[…],
   started with, so one in progress stays untimed if a time limit is added later
   (`core/nullexam.js`, `core/views.js`;
   `core/README.md` "Exam draw").
+- Fill in the blank is a core item type: `{type:'blank', stem:'… ___ …', accept:['vitamin D',
+  'VDR', …], why or teach, cite, …}`, `accept[0]` the answer shown. Typed text is compared
+  after normalizing case, spaces, hyphens, en dashes, a final period and α β γ δ κ; a
+  one-letter slip in an answer of 5 or more characters is wrong with "Close: check the
+  spelling" (`blank:{typo:1}` counts it right, except where the letter is a digit, in a
+  one-character token or in a Roman numeral: "vitamin E" for "vitamin D" and "type III"
+  for "type II" are wrong in both modes). Write `why` or
+  `teach` on each. Exam papers draw them with `exams[].typed:true`; `blanks:n` asks for n
+  per paper where the pools allow (`core/README.md` "Fill in the blank"; source: Louis,
+  after DEENT Exam 1, 2026-11-09, around 5 of the 50 questions).
 - `share` gives the link preview a shared address shows (title, description, the
   site's `https://…/` address and a PNG from `src/icons/`); without it the page is
   unchanged. `manifest.short_name` names the Home Screen icon; the page keeps `short`
@@ -333,7 +343,15 @@ The checks fail the build when `CLAUDE.md` was not updated after the newest lect
 ## Mode 3: exam build
 
 1. Set the blueprint in `course.js` from the professor's announcement (count or `null`,
-   minutes, select-all count, pools with marks); set `activeExam`.
+   minutes, select-all count, pools with marks); set `activeExam`. When a professor or the
+   syllabus announces a question format, the bank and the exam's papers include that
+   format in about the announced share: for fill in the blank, `type:'blank'` items with
+   `exams[].typed:true`, and `blanks:n` where a count is known. A format the kit cannot
+   offer is recorded as a kit gap in `coordinator/improvements.json` before the exam, not
+   left to the blurb. (Source: Louis, after DEENT Exam 1, 2026-11-09: around 5 of the 50
+   questions; DEENT `src/course.js` at main 4d3b3f6, Exam 1 blurb: "Dr. Smith says her
+   questions are mostly multiple choice with a few fill-in-the-blanks on drug
+   mechanisms", while its papers drew single-answer questions only.)
 2. Add the review list, practice exam and prep sheet to `STYLE.md`; check the bank
    against the stated scope and fill thin and empty topics.
 3. Review round with agents in parallel, about 100 questions each, findings as JSON
