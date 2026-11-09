@@ -22,9 +22,19 @@
    applies to them. beginExam is the engine's, with the option order made only
    for items that have options. The question on screen and the result page are
    the engine's own, with the typed part added after them.
+
+   Fill in the blank (type 'blank', views.js gradeBlank) is drawn the same way,
+   typed on the paper and graded as in the quiz. `exams[].blanks: n` asks for n
+   of them on a paper: after the engine's draw, a multiple-choice item is
+   exchanged for a blank item of the same pools (and blueprint category) whose
+   family (dupOf) is not on the paper, a concept not yet on the paper first, or
+   the other way round, until the paper holds n or no exchange is left. The
+   paper's size, each pool's share, the select-all count and the calculations
+   and matching items stay as the engine drew them; a bank with fewer blank
+   items than n gives as many as it has.
    ========================================================================== */
 const EXAM_TYPED = (() => {
-  const kinds = new Set(['numeric', 'match']);
+  const kinds = new Set(['numeric', 'match', 'blank']);
   const allows = !!EXAM.typed;
   const typed = q => !!q && kinds.has(q.type);
   if(!allows) return {allows, typed};
@@ -33,9 +43,37 @@ const EXAM_TYPED = (() => {
   drawPaper = function(){
     const set = QUESTIONS.filter(typed);
     set.forEach(q => { q._paperType = q.type; delete q.type; });
-    try { return engineDraw.apply(this, arguments); }
+    let qs;
+    try { qs = engineDraw.apply(this, arguments); }
     finally { set.forEach(q => { q.type = q._paperType; delete q._paperType; }); }
+    return blankCount(qs);
   };
+  /* exams[].blanks: n blank items on the paper where the bank allows (above) */
+  const isBlankQ = q => q.type === 'blank';
+  const plainMC = q => !q.type && !isMulti(q);
+  // which pools (and blueprint category) an item counts for: an exchange keeps it
+  const sig = q => JSON.stringify([(EXAM.pools || []).map(p => !!p.test(q)),
+    EXAM.blueprint && Array.isArray(EXAM.blueprint.parts) && EXAM.blueprint.parts.length ? bpCat(q) : '']);
+  function blankCount(qs){
+    const want = EXAM.blanks;
+    if(!Array.isArray(qs) || typeof want !== 'number' || !qs.length) return qs;
+    const out = qs.slice(), elig = requiredQs().filter(q => !q.lowYield);
+    const fams = () => new Set(out.map(familyOf)), concepts = () => new Set(out.map(q => q.concept));
+    // exchange one item matching `from` for a free item matching `to` with the same signature
+    const swap = (from, to) => {
+      const F = fams(), C = concepts();
+      for(const x of shuffle(out.filter(from))){
+        const s = sig(x);
+        const alts = shuffle(elig.filter(q => to(q) && sig(q) === s && (familyOf(q) === familyOf(x) || !F.has(familyOf(q))) && !out.includes(q)));
+        const alt = alts.find(q => !C.has(q.concept) || q.concept === x.concept) || alts[0];
+        if(alt){ out[out.indexOf(x)] = alt; return true; }
+      }
+      return false;
+    };
+    while(out.filter(isBlankQ).length < want && swap(plainMC, isBlankQ));
+    while(out.filter(isBlankQ).length > want && swap(isBlankQ, plainMC));
+    return out;
+  }
 
   beginExam = function(){
     const qs = drawPaper();
@@ -50,6 +88,7 @@ const EXAM_TYPED = (() => {
   examRight = function(q, p){
     if(q.type === 'numeric') return p !== null && p !== undefined && String(p).trim() !== '' && gradeNumeric(q, p);
     if(q.type === 'match') return Array.isArray(p) && p.length === q.pairs.length && p.every((x, i) => x === i);
+    if(q.type === 'blank') return p !== null && p !== undefined && String(p).trim() !== '' && gradeBlank(q, p).ok;
     return engineRight.apply(this, arguments);
   };
 
@@ -61,6 +100,9 @@ const EXAM_TYPED = (() => {
     if(q.type === 'numeric')
       return `<div class="numin"><input type="text" inputmode="decimal" id="exNum" value="${p === null || p === undefined ? '' : esc(p)}" placeholder="your answer" aria-label="your answer">${q.units ? `<span class="units">${esc(q.units)}</span>` : ''}</div>
         <p class="sub">Type the number; the unit may follow it.</p>`;
+    if(q.type === 'blank')
+      return `<div class="numin blankin"><input type="text" id="exBlank" value="${p === null || p === undefined ? '' : esc(blankClip(q, p))}" maxlength="${blankCap(q)}" placeholder="your answer" aria-label="your answer" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
+        <p class="sub">Type the missing word or words.</p>`;
     const picks = Array.isArray(p) ? p : q.pairs.map(() => null);
     return `<table class="reftab matchtab"><thead><tr><th>${esc(q.left || '')}</th><th>${esc(q.right || '')}</th></tr></thead><tbody>${
       q.pairs.map((pr, r) => `<tr><td>${esc(pr.l)}</td><td><select data-exrow="${r}" aria-label="match for ${esc(pr.l)}"><option value="">—</option>${
@@ -74,16 +116,16 @@ const EXAM_TYPED = (() => {
     const el = $('#v-exam');
     if(!el || typeof el.querySelector !== 'function') return r;
     const body = el.querySelector('.qbody'), head = el.querySelector('.qhead');
-    if(head) head.insertAdjacentHTML('afterbegin', `<span class="tag">${q.type === 'numeric' ? 'calculation' : 'match each row'}</span>`);
+    if(head) head.insertAdjacentHTML('afterbegin', `<span class="tag">${q.type === 'numeric' ? 'calculation' : q.type === 'blank' ? 'fill in the blank' : 'match each row'}</span>`);
     if(!body) return r;
     body.insertAdjacentHTML('beforeend', typedBody(q, EX.i));
     const i = EX.i, count = () => {
       const n = EX.picks.filter((p, k) => !examBlank(EX.qs[k], p)).length, pr = el.querySelector('.examhead .prog');
       if(pr) pr.textContent = `Question ${EX.i + 1} of ${EX.qs.length} · ${n} answered`;
     };
-    const inp = body.querySelector('#exNum');
+    const inp = body.querySelector('#exNum') || body.querySelector('#exBlank');
     if(inp){
-      inp.oninput = () => { EX.picks[i] = inp.value.trim() ? inp.value : null; saveExam(); count(); };
+      inp.oninput = () => { EX.picks[i] = inp.value.trim() ? (q.type === 'blank' ? blankClip(q, inp.value) : inp.value) : null; saveExam(); count(); };
       inp.onkeydown = e => { if(e.key === 'Enter'){ e.preventDefault(); const n = $('#exNext'); if(n) n.click(); } };
     }
     body.querySelectorAll('select[data-exrow]').forEach(s => s.onchange = () => {
@@ -96,6 +138,10 @@ const EXAM_TYPED = (() => {
   };
 
   function typedReview(q, p){
+    if(q.type === 'blank'){
+      const ok = examRight(q, p);
+      return `<div class="why">${blankVerdict(q, p, ok)}${q.why ? `<p class="prose" style="margin:10px 0 0">${esc(q.why)}</p>` : ''}</div>`;
+    }
     if(q.type === 'numeric'){
       const ok = examRight(q, p), tol = typeof NUMERIC !== 'undefined' ? NUMERIC.tol(q) : (q.tol !== undefined ? q.tol : Math.abs(q.answer) * 0.01);
       return `<div class="why"><p class="verdict ${ok ? 'ok' : 'bad'}">${ok ? '✓ Correct' : '✗ Not correct'} — the answer is ${esc(fmtNum(q.answer))}${q.units ? ' ' + esc(q.units) : ''}${
@@ -126,10 +172,14 @@ const EXAM_TYPED = (() => {
   renderExam = function(){
     const r = engineIntro.apply(this, arguments);
     if(!(EX && (EX.running || EX.done))){
-      const start = $('#startExam'), n = QUESTIONS.filter(q => typed(q) && !q.lowYield && EXAM.pools.some(p => p.test(q))).length;
-      if(start && typeof start.closest === 'function' && start.closest('p')) start.closest('p').insertAdjacentHTML('beforebegin', `<p class="sub" id="exTypedNote">This paper draws calculations and matching items too (${n} in the bank for this exam): type the number, or pick each match. They are graded as in the quiz.</p>`);
+      const start = $('#startExam'), inBank = QUESTIONS.filter(q => typed(q) && !q.lowYield && EXAM.pools.some(p => p.test(q))), n = inBank.length;
+      const blanks = inBank.some(isBlankQ);
+      const note = blanks
+        ? `This paper draws calculations, matching and fill-in-the-blank items too (${n} in the bank for this exam): type the number or the missing words, or pick each match. They are graded as in the quiz.`
+        : `This paper draws calculations and matching items too (${n} in the bank for this exam): type the number, or pick each match. They are graded as in the quiz.`;
+      if(start && typeof start.closest === 'function' && start.closest('p')) start.closest('p').insertAdjacentHTML('beforebegin', `<p class="sub" id="exTypedNote">${note}</p>`);
     }
     return r;
   };
-  return {allows, typed, typedReview};
+  return {allows, typed, typedReview, blankCount};
 })();

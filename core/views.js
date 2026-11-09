@@ -1637,12 +1637,14 @@ function renderQuiz(){
   const picks = multi ? (Q.picked || []) : null;
   const kind = q.type || 'mc';
   if(kind !== 'mc'){
-    h += kind === 'numeric' ? numericBody(q) : matchBody(q);
+    h += kind === 'numeric' ? numericBody(q) : kind === 'blank' ? blankBody(q) : matchBody(q);
     if(Q.revealed) h += explainRow(q);
     h += `</div><div class="qfoot">`;
     if(!Q.revealed){
       h += kind === 'numeric'
         ? `<button class="btn" id="btnCheck">Check answer</button><span style="font-size:13px;color:var(--text-dim)">Type the number${q.units ? ' in ' + esc(q.units) : ''}.</span>`
+        : kind === 'blank'
+        ? `<button class="btn" id="btnCheck">Check answer</button><span style="font-size:13px;color:var(--text-dim)">Type the missing word or words; Enter checks.</span>`
         : `<button class="btn" id="btnCheck"${matchComplete(q) ? '' : ' disabled'}>Check answer</button><span style="font-size:13px;color:var(--text-dim)">${(Q.picked||[]).filter(x=>x!==null&&x!==undefined).length} of ${q.pairs.length} matched</span>`;
     }else{
       h += `<button class="btn" id="btnNext">Next question</button>`;
@@ -1848,10 +1850,115 @@ function matchBody(q){
   return h;
 }
 const matchComplete = q => (Q.picked || []).length === q.pairs.length && (Q.picked || []).every(x => x !== null && x !== undefined);
+/* Fill in the blank (type 'blank'): the student types the missing words, and
+   the text is compared with each entry of `accept` after both are normalized:
+   lower case; no space at either end; a run of spaces, hyphens or en dashes
+   counts as one space; a final period is dropped; α β γ δ κ read as alpha,
+   beta, gamma, delta, kappa. Digits and the percent sign are kept. A text one
+   edit (one letter added, left out or changed) from an accepted answer of 5 or
+   more characters is a near miss: wrong, with "Close: check the spelling", or
+   right with that note when course.js sets `blank: {typo: 1}`. A one-edit
+   difference is not a near miss, and is plain wrong in both modes, when the
+   character that differs is a digit ("5 ht3" for "5 ht2"), lies in a token of
+   one character ("vitamin E" for "vitamin D") or lies in a Roman numeral
+   ("type III" for "type II", "factor Xb" for "factor Xa"): there the answer
+   names another thing, not a misspelling. accept[0] is the answer shown.
+   Recorded like a calculation: the typed text is what was picked, cut to a
+   length cap: the longest accepted answer plus 100 characters (blankCap), in
+   the text box (maxlength) and again where the text is graded, recorded and
+   displayed, so a pasted or scripted value is stored at the cap. Import is not
+   changed: an imported answer with a longer `picked` is stored whole, and only
+   the grading and the display cut it. */
+const BLANK_GREEK = {'α':'alpha', 'β':'beta', 'γ':'gamma', 'δ':'delta', 'κ':'kappa'};
+function blankNorm(s){
+  return String(s === null || s === undefined ? '' : s).toLowerCase()
+    .replace(/[αβγδκ]/g, c => BLANK_GREEK[c])
+    .replace(/[\s\-\u2013]+/g, ' ').trim()
+    .replace(/\.$/, '').trim();
+}
+/* The most characters a typed answer to q may have: the longest accepted answer plus 100.
+   One rule for the text box, the grading and the record. */
+const blankCap = q => (q.accept || []).reduce((n, a) => Math.max(n, String(a).length), 0) + 100;
+const blankClip = (q, s) => String(s === null || s === undefined ? '' : s).slice(0, blankCap(q));
+/* The token (run of characters between spaces) of s that holds s[i], or '' where s[i] is a space or absent */
+function blankToken(s, i){
+  if(i < 0 || i >= s.length || s[i] === ' ') return '';
+  let from = i, to = i + 1;
+  while(from > 0 && s[from - 1] !== ' ') from--;
+  while(to < s.length && s[to] !== ' ') to++;
+  return s.slice(from, to);
+}
+/* A token that reads as a Roman numeral, with at most one letter after it: i, ii, iii, iv, ia, ib, xa, xb.
+   4 characters or fewer (the text is already lower case). */
+const blankRoman = t => t.length <= 4 && /^[ivx]+[a-z]?$/.test(t);
+/* true when a and b differ by one letter added, left out or changed (Levenshtein distance 1) and
+   the difference is a spelling slip: not a digit, and not in a token of one character or in a
+   Roman numeral, in either text (another number, another one-letter name or another numeral is
+   another thing) */
+function blankOneEdit(a, b){
+  if(a === b || Math.abs(a.length - b.length) > 1) return false;
+  let i = 0;
+  while(i < a.length && i < b.length && a[i] === b[i]) i++;
+  let seen;   // the characters that differ, and where to look for their tokens in a and in b
+  if(a.length === b.length){
+    if(a.slice(i + 1) !== b.slice(i + 1)) return false;
+    seen = [a[i], b[i], [i, i]];
+  }else{
+    const longer = a.length > b.length;
+    const L = longer ? a : b, S = longer ? b : a;
+    if(L.slice(i + 1) !== S.slice(i)) return false;
+    seen = [L[i], '', longer ? [i, Math.min(i, b.length - 1)] : [Math.min(i, a.length - 1), i]];
+  }
+  if(/[0-9]/.test(seen[0] + seen[1])) return false;
+  const ta = blankToken(a, seen[2][0]), tb = blankToken(b, seen[2][1]);
+  return !(ta.length === 1 || tb.length === 1 || blankRoman(ta) || blankRoman(tb));
+}
+const blankTypo = () => !!(COURSE.blank && COURSE.blank.typo === 1);
+/* {ok, near}: near is a one-edit miss of an accepted answer of 5 or more characters */
+function gradeBlank(q, typed){
+  const t = blankNorm(blankClip(q, typed)), acc = (q.accept || []).map(blankNorm);
+  if(!t) return {ok:false, near:false};
+  if(acc.includes(t)) return {ok:true, near:false};
+  const near = acc.some(a => a.length >= 5 && blankOneEdit(t, a));
+  return {ok: near && blankTypo(), near};
+}
+/* the verdict, the answer and the other accepted answers, for the quiz and the exam's result page */
+function blankVerdict(q, typed, ok){
+  const g = gradeBlank(q, typed), acc = q.accept || [], wrote = typed !== null && typed !== undefined && String(typed).trim() !== '';
+  return `<p class="verdict ${ok?'ok':'bad'}">${ok ? '✓ Correct' : '✗ Not correct'} — ${g.near ? 'Close: check the spelling. ' : ''}the answer is ${esc(acc[0] || '')}${
+      wrote ? `; you wrote ${esc(blankClip(q, typed))}` : '; left blank'}</p>${
+    acc.length > 1 ? `<p class="sub blankacc">Accepted answers: ${acc.map(esc).join(' · ')}</p>` : ''}`;
+}
+function blankBody(q){
+  if(!Q.revealed)
+    return `<div class="numin blankin"><input type="text" id="blankIn" value="" maxlength="${blankCap(q)}" placeholder="your answer" aria-label="your answer" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></div>`;
+  let h = `<div class="why">${blankVerdict(q, Q.picked, Q.lastRight)}`;
+  if(q.why) h += `<p class="prose" style="margin:10px 0 0">${esc(q.why)}</p>`;
+  if(q.teach) h += `<div class="teach"><h4>The concept behind this</h4>${renderTeach(q.teach)}</div>`;
+  if(q.note) h += `<p class="prose" style="margin:13px 0 0;font-size:14.5px">${esc(q.note)}</p>`;
+  h += `<div class="cite">${q.quote ? `<span class="quote">\u201c${esc(q.quote)}\u201d</span>` : ''}${srcFlag(q)}${esc(q.cite)}</div></div>`;
+  return h;
+}
 function wireTyped(q, kind){
   const el = $('#v-quiz');
   const bn = $('#btnNext'); if(bn) bn.onclick = () => { Q.answered++; Q.lastId = Q.current.id; nextQuestion(); };
   wireConfidence();
+  if(kind === 'blank'){
+    const inp = $('#blankIn'), bc = $('#btnCheck');
+    if(inp && bc){
+      const go = () => {
+        if(Q.revealed) return;
+        const typed = blankClip(q, inp.value.trim()); if(typed === '') { inp.focus(); return; }
+        Q.picked = typed; Q.revealed = true; Q.guessedLogged = false;
+        Q.lastRight = gradeBlank(q, typed).ok;
+        record(q, Q.lastRight ? 'correct' : 'wrong', typed, Date.now() - (Q.startedAt||Date.now()));
+        renderQuiz();
+      };
+      bc.onclick = go; inp.onkeydown = e => { if(e.key === 'Enter'){ if(e.preventDefault) e.preventDefault(); go(); } };
+      inp.focus();
+    }
+    return;
+  }
   if(kind === 'numeric'){
     const inp = $('#numIn'), bc = $('#btnCheck');
     if(inp && bc){
@@ -2041,6 +2148,7 @@ function renderGaps(){
   /* what a typed item's miss was, since those carry no option text */
   const typedMiss = (q, e) => q.type === 'numeric'
       ? `you wrote ${e.picked === undefined ? '—' : e.picked}${e.miss ? ' · ' + (MISS_KINDS[e.miss] || e.miss) : ''}`
+      : q.type === 'blank' ? `you wrote ${e.picked === undefined ? '—' : blankClip(q, e.picked)}${gradeBlank(q, e.picked).near ? ' · close: check the spelling' : ''}`
       : q.type === 'match' && Array.isArray(e.pairOk)
         ? `${e.pairOk.filter(x => !x).length} of ${e.pairOk.length} pairs wrong` : '';
   if(ranked.length){
@@ -2059,6 +2167,7 @@ function renderGaps(){
         const wrong = c.last ? chosenOpts(c.last.q, c.last.e).filter(o => !o.correct) : [];
         const right = q.type === 'numeric' ? [`${fmtNum(q.answer)}${q.units ? ' ' + q.units : ''}`]
           : q.type === 'match' ? q.pairs.map(p => `${p.l} → ${p.r}`)
+          : q.type === 'blank' ? (q.accept || []).slice()
           : (q.options || []).filter(o => o.correct).map(o => o.t);
         h += `<div class="pconcept"><div class="pq">${esc(q.stem.length > 160 ? q.stem.slice(0,160) + '…' : q.stem)}</div>`;
         if(wrong.length) h += `<div class="pw"><b>You chose:</b> ${esc(wrong.map(o => o.t).join(' · '))}
@@ -2284,10 +2393,10 @@ function renderGaps(){
     for(const id of missedIds.slice().reverse()){
       const q = byId(id); if(!q) continue;
       const s = DB.concepts[q.concept] || {};
-      const correctTxt = q.type === 'numeric' ? `${fmtNum(q.answer)}${q.units ? ' ' + q.units : ''}` : q.type === 'match' ? q.pairs.map(p => `${p.l} → ${p.r}`).join(' · ') : q.options.filter(o=>o.correct).map(o=>o.t).join(' · ');
+      const correctTxt = q.type === 'numeric' ? `${fmtNum(q.answer)}${q.units ? ' ' + q.units : ''}` : q.type === 'match' ? q.pairs.map(p => `${p.l} → ${p.r}`).join(' · ') : q.type === 'blank' ? (q.accept || []).join(' · ') : q.options.filter(o=>o.correct).map(o=>o.t).join(' · ');
       const last = DB.answers.slice().reverse().find(a=>a.qid===id && a.result==='wrong');
       const pickedTxt = last && last.picked !== undefined
-        ? (q.type === 'numeric' ? String(last.picked)
+        ? (q.type === 'numeric' || q.type === 'blank' ? String(last.picked)
            : q.type === 'match' ? (Array.isArray(last.picked) ? last.picked.map((r, k) => r !== null && r !== undefined && r !== k ? `${q.pairs[k].l} → ${q.pairs[r].r}` : '').filter(Boolean).join(' · ') : '')
            : (Array.isArray(last.picked) ? last.picked : [last.picked]).map(i=>q.options[i] ? q.options[i].t : '').filter(Boolean).join(' · '))
         : '';
@@ -2747,7 +2856,7 @@ function finishExam(partial){
   EX.qs.forEach((q,i)=>{
     const p = EX.picks[i];
     if(partial && examBlank(q, p)) return;
-    const picked = isMulti(q) ? (p || []).slice().sort((a,b)=>a-b) : p;
+    const picked = isMulti(q) ? (p || []).slice().sort((a,b)=>a-b) : q.type === 'blank' && typeof p === 'string' ? blankClip(q, p) : p;
     record(q, examRight(q, p) ? 'correct' : 'wrong', picked, undefined, 'exam');
   });
   clearExam();
@@ -3482,7 +3591,9 @@ function bankJson(){
   return QUESTIONS.map(q => ({id:q.id, prof:q.prof, exam:(lecOf(q)||{}).exam, module:(lecOf(q)||{}).module, topic:q.topic, sub:q.sub,
     concept:q.concept, skill:skillOf(q), type:q.type||'mc', multi:!!q.multi, source:q.source||'slide', stem:q.stem,
     options:(q.options||[]).map(o=>({t:o.t, correct:!!o.correct, why:o.why})),
-    answer:q.answer, units:q.units, steps:q.steps, pairs:q.pairs, teach:teachText(q.teach), note:q.note, cite:q.cite}));
+    answer:q.answer, units:q.units, steps:q.steps, pairs:q.pairs, teach:teachText(q.teach), note:q.note, cite:q.cite,
+    // a fill-in-the-blank item adds its accepted answers and explanation; every other item exports as before
+    ...(q.type === 'blank' ? {accept:q.accept, why:q.why} : {})}));
 }
 function bankMarkdown(){
   const lines = [`# ${plain(COURSE.title)} — question bank`, '', `${QUESTIONS.length} questions. Build ${BUILD.stamp || ''}.`, ''];
@@ -3499,6 +3610,10 @@ function bankMarkdown(){
         (q.steps||[]).forEach((s, i) => lines.push(`${i+1}. [${MISS_KINDS[s.k]||s.k}] ${plain(s.t)}${s.why ? ' — ' + plain(s.why) : ''}`));
       } else if(q.type === 'match'){
         (q.pairs||[]).forEach(p => lines.push(`- ${plain(p.l)} → ${plain(p.r)}${p.why ? ' — ' + plain(p.why) : ''}`));
+      } else if(q.type === 'blank'){
+        lines.push(`Answer: ${plain((q.accept||[])[0])}`);
+        if((q.accept||[]).length > 1) lines.push(`Also accepted: ${q.accept.slice(1).map(plain).join(' · ')}`);
+        if(q.why) lines.push('', plain(q.why));
       } else {
         q.options.forEach((o, i) => lines.push(`- ${o.correct ? '**' : ''}${LETTERS[i]}. ${plain(o.t)}${o.correct ? ' ✓**' : ''} — ${plain(o.why)}`));
       }

@@ -79,7 +79,7 @@ async function open(browser, page_, at, init){
   const page = await ctx.newPage();
   const errors = [];
   page.on('pageerror', e => errors.push(e.message));
-  page.on('dialog', d => d.accept());
+  page.on('dialog', d => d.accept().catch(() => {}));
   await page.clock.setFixedTime(new Date(at));
   await page.goto(await L.pageUrl(page_));
   await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
@@ -460,7 +460,8 @@ COURSE.exams.push({id:'zsA', name:'Test exam', date:'12 Nov', when:'2026-11-12T0
       await look('a question before answering');
       const right = i % 2 === 0;
       await p.evaluate(right => { const q = Q.current;
-        if(q.type === 'numeric'){ document.getElementById('numIn').value = String(right ? q.answer : q.answer + 1000); document.getElementById('btnCheck').click(); }
+        if(q.type === 'blank'){ document.getElementById('blankIn').value = right ? q.accept[0] : 'zzzz not the answer'; document.getElementById('btnCheck').click(); }
+        else if(q.type === 'numeric'){ document.getElementById('numIn').value = String(right ? q.answer : q.answer + 1000); document.getElementById('btnCheck').click(); }
         else if(q.type === 'match'){ const sels = [...document.querySelectorAll('#v-quiz select[data-row]')];
           sels.forEach((s, j) => { s.value = String(right ? j : (j + 1) % sels.length); s.dispatchEvent(new Event('change')); }); document.getElementById('btnCheck').click(); }
         else if(isMulti(q)){ for(const j of (right ? correctSet(q) : [q.options.findIndex(o => !o.correct)])) document.querySelector(`#v-quiz button[data-o="${j}"]`).click(); document.getElementById('btnCheck').click(); }
@@ -728,7 +729,7 @@ COURSE.exams.push({id:'zsA', name:'Test exam', date:'12 Nov', when:'2026-11-12T0
           localStorage.setItem(ns + ':profile', 'TestUser'); localStorage.setItem(ns + ':data:TestUser', JSON.stringify(db));
           localStorage.setItem(ns + ':log:TestUser', JSON.stringify(log)); }, [ns, db, F.log]);
         const page = await ctx.newPage(); const errors = [];
-        page.on('pageerror', e => errors.push(e.message)); page.on('dialog', d => d.accept());
+        page.on('pageerror', e => errors.push(e.message)); page.on('dialog', d => d.accept().catch(() => {}));
         await page.clock.setFixedTime(new Date(F.end));
         await page.goto(await L.pageUrl(v.page));
         await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
