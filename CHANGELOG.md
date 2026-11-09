@@ -2,6 +2,9 @@
 
 Dated kit changes, newest first.
 
+## 2026-11-09 (feature: drug-list-tab v2, not merged without Louis)
+- `features/drug-list-tab` v2 (queue item 23): with the new option `recallFields`, recall mode asks for one field at a time and Forgot / Partly / Knew rate that fact, kept in the profile's progress as `DB.drugs`; the line under each row shows the ratings and, apart from them, the status of the bank questions the course's optional `DRUG_FACTS` maps to the fact. Off by default, and with `recallFields` empty (its default) nothing is stored, as in v1. v1 is kept unchanged in `archive/v1/`. Louis decided on 2026-11-09 that this pull request goes to him before any merge or any course switches it on.
+
 ## 2026-11-09 (bookkeeping: drug list outcomes queued)
 - `review/port-queue.md` item 23 and `review/porter-policy.md` section 1: drug-list-tab v2, the Drug list's per-fact outcomes kept in each profile's progress (`drug-list-persistent-outcomes`). Louis, 2026-11-09: develop and test it; the pull request goes to him before any merge or any course switches it on. Source: DEENT at `main` `b747e49`, read-only. `coordinator/improvements.json`: the entry set to implementing, with his decision. Nothing is built by this change.
 
