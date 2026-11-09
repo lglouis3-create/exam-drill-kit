@@ -23,8 +23,16 @@
  *     pool keeps its marks, dupOf partners never share a paper, and a bank with
  *     fewer gives all it can; `typed: false` keeps blank items off every paper;
  *   - validation: test.js passes the copy, and fails a copy whose blank item has
- *     no `accept`, an empty entry, or two entries the same once normalized; the
- *     build stops on `blanks` without `typed: true` and on a bad `blank` option.
+ *     no `accept`, an empty entry, two entries the same once normalized, or no
+ *     `why` or `teach`; the build stops on `blanks` without `typed: true` and on
+ *     a bad `blank` option;
+ *   - length cap (the longest accepted answer plus 100): the text box carries it
+ *     as maxlength; a 3 MB value set by script is recorded at the cap in the
+ *     Quiz and on a paper, also when it was put in the saved picks;
+ *   - one-edit differences that name another thing (a digit, a token of one
+ *     character) are plain wrong in both modes; ordinary slips stay near;
+ *   - the bank export: a blank item adds `accept` and `why`; every other item
+ *     exports with the keys it had.
  *
  *     node blank_test.js
  */
@@ -36,7 +44,7 @@ L.PAGE.need(NAME);
 const childEnv = Object.assign({}, process.env); delete childEnv.DRILL_PAGE;
 
 console.log('\n=== grading (node) ===');
-const X = L.engine('({blankNorm, gradeBlank, COURSE})');
+const X = L.engine('({blankNorm, gradeBlank, blankCap, blankClip, COURSE})');
 const item = (...accept) => ({id: 'g', type: 'blank', accept});
 const G = (acc, typed) => X.gradeBlank(item(...[].concat(acc)), typed);
 const right = (acc, typed, label) => { const g = G(acc, typed); return check(g.ok && !g.near, label, g); };
@@ -68,7 +76,31 @@ wrong('calcineurin', 'calcinurim', 'two edits: wrong, no near miss');
 wrong('VDR', 'VDE', 'an answer of 3 characters gets no near-miss leniency');
 wrong('FKBP', 'FKBQ', 'an answer of 4 characters gets no near-miss leniency');
 wrong('abcde', 'abcdf', 'an answer of exactly 5 characters gets the near miss', true);
+// a one-edit difference that names another thing is plain wrong, with no note, in both modes
+for(const [mode, set] of [['strict', undefined], ['typo: 1', {typo: 1}]]){
+  X.COURSE.blank = set;
+  wrong('vitamin D', 'vitamin E', `${mode}: "vitamin E" for "vitamin D" (a token of one character) is wrong, no note`);
+  wrong('vitamin D', 'vitamin DD', `${mode}: "vitamin DD" for "vitamin D" (a token of one character) is wrong, no note`);
+  wrong('5 HT2', '5 HT3', `${mode}: "5 ht3" for "5 ht2" (a digit) is wrong, no note`);
+  wrong('CYP3A4', 'CYP3A5', `${mode}: "CYP3A5" for "CYP3A4" (a digit) is wrong, no note`);
+  wrong('beta-1', 'beta-2', `${mode}: "beta-2" for "beta-1" (a digit) is wrong, no note`);
+  wrong('beta-2 agonist', 'beta-1 agonist', `${mode}: "beta-1 agonist" for "beta-2 agonist" (a digit inside a longer answer) is wrong, no note`);
+  wrong('CYP3A4', 'CYP3A45', `${mode}: a digit added to "CYP3A4" is wrong, no note`);
+  wrong('CYP3A4', 'CYP3A', `${mode}: a digit left out of "CYP3A4" is wrong, no note`);
+  wrong('calcipotriene', 'calcipotrien3', `${mode}: a digit typed for a letter is wrong, no note`);
+}
+X.COURSE.blank = undefined;
+// ordinary slips stay near (wrong in strict mode) and are right with typo: 1
+wrong('calcipotriene', 'calcipotrine', 'strict: "calcipotrine" for "calcipotriene" is a near miss, wrong', true);
+wrong('tacrolimus', 'tacrolimis', 'strict: "tacrolimis" for "tacrolimus" is a near miss, wrong', true);
+wrong('vitamin D receptor', 'vitamin D receptr', 'strict: a letter left out inside a long token of a longer answer is a near miss', true);
+wrong('vitamin D', 'vitamind', 'strict: "vitamind" for "vitamin D" (a space left out) is a near miss', true);
+wrong('calcineurin', 'calcineruin', 'strict: two letters swapped is two edits, not a near miss');
 X.COURSE.blank = {typo: 1};
+for(const [acc, typed] of [['calcipotriene', 'calcipotrine'], ['tacrolimus', 'tacrolimis'], ['vitamin D receptor', 'vitamin D receptr']]){
+  const g = G(acc, typed); check(g.ok && g.near, `typo: 1: "${typed}" for "${acc}" is right, with the note`, g);
+}
+{ const g = G('calcineurin', 'calcineruin'); check(!g.ok && !g.near, 'typo: 1: two letters swapped is still wrong, no note', g); }
 { const g = G('calcineurin', 'calcinurin'); check(g.ok && g.near, 'with blank: {typo: 1} a one-edit near miss is right, with the note', g); }
 wrong('calcineurin', 'calcinurim', 'with typo: 1, two edits are still wrong');
 wrong('VDR', 'VDE', 'with typo: 1, an answer under 5 characters still gets no leniency');
@@ -76,6 +108,16 @@ right('calcineurin', 'Calcineurin', 'with typo: 1, an exact answer is right with
 X.COURSE.blank = {typo: 0};
 wrong('calcineurin', 'calcinurin', 'with blank: {typo: 0} the near miss is wrong (strict)', true);
 X.COURSE.blank = savedBlank;
+
+// the length cap, in node: the longest accepted answer plus 100
+{ const q = item('vitamin D', 'VDR', 'vitamin D receptor'), big = 'x'.repeat(3 * 1024 * 1024);
+  check(X.blankCap(q) === 'vitamin D receptor'.length + 100, 'the cap is the longest accepted answer plus 100', X.blankCap(q));
+  check(X.blankClip(q, big).length === X.blankCap(q), 'a 3 MB text is cut to the cap', X.blankClip(q, big).length);
+  check(X.blankClip(q, 'vdr') === 'vdr' && X.blankClip(q, null) === '', 'a text under the cap is kept as it is; null is empty');
+  const g = X.gradeBlank(q, 'vitamin D receptor' + ' '.repeat(3 * 1024 * 1024) + 'junk');
+  check(g.ok, 'grading reads only the first characters up to the cap (an accepted answer followed by 3 MB of spaces is right)', g);
+  const h = X.gradeBlank(q, 'x'.repeat(50) + 'vitamin D receptor');
+  check(!h.ok, 'a long text that only ends with an accepted answer is wrong', h); }
 
 // the planted items: blank items in both topics, plain multiple-choice filler so two pools fill
 const OPT = why => [{t: 'The right one', correct: true, why: why + ' This is the keyed answer.'},
@@ -96,7 +138,7 @@ const QF = `;(() => {
   blank('bt-o1', T1, 'Planted item in the second topic: the answer is ___.', ['tazarotene']);
   for(let k = 1; k <= 4; k++) for(const [t, n] of [[T0, 'a'], [T1, 'b']])
     QUESTIONS.push(Object.assign(base('bt-m' + n + k, t), {stem: 'Planted multiple-choice item ' + n + k + ': which one is right?',
-      options: ${JSON.stringify(OPT('The planted filler item.'))}, teach: 'The planted filler items fill the pools.'}));
+      options: ${JSON.stringify(OPT('The planted filler item.'))}, teach: 'The planted filler items fill the pools.'}, n + k === 'a1' ? {why: 'A top-level why on a multiple-choice item.'} : {}));
 })();\n`;
 // course.js runs before the question files, so the two pools name the topics by the ids q1_topics.js gives them
 const topicIds = (fs.readFileSync(path.join(L.PAGE.SRC, 'q1_topics.js'), 'utf8').match(/\{\s*id\s*:\s*'[^']+'[^{}]*subs\s*:/g) || [])
@@ -127,6 +169,11 @@ const testJs = src => child.spawnSync('node', ['test.js'], {cwd: src, encoding: 
   badCopy('no accept', `delete QUESTIONS.find(q => q.id === 'bt-cal').accept;`, /bt-cal: fill-in-the-blank item needs a non-empty `accept` list/);
   badCopy('an empty accept list', `QUESTIONS.find(q => q.id === 'bt-cal').accept = [];`, /bt-cal: fill-in-the-blank item needs a non-empty `accept` list/);
   badCopy('an empty entry', `QUESTIONS.find(q => q.id === 'bt-cal').accept.push('  ');`, /bt-cal: fill-in-the-blank `accept` holds an empty or non-text entry/);
+  badCopy('no why and no teach', `delete QUESTIONS.find(q => q.id === 'bt-cal').why;`, /bt-cal: fill-in-the-blank item needs a non-empty `why` or `teach`/);
+  badCopy('an empty why and no teach', `QUESTIONS.find(q => q.id === 'bt-cal').why = '  ';`, /bt-cal: fill-in-the-blank item needs a non-empty `why` or `teach`/);
+  { const b = L.scratchBuild('blank-good', {files: {'q96_blank_test.js': QF + `{ const q = QUESTIONS.find(q => q.id === 'bt-sal'); q.teach = 'The planted teach text.'; delete q.why; }\n`}, courseLine: paperLine(true)});
+    const r = b.code === 0 ? testJs(b.src) : {status: -1, stdout: b.out};
+    check(r.status === 0, 'test.js accepts a blank item with `teach` and no `why`', (r.stdout || '').split('\n').filter(l => /FAIL/.test(l)).slice(0, 3).join(' | ')); }
   badCopy('two entries the same once normalized', `QUESTIONS.find(q => q.id === 'bt-vdr').accept.push('Vitamin-D.');`, /bt-vdr: fill-in-the-blank `accept` holds two entries that are the same once normalized/);
   { const b = L.scratchBuild('blank-nobuild', {files: {'q96_blank_test.js': QF}, courseLine: paperLine(false, '{blanks: 2}')});
     check(b.code !== 0 && /`blanks` needs `typed: true`/.test(b.out), 'the build stops on `blanks` without `typed: true`', b.out.split('\n').slice(-2).join(' | ')); }
@@ -172,6 +219,28 @@ const testJs = src => child.spawnSync('node', ['test.js'], {cwd: src, encoding: 
             'Weak spots lists the missed blank item with its stem, the typed answer and the accepted answers');
       check(await page.evaluate(() => { const b = bankMarkdown(); return /Answer: vitamin D/.test(b) && /Also accepted: VDR · vitamin D receptor/.test(b); }),
             'the bank export carries the answer and the accepted answers');
+      // the bank export: a blank item adds accept and why; every other item exports with the keys it had
+      const exp = await page.evaluate(() => { const rows = JSON.parse(JSON.stringify(bankJson())), by = id => rows.find(r => r.id === id);
+        return {blank: Object.keys(by('bt-vdr')), mc: Object.keys(by('bt-ma1')), mc2: Object.keys(by('bt-mb2')), acc: by('bt-vdr').accept, why: by('bt-vdr').why}; });
+      const ORIGINAL = ['id', 'prof', 'exam', 'module', 'topic', 'sub', 'concept', 'skill', 'type', 'multi', 'source', 'stem', 'options', 'teach', 'cite'];
+      check(JSON.stringify(exp.blank.filter(k => ['accept', 'why'].includes(k))) === '["accept","why"]' && exp.acc.length === 3 && /has this explanation/.test(exp.why),
+            'the export of a blank item carries accept and why', exp.blank);
+      check(JSON.stringify(exp.mc) === JSON.stringify(ORIGINAL) && JSON.stringify(exp.mc2) === JSON.stringify(ORIGINAL),
+            'an item with options exports with the keys it had, also one with a top-level why (no accept, no why)', exp.mc);
+
+      // the length cap: the text box carries it, and a 3 MB value put in by script is recorded at it
+      check(await L.quizOn(page, 'bt-sal'), 'the quiz opens on a blank item with a short answer');
+      const cap1 = await page.evaluate(() => ({attr: +document.getElementById('blankIn').getAttribute('maxlength'), cap: blankCap(byId('bt-sal'))}));
+      check(cap1.attr === cap1.cap && cap1.cap === 'tretinoin'.length + 100, 'the text box carries maxlength = the longest accepted answer + 100', cap1);
+      await page.evaluate(() => { document.getElementById('blankIn').value = 'x'.repeat(3 * 1024 * 1024); });
+      await page.click('#btnCheck');
+      const big = await page.evaluate(() => ({n: DB.answers.filter(a => a.qid === 'bt-sal').length, len: DB.answers[DB.answers.length - 1].picked.length,
+        picked: Q.picked.length, page: document.getElementById('v-quiz').textContent.length, log: JSON.stringify(LOG[LOG.length - 1]).length}));
+      check(big.n === 1 && big.len === 'tretinoin'.length + 100 && big.picked === big.len && big.page < 5000,
+            'a 3 MB value set by script is recorded once at the cap, kept at the cap on screen and in the answer', big);
+      await page.reload(); await ready(page); await page.waitForTimeout(400);
+      check(await page.evaluate(() => document.getElementById('v-quiz').textContent.length < 5000 && DB.answers[DB.answers.length - 1].picked.length === 'tretinoin'.length + 100),
+            'after a reload the answer is still at the cap');
       check(!errors.length, 'no page error in the quiz', errors.slice(0, 3).join(' | '));
       await ctx.close(); }
 
@@ -234,6 +303,9 @@ const testJs = src => child.spawnSync('node', ['test.js'], {cwd: src, encoding: 
       await page.click('#startExam');
       if(check(await page.evaluate(() => !!document.getElementById('exBlank') && /fill in the blank/.test(document.querySelector('#v-exam .qhead').textContent)),
             'a blank item on the paper has a text box and is marked fill in the blank')){
+      check(await page.evaluate(() => +document.getElementById('exBlank').getAttribute('maxlength') === blankCap(EX.qs[0])), 'the paper\'s text box carries the same maxlength');
+      await page.evaluate(() => { const n = document.getElementById('exBlank'); n.value = 'x'.repeat(3 * 1024 * 1024); n.dispatchEvent(new Event('input')); });
+      check(await page.evaluate(() => EX.picks[0].length === blankCap(EX.qs[0])), 'a 3 MB value set by script is kept on the paper at the cap');
       await page.fill('#exBlank', 'vitamin-D receptor');
       await page.waitForTimeout(200);
       await page.reload(); await ready(page); await page.waitForTimeout(400);
@@ -255,6 +327,18 @@ const testJs = src => child.spawnSync('node', ['test.js'], {cwd: src, encoding: 
             && /the answer is calcineurin/.test(res.text), 'the result page shows what was typed, the spelling note and the accepted answers');
       } else L.skip('the fixed paper typed, reloaded, graded and reviewed', 'the paper shows no text box for the blank item');
       check(!errors.length, 'no page error on the paper', errors.slice(0, 3).join(' | '));
+      await ctx.close(); }
+
+    // ---- a paper whose saved pick is far over the cap (a value set by script, or an old save) ----
+    { const {ctx, page, errors} = await L.openPage(browser, on.page);
+      await page.click('#nav button[data-v="exam"]');
+      await page.evaluate(() => { drawPaper = () => [byId('bt-sal')]; });
+      await page.click('#startExam');
+      await page.evaluate(() => { EX.picks[0] = 'y'.repeat(3 * 1024 * 1024); finishExam(false); });
+      const r = await page.evaluate(() => ({len: DB.answers[DB.answers.length - 1].picked.length, text: document.getElementById('v-exam').textContent.length,
+        log: LOG.length}));
+      check(r.len === 'tretinoin'.length + 100 && r.text < 6000 && r.log === 1, 'a 3 MB pick on a paper is recorded at the cap when the paper is submitted, and shown short', r);
+      check(!errors.length, 'no page error on the over-long paper', errors.slice(0, 3).join(' | '));
       await ctx.close(); }
   } finally {
     await browser.close();

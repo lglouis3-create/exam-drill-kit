@@ -75,6 +75,9 @@ for (const q of QUESTIONS) {
       if (new Set(norm).size !== norm.length) bad(`${q.id}: fill-in-the-blank \`accept\` holds two entries that are the same once normalized`);
     }
     if (q.options) bad(`${q.id}: fill-in-the-blank item carries options`);
+    // the reveal shows the explanation, so a blank item needs one: `why` (text) or `teach` (text or parts)
+    { const has = v => Array.isArray(v) ? v.length > 0 : typeof v === 'string' && v.trim() !== '';
+      if (!has(q.why) && !has(q.teach)) bad(`${q.id}: fill-in-the-blank item needs a non-empty \`why\` or \`teach\` (the reveal shows it)`); }
     if (!q.skill) bad(`${q.id}: typed item without a skill tag`);
     continue;
   }

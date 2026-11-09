@@ -118,9 +118,11 @@ COURSE = {id, title, short, ns, output, professors:[…],
   'VDR', …], why or teach, cite, …}`, `accept[0]` the answer shown. Typed text is compared
   after normalizing case, spaces, hyphens, en dashes, a final period and α β γ δ κ; a
   one-letter slip in an answer of 5 or more characters is wrong with "Close: check the
-  spelling" (`blank:{typo:1}` counts it right). Exam papers draw them with
-  `exams[].typed:true`; `blanks:n` asks for n per paper where the pools allow
-  (`core/README.md` "Fill in the blank").
+  spelling" (`blank:{typo:1}` counts it right, except where the letter is a digit or in a
+  one-character token: "vitamin E" for "vitamin D" is wrong in both modes). Write `why` or
+  `teach` on each. Exam papers draw them with `exams[].typed:true`; `blanks:n` asks for n
+  per paper where the pools allow (`core/README.md` "Fill in the blank"; source: Louis,
+  after DEENT Exam 1, 2026-11-09, around 5 of the 50 questions).
 - `share` gives the link preview a shared address shows (title, description, the
   site's `https://…/` address and a PNG from `src/icons/`); without it the page is
   unchanged. `manifest.short_name` names the Home Screen icon; the page keeps `short`
@@ -345,7 +347,10 @@ The checks fail the build when `CLAUDE.md` was not updated after the newest lect
    format in about the announced share: for fill in the blank, `type:'blank'` items with
    `exams[].typed:true`, and `blanks:n` where a count is known. A format the kit cannot
    offer is recorded as a kit gap in `coordinator/improvements.json` before the exam, not
-   left to the blurb.
+   left to the blurb. (Source: Louis, after DEENT Exam 1, 2026-11-09: around 5 of the 50
+   questions; DEENT `src/course.js` at main 4d3b3f6, Exam 1 blurb: "Dr. Smith says her
+   questions are mostly multiple choice with a few fill-in-the-blanks on drug
+   mechanisms", while its papers drew single-answer questions only.)
 2. Add the review list, practice exam and prep sheet to `STYLE.md`; check the bank
    against the stated scope and fill thin and empty topics.
 3. Review round with agents in parallel, about 100 questions each, findings as JSON

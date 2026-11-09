@@ -1106,15 +1106,27 @@ and picked, and shown on the result page with the answer, the margin and the wor
 the pairs. Without `typed` the papers are as before. `exam_typed_test.js` checks it.
 
 **Fill in the blank.** A question `{type:'blank', stem, accept:[…], why or teach, …}`
-(DEENT Exam 1, 2026-11-09: about 5 of 50 questions, mostly Dr. Smith's, asked for a typed
-word: "Calcipotriene binds to what ___ receptor"). The student types the missing words;
+(source: Louis, after DEENT Exam 1, 2026-11-09: around 5 of the 50 questions were fill in
+the blank, for example "Calcipotriene binds to what ___ receptor"; DEENT `src/course.js`
+(main 4d3b3f6), Exam 1 blurb: "Dr. Smith says her questions are mostly multiple choice with
+a few fill-in-the-blanks on drug mechanisms"). The student types the missing words;
 `gradeBlank` (`views.js`) compares the text with each `accept` entry after normalizing
 both: lower case, no space at either end, a run of spaces, hyphens or en dashes as one
 space, a final period dropped, α β γ δ κ as alpha beta gamma delta kappa; digits and the
 percent sign are kept. A text one edit (Levenshtein distance 1) from an accepted answer
 of 5 or more characters is a near miss: wrong, and the reveal says "Close: check the
 spelling" before the answer; with `course.js` `blank: {typo: 1}` it counts as right,
-with the same note. `accept[0]` is the answer shown; the reveal lists every accepted
+with the same note. A one-edit difference is not a near miss, and is plain wrong in both
+modes with no note, when the character that differs is a digit ("5 ht3" for "5 ht2",
+"CYP3A5" for "CYP3A4", "beta-2" for "beta-1") or lies in a token of one character
+("vitamin E" for "vitamin D"): there the text names another thing. **Remaining risk:**
+even so, a one-letter slip can sometimes be a different term (for example two drug names
+one letter apart), so strict is the default and `blank: {typo: 1}` is for a course that
+accepts that. A transposition is two edits and is never near; an answer under 5
+characters gets no leniency. The typed text is cut to a length cap, the longest accepted
+answer plus 100 characters (`blankCap`): the text box carries it as `maxlength`, and the
+grading, the record (Quiz and paper) and the display cut again, so a pasted, scripted or
+imported value cannot store more (a 3 MB paste had been stored whole). `accept[0]` is the answer shown; the reveal lists every accepted
 answer, then `why` and `teach`. The answer goes through `record()` as a calculation's
 does, the typed text as `picked`; no storage key or progress field is added, and the
 answer history's item type is `blank`. Weak spots, the list of missed questions and the
@@ -1127,8 +1139,10 @@ blueprint category) whose `dupOf` family is not on the paper, a concept not yet 
 paper first, or the other way round, until the paper holds n or no exchange is left. The
 paper's size, each pool's marks, the select-all count and the calculations and matching
 items stay as drawn, and a bank with fewer gives all it can. `test.js` fails a blank item
-without a non-empty `accept` of non-empty strings, or with two entries the same once
-normalized. A course with no blank item draws, stores and shows everything as before.
+without a non-empty `accept` of non-empty strings, with two entries the same once
+normalized, or without a non-empty `why` or `teach` (the reveal shows it). The bank
+export (`bankJson`) adds `accept` and `why` for a blank item only; every other item
+exports with the keys it had. A course with no blank item draws, stores and shows everything as before.
 `blank_test.js` checks it on every course.
 
 **A count, marks or time limit not set.** `skill/SKILL.md` allows `questions: null` and

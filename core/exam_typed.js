@@ -101,7 +101,7 @@ const EXAM_TYPED = (() => {
       return `<div class="numin"><input type="text" inputmode="decimal" id="exNum" value="${p === null || p === undefined ? '' : esc(p)}" placeholder="your answer" aria-label="your answer">${q.units ? `<span class="units">${esc(q.units)}</span>` : ''}</div>
         <p class="sub">Type the number; the unit may follow it.</p>`;
     if(q.type === 'blank')
-      return `<div class="numin blankin"><input type="text" id="exBlank" value="${p === null || p === undefined ? '' : esc(p)}" placeholder="your answer" aria-label="your answer" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
+      return `<div class="numin blankin"><input type="text" id="exBlank" value="${p === null || p === undefined ? '' : esc(blankClip(q, p))}" maxlength="${blankCap(q)}" placeholder="your answer" aria-label="your answer" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
         <p class="sub">Type the missing word or words.</p>`;
     const picks = Array.isArray(p) ? p : q.pairs.map(() => null);
     return `<table class="reftab matchtab"><thead><tr><th>${esc(q.left || '')}</th><th>${esc(q.right || '')}</th></tr></thead><tbody>${
@@ -125,7 +125,7 @@ const EXAM_TYPED = (() => {
     };
     const inp = body.querySelector('#exNum') || body.querySelector('#exBlank');
     if(inp){
-      inp.oninput = () => { EX.picks[i] = inp.value.trim() ? inp.value : null; saveExam(); count(); };
+      inp.oninput = () => { EX.picks[i] = inp.value.trim() ? (q.type === 'blank' ? blankClip(q, inp.value) : inp.value) : null; saveExam(); count(); };
       inp.onkeydown = e => { if(e.key === 'Enter'){ e.preventDefault(); const n = $('#exNext'); if(n) n.click(); } };
     }
     body.querySelectorAll('select[data-exrow]').forEach(s => s.onchange = () => {

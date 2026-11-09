@@ -1857,8 +1857,15 @@ const matchComplete = q => (Q.picked || []).length === q.pairs.length && (Q.pick
    beta, gamma, delta, kappa. Digits and the percent sign are kept. A text one
    edit (one letter added, left out or changed) from an accepted answer of 5 or
    more characters is a near miss: wrong, with "Close: check the spelling", or
-   right with that note when course.js sets `blank: {typo: 1}`. accept[0] is the
-   answer shown. Recorded like a calculation: the typed text is what was picked. */
+   right with that note when course.js sets `blank: {typo: 1}`. A one-edit
+   difference is not a near miss, and is plain wrong in both modes, when the
+   character that differs is a digit ("5 ht3" for "5 ht2") or lies in a token of
+   one character ("vitamin E" for "vitamin D"): there the answer names another
+   thing, not a misspelling. accept[0] is the answer shown. Recorded like a
+   calculation: the typed text is what was picked, cut to a length cap: the
+   longest accepted answer plus 100 characters (blankCap), in the text box
+   (maxlength) and again wherever the text is graded or recorded, so a pasted,
+   scripted or imported value cannot be larger. */
 const BLANK_GREEK = {'α':'alpha', 'β':'beta', 'γ':'gamma', 'δ':'delta', 'κ':'kappa'};
 function blankNorm(s){
   return String(s === null || s === undefined ? '' : s).toLowerCase()
@@ -1866,18 +1873,43 @@ function blankNorm(s){
     .replace(/[\s\-\u2013]+/g, ' ').trim()
     .replace(/\.$/, '').trim();
 }
-// true when a and b differ by exactly one letter added, left out or changed (Levenshtein distance 1)
+/* The most characters a typed answer to q may have: the longest accepted answer plus 100.
+   One rule for the text box, the grading and the record. */
+const blankCap = q => (q.accept || []).reduce((n, a) => Math.max(n, String(a).length), 0) + 100;
+const blankClip = (q, s) => String(s === null || s === undefined ? '' : s).slice(0, blankCap(q));
+/* The token (run of characters between spaces) of s that holds s[i], or '' where s[i] is a space or absent */
+function blankToken(s, i){
+  if(i < 0 || i >= s.length || s[i] === ' ') return '';
+  let from = i, to = i + 1;
+  while(from > 0 && s[from - 1] !== ' ') from--;
+  while(to < s.length && s[to] !== ' ') to++;
+  return s.slice(from, to);
+}
+/* true when a and b differ by one letter added, left out or changed (Levenshtein distance 1) and
+   the difference is a spelling slip: not a digit, and not in a token of one character, in
+   either text (another number or another one-letter name is another thing) */
 function blankOneEdit(a, b){
   if(a === b || Math.abs(a.length - b.length) > 1) return false;
   let i = 0;
   while(i < a.length && i < b.length && a[i] === b[i]) i++;
-  if(a.length === b.length) return a.slice(i + 1) === b.slice(i + 1);
-  return a.length > b.length ? a.slice(i + 1) === b.slice(i) : a.slice(i) === b.slice(i + 1);
+  let seen;   // the characters that differ, and where to look for their tokens in a and in b
+  if(a.length === b.length){
+    if(a.slice(i + 1) !== b.slice(i + 1)) return false;
+    seen = [a[i], b[i], [i, i]];
+  }else{
+    const longer = a.length > b.length;
+    const L = longer ? a : b, S = longer ? b : a;
+    if(L.slice(i + 1) !== S.slice(i)) return false;
+    seen = [L[i], '', longer ? [i, Math.min(i, b.length - 1)] : [Math.min(i, a.length - 1), i]];
+  }
+  if(/[0-9]/.test(seen[0] + seen[1])) return false;
+  const ta = blankToken(a, seen[2][0]), tb = blankToken(b, seen[2][1]);
+  return !(ta.length === 1 || tb.length === 1);
 }
 const blankTypo = () => !!(COURSE.blank && COURSE.blank.typo === 1);
 /* {ok, near}: near is a one-edit miss of an accepted answer of 5 or more characters */
 function gradeBlank(q, typed){
-  const t = blankNorm(typed), acc = (q.accept || []).map(blankNorm);
+  const t = blankNorm(blankClip(q, typed)), acc = (q.accept || []).map(blankNorm);
   if(!t) return {ok:false, near:false};
   if(acc.includes(t)) return {ok:true, near:false};
   const near = acc.some(a => a.length >= 5 && blankOneEdit(t, a));
@@ -1887,12 +1919,12 @@ function gradeBlank(q, typed){
 function blankVerdict(q, typed, ok){
   const g = gradeBlank(q, typed), acc = q.accept || [], wrote = typed !== null && typed !== undefined && String(typed).trim() !== '';
   return `<p class="verdict ${ok?'ok':'bad'}">${ok ? '✓ Correct' : '✗ Not correct'} — ${g.near ? 'Close: check the spelling. ' : ''}the answer is ${esc(acc[0] || '')}${
-      wrote ? `; you wrote ${esc(typed)}` : '; left blank'}</p>${
+      wrote ? `; you wrote ${esc(blankClip(q, typed))}` : '; left blank'}</p>${
     acc.length > 1 ? `<p class="sub blankacc">Accepted answers: ${acc.map(esc).join(' · ')}</p>` : ''}`;
 }
 function blankBody(q){
   if(!Q.revealed)
-    return `<div class="numin blankin"><input type="text" id="blankIn" value="" placeholder="your answer" aria-label="your answer" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></div>`;
+    return `<div class="numin blankin"><input type="text" id="blankIn" value="" maxlength="${blankCap(q)}" placeholder="your answer" aria-label="your answer" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></div>`;
   let h = `<div class="why">${blankVerdict(q, Q.picked, Q.lastRight)}`;
   if(q.why) h += `<p class="prose" style="margin:10px 0 0">${esc(q.why)}</p>`;
   if(q.teach) h += `<div class="teach"><h4>The concept behind this</h4>${renderTeach(q.teach)}</div>`;
@@ -1909,7 +1941,7 @@ function wireTyped(q, kind){
     if(inp && bc){
       const go = () => {
         if(Q.revealed) return;
-        const typed = inp.value.trim(); if(typed === '') { inp.focus(); return; }
+        const typed = blankClip(q, inp.value.trim()); if(typed === '') { inp.focus(); return; }
         Q.picked = typed; Q.revealed = true; Q.guessedLogged = false;
         Q.lastRight = gradeBlank(q, typed).ok;
         record(q, Q.lastRight ? 'correct' : 'wrong', typed, Date.now() - (Q.startedAt||Date.now()));
@@ -2109,7 +2141,7 @@ function renderGaps(){
   /* what a typed item's miss was, since those carry no option text */
   const typedMiss = (q, e) => q.type === 'numeric'
       ? `you wrote ${e.picked === undefined ? '—' : e.picked}${e.miss ? ' · ' + (MISS_KINDS[e.miss] || e.miss) : ''}`
-      : q.type === 'blank' ? `you wrote ${e.picked === undefined ? '—' : e.picked}${gradeBlank(q, e.picked).near ? ' · close: check the spelling' : ''}`
+      : q.type === 'blank' ? `you wrote ${e.picked === undefined ? '—' : blankClip(q, e.picked)}${gradeBlank(q, e.picked).near ? ' · close: check the spelling' : ''}`
       : q.type === 'match' && Array.isArray(e.pairOk)
         ? `${e.pairOk.filter(x => !x).length} of ${e.pairOk.length} pairs wrong` : '';
   if(ranked.length){
@@ -2817,7 +2849,7 @@ function finishExam(partial){
   EX.qs.forEach((q,i)=>{
     const p = EX.picks[i];
     if(partial && examBlank(q, p)) return;
-    const picked = isMulti(q) ? (p || []).slice().sort((a,b)=>a-b) : p;
+    const picked = isMulti(q) ? (p || []).slice().sort((a,b)=>a-b) : q.type === 'blank' && typeof p === 'string' ? blankClip(q, p) : p;
     record(q, examRight(q, p) ? 'correct' : 'wrong', picked, undefined, 'exam');
   });
   clearExam();
@@ -3552,7 +3584,9 @@ function bankJson(){
   return QUESTIONS.map(q => ({id:q.id, prof:q.prof, exam:(lecOf(q)||{}).exam, module:(lecOf(q)||{}).module, topic:q.topic, sub:q.sub,
     concept:q.concept, skill:skillOf(q), type:q.type||'mc', multi:!!q.multi, source:q.source||'slide', stem:q.stem,
     options:(q.options||[]).map(o=>({t:o.t, correct:!!o.correct, why:o.why})),
-    answer:q.answer, units:q.units, steps:q.steps, pairs:q.pairs, accept:q.accept, why:q.why, teach:teachText(q.teach), note:q.note, cite:q.cite}));
+    answer:q.answer, units:q.units, steps:q.steps, pairs:q.pairs, teach:teachText(q.teach), note:q.note, cite:q.cite,
+    // a fill-in-the-blank item adds its accepted answers and explanation; every other item exports as before
+    ...(q.type === 'blank' ? {accept:q.accept, why:q.why} : {})}));
 }
 function bankMarkdown(){
   const lines = [`# ${plain(COURSE.title)} — question bank`, '', `${QUESTIONS.length} questions. Build ${BUILD.stamp || ''}.`, ''];
