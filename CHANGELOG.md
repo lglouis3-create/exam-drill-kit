@@ -2,6 +2,9 @@
 
 Dated kit changes, newest first.
 
+## 2026-11-09 (bookkeeping: drug list outcomes queued)
+- `review/port-queue.md` item 23 and `review/porter-policy.md` section 1: drug-list-tab v2, the Drug list's per-fact outcomes kept in each profile's progress (`drug-list-persistent-outcomes`). Louis, 2026-11-09: develop and test it; the pull request goes to him before any merge or any course switches it on. Source: DEENT at `main` `b747e49`, read-only. `coordinator/improvements.json`: the entry set to implementing, with his decision. Nothing is built by this change.
+
 ## 2026-11-09 (figures)
 - Enlarge: the placeholder that holds a figure's place takes the figure's exact height (`getBoundingClientRect`), not the rounded `offsetHeight`. A figure with a fractional height (DEENT's acne-cascade, 487.22 px at 390x420) made the page 0.22 px shorter while enlarged, so at the end of the page Enlarge then Close moved the scroll by 1 px (DEENT's ux_test, y 18062 then 18061).
 
