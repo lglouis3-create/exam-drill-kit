@@ -1,8 +1,8 @@
 {
  "name": "drug-list-tab",
- "version": "v1",
- "does": "A Drug list tab over the course's DRUG_TABLES (a data file listed in course.js `files`): one table per page or section under its title, with its legend; group chips (the option `groups`, plus All pages) that narrow the tables shown; a search across every table, not only the chosen group's; a tap or Enter on a row opens the row's detail field split into its sections (key side effects, boxed warnings, other notes), tapped again to close; a jump strip to each table; a page-image view when every table gives an image. A Recall mode (from DEENT's drug list): each row shows only the fields named in recallShow, with a writing box and a Reveal button under it, Show class, Reveal all shown and Hide all. The choices and what is typed last for the visit only; nothing is stored.",
- "source": "BDK assets/app.js viewBrowse (lines 2553-2618), QUIZZES (line 42), ekHtml (lines 882-899), resolveSeeAbove (lines 331-347), assets/style.css (lines 105, 262-276, 327-338, 355-356, 397-401) and tests/ui.js (lines 7-28), at 05c36c3; recall mode from DEENT src/druglist_ui.js (lines 31-32, 70-71, 160-174, 203-206, 209, 236, 248-253, 256-259) at 0281922",
+ "version": "v2",
+ "does": "A Drug list tab over the course's DRUG_TABLES (a data file listed in course.js `files`): one table per page or section under its title, with its legend; group chips (the option `groups`, plus All pages) that narrow the tables shown; a search across every table, not only the chosen group's; a tap or Enter on a row opens the row's detail field split into its sections (key side effects, boxed warnings, other notes), tapped again to close; a jump strip to each table; a page-image view when every table gives an image. A Recall mode (from DEENT's drug list): each row shows only the fields named in recallShow, with a writing box and a Reveal button under it, Show class, Reveal all shown and Hide all. The choices and what is typed last for the visit only. v2: with the option recallFields, recall mode asks for one field at a time and, once a row is revealed, Forgot / Partly / Knew rate that fact (drug and field); the ratings are kept in the profile's progress as DB.drugs, never as answers, and the line under each row shows them and, apart from them, the status of the bank questions the course's DRUG_FACTS maps to the fact. With recallFields empty (the default) nothing is stored, as in v1.",
+ "source": "BDK assets/app.js viewBrowse (lines 2553-2618), QUIZZES (line 42), ekHtml (lines 882-899), resolveSeeAbove (lines 331-347), assets/style.css (lines 105, 262-276, 327-338, 355-356, 397-401) and tests/ui.js (lines 7-28), at 05c36c3; recall mode from DEENT src/druglist_ui.js (lines 31-32, 70-71, 160-174, 203-206, 209, 236, 248-253, 256-259) at 0281922; v2's ratings and statuses from DEENT src/druglist_ui.js (lines 98-99, 117-118, 415-428) and src/drugfacts.js (lines 38-40, 120-141) at b747e49",
  "js": [
   "drug-list-tab.js"
  ],
@@ -146,6 +146,14 @@
   "recallPrompt": {
    "default": "Write what you recall first (self-check: not graded, not saved)",
    "about": "the label of each row's writing box in recall mode (adapted from DEENT's \"Write the target or mechanism first (self-check: not graded, not saved)\")"
+  },
+  "recallFields": {
+   "default": [],
+   "about": "the fields recall mode can ask for one at a time, as [field, name] pairs (DEENT's Recall fields: Target / how it acts, Mechanism, ...); once a row is revealed, Forgot / Partly / Knew rate the fact <drug id>:<field> and the rating is kept in the profile's progress (DB.drugs). A field here is not in recallShow or recallClassField. Empty: v1's recall mode, nothing stored"
+  },
+  "idField": {
+   "default": "generic",
+   "about": "the row field whose text, lowercased with every run of other characters made one hyphen, is the drug's id in its fact ids (BDK: generic, 300 rows, 300 ids; DEENT's cards: id); used only with recallFields, and the build refuses two rows with the same id or a row with none"
   }
  },
  "test": "test.js"
