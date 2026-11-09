@@ -306,6 +306,46 @@
    ],
    "decision": "Louis, 2026-11-09 (\"Whatever you recommend is the best\", answering the central session's recommendation): develop and test as drug-list-tab v2, off by default; the pull request goes to him before any merge or any course switches it on (handled as #81; not a decision 10 merge); port-queue item 23, porter policy section 1",
    "notes": "owner: the kit feature porter; keyed by a proposed fact id drugId:field, built from the stable drug ids in DEENT src/druglist_data.js; records outcome, recognition or recall, and self-rating, no raw text; DEENT's Phase 1 (no new storage) proceeds in DEENT under Louis's instruction there"
+  },
+  {
+   "id": "blank-item-type",
+   "title": "Fill-in-the-blank item type in the core (typed recall in Quiz and on exam papers)",
+   "sourceRepo": "lglouis3-create/DEENT",
+   "sourceCommit": "4d3b3f6",
+   "kind": "core-change",
+   "studentBenefit": "practise typed recall of single terms and values, the format of about 5 of the 50 questions on DEENT Exam 1",
+   "evidence": "Louis, 2026-11-09, after DEENT Exam 1: \"Drill questions were not reflective of the exam, the questions were harder and need more fill in blanks\"; around 5 of 50 were fill in the blank, mainly Dr. Smith's (examples: calcipotriene's receptor, salicylic acid's maximum percentage, tacrolimus's binding protein). The live DEENT bank (main 4d3b3f6) has 596 questions, none fill in the blank (528 single-answer, 60 select-all, 8 matching); the Drug list tab's Recall mode has ungraded typed recall; the three example facts are in the bank as multiple choice only (L2-039, L2-103 to L2-105, L2-060). DEENT src/course.js (main 4d3b3f6), Exam 1 blurb: \"Dr. Smith says her questions are mostly multiple choice with a few fill-in-the-blanks on drug mechanisms\" and \"These practice papers draw single-answer questions only\". No learning-outcome evidence.",
+   "technicalRisk": "normal: a new item type in the quiz, the exam paper (exams[].typed), the result and review views and test.js validation; inert in a course with no blank items",
+   "existsInKit": "no: exams[].typed covers numeric and matching items only (core/exam_typed.js)",
+   "candidateCourses": [
+    "deent"
+   ],
+   "status": "proposed",
+   "prs": [],
+   "relatedQueueItems": [
+    "port-queue \"Core changes found by the assessments (not nightly)\": true/false, fill-in and typed-recall item types"
+   ],
+   "decision": "kit work off by default, merged under decision 10 after an independent review and all applicable final-head checks; switching it on for DEENT and writing blank items are DEENT changes that need Louis's approval in the DEENT session",
+   "notes": "owner: the central kit session; strict grading by default (normalized text), a one-edit near miss shown as a spelling note and counted right only with the course option blank.typo; Exam 2 is Mon 2026-11-16; being built on branch claude/elegant-ptolemy-pqxb8y-blank-type (its pull request is linked here once opened)"
+  },
+  {
+   "id": "deent-exam-difficulty",
+   "title": "DEENT: harder items (finer slide details, two facts in one item, closer distractors), mostly Dr. Smith's and also Dr. Sikazwe's",
+   "sourceRepo": "lglouis3-create/DEENT",
+   "sourceCommit": "4d3b3f6",
+   "kind": "course-specific",
+   "studentBenefit": "practice questions as hard as the exam's",
+   "evidence": "Louis, 2026-11-09, after DEENT Exam 1: the exam questions were harder than the drill's, from finer slide details, two facts combined and closer answer choices; \"Mostly smith’s but also do it for Sikazwe\"",
+   "technicalRisk": "normal: question content only, under the DEENT source rules (slides and recording primary)",
+   "existsInKit": "not applicable (course content)",
+   "candidateCourses": [
+    "deent"
+   ],
+   "status": "proposed",
+   "prs": [],
+   "relatedQueueItems": [],
+   "decision": "passed to the DEENT session on 2026-11-09 as information; changes to the live site need Louis's approval there",
+   "notes": "owner: the DEENT session (session_01LVkWFEkUuDubJgsfxiNBhr)"
   }
  ]
 }
