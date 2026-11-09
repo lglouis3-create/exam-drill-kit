@@ -1,0 +1,12 @@
+  browser  Chromium started
+14:50:11 progress written {"progressChars":2620000,"profile":"me","ok":true,"failed":[]}
+14:50:11 steady state {"total":5240515,"by":{"other":67,"log":185,"pending:mw53cscw-cbfuq":2620240,"data:me":2620023}}
+14:50:11 answer after reload {"ok":true,"failed":[],"recOff":true}
+14:50:11 after reload and one save {"total":5241001,"by":{"other":67,"log":262,"pending:mw53cscw-cbfuq":2620240,"pending-seen":160,"data:me":2620272}}
+14:50:11 Import within the minute after the reload {"offered":true,"storedOtherChars":null,"result":"The browser refused to save (storage is full or blocked), so nothing was imported. Your progress is unchanged. OK"}
+14:50:11 after that Import {"total":5241001,"by":{"other":67,"log":262,"pending:mw53cscw-cbfuq":2620240,"pending-seen":160,"data:me":2620272}}
+14:50:16 earlier record removed about 5 s after the post-reload save {"total":5241001,"by":{"other":67,"log":262,"pending:mw53cscw-cbfuq":2620240,"pending-seen":160,"data:me":2620272}}
+14:50:16 Import again after the cleanup {"offered":true,"storedOtherChars":null,"result":"The browser refused to save (storage is full or blocked), so nothing was imported. Your progress is unchanged. OK"}
+14:50:16 end {"total":5241001,"by":{"other":67,"log":262,"pending:mw53cscw-cbfuq":2620240,"pending-seen":160,"data:me":2620272}}
+14:50:16 page errors []
+SUMMARY {"P":2620000,"forcedQuota":null,"progressChars":2620000,"steady":5240515,"steadyRatio":2,"afterReload":5241001,"afterReloadRatio":2,"importInMinute":{"stored":null,"refused":true},"cleanupSeconds":5,"importAfter":{"stored":null}}

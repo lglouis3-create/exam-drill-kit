@@ -1,0 +1,11 @@
+  browser  Chromium started
+14:18:18 progress written {"progressChars":1475679,"profile":"me","ok":true,"failed":[]}
+14:18:18 steady state {"total":2951873,"by":{"other":67,"log":185,"pending:mw527s0m-0321g":1475919,"data:me":1475702}}
+14:18:18 answer after reload {"ok":true,"failed":[],"recOff":false}
+14:18:18 after reload and one save {"total":2952524,"by":{"other":67,"log":262,"pending:mw527s5b-r7r4d":1476083,"pending-seen":161,"data:me":1475951}}
+14:18:18 Import within the minute after the reload {"offered":true,"storedOtherChars":1475928,"result":"The file's progress is now the profile \"Other (imported 2026-11-06)\" (3 answers). The progress of \"me\" is unchanged. Open \"Other (imported 2026-11-06)\"OK"}
+14:18:18 after that Import {"total":4428500,"by":{"log":262,"pending:mw527s5b-r7r4d":1476083,"other":67,"data:Other (imported 2026-11-06)":1475976,"pending-seen":161,"data:me":1475951}}
+14:18:23 earlier record removed about 5 s after the post-reload save {"total":4428500,"by":{"log":262,"pending:mw527s5b-r7r4d":1476083,"other":67,"data:Other (imported 2026-11-06)":1475976,"pending-seen":161,"data:me":1475951}}
+14:18:23 end {"total":4428500,"by":{"log":262,"pending:mw527s5b-r7r4d":1476083,"other":67,"data:Other (imported 2026-11-06)":1475976,"pending-seen":161,"data:me":1475951}}
+14:18:23 page errors []
+SUMMARY {"P":1475679,"forcedQuota":null,"progressChars":1475679,"steady":2951873,"steadyRatio":2,"afterReload":2952524,"afterReloadRatio":2,"importInMinute":{"stored":1475928,"refused":false},"cleanupSeconds":5,"importAfter":null}
