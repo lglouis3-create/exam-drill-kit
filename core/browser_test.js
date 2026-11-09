@@ -103,6 +103,11 @@ function sourceCounts(){
   await page.evaluate(() => {
     window.answerCurrent = (allCorrect) => {
       const q = Q && Q.current; if(!q) return false;
+      if(q.type === 'blank'){
+        const inp = document.getElementById('blankIn'); if(!inp) return false;
+        inp.value = allCorrect ? q.accept[0] : 'zzzz not the answer';
+        document.getElementById('btnCheck').click(); return true;
+      }
       if(q.type === 'numeric'){
         const inp = document.getElementById('numIn'); if(!inp) return false;
         inp.value = allCorrect ? String(q.answer) : String(q.answer + 1000);
@@ -135,8 +140,11 @@ function sourceCounts(){
   await page.waitForTimeout(400);
 
   const opts = await page.$$('#v-quiz button[data-o]');
-  check(opts.length >= 2, `question options render (${opts.length} found)`);
-  if(opts.length){
+  // a typed item (numeric, matching, fill in the blank) drawn first has its own control instead of options
+  const typedFirst = await page.evaluate(() => !!(Q && Q.current && Q.current.type));
+  if(typedFirst) check(!!(await page.$('#numIn, #blankIn, #v-quiz select[data-row]')), 'the typed question drawn first renders its input');
+  else check(opts.length >= 2, `question options render (${opts.length} found)`);
+  if(opts.length || typedFirst){
     await page.evaluate(() => answerCurrent(false));
     await page.waitForTimeout(500);
     const after = await page.innerText('body');

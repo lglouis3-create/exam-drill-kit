@@ -460,7 +460,8 @@ COURSE.exams.push({id:'zsA', name:'Test exam', date:'12 Nov', when:'2026-11-12T0
       await look('a question before answering');
       const right = i % 2 === 0;
       await p.evaluate(right => { const q = Q.current;
-        if(q.type === 'numeric'){ document.getElementById('numIn').value = String(right ? q.answer : q.answer + 1000); document.getElementById('btnCheck').click(); }
+        if(q.type === 'blank'){ document.getElementById('blankIn').value = right ? q.accept[0] : 'zzzz not the answer'; document.getElementById('btnCheck').click(); }
+        else if(q.type === 'numeric'){ document.getElementById('numIn').value = String(right ? q.answer : q.answer + 1000); document.getElementById('btnCheck').click(); }
         else if(q.type === 'match'){ const sels = [...document.querySelectorAll('#v-quiz select[data-row]')];
           sels.forEach((s, j) => { s.value = String(right ? j : (j + 1) % sels.length); s.dispatchEvent(new Event('change')); }); document.getElementById('btnCheck').click(); }
         else if(isMulti(q)){ for(const j of (right ? correctSet(q) : [q.options.findIndex(o => !o.correct)])) document.querySelector(`#v-quiz button[data-o="${j}"]`).click(); document.getElementById('btnCheck').click(); }

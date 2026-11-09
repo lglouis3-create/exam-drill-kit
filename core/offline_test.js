@@ -109,7 +109,7 @@ check(/<link rel="manifest" href="\.\/manifest\.json">/.test(L.PAGE.read()), 'th
     check(await loadedAgain(() => page.reload()), 'the site opens from the saved copy with the server down (loaded again, not the page from before)');
     if(site && site.aliases && site.aliases.length)
       check(await loadedAgain(() => page.goto(S.url + site.aliases[0])), `the old file name ${site.aliases[0]} opens it too`);
-    const served = await page.evaluate(() => { startQuiz(TOPICS[0].id); return document.querySelectorAll('#v-quiz button[data-o], #numIn, #v-quiz select[data-row]').length; }).catch(() => 0);
+    const served = await page.evaluate(() => { startQuiz(TOPICS[0].id); return document.querySelectorAll('#v-quiz button[data-o], #numIn, #blankIn, #v-quiz select[data-row]').length; }).catch(() => 0);
     check(served >= 1, 'a quiz starts and serves a question offline');
     check(hits() === hitsBefore, 'no request reaches the server while it is down (it refuses connections)',
       `${hits() - hitsBefore} served, ${S.downAnswered} answered 503 on a connection busy when it went down`);

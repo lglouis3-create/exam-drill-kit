@@ -180,7 +180,8 @@ async function sameLine(page, before, label){
       // 5. the same question answered: it comes back answered, and nothing is recorded twice
       await page.evaluate(() => {
         const q = Q.current;
-        if(q.type === 'numeric'){ document.getElementById('numIn').value = String(q.answer); document.getElementById('btnCheck').click(); }
+        if(q.type === 'blank'){ document.getElementById('blankIn').value = q.accept[0]; document.getElementById('btnCheck').click(); }
+        else if(q.type === 'numeric'){ document.getElementById('numIn').value = String(q.answer); document.getElementById('btnCheck').click(); }
         else if(q.type === 'match'){
           document.querySelectorAll('#v-quiz select[data-row]').forEach((s, i) => { s.value = String(i); s.dispatchEvent(new Event('change')); });
           document.getElementById('btnCheck').click();
