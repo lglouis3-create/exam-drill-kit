@@ -669,6 +669,10 @@ async function v2View(browser, file, width){
   await page.click(`#nav button[data-v="${V2_OPT.tab}"]`); await page.selectOption(`${pane} [data-dl="ask"]`, 'indication');
   let s2 = await statusOf(page, R0);
   check(/^Common indications: last rated Forgot on .+ \(2 ratings\) · bank questions: Remembered \(1 answer\)$/.test(s2 || ''), 'a right answer to one of the two mapped bank questions shows Remembered (1 answer); the ratings line is unchanged' + tag, s2);
+  await page.selectOption(`${pane} [data-dl="ask"]`, 'essential');
+  const s3 = await statusOf(page, R1);
+  check(/^Essential knowledge: not rated yet · bank question: Not practised$/.test(s3 || ''), 'an answer to s1-1 leaves a fact only s1-2 tests Not practised: each fact reads only its own questions' + tag, s3);
+  await page.selectOption(`${pane} [data-dl="ask"]`, 'indication');
   await page.evaluate(() => { record(byId('s1-2'), 'wrong', 1, 1000); });
   await page.click(`#nav button[data-v="${V2_OPT.tab}"]`); await page.selectOption(`${pane} [data-dl="ask"]`, 'indication');
   s2 = await statusOf(page, R0);
