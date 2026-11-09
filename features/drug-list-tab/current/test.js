@@ -803,11 +803,21 @@ async function v2Saved(browser, file){
           'save: right after the click the note says Saved, and the stored progress holds the rating', {n, st});
     // where the core writes progText(DB) (a part kept outside localStorage, #81), the comparison uses it:
     // a stored text equal to progText(DB) and not to JSON.stringify(DB) is stored; without progText it is not
-    const pt = await page.evaluate(() => { const k = keyFor(PROFILE), was = localStorage.getItem(k), api = FX.api('drug-list-tab');
+    const ptCheck = () => page.evaluate(() => { const k = keyFor(PROFILE), was = localStorage.getItem(k), api = FX.api('drug-list-tab');
+      // the core's own progText (a top-level function, as #81's ink layer has) cannot be deleted: save and restore it
+      const core = typeof progText === 'function' ? progText : null;
       window.progText = db => 'progress-as-written:' + db.answers.length;
       localStorage.setItem(k, progText(DB)); const withPt = api.stored();
-      delete window.progText; const withoutPt = api.stored(); localStorage.setItem(k, was); return {withPt, withoutPt, back: api.stored()}; });
+      let withoutPt = null;
+      if(core) window.progText = core; else { delete window.progText; withoutPt = api.stored(); }
+      localStorage.setItem(k, was); return {core: !!core, withPt, withoutPt, back: api.stored()}; });
+    const pt = await ptCheck();
     check(pt.withPt === true && pt.withoutPt === false && pt.back === true, 'save: the stored text is compared with progText(DB) when the core has it, else with JSON.stringify(DB)', pt);
+    // a core with a top-level progText of its own (the follow-up review of #92): it is put back, and the note reads it
+    await page.evaluate(() => { const sc = document.createElement('script'); sc.textContent = 'function progText(db){ return JSON.stringify(db); }'; document.head.appendChild(sc); });
+    const pt2 = await ptCheck();
+    check(pt2.core === true && pt2.withPt === true && pt2.back === true && (await page.evaluate(() => typeof progText === 'function' && progText({answers: []}) === '{"answers":[]}')),
+          'save: with a top-level progText in the core, the check stubs it and puts the core\'s own back, and the stored progress still reads as stored', pt2);
     await ctx.close();
   }
   // the browser refuses the write of the progress
