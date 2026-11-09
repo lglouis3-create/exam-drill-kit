@@ -658,6 +658,8 @@ async function v2View(browser, file, width){
   check(wk === 0, 'every answer in the progress is a bank question\'s (no Drug list item in DB.answers)' + tag, wk);
 
   // the per-tab record (#69) carries the part
+  // the record is written with the core's save (150 ms timer): wait for it, up to 3 s
+  await page.waitForFunction(n => { try { const r = JSON.parse(localStorage.getItem(myPendingKey()) || 'null'); return r && r.db && r.db.drugs && r.db.drugs.ev.length === n; } catch(e){ return false; } }, after.ev.length, {timeout: 3000}).catch(() => {});
   const pend = await page.evaluate(() => { try { const r = JSON.parse(localStorage.getItem(myPendingKey()) || 'null'); return r && r.db && r.db.drugs ? r.db.drugs.ev.length : null; } catch(e){ return 'err'; } });
   check(pend === after.ev.length, `this tab's own record (#69) holds DB.drugs with its ${after.ev.length} ratings` + tag, pend);
 
@@ -669,7 +671,10 @@ async function v2View(browser, file, width){
   check(st.ev === null, 'another profile holds no ratings' + tag, st.ev);
   await v2Open(page, 'indication');
   check(/^Common indications: not rated yet/.test(await statusOf(page, R0) || ''), 'its status line: not rated yet' + tag);
-  await page.click(`${pane} [data-reveal="${R0}"]`); await page.click(`${pane} [data-rate="${R0}"][data-r="knew"]`);
+  // the rows revealed stay revealed for the visit, as in v1, across a profile switch
+  if(!(await page.$(`${pane} [data-rate="${R0}"]`))) await page.click(`${pane} [data-reveal="${R0}"]`);
+  check(await page.$eval(`${pane} tr.dlt-recall[data-for="${R0}"] [data-ratenote]`, p => p.textContent) === 'Not counted until you choose one.', 'in the other profile the open row is unrated: a rating of the first profile is not carried over' + tag);
+  await page.click(`${pane} [data-rate="${R0}"][data-r="knew"]`);
   await page.evaluate(n => useProfile(n), before.profile);
   await page.waitForFunction(n => PROFILE === n, before.profile, {timeout: 6000});
   await v2Reload(page);
