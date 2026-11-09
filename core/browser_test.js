@@ -49,7 +49,7 @@ function sourceCounts(){
   const errors = [], consoleErrors = [];
   page.on('pageerror', e => errors.push(String(e)));
   page.on('console', m => { if(m.type() === 'error') consoleErrors.push(m.text()); });
-  page.on('dialog', d => d.dismiss());
+  page.on('dialog', d => d.dismiss().catch(() => {}));
 
   console.log('\n=== Browser smoke test ===');
   await page.goto(URL_);
@@ -253,7 +253,7 @@ function sourceCounts(){
   const denied = await browser.newPage({viewport: {width: 1280, height: 900}, serviceWorkers: 'block'});
   const deniedErrors = [];
   denied.on('pageerror', e => deniedErrors.push(String(e)));
-  denied.on('dialog', d => d.dismiss());
+  denied.on('dialog', d => d.dismiss().catch(() => {}));
   await denied.addInitScript(() => {
     const boom = () => { throw new DOMException('denied', 'SecurityError'); };
     Object.defineProperty(window, 'localStorage', {configurable: true, get: boom});
@@ -796,7 +796,7 @@ function sourceCounts(){
       const p2 = await browser.newPage({viewport: {width: w, height: 820}, colorScheme: scheme, serviceWorkers: 'block'});
       const errs2 = [];
       p2.on('pageerror', e => errs2.push(String(e)));
-      p2.on('dialog', d => d.dismiss());
+      p2.on('dialog', d => d.dismiss().catch(() => {}));
       await p2.addInitScript(() => { window.prompt = () => 'TestUser'; });
       await p2.goto(URL_);
       await p2.waitForTimeout(700);

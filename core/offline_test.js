@@ -53,7 +53,7 @@ check(/<link rel="manifest" href="\.\/manifest\.json">/.test(L.PAGE.read()), 'th
   const page = await ctx.newPage();
   const errors = [];
   page.on('pageerror', e => errors.push(e.message));
-  page.on('dialog', d => d.accept());
+  page.on('dialog', d => d.accept().catch(() => {}));
   const appShown = () => page.evaluate(() => document.querySelectorAll('#nav button').length > 3 && typeof QUESTIONS !== 'undefined' && QUESTIONS.length > 0).catch(() => false);
   const waitApp = (ms) => page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3 && typeof QUESTIONS !== 'undefined', null, {timeout: ms}).then(() => true, () => false);
   try {

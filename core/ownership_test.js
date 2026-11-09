@@ -278,7 +278,7 @@ const startAndPick = page => page.evaluate(() => {
     if(!q) skip('the two-tab reload case', 'this course has no question answered with option buttons');
     else {
       // tab 2 of the same browser switches the profile (shared by every tab) to B
-      const p2 = await ctx.newPage(); p2.on('dialog', d => d.accept());
+      const p2 = await ctx.newPage(); p2.on('dialog', d => d.accept().catch(() => {}));
       await p2.goto(page.url());
       await p2.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
       // tab 2 opened on A, which tab 1 holds, so it shows the stop wall; its Switch profile button switches

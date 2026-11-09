@@ -264,7 +264,7 @@ const next = p => p.evaluate(() => { const b = document.getElementById('btnNext'
     await a.waitForTimeout(400);
     const mine = await a.evaluate(() => LOG[LOG.length - 1]);
     const b = await c3.newPage();
-    b.on('dialog', x => x.accept());
+    b.on('dialog', x => x.accept().catch(() => {}));
     await b.goto(a.url());
     await b.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
     await b.waitForFunction(() => WRITER === 'other', null, {timeout: 5000}).catch(() => {});
@@ -314,7 +314,7 @@ const next = p => p.evaluate(() => { const b = document.getElementById('btnNext'
     // another tab opens the profile this page left, and answers there: while it has that profile,
     // this page's saves write nothing under it
     const t = await c4.newPage();
-    t.on('dialog', x => x.accept());
+    t.on('dialog', x => x.accept().catch(() => {}));
     await t.goto(m.url());
     await t.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
     await t.evaluate(p => useProfile(p), me.p);
@@ -700,7 +700,7 @@ const next = p => p.evaluate(() => { const b = document.getElementById('btnNext'
     await x.waitForFunction(() => WRITER === 'held' || WRITER === 'none', null, {timeout: 5000}).catch(() => {});
     await x.evaluate(() => { window.__logCap = null; });
     const y = await c8.newPage();
-    y.on('dialog', d => d.accept());
+    y.on('dialog', d => d.accept().catch(() => {}));
     await y.goto(x.url());
     await y.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
     await y.evaluate(p => useProfile(p), me.p);
@@ -734,7 +734,7 @@ const next = p => p.evaluate(() => { const b = document.getElementById('btnNext'
     const first = await a.evaluate(() => { LOG[0][5] = 'unsure'; saveLog(); return LOG[0]; });
     await a.waitForTimeout(400);
     const b = await c6.newPage();
-    b.on('dialog', x => x.accept());
+    b.on('dialog', x => x.accept().catch(() => {}));
     await b.goto(a.url());
     await b.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
     await b.waitForFunction(() => WRITER === 'other', null, {timeout: 5000}).catch(() => {});

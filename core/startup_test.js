@@ -91,7 +91,7 @@ const WATCH = ([seed, session]) => {
     const errors = [], logged = [], dialogs = [];
     page.on('pageerror', e => errors.push(e.message));
     page.on('console', m => { if(m.type() === 'error') logged.push(m.text()); });
-    page.on('dialog', d => { dialogs.push(d.message()); d.accept(); });
+    page.on('dialog', d => { dialogs.push(d.message()); d.accept().catch(() => {}); });
     await page.goto(await L.pageUrl(file));
     await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
     await page.waitForTimeout(300);
