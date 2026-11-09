@@ -253,7 +253,11 @@ const fresh = async browser => {
     await page.click('#startExam');
     const n = await page.evaluate(() => EX.qs.length);
     await page.evaluate(() => {
-      const pick = (q, right) => isMulti(q)
+      // a typed item on a paper with exams[].typed: what is typed or picked for it, as exam_typed.js keeps it
+      const pick = (q, right) => q.type === 'blank' ? (right ? q.accept[0] : 'zzzz not the answer')
+        : q.type === 'numeric' ? String(right ? q.answer : q.answer + 1000)
+        : q.type === 'match' ? q.pairs.map((p, i) => right ? i : (i + 1) % q.pairs.length)
+        : isMulti(q)
         ? (right ? q.options.map((o, i) => i).filter(i => q.options[i].correct) : [q.options.findIndex(o => !o.correct)])
         : q.options.findIndex(o => !!o.correct === right);
       EX.picks[0] = pick(EX.qs[0], true); EX.picks[1] = pick(EX.qs[1], false);
