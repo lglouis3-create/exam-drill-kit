@@ -1191,6 +1191,25 @@ check; kit sessions read the results and merge only when every applicable job co
 "success" on the final head commit (`KIT_DESIGN.md` §12 decision 10 defines which jobs
 apply: a module job the plan intentionally did not select does not).
 
+**Scratch folders.** Checks that build a copy of the course (`check_lib.js` `scratchRepo`
+and `scratchBuild`: `sched-*`, `oldcache-test-*`, `preview-test-*`, `state-test-*` and
+the others), `ci_course.sh`'s work folder (`kit-ci-*`) and `run_checks.sh`'s log folder
+(`drill-checks-*`) are made under `$TMPDIR`. Each is removed, by its exact path, when its
+run passes, and kept when it fails, so the evidence survives:
+- a check removes the copies it made when it exits with no failed check (PASS, REPORT or
+  NOT RUN); on a FAIL, a crash or a timeout it keeps them and prints
+  `kept for inspection: <paths>` (`run_checks.sh` reads the check's summary from the line
+  before it);
+- `run_checks.sh` removes its log folder when no check failed, and otherwise names it on
+  its last line ("logs in ...");
+- `ci_course.sh` removes its work folder and the log folder when it exits 0, and
+  otherwise keeps both and prints `kept for inspection: <paths>`.
+
+`KEEP_TEST_TMP=1` keeps every one of them whatever the result. A check stopped by SIGTERM or SIGINT removes nothing. `checks_test.js` (section 7) checks these rules. Folders a check makes with
+its own `fs.mkdtempSync` (`startup_test.js`, `import_test.js`, `notruncase_test.js`) are
+removed by that check, as before. Before this (DEENT, 2026-11-08), no scratch folder was
+ever removed: 4,121 of them, about 5 MB each, filled a container's disk in one evening.
+
 | Line | Exit code of the check | Meaning |
 |---|---|---|
 | `PASS` | 0 | ran and found nothing wrong |
