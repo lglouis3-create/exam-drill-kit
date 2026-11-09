@@ -830,13 +830,16 @@ async function v2Cap(browser, file){
     rec: (() => { try { const r = JSON.parse(localStorage.getItem(myPendingKey()) || 'null'); return r && r.db && r.db.drugs ? JSON.stringify(r.db.drugs).length : null; } catch(e){ return null; } })()}));
   await v2Open(page, 'indication');
   await page.click(`${pane} [data-reveal="0:0"]`); await page.click(`${pane} [data-rate="0:0"][data-r="partly"]`);
+  // this tab's own record (#69) is written with its next save: it holds the part again
+  await page.waitForFunction(() => { try { const r = JSON.parse(localStorage.getItem(myPendingKey()) || 'null'); return r && r.db && r.db.drugs && r.db.drugs.ev.length === 2000; } catch(e){ return false; } }, null, {timeout: 3000}).catch(() => {});
+  full.rec = await page.evaluate(() => { try { const r = JSON.parse(localStorage.getItem(myPendingKey()) || 'null'); return r && r.db && r.db.drugs ? JSON.stringify(r.db.drugs).length : null; } catch(e){ return null; } });
   await v2Reload(page);
   const ev = await storedEv(page), ats = Array.isArray(ev) ? ev.map(e => e.at) : [];
   const oldest = base, newestPlanted = base + 1999 * 60000;
   check(Array.isArray(ev) && ev.length === 2000 && !ats.includes(oldest) && ats.includes(newestPlanted) && ats.includes(base + 60000) && ev.some(e => e.r === 'partly' && e.at > newestPlanted),
         'cap: 2,000 ratings stored newest first, one more rating, a reload: 2,000 kept, the oldest by time gone, the newest planted and the new one kept', {n: ev && ev.length, oldestKept: ats.includes(oldest), newestKept: ats.includes(newestPlanted)});
   console.log(`  report  cap: the progress text is ${empty} characters with no ratings and ${full.data} with 2,000 (the DB.drugs part: ${full.part}); this tab's own record holds the part again: ${full.rec}`);
-  check(full.part > 0 && full.data - empty >= full.part, `cap: the ratings part at 2,000 ratings measured (${full.part} characters)`, full);
+  check(full.part > 0 && full.data - empty >= full.part && full.rec > 0, `cap: the ratings part at 2,000 ratings measured (${full.part} characters), in the progress and again in this tab's own record (${full.rec})`, full);
   await ctx.close();
 }
 
