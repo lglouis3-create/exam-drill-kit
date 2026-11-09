@@ -4,13 +4,16 @@
  * In node, on the course's own engine: every grading rule. Case, spaces at the
  * ends, a run of spaces, hyphens or en dashes, a final period, the Greek letters
  * α β γ δ κ against their names, digits and the percent sign kept; a one-edit
- * miss of an accepted answer of 5 or more characters is wrong with the spelling
- * note, right with course.js `blank: {typo: 1}`; an answer under 5 characters
- * gets no leniency; two edits are wrong with no note.
+ * miss of an accepted answer of 5 or more characters is wrong with the note "Not
+ * accepted: it is close to an accepted answer. Check the exact term.", right with
+ * course.js `blank: {typo: 1}` (the note "Counted as right: ..."); an answer under
+ * 5 characters gets no leniency; two edits are wrong with no note. A text that is
+ * another blank item's accepted answer (IL-17RA typed for IL-17A, cystine for
+ * cysteine) is plain wrong with no note in both modes.
  * On scratch copies of this source tree with blank items planted (a file
  * q96_blank_test.js), in the browser:
  *   - Quiz: the item shows a text box; Enter checks; the reveal shows the verdict,
- *     "Close: check the spelling" on a near miss, the answer and the accepted
+ *     the near-miss note, the answer and the accepted
  *     answers, and the explanation; the answer is recorded once with the typed
  *     text, in the answer history as item type 'blank'; a reload brings the
  *     answered question back answered with nothing recorded twice; Weak spots
@@ -44,7 +47,7 @@ L.PAGE.need(NAME);
 const childEnv = Object.assign({}, process.env); delete childEnv.DRILL_PAGE;
 
 console.log('\n=== grading (node) ===');
-const X = L.engine('({blankNorm, gradeBlank, blankCap, blankClip, COURSE})');
+const X = L.engine('({blankNorm, gradeBlank, blankCap, blankClip, COURSE, QUESTIONS})');
 const item = (...accept) => ({id: 'g', type: 'blank', accept});
 const G = (acc, typed) => X.gradeBlank(item(...[].concat(acc)), typed);
 const right = (acc, typed, label) => { const g = G(acc, typed); return check(g.ok && !g.near, label, g); };
@@ -133,6 +136,34 @@ X.COURSE.blank = savedBlank;
   const h = X.gradeBlank(q, 'x'.repeat(50) + 'vitamin D receptor');
   check(!h.ok, 'a long text that only ends with an accepted answer is wrong', h); }
 
+// a text that is another blank item's accepted answer is plain wrong, with no note, in both modes
+{ const mk = (id, ...accept) => ({id, type: 'blank', accept});
+  const il17a = mk('k-a', 'IL-17A'), il17ra = mk('k-ra', 'IL-17RA'), cyse = mk('k-e', 'cysteine'), cyst = mk('k-i', 'cystine');
+  // before any other blank item is in the bank, the one-edit text is a near miss, as it always was
+  for(const [mode, set] of [['strict', undefined], ['typo: 1', {typo: 1}]]){
+    X.COURSE.blank = set;
+    const g = X.gradeBlank(il17ra, 'IL-17A'), h = X.gradeBlank(cyse, 'cystine');
+    check(g.near === true && g.ok === !!set && h.near === true && h.ok === !!set, `${mode}: with no other blank item in the bank, IL-17A for IL-17RA and cystine for cysteine are near misses`, [g, h]);
+  }
+  X.QUESTIONS.push(il17a, il17ra, cyse, cyst);
+  for(const [mode, set] of [['strict', undefined], ['typo: 1', {typo: 1}]]){
+    X.COURSE.blank = set;
+    for(const [q, typed, label] of [[il17a, 'IL-17RA', 'IL-17RA typed for IL-17A'], [il17ra, 'IL-17A', 'IL-17A typed for IL-17RA'],
+                                    [cyse, 'cystine', 'cystine typed for cysteine'], [cyst, 'cysteine', 'cysteine typed for cystine'], [cyse, 'CYSTINE.', 'CYSTINE. typed for cysteine (normalized)']]){
+      const g = X.gradeBlank(q, typed);
+      check(!g.ok && !g.near, `${mode}: ${label} is another item's answer: wrong, no note`, g);
+    }
+    const own = X.gradeBlank(cyse, 'Cysteine'); check(own.ok && !own.near, `${mode}: an item's own answer is still right`, own);
+    const slip = X.gradeBlank(cyse, 'cystein'); check(slip.near === true && slip.ok === !!set, `${mode}: a slip of one answer that no other item accepts is still a near miss`, slip);
+  }
+  // an answer two items accept is right for both
+  const twin = mk('k-t', 'cystine', 'cystin2'); X.QUESTIONS.push(twin);
+  X.COURSE.blank = undefined;
+  { const g = X.gradeBlank(twin, 'cystine'); check(g.ok, 'an answer that two items accept is right for each of them', g); }
+  X.COURSE.blank = savedBlank;
+  X.QUESTIONS.length -= 5;
+}
+
 // the planted items: blank items in both topics, plain multiple-choice filler so two pools fill
 const OPT = why => [{t: 'The right one', correct: true, why: why + ' This is the keyed answer.'},
   {t: 'A second option', correct: false, why: 'This option names something else in the planted bank.'},
@@ -150,6 +181,10 @@ const QF = `;(() => {
   blank('bt-b5', T0, 'Planted item five: the answer is ___.', ['adapalene']);
   blank('bt-b6', T0, 'Planted item five, another wording: the answer is ___.', ['adapalene'], {dupOf: 'bt-b5'});
   blank('bt-o1', T1, 'Planted item in the second topic: the answer is ___.', ['tazarotene']);
+  blank('bt-il17a', T1, 'Secukinumab binds the cytokine ___.', ['IL-17A']);
+  blank('bt-il17ra', T1, 'Brodalumab binds the receptor ___.', ['IL-17RA']);
+  blank('bt-cyse', T1, 'The amino acid with a thiol side chain is ___.', ['cysteine']);
+  blank('bt-cyst', T1, 'The disulfide dimer of that amino acid is ___.', ['cystine']);
   for(let k = 1; k <= 4; k++) for(const [t, n] of [[T0, 'a'], [T1, 'b']])
     QUESTIONS.push(Object.assign(base('bt-m' + n + k, t), {stem: 'Planted multiple-choice item ' + n + k + ': which one is right?',
       options: ${JSON.stringify(OPT('The planted filler item.'))}, teach: 'The planted filler items fill the pools.'}, n + k === 'a1' ? {why: 'A top-level why on a multiple-choice item.'} : {}));
@@ -178,7 +213,9 @@ const testJs = src => child.spawnSync('node', ['test.js'], {cwd: src, encoding: 
     const b = L.scratchBuild('blank-bad', {files: {'q96_blank_test.js': QF + mutate + '\n'}, courseLine: paperLine(true)});
     if(!check(b.code === 0, `the copy with ${label} builds (test.js is what rejects it)`, b.out.split('\n').slice(-2).join(' | '))) return;
     const r = testJs(b.src);
-    check(r.status === 1 && want.test(r.stdout), `test.js rejects a blank item with ${label}`, (r.stdout || '').split('\n').filter(l => /FAIL/.test(l)).slice(0, 3).join(' | '));
+    // a copy that did its job is removed at once; one whose check failed is kept for inspection (check_lib.js keeps every
+    // scratch folder when the run fails, and removes them all when it passes)
+    if(check(r.status === 1 && want.test(r.stdout), `test.js rejects a blank item with ${label}`, (r.stdout || '').split('\n').filter(l => /FAIL/.test(l)).slice(0, 3).join(' | '))) b.rm();
   };
   badCopy('no accept', `delete QUESTIONS.find(q => q.id === 'bt-cal').accept;`, /bt-cal: fill-in-the-blank item needs a non-empty `accept` list/);
   badCopy('an empty accept list', `QUESTIONS.find(q => q.id === 'bt-cal').accept = [];`, /bt-cal: fill-in-the-blank item needs a non-empty `accept` list/);
@@ -187,13 +224,17 @@ const testJs = src => child.spawnSync('node', ['test.js'], {cwd: src, encoding: 
   badCopy('an empty why and no teach', `QUESTIONS.find(q => q.id === 'bt-cal').why = '  ';`, /bt-cal: fill-in-the-blank item needs a non-empty `why` or `teach`/);
   { const b = L.scratchBuild('blank-good', {files: {'q96_blank_test.js': QF + `{ const q = QUESTIONS.find(q => q.id === 'bt-sal'); q.teach = 'The planted teach text.'; delete q.why; }\n`}, courseLine: paperLine(true)});
     const r = b.code === 0 ? testJs(b.src) : {status: -1, stdout: b.out};
-    check(r.status === 0, 'test.js accepts a blank item with `teach` and no `why`', (r.stdout || '').split('\n').filter(l => /FAIL/.test(l)).slice(0, 3).join(' | ')); }
+    if(check(r.status === 0, 'test.js accepts a blank item with `teach` and no `why`', (r.stdout || '').split('\n').filter(l => /FAIL/.test(l)).slice(0, 3).join(' | '))) b.rm(); }
   badCopy('two entries the same once normalized', `QUESTIONS.find(q => q.id === 'bt-vdr').accept.push('Vitamin-D.');`, /bt-vdr: fill-in-the-blank `accept` holds two entries that are the same once normalized/);
   { const b = L.scratchBuild('blank-nobuild', {files: {'q96_blank_test.js': QF}, courseLine: paperLine(false, '{blanks: 2}')});
-    check(b.code !== 0 && /`blanks` needs `typed: true`/.test(b.out), 'the build stops on `blanks` without `typed: true`', b.out.split('\n').slice(-2).join(' | ')); }
+    if(check(b.code !== 0 && /`blanks` needs `typed: true`/.test(b.out), 'the build stops on `blanks` without `typed: true`', b.out.split('\n').slice(-2).join(' | '))) b.rm(); }
   { const b = L.scratchBuild('blank-nobuild', {files: {'q96_blank_test.js': QF}, courseLine: paperLine(true) + 'COURSE.blank = {typo: 2};'});
-    check(b.code !== 0 && /course.js `blank` takes only `typo`/.test(b.out), 'the build stops on `blank: {typo: 2}`', b.out.split('\n').slice(-2).join(' | ')); }
+    if(check(b.code !== 0 && /course.js `blank` takes only `typo`/.test(b.out), 'the build stops on `blank: {typo: 2}`', b.out.split('\n').slice(-2).join(' | '))) b.rm(); }
 
+  // the old wording is gone from the page, and the notes are in
+  { const src = fs.readFileSync(on.page, 'utf8');
+    check(!/Close: check the spelling/i.test(src) && !/close: check the spelling/i.test(src), 'the old wording "Close: check the spelling" is not in the page');
+    check(src.includes('Not accepted: it is close to an accepted answer. Check the exact term.') && src.includes('Counted as right: one letter differs from an accepted answer. Check the spelling.'), 'the two new notes are in the page'); }
   const {browser} = await L.launch(NAME);
   const ready = page => page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
   try {
@@ -208,8 +249,9 @@ const testJs = src => child.spawnSync('node', ['test.js'], {cwd: src, encoding: 
       const r = await page.evaluate(() => ({verdict: (document.querySelector('#v-quiz .verdict') || {}).textContent || '', bad: !!document.querySelector('#v-quiz .verdict.bad'),
         text: document.getElementById('v-quiz').textContent, n: DB.answers.filter(a => a.qid === 'bt-vdr').length,
         last: DB.answers[DB.answers.length - 1], log: LOG[LOG.length - 1]}));
-      check(r.bad && /Close: check the spelling/.test(r.verdict) && r.verdict.indexOf('Close') < r.verdict.indexOf('the answer is vitamin D'),
-            'Enter checks: a near miss is wrong, and "Close: check the spelling" comes before the answer', r.verdict);
+      check(r.bad && /Not accepted: it is close to an accepted answer\. Check the exact term\./.test(r.verdict) && r.verdict.indexOf('Not accepted') < r.verdict.indexOf('The answer is vitamin D'),
+            'Enter checks: a near miss is wrong, and "Not accepted: it is close to an accepted answer. Check the exact term." comes before the answer', r.verdict);
+      check(!/spelling/i.test(r.verdict), 'the strict note does not claim a spelling slip', r.verdict);
       check(/you wrote vitamn D/.test(r.verdict) && /Accepted answers: vitamin D · VDR · vitamin D receptor/.test(r.text), 'the reveal shows what was typed and every accepted answer');
       check(/has this explanation/.test(r.text) && /slide 1/.test(r.text), 'the reveal shows the explanation and the citation');
       check(r.n === 1 && r.last.qid === 'bt-vdr' && r.last.result === 'wrong' && r.last.picked === 'vitamn D', 'the answer is recorded once, wrong, with the typed text as what was picked', r.last);
@@ -218,14 +260,14 @@ const testJs = src => child.spawnSync('node', ['test.js'], {cwd: src, encoding: 
       await page.reload(); await ready(page); await page.waitForTimeout(500);
       const back = await page.evaluate(() => ({view: VIEW, id: Q && Q.current && Q.current.id, rev: Q && Q.revealed, n: DB.answers.filter(a => a.qid === 'bt-vdr').length,
         verdict: (document.querySelector('#v-quiz .verdict') || {}).textContent || ''}));
-      check(back.view === 'quiz' && back.id === 'bt-vdr' && back.rev && back.n === 1 && /Close: check the spelling/.test(back.verdict),
+      check(back.view === 'quiz' && back.id === 'bt-vdr' && back.rev && back.n === 1 && /Not accepted: it is close/.test(back.verdict),
             'a reload brings the answered question back answered, with nothing recorded twice', back);
       // an exact answer, through the Check button
       check(await L.quizOn(page, 'bt-cal'), 'the quiz opens on a second blank item');
       await page.fill('#blankIn', ' Calcineurin. '); await page.click('#btnCheck');
       const r2 = await page.evaluate(() => ({ok: !!document.querySelector('#v-quiz .verdict.ok'), v: (document.querySelector('#v-quiz .verdict') || {}).textContent || '',
         last: DB.answers[DB.answers.length - 1], next: !!document.getElementById('btnNext')}));
-      check(r2.ok && !/Close/.test(r2.v) && r2.last.result === 'correct' && r2.last.picked === 'Calcineurin.' && r2.next,
+      check(r2.ok && !/Not accepted|Counted as right/.test(r2.v) && r2.last.result === 'correct' && r2.last.picked === 'Calcineurin.' && r2.next,
             'the Check button grades an exact answer right, with no spelling note, and offers Next', r2);
       // Weak spots: the miss with what was typed and the accepted answers
       const gaps = await page.evaluate(() => { show('gaps'); return document.getElementById('v-gaps').textContent; });
@@ -233,6 +275,19 @@ const testJs = src => child.spawnSync('node', ['test.js'], {cwd: src, encoding: 
             'Weak spots lists the missed blank item with its stem, the typed answer and the accepted answers');
       check(await page.evaluate(() => { const b = bankMarkdown(); return /Answer: vitamin D/.test(b) && /Also accepted: VDR · vitamin D receptor/.test(b); }),
             'the bank export carries the answer and the accepted answers');
+      // another item's answer typed for this one: wrong, no note (strict mode)
+      for(const [id, typed] of [['bt-il17a', 'IL-17RA'], ['bt-il17ra', 'IL-17A'], ['bt-cyse', 'cystine'], ['bt-cyst', 'cysteine']]){
+        await L.quizOn(page, id);
+        await page.fill('#blankIn', typed); await page.press('#blankIn', 'Enter');
+        const k = await page.evaluate(() => ({bad: !!document.querySelector('#v-quiz .verdict.bad'), v: document.querySelector('#v-quiz .verdict').textContent, last: DB.answers[DB.answers.length - 1]}));
+        check(k.bad && !/Not accepted|Counted as right|Close|spelling/i.test(k.v) && k.last.result === 'wrong' && /The answer is|the answer is/.test(k.v),
+              `strict: "${typed}" typed for ${id} is another item's answer: wrong, no note, the answer still shown`, k);
+      }
+      await L.quizOn(page, 'bt-cyse');
+      await page.fill('#blankIn', 'cystein'); await page.press('#blankIn', 'Enter');
+      const sl0 = await page.evaluate(() => ({bad: !!document.querySelector('#v-quiz .verdict.bad'), v: document.querySelector('#v-quiz .verdict').textContent}));
+      check(sl0.bad && /Not accepted: it is close to an accepted answer\. Check the exact term\./.test(sl0.v), 'strict: "cystein" for cysteine (no other item accepts it) is wrong, with the note', sl0);
+
       // the bank export: a blank item adds accept and why; every other item exports with the keys it had
       const exp = await page.evaluate(() => { const rows = JSON.parse(JSON.stringify(bankJson())), by = id => rows.find(r => r.id === id);
         return {blank: Object.keys(by('bt-vdr')), mc: Object.keys(by('bt-ma1')), mc2: Object.keys(by('bt-mb2')), acc: by('bt-vdr').accept, why: by('bt-vdr').why}; });
@@ -264,11 +319,23 @@ const testJs = src => child.spawnSync('node', ['test.js'], {cwd: src, encoding: 
       await page.fill('#blankIn', 'calcinurin'); await page.press('#blankIn', 'Enter');
       const r = await page.evaluate(() => ({ok: !!document.querySelector('#v-quiz .verdict.ok'), v: (document.querySelector('#v-quiz .verdict') || {}).textContent || '',
         last: DB.answers[DB.answers.length - 1]}));
-      check(r.ok && /Close: check the spelling/.test(r.v) && r.last.result === 'correct', 'with blank: {typo: 1} the near miss is recorded right, with the spelling note', r);
+      check(r.ok && /Counted as right: one letter differs from an accepted answer\. Check the spelling\./.test(r.v) && !/Not accepted/.test(r.v) && r.last.result === 'correct',
+            'with blank: {typo: 1} the near miss is recorded right, with the note "Counted as right: ..."', r);
       await L.quizOn(page, 'bt-vdr');
       await page.fill('#blankIn', 'VDE'); await page.press('#blankIn', 'Enter');
       const s = await page.evaluate(() => ({bad: !!document.querySelector('#v-quiz .verdict.bad'), v: document.querySelector('#v-quiz .verdict').textContent}));
-      check(s.bad && !/Close/.test(s.v), 'with typo: 1, a slip in a 3-character answer is still wrong, with no note', s);
+      check(s.bad && !/Not accepted|Counted as right/.test(s.v), 'with typo: 1, a slip in a 3-character answer is still wrong, with no note', s);
+      // another item's answer is wrong in this mode too, with no note, and nothing is counted right
+      for(const [id, typed] of [['bt-il17a', 'IL-17RA'], ['bt-il17ra', 'IL-17A'], ['bt-cyse', 'cystine'], ['bt-cyst', 'cysteine']]){
+        await L.quizOn(page, id);
+        await page.fill('#blankIn', typed); await page.press('#blankIn', 'Enter');
+        const k = await page.evaluate(() => ({bad: !!document.querySelector('#v-quiz .verdict.bad'), v: document.querySelector('#v-quiz .verdict').textContent, last: DB.answers[DB.answers.length - 1]}));
+        check(k.bad && !/Not accepted|Counted as right|Close/.test(k.v) && k.last.result === 'wrong', `typo: 1: "${typed}" typed for ${id} is another item's answer: wrong, no note`, k);
+      }
+      await L.quizOn(page, 'bt-cyse');
+      await page.fill('#blankIn', 'cystein'); await page.press('#blankIn', 'Enter');
+      const sl = await page.evaluate(() => ({ok: !!document.querySelector('#v-quiz .verdict.ok'), v: document.querySelector('#v-quiz .verdict').textContent}));
+      check(sl.ok && /Counted as right/.test(sl.v), 'typo: 1: "cystein" for cysteine (no other item accepts it) is counted right, with the note', sl);
       check(!errors.length, 'no page error with typo: 1', errors.slice(0, 3).join(' | '));
       await ctx.close(); }
 
@@ -276,12 +343,17 @@ const testJs = src => child.spawnSync('node', ['test.js'], {cwd: src, encoding: 
     const BLANKS = ['bt-vdr', 'bt-cal', 'bt-sal', 'bt-b4', 'bt-b5', 'bt-b6', 'bt-o1'];
     const draws = (page, blanks) => page.evaluate(([blanks, ids]) => {
       if(blanks === 'unset') delete EXAM.blanks; else EXAM.blanks = blanks;
-      const out = {sizes: [], counts: [], poolA: [], poolB: [], dup: 0, typesKept: true};
+      const out = {sizes: [], counts: [], poolA: [], poolB: [], dup: 0, typesKept: true, short: 0};
+      // per pool, the most blank items the paper can hold: the blank families the pool has, up to the marks left once the
+      // numeric and matching items drawn into it are counted (those stay as drawn)
+      const fam = EXAM.pools.map(p => new Set(requiredQs().filter(q => q.type === 'blank' && !q.lowYield && p.test(q)).map(familyOf)).size);
       for(let k = 0; k < 40; k++){
         const p = drawPaper(), on = new Set(p.map(q => q.id));
         out.sizes.push(p.length); out.counts.push(p.filter(q => q.type === 'blank').length);
         out.poolA.push(p.filter(EXAM.pools[0].test).length); out.poolB.push(p.filter(EXAM.pools[1].test).length);
         if(on.has('bt-b5') && on.has('bt-b6')) out.dup++;
+        EXAM.pools.forEach((pl, j) => { const inPool = p.filter(pl.test), typedOther = inPool.filter(q => q.type && q.type !== 'blank').length;
+          if(inPool.filter(q => q.type === 'blank').length !== Math.min(fam[j], pl.marks - typedOther)) out.short++; });
         if(on.size !== p.length) out.dup += 100;
       }
       out.typesKept = ids.every(id => byId(id).type === 'blank' && byId(id)._paperType === undefined);
@@ -302,8 +374,8 @@ const testJs = src => child.spawnSync('node', ['test.js'], {cwd: src, encoding: 
       // (on the template: 5 families in the first topic, a pool of 5 marks, and 1 in the second: 6)
       const most = await page.evaluate(() => EXAM.pools.reduce((n, p) => n + Math.min(p.marks,
         new Set(requiredQs().filter(q => q.type === 'blank' && !q.lowYield && p.test(q)).map(familyOf)).size), 0));
-      check(same(d50.counts, most) && same(d50.poolA, 5) && same(d50.poolB, 5) && d50.dup === 0,
-            `blanks: 50 on a bank with fewer gives the ${most} it can, within the pools' marks and dupOf`, {c: d50.counts.join(), dup: d50.dup});
+      check(d50.counts.every(n => n <= most) && d50.short === 0 && same(d50.poolA, 5) && same(d50.poolB, 5) && d50.dup === 0,
+            `blanks: 50 on a bank with fewer gives, in each pool, every blank family it has (up to ${most} on a paper; numeric and matching items stay as drawn), within the marks and dupOf`, {c: d50.counts.join(), short: d50.short, dup: d50.dup});
       const d0 = await draws(page, 0);
       check(same(d0.counts, 0) && same(d0.sizes, 10), 'blanks: 0 keeps them off the paper', d0.counts.join(','));
       const du = await draws(page, 'unset');
@@ -337,8 +409,8 @@ const testJs = src => child.spawnSync('node', ['test.js'], {cwd: src, encoding: 
       check(v && v[1] === 'correct' && v[2] === 'vitamin-D receptor', 'the right blank answer is recorded right, with what was typed', res.ans);
       check(c && c[1] === 'wrong' && c[2] === 'calcinurin', 'the near miss is recorded wrong on the paper (strict by default)', res.ans);
       check(res.log.filter(e => e[1] === 'blank').every(e => e[0] === 'exam') && res.log.filter(e => e[1] === 'blank').length === 2, 'both are in the answer history as exam answers of type blank', res.log);
-      check(/you wrote calcinurin/.test(res.text) && /Close: check the spelling/.test(res.text) && /Accepted answers: vitamin D · VDR · vitamin D receptor/.test(res.text)
-            && /the answer is calcineurin/.test(res.text), 'the result page shows what was typed, the spelling note and the accepted answers');
+      check(/you wrote calcinurin/.test(res.text) && /Not accepted: it is close to an accepted answer/.test(res.text) && /Accepted answers: vitamin D · VDR · vitamin D receptor/.test(res.text)
+            && /[Tt]he answer is calcineurin/.test(res.text), 'the result page shows what was typed, the near-miss note and the accepted answers');
       } else L.skip('the fixed paper typed, reloaded, graded and reviewed', 'the paper shows no text box for the blank item');
       check(!errors.length, 'no page error on the paper', errors.slice(0, 3).join(' | '));
       await ctx.close(); }
