@@ -139,6 +139,9 @@ X.COURSE.blank = savedBlank;
 // a text that is another blank item's accepted answer is plain wrong, with no note, in both modes
 { const mk = (id, ...accept) => ({id, type: 'blank', accept});
   const il17a = mk('k-a', 'IL-17A'), il17ra = mk('k-ra', 'IL-17RA'), cyse = mk('k-e', 'cysteine'), cyst = mk('k-i', 'cystine');
+  // this step runs on a bank of its own: a course whose own bank already has blank items that accept these
+  // answers (DEENT's does) would otherwise change what "no other blank item" means. The course's items go back after it.
+  const keptQ = X.QUESTIONS.splice(0);
   // before any other blank item is in the bank, the one-edit text is a near miss, as it always was
   for(const [mode, set] of [['strict', undefined], ['typo: 1', {typo: 1}]]){
     X.COURSE.blank = set;
@@ -161,7 +164,8 @@ X.COURSE.blank = savedBlank;
   X.COURSE.blank = undefined;
   { const g = X.gradeBlank(twin, 'cystine'); check(g.ok, 'an answer that two items accept is right for each of them', g); }
   X.COURSE.blank = savedBlank;
-  X.QUESTIONS.length -= 5;
+  X.QUESTIONS.length = 0; X.QUESTIONS.push(...keptQ);
+  check(X.QUESTIONS.length === keptQ.length && X.QUESTIONS.every((x, i) => x === keptQ[i]), 'the course\'s own questions are back after the step with its own bank', X.QUESTIONS.length);
 }
 
 // the planted items: blank items in both topics, plain multiple-choice filler so two pools fill
@@ -231,9 +235,12 @@ const testJs = src => child.spawnSync('node', ['test.js'], {cwd: src, encoding: 
   { const b = L.scratchBuild('blank-nobuild', {files: {'q96_blank_test.js': QF}, courseLine: paperLine(true) + 'COURSE.blank = {typo: 2};'});
     if(check(b.code !== 0 && /course.js `blank` takes only `typo`/.test(b.out), 'the build stops on `blank: {typo: 2}`', b.out.split('\n').slice(-2).join(' | '))) b.rm(); }
 
-  // the old wording is gone from the page, and the notes are in
+  // the old wording is gone from the core's own files (a course may quote it in its own text: DEENT did, before #101),
+  // and the new notes are in the page
   { const src = fs.readFileSync(on.page, 'utf8');
-    check(!/Close: check the spelling/i.test(src) && !/close: check the spelling/i.test(src), 'the old wording "Close: check the spelling" is not in the page');
+    const coreFiles = ['views.js', 'exam_typed.js', 'shell.html'].filter(f => fs.existsSync(path.join(__dirname, f)));
+    check(coreFiles.length === 3 && coreFiles.every(f => !/close: check the spelling/i.test(fs.readFileSync(path.join(__dirname, f), 'utf8'))),
+      'the old wording "Close: check the spelling" is not in the core\'s views.js, exam_typed.js or shell.html', coreFiles.join(', '));
     check(src.includes('Not accepted: it is close to an accepted answer. Check the exact term.') && src.includes('Counted as right: one letter differs from an accepted answer. Check the spelling.'), 'the two new notes are in the page'); }
   const {browser} = await L.launch(NAME);
   const ready = page => page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
