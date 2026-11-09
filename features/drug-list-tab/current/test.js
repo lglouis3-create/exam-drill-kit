@@ -549,6 +549,193 @@ async function optionView(browser, file, o){
   await ctx.close();
 }
 
+
+/* ---------- v2: ratings kept in the progress (DB.drugs) ---------- */
+const V2_FIELDS = [['indication', 'Common indications'], ['essential', 'Essential knowledge']];
+const V2_OPT = opts(Object.assign({}, BDK_OPT, {recallFields: V2_FIELDS}));
+const slugOf = s => String(s == null ? '' : s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const ID0 = slugOf(FIX.tables[0].rows[0].generic), ID1 = slugOf(FIX.tables[0].rows[1].generic);
+/* the template bank's first two multiple-choice questions, mapped to BDK facts (template/q1_topics.js) */
+const V2_FACTS = {'s1-1': [ID0 + ':indication'], 's1-2': [ID0 + ':indication', ID1 + ':essential']};
+const dataFileV2 = (tables, facts) => dataFile(tables) + (facts ? `const DRUG_FACTS = ${JSON.stringify(facts)};\n` : '');
+const buildV2 = (label, tables, o, facts) => L.scratchBuild(label, {files: {[FILE]: dataFileV2(tables, facts)},
+  courseLine: `COURSE.files = (COURSE.files || ['atlas.js', 'diagrams.js', 'q1_topics.js']).concat([${JSON.stringify(FILE)}]);` + L.featureOn(__dirname, o)});
+const v2Refuse = () => {
+  const T = FIX.tables, dup = clone(T); dup[1].rows[0].generic = dup[0].rows[0].generic;
+  return [
+    ['recallFields naming a field no row has', 'v2nofield', T, opts(Object.assign({}, V2_OPT, {recallFields: [['schedule', 'Schedule']]})), null, /option recallFields names the field "schedule", which no row has/],
+    ['recallFields naming a field recall mode keeps visible', 'v2shown', T, opts(Object.assign({}, V2_OPT, {recallFields: [['generic', 'Generic']]})), null, /option recallFields names "generic", which recall mode keeps visible/],
+    ['recallFields entries that are not [field, name]', 'v2shape', T, opts(Object.assign({}, V2_OPT, {recallFields: ['indication']})), null, /option recallFields must be a list of \[field, name\] pairs/],
+    ['two rows with the same id', 'v2dup', dup, V2_OPT, null, new RegExp(`table "2" row 1 and table "3" row 1 have the same id "${ID0}"`)],
+    ['DRUG_FACTS naming a question the bank lacks', 'v2noq', T, V2_OPT, {'zz-9': [ID0 + ':indication']}, /DRUG_FACTS names the question "zz-9", which the bank does not have/],
+    ['DRUG_FACTS naming a field recallFields lacks', 'v2nofact', T, V2_OPT, {'s1-1': [ID0 + ':brand']}, new RegExp(`DRUG_FACTS gives "s1-1" the fact "${ID0}:brand"`)],
+  ];
+};
+const v2State = page => page.evaluate(() => ({ev: DB.drugs ? JSON.parse(JSON.stringify(DB.drugs.ev)) : null, v: DB.drugs ? DB.drugs.v : null,
+  answers: DB.answers.length, qn: DB.qn || 0, log: LOG.length, profile: PROFILE,
+  stored: (() => { try { const d = JSON.parse(localStorage.getItem(NS + ':data:' + PROFILE) || 'null'); return d && d.drugs ? d.drugs.ev : null; } catch(e){ return 'unreadable'; } })()}));
+const v2Open = async (page, field) => {
+  await page.click(`#nav button[data-v="${V2_OPT.tab}"]`);
+  await page.click(`${pane} [data-listgroup="-1"]`);
+  if(await page.$eval(`${pane} [data-dl="recall"]`, b => b.getAttribute('aria-pressed')) !== 'true') await page.click(`${pane} [data-dl="recall"]`);
+  if(field !== undefined) await page.selectOption(`${pane} [data-dl="ask"]`, field);
+};
+const statusOf = (page, ref) => page.$eval(`${pane} tr.dlt-recall[data-for="${ref}"] [data-status]`, p => p.textContent.replace(/\s+/g, ' ').trim()).catch(() => null);
+const v2Reload = async page => { await page.reload(); await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000}); };
+
+async function v2View(browser, file, width){
+  const tag = ` (${width} px)`;
+  const {ctx, page, errors} = await L.openPage(browser, file, {viewport: {width, height: 900}}, consoleTrap);
+  page.on('dialog', d => d.accept());
+  const R0 = '0:0', R1 = '0:1', F0 = ID0 + ':indication';
+  await v2Open(page);
+  const opts0 = await page.$$eval(`${pane} [data-dl="ask"] option`, o => o.map(x => [x.value, x.textContent]));
+  check(JSON.stringify(opts0) === JSON.stringify([['', 'Every hidden field']].concat(V2_FIELDS)), 'recall mode offers Ask for: every hidden field, then each of recallFields' + tag, opts0);
+  check(!(await page.$(`${pane} [data-status]`)) && !(await page.$(`${pane} [data-rate]`)), 'with every hidden field asked, no rating and no status line (v1\'s recall mode)' + tag);
+  await page.selectOption(`${pane} [data-dl="ask"]`, 'indication');
+  let st = await v2State(page);
+  check(st.ev === null && st.stored === null, 'asking for a field stores nothing' + tag, st);
+  check(/^Common indications: not rated yet · bank questions: Not practised$/.test(await statusOf(page, R0) || ''),
+        'the status line: not rated yet, and the two bank questions DRUG_FACTS maps to the fact: Not practised' + tag, await statusOf(page, R0));
+  check(/^Common indications: not rated yet$/.test(await statusOf(page, '0:2') || ''), 'a fact no bank question tests shows no bank status' + tag, await statusOf(page, '0:2'));
+  check(!(await page.$(`${pane} [data-rate="${R0}"]`)), 'no rating before Reveal' + tag);
+  await page.click(`${pane} [data-reveal="${R0}"]`);
+  const crit = await page.$$eval(`${pane} tr.dlt-recall[data-for="${R0}"] .dlo-crit li`, l => l.map(x => x.textContent));
+  check(JSON.stringify(crit) === JSON.stringify(['Forgot: I could not produce it.', 'Partly: I had the idea but missed the key term or one part.', 'Knew: I wrote the key term without looking.']),
+        'after Reveal: Forgot, Partly and Knew with DEENT\'s criteria' + tag, crit);
+  await page.fill(`${pane} [data-typed="${R0}"]`, 'glaucoma, typed text');
+  await page.click(`${pane} [data-rate="${R0}"][data-r="partly"]`);
+  st = await v2State(page);
+  check(st.ev && st.ev.length === 1 && st.ev[0].f === F0 && st.ev[0].r === 'partly' && typeof st.ev[0].at === 'number' && Object.keys(st.ev[0]).sort().join() === 'at,f,r' && st.v === 1,
+        `Partly adds one rating {f: "${F0}", r: "partly", at} to DB.drugs (v 1), and nothing else` + tag, st.ev);
+  check(st.answers === 0 && st.qn === 0 && st.log === 0, 'the rating is not an answer: DB.answers, the answer count and the answer history are unchanged (0, 0, 0)' + tag, st);
+  const pressed = await page.evaluate(r => { const a = document.activeElement; return [a && a.dataset.rate === r && a.dataset.r, a && a.getAttribute('aria-pressed')]; }, R0);
+  check(pressed[0] === 'partly' && pressed[1] === 'true', 'the pressed rating keeps the focus and reads aria-pressed true' + tag, pressed);
+  await page.click(`${pane} [data-rate="${R0}"][data-r="knew"]`);
+  st = await v2State(page);
+  check(st.ev.length === 1 && st.ev[0].r === 'knew', 'a second rating of the same opening replaces the first (one rating, now Knew)' + tag, st.ev);
+  await page.click(`${pane} [data-reveal="${R0}"]`);     // Hide again
+  await page.click(`${pane} [data-reveal="${R0}"]`);     // Reveal: a new opening
+  check(await page.$eval(`${pane} tr.dlt-recall[data-for="${R0}"] [data-ratenote]`, p => p.textContent) === 'Not counted until you choose one.', 'a new opening starts unrated' + tag);
+  await page.click(`${pane} [data-rate="${R0}"][data-r="forgot"]`);
+  await v2Reload(page);                                    // at once: the core writes on pagehide
+  st = await v2State(page);
+  check(Array.isArray(st.stored) && st.stored.length === 2 && st.stored.map(e => e.r).join() === 'knew,forgot' && st.stored.every(e => e.f === F0),
+        'after a reload straight after the rating, the stored progress holds both ratings (Knew, then Forgot)' + tag, st.stored);
+  check(!JSON.stringify(st.stored).includes('typed text') && !(await page.evaluate(() => JSON.stringify(localStorage).includes('typed text'))), 'what was typed is in no stored record' + tag);
+  await v2Open(page, 'indication');
+  const s1 = await statusOf(page, R0);
+  check(new RegExp(`^Common indications: last rated Forgot on \\w{3} \\d{1,2}, \\d{4} \\(2 ratings\\) · bank questions: Not practised$`).test(s1 || ''),
+        'after the reload the status line reads the stored ratings: last rated Forgot (2 ratings)' + tag, s1);
+
+  // Not yet Knew: R1 rated Knew drops out; R0 (last Forgot) and unrated rows stay
+  await page.click(`${pane} [data-reveal="${R1}"]`); await page.click(`${pane} [data-rate="${R1}"][data-r="knew"]`);
+  const all = await page.$$eval(`${pane} tr[data-ref]`, t => t.length);
+  await page.click(`${pane} [data-dl="notknew"]`);
+  const refs = await page.$$eval(`${pane} tr[data-ref]`, t => t.map(x => x.dataset.ref));
+  check(refs.length === all - 1 && !refs.includes(R1) && refs.includes(R0), `Not yet Knew hides the one row last rated Knew (${all} rows, then ${refs.length})` + tag, {all, n: refs.length});
+  await page.click(`${pane} [data-dl="notknew"]`);
+  await page.selectOption(`${pane} [data-dl="ask"]`, 'essential');
+  check(/^Essential knowledge: not rated yet · bank question: Not practised$/.test(await statusOf(page, R1) || ''), 'each field is its own fact: R1\'s essential knowledge is not rated, with its own bank question' + tag, await statusOf(page, R1));
+
+  // bank answers are read, never written, by the tab; a rating never changes them
+  const before = await v2State(page);
+  await page.evaluate(() => { record(byId('s1-1'), 'correct', 0, 1000); });
+  await page.click(`#nav button[data-v="${V2_OPT.tab}"]`); await page.selectOption(`${pane} [data-dl="ask"]`, 'indication');
+  let s2 = await statusOf(page, R0);
+  check(/^Common indications: last rated Forgot on .+ \(2 ratings\) · bank questions: Remembered \(1 answer\)$/.test(s2 || ''), 'a right answer to one of the two mapped bank questions shows Remembered (1 answer); the ratings line is unchanged' + tag, s2);
+  await page.evaluate(() => { record(byId('s1-2'), 'wrong', 1, 1000); });
+  await page.click(`#nav button[data-v="${V2_OPT.tab}"]`); await page.selectOption(`${pane} [data-dl="ask"]`, 'indication');
+  s2 = await statusOf(page, R0);
+  check(/^Common indications: last rated Forgot on .+ \(2 ratings\) · bank questions: Forgot \(2 answers\)$/.test(s2 || ''), 'the last answer wrong: Forgot (2 answers), the two mapped questions read together; the ratings line is unchanged' + tag, s2);
+  let after = await v2State(page);
+  check(after.answers === before.answers + 2 && JSON.stringify(after.ev) === JSON.stringify(before.ev), 'two bank answers add two answers and no rating; the ratings are unchanged' + tag, {before: before.answers, after: after.answers});
+  await page.click(`${pane} [data-reveal="${R0}"]`); await page.click(`${pane} [data-rate="${R0}"][data-r="partly"]`);
+  after = await v2State(page);
+  check(after.answers === before.answers + 2 && after.qn === before.qn + 2 && after.ev.length === before.ev.length + 1,
+        'a rating adds one rating and no answer: each event is counted once, in its own part' + tag, {answers: after.answers, qn: after.qn, ev: after.ev.length});
+  const wk = await page.evaluate(() => DB.answers.filter(a => !QUESTIONS.some(q => q.id === a.qid)).length);
+  check(wk === 0, 'every answer in the progress is a bank question\'s (no Drug list item in DB.answers)' + tag, wk);
+
+  // the per-tab record (#69) carries the part
+  const pend = await page.evaluate(() => { try { const r = JSON.parse(localStorage.getItem(myPendingKey()) || 'null'); return r && r.db && r.db.drugs ? r.db.drugs.ev.length : null; } catch(e){ return 'err'; } });
+  check(pend === after.ev.length, `this tab's own record (#69) holds DB.drugs with its ${after.ev.length} ratings` + tag, pend);
+
+  // profiles: another profile has none of them; its own are kept apart
+  const mine = after.ev;
+  await page.evaluate(() => useProfile('dlo-other'));
+  await page.waitForFunction(() => PROFILE === 'dlo-other', null, {timeout: 6000});
+  st = await v2State(page);
+  check(st.ev === null, 'another profile holds no ratings' + tag, st.ev);
+  await v2Open(page, 'indication');
+  check(/^Common indications: not rated yet/.test(await statusOf(page, R0) || ''), 'its status line: not rated yet' + tag);
+  await page.click(`${pane} [data-reveal="${R0}"]`); await page.click(`${pane} [data-rate="${R0}"][data-r="knew"]`);
+  await page.evaluate(n => useProfile(n), before.profile);
+  await page.waitForFunction(n => PROFILE === n, before.profile, {timeout: 6000});
+  await v2Reload(page);
+  st = await v2State(page);
+  check(JSON.stringify(st.ev) === JSON.stringify(mine), `after the switch back and a reload, the first profile holds its ${mine.length} ratings, unchanged` + tag, st.ev && st.ev.length);
+  const other = await page.evaluate(() => { const d = JSON.parse(localStorage.getItem(NS + ':data:dlo-other') || 'null'); return d && d.drugs ? d.drugs.ev : null; });
+  check(other && other.length === 1 && other[0].r === 'knew', 'the other profile\'s one rating is stored under it alone' + tag, other);
+
+  // Export, Erase my history, Import back
+  await page.evaluate(() => show('settings'));
+  const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#btnExport')]);
+  const fileText = fs.readFileSync(await dl.path(), 'utf8'), exported = JSON.parse(fileText);
+  check(exported.db && exported.db.drugs && JSON.stringify(exported.db.drugs.ev) === JSON.stringify(mine), `Export progress includes DB.drugs, its ${mine.length} ratings as stored` + tag);
+  await page.click('#btnReset');
+  await v2Reload(page);
+  st = await v2State(page);
+  check(st.ev === null && st.stored === null && st.answers === 0, 'Erase my history clears the ratings with the answers, also after a reload' + tag, st);
+  const f = path.join(require('os').tmpdir(), `dlo-${process.pid}-${width}.json`);
+  fs.writeFileSync(f, fileText);
+  await page.evaluate(() => show('settings'));
+  await page.setInputFiles('#fileIn', f);
+  await page.waitForFunction(() => { const b = document.getElementById('importPlan'); return b && b.textContent.trim(); }, null, {timeout: 5000}).catch(() => {});
+  if(await page.$('#importGo')){ await page.click('#importGo'); await page.waitForSelector('#importResult', {timeout: 5000}).catch(() => {}); }
+  await v2Reload(page);
+  st = await v2State(page);
+  check(JSON.stringify(st.stored) === JSON.stringify(mine) && st.profile === before.profile, 'Import of that file into the erased profile puts the ratings back, also after a reload' + tag, {profile: st.profile, n: st.stored && st.stored.length});
+  fs.rmSync(f, {force: true});
+  check(!(await sideways(page)), 'no sideways scroll' + tag);
+  check(!errors.length && !(await page.evaluate(() => window.__cerr)).length, 'no page or console error' + tag, errors.concat(await page.evaluate(() => window.__cerr)).slice(0, 3));
+  await ctx.close();
+}
+
+/* What Import does with a file when only the ratings differ (core/README.md 805-816): measured,
+   reported, and checked against the rule as the README states it. */
+async function v2ImportMeasure(browser, file){
+  const {ctx, page} = await L.openPage(browser, file, {viewport: {width: 820, height: 900}}, consoleTrap);
+  page.on('dialog', d => d.accept());
+  const exportNow = async () => { await page.evaluate(() => show('settings'));
+    const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#btnExport')]); return fs.readFileSync(await dl.path(), 'utf8'); };
+  const planOf = async text => { const f = path.join(require('os').tmpdir(), `dlo-m-${process.pid}-${Math.random().toString(36).slice(2)}.json`); fs.writeFileSync(f, text);
+    await page.evaluate(() => show('settings')); await page.setInputFiles('#fileIn', f);
+    await page.waitForFunction(() => { const b = document.getElementById('importPlan'); return b && b.textContent.trim(); }, null, {timeout: 5000}).catch(() => {});
+    const plan = await page.evaluate(() => (document.getElementById('importPlan') || {}).textContent || ''); fs.rmSync(f, {force: true});
+    return plan.replace(/\s+/g, ' ').trim(); };
+  const kind = p => /nothing to import|already here|adds nothing/i.test(p) ? 'nothing' : /new profile/i.test(p) ? 'separate' : /replace/i.test(p) ? 'replace' : /history/i.test(p) ? 'history' : 'other: ' + p.slice(0, 80);
+  const rate = async (ref, r) => { await v2Open(page, 'indication'); if(!(await page.$(`${pane} [data-rate="${ref}"]`))) await page.click(`${pane} [data-reveal="${ref}"]`);
+    await page.click(`${pane} [data-rate="${ref}"][data-r="${r}"]`); };
+  await page.evaluate(() => { record(byId('s1-1'), 'correct', 0, 1000); record(byId('s1-2'), 'correct', 0, 1000); });
+  await rate('0:0', 'partly');
+  const A = await exportNow();
+  const res = [];
+  res.push(['M1 the same file again (answers and ratings as here)', kind(await planOf(A)), 'nothing']);
+  await rate('0:1', 'knew');          // a rating here, no answer: this profile is ahead of the file by one rating
+  res.push(['M2 an older file of this profile, behind it by one rating and no answer', kind(await planOf(A)), 'separate']);
+  const B = JSON.parse(await exportNow());
+  const C = JSON.parse(JSON.stringify(B)); C.db.drugs.ev.push({f: ID1 + ':essential', r: 'forgot', at: Date.now()});
+  res.push(['M3 a file with the same answers and one more rating (rated on another device)', kind(await planOf(JSON.stringify(C))), 'separate']);
+  const D = JSON.parse(JSON.stringify(B)); delete D.db.drugs;
+  res.push(['M4 a file with the same answers and no ratings', kind(await planOf(JSON.stringify(D))), 'separate']);
+  console.log('\n  Import with ratings only differing (REPORT, core/README.md 805-816):');
+  for(const [what, got, rule] of res){ console.log(`  report  ${what}: ${got} (the README's rule: ${rule})`);
+    check(got === rule, `Import measure, ${what}: ${got}, as the README's rule says`, got); }
+  await ctx.close();
+  return res;
+}
+
 (async () => {
   console.log('\n=== the course\'s own drug tables ===');
   L.PAGE.need(NAME);
@@ -588,6 +775,11 @@ async function optionView(browser, file, o){
     check(b.code !== 0 && re.test(b.out) && !fs.existsSync(b.page), `${what}: the build stops with "${re.source.replace(/\\/g, '')}"`, b.out.split('\n').pop());
     b.rm();
   }
+  for(const [what, label, tables, o, facts, re] of v2Refuse()){
+    const b = buildV2('dlt-' + label, tables, o, facts);
+    check(b.code !== 0 && re.test(b.out) && !fs.existsSync(b.page), `v2, ${what}: the build stops with "${re.source.replace(/\\/g, '')}"`, b.out.split('\n').pop());
+    b.rm();
+  }
 
   console.log('\n=== BDK\'s list in the browser (scratch copy) ===');
   const s = build('dlt-bdk', T, BDK_OPT);
@@ -601,6 +793,7 @@ async function optionView(browser, file, o){
   const o3 = opts({columns: [['generic', 'Generic', 'activity', 'Activity against: ']], searchFields: ['generic'], groups: [], defaultGroup: '',
     recallDefault: true, recallShow: ['generic', 'activity'], recallClassField: ''});
   const s3 = build('dlt-subshow', actTables, o3);
+  const s4 = buildV2('dlt-v2', T, V2_OPT, V2_FACTS);
   const {browser} = await L.launch(NAME);
   try {
     for(const w of [390, 820]){ console.log(`\n--- ${w} px ---`); await bdkView(browser, s.page, w); }
@@ -620,9 +813,23 @@ async function optionView(browser, file, o){
       check(on === 'true' && want.length > 0 && got.every(Boolean), `with recall on, a sub-field named in recallShow is shown before Reveal (activity on ${want.length} rows)`, {on, n: want.length, missing: got.filter(x => !x).length});
       await ctx.close();
     }
+    console.log('\n=== v2: ratings kept in the progress (scratch copy: recallFields and DRUG_FACTS) ===');
+    if(s4.code !== 0) check(false, 'the scratch copy with recallFields and DRUG_FACTS builds', s4.out.split('\n').pop());
+    else {
+      check(/build step done/.test(s4.out), 'the v2 copy builds');
+      for(const w of [390, 820]){ console.log(`\n--- v2, ${w} px ---`); await v2View(browser, s4.page, w); }
+      console.log('\n--- v2, Import measured ---');
+      await v2ImportMeasure(browser, s4.page);
+    }
+    {
+      const {ctx, page} = await L.openPage(browser, s.page, {viewport: {width: 820, height: 900}});
+      await page.click(`#nav button[data-v="${BDK_OPT.tab}"]`); await page.click(`${pane} [data-dl="recall"]`);
+      check(!(await page.$(`${pane} [data-dl="ask"]`)), 'with recallFields empty (the default) recall mode has no Ask for and rates nothing (v1)');
+      await ctx.close();
+    }
   } finally {
     await browser.close();
-    s.rm(); s2.rm(); s3.rm();
+    s.rm(); s2.rm(); s3.rm(); s4.rm();
   }
   L.finish(NAME);
 })().catch(e => { console.log('FAIL: ' + NAME + ': crashed: ' + (e && e.stack || e)); process.exit(1); });
