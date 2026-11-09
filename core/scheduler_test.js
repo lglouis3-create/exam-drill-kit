@@ -20,6 +20,9 @@ L.PAGE.need(NAME);
 const DAY = 86400000;
 
 /* ---- the test bank ------------------------------------------------------
+   The bank's skills are 'recall' and 'calc'; COURSE_BASE adds them to the
+   scratch course's taxonomy when the course does not have them (a course's
+   own taxonomy, e.g. PHAR 4346's, need not use the template's ids).
    Lecture ZS-L1 (subtopic a): c1 has three questions, c2 one.
    Lecture ZS-L2 (subtopic b): c3 and c4 two each, c5 one.            */
 const BANK = [
@@ -42,6 +45,8 @@ QUESTIONS.push(...${JSON.stringify(BANK.map(([id, concept, skill, lec, sub]) => 
 // every part names its scheduler; this is the default unless the part's own lines set another
 const COURSE_BASE = `
 COURSE.scheduler = {model:'concept'};
+for (const [id, label] of [['recall', 'Recall'], ['calc', 'Calculate']])
+  if (!(COURSE.skills || []).some(s => s.id === id)) (COURSE.skills = COURSE.skills || []).push({id, label, short: label});
 COURSE.lectures.push({id:'ZS1', deck:'ZS-L1.pdf', label:'Test lecture 1', prof:COURSE.professors[0], exam:99, module:'ZS'},
                      {id:'ZS2', deck:'ZS-L2.pdf', label:'Test lecture 2', prof:COURSE.professors[0], exam:99, module:'ZS'});
 `;
@@ -757,8 +762,11 @@ COURSE.exams.push({id:'zsA', name:'Test exam', date:'12 Nov', when:'2026-11-12T0
       // Import progress converts the same way
       const file = path.join(conv.repo, 'saved-5014f27.json');
       fs.writeFileSync(file, JSON.stringify({app: 'exam-drill', ns, db: F.db, log: F.log}));
-      await p.evaluate(() => { DB = BLANK(); show('settings'); });
+      // into a profile with no progress and no history (Import does not take a profile that
+      // has history of its own for an empty one, so DB = BLANK() alone is not empty)
+      await p.evaluate(() => { useProfile('Fresh'); show('settings'); });
       await p.setInputFiles('#fileIn', file);
+      await p.waitForSelector('#importGo', {timeout: 5000}).then(b => b.click(), () => {});
       await p.waitForTimeout(600);
       db = await p.evaluate(() => JSON.parse(JSON.stringify(DB)));
       check(db.v === 2 && JSON.stringify(strip(db)) === JSON.stringify(F.db) && JSON.stringify(db.concepts.c1.last) === JSON.stringify(lastWant.c1),

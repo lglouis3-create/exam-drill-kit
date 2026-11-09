@@ -1,0 +1,9 @@
+  browser  Chromium started
+none    old wait: take-over finished yes {"ok":true,"writer":"held","ms":1036}; stored {"last":true,"next":true}
+none    new wait: take-over finished yes {"ok":true,"ms":1033,"freeMs":2}; stored {"last":true,"next":true}
+late    old wait: take-over finished NO {"ok":false,"writer":"other","ms":20015}; stored {"last":true,"next":false}
+late    new wait: take-over finished yes {"ok":true,"ms":26042,"freeMs":25009}; stored {"last":true,"next":true}
+never   old wait: take-over finished NO {"ok":false,"writer":"other","ms":20015}; stored {"last":true,"next":false}
+never   new wait: take-over finished NO {"ok":false,"why":"another holder kept the writer lock for 60 s","writer":"other","held":1,"ms":60039}; stored {"last":true,"next":false}
+broken  old wait: take-over finished NO {"ok":false,"writer":"other","ms":20007}; stored {"last":true,"next":false}
+broken  new wait: take-over finished NO {"ok":false,"why":"the lock was free, but the take-over did not finish within 6 s","writer":"other","ms":6027}; stored {"last":true,"next":false}

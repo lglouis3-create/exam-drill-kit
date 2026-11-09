@@ -1,18 +1,24 @@
 # Kit checks: every pull request and every push to main runs core/run_checks.sh on
 # scratch courses built from the kit (core/ci_course.sh), in Chromium, and the
 # template once in WebKit (Safari's engine, not the Safari app). Feature modules are
-# checked on courses of their own (job "modules"): .github/ci_plan.js picks each module
+# checked on courses of their own, in Chromium (job "modules") and in WebKit (job
+# "modules-webkit", since 2026-11-03): .github/ci_plan.js picks each module
 # a pull request changes, the modules that need it, and the combinations in
 # features/ci-combinations.txt; every module on a push to main or a change to core/,
 # template/ or .github/.
 #
 # A job fails on any FAIL and on any NOT RUN that is not a documented exclusion
 # (listed at the top of core/ci_course.sh), so a missing Playwright, browser or
-# pdfplumber fails it. The WebKit job is informational (continue-on-error) until its
-# first results are reviewed; it never makes the pull request red. The results are visible on each
-# pull request, and kit sessions merge only when the Chromium and module jobs pass (KIT_DESIGN.md
-# §12.9). GitHub does not enforce this on this private repository (no required
-# checks or rulesets without a paid plan or a public repository).
+# pdfplumber fails it; a module course's job also fails unless each module's own test
+# passed at least one check printed after that job's browser started. Every job blocks a merge, the WebKit job too (Louis, 2026-11-02; held
+# on 2026-11-03 until the WebKit failures of offline_test.js were diagnosed and fixed in pull
+# request #33, then 21 of 21 repeated WebKit runs of the whole suite on main passed, run
+# 41574234473). WebKit on this Linux runner is not the Safari app: an iPhone and an iPad are
+# still tried by hand before BDK goes live. The results are
+# visible on each pull request, and kit sessions merge only when every applicable job concluded
+# "success" on the final head commit (KIT_DESIGN.md §12 decision 10; a module job the plan
+# intentionally did not select is not applicable). No branch protection is set up, so GitHub
+# does not enforce this.
 name: Kit checks
 
 on:
@@ -54,10 +60,9 @@ jobs:
         run: bash core/ci_course.sh "${{ matrix.course }}" chromium
 
   webkit:
-    name: WebKit · template (informational)
+    name: WebKit · template
     runs-on: ubuntu-24.04
     timeout-minutes: 45
-    continue-on-error: true
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
@@ -66,13 +71,64 @@ jobs:
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
         with:
           python-version: '3.13'
+      # The install has its own limits, apart from the checks' (review/ci/webkit-install-2026-11-06.md):
+      # 21 installs took 36-110 s; in three jobs a slow mirror held it for 38 to 44 minutes. A first attempt
+      # that fails, or runs longer than 6 minutes, is tried once more; a second that fails too fails the
+      # job as an install failure, with every check NOT RUN. The checks are never retried.
       - name: Playwright 1.63.0, WebKit and pdfplumber 0.11.10
+        id: install
+        timeout-minutes: 6
+        continue-on-error: true
         run: |
           npm install -g playwright@1.63.0
           npx --yes playwright@1.63.0 install --with-deps webkit
           python -m pip install pdfplumber==0.11.10
+      - name: Playwright 1.63.0, WebKit and pdfplumber 0.11.10 (second attempt, after the first failed or ran longer than 6 minutes)
+        id: install2
+        if: steps.install.outcome == 'failure'
+        timeout-minutes: 6
+        run: |
+          # what the timed-out first attempt left: its processes, an interrupted dpkg
+          echo "The WebKit install needed a second attempt (the first failed or ran longer than 6 minutes)." >> "$GITHUB_STEP_SUMMARY"
+          # every process of the first attempt carries "install --with-deps webkit" (npx, its shell and the
+          # Playwright CLI's node child); the brackets keep the pattern from matching this pkill's own sudo
+          sudo pkill -f 'install --with-deps [w]ebkit' || true
+          sudo pkill -x apt-get || true
+          sudo pkill -x dpkg || true
+          echo 'DPkg::Lock::Timeout "120";' | sudo tee /etc/apt/apt.conf.d/99-ci-lock-timeout >/dev/null
+          sudo dpkg --configure -a || true
+          # all three slow installs fetched only from azure.archive.ubuntu.com; when the image's own
+          # mirror list names other hosts, this attempt uses them
+          echo "apt mirror list:"; cat /etc/apt/apt-mirrors.txt || true
+          if [ -f /etc/apt/apt-mirrors.txt ] && grep -v '^[[:space:]]*$' /etc/apt/apt-mirrors.txt | grep -qv 'azure\.archive\.ubuntu\.com'; then
+            sudo sed -i '/azure\.archive\.ubuntu\.com/d' /etc/apt/apt-mirrors.txt
+            echo "second attempt, without azure.archive.ubuntu.com:"; cat /etc/apt/apt-mirrors.txt
+          fi
+          npm install -g playwright@1.63.0
+          npx --yes playwright@1.63.0 install --with-deps webkit
+          python -m pip install pdfplumber==0.11.10
+      - name: "NOT RUN: the WebKit install failed twice, so no check ran"
+        if: failure() && steps.install.outcome == 'failure' && steps.install2.outcome != 'success'
+        run: |
+          echo "NOT RUN: the install of Playwright, WebKit and pdfplumber failed, or ran longer than 6 minutes, twice; no check ran (an install failure, not a test failure)" | tee -a "$GITHUB_STEP_SUMMARY"
+          exit 1
       - name: Build the course and run every check in WebKit
+        timeout-minutes: 30
         run: bash core/ci_course.sh template webkit
+
+  coordinator:
+    # The improvement coordinator's records and logic (coordinator/README.md): lifecycle,
+    # review planning, the published-content check, the dashboard. No network, no browser.
+    name: Coordinator records and logic
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
+        with:
+          node-version: '22'
+      - name: coordinator/coord_test.js
+        run: node coordinator/coord_test.js
 
   plan:
     name: Modules to check
@@ -118,3 +174,72 @@ jobs:
         env:
           COURSE: ${{ matrix.course }}
         run: bash core/ci_course.sh "$COURSE" chromium
+
+  # Each module course the plan selects, in WebKit too (Louis, 2026-11-03: "Yes, build the
+  # additional job"; KIT_DESIGN.md §12 decision 10, Claude's reading 6). ci_course.sh fails
+  # the job unless each module's own test passes at least one check printed after WebKit
+  # started.
+  modules-webkit:
+    name: WebKit · ${{ matrix.course }}
+    needs: plan
+    if: needs.plan.outputs.courses != '[]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        course: ${{ fromJSON(needs.plan.outputs.courses) }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
+        with:
+          python-version: '3.13'
+      # The install has its own limits, apart from the checks' (review/ci/webkit-install-2026-11-06.md):
+      # 21 installs took 36-110 s; in three jobs a slow mirror held it for 38 to 44 minutes. A first attempt
+      # that fails, or runs longer than 6 minutes, is tried once more; a second that fails too fails the
+      # job as an install failure, with every check NOT RUN. The checks are never retried.
+      - name: Playwright 1.63.0, WebKit and pdfplumber 0.11.10
+        id: install
+        timeout-minutes: 6
+        continue-on-error: true
+        run: |
+          npm install -g playwright@1.63.0
+          npx --yes playwright@1.63.0 install --with-deps webkit
+          python -m pip install pdfplumber==0.11.10
+      - name: Playwright 1.63.0, WebKit and pdfplumber 0.11.10 (second attempt, after the first failed or ran longer than 6 minutes)
+        id: install2
+        if: steps.install.outcome == 'failure'
+        timeout-minutes: 6
+        run: |
+          # what the timed-out first attempt left: its processes, an interrupted dpkg
+          echo "The WebKit install needed a second attempt (the first failed or ran longer than 6 minutes)." >> "$GITHUB_STEP_SUMMARY"
+          # every process of the first attempt carries "install --with-deps webkit" (npx, its shell and the
+          # Playwright CLI's node child); the brackets keep the pattern from matching this pkill's own sudo
+          sudo pkill -f 'install --with-deps [w]ebkit' || true
+          sudo pkill -x apt-get || true
+          sudo pkill -x dpkg || true
+          echo 'DPkg::Lock::Timeout "120";' | sudo tee /etc/apt/apt.conf.d/99-ci-lock-timeout >/dev/null
+          sudo dpkg --configure -a || true
+          # all three slow installs fetched only from azure.archive.ubuntu.com; when the image's own
+          # mirror list names other hosts, this attempt uses them
+          echo "apt mirror list:"; cat /etc/apt/apt-mirrors.txt || true
+          if [ -f /etc/apt/apt-mirrors.txt ] && grep -v '^[[:space:]]*$' /etc/apt/apt-mirrors.txt | grep -qv 'azure\.archive\.ubuntu\.com'; then
+            sudo sed -i '/azure\.archive\.ubuntu\.com/d' /etc/apt/apt-mirrors.txt
+            echo "second attempt, without azure.archive.ubuntu.com:"; cat /etc/apt/apt-mirrors.txt
+          fi
+          npm install -g playwright@1.63.0
+          npx --yes playwright@1.63.0 install --with-deps webkit
+          python -m pip install pdfplumber==0.11.10
+      - name: "NOT RUN: the WebKit install failed twice, so no check ran"
+        if: failure() && steps.install.outcome == 'failure' && steps.install2.outcome != 'success'
+        run: |
+          echo "NOT RUN: the install of Playwright, WebKit and pdfplumber failed, or ran longer than 6 minutes, twice; no check ran (an install failure, not a test failure)" | tee -a "$GITHUB_STEP_SUMMARY"
+          exit 1
+      - name: Switch the modules on in a template course and run every check in WebKit
+        timeout-minutes: 30
+        env:
+          COURSE: ${{ matrix.course }}
+        run: bash core/ci_course.sh "$COURSE" webkit

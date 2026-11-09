@@ -27,18 +27,43 @@
 # check is NOT RUN that is not one of the documented exclusions below, with the reason
 # given there: a missing Playwright, a browser that did not start, a missing pdfplumber
 # or any other unplanned NOT RUN fails the run instead of passing on NOT RUN lines.
+# On a module course, also 1 when a module's own test (features/<name>/test.js) did not
+# PASS with at least one passed check printed after the browser it started (check_lib.js
+# launch) was the run's browser.
 #
-# Documented exclusions (check, the reason it must give, which courses, why):
-#   cite_check.py    "no lecture PDFs found"     every course   the lecture decks are kept
-#                                                               in Louis's Drive, never in
-#                                                               a repository
-#   stepper_test.js  "no step-through figures"   medicinal-     that course has no
-#                                                chemistry      step-through figures
+# Scratch folders: the work folder ($TMPDIR/kit-ci-XXXXXX, with the course and checks.log)
+# and run_checks.sh's log folder ($TMPDIR/drill-checks-XXXXXX) are removed when the run
+# exits 0, each by its exact path; on any other exit status both are kept and named
+# ("kept for inspection: ..."). KEEP_TEST_TMP=1 keeps them whatever the result.
+#
+# Documented exclusions: core/ci_exclusions.sh lists them (cite_check.py without lecture
+# PDFs; stepper_test.js on medicinal-chemistry; and one case, the worksheets-ink PDF's size
+# in WebKit only). Any other NOT RUN, of a whole check or of one case, fails the run.
 set -euo pipefail
 kind="${1:?usage: core/ci_course.sh <template|template-unset|medicinal-chemistry|module:<name>|modules:<a>,<b>> [chromium|webkit]}"
-browser="${2:-chromium}"
+browser="${2:-chromium}"; browser="${browser,,}"
+order=""   # the modules switched on (module courses only), never taken from the environment
 kit="$(cd "$(dirname "$0")/.." && pwd)"
 work="$(mktemp -d "${TMPDIR:-/tmp}/kit-ci-XXXXXX")"
+logs=""
+# on exit: remove this run's own folders when it passed, keep and name them otherwise
+# the log folder run_checks.sh named, only when it is a drill-checks-* folder directly in $TMPDIR
+own_logs() {
+  case "$logs" in "${TMPDIR:-/tmp}/drill-checks-"*) ;; *) return 1 ;; esac
+  [ "$(dirname -- "$logs")" = "${TMPDIR:-/tmp}" ] && [ -d "$logs" ]
+}
+cleanup() {
+  local rc=$? kept="$work"
+  own_logs && kept="$kept $logs"
+  if [ "$rc" -eq 0 ] && [ "${KEEP_TEST_TMP:-}" != 1 ]; then
+    rm -rf -- "$work"
+    if own_logs; then rm -rf -- "$logs"; fi
+  else
+    echo "kept for inspection: $kept$([ "${KEEP_TEST_TMP:-}" = 1 ] && echo '  (KEEP_TEST_TMP=1)')" >&2
+  fi
+  exit "$rc"
+}
+trap cleanup EXIT
 course="$work/course"
 git_quiet() { git -c user.email=ci@example.invalid -c user.name="kit checks" "$@" >/dev/null; }
 
@@ -107,7 +132,7 @@ esac
 
 echo "== $kind, $browser, kit $(git -C "$kit" rev-parse --short HEAD 2>/dev/null || echo '?')"
 set +e
-(cd "$course/src" && DRILL_BROWSER="$browser" bash ./run_checks.sh) 2>&1 | tee "$work/checks.log"
+(cd "$course/src" && DRILL_BROWSER="$browser" DRILL_CHECKS_KEEP_LOGS=1 bash ./run_checks.sh) 2>&1 | tee "$work/checks.log"
 status=${PIPESTATUS[0]}
 set -e
 # the full log of each failing check, so the reason is in the workflow's output
@@ -121,26 +146,41 @@ if [ -n "$logs" ] && [ -d "$logs" ]; then
     tail -n 25 "$f"
   done
 fi
-# every NOT RUN must be a documented exclusion with its documented reason
-allowed() {   # $1 check, $2 reason
-  case "$1" in
-    cite_check.py)   [[ "$2" == "no lecture PDFs found"* ]] ;;
-    stepper_test.js) [ "$kind" = medicinal-chemistry ] && [[ "$2" == "no step-through figures"* ]] ;;
-    *) return 1 ;;
-  esac
-}
-unexpected=0
-while IFS= read -r line; do
-  check="$(printf '%s' "$line" | sed -E 's/^NOT RUN +([^ ]+) +.*$/\1/')"
-  reason="$(printf '%s' "$line" | sed -E 's/^NOT RUN +[^ ]+ +//')"
-  if ! allowed "$check" "$reason"; then
-    [ $unexpected -eq 0 ] && echo && echo "---- NOT RUN that is not a documented exclusion ----"
-    echo "  $check: $reason"
-    unexpected=$((unexpected + 1))
-  fi
-done < <(grep -E '^NOT RUN +[^ ]+ ' "$work/checks.log" || true)
-if [ $unexpected -gt 0 ]; then
-  echo "FAIL: $unexpected check(s) did not run for a reason that is not a documented exclusion" >&2
+# every NOT RUN, of a check or of one case in a check, must be a documented exclusion with its
+# documented reason (core/ci_exclusions.sh)
+source "$kit/core/ci_exclusions.sh"
+unexpected_notruns "$work/checks.log" || true
+unexpected=$UNEXPECTED_NOTRUNS
+if [ "$unexpected" -gt 0 ]; then
+  echo "FAIL: $unexpected check(s) or case(s) did not run for a reason that is not a documented exclusion" >&2
   exit 1
+fi
+# A module course: each module switched on must have its own test (features/<name>/test.js)
+# PASS, with at least one passed check printed after the line check_lib.js's launch prints
+# when the run's browser has started. A test that finished before starting its browser,
+# started none through launch, or passed nothing after it, does not count as run there.
+# (A check printed after that line is counted whether or not it used the page; the kit's
+# module tests do use it.)
+if [ -n "${order:-}" ]; then
+  want="$(case "$browser" in webkit) echo WebKit;; firefox) echo Firefox;; *) echo Chromium;; esac)"
+  short=0
+  echo; echo "---- each module's own test in $want ----"
+  for m in $order; do
+    c="features/$m/test.js"; f="$logs/${c//\//__}.log"
+    res="$(grep -E "^[A-Z ]+ +features/$m/test.js " "$work/checks.log" | head -n 1 | awk '{print $1}' || true)"
+    n=0
+    if [ -n "$logs" ] && [ -f "$f" ]; then n="$(awk -v b="  browser  $want started" '$0 == b {on = 1; next} on && /^  ok /{k++} END {print k + 0}' "$f")"; fi
+    if [ "$res" = PASS ] && [ "$n" -ge 1 ]; then echo "  $m: PASS, $n check(s) passed in $want"
+    else echo "  $m: ${res:-no result}, $n check(s) passed in $want"; short=$((short + 1)); fi
+  done
+  if [ $short -gt 0 ]; then
+    echo "FAIL: $short module test(s) did not pass at least one check in $want" >&2
+    exit 1
+  fi
+  missing_required "$order" "$browser" "$logs" || true
+  if [ "$MISSING_REQUIRED" -gt 0 ]; then
+    echo "FAIL: $MISSING_REQUIRED required check(s) did not pass (core/ci_exclusions.sh REQUIRED_PASSES)" >&2
+    exit 1
+  fi
 fi
 exit "$status"

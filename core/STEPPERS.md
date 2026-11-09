@@ -11,7 +11,13 @@ complete picture of that moment and nothing in the source describes the motion.
     ], 200, 'The figcaption under the figure.', 'optional footer note');
 
 `stepper(key, title, steps, h, cap, footer)` builds the groups, the Back / Next /
-Replay step / Play all controls and a dot per step. `h` is the panel height and
+Replay step / Play all controls and a dot per step. The engine adds to every
+step-through it draws (views.js `armFigs`): the current step in words for a
+screen reader (the drawn caption already shows it), `aria-current` on its dot, the
+left and right arrow keys while a control has focus, and an Enlarge button that
+shows the figure across the screen until Close or Escape. Every control and dot is
+a 44 by 44 px touch target (shell.html). None of this changes the steps or their
+order. `h` is the panel height and
 has to leave about 34 px at the bottom for a one-line step caption, more for two.
 
 ## What the engine does between two steps
