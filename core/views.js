@@ -179,9 +179,12 @@ function matchesFilter(q){
   if(FILTER.tag  !== 'all' && !(q.types||[]).includes(FILTER.tag)) return false;
   return true;
 }
+/* A topic or subtopic set holds every question of it; with no topic named (Everything,
+   adaptive, the filtered pass, the count on Start practice) an optional topic is left
+   out (OPTIONAL_TOPICS, shell.html). */
 function poolFor(topicId, subId){
   return QUESTIONS.filter(q =>
-    (!topicId || q.topic === topicId) &&
+    (topicId ? q.topic === topicId : !isOptional(q)) &&
     (!subId   || q.sub   === subId)   &&
     matchesFilter(q));
 }
@@ -226,6 +229,7 @@ const ALL_TAGS = Object.keys(TYPE_LABEL).filter(k => QUESTIONS.some(q=>q.types.i
 
 const VIEWS = ['topics','quiz','gaps','exam','atlas','diagrams','guide','tell','ref','settings'];
 function show(v){
+  figClose();
   VIEW = v;
   document.querySelectorAll('#nav button').forEach(b=>b.setAttribute('aria-selected', b.dataset.v===v));
   VIEWS.forEach(k=> document.getElementById('v-'+k).classList.toggle('hide', k!==v));
@@ -233,7 +237,39 @@ function show(v){
   ({topics:renderTopics, quiz:renderQuiz, gaps:renderGaps, exam:renderExam,
     atlas:renderAtlas, diagrams:renderDiagrams, guide:renderGuide, tell:renderTell,
     ref:renderRef, settings:renderSettings}[v])();
+  navReveal(v);
+  armFigs(document.getElementById('v-' + v));
 }
+
+/* ---------- the tab bar on a narrow screen ----------
+   The tabs scroll sideways when they do not fit (a phone, a tablet in portrait).
+   The bar shows a chevron on the side that has more tabs (more-l, more-r, drawn
+   in shell.html; tapping it scrolls that way), and the tab opened is scrolled
+   into view, so a tab reached from a link is never left off the edge. */
+function navCue(){
+  const n = document.getElementById('nav');
+  if(!n || !n.classList || typeof n.scrollWidth !== 'number') return;
+  // the header wraps to two lines or more on a phone when the course title is
+  // long, so the bar sits below the header's real height, not a fixed 44 px
+  const hd = document.querySelector('header');
+  if(hd && document.documentElement.style){
+    document.documentElement.style.setProperty('--head-h', hd.offsetHeight + 'px');
+    document.documentElement.style.setProperty('--nav-h', n.offsetHeight + 'px');
+  }
+  const max = n.scrollWidth - n.clientWidth;
+  n.classList.toggle('more-l', max > 1 && n.scrollLeft > 1);
+  n.classList.toggle('more-r', max > 1 && n.scrollLeft < max - 1);
+}
+function navReveal(v){
+  const n = document.getElementById('nav');
+  const b = n && n.querySelector && n.querySelector(`button[data-v="${v}"]`);
+  if(!b || typeof b.getBoundingClientRect !== 'function' || typeof n.scrollWidth !== 'number') return navCue();
+  const nr = n.getBoundingClientRect(), br = b.getBoundingClientRect(), pad = 30;
+  if(br.left < nr.left + pad) n.scrollLeft -= (nr.left + pad - br.left);
+  else if(br.right > nr.right - pad) n.scrollLeft += (br.right - nr.right + pad);
+  navCue();
+}
+
 
 /* ==========================================================================
    JUMPING TO A READING SECTION, AND BACK
@@ -256,7 +292,8 @@ function scrollToEl(el){
 }
 const RET = [];
 const VIEW_NAME = {quiz:'the question', exam:'the exam', gaps:'weak spots', diagrams:'the diagrams',
-                   topics:'the topics', ref:'the reference', tell:'tell apart', guide:'the guides'};
+                   topics:'the topics', ref:'the reference', tell:'tell apart', guide:'the guides',
+                   atlas:'the atlas', settings:'settings'};
 function jump(view, anchor){
   RET.push({view: VIEW, y: window.scrollY});
   show(view);
@@ -319,7 +356,7 @@ function sessStrip(){
   const s = sessionLog();
   if(!s.length) return `<span class="meta" id="sess">This session: no answers yet</span>`;
   const ok = s.filter(solidEntry).length, last = s.slice(-10);
-  return `<span class="meta" id="sess">This session: ${ok}/${s.length} (${Math.round(100*ok/s.length)}%) · last ${last.length}:
+  return `<span class="meta" id="sess">This session: ${ok}/${s.length} solid (${Math.round(100*ok/s.length)}%) · last ${last.length}:
     <span class="sdots10">${last.map(e => `<i class="${solidEntry(e)?'y':'n'}" title="${esc(e.qid)}"></i>`).join('')}</span></span>`;
 }
 const refreshSess = () => { const el = $('#sess'); if(el) el.outerHTML = sessStrip(); };
@@ -333,8 +370,28 @@ const refreshSess = () => { const el = $('#sess'); if(el) el.outerHTML = sessStr
 function tierMarks(tier){
   return EXAM.pools.filter(p => (p.filter.tier || 'old') === tier).reduce((n, p) => n + p.marks, 0);
 }
+/* How many questions a chip would select, the other filters held as they are. */
+function chipCount(g, v){
+  const was = FILTER[g]; FILTER[g] = v;
+  const n = QUESTIONS.filter(matchesFilter).length;
+  FILTER[g] = was;
+  return n;
+}
+/* Why the current filters select nothing, in words, for the notice on Topics. */
+function emptyReason(){
+  if(FILTER.prof !== 'all' && !QUESTIONS.some(q => q.prof === FILTER.prof))
+    return `${esc(FILTER.prof)} has no questions in this bank yet`;
+  return 'no question carries every filter chosen';
+}
 function filterBar(){
-  const chip=(g,v,l)=>`<button class="chip" data-f="${g}" data-v="${v}" aria-pressed="${FILTER[g]===v}">${l}</button>`;
+  // a chip that would select nothing stays listed and says so
+  const chip=(g,v,l)=>{
+    const n = v === 'all' ? QUESTIONS.length : chipCount(g, v);
+    const yet = !n && g === 'prof' && !QUESTIONS.some(q => q.prof === v);
+    const why = !n ? (yet ? 'no questions yet' : 'no questions with the other filters') : '';
+    return `<button class="chip${n ? '' : ' none'}" data-f="${g}" data-v="${v}" aria-pressed="${FILTER[g]===v}"${
+      why ? ` title="${why}"` : ''}>${why ? `<span>${l}</span> <small>(${yet ? why : 'none with the other filters'})</small>` : l}</button>`;
+  };
   return `<div class="filters">
     <div class="frow"><label>Professor</label>
       ${chip('prof','all',COURSE.professors.length > 1 ? 'Both' : 'All')}${COURSE.professors.map(p => chip('prof',p,p)).join('')}</div>
@@ -448,6 +505,772 @@ function exportProgress(){
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
+/* ---------- Import progress ----------
+   Louis's rules (2026-11-02, corrected twice on 2026-11-03): a file is read and checked whole
+   before anything is saved; a file of another course, and a file that names no
+   course, is refused; the page shows what is in the file, what this device has and
+   what Import would do, and saves only when the student confirms; the progress
+   Import replaces is kept, and Settings can put it back; two records are never
+   mixed; whenever it is not established that the file continues this profile's
+   record, or that it adds nothing to it, the file goes into a new profile of its
+   own and this profile is unchanged; matching or empty answer lists alone never
+   show that a file adds nothing; importing the same file again changes nothing,
+   and makes no second profile; a write the browser
+   refuses, or a saved progress or answer history that could not be read in this
+   visit, means nothing is replaced, and the page says so. This device's appearance
+   and its other preferences stay as they are.
+
+   An answer is found by its question id and its time (`at`, in milliseconds), and
+   two copies are the same answer only when every field of the two agrees (the
+   result, the choices picked, the confidence, the count and the rest). Two copies
+   under one key that differ are a conflict, never treated as the same answer.
+   Every other part of the progress is compared as well (addsTo): each concept
+   record, each FSRS card and comparison arm, the answer count, the settings that
+   come with the file, and any part a feature module keeps.
+   What Import does with a file of this course:
+     nothing   every part of the file's progress is here, field for field, and every
+               history entry; or every part of it and every history entry is in another
+               profile here (a file imported before into a profile of its own; when that
+               profile's history lacks some of the file's entries, they are added to it);
+     history   the same, except the file adds history entries: they are merged in,
+               and the progress is unchanged;
+     replace   this profile holds no progress (no answers, answer count, concept
+               records, scheduler state or module part; settings alone are not
+               progress) and its answer history holds nothing the file's lacks; or the
+               file continues this profile's record: it has answers this device lacks,
+               every other part of this profile is in the file as it is here (except the
+               records the file's further answers changed, and the settings, which come
+               with the file), and the file's record has the same origin
+               (`created`) as this one, this device's answer list is complete (its
+               first answer is answer 1), and this device's answers are the file's
+               first answers, field for field, in order. The file's progress then
+               replaces this profile's, which is first kept as a copy;
+     separate  anything else (answers on each side the other lacks, a conflict, a
+               record of another origin, an answer list here that the 4,000-answer
+               limit has cut, matching answers with other concept progress, settings
+               or scheduling state, an older file whose other parts differ): the
+               file's progress goes into a new profile, and this profile's progress
+               is unchanged.
+   With the progress come its settings, the pace and "Ask everything", because the
+   file's review dates were set with them; IMPORT_DEVICE keeps this device's own
+   choice of the others. The answer history is merged, never replaced. The copies
+   Import keeps (a list under <ns>:backup:<profile>, newest last) are never deleted
+   by Import or Put back; Settings deletes them only when the student asks. A
+   browser that stops between Import's writes leaves either the old progress, or the
+   new progress with the history not yet merged; importing the file again merges it.
+   Import plans and writes nothing while this page's progress is not what is stored:
+   when another tab or window saved the profile after this page read it, or when the
+   browser refused this visit's last save of it (an answer still waiting to be saved
+   is saved first, and kept on the page, flagged, if the browser refuses it). The
+   file's other parts are checked whole as well as its answers: settings, the answer
+   count, each concept record's counts and lists, and the scheduler's cards and arms.
+   Every ordinary save has the same guard (shell.html profileSavedElsewhere): a page
+   another tab has saved over stops saving instead of writing its older copy. */
+const IMPORT_DEVICE = ['eqPick'];          // DB.settings fields that stay with this device
+const RESULTS = ['correct', 'wrong', 'guessed'];
+const backupKey = p => NS + ':backup:' + p;
+const answerKey = a => a.qid + '|' + a.at;
+// every field of an answer, in a fixed order: two copies are the same answer only when these agree
+const answerSig = a => JSON.stringify(Object.keys(a).sort().map(k => [k, a[k]]));
+const logEntryKey = e => e.slice(0, 4).join('|');
+const isObj = v => !!v && typeof v === 'object' && !Array.isArray(v);
+const dateOf = ms => { const d = new Date(ms); return isNaN(d) ? '' : d.toISOString().slice(0, 10); };
+const span = list => { const t = list.map(a => a.at).filter(Number.isFinite); return t.length ? `${dateOf(Math.min(...t))} to ${dateOf(Math.max(...t))}` : ''; };
+const nAnswers = n => `${n.toLocaleString('en-US')} answer${n === 1 ? '' : 's'}`;
+const nEntries = n => `${n.toLocaleString('en-US')} history entr${n === 1 ? 'y' : 'ies'}`;
+
+/* The file read whole: {db, log, profile, exported, unknown} for a progress file of
+   this course, or {why} saying why it is not imported. Nothing is saved here. */
+function readProgressFile(text){
+  let j;
+  try { j = JSON.parse(text); } catch(e){ return {why: 'The file is not a progress export: it is not valid JSON.'}; }
+  if(!isObj(j)) return {why: 'The file is not a progress export.'};
+  if(j.app === 'bdk-quiz') return {why: 'This file was exported by the BDK quiz\'s own site, whose progress this drill cannot read yet.'};
+  if(j.app !== undefined && j.app !== 'exam-drill') return {why: 'The file was exported by another app, not by this drill.'};
+  const db = j.db;
+  if(!isObj(db) || !isObj(db.concepts) || !Array.isArray(db.answers)) return {why: 'The file is not a progress export: it holds no progress.'};
+  // the course: the file must name it; question ids alone do not show whose progress a file is
+  if(j.ns === undefined && j.course === undefined)
+    return {why: 'The file names no course (it was exported before this drill labelled its files), so it cannot be told to be this course\'s progress.'};
+  if(j.ns !== undefined && ![NS, COURSE.ns, COURSE.ns + '-preview'].includes(j.ns) || j.course !== undefined && j.course !== COURSE.id)
+    return {why: `This file is the progress of another course (${String(j.course || j.ns)}), not of ${COURSE.title || COURSE.id}.`};
+  // every answer whole
+  for(let i = 0; i < db.answers.length; i++){
+    const a = db.answers[i];
+    if(!isObj(a) || typeof a.qid !== 'string' || !a.qid || !Number.isFinite(a.at) || !RESULTS.includes(a.result) || a.qn !== undefined && !Number.isFinite(a.qn))
+      return {why: `The file's progress is damaged: answer ${i + 1} of ${db.answers.length} is not a whole answer.`};
+  }
+  const seen = new Set();
+  for(const a of db.answers){
+    if(seen.has(answerKey(a))) return {why: 'The file\'s progress is damaged: it holds the same answer twice.'};
+    seen.add(answerKey(a));
+  }
+  for(const [c, s] of Object.entries(db.concepts))
+    if(!isObj(s)) return {why: `The file's progress is damaged: the record of concept ${c} is not readable.`};
+  if(j.log !== undefined && !Array.isArray(j.log)) return {why: 'The file\'s answer history is damaged: it is not a list.'};
+  const log = j.log || [];
+  for(let i = 0; i < log.length; i++){
+    const e = log[i];
+    if(!Array.isArray(e) || e.length < 3 || !Number.isFinite(e[0]) || typeof e[1] !== 'string' || (e[2] !== 0 && e[2] !== 1))
+      return {why: `The file's answer history is damaged: entry ${i + 1} of ${log.length} is not a whole entry.`};
+  }
+  // the other parts whole too: a part of the wrong kind breaks the page later (settings
+  // that are not a record, a count that is not a number, a concept's list that is not a list)
+  const damaged = what => ({why: `The file's progress is damaged: ${what}.`});
+  if(db.settings !== undefined && !isObj(db.settings)) return damaged('its settings are not a settings record');
+  if(db.qn !== undefined && !(Number.isFinite(db.qn) && db.qn >= 0)) return damaged('its answer count is not a number');
+  if(db.created !== undefined && !Number.isFinite(db.created)) return damaged('its start time is not a time');
+  for(const m of ['fsrsQ', 'fsrsC', 'arms']) if(db[m] !== undefined && db[m] !== null && !isObj(db[m])) return damaged(`its scheduler record "${m}" is not a list of entries`);
+  for(const m of ['fsrsQ', 'fsrsC']) for(const [k, card] of Object.entries(db[m] || {})) if(!isObj(card)) return damaged(`its scheduler record "${m}" has an entry for ${k} that is not a card`);
+  for(const [k, arm] of Object.entries(db.arms || {})) if(arm !== 'concept' && arm !== 'concept-fsrs') return damaged(`its comparison record gives concept ${k} an arm that does not exist`);
+  for(const k of ['mode', 'pace']) if(isObj(db.settings) && db.settings[k] !== undefined && db.settings[k] !== null && typeof db.settings[k] !== 'string') return damaged(`its setting "${k}" is not a setting`);
+  for(const [c, s] of Object.entries(db.concepts)){
+    const k = CONCEPT_COUNTS.find(k => s[k] !== undefined && !Number.isFinite(s[k]));
+    if(k) return damaged(`in the record of concept ${c}, "${k}" is not a number`);
+    if(s.asked !== undefined && !Array.isArray(s.asked)) return damaged(`in the record of concept ${c}, "asked" is not a list`);
+    for(const f of ['last', 'check']) if(s[f] !== undefined && s[f] !== null && !isObj(s[f])) return damaged(`in the record of concept ${c}, "${f}" is not a record`);
+  }
+  const ids = [...new Set(db.answers.map(a => a.qid))], known = ids.filter(id => byId(id)).length;
+  let up;
+  try { up = upgradeDB(JSON.parse(JSON.stringify(db))); }
+  catch(e){ return {why: 'The file\'s progress could not be converted to this drill\'s format.'}; }
+  return {db: up, log, profile: typeof j.profile === 'string' ? j.profile : '', exported: typeof j.exported === 'string' ? j.exported : '',
+          unknown: ids.length - known, created: db.created};
+}
+
+/* The parts of a progress Import compares besides the answers. `v` is the shape's
+   version, `created` the record's origin (compared in continuesHere), and `fsUndo`
+   and `fsHistory` are the FSRS step "I guessed" can undo and whether the cards were
+   rebuilt from the answers: none of them is progress a file could add. */
+const NOT_COMPARED = ['v', 'created', 'fsUndo', 'fsHistory', 'answers', 'qn', 'settings'];
+const CONCEPT_COUNTS = ['seen', 'correct', 'wrong', 'guessed', 'streak', 'box', 'dueAt', 'dueQ', 'lastQ'];
+/* Another tab or window saved this profile's progress after this page read or wrote
+   it: what is stored is neither what this page last read or wrote (SEEN) nor what it
+   shows (shell.html profileSavedElsewhere). Import then plans and writes nothing. */
+const changedElsewhere = () => profileSavedElsewhere();   // its progress or its history
+/* While another tab or window has this profile (the single-writer lock in shell.html),
+   the reason given is that one, not a save "since". */
+const OPEN_ELSEWHERE = 'This profile is open in another tab or window of this browser, which saves it, so this page writes nothing to it. Nothing was imported. Use "Use it here" first, or import in that tab.';
+const notTheWriter = () => WRITER !== 'none' && !(WRITER === 'held' && WRITER_FOR === PROFILE);
+const elsewhere = () => notTheWriter() ? OPEN_ELSEWHERE : ELSEWHERE;
+const ELSEWHERE = 'This profile\'s progress or answer history was saved by another tab or window after this page opened it, so this page cannot import over it. Nothing was imported. Reload this page, then import again.';
+const UNSAVED = 'This profile\'s progress could not be saved in this visit (storage is full or blocked), so what this page shows is not what is stored, and nothing was imported. Export progress first, free some space, reload, and import again.';
+const ENTRY_MAPS = {concepts: 'concepts', arms: 'scheduler', fsrsQ: 'scheduler', fsrsC: 'scheduler'};   // compared entry by entry
+const canon = v => JSON.stringify(v, (k, x) => isObj(x) ? Object.keys(x).sort().reduce((o, key) => (o[key] = x[key], o), {}) : x);
+const isEmptyPart = v => v === undefined || v === null || v === '' || v === 0 || v === false ||
+  (Array.isArray(v) && !v.length) || (isObj(v) && !Object.keys(v).length);
+/* What the file's progress holds that `db` lacks or holds otherwise, by part:
+   'answers', 'concepts', 'settings', 'scheduler' (the answer count, the FSRS cards,
+   the comparison's arms) or 'other' (a part a feature module keeps). [] when every
+   part of the file is in `db`, field for field. Matching answer lists never show
+   this on their own (Louis, 2026-11-03): the concept progress, the pace and the
+   scheduler's state can differ while the answers agree, or while both lists are
+   empty. `sigs`: db's answers, key -> answerSig. */
+function addsTo(fdb, db, sigs){
+  const parts = new Set();
+  if(fdb.answers.some(a => sigs.get(answerKey(a)) !== answerSig(a))) parts.add('answers');
+  for(const [m, part] of Object.entries(ENTRY_MAPS)){
+    const F = isObj(fdb[m]) ? fdb[m] : {}, D = isObj(db[m]) ? db[m] : {};
+    if(Object.keys(F).some(k => !(k in D) || canon(F[k]) !== canon(D[k]))) parts.add(part);
+  }
+  if((Number(fdb.qn) || 0) > (Number(db.qn) || 0)) parts.add('scheduler');
+  const FS = isObj(fdb.settings) ? fdb.settings : {}, DS = isObj(db.settings) ? db.settings : {};
+  if(Object.keys(FS).some(k => !IMPORT_DEVICE.includes(k) && canon(FS[k]) !== canon(DS[k]))) parts.add('settings');
+  for(const k of Object.keys(fdb))
+    if(!NOT_COMPARED.includes(k) && !(k in ENTRY_MAPS) && canon(fdb[k]) !== canon(db[k])) parts.add('other');
+  return [...parts];
+}
+/* Whether a progress holds anything besides settings: answers, an answer count,
+   concept records, the scheduler's state or a module's part. */
+function holdsProgress(db){
+  if(db.answers.length || Number(db.qn) > 0) return true;
+  if(Object.keys(ENTRY_MAPS).some(m => isObj(db[m]) && Object.keys(db[m]).length)) return true;
+  return Object.keys(db).some(k => !NOT_COMPARED.includes(k) && !(k in ENTRY_MAPS) && !isEmptyPart(db[k]));
+}
+/* Whether the file's record continues this profile's (which holds progress): see
+   "replace" above. */
+function continuesHere(here, there, fileCreated, fdb){
+  if(!Number.isFinite(fileCreated) || !Number.isFinite(DB.created) || fileCreated !== DB.created) return {ok: false, why: 'origin'};
+  if(!here.length) return {ok: false, why: 'empty'};
+  if(here[0].qn !== 1) return {ok: false, why: 'incomplete'};
+  if(there.length < here.length) return {ok: false, why: 'order'};
+  for(let i = 0; i < here.length; i++) if(answerSig(here[i]) !== answerSig(there[i])) return {ok: false, why: 'order'};
+  // this profile's other parts: each is in the file as it is here, except the records
+  // the file's further answers changed (their concepts and questions), and the
+  // settings, which come with the file. A part changed here without an answer (a
+  // module's record, for example) is not in a file made elsewhere, so the file does
+  // not continue this profile, and the matching answers do not show otherwise.
+  const later = there.slice(here.length);
+  const byC = new Set(later.map(a => a.concept)), byQ = new Set(later.map(a => a.qid));
+  const kept = (m, skip) => Object.entries(isObj(DB[m]) ? DB[m] : {}).every(([k, v]) => skip.has(k) || canon(v) === canon((isObj(fdb[m]) ? fdb[m] : {})[k]));
+  if(!kept('concepts', byC)) return {ok: false, why: 'parts', part: 'concepts'};
+  if(!kept('fsrsQ', byQ) || !kept('fsrsC', byC) || !kept('arms', new Set())) return {ok: false, why: 'parts', part: 'scheduler'};
+  if(Object.keys(DB).some(k => !NOT_COMPARED.includes(k) && !(k in ENTRY_MAPS) && !isEmptyPart(DB[k]) && canon(DB[k]) !== canon(fdb[k])))
+    return {ok: false, why: 'parts', part: 'other'};
+  return {ok: true};
+}
+
+/* What Import would do with a file read whole (readProgressFile), against the
+   profile on screen; or {block} when nothing may be replaced in this visit. */
+/* The browser holds nothing under this profile's progress key (its site data was
+   cleared while this page was open), though the page holds progress. */
+const storedGone = () => { try { return localStorage.getItem(keyFor(PROFILE)) === null && holdsProgress(DB); } catch(e){ return false; } };
+function importPlan(f){
+  if(!canSave()) return {block: LOAD_FAIL};
+  // site data cleared while this page was open: the page's copy is saved again first, as
+  // its next save would, so the plan compares the file with what is stored
+  if(storedGone() && !changedElsewhere()){ store.set(keyFor(PROFILE), JSON.stringify(DB)); saveLog(); }
+  if(FAILED.has(keyFor(PROFILE))) return {block: UNSAVED};
+  if(changedElsewhere()) return {block: elsewhere()};
+  const here = DB.answers, there = f.db.answers;
+  const H = new Map(here.map(a => [answerKey(a), a])), T = new Map(there.map(a => [answerKey(a), a]));
+  const onlyThere = there.filter(a => !H.has(answerKey(a))).length, onlyHere = here.filter(a => !T.has(answerKey(a)));
+  // the same key with different fields: a conflict
+  const conflicts = there.filter(a => H.has(answerKey(a)) && answerSig(H.get(answerKey(a))) !== answerSig(a)).length;
+  // history entries the file adds, and entries here the file's copy completes (an
+  // entry written before the scheduler fields were added; mergeLog's rule)
+  const L = new Map(LOG.map(e => [logEntryKey(e), e]));
+  const newLog = f.log.filter(e => !L.has(logEntryKey(e))).length;
+  const fill = f.log.filter(e => L.has(logEntryKey(e)) && e.length > L.get(logEntryKey(e)).length).length;
+  const plan = {f, onlyThere, onlyHere: onlyHere.length, conflicts, newLog, fill};
+  // the history here cannot be read: it is never written over, so a file that adds to it is not imported
+  const noLog = {block: 'The answer history saved on this device could not be read in this visit, so nothing was imported, and the history is left as it was.'};
+  const logChange = newLog || fill;
+  // every part of the file's progress compared, not only its answers
+  plan.adds = addsTo(f.db, DB, new Map(here.map(a => [answerKey(a), answerSig(a)])));
+  if(!plan.adds.length){
+    plan.action = logChange ? 'history' : 'nothing';
+    return logChange && !LOG_OK ? noLog : plan;
+  }
+  // a profile with no progress, whose answer history holds nothing the file's lacks
+  // (history left from a record put back belongs to that record, not to the file's)
+  const FL = new Set(f.log.map(logEntryKey));
+  plan.hereOnlyLog = LOG_OK ? LOG.filter(e => !FL.has(logEntryKey(e))).length : -1;
+  if(!holdsProgress(DB) && plan.hereOnlyLog === 0){ plan.action = 'replace'; plan.fresh = true; return logChange && !LOG_OK ? noLog : plan; }
+  if(!holdsProgress(DB)) plan.unsure = 'history';
+  else if(onlyThere && !conflicts && !onlyHere.length){
+    const c = continuesHere(here, there, f.created, f.db);
+    if(c.ok){ plan.action = 'replace'; return logChange && !LOG_OK ? noLog : plan; }
+    plan.unsure = c.why; plan.unsurePart = c.part;
+  }
+  plan.action = 'separate';
+  // the file keeps only its latest answers: say so when that is why this device's answers are missing from it
+  const first = there.length ? Math.min(...there.map(a => a.at)) : 0;
+  plan.trimmed = there.length >= ANSWERS_MAX && onlyHere.length > 0 && onlyHere.every(a => a.at < first);
+  // another profile here that already holds every part of the file, field for field (a file imported before is there)
+  plan.already = profilesHere(true).find(p => p.db && p.name !== PROFILE && !addsTo(f.db, p.db, p.sigs).length);
+  if(plan.already){
+    // that profile holds every part of the file's progress; its history may still lack
+    // some of the file's entries (a file exported after a history-only import, or a
+    // separate import stopped between its two writes): they are added to that history
+    const xl = readLogOf(plan.already.name);
+    if(xl === null) return {block: `The answer history of the profile "${plan.already.name}", which holds this file's progress, could not be read, so nothing was imported.`};
+    const XL = new Map(xl.map(e => [logEntryKey(e), e]));
+    plan.newLog = f.log.filter(e => !XL.has(logEntryKey(e))).length;
+    plan.fill = f.log.filter(e => XL.has(logEntryKey(e)) && e.length > XL.get(logEntryKey(e)).length).length;
+    plan.logTo = plan.already.name;
+    plan.action = plan.newLog || plan.fill ? 'history' : 'nothing';
+  }
+  else plan.name = newProfileName(f.profile);
+  return plan;
+}
+/* A profile's stored answer history: [] for none, null when it cannot be read. */
+function readLogOf(name){
+  const raw = store.get(NS + ':log:' + name);
+  if(raw === null) return [];
+  try { const v = JSON.parse(raw); return Array.isArray(v) ? v : null; } catch(e){ return null; }
+}
+/* The profiles saved in this browser for this course. With `full`, each also has its
+   progress as stored, converted as on load (db), and its answers (key -> every
+   field); both null when that progress cannot be read. */
+function profilesHere(full){
+  const pre = NS + ':data:', out = [];
+  try {
+    for(let i = 0; i < localStorage.length; i++){
+      const k = localStorage.key(i);
+      if(!k || !k.startsWith(pre) || k.length === pre.length) continue;
+      let db = null, sigs = null;
+      if(full) try {
+        const d = JSON.parse(localStorage.getItem(k));
+        if(isObj(d) && isObj(d.concepts) && Array.isArray(d.answers)){ db = upgradeDB(d); sigs = new Map(db.answers.map(a => [answerKey(a), answerSig(a)])); }
+      } catch(e){ db = sigs = null; }
+      out.push({name: k.slice(pre.length), db, sigs});
+    }
+  } catch(e){ /* storage unreadable: none */ }
+  return out;
+}
+function newProfileName(from){
+  const taken = new Set(profilesHere().map(p => p.name));
+  // a name is taken when any of its keys holds something (progress, history or copies), as
+  // runImport checks again at the click
+  const used = n => taken.has(n) || n === PROFILE || store.get(NS + ':log:' + n) !== null || store.get(backupKey(n)) !== null;
+  const base = `${(from || 'imported').trim().slice(0, 40) || 'imported'} (imported ${dateOf(Date.now())})`;
+  let name = base;
+  for(let i = 2; used(name); i++) name = `${base} ${i}`;
+  return name;
+}
+
+const PART_NAMES = {concepts: 'concept progress', settings: 'settings', scheduler: 'scheduling state', other: 'other saved progress'};
+// "concept progress differs", "settings differ", "concept progress and settings differ"
+const partsText = parts => {
+  const w = parts.filter(x => x !== 'answers').map(x => PART_NAMES[x]);
+  const text = w.length > 1 ? w.slice(0, -1).join(', ') + ' and ' + w[w.length - 1] : (w[0] || 'progress');
+  return text + (w.length > 1 || w[0] === 'settings' ? ' differ' : ' differs');
+};
+/* The plan, on screen in Settings, with the buttons that carry it out. */
+function showImportPlan(plan){
+  const box = $('#importPlan');
+  if(!box) return;
+  const f = plan.f, there = f.db.answers;
+  const what = {
+    nothing: plan.already ? `Everything in this file is already in the profile "${esc(plan.already.name)}" (a file imported before goes there). Nothing changes.`
+                          : 'Everything in this file (its answers, concept progress, settings and scheduling state, and its history entries) is on this device already. Nothing changes.',
+    history: (plan.logTo ? `Every part of this file's progress is already in the profile "${esc(plan.logTo)}". The file adds ${nEntries(plan.newLog)} to that profile's answer history` +
+                           (plan.fill ? ` and completes ${nEntries(plan.fill)} there` : '') + `. The progress of "${esc(PROFILE)}" is unchanged.`
+                         : `The file adds ${nEntries(plan.newLog)} to the answer history` +
+             (plan.fill ? ` and completes ${nEntries(plan.fill)} saved here before the scheduler fields were kept` : '') + '. Your progress is unchanged.'),
+    replace: (plan.onlyThere ? `The file has ${nAnswers(plan.onlyThere)} that this device does not have, and ` : 'The file holds progress with no answers, and ') +
+             (plan.fresh ? 'this profile has no progress yet. ' : 'it continues this profile\'s record: every answer this device has is the file\'s, in the same order. ') +
+             `Import replaces the progress of "${esc(PROFILE)}" with the file's and adds ${nEntries(plan.newLog)} to its answer history. ` +
+             'The progress it replaces is kept, and Settings can put it back.',
+    separate: [
+                plan.onlyThere ? `The file has ${nAnswers(plan.onlyThere)} that this device does not have` : '',
+                plan.onlyHere ? `this device has ${nAnswers(plan.onlyHere)} that the file does not have` +
+                  (plan.trimmed ? ` (the file keeps only its latest ${nAnswers(ANSWERS_MAX)}, so it cannot show whether it includes this device's older ones)` : '') : '',
+                plan.conflicts ? `${nAnswers(plan.conflicts)} ${plan.conflicts === 1 ? 'is' : 'are'} in both with a different result, choice or mark` : '',
+                plan.unsure === 'origin' ? 'the file\'s progress was not started from this profile\'s record, so it cannot be shown to continue it' : '',
+                plan.unsure === 'incomplete' ? `this device's answer list does not begin with its first answer (a list keeps only the latest ${nAnswers(ANSWERS_MAX)}), so it cannot be shown that the file continues its record` : '',
+                plan.unsure === 'order' ? 'this device\'s answers are not the file\'s first answers in order, so it cannot be shown that the file continues its record' : '',
+                plan.unsure === 'empty' ? 'this profile has no answers but other progress, so it cannot be shown that the file continues its record' : '',
+                plan.unsure === 'parts' ? `this profile's ${PART_NAMES[plan.unsurePart]} is not in the file as it is here, so the file cannot be shown to continue this profile's record` : '',
+                plan.unsure === 'history' ? (plan.hereOnlyLog > 0 ? `this profile has no progress, but its answer history holds ${nEntries(plan.hereOnlyLog)} the file does not have, which would be mixed with the file's record`
+                                                                   : 'this profile has no progress, but its answer history could not be read in this visit') : '',
+                !plan.onlyThere && !plan.conflicts ? `the file's ${partsText(plan.adds)} from this profile's, and the answers alone cannot show that the file adds nothing` : '',
+              ].filter(Boolean).join('; ').replace(/^./, c => c.toUpperCase()) +
+              `. Import puts the file's progress in a new profile, "${esc(plan.name || '')}", and leaves the progress of "${esc(PROFILE)}" as it is.`,
+  }[plan.action];
+  const act = plan.action === 'nothing' ? '' : `<button class="btn" id="importGo">${plan.action === 'separate' ? 'Import into a new profile' : 'Import'}</button>`;
+  box.innerHTML = `<div class="panel" role="region" aria-label="Import progress">
+    <p style="margin:0 0 6px"><b>${esc(COURSE.title || COURSE.id)}</b>: progress${f.profile ? ` of "${esc(f.profile)}"` : ''}${f.exported ? `, exported ${esc(dateOf(Date.parse(f.exported)) || f.exported)}` : ''}.</p>
+    <p class="meta" style="margin:0 0 4px">In the file: ${nAnswers(there.length)}${there.length ? ` (${span(there)})` : ''}, ${nEntries(f.log.length)}` +
+      `${f.unknown ? `; ${nAnswers(f.unknown)} to questions no longer in this drill, kept as they are` : ''}.</p>
+    <p class="meta" style="margin:0 0 8px">On this device, "${esc(PROFILE)}": ${nAnswers(DB.answers.length)}${DB.answers.length ? ` (${span(DB.answers)})` : ''}, ${nEntries(LOG.length)}.</p>
+    <p id="importWhat" style="margin:0 0 8px">${what}</p>
+    ${plan.action === 'replace' ? '<p class="meta" style="margin:0 0 8px">The pace and "Ask everything" come with the file\'s progress, since its review dates were set with them. This device\'s appearance and its other preferences stay as they are.</p>' : ''}
+    <div class="frow">${act}<button class="btn ghost" id="importCancel">${plan.action === 'nothing' ? 'OK' : 'Cancel'}</button></div></div>`;
+  $('#importCancel').onclick = () => { box.innerHTML = ''; };
+  const go = $('#importGo');
+  if(go) go.onclick = () => { go.disabled = true; withOtherProfile(plan, () => runImport(plan)).then(importDone); };
+}
+function importDone(r){
+  const box = $('#importPlan');
+  if(!box) return;
+  box.innerHTML = `<div class="panel" role="status"><p id="importResult" style="margin:0 0 8px">${r.text}</p>
+    <div class="frow">${r.open ? `<button class="btn" id="importOpen">Open "${esc(r.open)}"</button>` : ''}<button class="btn ghost" id="importOk">OK</button></div></div>`;
+  $('#importOk').onclick = () => renderSettings();
+  const o = $('#importOpen');
+  if(o) o.onclick = () => { useProfile(r.open); show('settings'); };
+}
+
+/* The history entries of the file added to `base` (mergeLog's rule), as a new list. */
+function mergedLog(base, entries){
+  const out = base.map(e => e.slice()), here = new Map(out.map(e => [logEntryKey(e), e]));
+  for(const e of entries){
+    const k = logEntryKey(e), mine = here.get(k);
+    if(!mine){ const c = e.slice(); out.push(c); here.set(k, c); }
+    else if(e.length > mine.length) for(let i = mine.length; i < e.length; i++) mine.push(e[i]);
+  }
+  out.sort((x, y) => x[0] - y[0]);
+  return out;   // no cut at LOG_MAX: the student decides (capNotice)
+}
+/* Carry out a plan. Every write is one the browser either keeps or refuses
+   (store.trySet), and a refused one leaves what it would have replaced as it was. */
+/* An import that writes another profile (a new one, or the history of the profile that
+   already holds the file) holds that profile's writer lock while it writes: a tab using
+   that profile has the lock, and the import then writes nothing. */
+function withOtherProfile(plan, fn){
+  const name = plan.action === 'separate' ? plan.name : (plan.logTo && plan.logTo !== PROFILE ? plan.logTo : '');
+  if(!name || WRITER === 'none') return Promise.resolve(fn());
+  return navigator.locks.request(writerName(name), {ifAvailable: true}, lock => lock ? fn() :
+    {text: `The profile "${esc(name)}" is open in another tab or window of this browser, which saves it, so nothing was imported, and that profile and "${esc(PROFILE)}" are unchanged. Import in that tab, or close it and import again.`})
+    .catch(e => ({text: 'The import could not start: ' + esc(String(e && e.message || e)) + '. Nothing was imported.'}));
+}
+function runImport(plan){
+  if(!canSave()) return {text: esc(LOAD_FAIL) + ' The file was not imported.'};
+  // the plan was made from what this page holds: check again that it is what is stored
+  if(FAILED.has(keyFor(PROFILE))) return {text: esc(UNSAVED)};
+  if(changedElsewhere()) return {text: esc(elsewhere())};
+  // the new profile's name was free when the plan was shown; another tab or window may have
+  // saved a profile under it since, which this import must not write over (or delete below)
+  if(plan.action === 'separate' && [keyFor(plan.name), NS + ':log:' + plan.name, backupKey(plan.name)].some(k => store.get(k) !== null))
+    return {text: `Another tab or window saved a profile named "${esc(plan.name)}" after this plan was shown, so nothing was imported, and that profile and yours are unchanged. Choose the file again for a new plan.`};
+  const f = plan.f;
+  const refused = 'The browser refused to save (storage is full or blocked)';
+  // an answer given in the last 150 ms is saved first, so the copy kept below holds it
+  // the browser's site data cleared while this page was open: the page's copy is
+  // written back first, so the copy kept below holds it
+  const cleared = storedGone();
+  if(saveTimer || cleared){
+    clearTimeout(saveTimer); saveTimer = null;
+    // store.set keeps the refused change on this page and flags it, as any save does
+    if(!store.set(keyFor(PROFILE), JSON.stringify(DB))) return {text: `${refused}, so nothing was imported. Your progress is kept on this page until you leave it; export it now.`};
+  }
+  if(plan.action === 'separate'){
+    const name = plan.name, db = JSON.parse(JSON.stringify(f.db));
+    if(!store.trySet(keyFor(name), JSON.stringify(db))) return {text: `${refused}, so nothing was imported. Your progress is unchanged.`};
+    const log = mergedLog([], f.log);
+    if(log.length && !store.trySet(NS + ':log:' + name, JSON.stringify(log))){
+      store.del(keyFor(name));
+      return {text: `${refused}, so nothing was imported. Your progress is unchanged.`};
+    }
+    return {text: `The file's progress is now the profile "${esc(name)}" (${nAnswers(db.answers.length)}). The progress of "${esc(PROFILE)}" is unchanged.`, open: name};
+  }
+  let text = '';
+  if(plan.action === 'replace'){
+    const now = store.get(keyFor(PROFILE)), before = readCopies(), beforeRaw = storedRaw(backupKey(PROFILE));
+    if(before === null) return {text: 'The copies Import kept before cannot be read, so nothing was imported. Your progress is unchanged.'};
+    const copies = now === null ? before : before.concat([{at: Date.now(), data: now, why: 'import'}]);
+    if(now !== null && !store.trySet(backupKey(PROFILE), JSON.stringify(copies)))
+      return {text: `${refused} a copy of the progress Import would replace, so nothing was imported. Your progress is unchanged.`};
+    const db = JSON.parse(JSON.stringify(f.db));
+    db.settings = Object.assign({}, db.settings || {});
+    for(const k of IMPORT_DEVICE){ if(DB.settings && k in DB.settings) db.settings[k] = DB.settings[k]; else delete db.settings[k]; }
+    const dbText = JSON.stringify(db);
+    pendingMark();
+    if(!store.trySet(keyFor(PROFILE), dbText)){
+      // the copy written just before is not needed: the list goes back as it was
+      let undone = now === null;
+      if(!undone && beforeRaw === null){ store.del(backupKey(PROFILE)); undone = store.get(backupKey(PROFILE)) === null; }
+      else if(!undone) undone = store.trySet(backupKey(PROFILE), beforeRaw);
+      return {text: `${refused}, so nothing was imported. Your progress is unchanged.` +
+                    (undone ? '' : ' The copies kept by Import now also hold a copy of it (the browser refused to take it off the list).')};
+    }
+    clearTimeout(saveTimer); saveTimer = null;
+    SEEN = dbText;
+    pendingRetire();   // other tabs' older records of this profile cannot bring back what was replaced
+    DB = db;
+    try { fsFromHistory(); } catch(e){ FS_ERROR = String(e && e.message || e); }
+    text = `Imported: "${esc(PROFILE)}" now has the file's progress (${nAnswers(db.answers.length)}). The progress it replaced is kept; Settings can put it back.`;
+  }
+  if((plan.newLog || plan.fill) && plan.logTo){
+    // into the history of the profile that already holds every part of the file's progress
+    const base = readLogOf(plan.logTo);
+    if(base === null) return {text: `The answer history of the profile "${esc(plan.logTo)}" could not be read, so nothing was imported.`};
+    const log = mergedLog(base, f.log);
+    return {text: store.trySet(NS + ':log:' + plan.logTo, JSON.stringify(log))
+      ? `${nEntries(plan.newLog)} added to the answer history of "${esc(plan.logTo)}"` + (plan.fill ? `, ${plan.fill} completed` : '') + `. The progress of "${esc(PROFILE)}" is unchanged.`
+      : `${refused} the answer history of "${esc(plan.logTo)}", so nothing was imported; that history is unchanged.`};
+  }
+  if(plan.newLog || plan.fill){
+    if(!LOG_OK) return {text: text + ' The answer history saved here could not be read in this visit, so the file\'s entries were not added to it.'};
+    const log = mergedLog(LOG, f.log);
+    if(store.trySet(logKey(), JSON.stringify(log))){ LOG = log; text += (text ? ' ' : '') + `${nEntries(plan.newLog)} added to the answer history` + (plan.fill ? `, ${plan.fill} completed` : '') + '.'; setTimeout(capNotice, 0); }
+    else text += (text ? ' ' : '') + `${refused} the answer history, so the file's ${nEntries(plan.newLog)} were not added; the history here is unchanged. Importing the file again adds them.`;
+  }
+  return {text};
+}
+/* The copies Import keeps, newest last: [{at, data, why}], [] for none, or null when
+   what is stored there cannot be read (then nothing writes over it). Read from what the
+   browser holds: copies another tab or window deleted are not shown or written back here. */
+function readCopies(){
+  const raw = storedRaw(backupKey(PROFILE));
+  if(raw === null) return [];
+  try {
+    const v = JSON.parse(raw);
+    const list = Array.isArray(v) ? v : [v];
+    return list.every(c => isObj(c) && typeof c.data === 'string') ? list : null;
+  } catch(e){ return null; }
+}
+/* Settings' "Put back": the newest copy Import kept becomes the progress again, and
+   the progress on screen is kept as a copy in its place. Each step is a write the
+   browser keeps or refuses, in an order that holds both records in storage at every
+   point: (1) the progress on screen is added to the copies, (2) the newest copy is
+   written as the progress, (3) that copy is taken off the list. A refusal at (1) or
+   (2) changes nothing; a refusal at (3) leaves that copy on the list as well, and the
+   put-back stands. */
+const ELSEWHERE_SHORT_SAVED = 'This profile was saved in another tab or window after this page opened it';
+const elsewhereShort = () => notTheWriter() ? 'This profile is open in another tab or window, which saves it' : ELSEWHERE_SHORT_SAVED;
+const COPIES_CHANGED = 'The copies kept by Import were changed in another tab or window while this question was open, so';
+// what the browser holds under k now (store.get would fall back to this page's copy of a removed key)
+const storedRaw = k => { try { return localStorage.getItem(k); } catch(e){ return null; } };
+function restoreBackup(){
+  if(!canSave()){ alert(LOAD_FAIL + ' Nothing was put back.'); return; }
+  if(changedElsewhere()){ staleWarn(); alert(elsewhereShort() + ', so nothing was put back. Reload this page first.'); return; }
+  const copies = readCopies();
+  if(copies === null){ alert('The copies kept by Import cannot be read, so nothing was put back.'); return; }
+  if(!copies.length){ alert('There is no copy to put back.'); return; }
+  const b = copies[copies.length - 1];
+  let db;
+  try { const v = JSON.parse(b.data); if(!isObj(v)) throw new Error('not a progress object'); db = upgradeDB(v); }
+  catch(e){ alert('The copy kept by Import cannot be read, so nothing was put back.'); return; }
+  const copiesRaw = storedRaw(backupKey(PROFILE));
+  if(!confirm(`Put back the progress of "${PROFILE}" from ${dateOf(b.at)} (${db.answers.length} answers)? The progress now on screen is kept as a copy in its place.`)) return;
+  // the question may have stayed open while another tab or window saved this profile, or
+  // changed its copies (a delete there must not be undone here)
+  if(changedElsewhere()){ staleWarn(); alert(elsewhereShort() + ', so nothing was put back. Reload this page first.'); return; }
+  if(storedRaw(backupKey(PROFILE)) !== copiesRaw){ alert(COPIES_CHANGED + ' nothing was put back. Reload this page first.'); return; }
+  const refused = 'The browser refused to save (storage is full or blocked), so nothing was put back. Your progress and the copies are unchanged.';
+  // a change still waiting on its 150 ms timer is saved first, so the copy kept below (the
+  // progress on screen) holds it; refused, it stays on this page, flagged, and nothing is put back
+  if(saveTimer){
+    clearTimeout(saveTimer); saveTimer = null;
+    if(!store.set(keyFor(PROFILE), JSON.stringify(DB))){
+      alert('The browser refused to save (storage is full or blocked), so nothing was put back. Your latest change is kept on this page until you leave it; export your progress now.');
+      return;
+    }
+  }
+  const now = store.get(keyFor(PROFILE));
+  const withNow = now === null ? copies : copies.concat([{at: Date.now(), data: now, why: 'put back'}]);
+  if(now !== null && !store.trySet(backupKey(PROFILE), JSON.stringify(withNow))){ alert(refused); return; }       // (1)
+  pendingMark();
+  if(!store.trySet(keyFor(PROFILE), b.data)){                                                                      // (2)
+    // the list as it was; if that is refused too, the list keeps the extra copy of the progress on screen
+    const undone = now === null || store.trySet(backupKey(PROFILE), JSON.stringify(copies));
+    alert(undone ? refused : 'The browser refused to save (storage is full or blocked), so nothing was put back. Your progress is unchanged; ' +
+                             'the copies kept by Import now also hold a copy of it (the browser refused to take it off the list).');
+    return;
+  }
+  clearTimeout(saveTimer); saveTimer = null;
+  SEEN = b.data;
+  DB = db;
+  try { fsFromHistory(); } catch(e){ FS_ERROR = String(e && e.message || e); }
+  // a copy kept by "Use it here" may hold history entries that were never stored: they go into the
+  // history before the copy leaves the list; refused, the copy stays on the list (#32's review of 1b9d5a6)
+  let logIn = true;
+  if(typeof b.log === 'string'){
+    try {
+      const extra = JSON.parse(b.log);
+      if(!LOG_OK) logIn = false;
+      else if(Array.isArray(extra) && extra.length){
+        const merged = mergedLog(LOG, extra);
+        if(store.trySet(logKey(), JSON.stringify(merged))){ LOG = merged; SEEN_LOG = JSON.stringify(merged); setTimeout(capNotice, 0); }
+        else logIn = false;
+      }
+    } catch(e){ logIn = false; }
+  }
+  const kept = logIn ? withNow.filter(c => c !== b) : withNow;
+  const listed = store.trySet(backupKey(PROFILE), JSON.stringify(kept));                                          // (3)
+  // the per-tab records are retired after the list is written: a record holding a module's part
+  // becomes one more copy on this list, and a list written after it would drop that copy (the review of #69, N1)
+  pendingRetire();
+  alert('The progress from ' + dateOf(b.at) + ' is back. The progress that was on screen is kept as a copy' +
+        (!logIn ? '; the copy just put back stays on the list too, because its answer history could not be added to this profile\'s history.' :
+         listed ? '.' : '; the copy just put back is also still on the list (the browser refused to update it).'));
+  renderSettings();
+}
+/* Settings' "Delete the copies": only when the student asks, after a confirm. */
+function deleteCopies(){
+  if(!canSave()){ alert(LOAD_FAIL + ' Nothing was deleted.'); return; }
+  if(changedElsewhere()){ staleWarn(); alert(elsewhereShort() + ', so nothing was deleted. Reload this page first.'); return; }
+  const copies = readCopies();
+  if(!copies || !copies.length) return;
+  const copiesRaw = storedRaw(backupKey(PROFILE));
+  if(!confirm(`Delete the ${copies.length} cop${copies.length === 1 ? 'y' : 'ies'} of earlier progress kept by Import for "${PROFILE}"? This cannot be undone.`)) return;
+  // the question may have stayed open while another tab or window saved this profile or
+  // added a copy (an import there): only the copies the question counted are deleted
+  if(changedElsewhere()){ staleWarn(); alert(elsewhereShort() + ', so nothing was deleted. Reload this page first.'); return; }
+  if(storedRaw(backupKey(PROFILE)) !== copiesRaw){ alert(COPIES_CHANGED + ' nothing was deleted. Reload this page first.'); return; }
+  store.del(backupKey(PROFILE));
+  pendingRetire();
+  renderSettings();
+}
+function backupNote(){
+  const copies = readCopies();
+  if(copies === null) return '<p class="meta" style="margin:6px 0 0">The copies of earlier progress kept by Import cannot be read; they are left as they are.</p>';
+  if(!copies.length) return '';
+  const b = copies[copies.length - 1];
+  return `<div class="frow" style="margin-top:6px"><button class="btn ghost" id="btnRestore">Put back the progress from ${esc(dateOf(b.at))}</button>` +
+    `<button class="btn ghost" id="btnDeleteCopies">Delete the ${copies.length} cop${copies.length === 1 ? 'y' : 'ies'} kept by Import</button></div>`;
+}
+
+/* ---------- Storage use and its warning (review/storage-usage-proposal.md §3 items 1
+   and 2; Louis approved them on 2026-11-04) ----------
+   Every drill on lglouis3-create.github.io shares one origin, and so one localStorage
+   limit. Settings shows what the whole site stores in this browser and this drill's
+   part of it; the Quiz tab and Settings warn when the space left may not be enough for
+   the next large write. Sizes are string lengths (key plus value), what
+   localStorage.getItem(k).length returns; the bytes a browser writes to disk can differ.
+   Sizes are UTF-16 code units (an emoji counts as 2), as String.length counts them.
+   The limit is taken as 5,242,880 (5 × 1,048,576, the "up to 5 MiB" per origin MDN
+   gives). In Chromium 153 one origin accepted exactly 5,242,880 units, keys and values
+   together, before setItem threw (the independent review of #46, 2026-11-04, by binary
+   search; review/storage-measure/quota.js's coarse fill had stopped at 5,242,873, a
+   lower bound). Safari and Firefox were not measured, so the figures and the warning are
+   an estimate there. Nothing here writes or deletes a key:
+   the warning offers Export progress and the existing "Delete the copies kept by
+   Import", which asks first.
+   The warning shows when the space left is less than the larger of two needs:
+     - profile: the largest profile this browser holds on the core (its progress plus its
+       answer history), the most that one more profile (a file Import puts in a profile
+       of its own) or a copy can take;
+     - preview: for each course on the core whose preview has not yet copied its keys (no
+       key starts <ns>-preview:), what the preview's first opening copies: every key of
+       the course under the name <ns>-preview:..., 8 characters longer each.
+   A course is on the core when one of its <ns>:data:<profile> keys holds a progress the
+   core saved: JSON that starts {"v":<2 or more> (BLANK puts v first, and upgradeDB keeps
+   it there); drills not on the core (BDK's bdk2:*, Pharmacokinetics, Intro to
+   Pharmacology) save no v and count in the site's total only. The course on screen
+   counts as on the core always.
+   This drill's part is read under NS, the namespace the page saves under: on a preview
+   page that is <ns>-preview, so the copies it counts are the ones its "Delete the copies"
+   deletes (deleteCopies, readCopies, backupKey use NS too); the twin line is then the live
+   drill's keys, and on the live page the preview copies. */
+const STORE_LIMIT = 5 * 1048576;     // 5,242,880: MDN's 5 MiB, in characters as Chromium counts them
+const STORE_MEASURED = 5242880;      // what Chromium 153 accepted, exactly (the review of #46, 2026-11-04)
+const PREVIEW_SUFFIX = '-preview';   // shell.html NS of a preview build
+const nChars = n => n.toLocaleString('en-US');
+/* What localStorage holds now: null when it cannot be read. Read-only. */
+function storageUse(){
+  let keys;
+  try {
+    keys = [];
+    for(let i = 0; i < localStorage.length; i++){
+      const k = localStorage.key(i); if(k === null) continue;
+      const v = localStorage.getItem(k); if(v === null) continue;
+      keys.push([k, v]);
+    }
+  } catch(e){ return null; }
+  const base = COURSE.ns, live = NS + ':', prev = (BUILD.preview ? base : base + PREVIEW_SUFFIX) + ':';
+  const u = {total: 0, items: [], drill: {progress: 0, history: 0, preview: 0, copies: 0, pending: 0, other: 0}, copies: 0, copiesUnread: 0};
+  const core = new Set([base]), profiles = {}, byNs = {}, hasPreview = new Set();
+  for(const [k, v] of keys){
+    const n = k.length + v.length;
+    u.total += n;
+    u.items.push([k, n]);
+    if(k.startsWith(prev)) u.drill.preview += n;
+    else if(k.startsWith(live)){
+      const what = k.slice(live.length).split(':')[0];
+      if(what === 'data' && k.length > live.length + 5) u.drill.progress += n;
+      else if(what === 'log' && k.length > live.length + 4) u.drill.history += n;
+      else if(what === 'pending' && k.length > live.length + 8) u.drill.pending += n;   // per-tab records (#45)
+      else if(what === 'backup' && k.length > live.length + 7){
+        u.drill.copies += n;
+        try { const c = JSON.parse(v); u.copies += Array.isArray(c) ? c.length : 1; } catch(e){ u.copiesUnread++; }
+      }
+      else u.drill.other += n;
+    }
+    const m = /^(.+?):(data|log):(.+)$/.exec(k);
+    if(m){
+      if(m[2] === 'data'){ const vm = /^\{"v":([0-9]+)[,}]/.exec(v); if(vm && Number(vm[1]) >= 2) core.add(m[1]); }
+      const p = (profiles[m[1] + '\n' + m[3]] = profiles[m[1] + '\n' + m[3]] || {ns: m[1], name: m[3], size: 0});
+      p.size += n;
+    }
+    const c = k.indexOf(':');
+    if(c > 0){
+      const ns = k.slice(0, c);
+      (byNs[ns] = byNs[ns] || []).push(k.length + PREVIEW_SUFFIX.length + v.length);
+      if(ns.endsWith(PREVIEW_SUFFIX)) hasPreview.add(ns.slice(0, -PREVIEW_SUFFIX.length));
+    }
+  }
+  u.left = STORE_LIMIT - u.total;
+  u.profileNeed = 0; u.profileName = null;
+  for(const p of Object.values(profiles))
+    if(core.has(p.ns) && p.size > u.profileNeed){ u.profileNeed = p.size; u.profileName = p; }
+  u.previewNeed = 0; u.previewNs = null;
+  for(const ns of core){
+    if(ns.endsWith(PREVIEW_SUFFIX) || hasPreview.has(ns)) continue;
+    const need = (byNs[ns] || []).reduce((a, b) => a + b, 0);
+    if(need > u.previewNeed){ u.previewNeed = need; u.previewNs = ns; }
+  }
+  u.need = Math.max(u.profileNeed, u.previewNeed);
+  u.warn = u.left < u.need;
+  u.items.sort((a, b) => b[1] - a[1]);
+  return u;
+}
+const pctOf = n => (100 * n / STORE_LIMIT).toFixed(1) + '%';
+/* A stored key in words, for the list of the largest items. */
+const nsName = ns => ns === COURSE.ns ? 'this drill' : ns === COURSE.ns + PREVIEW_SUFFIX ? 'this drill\'s preview'
+                                     : `another drill, the one with the namespace <code>${esc(ns)}</code>`;
+function storeItemName(k){
+  const m = /^(.+?):(data|log|backup|exam|pending):(.+)$/.exec(k);
+  if(!m){
+    const c = k.indexOf(':');
+    return `<code>${esc(k)}</code> (${c > 0 ? nsName(k.slice(0, c)) : 'a key with no namespace'})`;
+  }
+  const what = {data: 'progress', log: 'answer history', backup: 'copies kept by Import', exam: 'exam paper',
+                pending: 'records of each writing tab\'s last save (pending)'}[m[2]];
+  const who = m[2] === 'pending' ? m[3].split(':')[0] : m[3];
+  return `${what} of "${esc(who)}" (${nsName(m[1])})`;
+}
+const ESTIMATE = 'These figures are an estimate. Each size is the number of characters stored (UTF-16 units: an emoji counts as 2), ' +
+  'the key and its value together; the bytes a browser writes to disk can differ. The limit differs by browser: in Chromium 153 ' +
+  `one origin accepted exactly ${nChars(STORE_MEASURED)} characters before the browser refused to save more; MDN says browsers ` +
+  `can store "up to 5 MiB" of local storage per origin, which is ${nChars(STORE_LIMIT)} characters if counted as Chromium counts them; ` +
+  'Safari\'s limit has not been measured. ' +
+  'So in another browser the warning can come early or late, and saving can stop before or after the point these figures show.';
+/* The warning's HTML, or '' when the space left is enough (or storage cannot be read). */
+function storageWarnHtml(u){
+  u = u === undefined ? storageUse() : u;
+  if(!u || !u.warn) return '';
+  const copies = readCopies();
+  const top = u.items.slice(0, 3).map(([k, n]) => `<li>${storeItemName(k)}: ${nChars(n)} characters</li>`).join('');
+  const needs = [];
+  if(u.profileNeed > u.left) needs.push(`one more profile the size of the largest one here (${nChars(u.profileNeed)} characters)`);
+  if(u.previewNeed > u.left) needs.push(`the first opening of a preview of <code>${esc(u.previewNs)}</code>, which copies its saved keys (${nChars(u.previewNeed)} characters)`);
+  return `<div class="note" data-storage-warn role="status">
+    <p style="margin:0 0 6px"><b>Storage for this site in this browser may run short.</b>
+    This site stores ${nChars(u.total)} characters here (${pctOf(u.total)} of ${nChars(STORE_LIMIT)}), so about ${nChars(Math.max(0, u.left))} are left.
+    That is less than the space needed by ${needs.join(' or by ')}. This is an estimate: the limit differs by browser (see Settings, "Storage in this browser").</p>
+    <p style="margin:0 0 4px">The largest items stored:</p><ul style="margin:0 0 6px;padding-left:20px">${top}</ul>
+    <p style="margin:0 0 6px">Export your progress to keep a copy of it outside the browser. Nothing is deleted unless you choose to delete it.</p>
+    <div class="frow"><button class="btn" data-sw-export>Export progress</button>${copies && copies.length
+      ? `<button class="btn ghost" data-sw-delete>Delete the ${copies.length} cop${copies.length === 1 ? 'y' : 'ies'} kept by Import</button>` : ''}</div>
+  </div>`;
+}
+function wireStorageWarn(box, after){
+  box.querySelectorAll('[data-sw-export]').forEach(b => b.onclick = exportProgress);
+  box.querySelectorAll('[data-sw-delete]').forEach(b => b.onclick = () => { deleteCopies(); if(after) after(); });
+}
+/* Settings' section: the figures, how the warning point is set, and the warning. */
+function storageSection(){
+  const u = storageUse();
+  if(!u) return `<h3 id="storage">Storage in this browser</h3>
+  <div class="filters"><p class="meta" style="margin:0">This page cannot read the browser's storage, so how much it holds is not shown.</p></div>`;
+  const d = u.drill, kept = (DB.answers || []).length;
+  return `<h3 id="storage">Storage in this browser</h3>
+  <div class="filters" data-storage>
+    ${storageWarnHtml(u)}
+    <p style="margin:0 0 6px">This site (every drill at this web address) stores <b data-st="total">${nChars(u.total)}</b> characters in this browser:
+      <b data-st="pct">${pctOf(u.total)}</b> of ${nChars(STORE_LIMIT)}. About <span data-st="left">${nChars(Math.max(0, u.left))}</span> characters are left.</p>
+    <p style="margin:0 0 4px">${BUILD.preview ? 'This preview\'s part' : 'This drill\'s part'}:</p>
+    <ul style="margin:0 0 6px;padding-left:20px;font-size:14px">
+      <li>progress, every profile: <span data-st="progress">${nChars(d.progress)}</span> characters</li>
+      <li>answer history, every profile: <span data-st="history">${nChars(d.history)}</span> characters</li>
+      <li>${BUILD.preview ? 'the live drill (this page is its preview)' : 'preview copies'}: <span data-st="preview">${nChars(d.preview)}</span> characters</li>
+      <li>copies kept by Import: <span data-st="copies">${nChars(d.copies)}</span> characters, <span data-st="ncopies">${nChars(u.copies)}</span> cop${u.copies === 1 ? 'y' : 'ies'}${u.copiesUnread ? ` (${u.copiesUnread} list${u.copiesUnread === 1 ? '' : 's'} could not be read)` : ''}</li>
+      <li>records of each writing tab's last save (pending): <span data-st="pending">${nChars(d.pending)}</span> characters</li>
+      <li>other settings of this drill: <span data-st="other">${nChars(d.other)}</span> characters</li>
+    </ul>
+    <p style="margin:0 0 6px">The profile “${esc(PROFILE)}” keeps <span data-st="kept">${nChars(kept)}</span> answers (at most ${nChars(ANSWERS_MAX)}) of
+      <span data-st="qn">${nChars(DB.qn || 0)}</span> recorded in all. The answer history has ${nChars(LOG.length)} entries${LOG.length > LOG_MAX && mayWrite() ? `, more than ${nChars(LOG_MAX)}: nothing is removed unless you choose to <button class="btn ghost" id="btnCapTrim" type="button">Remove the oldest ${nChars(LOG.length - LOG_MAX)}…</button>` : ''}.</p>
+    <p style="font-size:13.5px;color:var(--text-dim);margin:4px 0 0" data-st="how">
+      How the warning point is set: a warning shows here and in the Quiz tab when the space left is less than the larger of two amounts.
+      One is the size of the largest profile this browser holds for a drill on this engine (its progress plus its answer history), now
+      ${nChars(u.profileNeed)} characters: Import can put a file into a new profile of its own, which can need that much.
+      The other is what the first opening of a course's preview copies (every saved key of that course, for a course whose preview has
+      not been opened in this browser), now ${nChars(u.previewNeed)} characters. The warning point is therefore
+      ${nChars(STORE_LIMIT - u.need)} characters stored. It is worked out from what is stored, not from a fixed percentage.
+      Drills not on this engine count in the site's total only.</p>
+    <p style="font-size:13.5px;color:var(--text-dim);margin:6px 0 0" data-st="estimate">${ESTIMATE}</p>
+  </div>`;
+}
+/* The Quiz tab's warning: put first in the pane after each drawing of it (any renderer,
+   feature modules too), and only while the space left is short. */
+function quizStorageWarn(){
+  const el = document.getElementById('v-quiz'); if(!el) return;
+  const old = el.querySelector(':scope > [data-storage-warn]');
+  const html = storageWarnHtml();
+  if(!html){ if(old) old.remove(); return; }
+  const t = document.createElement('div'); t.innerHTML = html;
+  const box = t.firstElementChild;
+  // This guard stops a loop: inserting the box is itself a change to the pane, which runs
+  // this watcher again; without the comparison it would replace the box at every run and
+  // never stop (the review of #46, its broken copy M13, hung the page).
+  if(old && old.innerHTML === box.innerHTML) return;
+  if(old) old.replaceWith(box); else el.insertBefore(box, el.firstChild);
+  wireStorageWarn(box, quizStorageWarn);
+}
+
 /* Calendar days to the exam, from an optional ISO `when` on the active exam
    (`date` is the human string shown in the header). Counted as whole days
    rather than hours rounded up, so the morning of the exam says "today". */
@@ -467,14 +1290,46 @@ function examCountdown(){
   return `${d} day${d === 1 ? '' : 's'} until the exam.`;
 }
 
+/* ---------- Start here ----------
+   One short block at the top of the Topics tab with the routes the page already
+   has, so a first visit meets an obvious start before the filters, the change
+   log and the whole-bank passes: the guides (or the topic list), the adaptive
+   runner, Weak spots and the exam tab. A route whose tab the course dropped is
+   left out; Start practice is off when the filters select nothing. */
+const hasTab = v => !!document.querySelector(`#nav button[data-v="${v}"]`);
+function startHere(nFiltered){
+  const r = [];
+  const guide = typeof GUIDE_HTML !== 'undefined' && String(GUIDE_HTML).trim() && hasTab('guide');
+  r.push(['learn', 'Learn a topic', guide ? 'Read a guide, then drill its topic' : 'Pick a topic below and drill it']);
+  r.push(['practice', 'Start practice', 'Mixed questions, missed concepts first; follows the filters below', !nFiltered]);
+  if(hasTab('gaps')) r.push(['weak', 'Review weak concepts', 'What you have missed, and what to read']);
+  if(hasTab('exam')) r.push(['exam', 'Practice exam', 'A paper drawn like the real one']);
+  return `<div class="panel startbox" id="startHere"><b class="starthead">Start here</b>
+    <div class="startgrid">${r.map(([k, t, d, off]) =>
+      `<button type="button" class="startbtn" data-start="${k}"${off ? ' disabled' : ''}><b>${t}</b><small>${d}</small></button>`).join('')}</div></div>`;
+}
+function wireStart(root){
+  root.querySelectorAll('#startHere button[data-start]').forEach(b => b.onclick = () => {
+    const k = b.dataset.start;
+    if(k === 'practice') return startQuiz(null, null);
+    if(k === 'weak') return show('gaps');
+    if(k === 'exam') return show('exam');
+    if(typeof GUIDE_HTML !== 'undefined' && String(GUIDE_HTML).trim() && hasTab('guide')) return show('guide');
+    const t = root.querySelector('details.topic');
+    if(t){ t.open = true; scrollToEl(t); }
+  });
+}
+
 function renderTopics(){
   const counts = {};
   QUESTIONS.forEach(q => counts[q.prof] = (counts[q.prof]||0)+1);
 
   let h = `<h2>Pick a topic</h2>
   <p class="sub">${esc(EXAM.name)}: ${EXAM.questions} questions, ${EXAM.minutes} minutes${EXAM.date ? ', ' + esc(EXAM.date) : ''}.
-  ${EXAM.blurb ? esc(EXAM.blurb) + '. ' : ''}Question bank: ${QUESTIONS.length} across ${conceptsIn(QUESTIONS).length} concepts.
+  ${EXAM.blurb ? esc(EXAM.blurb) + '. ' : ''}Question bank: ${QUESTIONS.length} across ${conceptsIn(QUESTIONS).length} concepts${
+    requiredQs().length < QUESTIONS.length ? `, ${QUESTIONS.length - requiredQs().length} of them in optional topics outside ${esc(EXAM.name)}` : ''}.
   ${examCountdown() ? '<b>' + esc(examCountdown()) + '</b>' : ''}</p>
+  ${startHere(poolFor(null, null).length)}
   <p class="stamp">Built ${esc(BUILD.stamp || '')}${(BUILD.changelog||[]).length ? ' · <a href="#" id="whatsnew">all changes</a>' : ''}</p>
   ${newsCard()}`;
 
@@ -484,16 +1339,22 @@ function renderTopics(){
   // holds far more questions on the material worth few marks than on the
   // material worth many, so a straight pass through everything spends the
   // evening in the wrong place. This one takes the whole of the heaviest pool
-  // and samples the others in the paper's own proportion. The full pass is
-  // still here, second.
-  const nAll = QUESTIONS.length, nFiltered = poolFor(null, null).length;
+  // and samples the others in the paper's own proportion. Both whole-bank
+  // passes come after the topic list: the Start here block above is the way in
+  // for a first visit, and these are the advanced route.
+  const REQ = requiredQs(), nAll = REQ.length, nFiltered = poolFor(null, null).length;
   const wp = weightedPool();
-  h += `<div class="topic sweepcard"><div class="subs">
+  // filters that select nothing: say why and offer to clear them, and offer no
+  // Start, since every one would open an empty set or quietly ignore the filters
+  if(!nFiltered) h += `<div class="panel" id="noMatch"><b>No questions match these filters:</b> ${emptyReason()}.
+    <div class="row" style="margin-top:9px"><button class="btn" id="clearFilters">Clear filters</button></div></div>`;
+  // the whole-bank passes are the advanced route: offered after the topic list
+  const passes = !nFiltered ? '' : `<div class="topic sweepcard" id="wholeBank"><div class="subs">
     <div class="subrow"><span class="sname"><b>Exam-weighted pass — ${wp.length} questions</b>
       <small>Every question from the ${mainPool().marks}-mark pool, plus the other pools in the paper's ${EXAM.pools.map(p=>p.marks).join(' : ')} proportion. Shuffled, each once.</small></span>
       <button id="sweepWeighted">Start</button></div>
     <div class="subrow"><span class="sname"><b>All ${nAll} questions, one pass</b>
-      <small>Everything in the bank, shuffled, each asked once, nothing held back by scheduling</small></span>
+      <small>Everything in the bank${nAll < QUESTIONS.length ? ' outside the optional topics' : ''}, shuffled, each asked once, nothing held back by scheduling</small></span>
       <button id="sweepAll" class="ghost">Start</button></div>
     ${nFiltered < nAll ? `<div class="subrow"><span class="sname"><b>All ${nFiltered} under the current filters</b>
       <small>The same straight pass, limited to what the chips above select</small></span>
@@ -505,9 +1366,11 @@ function renderTopics(){
     if(!pool.length) continue;
     const m = masteryOf(pool);
     const pct = m.total ? Math.round(100*m.mastered/m.total) : 0;
-    h += `<details class="topic"${t.open?' open':''}>
+    // an optional topic says so on its line, and that it is outside the active exam
+    h += `<details class="topic${t.optional ? ' optional' : ''}"${t.open?' open':''}>
       <summary>
-        <span class="tname">${esc(t.name)}<small>${esc(t.cite)}</small></span>
+        <span class="tname">${t.optional ? `<span class="lbl optional" data-optional>Optional</span> ` : ''}${esc(t.name)}<small>${esc(t.cite)}${
+          t.optional ? ` · optional practice, outside ${esc(EXAM.name)}: left out of Everything, the passes, exam papers and Weak spots` : ''}</small></span>
         ${profTag(t.prof)}
         <span class="meter"><i style="width:${pct}%"></i></span>
         <span class="counts">${m.mastered}/${m.total}</span>
@@ -533,14 +1396,16 @@ function renderTopics(){
     h += `</div></details>`;
   }
 
-  h += `<h3>Mixed drills</h3>
+  if(nFiltered) h += `<h3>Mixed drills and whole-bank passes</h3>
   <div class="topic"><div class="subs">
     <div class="subrow"><span class="sname"><b>Everything, adaptive</b>
       <small>Whole bank under the current filters — missed concepts first, and it stops when nothing is due</small></span>
       <button data-t="" data-s="">Start</button></div>
   </div></div>`;
+  h += passes;
 
   $('#v-topics').innerHTML = h;
+  wireStart($('#v-topics'));
 
   const wn = $('#whatsnew'); if(wn) wn.onclick = e => { e.preventDefault(); show('settings'); };
   const nok = $('#newsok'); if(nok) nok.onclick = () => {
@@ -551,6 +1416,8 @@ function renderTopics(){
   $('#v-topics').querySelectorAll('.chip[data-f]').forEach(b => b.onclick = () => {
     FILTER[b.dataset.f] = b.dataset.v; renderTopics();
   });
+  const cf = $('#clearFilters');
+  if(cf) cf.onclick = () => { FILTER.prof = FILTER.tier = FILTER.tag = 'all'; renderTopics(); };
   $('#v-topics').querySelectorAll('.subrow button[data-t]').forEach(b => b.onclick = () => {
     startQuiz(b.dataset.t || null, b.dataset.s || null);
   });
@@ -571,7 +1438,10 @@ function startQuiz(topicId, subId){
   if(!pool.length){ alert('No questions match those filters.'); return; }
   const t = TOPICS.find(x=>x.id===topicId);
   const s = t && t.subs.find(x=>x.id===subId);
-  Q = {pool, label: s ? `${t.name} — ${s.name}` : (t ? t.name : 'Everything'),
+  // the whole bank with no filter on is the one broad adaptive session; a topic, a
+  // subtopic or a filtered "Everything" is a set the student chose (targetedSet)
+  const broad = !topicId && !subId && FILTER.prof === 'all' && FILTER.tier === 'all' && FILTER.tag === 'all';
+  Q = {pool, label: s ? `${t.name} — ${s.name}` : (t ? t.name : 'Everything'), broad,
        current:null, answered:0, lastId:null, examMode:false, picked:null, revealed:false};
   nextQuestion();
   show('quiz');
@@ -591,9 +1461,9 @@ function startQuiz(topicId, subId){
 const mainPool = () => EXAM.pools.reduce((a, b) => b.marks > a.marks ? b : a, EXAM.pools[0]);
 function weightedPool(){
   const main = mainPool();
-  const anchor = QUESTIONS.filter(main.test);
+  const anchor = requiredQs().filter(main.test);
   const rest = EXAM.pools.filter(p => p !== main).flatMap(p => {
-    const pool = QUESTIONS.filter(p.test);
+    const pool = requiredQs().filter(p.test);
     return drawN(pool, Math.min(pool.length, Math.round(anchor.length * p.marks / main.marks)));
   });
   return [...anchor, ...rest];
@@ -601,22 +1471,46 @@ function weightedPool(){
 function startSweep(scope){
   const pool = scope === 'filtered' ? poolFor(null, null)
              : scope === 'weighted' ? weightedPool()
-             : QUESTIONS.slice();
+             : requiredQs().slice();
   if(!pool.length){ alert('No questions match those filters.'); return; }
   Q = {pool,
        label: scope === 'filtered' ? 'Every question under these filters'
             : scope === 'weighted' ? 'Exam-weighted pass' : 'Every question',
        sweep: shuffle(pool.map(q => q.id)), i: 0,
+       // a pass of everything, or the exam-weighted sample, is drawn again for a
+       // repeat; a filtered pass, like every other set, repeats its own questions
+       repeat: scope === 'filtered' ? null : scope,
        current:null, answered:0, lastId:null, examMode:false, picked:null, revealed:false};
   nextQuestion();
   show('quiz');
 }
+/* The same questions again, once each, in a new order: what "again, reshuffled"
+   does for any set that is not a pass of everything or the exam-weighted sample.
+   The set's own pool is kept, so a filter changed since, or a retry question added
+   to the queue on the way, never widens it. */
+function repeatSet(){
+  if(Q.repeat){ startSweep(Q.repeat); return; }
+  const pool = Q.pool.slice();
+  // a filtered pass is named by filters that may have changed since: name it by its size
+  const label = Q.label === 'Every question under these filters' ? `The same ${pool.length} questions again` : Q.label;
+  Q = {pool, label, sweep: shuffle(pool.map(q => q.id)), i: 0,
+       current:null, answered:0, lastId:null, examMode:false, picked:null, revealed:false};
+  nextQuestion();
+}
 
+/* A targeted set: any session the student narrowed (Louis, 2026-11-06: "preserve
+   the original targeted set"): a topic or subtopic drill, a filtered "Everything",
+   a filtered pass, every weak-spot drill and repeat, "Missed concepts". Its retry
+   after "I was sure of that" comes from the session's own pool only. Three sessions
+   are broad and keep reaching the rest of the bank: "Everything, adaptive" with no
+   filter on (Q.broad), the pass of every question and the exam-weighted pass
+   (Q.repeat). Which question the adaptive runner picks next is unchanged. */
+const targetedSet = () => !!(Q && !Q.repeat && !Q.broad);
 function nextQuestion(){
   let q = null;
   // after "I was sure of that": a different question on the same concept comes
   // next (scheduler rule 8); retryConcept is set only when there is one
-  const retry = Q.retryConcept ? retryQuestion(Q.retryConcept, Q.retryNot, Q.pool) : null;
+  const retry = Q.retryConcept ? retryQuestion(Q.retryConcept, Q.retryNot, Q.pool, targetedSet()) : null;
   Q.retryConcept = Q.retryNot = null;
   if(Q.sweep){
     if(retry){
@@ -642,28 +1536,39 @@ const askedBefore = q => { const s = DB.concepts[q.concept]; return !!(s && s.as
    and the kind of thinking the question asks for. */
 function qLabel(q){
   const l = lecOf(q), k = skillOf(q);
-  return `${l ? `<span class="lbl">Exam ${l.exam} · ${esc(l.module)}</span>` : ''}<span class="lbl kind">${esc(SKILL_SHORT[k] || k)}</span>`;
+  return `${l && !isOptional(q) ? `<span class="lbl">Exam ${l.exam} · ${esc(l.module)}</span>` : ''}${isOptional(q) ? '<span class="lbl optional" data-optional>Optional</span>' : ''}<span class="lbl kind">${esc(SKILL_SHORT[k] || k)}</span>`;
 }
 /* Material that came from the lecture audio rather than a slide is marked
    wherever a citation is shown, in the quiz and in the exam review alike. */
 const srcFlag = q => q.source==='transcript' ? '<span class="srcflag">from lecture audio</span>'
                    : q.source==='both'       ? '<span class="srcflag">slides and lecture audio</span>' : '';
 function renderQuiz(){
+  figClose();
   const el = $('#v-quiz');
-  if(!Q){ el.innerHTML = `<div class="empty">Choose a topic to begin.</div>`; return; }
+  if(!Q){
+    el.innerHTML = `<div class="empty"><p><b>No set is open.</b></p>
+      <p style="margin:10px 0 16px">Pick a topic, a subtopic or one of the passes on the Topics tab to start.</p>
+      <p><button class="btn" id="emptyTopics">Choose a topic</button></p></div>`;
+    document.getElementById('emptyTopics').onclick = () => show('topics');
+    return;
+  }
   if(!Q.current && Q.sweep){
+    const nReq = requiredQs().length;
+    const n = Q.repeat ? (Q.repeat === 'all' ? nReq : Q.pool.length) : Q.pool.length;
+    const whole = Q.pool.length >= nReq;
     el.innerHTML = `<div class="empty">
-      <p><b>That is every question in this set — all ${Q.sweep.length} of them.</b></p>
+      <p><b>That is every question in this set — ${n === 1 ? 'its 1 question' : `all ${n} of them`}.</b></p>
       <p style="margin:10px 0 16px">Everything you answered is recorded, so Weak spots now
-        reflects the whole bank and the adaptive runner will bring the missed concepts back first.</p>
+        reflects ${whole ? 'the whole bank' : 'these answers too'} and the adaptive runner will bring the missed concepts back first.</p>
       <p style="display:flex;gap:9px;flex-wrap:wrap;justify-content:center">
         <button class="btn" id="goGaps">See weak spots</button>
-        <button class="btn ghost" id="goAgain">Sweep again, reshuffled</button>
+        <button class="btn ghost" id="goAgain">${Q.repeat === 'weighted' ? 'A new exam-weighted pass' : `Same ${n === 1 ? 'question' : 'questions'} again, reshuffled`} (${n})</button>
+        ${whole ? '' : `<button class="btn ghost" id="goWhole">Whole bank, one pass (${nReq})</button>`}
         <button class="btn ghost" onclick="show('topics')">Back to topics</button>
       </p></div>`;
     document.getElementById('goGaps').onclick = () => show('gaps');
-    document.getElementById('goAgain').onclick = () => startSweep(
-      Q.label === 'Every question' ? 'all' : Q.label === 'Exam-weighted pass' ? 'weighted' : 'filtered');
+    document.getElementById('goAgain').onclick = repeatSet;
+    const gw = document.getElementById('goWhole'); if(gw) gw.onclick = () => startSweep('all');
     return;
   }
   if(!Q.current){
@@ -819,10 +1724,12 @@ function renderQuiz(){
   h += `</div></div>`;
   el.innerHTML = h;
 
-  el.querySelectorAll('.opt').forEach(b => b.onclick = () => multi ? toggleOption(+b.dataset.o) : answer(+b.dataset.o));
+  // only real answer buttons: a label inside the card (the Optional badge) is never an answer (ChatGPT review of #72)
+  el.querySelectorAll('button.opt[data-o]').forEach(b => b.onclick = () => multi ? toggleOption(+b.dataset.o) : answer(+b.dataset.o));
   const bc = $('#btnCheck'); if(bc) bc.onclick = submitMulti;
   const bn = $('#btnNext'); if(bn) bn.onclick = () => { Q.answered++; Q.lastId = Q.current.id; nextQuestion(); };
   wireConfidence();
+  armFigs(el);
 }
 /* After a correct answer: how sure were you. "Not sure" brings the concept
    back at the short interval; "guessed" treats it as not yet known. Neither
@@ -852,7 +1759,7 @@ function wireConfidence(){
     const q = Q.current;
     if(!markSure(q)) return;
     const concept = armOf(q.concept) === 'concept';
-    const other = concept ? retryQuestion(q.concept, q.id, Q.pool) : null;
+    const other = concept ? retryQuestion(q.concept, q.id, Q.pool, targetedSet()) : null;
     if(other){ Q.retryConcept = q.concept; Q.retryNot = q.id; }
     Q.sureLogged = other ? 'retry' : concept ? 'later' : 'fsrs';
     bu.textContent = 'Marked as sure'; bu.disabled = true;
@@ -1022,25 +1929,46 @@ function renderGaps(){
   const tot = DB.answers.length;
   if(!tot){
     el.innerHTML = `<h2>Weak spots</h2>
-      <div class="empty">Answer some questions and this fills in with what to study next,
+      <div class="empty"><p><b>Nothing answered yet.</b></p>
+      <p style="margin:10px 0 16px">Answer some questions and this fills in with what to study next,
       your accuracy by topic weighted by what each topic is worth on the paper, and every
-      question you have missed.</div>`;
+      question you have missed.</p>
+      <p><button class="btn" data-go="topics">Choose a topic</button></p></div>`;
+    el.querySelectorAll('[data-go]').forEach(b => b.onclick = () => show(b.dataset.go));
     return;
   }
+  /* Three different measures, each named for what it counts:
+     answer accuracy  answers that matched the key, a guess included (a guess is
+                      logged only on a right pick), over all answers;
+     confidence       how those right answers were rated: "Knew it", "Not sure",
+                      "I guessed" (an exam answer carries no rating and counts as
+                      "Knew it", as it does for "solid");
+     mastered         from the review schedule (box MASTER_BOX or higher).
+     "Solid" (This session, the review plan) is right and rated neither a guess nor
+     "not sure". */
   const right = DB.answers.filter(a=>a.result==='correct').length;
   const guess = DB.answers.filter(a=>a.result==='guessed').length;
   const wrong = DB.answers.filter(a=>a.result==='wrong').length;
-  const m = masteryOf(QUESTIONS);
+  const matched = right + guess;
+  const shaky = DB.answers.filter(a=>a.result==='correct' && a.conf==='shaky').length;
+  // the answer log stores only "not sure" (conf 'shaky') and a guess (result 'guessed');
+  // every other right answer counts as "Knew it", an exam paper's too (it asks no rating)
+  const knew = right - shaky;
+  // mastered, What to review next and the pool cards count the exam's questions only
+  const m = masteryOf(requiredQs());
 
   let h = `<h2>Weak spots</h2>
   <p class="sub">Every answer you have logged, weighted by what it is worth on the paper.</p>
   <div class="stat">
     <div><b>${tot}</b><span>answered</span></div>
-    <div><b style="color:var(--ok)">${Math.round(100*right/tot)}%</b><span>correct</span></div>
+    <div data-stat="accuracy"><b style="color:var(--ok)">${Math.round(100*matched/tot)}%</b><span>right · ${matched} of ${tot} (guesses included)</span></div>
     <div><b style="color:var(--bad)">${wrong}</b><span>missed</span></div>
-    <div><b style="color:var(--warn)">${guess}</b><span>guessed</span></div>
     <div><b>${m.mastered}</b><span>of ${m.total} concepts mastered</span></div>
-  </div>`;
+  </div>
+  <p class="meta" data-stat="confidence" style="margin:-6px 0 6px">${matched ? `Of the ${matched} right: ${knew} knew it · ${shaky} not sure · ${guess} guessed.` : 'None right yet.'}</p>
+  <p class="meta" id="statKey" style="margin:0 0 14px">Right counts every right pick, guesses included.
+    Solid means right and not marked a guess or "not sure". Mastered comes from the review schedule
+    (a concept at review step ${MASTER_BOX} or higher). Right answers on an exam paper, which asks no rating, count as "knew it".</p>`;
 
   /* ---- This session ---------------------------------------------------
      The run of answers with no half-hour gap. Shown first because it is the
@@ -1059,14 +1987,15 @@ function renderGaps(){
     h += `<h3>This session</h3>
     <div class="panel">
       <div class="row spread">
-        <span><b style="font-size:22px">${pct}%</b> <span class="meta">${ok} of ${ses.length} solid in ${mins} min</span></span>
+        <span data-stat="session"><b style="font-size:22px">${pct}%</b> <span class="meta">solid · ${ok} of ${ses.length} in ${mins} min</span></span>
         ${pa !== null && ses.length >= 6 ? `<span class="meta">first half ${pa}% → second half ${pb}%</span>` : ''}
       </div>
       <div class="sdots10 big" style="margin:11px 0 5px">${ses.slice(-20).map(e =>
         `<i class="${solidEntry(e)?'y':'n'}" title="${esc(e.qid)}${e.result==='guessed'?' (guessed)':e.conf==='shaky'?' (not sure)':''}"></i>`).join('')}</div>
       <p class="meta" style="margin:0">Last ${Math.min(20, ses.length)} answers, oldest on the left; filled means solid,
         outlined means missed, guessed or marked "not sure". A session ends after 30 minutes with no answer.</p>
-      ${retryList.length ? `<div class="row" style="margin-top:11px"><button class="btn" id="retrysess">Retry the ${retryList.length} missed this session</button></div>` : ''}
+      ${retryList.length ? `<div class="row" style="margin-top:11px"><button class="btn" id="retrysess">Retry missed, guessed or unsure (${retryList.length})</button>
+        <span class="meta">${retryList.length === 1 ? 'the 1 question' : `the ${retryList.length} questions`} not solid in this session, each once</span></div>` : ''}
     </div>`;
   }
 
@@ -1083,7 +2012,7 @@ function renderGaps(){
     const r = (recent[q.id] || []).slice(-3);
     return r.length ? r.filter(solidEntry).length / r.length : null;
   };
-  const notSolid = QUESTIONS.filter(q => { const s = scoreOf(q); return s !== null && s < 1; });
+  const notSolid = requiredQs().filter(q => { const s = scoreOf(q); return s !== null && s < 1; });
   const topicName = id => (TOPICS.find(t => t.id === id) || {}).name || id;
   const areas = {};
   notSolid.forEach(q => {
@@ -1115,9 +2044,12 @@ function renderGaps(){
       : q.type === 'match' && Array.isArray(e.pairOk)
         ? `${e.pairOk.filter(x => !x).length} of ${e.pairOk.length} pairs wrong` : '';
   if(ranked.length){
+    const anyLinks = ranked.slice(0, 6).some(A => A.links.length);
     h += `<h3>What to review next</h3>
-    <p class="sub">${notSolid.length} question${notSolid.length===1?'':'s'} not yet solid on the last three answers,
-      grouped by the section that teaches them, most missing first. Read the section, then drill its questions.</p>`;
+    <p class="sub">Weak concepts to review: ${notSolid.length} question${notSolid.length===1?'':'s'} not yet solid on the last three answers,
+      grouped by ${anyLinks ? 'the section that teaches them' : 'topic'}, most missing first. ${anyLinks
+        ? 'Read the linked section where there is one, or the explanation shown after each answer, then drill the questions.'
+        : 'Drill the questions; the explanation shown after each answer teaches the concept.'}</p>`;
     ranked.slice(0, 6).forEach((A, ai) => {
       const cs = Object.entries(A.concepts).sort((x, y) => y[1].qs.length - x[1].qs.length);
       h += `<div class="panel plan"><div class="row spread"><b>${ai+1}. ${esc(A.name)}</b>
@@ -1142,6 +2074,7 @@ function renderGaps(){
         h += `</div>`;
       });
       if(cs.length > 4) h += `<p class="meta">+ ${cs.length-4} more concept${cs.length-4===1?'':'s'} in this section.</p>`;
+      if(!A.links.length) h += `<p class="meta" style="margin:7px 0 0">No reading section is linked for these; the explanation shown after each answer teaches the concept.</p>`;
       h += `<div class="row" style="margin-top:9px">${A.links.map(([v,a,t]) =>
           `<button type="button" class="chip" data-jump="${esc(v)}:${esc(a)}">Read: ${esc(t)}</button>`).join('')}
         <button class="btn" data-area="${ai}">Drill these ${A.qs.length}</button></div></div>`;
@@ -1149,7 +2082,9 @@ function renderGaps(){
     if(ranked.length > 6) h += `<p class="meta">${ranked.length-6} more section${ranked.length-6===1?'':'s'} have questions to review; they appear here as these are cleared.</p>`;
     h += `<p style="margin:7px 0 16px"><button class="btn ghost" id="missall">Drill all ${notSolid.length} not-solid questions</button></p>`;
   }else{
-    h += `<h3>What to review next</h3><div class="panel">Every question you have answered is solid on its last three answers.</div>`;
+    h += `<h3>What to review next</h3><div class="panel"><b>No weak concepts right now:</b> every question you have answered is solid on its last three answers.
+      <div class="row" style="margin-top:9px"><button class="btn" data-go="topics">Practise more topics</button>
+      <button class="btn ghost" data-go="exam">Try an exam paper</button></div></div>`;
   }
 
   /* ---- What to do next ------------------------------------------------
@@ -1365,9 +2300,15 @@ function renderGaps(){
     }
   }
   el.innerHTML = h;
+  // wide tables scroll inside their own box on a phone instead of widening the page
+  el.querySelectorAll('table.gap').forEach(t => {
+    const w = document.createElement('div'); w.className = 'gapwrap';
+    t.parentNode.insertBefore(w, t); w.appendChild(t);
+  });
 
+  el.querySelectorAll('[data-go]').forEach(b => b.onclick = () => show(b.dataset.go));
   const rs = $('#retrysess');
-  if(rs) rs.onclick = () => drillList(retryList, 'Missed this session');
+  if(rs) rs.onclick = () => drillList(retryList, 'Missed, guessed or unsure this session');
   const ma = $('#missall');
   if(ma) ma.onclick = () => drillList(notSolid, 'Not yet solid');
   el.querySelectorAll('[data-area]').forEach(b => b.onclick = () => {
@@ -1404,16 +2345,54 @@ function renderGaps(){
    EXAM SIMULATION — a paper drawn to the blueprint in course.js
    ========================================================================== */
 let EX = null;
+/* ---- A paper or a quiz session belongs to the profile that started it ----------------
+   An independent review of the live DEENT site (core 25c643d, 2026-11-06) found that EX
+   (the exam paper) and Q (the quiz or targeted-review session) stayed in place when the
+   profile changed: profile B saw A's paper with A's picks, a pick on it wrote A's paper
+   into B's stored paper, and submitting it, or its clock running out, recorded A's answers
+   in B's history. useProfile (shell.html) now calls parkSession before the switch and
+   resumeSession after the next profile's progress is loaded (ownership_test.js).
+   A running paper is saved under its own profile and put away; the Exam tab reads it back
+   from storage on the return, as after a reload, so a paper that ran out meanwhile is
+   submitted then, under its own profile. The page keeps the paper itself only where
+   storage cannot hold it: a submitted paper (its result screen) and a paper of a visit that
+   saves nothing (canSave false). The quiz session is kept for the visit, with the time
+   already spent on an unanswered question, so the time away is not counted as answer time.
+   Nothing new is stored. */
+const PARKED = {};   // profile -> {Q, EX, qElapsed}: what this page put away when it left that profile
+const examOwned = () => !!EX && (!EX.owner || EX.owner === PROFILE);
+function parkSession(from){
+  if(EX && EX.running && examOwned()) saveExam();   // PROFILE is still `from` here
+  if(EX) clearInterval(EX.timer);
+  // kept in memory where saveExam stores nothing: a visit that saves nothing, or a profile another
+  // tab or window saved since (saveExam then stops at staleWarn), so the picks are not lost
+  let unstored = false;
+  try { unstored = !canSave() || profileSavedElsewhere(); } catch(e){ unstored = true; }
+  const keepEX = !!EX && EX.owner === from && (EX.done || (EX.running && unstored));
+  const p = {Q, EX: keepEX ? EX : null};
+  if(Q && Q.current && !Q.revealed && typeof Q.startedAt === 'number') p.qElapsed = Date.now() - Q.startedAt;
+  PARKED[from] = p;
+  Q = null; EX = null;
+}
+function resumeSession(to){
+  const p = PARKED[to]; delete PARKED[to];
+  Q = null; EX = null;
+  if(!p) return;
+  Q = p.Q || null;
+  if(Q && typeof p.qElapsed === 'number') Q.startedAt = Date.now() - p.qElapsed;
+  if(p.EX){ EX = p.EX; if(EX.running) startClock(); }
+}
 function renderExam(){
   const el = $('#v-exam');
+  // a paper of another profile is never drawn, saved or submitted here
+  if(EX && !examOwned()){ clearInterval(EX.timer); EX = null; }
   if(!EX) restoreExam();
-  if(EX && EX.running){ renderExamQ(); return; }
+  if(EX && EX.running){ if(EX.review) renderExamReview(); else renderExamQ(); return; }
   if(EX && EX.done){ renderExamResult(); return; }
   el.innerHTML = `<h2>Exam simulation</h2>
   <p class="sub">${EXAM.questions} questions drawn at the blueprint of ${esc(EXAM.name)}${EXAM.blurb ? ' — ' + esc(EXAM.blurb) : ''} —
-  with a ${EXAM.minutes}-minute clock. The paper mixes single-answer and select-all items, so
-  this draw does too: about ${EXAM_SATA} of the ${EXAM.questions} are select-all, marked all-or-nothing.
-  No explanations until you finish, same as the real thing.</p>
+  with a ${EXAM.minutes}-minute clock. ${examSataText()}
+  No explanations until you finish.</p>
   <div class="note"><b>Answers are logged when you submit.</b> The paper is saved as you go, so a
   reload or a switch to another app does not lose it, and "Submit what I have answered" logs a
   paper you cannot finish; blank items are then left out of your history rather than counted as misses.</div>
@@ -1460,6 +2439,52 @@ function drawN(pool, n, blocked){
    this many, taken in proportion to each pool's share of the paper, and falls
    back to whatever the bank holds if a pool has fewer. */
 const EXAM_SATA = EXAM.sata || 0;
+/* How many select-all items the draw puts on a paper, for the opening page:
+   counted on papers drawn by drawPaper itself (every wrapper included), never
+   worked out from the targets, so the page names only what the draw really
+   gives. A worked-out count disagreed with the draw (the review of 007e956):
+   a blueprint's select-all count is reached by swaps that can fail, and the
+   pools share one set of families (dupOf) and cap each pool at its marks.
+   EXAM_SAMPLE papers are drawn, once per exam and bank (kept in EXAM_SATA_SEEN);
+   the result is the lowest and the highest count seen. A count the draw gives
+   more rarely than that can be missed, so the page words it as a sample ("about
+   N", "between lo and hi", "not expected"; "yours may differ"), never as a fact. DEENT, 2026-11-06: the page said "about 0 of the 50 are
+   select-all" beside a paper that held none. */
+const EXAM_SAMPLE = 20;
+let EXAM_SATA_SEEN = null;
+/* True while the opening page draws its sample papers: they are not new papers, so the
+   feature modules' X.paper hooks (core/features.js) do not run on them. The samples
+   describe this exam's own draw; a hook may reorder the questions or put others in
+   their place (paper-picker), and such a module describes its own paper. */
+let EXAM_SAMPLING = false;
+function examSataDrawn(){
+  const key = JSON.stringify([EXAM.id, EXAM.questions, EXAM.sata, EXAM.blueprint || null, (EXAM.pools || []).map(p => [p.key, p.marks]), QUESTIONS.length]);
+  if(EXAM_SATA_SEEN && EXAM_SATA_SEEN.key === key) return EXAM_SATA_SEEN;
+  let lo = Infinity, hi = 0;
+  try {
+    EXAM_SAMPLING = true;
+    for(let k = 0; k < EXAM_SAMPLE; k++){
+      const c = (drawPaper() || []).filter(isMulti).length;
+      lo = Math.min(lo, c); hi = Math.max(hi, c);
+    }
+  } catch(e){ lo = hi = 0; }
+  finally { EXAM_SAMPLING = false; }
+  if(lo === Infinity) lo = 0;
+  return (EXAM_SATA_SEEN = {key, lo, hi});
+}
+/* Sampled, so never worded as a guarantee, and about practice papers, not the
+   official exam (Louis, 2026-11-06: "address the outstanding review concern about
+   sampled select-all counts being presented as guaranteed facts"). */
+/* The range the samples gave, never "about 0" (the review of fd2209e): none seen, one count
+   seen ("about N"), or two or more ("between lo and hi"). */
+const examSataText = () => {
+  const {lo, hi} = examSataDrawn();
+  const tail = 'This describes the practice papers, not the official exam format.';
+  if(!hi) return `Practice papers drawn from this bank are not expected to carry select-all items (none in ${EXAM_SAMPLE} sample draws). ${tail}`;
+  const how = 'tick every right option, marked all-or-nothing; in ' + EXAM_SAMPLE + ' sample draws';
+  if(lo === hi) return `Practice papers drawn from this bank carry about ${hi} select-all item${hi === 1 ? '' : 's'} (${how}); yours may differ. ${tail}`;
+  return `Practice papers drawn from this bank carry between ${lo} and ${hi} select-all items (${how}); yours may differ. ${tail}`;
+};
 
 /* Draw n from a pool with a target number of select-all items in it. Select-all
    questions are drawn first so they are never crowded out, then single-answer
@@ -1490,7 +2515,7 @@ function bpCat(q){
   return bp.rest || 'other';
 }
 function drawBlueprint(bp){
-  const elig = QUESTIONS.filter(q => !q.lowYield && !q.type);
+  const elig = requiredQs().filter(q => !q.lowYield && !q.type);
   const by = {};
   elig.forEach(q => (by[bpCat(q)] ||= []).push(q));
   // `used` holds the families on the paper (familyOf), the same rule as drawN
@@ -1532,7 +2557,7 @@ function drawBlueprint(bp){
 function drawPaper(){
   if(EXAM.blueprint && Array.isArray(EXAM.blueprint.parts) && EXAM.blueprint.parts.length)
     return drawBlueprint(EXAM.blueprint);
-  const examQ = QUESTIONS.filter(q => !q.lowYield && !q.type);
+  const examQ = requiredQs().filter(q => !q.lowYield && !q.type);
   const total = EXAM.pools.reduce((n, p) => n + p.marks, 0) || 1;
   const main = mainPool();
   let sataLeft = EXAM_SATA;
@@ -1557,11 +2582,18 @@ const untimedPaper = () => !!EX && EX.ends === null && typeof EX.started === 'nu
 // written, and removed, only when the saved progress was loaded (canSave in shell.html)
 function saveExam(){
   if(!EX || !EX.running || !canSave()) return;
+  if(!EX.owner) EX.owner = PROFILE;
+  if(EX.owner !== PROFILE) return;   // never under another profile's key
+  if(profileSavedElsewhere()){ staleWarn(); return; }   // never over another tab's paper
   const paper = {ids:EX.qs.map(q=>q.id), picks:EX.picks, orders:EX.orders, i:EX.i, ends:EX.ends};
   if(untimedPaper()) paper.started = EX.started;
   store.set(EXAM_KEY(), JSON.stringify(paper));
 }
-function clearExam(){ if(canSave()) store.del(EXAM_KEY()); }
+function clearExam(){
+  if(!canSave()) return;
+  if(WRITER === 'pending'){ EXAM_CLEAR_WAITING = PROFILE; return; }   // cleared once the lock is this page's (flushWaiting)
+  if(!profileSavedElsewhere()) store.del(EXAM_KEY());
+}
 /* A paper saved by an earlier visit is brought back if its clock has not run
    out; otherwise it is submitted as it stands. */
 function restoreExam(){
@@ -1569,7 +2601,7 @@ function restoreExam(){
   try { j = JSON.parse(store.get(EXAM_KEY()) || 'null'); } catch(e) { j = null; }
   if(!j || !j.ids) return false;
   const qs = j.ids.map(byId); if(qs.some(q => !q)) { clearExam(); return false; }
-  EX = {qs, i:Math.min(j.i||0, qs.length-1), picks:j.picks, orders:j.orders, running:true, done:false, ends:j.ends};
+  EX = {qs, i:Math.min(j.i||0, qs.length-1), picks:j.picks, orders:j.orders, running:true, done:false, ends:j.ends, owner:PROFILE};
   if(j.ends === null && typeof j.started === 'number') EX.started = j.started;   // untimed: never expires
   else if(Date.now() >= EX.ends){ finishExam(true); return true; }
   startClock();
@@ -1578,15 +2610,19 @@ function restoreExam(){
 const tookText = () => fmt(Date.now() - EX.started) + ' taken';
 function startClock(){
   clearInterval(EX.timer);
+  if(!EX.owner) EX.owner = PROFILE;
+  // each clock stops itself once its own paper is no longer the one on this page (a profile
+  // switch, a new paper), so it can never submit a paper under another profile
+  const mine = EX;
   if(untimedPaper()){
-    EX.timer = setInterval(()=>{
-      if(!EX || !EX.running) return clearInterval(EX && EX.timer);
+    mine.timer = setInterval(()=>{
+      if(EX !== mine || !mine.running) return clearInterval(mine.timer);
       const c = document.getElementById('exClock'); if(c) c.textContent = tookText();
     }, 1000);
     return;
   }
-  EX.timer = setInterval(()=>{
-    if(!EX || !EX.running) return clearInterval(EX.timer);
+  mine.timer = setInterval(()=>{
+    if(EX !== mine || !mine.running || mine.owner !== PROFILE) return clearInterval(mine.timer);
     if(Date.now() >= EX.ends){ finishExam(true); return; }
     const c = document.getElementById('exClock');
     if(c){ const l = EX.ends - Date.now();
@@ -1605,6 +2641,7 @@ const fmt = ms => { const s = Math.max(0, Math.round(ms/1000));
   return String(Math.floor(s/60)).padStart(2,'0') + ':' + String(s%60).padStart(2,'0'); };
 
 function renderExamQ(){
+  EX.review = false;   // a question is on screen: the Exam tab reopens on it, not on the overview
   const el = $('#v-exam'), q = EX.qs[EX.i], order = EX.orders[EX.i];
   const answered = EX.picks.filter(p => Array.isArray(p) ? p.length > 0 : p !== null).length;
   const multi = isMulti(q);
@@ -1619,28 +2656,77 @@ function renderExamQ(){
   if(q.fg) h += fgShow(q.fg);
   order.forEach((oi,n)=>{
     const sel = multi ? EX.picks[EX.i].includes(oi) : EX.picks[EX.i] === oi;
-    h += `<button class="opt${multi?' multi':''}${sel?(multi?' on':' pick-ok'):''}" data-o="${oi}" aria-pressed="${sel}">
+    // chosen, not graded: the neutral selection colour (exsel), never the right-answer green
+    h += `<button class="opt${multi?' multi':''}${sel?(multi?' on':' exsel'):''}" data-o="${oi}" aria-pressed="${sel}">
       <span class="k">${multi ? (sel ? '\u2611' : '\u2610') : LETTERS[n]}</span><span>${esc(q.options[oi].t)}</span></button>`;
   });
   h += `</div><div class="qfoot">
     <button class="btn ghost" id="exPrev"${EX.i===0?' disabled':''}>Back</button>
-    <button class="btn" id="exNext">${EX.i===EX.qs.length-1?'Review':'Next'}</button>
+    <button class="btn" id="exNext">${EX.i===EX.qs.length-1?'Review answers':'Next'}</button>
     <span class="spacer" style="flex:1"></span>
-    <button class="btn ghost" id="exEnd">${answered < EX.qs.length ? 'Submit what I have answered' : 'Submit paper'}</button>
+    <button class="btn ghost" id="exEnd">${submitLabel()}</button>
   </div></div>`;
   el.innerHTML = h;
-  el.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+  el.querySelectorAll('button.opt[data-o]').forEach(b=>b.onclick=()=>{
     const oi = +b.dataset.o;
     if(multi){ const p = EX.picks[EX.i]; EX.picks[EX.i] = p.includes(oi) ? p.filter(x=>x!==oi) : [...p, oi]; }
     else EX.picks[EX.i] = oi;
     saveExam(); renderExamQ(); });
   $('#exPrev').onclick = ()=>{ if(EX.i>0){EX.i--; saveExam(); renderExamQ();} };
-  $('#exNext').onclick = ()=>{ if(EX.i<EX.qs.length-1){EX.i++; saveExam(); renderExamQ();} else finishExam(false); };
-  $('#exEnd').onclick  = ()=>{
-    const blank = EX.qs.filter((q,i)=> examBlank(q, EX.picks[i])).length;
-    if(!blank){ if(confirm('Submit the paper and see your score?')) finishExam(false); return; }
-    if(confirm(`${blank} item${blank===1?' is':'s are'} still blank.\n\nOK: submit what you have answered (blank items are not logged).\nCancel: keep going.`)) finishExam(true);
-  };
+  // the last question's Review opens the overview: it grades, records and finishes nothing (DEENT, 2026-11-06)
+  $('#exNext').onclick = ()=>{ if(EX.i<EX.qs.length-1){EX.i++; saveExam(); renderExamQ();} else renderExamReview(); };
+  $('#exEnd').onclick  = askSubmitExam;
+}
+const examAnsweredN = () => EX.qs.filter((q,i)=> !examBlank(q, EX.picks[i])).length;
+const submitLabel = () => examAnsweredN() < EX.qs.length ? 'Submit what I have answered' : 'Submit paper';
+/* The one question every hand submit asks ("Submit paper", and the overview's
+   submit): Cancel keeps the paper running as it is. */
+function askSubmitExam(){
+  // a control left on screen after a switch to another profile: that profile's paper is not this one
+  if(!EX || !EX.running || !examOwned()) return;
+  const blank = EX.qs.length - examAnsweredN();
+  if(!blank){ if(confirm('Submit the paper and see your score?')) finishExam(false); return; }
+  if(confirm(`${blank} item${blank===1?' is':'s are'} still blank.\n\nOK: submit what you have answered (blank items are not logged).\nCancel: keep going.`)) finishExam(true);
+}
+/* The overview of a running paper: each question number, answered or not, a way
+   back to any of them, and the submit button. It shows no answer, grade or
+   explanation, and records nothing; the paper stays saved and its clock runs.
+   EX.review is not saved: a reload opens the paper on its question, as before. */
+function renderExamReview(){
+  if(!EX || !EX.running || !examOwned()) return;   // as askSubmitExam
+  EX.review = true;
+  const el = $('#v-exam'), n = EX.qs.length, answered = examAnsweredN();
+  const blanks = EX.qs.map((q,i)=> examBlank(q, EX.picks[i]) ? i+1 : 0).filter(Boolean);
+  let h = `<div class="examhead">
+    <span class="clock" id="exClock"${untimedPaper() ? ' title="Time taken so far: this paper is untimed"' : ''}>${untimedPaper() ? tookText() : fmt(EX.ends-Date.now())}</span>
+    <span class="prog">Review · ${answered} of ${n} answered</span>
+  </div>
+  <div class="qcard" id="exReview"><div class="qbody">
+    <h2 tabindex="-1" id="exRevHead" style="margin-top:0">Review your paper</h2>
+    <p class="sub">Nothing is graded or logged yet. Choose a number to go back to that question and change its answer.
+    The paper is graded only when you submit it.</p>
+    <div class="exgrid">`;
+  EX.qs.forEach((q,i)=>{
+    const blank = examBlank(q, EX.picks[i]);
+    h += `<button class="exq${blank?' blank':''}" data-q="${i}" data-state="${blank?'blank':'answered'}" aria-label="Question ${i+1}, ${blank?'not answered':'answered'}">
+      <b>${i+1}</b><small>${blank?'not answered':'answered'}</small></button>`;
+  });
+  h += `</div>${blanks.length ? `<p class="sub" id="exRevBlank">Not answered: ${blanks.length === n ? 'every question' : blanks.length > 6
+    ? `${blanks.length} questions, the first ${blanks.slice(0, 5).join(', ')} and ${blanks.length - 5} more (dashed in the grid)`
+    : 'question' + (blanks.length===1?' ':'s ') + blanks.join(', ')}.</p>` : ''}
+  </div><div class="qfoot">
+    <button class="btn ghost" id="exRevBack">Back to question ${EX.i+1}</button>
+    <span class="spacer" style="flex:1"></span>
+    <button class="btn" id="exRevSubmit">${submitLabel()}</button>
+  </div></div>`;
+  el.innerHTML = h;
+  // the question opened from the overview takes the focus (keyboard and screen reader land on it)
+  const go = i => { if(!EX || !EX.running || !examOwned()) return; EX.i = i; saveExam(); renderExamQ();
+    try { const st = document.querySelector('#v-exam .stem'); if(st){ st.setAttribute('tabindex', '-1'); st.focus(); } } catch(e){} };
+  el.querySelectorAll('#exReview [data-q]').forEach(b => b.onclick = () => go(+b.dataset.q));
+  $('#exRevBack').onclick = () => { if(EX) go(EX.i); };
+  $('#exRevSubmit').onclick = askSubmitExam;
+  try { const hd = document.getElementById('exRevHead'); if(hd && hd.focus) hd.focus(); } catch(e){}
 }
 /* One place decides whether an exam answer was right, for both grading and the
    review page: a select-all item is right only when the whole set matches. */
@@ -1652,6 +2738,9 @@ const examBlank = (q, p) => isMulti(q) ? !(Array.isArray(p) && p.length) : (p ==
 /* partial: blank items are left out of the history rather than logged as
    misses, for a paper that could not be finished. */
 function finishExam(partial){
+  // once per paper, and only under its own profile: a second submit (a handler run twice, a
+  // clock firing as the paper is submitted) records nothing more
+  if(!EX || !EX.running || !examOwned()) return;
   clearInterval(EX.timer);
   if(untimedPaper()) EX.took = Date.now() - EX.started;
   EX.running = false; EX.done = true; EX.partial = !!partial;
@@ -1670,6 +2759,9 @@ function renderExamResult(){
   const pct = Math.round(100*right/EX.qs.length);
   let h = `<h2>Exam simulation — ${right} / ${EX.qs.length} (${pct}%)</h2>${typeof EX.took === 'number' ? `
   <p class="sub" id="exTook">Time taken: ${fmt(EX.took)}. This paper was untimed.</p>` : ''}
+  ${blank ? `<p class="sub" id="exDenoms">${EX.partial ? '<b>Partial submission.</b> ' : ''}${EX.qs.length - blank} answered, ${blank} unanswered.
+    The score above counts all ${EX.qs.length} items on the paper; ${EX.qs.length - blank
+      ? `${Math.round(100*right/(EX.qs.length - blank))}% on the ${EX.qs.length - blank} answered (${right} right)` : 'none was answered'}.</p>` : ''}
   <p class="sub">${blank ? blank + ' left blank' + (EX.partial ? ', not logged. ' : ', scored as incorrect. ') : ''}${EX.partial ? 'The answered items are' : 'All ' + EX.qs.length + ' are'} now in your history,
   so anything you missed is back in active review.</p>
   <p><button class="btn" id="exAgain">New paper</button>
@@ -1739,6 +2831,8 @@ function stepTo(fig, from, to){
     d.classList.toggle('on', j === to);
     d.setAttribute('aria-current', j === to ? 'step' : 'false');
   });
+  const now$ = fig.querySelector('.stepnow');
+  if(now$) now$.textContent = `Step ${to + 1} of ${steps.length}`;
   if(reduceMotion()) return;
   const now = steps[to];
   const scale = svg.viewBox.baseVal.width / (svg.getBoundingClientRect().width || 1);
@@ -1767,9 +2861,94 @@ function stepTo(fig, from, to){
   svg.appendChild(ghost);
   setTimeout(() => ghost.remove(), 600);
 }
+/* What the step controls gain from the engine, whatever diagrams.js wrote: the
+   current step in words (announced as it changes), aria-current on its dot, and
+   an Enlarge button that shows the figure across the screen (Escape or Close
+   puts it back). The steps and their order are the figure's own. Run on each
+   view as it is drawn; a figure already armed is left alone. */
+function armFigs(root){
+  if(!root || typeof root.querySelectorAll !== 'function') return;
+  root.querySelectorAll('[data-anim]').forEach(ctl => {
+    if(ctl.querySelector('.stepnow')) return;
+    const fig = ctl.closest('figure'); if(!fig) return;
+    const steps = [...fig.querySelectorAll('.st')]; if(!steps.length) return;
+    const i = Math.max(0, steps.findIndex(s => s.classList.contains('on')));
+    const now = document.createElement('span');
+    now.className = 'stepnow'; now.setAttribute('aria-live', 'polite');
+    now.textContent = `Step ${i + 1} of ${steps.length}`;
+    ctl.prepend(now);
+    fig.querySelectorAll('.sdot').forEach((d, j) => d.setAttribute('aria-current', j === i ? 'step' : 'false'));
+    const big = document.createElement('button');
+    big.type = 'button'; big.className = 'btn ghost'; big.dataset.go = 'big'; big.textContent = 'Enlarge';
+    big.setAttribute('aria-pressed', 'false');
+    ctl.appendChild(big);
+  });
+}
+function figBig(fig, on, keepFocus){
+  if(on === fig.classList.contains('big')) return;
+  /* The enlarged figure leaves the page's flow, which would shorten the page and
+     let the browser move the reader up; a placeholder of the figure's own size
+     holds its place, and the page is put back where it was on close. */
+  let ph = null;
+  if(on){
+    const cs = getComputedStyle(fig);
+    ph = document.createElement('div');
+    ph.className = 'figph'; ph.setAttribute('aria-hidden', 'true');
+    ph.style.height = fig.getBoundingClientRect().height + 'px';   // the exact height: offsetHeight rounds, and a fractional figure then shortened the page while enlarged (DEENT ux_test)
+    ph.style.marginTop = cs.marginTop; ph.style.marginBottom = cs.marginBottom;
+    fig.dataset.y = String(window.scrollY);
+  }
+  fig.classList.toggle('big', on);
+  document.body.classList.toggle('figbig', on);
+  // the placeholder goes in only once the figure has left the flow, so the two
+  // never stand in the flow together; the page is held where it was either way
+  if(ph){ fig.before(ph); window.scrollTo(0, +fig.dataset.y); }
+  if(!on){
+    const ph = fig.previousElementSibling;
+    if(ph && ph.classList.contains('figph')) ph.remove();
+    const y = +fig.dataset.y; delete fig.dataset.y;
+    if(fig.isConnected && !isNaN(y)) window.scrollTo(0, y);
+  }
+  const b = fig.querySelector('[data-go="big"]');
+  if(b){ b.textContent = on ? 'Close' : 'Enlarge'; b.setAttribute('aria-pressed', on ? 'true' : 'false'); }
+  if(on){ fig.setAttribute('role', 'dialog'); fig.setAttribute('aria-modal', 'true'); }
+  else { fig.removeAttribute('role'); fig.removeAttribute('aria-modal'); }
+  // focus goes to the button that opened it, Close while open and Enlarge after,
+  // without the browser scrolling to it
+  if(b && !keepFocus && b.isConnected) b.focus({preventScroll: true});
+}
+/* Close any enlarged figure and release the page's scroll lock: before another
+   tab is shown or a view is drawn again, so the lock never outlives its figure. */
+function figClose(){
+  if(typeof document.querySelectorAll !== 'function' || !document.body || !document.body.classList) return;
+  document.querySelectorAll('figure.big').forEach(f => figBig(f, false, true));
+  document.body.classList.remove('figbig');
+}
+document.addEventListener('keydown', e => {
+  const open = document.querySelector('figure.big');
+  if(!open && document.body.classList.contains('figbig')) document.body.classList.remove('figbig');
+  if(e.key === 'Escape' && open){ e.preventDefault(); figBig(open, false); return; }
+  // while a figure is enlarged, Tab moves among its own controls only
+  if(e.key === 'Tab' && open){
+    const f = [...open.querySelectorAll('button,[href],select,input,[tabindex]:not([tabindex="-1"])')]
+      .filter(x => !x.disabled && x.getClientRects().length);
+    if(f.length){
+      const i = f.indexOf(document.activeElement);
+      const to = e.shiftKey ? (i <= 0 ? f[f.length - 1] : f[i - 1]) : (i < 0 || i === f.length - 1 ? f[0] : f[i + 1]);
+      e.preventDefault(); to.focus();
+    }
+    return;
+  }
+  // the arrow keys step a figure while one of its controls has focus
+  const ctl = e.target && e.target.closest && e.target.closest('[data-anim]');
+  if(!ctl || (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft')) return;
+  const b = ctl.querySelector(`button[data-go="${e.key === 'ArrowRight' ? 1 : -1}"]`);
+  if(b){ e.preventDefault(); b.click(); }
+});
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-anim] button'); if(!b) return;
   const fig = b.closest('figure'); if(!fig) return;
+  if(b.dataset.go === 'big') return figBig(fig, !fig.classList.contains('big'));
   const steps = [...fig.querySelectorAll('.st')]; if(!steps.length) return;
   const cur = steps.findIndex(s => s.classList.contains('on')), n = steps.length;
   const playBtn = fig.querySelector('[data-go="play"]');
@@ -1861,6 +3040,7 @@ const DIA_LIST = () => (typeof DIAGRAMS !== 'undefined' ? DIAGRAMS : [])
   .map(([name, keys]) => [name, keys.filter(k => typeof DIA !== 'undefined' && DIA[k])])
   .filter(([, keys]) => keys.length);
 function renderDiagrams(){
+  figClose();
   const el = $('#v-diagrams');
   const groups = DIA_LIST();
   if(!groups.length){
@@ -1934,25 +3114,44 @@ function refFigures(html){
    ========================================================================== */
 let ATLAS_BUILT = false;
 
+/* The words the Atlas uses for itself, from course.js, each defaulting to what
+   the engine always said, so a course that sets none reads as before:
+     atlasTitle         the heading ('Functional group atlas')
+     atlasNoun          what one tile is: a word ('structure', plural + "s") or
+                        [one, many] (['group', 'groups'])
+     atlasExampleLabel  the label before a tile's `e` line ('e.g.'); '' drops it,
+                        for a course whose `e` lines are facts, not examples */
+function atlasWords(){
+  const n = COURSE.atlasNoun;
+  const [one, many] = Array.isArray(n) ? [n[0], n[1] || n[0] + 's'] : n ? [n, n + 's'] : ['group', 'groups'];
+  return {title: COURSE.atlasTitle || 'Functional group atlas', one, many,
+          search: n ? `Find a ${one}` : 'Find a functional group',
+          eg: COURSE.atlasExampleLabel === undefined || COURSE.atlasExampleLabel === null ? 'e.g.' : String(COURSE.atlasExampleLabel)};
+}
+const ATLAS_ANON = 'Structure to identify';
+
 function renderAtlas(){
   const el = $('#v-atlas');
   if(ATLAS_BUILT) return;
 
+  const W = atlasWords();
   const count = ATLAS.boards.reduce((n,b)=>n+b.sections.reduce((m,s)=>m+s.items.length,0),0);
-  let h = `<h2>Functional group atlas</h2>
-  <p class="sub">${count} groups, drawn to the same scale. The ones that get confused sit next to
+  let h = `<h2>${esc(W.title)}</h2>
+  <p class="sub">${count} ${esc(count === 1 ? W.one : W.many)}, drawn to the same scale. The ones that get confused sit next to
   each other and the atom that separates them is shaded. Read a row left to right, then hide the
   names and go along it again.</p>
   <div class="atbar">
-    <input id="atq" type="search" placeholder="Find a group\u2026" aria-label="Find a functional group">
+    <input id="atq" type="search" placeholder="Find a ${esc(W.one)}…" aria-label="${esc(W.search)}">
     <button class="chip" id="atHide" aria-pressed="false">Hide names</button>
     <button class="chip hide" id="atShow">Reveal all</button>
     <span class="spacer"></span>
-    <span style="font-size:12px;color:var(--text-dim)" id="atCount"></span>
+    <span style="font-size:12px;color:var(--text-dim)" id="atCount" aria-live="polite"></span>
   </div>`;
 
-  for(const b of ATLAS.boards){
-    h += `<section class="atboard" id="at-${b.id}"><h3>${b.title}</h3>
+  // In Hide names mode a board's heading reads "Board n of N" instead of its
+  // title, and its intro, section labels and note are hidden (shell.html).
+  ATLAS.boards.forEach((b, bi) => {
+    h += `<section class="atboard" id="at-${b.id}"><h3><span class="athead-name">${b.title}</span><span class="athead-anon">Board ${bi + 1} of ${ATLAS.boards.length}</span></h3>
       <p class="bintro">${b.intro}</p>`;
     for(const sec of b.sections){
       h += `<div class="atsub">${esc(sec.label)}</div><div class="atgrid">`;
@@ -1961,19 +3160,20 @@ function renderAtlas(){
         const hay = (it.plain + ' ' + it.t + ' ' + (it.e||'')).replace(/<[^>]+>/g,'').toLowerCase();
         h += `<article class="attile" data-find="${esc(hay)}">
           <div class="atfig">${svg}</div>
+          <button type="button" class="chip atrev" aria-expanded="false">Reveal name</button>
           <div class="atname">${it.n}</div>
           <p class="attell">${it.t}</p>
-          ${it.e ? `<p class="ateg">${esc(it.e)}</p>` : ''}
+          ${it.e ? `<p class="ateg">${W.eg ? `<span class="ateglbl">${esc(W.eg)} </span>` : ''}${esc(it.e)}</p>` : ''}
         </article>`;
       }
       h += `</div>`;
     }
     if(b.note) h += `<p class="atnote">${b.note}</p>`;
     h += `</section>`;
-  }
+  });
   h += `<p class="sub" style="margin-top:26px">A bare line end is a carbon with three hidden
   hydrogens and a plain vertex is a carbon with two. A line end carrying a letter is that atom
-  instead, not a carbon \u2014 different drawings entirely, and the cheapest point to lose.</p>`;
+  instead, not a carbon — different drawings entirely, and the cheapest point to lose.</p>`;
 
   el.innerHTML = h;
   ATLAS_BUILT = true;
@@ -1981,12 +3181,39 @@ function renderAtlas(){
   const tiles = [...el.querySelectorAll('.attile')];
   const q = el.querySelector('#atq'), hide = el.querySelector('#atHide'),
         showAll = el.querySelector('#atShow'), count$ = el.querySelector('#atCount');
+  tiles.forEach(t => t.querySelectorAll('.atfig svg').forEach(sv => {
+    sv.dataset.label = sv.getAttribute('aria-label') || '';
+    const ti = sv.querySelector('title'); if(ti) ti.dataset.label = ti.textContent;
+  }));
 
+  /* A tile counts as shown when the search left it in and nothing else hides it
+     either: a course's own controls may hide tiles with a class (a filter of its
+     own), so the count reads what is on screen, not only the search's `hidden`. */
+  const onScreen = t => !t.hidden && (el.offsetParent === null || t.getClientRects().length > 0);
   const recount = () => {
-    const live = tiles.filter(t => !t.hidden).length;
-    count$.textContent = live === tiles.length ? `${tiles.length} groups` : `${live} of ${tiles.length}`;
+    const live = tiles.filter(onScreen).length;
+    count$.textContent = live === tiles.length ? `${tiles.length} ${tiles.length === 1 ? W.one : W.many}` : (COURSE.atlasNoun ? `${live} of ${tiles.length} ${W.many}` : `${live} of ${tiles.length}`);
   };
   recount();
+  el.atlasRecount = recount;
+
+  /* The names, as the mode shows them: a drawing is labelled with its name only
+     while the names are shown or its tile is revealed; otherwise it reads as a
+     structure to identify. Each reveal button says whether its tile is open. */
+  const sync = () => {
+    const off = el.classList.contains('namesoff');
+    tiles.forEach(t => {
+      const shown = !off || t.classList.contains('shown');
+      t.querySelectorAll('.atfig svg').forEach(sv => {
+        sv.setAttribute('aria-label', shown ? sv.dataset.label : ATLAS_ANON);
+        const ti = sv.querySelector('title'); if(ti) ti.textContent = shown ? ti.dataset.label : ATLAS_ANON;
+      });
+      const b = t.querySelector('.atrev');
+      if(b){ b.setAttribute('aria-expanded', off && t.classList.contains('shown') ? 'true' : 'false');
+             b.textContent = off && t.classList.contains('shown') ? 'Hide name' : 'Reveal name'; }
+    });
+  };
+  const reveal = t => { if(!el.classList.contains('namesoff')) return; t.classList.toggle('shown'); sync(); };
 
   q.oninput = () => {
     const v = q.value.trim().toLowerCase();
@@ -2010,11 +3237,14 @@ function renderAtlas(){
     hide.textContent = on ? 'Names hidden' : 'Hide names';
     showAll.classList.toggle('hide', !on);
     if(!on) tiles.forEach(t => t.classList.remove('shown'));
+    sync(); recount();
   };
-  showAll.onclick = () => tiles.forEach(t => t.classList.add('shown'));
-  tiles.forEach(t => t.querySelector('.atfig').onclick = () => {
-    if(el.classList.contains('namesoff')) t.classList.toggle('shown');
+  showAll.onclick = () => { tiles.forEach(t => t.classList.add('shown')); sync(); };
+  tiles.forEach(t => {
+    t.querySelector('.atfig').onclick = () => reveal(t);
+    const b = t.querySelector('.atrev'); if(b) b.onclick = () => reveal(t);
   });
+  sync();
 }
 
 function renderDoc(el, html, prefix){
@@ -2061,8 +3291,40 @@ function boxTables(root){
     box.style.marginTop = cs.marginTop; box.style.marginBottom = cs.marginBottom;
     t.before(box); box.appendChild(t);
     t.style.marginTop = '0'; t.style.marginBottom = '0';
+    const cue = document.createElement('p');
+    cue.className = 'tcue'; cue.hidden = true; cue.setAttribute('aria-hidden', 'true');
+    box.before(cue);
+    box.addEventListener('scroll', () => sideCue(box), {passive: true});
+    TABLE_BOXES.add(box);
   });
+  if(typeof requestAnimationFrame === 'function')
+    requestAnimationFrame(() => root.querySelectorAll('.tscroll').forEach(sideCue));
 }
+/* A box whose table is wider than it is marked .wide (its first column then
+   stays in view) and more-l / more-r for the side that has more columns; the
+   line above it says so in words. Measured again on a resize or rotation. */
+const TABLE_BOXES = new Set();
+function sideCue(box){
+  if(!box.isConnected){ TABLE_BOXES.delete(box); return; }
+  if(!box.offsetParent) return;                     // its tab is not on screen
+  const over = box.scrollWidth - box.clientWidth > 1;
+  const l = over && box.scrollLeft > 1, r = over && box.scrollLeft < box.scrollWidth - box.clientWidth - 1;
+  box.classList.toggle('wide', over);
+  // the first column stays in view only where each row starts with its own cell:
+  // a rowspan or colspan would pin a cell of another column on the rows it spans
+  const t = box.querySelector('table');
+  box.classList.toggle('stick', over && !!t && !t.querySelector('[rowspan]:not([rowspan="1"]),[colspan]:not([colspan="1"])'));
+  box.classList.toggle('more-l', l);
+  box.classList.toggle('more-r', r);
+  const cue = box.previousElementSibling;
+  if(cue && cue.classList.contains('tcue')){
+    cue.hidden = !over;
+    cue.textContent = r ? (l ? '\u2190 More columns on both sides \u2192' : 'More columns to the right: scroll sideways \u2192')
+                        : '\u2190 More columns to the left';
+  }
+}
+if(typeof window.addEventListener === 'function')
+  window.addEventListener('resize', () => { TABLE_BOXES.forEach(sideCue); navCue(); });
 function renderRef(){ renderDoc($('#v-ref'), refFigures(REFERENCE_HTML), 'ref'); }
 function renderTell(){ renderDoc($('#v-tell'), refFigures(TELL_HTML), 'tell'); }
 function renderGuide(){ renderDoc($('#v-guide'), refFigures(GUIDE_HTML), 'guide'); }
@@ -2129,10 +3391,14 @@ function renderSettings(){
     </div>
     <p style="font-size:13.5px;color:var(--text-dim);margin:4px 0 0">
       Storage does not sync between your phone and your laptop. Export on one, import on the other.
+      Import shows what the file holds and what it would change before it saves anything.
       Each answer is also kept in an answer history (time, question, right or wrong, the confidence button, the scheduler that chose it)
       so the review schedule can later be fitted to your own answers; Export progress includes it.
     </p>
+    ${backupNote()}
+    <div id="importPlan"></div>
   </div>
+  ${storageSection()}
   ${homeCard()}
 
   <h3>Start over</h3>
@@ -2169,27 +3435,37 @@ function renderSettings(){
   // Import and Erase replace the saved progress, so they too do nothing when
   // it was not loaded in this visit, and say why
   $('#btnImport').onclick = ()=>{ if(!canSave()){ alert(LOAD_FAIL + ' The file was not imported.'); return; } $('#fileIn').click(); };
+  // Import reads and checks the whole file, then shows what it would do; it saves
+  // only when that is confirmed (readProgressFile, importPlan, runImport)
   $('#fileIn').onchange = e=>{
-    const f = e.target.files[0]; if(!f) return;
-    if(!canSave()){ e.target.value = ''; alert(LOAD_FAIL + ' The file was not imported.'); return; }
+    const f = e.target.files[0]; e.target.value = ''; if(!f) return;
+    if(!canSave()){ alert(LOAD_FAIL + ' The file was not imported.'); return; }
     const r = new FileReader();
-    r.onload = ()=>{
-      try{
-        const j = JSON.parse(r.result);
-        if(!j.db || !j.db.concepts) throw new Error('not a progress file');
-        DB = upgradeDB(j.db); save(); fsFromHistory();
-        // the history is merged, not replaced: an answer already here is kept once
-        if(Array.isArray(j.log)) mergeLog(j.log);
-        alert('Progress loaded.'); renderSettings();
-      }catch(err){ alert('That file could not be read as a progress export.'); }
+    r.onerror = () => importDone({text: 'The file could not be read, so nothing was imported. Your progress is unchanged.'});
+    r.onload = () => {
+      const got = readProgressFile(String(r.result));
+      if(got.why){ importDone({text: esc(got.why) + ' Nothing was imported; your progress is unchanged.'}); return; }
+      const plan = importPlan(got);
+      if(plan.block){ importDone({text: esc(plan.block)}); return; }
+      showImportPlan(plan);
     };
     r.readAsText(f);
   };
+  const rb = $('#btnRestore');
+  if(rb) rb.onclick = restoreBackup;
+  const dc = $('#btnDeleteCopies');
+  if(dc) dc.onclick = deleteCopies;
+  const ct = $('#btnCapTrim'); if(ct) ct.onclick = () => { if(trimOldest()){ const w = document.getElementById('capwarn'); if(w) w.remove(); renderSettings(); } };
+  const sw = $('#v-settings [data-storage-warn]');
+  if(sw) wireStorageWarn(sw);
   $('#btnReset').onclick = ()=>{
     if(!canSave()){ alert(LOAD_FAIL + ' Nothing was erased.'); return; }
+    if(changedElsewhere()){ staleWarn(); alert(elsewhereShort() + ', so nothing was erased. Reload this page first.'); return; }
     if(confirm(`Erase all quiz history for "${PROFILE}"? This cannot be undone.`)){
+      // the question may have stayed open while another tab or window saved this profile
+      if(changedElsewhere()){ staleWarn(); alert(elsewhereShort() + ', so nothing was erased. Reload this page first.'); return; }
       // erasing replaces a stored history that could not be read, too
-      DB = BLANK(); save(); LOG = []; LOG_OK = true; saveLog(); alert('History erased.'); renderSettings();
+      DB = BLANK(); save(); LOG = []; LOG_OK = true; saveLog(); pendingRetire(); alert('History erased.'); renderSettings();
     }
   };
 }
@@ -2281,6 +3557,18 @@ bootStep('the tab buttons', () => {
   document.querySelectorAll('#nav button').forEach(b => b.onclick = () => show(b.dataset.v));
   document.getElementById('btnWho').onclick = () => { askProfile(true); show(VIEW); };
 });
+bootStep('the tab bar cue', () => {
+  const n = document.getElementById('nav');
+  n.addEventListener('scroll', navCue, {passive: true});
+  // the chevrons are the bar's own ::before / ::after, so a tap on one lands on the bar
+  n.addEventListener('click', e => {
+    if(e.target !== n) return;
+    const r = n.getBoundingClientRect(), x = e.clientX;
+    if(n.classList.contains('more-r') && x > r.right - 40) n.scrollBy({left: n.clientWidth * 0.7, behavior: reduceMotion() ? 'auto' : 'smooth'});
+    else if(n.classList.contains('more-l') && x < r.left + 40) n.scrollBy({left: -n.clientWidth * 0.7, behavior: reduceMotion() ? 'auto' : 'smooth'});
+  });
+  navCue();
+});
 /* A tab with nothing in it is removed rather than left to open on an empty
    page: the atlas when the course draws no structures, the Diagrams tab when no
    figure is registered, and either one when its list cannot be built. */
@@ -2324,8 +3612,12 @@ function bar(text, action, onAction, hideAfter){
    paper is saved, but its clock keeps running through the reload. */
 function offerReload(text){
   bar(text, 'Reload', () => {
+    // a stopped page, or one whose writes the browser refused (storage full): what it has not saved
+    // is lost on reload, unless exported (#32's review of 4311133; Louis, 2026-11-05)
+    if((STALE || WRITER === 'other' || FAILED.size) && atRiskAll() && !confirm('The answers and settings this page has not saved are lost on reload unless you export them first (the button on the notice). Reload anyway?')) return;
     if(EX && EX.running && !confirm('A paper is running. It is saved and its clock keeps running. Reload now?')) return;
     placeSave();
+    LEAVE_ASKED = true;   // asked here already: the browser's leave question is not shown again
     location.reload();
   });
 }
@@ -2433,7 +3725,8 @@ function placeSave(){
   if(!PLACE_READY || !VIEW) return;
   const pane = document.getElementById('v-' + VIEW); if(!pane) return;
   const pl = {v: VIEW, at: Date.now(), y: window.scrollY, a: placeAnchor(pane), open: detKeys(pane).filter(([d]) => d.open).map(([, k]) => k)};
-  if(VIEW === 'quiz' && Q && Q.current) pl.quiz = quizSnap();
+  // the quiz session belongs to its profile: the profile goes in the record (placeRestore)
+  if(VIEW === 'quiz' && Q && Q.current){ pl.quiz = quizSnap(); pl.p = PROFILE; }
   SS.set(PLACE_KEY, JSON.stringify(pl));
 }
 const placeSoon = () => { clearTimeout(PLACE_T); PLACE_T = setTimeout(placeSave, 400); };
@@ -2452,7 +3745,12 @@ function placeScroll(pl){
 }
 function placeRestore(pl){
   try {
-    if(pl.v === 'quiz'){ Q = quizFrom(pl.quiz); if(!Q) pl.v = 'topics'; }
+    // a quiz place is brought back only for the profile it was saved under. The tab's place is per tab
+    // (sessionStorage) but the chosen profile is shared by every tab (localStorage): another tab that
+    // switched the profile meanwhile makes this reload open another profile, which must not get the
+    // question, ticks and label of the one before (the review of #58). A record with no profile was
+    // written by a build before this check and is read as before.
+    if(pl.v === 'quiz'){ Q = pl.p === undefined || pl.p === PROFILE ? quizFrom(pl.quiz) : null; if(!Q) pl.v = 'topics'; }
     show(pl.v);
     const pane = document.getElementById('v-' + pl.v), open = new Set(pl.open || []);
     detKeys(pane).forEach(([d, k]) => { if(d.open !== open.has(k)) d.open = open.has(k); });
@@ -2467,10 +3765,27 @@ bootStep('keeping the place across a reload', () => {
   document.addEventListener('toggle', placeSoon, true);
   document.addEventListener('click', placeSoon);
   ['wheel', 'touchstart', 'keydown', 'mousedown'].forEach(t => window.addEventListener(t, () => { PLACE_MOVED = true; }, {passive: true, capture: true}));
-  document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'hidden') placeSave(); });
-  window.addEventListener('pagehide', placeSave);
+  // the progress first (saveNow, shell.html), then the place on the page, also if saveNow throws
+  const gone = () => { try { saveNow(); } finally { placeSave(); } };
+  document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'hidden') gone(); });
+  window.addEventListener('pagehide', gone);
+  // closing the tab or leaving the page while the browser refused writes and that work is not
+  // exported: the browser asks its own "leave this page?" question (its wording, not this page's;
+  // Louis, 2026-11-05). Not every browser shows it: see core/README.md.
+  window.addEventListener('beforeunload', e => {
+    try { if(!LEAVE_ASKED && FAILED.size && atRiskAll()){ e.preventDefault(); e.returnValue = ''; } } catch(err){}
+  });
 });
 
+/* The Quiz tab's storage warning follows every drawing of the pane, whichever code drew
+   it (quizStorageWarn). */
+bootStep('the storage warning in the Quiz tab', () => {
+  const el = document.getElementById('v-quiz');
+  if(!el || typeof MutationObserver === 'undefined') return;
+  new MutationObserver(() => { try { quizStorageWarn(); } catch(e){ console.error('The storage warning could not be drawn.', e); } })
+    .observe(el, {childList: true});
+  quizStorageWarn();
+});
 /* A running paper comes back first (restoreExam); otherwise the place saved
    before the reload, otherwise Topics. A paper or a place that cannot be
    brought back leaves the next one to open. */

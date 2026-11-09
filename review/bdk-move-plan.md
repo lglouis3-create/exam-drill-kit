@@ -75,7 +75,7 @@ K and F numbers are the assessment's.
 | Order | Pull request | Kind | Status |
 |---|---|---|---|
 | 1 | K13 a paper for pools with `questions:null` or `marks:null` (crashes today) | small fix | |
-| 2 | K10 `test.js` "missed concept resurfaced" check under `fsrs` | small fix | |
+| 2 | K10 `test.js` "missed concept resurfaced" check (section 4) under `fsrs`; also section 7 (a missed concept returns as a different wording), which since #40 fails nearly every run under `fsrs` (34 of 35 runs in the independent review of #40) | small fix | |
 | 3 | K11 `scheduler_test.js` preset cases use the course's own skill names | small fix | |
 | 4 | K12 `browser_test.js`: ids with an apostrophe; the tab crash in the full sweep | small fix | |
 | 5 | K5 converter hook for an older progress format, on first load and on Import | core | |
@@ -91,9 +91,12 @@ K and F numbers are the assessment's.
 | 26-31 | F13-F18: themes, today's plan with predicted recall, Progress dashboard, drug List tab, page colours, keyboard shortcuts | feature | |
 | 32 | `COURSES.md` and `FEATURES.md` updates | bookkeeping | |
 
-K1 (the core reads `course.js` `features`) merged in pull request #6. The port queue's
-BDK items 11-17 are covered by F1-F18 and are marked `BDK move` there, so the nightly
-porter does not port them a second time.
+K1 (the core reads `course.js` `features`) merged in pull request #6.
+F1-F8 and F14-F16 are now planned as kit modules for any course, in four parts with their own
+approvals (`review/bdk-study-features-plan.md`, Louis 2026-11-08); the move switches the built
+modules on for BDK instead of porting them a second time. F9-F13, F17 and F18 stay with this
+move. The port queue's BDK items 11-17 are marked `planned (part N)` there; the nightly porter
+takes only `pending` items, so it does not start them.
 
 ## Course work in the BDK repository (assessment §5)
 
@@ -112,6 +115,9 @@ On a branch, then at `/BDK/preview/`:
 
 ## Not run so far
 
-WebKit/Safari (not installed in the cloud container); a converter on Louis's real
-progress (it exists only in his browsers); Safari's storage quota (assessment, NOT
-DETERMINED).
+The Safari app on an iPhone or iPad. The kit's GitHub checks run WebKit, Safari's engine,
+on a Linux runner and on the template course only; that job blocks a merge once kit pull
+request #29 is merged. Louis, 2026-11-02: "Keep real iPhone/iPad testing before BDK goes
+live" (step 7 above: the preview in Safari and in the Home Screen copy). Also not run: a
+converter on Louis's real progress (it exists only in his browsers); Safari's storage
+quota (assessment, NOT DETERMINED).

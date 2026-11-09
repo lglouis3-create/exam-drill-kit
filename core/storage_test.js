@@ -14,6 +14,9 @@
  *      clears the key's failure
  *   2. storage works: no notice
  *   3. storage denied outright: the drill runs, answers count, the notice shows
+ *   4. the last change before the page goes: an answer followed at once by a reload,
+ *      and by closing the tab, is kept (saveNow on pagehide), and so is an answer
+ *      when the page is hidden (visibilitychange)
  *
  *     node storage_test.js
  */
@@ -30,13 +33,45 @@ const QUOTA = () => {
     return real.call(this, k, v);
   };
 };
-const answerOne = page => page.evaluate(() => {
-  startQuiz(TOPICS[0].id);
-  const q = Q.current;
-  if(isMulti(q)){ for(const i of correctSet(q)) document.querySelector(`#v-quiz button[data-o="${i}"]`).click(); document.getElementById('btnCheck').click(); }
-  else document.querySelector('#v-quiz button[data-o]').click();
-  return DB.answers.length;
-});
+// one answer in the page, by clicking as a student does (window.answerNow, for use inside an evaluate).
+// The question is chosen, not drawn: the first question of the bank, in bank order, that is answered
+// with option buttons (choice or select-all), put on screen through the engine's own fixed-queue pass
+// (a queue of that one question, as L.quizOn sets it up; nothing is shuffled or drawn). With
+// answerNow('multi') the question is the first select-all one. A quiz draws at random, and a course can hold
+// topics with numeric or matching questions only, so a draw can miss every option question.
+// A course with no such question, or a click that records no answer, stops the test with a message
+// that says so: that case is not exercised, so it is never counted as passed.
+const ANSWER_NOW = () => {
+  const onScreen = q => {
+    Q = {pool: [q], label: 'check', sweep: [q.id], i: 0, current: null, answered: 0, lastId: null, examMode: false, picked: null, revealed: false};
+    nextQuestion(); show('quiz');
+    return Q.current && Q.current.id === q.id && !!document.querySelector('#v-quiz button[data-o]');
+  };
+  window.answerNow = kind => {
+    const multi = kind === 'multi', slot = multi ? '__optionMulti' : '__optionQ';
+    let q = window[slot] ? QUESTIONS.find(x => x.id === window[slot]) : null;
+    if(!(q && onScreen(q))){
+      q = null;
+      for(const c of QUESTIONS){
+        if(!(c.options && c.options.length) || (multi && !isMulti(c))) continue;
+        if(onScreen(c)){ q = c; break; }
+      }
+      if(!q && multi) return null;   // the caller reports that this course has no select-all question
+      if(!q) throw new Error('storage_test needs a question answered with option buttons (choice or select-all), and this course has none: the answer cases were not run');
+      window[slot] = q.id;
+    }
+    const n0 = DB.answers.length;
+    if(isMulti(q)){ for(const i of correctSet(q)) document.querySelector(`#v-quiz button[data-o="${i}"]`).click(); document.getElementById('btnCheck').click(); }
+    else document.querySelector('#v-quiz button[data-o]').click();
+    if(DB.answers.length !== n0 + 1) throw new Error(`storage_test: clicking an answer to ${q.id} recorded ${DB.answers.length - n0} answers, not 1`);
+    return DB.answers.length;
+  };
+};
+// the same, from outside the page: the helper is put in the page first when it is not there yet
+const answerOne = async page => {
+  if(!(await page.evaluate(() => typeof window.answerNow === 'function'))) await page.evaluate(ANSWER_NOW);
+  return page.evaluate(() => answerNow());
+};
 
 (async () => {
   const {browser} = await L.launch(NAME);
@@ -84,7 +119,7 @@ const answerOne = page => page.evaluate(() => {
     });
     check(perKey.refused, 'a refused write is read back from memory', perKey.err || '');
     check(perKey.kept, 'a later write that succeeds goes to localStorage and is read from there', perKey.err || '');
-    if(warns.length){ await page.click('#savewarn button'); }
+    if(warns.length){ await page.click('#savewarn button.ghost'); }   // OK (the notice also has Export progress since 2026-11-05)
     check(!(await page.$('#savewarn')), 'OK closes the notice');
     check(!errors.length, 'no page errors with saving refused', errors.slice(0, 2).join('; '));
     await ctx.close();
@@ -113,12 +148,72 @@ const answerOne = page => page.evaluate(() => {
     await ctx.close();
   }
 
+  console.log('\n=== The last change before the page goes ===');
+  {
+    // In these pages the 150 ms save timer of save() (shell.html) never fires on its own: its
+    // delay is made an hour, so an answer reaches storage here only through saveNow. (Without
+    // this, a timer that fired before the close or the read let a check pass without saveNow.)
+    // window.__stretched counts the delays made an hour, so a change of save()'s delay shows.
+    const NO_TIMER = () => {
+      const real = window.setTimeout;
+      window.__stretched = 0;
+      window.setTimeout = function(f, d, ...a){ if(d === 150) window.__stretched++; return real.call(this, f, d === 150 ? 3600000 : d, ...a); };
+    };
+    const {ctx, page, errors} = await L.openFile(browser, {}, ANSWER_NOW);
+    await ctx.addInitScript(NO_TIMER);
+    await page.reload();
+    await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+    // an answer, then a reload in the same task
+    // the answer and the reload in one task, well inside the 150 ms the save waits; whether a
+    // save was waiting goes to sessionStorage, which the reload keeps. The reload destroys the
+    // page's context, so evaluate may end with that error (WebKit does; Chromium may return
+    // first); only that error is expected here. window.__before marks the page before the reload,
+    // so the wait below cannot end on it.
+    await page.evaluate(() => { window.__before = 1; answerNow(); sessionStorage.setItem('__waiting', saveTimer && window.__stretched > 0 ? '1' : '0'); location.reload(); })
+      .catch(e => { if(!/Execution context was destroyed|navigat/i.test(e.message)) throw e; });
+    await page.waitForFunction(() => !window.__before && document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+    const {n, waiting} = await page.evaluate(() => ({n: DB.answers.length, waiting: sessionStorage.getItem('__waiting') === '1'}));
+    check(waiting && n === 1, 'an answer followed at once by a reload is kept (it was still waiting to be saved)', {waiting, n});
+    // an answer, then the tab closed at once, with page.close(), which waits for the page to close.
+    // Not page.close({runBeforeUnload: true}): in WebKit that never closed the page (0 of 10 trials
+    // within 10 s, GitHub run 41598578124; an earlier version of this check passed in WebKit only
+    // because the 150 ms timer fired while the page stayed open), and it does not wait for the close
+    // in Chromium either (Playwright's documentation). page.close() closed the page and the waiting
+    // save reached storage in 10 of 10 trials in WebKit and in Chromium, with the timer unable to
+    // fire (the same run), so the closing page writes it.
+    const before = await page.evaluate(() => { answerNow(); return {n: DB.answers.length, waiting: !!saveTimer, stretched: window.__stretched}; });
+    const closed = new Promise(r => page.once('close', r));
+    await page.close();
+    await closed;
+    const p2 = await ctx.newPage();
+    p2.on('pageerror', e => errors.push(e.message));
+    await p2.goto(await L.pageUrl(L.PAGE.PAGE));
+    await p2.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+    const n2 = await p2.evaluate(() => DB.answers.length);
+    check(before.waiting && before.stretched > 0 && n2 === before.n, 'an answer followed at once by closing the tab is kept', {before, n2});
+    // stored progress against the progress on the page, in one evaluate
+    const stored = () => ({timer: !!saveTimer, db: DB.answers.length, stored: (JSON.parse(localStorage.getItem(NS + ':data:' + PROFILE) || '{}').answers || []).length, stretched: window.__stretched});
+    // an answer, then pagehide alone (no visibilitychange first): written at once
+    const ph = await p2.evaluate(f => { answerNow(); const w = !!saveTimer; window.dispatchEvent(new Event('pagehide')); return Object.assign({waiting: w}, (0, eval)(f)()); }, stored.toString());
+    check(ph.waiting && ph.stretched > 0 && !ph.timer && ph.stored === ph.db, 'an answer followed by pagehide alone is written at once', ph);
+    // an answer, then the page hidden (a phone switching apps): written at once
+    const hidden = await p2.evaluate(f => {
+      answerNow(); const w = !!saveTimer;
+      Object.defineProperty(document, 'visibilityState', {configurable: true, get: () => 'hidden'});
+      document.dispatchEvent(new Event('visibilitychange'));
+      return Object.assign({waiting: w}, (0, eval)(f)());
+    }, stored.toString());
+    check(hidden.waiting && hidden.stretched > 0 && !hidden.timer && hidden.stored === hidden.db, 'an answer followed by the page being hidden is written at once', hidden);
+    check(!errors.length, 'no page errors', errors.slice(0, 2).join('; '));
+    await ctx.close();
+  }
+
   // The site opens straight to the drill and never asks for a name on its own
   // (Louis, 2026-11-01). With no name stored, it opens the saved progress used
   // most recently, else a profile named "me". The Switch button still asks.
   console.log('\n=== Opening without asking for a name ===');
   const opened = async (seed) => {
-    const ctx = await browser.newContext({viewport: {width: 390, height: 844}});
+    const ctx = await browser.newContext(L.OPEN_CTX);
     await ctx.addInitScript(([s]) => {
       window.__prompts = 0;
       window.prompt = () => { window.__prompts++; return window.__name || 'Asked'; };
@@ -130,7 +225,7 @@ const answerOne = page => page.evaluate(() => {
     const page = await ctx.newPage();
     const errors = [];
     page.on('pageerror', e => errors.push(e.message));
-    await page.goto('file://' + L.PAGE.PAGE);
+    await page.goto(await L.pageUrl(L.PAGE.PAGE));
     await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
     const r = await page.evaluate(() => ({prompts: window.__prompts, who: PROFILE, n: DB.answers.length, stored: localStorage.getItem(NS + ':profile')}));
     return {ctx, page, errors, r};
@@ -155,6 +250,17 @@ const answerOne = page => page.evaluate(() => {
     const sw = await two.page.evaluate(() => ({prompts: window.__prompts, who: PROFILE}));
     check(sw.prompts === 1 && sw.who === 'Other', 'the Switch button still asks for a name', JSON.stringify(sw));
     await two.ctx.close();
+  }
+  console.log('\n=== The answer helper on a select-all question ===');
+  {
+    const {ctx, page, errors} = await L.openFile(browser, {}, ANSWER_NOW);
+    const r = await page.evaluate(() => { const n0 = DB.answers.length; const n = answerNow('multi'); return n === null ? null : {n0, n, id: Q.current && Q.current.id, multi: !!(Q.current && isMulti(Q.current))}; });
+    if(r === null) L.skip('the helper answers a select-all question', 'this course has no select-all question answered with option buttons');
+    else {
+      check(r.multi && r.n === r.n0 + 1, 'the helper answers a select-all question (its correct options, then Check answer) and one answer is recorded', JSON.stringify(r));
+      check(!errors.length, 'select-all answer: no page errors', errors.slice(0, 2).join('; '));
+    }
+    await ctx.close();
   }
   await browser.close();
   L.finish(NAME);

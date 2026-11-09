@@ -10,14 +10,22 @@
 # hide another, and its full output is kept in the log folder named at the end.
 # This script exits 1 when the build or any check fails. NOT RUN is listed with
 # its reason and is never counted as a pass.
+#
+# The log folder (drill-checks-XXXXXX under $TMPDIR) is removed at the end when
+# no check failed, and kept, named on the last line, when the build or any check
+# failed. KEEP_TEST_TMP=1 keeps it (and every check's scratch copies,
+# check_lib.js) whatever the result. A caller that reads the logs after the run
+# (ci_course.sh) sets DRILL_CHECKS_KEEP_LOGS=1 and removes them itself; the
+# variable is not passed on to the checks.
 set -uo pipefail
 cd "$(dirname "$0")" || exit 1
 export NODE_PATH="${NODE_PATH:-$(npm root -g 2>/dev/null)}"
 
-CHECKS=(test.js style_check.js render_test.js explain_check.js stepper_test.js cite_check.py
+CHECKS=(test.js style_check.js style_check_test.js render_test.js explain_check.js stepper_test.js cite_check.py
         device_lint.js output_test.js files_test.js tables_test.js checks_test.js draw_test.js browser_test.js storage_test.js
         startup_test.js update_test.js offline_test.js home_test.js history_test.js scheduler_test.js
-        preview_test.js state_check.js state_check_test.js oldcache_test.js nullexam_test.js)
+        preview_test.js state_check.js state_check_test.js oldcache_test.js nullexam_test.js import_test.js
+        storage_use_test.js cap_test.js share_test.js notruncase_test.js record_modules_test.js ownership_test.js flow_test.js ux_test.js optional_test.js exam_review_test.js)
 # Checks of what this course switches on (build.py --list-checks): features_test.js
 # and each module's own test when course.js `features` has a module on,
 # numeric_test.js with `numeric`, exam_typed_test.js with an exam's `typed`.
@@ -27,13 +35,16 @@ CHECKS+=("${OPTIONAL[@]}")
 [ $# -gt 0 ] && CHECKS=("$@")
 
 LOGS=$(mktemp -d "${TMPDIR:-/tmp}/drill-checks-XXXXXX")
-pass=0; fail=0; notrun=0; report=0
+keep_logs="${DRILL_CHECKS_KEEP_LOGS:-}"; unset DRILL_CHECKS_KEEP_LOGS
+pass=0; fail=0; notrun=0; report=0; cases=0
 line() { printf '%-8s %-17s %s\n' "$1" "$2" "$3"; }
 
+# a check's last line, leaving out blank lines and check_lib.js's "kept for inspection:" line
+lastline() { grep -v -e '^[[:space:]]*$' -e '^kept for inspection: ' "$1" | tail -n 1; }
 # the summary a check printed last, without its own "STATUS: name:" prefix
 reason() {
   local last
-  last=$(grep -v '^[[:space:]]*$' "$1" | tail -n 1)
+  last=$(lastline "$1")
   last=${last#PASS: }; last=${last#FAIL: }; last=${last#NOT RUN: }; last=${last#REPORT: }
   echo "${last#"$2": }" | cut -c1-200
 }
@@ -59,7 +70,7 @@ for c in "${CHECKS[@]}"; do
   esac
   rc=$?
   why=$(reason "$log" "$c")
-  if [ $rc -eq 0 ] && grep -v '^[[:space:]]*$' "$log" | tail -n 1 | grep -q '^REPORT:'; then
+  if [ $rc -eq 0 ] && lastline "$log" | grep -q '^REPORT:'; then
     line REPORT "$c" "$why"; report=$((report + 1))
   elif [ $rc -eq 0 ]; then
     line PASS "$c" "$why"; pass=$((pass + 1))
@@ -70,7 +81,18 @@ for c in "${CHECKS[@]}"; do
   else
     line FAIL "$c" "$why"; fail=$((fail + 1))
   fi
+  # each case the check reported as NOT RUN in this browser (check_lib.js notRunCase), one
+  # line each, "NOT RUN CASE  <check> :: <label>  — <why>"; never counted as passed. The prefix
+  # is its own, so a whole-check NOT RUN line can never read as a case line.
+  while IFS= read -r nrc; do
+    printf 'NOT RUN CASE  %s :: %s\n' "$c" "${nrc#  NOT RUN  }"; cases=$((cases + 1))
+  done < <(grep -E '^  NOT RUN  ' "$log" || true)
 done
 
-echo "$pass PASS, $fail FAIL, $notrun NOT RUN, $report REPORT; logs in $LOGS"
+echo "$pass PASS, $fail FAIL, $notrun NOT RUN, $report REPORT, $cases NOT RUN case(s); logs in $LOGS"
+# no FAIL: the logs are removed by their exact path, unless kept on request
+if [ $fail -eq 0 ] && [ "${KEEP_TEST_TMP:-}" != 1 ] && [ "$keep_logs" != 1 ]; then
+  rm -rf -- "$LOGS"
+  echo "(0 FAIL, so $LOGS was removed; KEEP_TEST_TMP=1 keeps it)"
+fi
 [ $fail -eq 0 ]

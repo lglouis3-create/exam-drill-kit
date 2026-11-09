@@ -1,0 +1,24 @@
+# Modules the kit's GitHub workflow switches on together in one course
+# (.github/ci_plan.js; core/ci_course.sh modules:<a>,<b>). One combination per line,
+# module names separated by commas; `*` stands for every module in the tree. A line
+# runs when every module it names exists and at least one of them is checked in that
+# run; each module also runs alone, so the partner is checked present and absent.
+#
+# The combinations Louis named on 2026-11-02 (relayed by the "Kit feature porter"
+# session): worksheets-ink with chained-problem-sets, glossary-tap with
+# formulas-in-text, study-controls with paper-picker, notes with study-controls
+# (shared flags), and theme with the new modules.
+worksheets-ink,chained-problem-sets
+glossary-tap,formulas-in-text
+study-controls,paper-picker
+notes,study-controls
+theme,*
+drug-list-tab,field-colours
+# field-colours' ci/oncourse.js switches drug-list-tab on itself (copied in, with its own
+# ci/oncourse.js) when the course does not have it on; drug-list-tab's script stops on a
+# course that already has it, so no line may name drug-list-tab after field-colours. The
+# line above names drug-list-tab first, so a change to drug-list-tab alone also runs
+# field-colours' test.
+# compare-tab with the two modules it works with: drug-list-tab's Compare button and
+# field-colours on its row headings (in this order: drug-list-tab first, as above).
+drug-list-tab,field-colours,compare-tab

@@ -8,8 +8,9 @@
  *      this course's own old cache is deleted, and so is a cache of the
  *      course's pre-core worker when course.js names its `oldCachePrefix`
  *      (that prefix's own cases are in oldcache_test.js)
- *   2. with the server down the page opens from the saved copy, at the site
- *      root and at the old file name
+ *   2. with the server down (it refuses connections, check_lib.js S.down()) the
+ *      page opens from the saved copy, at the site root and at the old file name,
+ *      and no request reaches the server meanwhile
  *   3. with the server slower than NET_TIMEOUT the saved copy opens without
  *      waiting, and when the newer page arrives a reload is offered, never
  *      forced
@@ -94,16 +95,25 @@ check(/<link rel="manifest" href="\.\/manifest\.json">/.test(L.PAGE.read()), 'th
     check(!(await page.$('#swbar')), 'the offline note is shown once, not on every load');
 
     console.log('\n=== Server down ===');
-    S.mode = 'down';
-    await page.reload().catch(() => {});
-    check(await waitApp(10000) && await appShown(), 'the site opens from the saved copy with the server down');
-    if(site && site.aliases && site.aliases.length){
-      await page.goto(S.url + site.aliases[0]).catch(() => {});
-      check(await waitApp(10000) && await appShown(), `the old file name ${site.aliases[0]} opens it too`);
-    }
+    const hits = () => Object.values(S.hits).reduce((a, b) => a + b, 0), hitsBefore = hits();
+    await S.down();
+    // A navigation that fails leaves the page from before on screen in WebKit (shown on
+    // 2026-11-03 with the worker's offline fallback removed: "Load failed", and the drill
+    // still on screen), so each check also asks that the page was loaded again: a mark
+    // set on the page before the navigation is gone after it.
+    const loadedAgain = async (nav) => {
+      await page.evaluate(() => { window.__before = true; }).catch(() => {});
+      await nav().catch(() => {});
+      return await waitApp(10000) && await appShown() && await page.evaluate(() => !window.__before).catch(() => false);
+    };
+    check(await loadedAgain(() => page.reload()), 'the site opens from the saved copy with the server down (loaded again, not the page from before)');
+    if(site && site.aliases && site.aliases.length)
+      check(await loadedAgain(() => page.goto(S.url + site.aliases[0])), `the old file name ${site.aliases[0]} opens it too`);
     const served = await page.evaluate(() => { startQuiz(TOPICS[0].id); return document.querySelectorAll('#v-quiz button[data-o], #numIn, #v-quiz select[data-row]').length; }).catch(() => 0);
     check(served >= 1, 'a quiz starts and serves a question offline');
-    S.mode = 'ok';
+    check(hits() === hitsBefore, 'no request reaches the server while it is down (it refuses connections)',
+      `${hits() - hitsBefore} served, ${S.downAnswered} answered 503 on a connection busy when it went down`);
+    await S.up();
 
     console.log('\n=== Server slower than NET_TIMEOUT, with a newer page ===');
     await page.goto(URL_); await waitApp(10000);
@@ -135,7 +145,7 @@ check(/<link rel="manifest" href="\.\/manifest\.json">/.test(L.PAGE.read()), 'th
 
   console.log('\n=== Opened from disk ===');
   {
-    const {ctx: c2, page: p2, errors: e2} = await L.openFile(browser);
+    const {ctx: c2, page: p2, errors: e2} = await L.openFromDisk(browser);
     // a page from disk cannot hold a registration; Chromium rejects the question itself
     const regs = await p2.evaluate(() => navigator.serviceWorker
       ? navigator.serviceWorker.getRegistrations().then(r => r.length, () => 0) : 0);

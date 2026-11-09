@@ -23,8 +23,37 @@ Reusable logic goes to the kit; one course's data stays in its repo.
 1. **Attach `exam-drill-kit` with push access**, alongside the course repo (`add_repo`
    with access "push"). A read-only copy cannot open pull requests. If push access to
    the kit is refused, stop and tell Louis; do not continue without the kit.
-2. **Read from the kit:** `KIT_DESIGN.md` §7 and §12 (the standing principles and the
-   approved design changes), `FEATURES.md`, `COURSES.md`, and `core/README.md`.
+2. **Read from the kit:** in every mode, `KIT_DESIGN.md` §7 and §12 (the standing
+   principles and the approved design changes) and the `COURSES.md` entry of the course
+   the mode names (`COURSES.md` in full in Modes 1 and 6). Mode 9 reads §7 and §12 and,
+   in place of one course's entry, what `coordinator/RUN.md` names; a coordinator step
+   that performs another mode also reads that mode's list (a retrospective is Mode 6; a
+   course-specific improvement is Mode 2's design check; a core or skill change also reads
+   what `CLAUDE.md` line 3 requires for a design or policy change). Then, by task:
+   - `FEATURES.md` in full in Modes 1, 2 (design check) and 6, where features are chosen
+     or compared, together with any registry this file says to read beside it; in other
+     modes, the entries of the features the course's `course.js` switches on and of any
+     feature the task names, and a search of `FEATURES.md` before any proposal names a
+     feature (§7.2); in Mode 7, also the `FEATURES.md` entries added or changed since the
+     course's kit pin.
+   - `core/README.md`: its section list (`grep -n '^## ' core/README.md`) and each section
+     the task touches. Read "Storage", "Start-up and the saved progress", "Offline", "A
+     newer version, and the place after a reload" and "Answer history and the Home Screen
+     card" in full for any change to `core/` code, to `ns`, question ids or `files`, or
+     that touches progress storage, import, recovery, caches or history; and "The
+     scheduler" for any scheduling change. Mode 1, and moving a course onto the core,
+     read the whole file.
+   - Mode 7: the `CHANGELOG.md` entries since the course's kit pin, `git log --stat
+     <pin>..origin/main -- core/ features/ template/`, the `core/README.md` sections they
+     concern, and, whenever the update brings in any file of `core/`, the storage sections
+     listed above in full before deciding whether the update is routine.
+   - Mode 7, and moving a course onto the core, also read
+     `review/standing-autonomy-2026-11-08.md` in full (his words govern routine
+     publication and migrations).
+   - Before repeating an investigation, review or check, read the newest handoff note on
+     the pull request concerned and compare the inputs it lists (`review/handoff-format.md`):
+     not only the head, also the base, comments, runs, sources, instructions and Louis's
+     decisions. A note is a summary; verify what decides a merge or a live change.
 3. **Read from the course repo:** `CLAUDE.md`, the last 7 entries of `reviews/LOG.md`,
    and `reviews/OPEN_QUESTIONS.md`.
 4. **Look before asking.** Check the course's Google Drive folder and, when the session
@@ -43,9 +72,10 @@ Reusable logic goes to the kit; one course's data stays in its repo.
 | "set up nightly ingest for <course>" / "set up a daily review for <course>" / "stop …" | 5 Scheduled ingest or review |
 | "retro the drill skill against <course>" | 6 Retro |
 | "update the <course> drill to the latest kit" | 7 Update a drill |
-| "approve updates for <course>" | 7 Update a drill (make the waiting preview live) |
+| "approve updates for <course>" | 7 Update a drill (make a preview live that waits for Louis's decision) |
 | "undo the last kit update for <course>" | 7 Update a drill (revert it) |
 | "exam <N> outcome for <course>" | 8 Exam outcome |
+| "Show my Exam Drill Dashboard" / "run the coordinator" | 9 Coordinator and dashboard |
 
 If the request names no mode, ask which one in one line.
 
@@ -62,7 +92,8 @@ COURSE = {id, title, short, ns, output, professors:[…],
   scheduler:{model:'concept' | 'fsrs' | 'concept-fsrs', compare?:true, preset?:'calc'},
   numeric?:{margin?}, exams[].typed?:true,
   files:['atlas.js', 'diagrams.js', 'q1_topics.js', 'q2_<lecture>.js', …],
-  oldCachePrefix?, manifest?:{description?, orientation?},
+  oldCachePrefix?, manifest?:{description?, orientation?, short_name?},
+  share?:{title?, description?, url?, image?},
   tools?:{citeAliases?, citeLectures?, citeBareMap?, explainTerms?, harvestMasks?},
   features:{<name>:{version, ...options}},
   kit:{core:'<kit commit or tag>'}}
@@ -83,6 +114,10 @@ COURSE = {id, title, short, ns, output, professors:[…],
   started with, so one in progress stays untimed if a time limit is added later
   (`core/nullexam.js`, `core/views.js`;
   `core/README.md` "Exam draw").
+- `share` gives the link preview a shared address shows (title, description, the
+  site's `https://…/` address and a PNG from `src/icons/`); without it the page is
+  unchanged. `manifest.short_name` names the Home Screen icon; the page keeps `short`
+  (`core/README.md` "What the build writes").
 - `files` lists the data files in build order; every new question file goes there. A
   core update replaces `build.py`, never `course.js`, so the list is kept
   (`core/README.md` "The course's files").
@@ -164,16 +199,44 @@ Open one whenever a session:
 - fixes or improves a core part (with the failing case shown before the fix);
 - adds evidence or a "Used by" line to `FEATURES.md`, or updates `COURSES.md`.
 
-For each feature, upgrade, core or `SKILL.md` pull request, tell Louis in plain terms
-what merging it provides, what it changes on his sites and when, what it does not
-change, the check results, and any risk; merge it (`merge_pull_request`) only after he
-answers yes to that pull request in the conversation (`KIT_DESIGN.md` §12.9). A no
-leaves it open, with his reason recorded in the pull request. Catalog
-bookkeeping (a "Used by" line, a dated evidence note) and pull requests labelled
-`small-fix` merge themselves once every required check passes (`KIT_DESIGN.md` §12.9);
-until the kit has required checks, they wait for Louis like the rest. A fix is
-`small-fix` only if it meets every condition in §12.9, and the pull request states each
-one; when in doubt, it is a core change. Courses get kit changes only through Mode 7.
+Which kit pull requests Claude may merge on its own, and which wait for Louis, is
+decision 10 of `KIT_DESIGN.md` §12 (Louis, 2026-11-03). In short:
+- **Claude may merge on its own** documentation, catalog and bookkeeping changes;
+  test-only fixes that keep or strengthen meaningful coverage; and isolated optional
+  features that stay off by default and change no existing course behaviour, storage
+  or scheduling (a module that saves new data in a student's progress is progress
+  storage). Each needs an independent review (a separate reviewer agent or an external
+  reviewer, its result posted on the pull request before the merge; passing CI alone is
+  not one), every applicable job of `.github/workflows/checks.yml` concluded "success"
+  on the final head commit, no unresolved finding and no unrelated change. Applicable:
+  the Chromium jobs (template, template-unset, Medicinal-chemistry), the WebKit template
+  job, the "Modules to check" plan job, and each module job a successful plan selects;
+  a module job a successful plan intentionally did not select is not applicable. Any
+  other conclusion of an applicable job, or no run for the final head commit, blocks the
+  merge: FAIL if it ran and failed, NOT RUN if it was cancelled, timed out or never
+  started. For an optional module or a change to a module's tests, a WebKit run of that
+  module's course is also required (decision 10, Claude's readings). After the merge, a
+  comment on the pull request names the review and the check run.
+- **Every other pull request waits for Louis's yes**, and so does any such action
+  outside a pull request: among them progress storage, import and recovery, and
+  scheduling behaviour; course migrations and live-course updates; destructive actions,
+  permission changes and unresolved consequential design choices; weakening, skipping
+  or exempting a required check; and a change to this file that changes what a session
+  does (Claude's reading in decision 10). For each, tell Louis in plain terms what
+  merging it provides, what it changes on his sites and when, what it does not change,
+  the check results, and any risk; merge it (`merge_pull_request`) only after he answers
+  yes to that pull request. A no leaves it open, with his reason recorded in the pull
+  request.
+
+Before finalizing or merging a pull request, read its comments and reviews, weigh each
+suggestion on its merits, address the valid findings, and reply on GitHub with the
+reasoning and validation for each one accepted or rejected. A fix is `small-fix` only if
+it meets every condition in §12.9, and the pull request states each one; when in doubt,
+it is a core change.
+Courses get kit changes only through Mode 7. A routine course update is published under
+Louis's standing authorization of 2026-11-08 after the validation it names; an update that
+carries a meaningful decision or an unresolved risk waits for his reply. Louis's own words:
+`review/standing-autonomy-2026-11-03.md` and `review/standing-autonomy-2026-11-08.md`.
 
 ## Checks
 
@@ -191,8 +254,15 @@ every automated check; only an adversarial review against the sources (Mode 4) f
 - Commit every script that produced content, including one-off helpers (§7.7).
 - Before every commit and package, grep the tree for tokens; a token lives only in
   `.git/config` (§7.10).
-- Push to the course repo following its own rule in `CLAUDE.md` (course repos merge
-  automatically, decision 1). Confirm the deploy from the Pages workflow run for the
+- A push that changes a live course's site needs Louis's approval of that change: his
+  request for it in this session, or his yes to a summary of it (`KIT_DESIGN.md` §12
+  decision 10, reading 7, which Louis accepted on 2026-11-03), except a routine kit update
+  under his standing authorization of 2026-11-08 (Mode 7, "The kit-update run", steps 2
+  and 3). Until then the work waits at `/preview/` or on a branch. An unattended run (a
+  scheduled task) never changes a live site without his reply, with the same exception
+  for the kit-update run. With that approval, push to the course repo
+  following its own rule in `CLAUDE.md` (course repos merge automatically, decision 1).
+  Confirm the deploy from the Pages workflow run for the
   pushed commit: `gh api 'repos/<owner>/<repo>/actions/runs?head_sha=<sha>'` and the run
   named "pages build and deployment" (works through the session's proxy without any
   connector, once the repo is attached), or `mcp__github__actions_list` where present.
@@ -204,6 +274,14 @@ every automated check; only an adversarial review against the sources (Mode 4) f
   in the course's `CLAUDE.md`; report any difference.
 - Design changes are built at `/preview/` on the course's own site and replace the live
   page only after Louis approves them (decision 6).
+- **Known is not released.** The coordinator's `coordinator/courses.json` holds every exam the
+  syllabus names, each with a release status (`planned`, `collecting-material`,
+  `in-development`, `ready-for-review`, `approved`, `published`). Only a `published` exam
+  goes into `course.js` `exams`, and `activeExam` names a published one; never add an
+  empty future exam to the site, and never release one because its date has passed.
+  Earlier exams stay on the site when later ones are cumulative. After a release goes live
+  and its deploy is confirmed, set that exam to `published` (and its `siteId`) in the same
+  kit pull request that updates `COURSES.md`; `coord.js published` checks the two agree.
 
 ## State
 
@@ -231,7 +309,8 @@ The checks fail the build when `CLAUDE.md` was not updated after the newest lect
    new course" says) and the approved features into the repo, fill
    `course.js` from the syllabus, propose the skill taxonomy and the exam/module map and
    confirm both, ingest the first lecture (Mode 2), build, run the checks, publish, add
-   the course to `COURSES.md` by kit pull request, and offer a daily review (Mode 5).
+   the course to `COURSES.md` and to `coordinator/courses.json` (its whole exam schedule,
+   each exam's release status) by kit pull request, and offer a daily review (Mode 5).
    Tell Louis to attach the new repository to the "Kit updater" session with one
    message there ("attach lglouis3-create/<repo> to this session with push access"),
    so the daily kit-update run can reach it.
@@ -277,8 +356,12 @@ finding: id, severity, exact quote, source quote, fix. Skip clean questions.
 Create one scheduled task per course with the scheduled-task tools, **with write access
 to the course repo and the kit attached**, at a time Louis chooses. Its prompt is
 standalone: load this skill, follow "Before anything else", do the ingest or the
-review, and append one entry to `reviews/LOG.md`. Each run confirms that it wrote and
-pushed its log entry; a run that wrote nothing, or could not push, reports failure and
+review, and append one entry to `reviews/LOG.md`. What an ingest adds to the site, and a
+review's fixes with its log entry, wait at `/preview/` or on a branch with a pull request
+for Louis's reply (as the scheduled task "BDK daily review" does since 2026-11-03: branch
+`daily-review/<date>`): an unattended run never changes a live site (`KIT_DESIGN.md` §12
+decision 10). Each run confirms that it wrote and pushed its log entry (to that branch
+when it works on one); a run that wrote nothing, or could not push, reports failure and
 never ends as succeeded. A run that finds the push refused reports that the task needs
 write access. Never create one for a course that has ended.
 
@@ -308,7 +391,8 @@ at 2:47 AM Central. A scheduled task that starts a fresh session each time canno
 work, because a session's repositories are chosen when it starts and such a session
 starts with none (tested 2026-11-01). Each run:
 0. **Preflight.** The run compares the course repositories in `COURSES.md` with the
-   ones attached to the session. A course that is listed but not attached (a new
+   ones attached to the session, ignoring letter case (GitHub treats `DEENT` and `deent` as
+   one repository). A course that is listed but not attached (a new
    course) is skipped in that run, and Louis gets a push notification naming it and the
    message to send in the session: "attach lglouis3-create/<repo> to this session with
    push access". The session does not attach it itself: the permission system requires
@@ -316,28 +400,74 @@ starts with none (tested 2026-11-01). Each run:
    branch name, and `gh api 'repos/<owner>/<repo>/actions/runs?per_page=1'`; and Node,
    Python and Chromium start. If any of these fails, nothing goes live in this run; the
    run reports FAILED with the failing step and its output.
-Then it compares every course's `kit` pins in `course.js` with the kit's `main`. For each
-course that is behind:
-1. Build the update at `/preview/`, run every check, and append the result to the
-   course's `reviews/LOG.md`.
-2. If every kit change since the pin is catalog bookkeeping or `small-fix`, every check
-   passes on every affected course's preview, today (America/Chicago) is not the date
-   of one of that course's exams (`exams[].when`; no recorded date means no automatic
-   update), and neither the saved-progress format nor `ns` changes: make the preview
-   live as one commit "kit update: <old pins> → <new pins>", delete `preview/`, and
-   push. Then wait for that commit's "pages build and deployment" run to complete, for
-   up to 10 minutes (a design choice: the longest of BDK's last five Pages deploys,
-   2026-10-30 to 2026-11-01, took 2 min 51 s). On success, log it. On failure, or with
-   no completed run after 10 minutes, revert the update commit, push, confirm that
-   deploy the same way, log both, and report FAILED.
-3. Otherwise leave the preview waiting and send Louis a summary: what changed in plain
-   words, the check results, the preview address, and whether an exam is today.
-   "approve updates for <course>" makes it live as in step 2.
+Then it reads each course's `course.js` from the branch GitHub Pages serves
+(`coordinator/courses.json` `pagesBranch`; `main` for every course today), at the commit
+Pages last deployed from it, or at its head when the deployment cannot be read, as the
+coordinator does; never from the repository's default branch, which can hold unreleased work
+(DEENT's default branch is its working branch). It compares the `kit` pins there with the
+kit's `main`, and reads the kit-update state of each course: `node coordinator/coord.js
+kitupdate --json` on the kit's `origin/main`. A pin difference, or a new kit commit, is not
+by itself a reason to build anything (Louis, 2026-11-08, `review/standing-autonomy-2026-11-08.md`
+§4): the run reads what changed in `core/` and `features/` since the course's pin and judges
+whether the course benefits, by the features it uses and by newly available features that fit
+its material. A course whose last exam has passed (Medicinal-chemistry, Louis 2026-11-08;
+the coordinator's lifecycle "completed") gets no update for a pin difference alone and stays
+eligible for improvements that fit it. A course with no `kit` pin (BDK, Basic-Pharmacokinetics-,
+Intro-Pharmacology-, 2026-11-08) is awaiting its migration onto the core: "no kit pin" is an
+expected status, not a failure; the run checks that the repository answers and leaves the
+migration to its owning session. A course in `COURSES.md` with no entry in
+`coordinator/courses.json` has no pause recorded and is active. If that command fails, exits
+non-zero, or reports any course as "invalid", or the kit's `main` has no `coordinator/`, the
+run builds no kit-update preview for any course in that run and reports FAILED with the
+command's output; its read-only checks still run.
+- **Paused** (`kitUpdate.previews` "paused"; DEENT since 2026-11-06): the run makes no
+  branch, build, `/preview/`, commit or log entry in that course, and changes neither its
+  working branch nor its existing preview. Its read-only checks go on: the preflight
+  above, the pin on the Pages branch against the kit's `main`, the Pages branch's head and
+  its latest "pages build and deployment" run. The run reports, in its one line for the
+  course, "kit-update preview paused since <since>: <reason>", the pin and how far it is
+  behind. A paused course behind the kit is not a failure and sends no notification on its
+  own.
+- **Lifting a pause** (the record's `liftWhen`): after the pending release is resolved, a
+  kit session verifies the approved course baseline on the Pages branch (its head, its
+  question count and its confirmed Pages deploy) and that no pending preview, on the Pages
+  branch or the working branch, would be overwritten. Only then does it set `previews` to
+  "active" in a bookkeeping pull request, and the next run prepares a separate kit-update
+  preview. The run itself never lifts a pause.
+For each course, not paused, that benefits from a change in the kit:
+1. Bring in the newer core and feature files on a branch `kit/update-<kit sha>`, build the
+   update at `/preview/`, run every check, compare the preview with the live page, and
+   append the result to the course's `reviews/LOG.md`, with the student benefit stated.
+2. Decide whether the update is routine. It is routine when it keeps every question, answer,
+   explanation, figure, exam setting and saved progress as they are, changes no study or
+   exam behaviour substantially, and every required check and the independent review the
+   kit's rules call for have passed. It is not routine, and waits at `/preview/` for Louis's
+   decision with the specific risk and the evidence stated, when it could lose or convert
+   saved progress incompatibly, removes content or a feature, changes an answer key without
+   adequate source support, changes study or exam behaviour substantially, redesigns a drill
+   close to an assessment, rests on conflicting requirements or a consequential trade-off
+   that is not resolved with confidence, would weaken a required check, or carries any other
+   meaningful decision or unresolved risk (Louis's list is open, "such as", and he asks for
+   judgment: `review/standing-autonomy-2026-11-08.md` §1; before 2026-11-08 every update
+   waited for his reply, and before 2026-11-03 a bookkeeping or `small-fix` update could go
+   live without one). Claude's own design choice, not in his text: no update is published
+   on an exam day of that course.
+3. Publish a routine update, or a waiting one after Louis's reply "approve updates for
+   <course>": verify that the candidate on the branch is the one the checks ran on, build the
+   live page from it and confirm that it matches the validated preview apart from the preview
+   note and stamps, then one commit "kit update: <old pins> → <new pins>", `preview/`
+   deleted, the course `CLAUDE.md` pin paragraph updated, pushed. Then wait for that commit's
+   "pages build and deployment" run to complete, for up to 10 minutes (a design
+   choice: the longest of BDK's last five Pages deploys, 2026-10-30 to 2026-11-01, took
+   2 min 51 s). On success, log it; the previous commit stays as the rollback (a revert).
+   On failure, or with no completed run after 10 minutes, revert the update commit, push,
+   confirm that deploy the same way, log both, and report FAILED.
 A run that could not build, check, push or confirm the deploy reports failure and never
 ends as succeeded. The run sends Louis a push notification only when a new course needs
-attaching, a preview waits for his reply, an update went live or was reverted, or the
-run failed; a run with nothing
-behind ends with one line per course and no notification.
+attaching, an update that needs his decision waits for his reply, a meaningful improvement
+went live, an update was reverted, or the run failed; never for an unchanged pause, a pin
+difference, or a run with nothing to do, which ends with one line per course and no
+notification.
 
 Bringing in a newer core means copying every file of the kit's `core/` except
 `README.md`, and `core/vendor/`, into the course's `src/`. A course with feature modules on
@@ -361,6 +491,26 @@ the previous pins in `course.js`, confirms the deploy, and logs it in `reviews/L
 Record Louis's feedback in `COURSES.md`: the score if he gives it, the question types
 that appeared, and what the drill missed. Compare it with the drill's coverage and the
 answer log, and turn what it shows into improvement proposals.
+
+## Mode 9: coordinator and dashboard
+
+- **"Show my Exam Drill Dashboard"**: follow the project skill
+  `.claude/skills/exam-drill-dashboard/SKILL.md` in the kit. It runs
+  `node coordinator/coord.js dashboard` and shows the result in the conversation. It changes
+  nothing.
+- **"Run the coordinator"** (or its scheduled task): follow `coordinator/RUN.md`.
+- The coordinator plans reviews by each course's lifecycle, from its whole schedule in
+  America/Chicago, never from `activeExam`:
+  - exam-approaching and active: daily;
+  - recently completed: weekly;
+  - completed: monthly, with a quarterly deep audit;
+  - archived: only on change.
+- It skips unchanged code and records every improvement it finds in
+  `coordinator/improvements.json`. Preparing improvements (branches, pull requests, port-queue
+  entries) and starting retrospectives on its own are a separate proposal for Louis's yes or
+  no; until it is merged, a run prepares nothing and a retrospective happens only when Louis
+  asks for one (Mode 6).
+- It never publishes a course site or merges a course repository's main.
 
 ## The scheduler
 

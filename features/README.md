@@ -8,6 +8,7 @@ features/<name>/
     module.json  what the module is and which files it ships (below)
     <name>.js    its code; <name>.css its styles; step.js its build step, if any
     test.js      the module's test, which run_checks.sh runs when the module is on
+  ci/oncourse.js switches the module on in a scratch course for the kit's checks (below)
   archive/vN/    every earlier version, unchanged (decision 4), each with its test
 ```
 
@@ -82,6 +83,38 @@ The build refuses a field it does not know, so a misspelt field cannot be ignore
   test, which `run_checks.sh` adds to its checks; `--list-features` prints the modules
   on, with their options.
 
+## Checked on a course of its own
+
+Every module has `ci/oncourse.js`, beside `current/`. `core/ci_course.sh module:<name>`
+builds the template course, copies `current/` into `src/features/<name>/` and runs
+
+    node features/<name>/ci/oncourse.js <kitDir> <courseSrcDir>
+
+which switches the module on in that course: it writes the module's course data (taken
+from the fixture its `test.js` already uses, nothing invented; ids prefixed so they never
+meet the test's own copies) and appends one `course.js` line with the module at the
+version in its `module.json`. It writes only inside `<courseSrcDir>`, prints what it
+wrote, and exits non-zero on any failure, including a course it already ran on. A module
+named in `needs` is copied and switched on first, by its own script, so the course has
+every module the module needs. Questions it adds are written in the kit's question-file
+format (one question per line opening `{id:'...'`, the professor as a literal), so the
+core checks count and read them as they do the course's own; a lecture it adds is written
+as `{id:'L91', ...}`, the form `state_check.js` reads. `run_checks.sh` then runs every core
+check and the module's test, and the test of each module it needs, on that course.
+`modules:<a>,<b>` switches several on together. The run stops before any check when a
+module, its `module.json` or its `ci/oncourse.js` is missing, when the `needs` form a
+loop, or when a script exits non-zero.
+
+On GitHub, `.github/ci_plan.js` picks the module courses of each pull request: each module
+with a changed file, every module that needs one of them, and each combination in
+`features/ci-combinations.txt` that holds one of them (every module when `core/`,
+`template/` or `.github/` changes, and on every push to `main`). Each runs as two jobs of
+its own, in Chromium ("modules") and in WebKit ("modules-webkit"). Each job fails unless
+every module switched on has its own test (`test.js`) PASS with at least one passed check
+printed after its browser started: so a module's test must start its browser through
+`check_lib.js`'s `launch` and check the page there. A module whose test needs no browser
+fails both jobs; an exemption for one would be Louis's decision.
+
 ## The hooks
 
 On `X`, the handle a module gets (`core/features.js` holds the code and the same list):
@@ -93,7 +126,7 @@ On `X`, the handle a module gets (`core/features.js` holds the code and the same
 | `X.after(fn(q, result, picked, mode, entry))` | after every recorded answer (quiz, sweep, exam); `entry` is the answer as kept in the progress (`DB.answers`), so a module can add a field to it |
 | `X.rendered(fn(pane, view))` | after the engine draws into a view's pane, once per batch of changes |
 | `X.reading(fn(html))` | the HTML of a reading tab (Guides, Tell apart, Reference) before it is drawn; returns the HTML to draw |
-| `X.paper(fn(qs))` | the questions of a new exam paper, in order, before it starts; returns the same questions, in the order to ask them |
+| `X.paper(fn(qs))` | the questions of a new exam paper, in order, before it starts; returns a paper of the same length, in the order to ask them: the same questions reordered, or other questions in their place (paper-picker draws another exam's paper). A result of another length, with an entry that is not a question of the bank, or with a question twice, is refused: the drawn paper is kept and the module switched off for the visit. It does not run on the sample papers the exam's opening page draws. The opening paragraph (the exam's name and blurb, its blueprint, the select-all text) describes this exam, so a module that puts another exam's paper in place says so on its own page and does not let that paragraph stand for it; only the number of questions is guaranteed |
 | `X.settings({title, html(), wire(el)})` | a section at the end of Settings |
 | `X.start(fn())` | once, after the first progress load |
 | `X.progress(fn(db))` | on every saved progress read in (page load, profile switch, Import), before the engine uses it: a converter for answers saved in an older shape |
@@ -118,6 +151,9 @@ is off says so on its card and offers the next question.
 |---|---|---|---|
 | `formulas-in-text` | v1 | Basic-Pharmacokinetics `ac2eb73` | formulas set as the slides print them: stacked fractions, powers, the course's subscripts |
 | `chained-problem-sets` | v2 | Basic-Pharmacokinetics `ac2eb73` | problems asked in parts, worked in the professor's order; parts kept together on a paper |
+| `drug-list-tab` | v1 | BDK `05c36c3`; recall mode from DEENT `0281922` | a Drug list tab: a table per page, group chips, a search across every table, a row's essential knowledge under it, a recall mode with Reveal per row; nothing stored |
+| `field-colours` | v1 | BDK `05c36c3` | the headings of the fields a course names as hardest coloured (drug-list-tab's columns; any `data-field` heading in a feature pane); nothing stored |
+| `compare-tab` | v1 | BDK `05c36c3` | a Compare tab: 2 to 5 drugs side by side, each item marked shared or different, Only differences; a Compare button in drug-list-tab's detail row; nothing stored |
 | `equation-drill` | v2 | Basic-Pharmacokinetics `ac2eb73` | an Equations tab: every equation with its symbols and conditions, typed or built from pieces; needs `formulas-in-text` |
 | `wrong-number-diagnosis` | v1 | Basic-Pharmacokinetics `ac2eb73` | what a wrong typed number says about the slip behind it, beside the miss chips; converts PK's saved `missKind` |
 

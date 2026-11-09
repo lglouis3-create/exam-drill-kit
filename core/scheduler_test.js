@@ -20,6 +20,9 @@ L.PAGE.need(NAME);
 const DAY = 86400000;
 
 /* ---- the test bank ------------------------------------------------------
+   The bank's skills are 'recall' and 'calc'; COURSE_BASE adds them to the
+   scratch course's taxonomy when the course does not have them (a course's
+   own taxonomy, e.g. PHAR 4346's, need not use the template's ids).
    Lecture ZS-L1 (subtopic a): c1 has three questions, c2 one.
    Lecture ZS-L2 (subtopic b): c3 and c4 two each, c5 one.            */
 const BANK = [
@@ -42,6 +45,8 @@ QUESTIONS.push(...${JSON.stringify(BANK.map(([id, concept, skill, lec, sub]) => 
 // every part names its scheduler; this is the default unless the part's own lines set another
 const COURSE_BASE = `
 COURSE.scheduler = {model:'concept'};
+for (const [id, label] of [['recall', 'Recall'], ['calc', 'Calculate']])
+  if (!(COURSE.skills || []).some(s => s.id === id)) (COURSE.skills = COURSE.skills || []).push({id, label, short: label});
 COURSE.lectures.push({id:'ZS1', deck:'ZS-L1.pdf', label:'Test lecture 1', prof:COURSE.professors[0], exam:99, module:'ZS'},
                      {id:'ZS2', deck:'ZS-L2.pdf', label:'Test lecture 2', prof:COURSE.professors[0], exam:99, module:'ZS'});
 `;
@@ -66,9 +71,9 @@ function variant(label, courseExtra){
   if(b.status !== 0) return {error: ((b.stderr || '') + (b.stdout || '')).trim().split('\n').pop()};
   return {repo, page: path.join(repo, 'index.html'), out: b.stdout};
 }
-/* The page from disk at a fixed time, with the name prompt answered. */
+/* The built page (over HTTP, check_lib.js pageUrl) at a fixed time, with the name prompt answered. */
 async function open(browser, page_, at, init){
-  const ctx = await browser.newContext({viewport: {width: 390, height: 844}});
+  const ctx = await browser.newContext(L.OPEN_CTX);
   await ctx.addInitScript(() => { window.prompt = () => 'TestUser'; });
   if(init) await ctx.addInitScript(init);
   const page = await ctx.newPage();
@@ -76,7 +81,7 @@ async function open(browser, page_, at, init){
   page.on('pageerror', e => errors.push(e.message));
   page.on('dialog', d => d.accept());
   await page.clock.setFixedTime(new Date(at));
-  await page.goto('file://' + page_);
+  await page.goto(await L.pageUrl(page_));
   await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
   return {ctx, page, errors};
 }
@@ -717,7 +722,7 @@ COURSE.exams.push({id:'zsA', name:'Test exam', date:'12 Nov', when:'2026-11-12T0
       // the saved progress and history under this course's keys, before the page's script runs
       const openSaved = async (v, db) => {
         const ns = nsOf(v.repo);
-        const ctx = await browser.newContext({viewport: {width: 390, height: 844}});
+        const ctx = await browser.newContext(L.OPEN_CTX);
         await ctx.addInitScript(() => { window.prompt = () => 'TestUser'; });
         await ctx.addInitScript(([ns, db, log]) => { if(sessionStorage.getItem('seeded')) return; sessionStorage.setItem('seeded', '1');
           localStorage.setItem(ns + ':profile', 'TestUser'); localStorage.setItem(ns + ':data:TestUser', JSON.stringify(db));
@@ -725,7 +730,7 @@ COURSE.exams.push({id:'zsA', name:'Test exam', date:'12 Nov', when:'2026-11-12T0
         const page = await ctx.newPage(); const errors = [];
         page.on('pageerror', e => errors.push(e.message)); page.on('dialog', d => d.accept());
         await page.clock.setFixedTime(new Date(F.end));
-        await page.goto('file://' + v.page);
+        await page.goto(await L.pageUrl(v.page));
         await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
         await page.waitForTimeout(200);
         return {ctx, page, errors, ns};
@@ -757,8 +762,11 @@ COURSE.exams.push({id:'zsA', name:'Test exam', date:'12 Nov', when:'2026-11-12T0
       // Import progress converts the same way
       const file = path.join(conv.repo, 'saved-5014f27.json');
       fs.writeFileSync(file, JSON.stringify({app: 'exam-drill', ns, db: F.db, log: F.log}));
-      await p.evaluate(() => { DB = BLANK(); show('settings'); });
+      // into a profile with no progress and no history (Import does not take a profile that
+      // has history of its own for an empty one, so DB = BLANK() alone is not empty)
+      await p.evaluate(() => { useProfile('Fresh'); show('settings'); });
       await p.setInputFiles('#fileIn', file);
+      await p.waitForSelector('#importGo', {timeout: 5000}).then(b => b.click(), () => {});
       await p.waitForTimeout(600);
       db = await p.evaluate(() => JSON.parse(JSON.stringify(DB)));
       check(db.v === 2 && JSON.stringify(strip(db)) === JSON.stringify(F.db) && JSON.stringify(db.concepts.c1.last) === JSON.stringify(lastWant.c1),
