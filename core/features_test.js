@@ -72,8 +72,11 @@ X.rendered((pane, view) => { seen.rendered[view] = (seen.rendered[view] || 0) + 
 X.reading(html => html + '<p id="probeRead">probe reading</p>');
 X.paper(qs => { seen.paperCalls = (seen.paperCalls || 0) + 1; seen.paper = qs.map(q => q.id);
   const mode = window.__paperMode || 'reverse';
+  // other bank questions in as many places as the bank allows, the rest of the paper after them (a bank with
+  // fewer questions outside the paper than the paper holds still gets a full-length paper of bank questions)
   if(mode === 'replace'){ const ids = new Set(qs.map(q => q.id)); const other = QUESTIONS.filter(q => !ids.has(q.id)).slice(0, qs.length);
-    seen.replaced = other.map(q => q.id); return other.length === qs.length ? other : qs.slice().reverse(); }
+    const res = other.concat(qs.slice(0, qs.length - other.length));
+    seen.replaced = res.map(q => q.id); seen.others = other.length; return res; }
   if(mode === 'short') return qs.slice(1);
   if(mode === 'junk') return qs.map((q, i) => i ? q : {id: q.id});
   if(mode === 'twice') return qs.map((q, i) => i ? q : qs[1]);
@@ -235,12 +238,15 @@ const ALL = {'fx-probe': {version: 'v1', word: 'zz-word'}, 'fx-probe-throws': {v
     // their place (paper-picker), is the paper (a refused result is checked last: it switches the module off)
     const contract = await page.evaluate(() => {
       const out = {};
-      window.__paperMode = 'replace'; const r = drawPaper().map(q => q.id); out.replace = {got: r, want: window.__probe.replaced};
+      window.__paperMode = 'replace'; const r = drawPaper().map(q => q.id);
+      out.replace = {got: r, want: window.__probe.replaced, others: window.__probe.others};
       window.__paperMode = 'reverse';
       return out;
     });
-    check(contract.replace.want && contract.replace.want.length && JSON.stringify(contract.replace.got) === JSON.stringify(contract.replace.want),
-          'a paper hook may put other questions in place (same length): its paper is the one drawn', contract.replace);
+    if(contract.replace.others === 0) L.notRunCase('a paper hook may put other questions in place',
+      'every question in the bank is on the paper, so there is no other question to put in');
+    else check(contract.replace.want && contract.replace.want.length && JSON.stringify(contract.replace.got) === JSON.stringify(contract.replace.want),
+          `a paper hook may put other questions in place (same length): its paper is the one drawn (${contract.replace.others} of ${contract.replace.want.length} replaced)`, contract.replace);
     // a draw that throws during the sampling still clears the flag: the next real paper runs the hook
     const thrown = await page.evaluate(() => {
       const keep = drawPaper; let n = 0;
