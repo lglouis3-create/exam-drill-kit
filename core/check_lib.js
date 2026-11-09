@@ -139,7 +139,7 @@ async function openAt(browser, url, ctxOpts, init){
   const page = await ctx.newPage();
   const errors = [];
   page.on('pageerror', e => errors.push(e.message));
-  page.on('dialog', d => d.accept());
+  page.on('dialog', d => d.accept().catch(() => {}));
   await page.goto(url);
   await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
   return {ctx, page, errors};
