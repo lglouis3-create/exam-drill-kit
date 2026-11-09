@@ -61,6 +61,34 @@
  * options, and the image view shows each table's image (the image files are
  * answered by the test with a 1x1 image: BDK's pages/*.webp are not copied).
  *
+ * v2, ratings kept in the progress (queue item 23), on a third scratch copy with BDK's
+ * tables, recallFields [indication, essential] and a DRUG_FACTS that maps the template
+ * bank's questions s1-1 and s1-2 to two BDK facts, at 390 px and 820 px: Ask for lists
+ * every hidden field, then each recall field; with every hidden field asked there is no
+ * rating (v1); asking stores nothing; the status line before any rating (not rated yet,
+ * the bank questions Not practised; no bank part for an unmapped fact); no rating before
+ * Reveal; DEENT's Forgot / Partly / Knew criteria; a rating adds {f, r, at} and no
+ * answer, answer count or history entry; the pressed rating keeps the focus; a second
+ * rating of one opening replaces the first, a new opening is a new rating; a reload at
+ * once after a rating keeps it, with nothing typed in any stored record; the status
+ * line reads the stored ratings after the reload; Not yet Knew; each field its own fact;
+ * bank answers to the mapped questions give DEENT's status words (Remembered, then
+ * Forgot over two questions) and add no rating, a rating adds no answer; this tab's own
+ * record (#69) holds the ratings; another profile holds none, and its own rating stays
+ * under it; the first profile's ratings after a switch back and a reload; Export holds
+ * them; Erase my history clears them, also after a reload; Import of the exported file
+ * puts them back, also after a reload; no sideways scroll; no error. Kept on a later day
+ * (DEENT's rule, the core's dayKey), on ratings and on bank answers planted on chosen days
+ * and read after a reload: two days, one day, a broken run, a last Forgot, either side of
+ * midnight, the list out of time order. Import measured
+ * with only the ratings differing (reported, and checked against core/README.md
+ * 792-840): the same file, nothing; an older file one rating behind, a new profile; a
+ * file with one more rating, a new profile; a file without the ratings, nothing. The
+ * build step refuses recallFields naming a missing or a visible field or not given as
+ * [field, name], two rows with one id, and a DRUG_FACTS naming a missing question or a
+ * field that is not a recall field. With recallFields empty (the default) recall mode has
+ * no Ask for and every v1 check above holds, nothing stored included.
+ *
  *     node features/drug-list-tab/test.js
  */
 const fs = require('fs'), path = require('path');
@@ -563,6 +591,341 @@ async function optionView(browser, file, o){
   await ctx.close();
 }
 
+
+/* ---------- v2: ratings kept in the progress (DB.drugs) ---------- */
+const V2_FIELDS = [['indication', 'Common indications'], ['essential', 'Essential knowledge']];
+const V2_OPT = opts(Object.assign({}, BDK_OPT, {recallFields: V2_FIELDS}));
+const slugOf = s => String(s == null ? '' : s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const ID0 = slugOf(FIX.tables[0].rows[0].generic), ID1 = slugOf(FIX.tables[0].rows[1].generic);
+/* the template bank's first two multiple-choice questions, mapped to BDK facts (template/q1_topics.js) */
+const V2_FACTS = {'s1-1': [ID0 + ':indication'], 's1-2': [ID0 + ':indication', ID1 + ':essential']};
+const dataFileV2 = (tables, facts) => dataFile(tables) + (facts ? `const DRUG_FACTS = ${JSON.stringify(facts)};\n` : '');
+const buildV2 = (label, tables, o, facts) => L.scratchBuild(label, {files: {[FILE]: dataFileV2(tables, facts)},
+  courseLine: `COURSE.files = (COURSE.files || ['atlas.js', 'diagrams.js', 'q1_topics.js']).concat([${JSON.stringify(FILE)}]);` + L.featureOn(__dirname, o)});
+const v2Refuse = () => {
+  const T = FIX.tables, dup = clone(T); dup[1].rows[0].generic = dup[0].rows[0].generic;
+  return [
+    ['recallFields naming a field no row has', 'v2nofield', T, opts(Object.assign({}, V2_OPT, {recallFields: [['schedule', 'Schedule']]})), null, /option recallFields names the field "schedule", which no row has/],
+    ['recallFields naming a field recall mode keeps visible', 'v2shown', T, opts(Object.assign({}, V2_OPT, {recallFields: [['generic', 'Generic']]})), null, /option recallFields names "generic", which recall mode keeps visible/],
+    ['recallFields entries that are not [field, name]', 'v2shape', T, opts(Object.assign({}, V2_OPT, {recallFields: ['indication']})), null, /option recallFields must be a list of \[field, name\] pairs/],
+    ['two rows with the same id', 'v2dup', dup, V2_OPT, null, new RegExp(`table "2" row 1 and table "3" row 1 have the same id "${ID0}"`)],
+    ['DRUG_FACTS naming a question the bank lacks', 'v2noq', T, V2_OPT, {'zz-9': [ID0 + ':indication']}, /DRUG_FACTS names the question "zz-9", which the bank does not have/],
+    ['DRUG_FACTS naming a field recallFields lacks', 'v2nofact', T, V2_OPT, {'s1-1': [ID0 + ':brand']}, new RegExp(`DRUG_FACTS gives "s1-1" the fact "${ID0}:brand"`)],
+  ];
+};
+const v2State = page => page.evaluate(() => ({ev: DB.drugs ? JSON.parse(JSON.stringify(DB.drugs.ev)) : null, v: DB.drugs ? DB.drugs.v : null,
+  answers: DB.answers.length, qn: DB.qn || 0, log: LOG.length, profile: PROFILE,
+  stored: (() => { try { const d = JSON.parse(localStorage.getItem(NS + ':data:' + PROFILE) || 'null'); return d && d.drugs ? d.drugs.ev : null; } catch(e){ return 'unreadable'; } })()}));
+const v2Open = async (page, field) => {
+  await page.click(`#nav button[data-v="${V2_OPT.tab}"]`);
+  await page.click(`${pane} [data-listgroup="-1"]`);
+  if(await page.$eval(`${pane} [data-dl="recall"]`, b => b.getAttribute('aria-pressed')) !== 'true') await page.click(`${pane} [data-dl="recall"]`);
+  // only a different field is chosen: choosing the same one again would start the openings again
+  if(field !== undefined && await page.$eval(`${pane} [data-dl="ask"]`, s => s.value) !== field) await page.selectOption(`${pane} [data-dl="ask"]`, field);
+};
+const statusOf = (page, ref) => page.$eval(`${pane} tr.dlt-recall[data-for="${ref}"] [data-status]`, p => p.textContent.replace(/\s+/g, ' ').trim()).catch(() => null);
+const v2Reload = async page => { await page.reload(); await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000}); };
+
+async function v2View(browser, file, width){
+  const tag = ` (${width} px)`;
+  const {ctx, page, errors} = await L.openPage(browser, file, {viewport: {width, height: 900}}, consoleTrap);
+  page.on('dialog', d => d.accept().catch(() => {}));
+  const R0 = '0:0', R1 = '0:1', F0 = ID0 + ':indication';
+  await v2Open(page);
+  const opts0 = await page.$$eval(`${pane} [data-dl="ask"] option`, o => o.map(x => [x.value, x.textContent]));
+  check(JSON.stringify(opts0) === JSON.stringify([['', 'Every hidden field']].concat(V2_FIELDS)), 'recall mode offers Ask for: every hidden field, then each of recallFields' + tag, opts0);
+  check(!(await page.$(`${pane} [data-status]`)) && !(await page.$(`${pane} [data-rate]`)), 'with every hidden field asked, no rating and no status line (v1\'s recall mode)' + tag);
+  await page.selectOption(`${pane} [data-dl="ask"]`, 'indication');
+  let st = await v2State(page);
+  check(st.ev === null && st.stored === null, 'asking for a field stores nothing' + tag, st);
+  check(/^Common indications: not rated yet · bank questions: Not practised$/.test(await statusOf(page, R0) || ''),
+        'the status line: not rated yet, and the two bank questions DRUG_FACTS maps to the fact: Not practised' + tag, await statusOf(page, R0));
+  check(/^Common indications: not rated yet$/.test(await statusOf(page, '0:2') || ''), 'a fact no bank question tests shows no bank status' + tag, await statusOf(page, '0:2'));
+  check(!(await page.$(`${pane} [data-rate="${R0}"]`)), 'no rating before Reveal' + tag);
+  await page.click(`${pane} [data-reveal="${R0}"]`);
+  const crit = await page.$$eval(`${pane} tr.dlt-recall[data-for="${R0}"] .dlo-crit li`, l => l.map(x => x.textContent));
+  check(JSON.stringify(crit) === JSON.stringify(['Forgot: I could not produce it.', 'Partly: I had the idea but missed the key term or one part.', 'Knew: I wrote the key term without looking.']),
+        'after Reveal: Forgot, Partly and Knew with DEENT\'s criteria' + tag, crit);
+  await page.fill(`${pane} [data-typed="${R0}"]`, 'glaucoma, typed text');
+  await page.click(`${pane} [data-rate="${R0}"][data-r="partly"]`);
+  st = await v2State(page);
+  check(st.ev && st.ev.length === 1 && st.ev[0].f === F0 && st.ev[0].r === 'partly' && typeof st.ev[0].at === 'number' && Object.keys(st.ev[0]).sort().join() === 'at,f,r' && st.v === 1,
+        `Partly adds one rating {f: "${F0}", r: "partly", at} to DB.drugs (v 1), and nothing else` + tag, st.ev);
+  check(st.answers === 0 && st.qn === 0 && st.log === 0, 'the rating is not an answer: DB.answers, the answer count and the answer history are unchanged (0, 0, 0)' + tag, st);
+  const pressed = await page.evaluate(r => { const a = document.activeElement; return [a && a.dataset.rate === r && a.dataset.r, a && a.getAttribute('aria-pressed')]; }, R0);
+  check(pressed[0] === 'partly' && pressed[1] === 'true', 'the pressed rating keeps the focus and reads aria-pressed true' + tag, pressed);
+  await page.click(`${pane} [data-rate="${R0}"][data-r="knew"]`);
+  st = await v2State(page);
+  check(st.ev.length === 1 && st.ev[0].r === 'knew', 'a second rating of the same opening replaces the first (one rating, now Knew)' + tag, st.ev);
+  await page.click(`${pane} [data-reveal="${R0}"]`);     // Hide again
+  await page.click(`${pane} [data-reveal="${R0}"]`);     // Reveal: a new opening
+  check(await page.$eval(`${pane} tr.dlt-recall[data-for="${R0}"] [data-ratenote]`, p => p.textContent) === 'Not counted until you choose one.', 'a new opening starts unrated' + tag);
+  await page.click(`${pane} [data-rate="${R0}"][data-r="forgot"]`);
+  await v2Reload(page);                                    // at once: the core writes on pagehide
+  st = await v2State(page);
+  check(Array.isArray(st.stored) && st.stored.length === 2 && st.stored.map(e => e.r).join() === 'knew,forgot' && st.stored.every(e => e.f === F0),
+        'after a reload straight after the rating, the stored progress holds both ratings (Knew, then Forgot)' + tag, st.stored);
+  check(!JSON.stringify(st.stored).includes('typed text') && !(await page.evaluate(() => JSON.stringify(localStorage).includes('typed text'))), 'what was typed is in no stored record' + tag);
+  await v2Open(page, 'indication');
+  const s1 = await statusOf(page, R0);
+  check(new RegExp(`^Common indications: last rated Forgot on \\w{3} \\d{1,2}, \\d{4} \\(2 ratings\\) · bank questions: Not practised$`).test(s1 || ''),
+        'after the reload the status line reads the stored ratings: last rated Forgot (2 ratings)' + tag, s1);
+
+  // Not yet Knew: R1 rated Knew drops out; R0 (last Forgot) and unrated rows stay
+  await page.click(`${pane} [data-reveal="${R1}"]`); await page.click(`${pane} [data-rate="${R1}"][data-r="knew"]`);
+  const all = await page.$$eval(`${pane} tr[data-ref]`, t => t.length);
+  await page.click(`${pane} [data-dl="notknew"]`);
+  const refs = await page.$$eval(`${pane} tr[data-ref]`, t => t.map(x => x.dataset.ref));
+  check(refs.length === all - 1 && !refs.includes(R1) && refs.includes(R0), `Not yet Knew hides the one row last rated Knew (${all} rows, then ${refs.length})` + tag, {all, n: refs.length});
+  // the filter stays right after a rating: a row rated Knew stays while open, and leaves on Hide again
+  const R2 = '0:2';
+  await page.click(`${pane} [data-reveal="${R2}"]`); await page.click(`${pane} [data-rate="${R2}"][data-r="knew"]`);
+  check(refs.length === (await page.$$eval(`${pane} tr[data-ref]`, t => t.length)) && !!(await page.$(`${pane} tr[data-ref="${R2}"]`)), 'Not yet Knew: a row just rated Knew stays while it is open' + tag);
+  const order = await page.$$eval(`${pane} tr[data-ref]`, t => t.map(x => x.dataset.ref));
+  const nextRef = order[order.indexOf(R2) + 1];
+  await page.click(`${pane} [data-reveal="${R2}"]`);     // Hide again
+  const left = await page.$$eval(`${pane} tr[data-ref]`, t => t.map(x => x.dataset.ref));
+  check(!left.includes(R2) && left.join() === order.filter(x => x !== R2).join(), 'Not yet Knew: Hide again on a row last rated Knew drops it from the list' + tag, {left});
+  const foc = await page.evaluate(() => { const a = document.activeElement; return a && (a.dataset.reveal || a.dataset.dl || null); });
+  check(foc === (nextRef || 'notknew'), 'the focus goes to the next row\'s Reveal, else to the Not yet Knew chip' + tag, {foc, nextRef});
+  await page.click(`${pane} [data-dl="notknew"]`);
+  await page.selectOption(`${pane} [data-dl="ask"]`, 'essential');
+  check(/^Essential knowledge: not rated yet · bank question: Not practised$/.test(await statusOf(page, R1) || ''), 'each field is its own fact: R1\'s essential knowledge is not rated, with its own bank question' + tag, await statusOf(page, R1));
+
+  // bank answers are read, never written, by the tab; a rating never changes them
+  const before = await v2State(page);
+  await page.evaluate(() => { record(byId('s1-1'), 'correct', 0, 1000); });
+  await page.click(`#nav button[data-v="${V2_OPT.tab}"]`); await page.selectOption(`${pane} [data-dl="ask"]`, 'indication');
+  let s2 = await statusOf(page, R0);
+  check(/^Common indications: last rated Forgot on .+ \(2 ratings\) · bank questions: Remembered \(1 answer\)$/.test(s2 || ''), 'a right answer to one of the two mapped bank questions shows Remembered (1 answer); the ratings line is unchanged' + tag, s2);
+  await page.selectOption(`${pane} [data-dl="ask"]`, 'essential');
+  const s3 = await statusOf(page, R1);
+  check(/^Essential knowledge: not rated yet · bank question: Not practised$/.test(s3 || ''), 'an answer to s1-1 leaves a fact only s1-2 tests Not practised: each fact reads only its own questions' + tag, s3);
+  await page.selectOption(`${pane} [data-dl="ask"]`, 'indication');
+  await page.evaluate(() => { record(byId('s1-2'), 'wrong', 1, 1000); });
+  await page.click(`#nav button[data-v="${V2_OPT.tab}"]`); await page.selectOption(`${pane} [data-dl="ask"]`, 'indication');
+  s2 = await statusOf(page, R0);
+  check(/^Common indications: last rated Forgot on .+ \(2 ratings\) · bank questions: Forgot \(2 answers\)$/.test(s2 || ''), 'the last answer wrong: Forgot (2 answers), the two mapped questions read together; the ratings line is unchanged' + tag, s2);
+  let after = await v2State(page);
+  check(after.answers === before.answers + 2 && JSON.stringify(after.ev) === JSON.stringify(before.ev), 'two bank answers add two answers and no rating; the ratings are unchanged' + tag, {before: before.answers, after: after.answers});
+  await page.click(`${pane} [data-reveal="${R0}"]`); await page.click(`${pane} [data-rate="${R0}"][data-r="partly"]`);
+  after = await v2State(page);
+  check(after.answers === before.answers + 2 && after.qn === before.qn + 2 && after.ev.length === before.ev.length + 1,
+        'a rating adds one rating and no answer: each event is counted once, in its own part' + tag, {answers: after.answers, qn: after.qn, ev: after.ev.length});
+  const wk = await page.evaluate(() => DB.answers.filter(a => !QUESTIONS.some(q => q.id === a.qid)).length);
+  check(wk === 0, 'every answer in the progress is a bank question\'s (no Drug list item in DB.answers)' + tag, wk);
+
+  // the per-tab record (#69) carries the part
+  // the record is written with the core's save (150 ms timer): wait for it, up to 3 s
+  await page.waitForFunction(n => { try { const r = JSON.parse(localStorage.getItem(myPendingKey()) || 'null'); return r && r.db && r.db.drugs && r.db.drugs.ev.length === n; } catch(e){ return false; } }, after.ev.length, {timeout: 3000}).catch(() => {});
+  const pend = await page.evaluate(() => { try { const r = JSON.parse(localStorage.getItem(myPendingKey()) || 'null'); return r && r.db && r.db.drugs ? r.db.drugs.ev.length : null; } catch(e){ return 'err'; } });
+  check(pend === after.ev.length, `this tab's own record (#69) holds DB.drugs with its ${after.ev.length} ratings` + tag, pend);
+
+  // profiles: another profile has none of them; its own are kept apart
+  const mine = after.ev;
+  await page.evaluate(() => useProfile('dlo-other'));
+  await page.waitForFunction(() => PROFILE === 'dlo-other', null, {timeout: 6000});
+  st = await v2State(page);
+  check(st.ev === null, 'another profile holds no ratings' + tag, st.ev);
+  await v2Open(page, 'indication');
+  check(/^Common indications: not rated yet/.test(await statusOf(page, R0) || ''), 'its status line: not rated yet' + tag);
+  // the rows revealed stay revealed for the visit, as in v1, across a profile switch
+  if(!(await page.$(`${pane} [data-rate="${R0}"]`))) await page.click(`${pane} [data-reveal="${R0}"]`);
+  check(await page.$eval(`${pane} tr.dlt-recall[data-for="${R0}"] [data-ratenote]`, p => p.textContent) === 'Not counted until you choose one.', 'in the other profile the open row is unrated: a rating of the first profile is not carried over' + tag);
+  await page.click(`${pane} [data-rate="${R0}"][data-r="knew"]`);
+  await page.evaluate(n => useProfile(n), before.profile);
+  await page.waitForFunction(n => PROFILE === n, before.profile, {timeout: 6000});
+  await v2Reload(page);
+  st = await v2State(page);
+  check(JSON.stringify(st.ev) === JSON.stringify(mine), `after the switch back and a reload, the first profile holds its ${mine.length} ratings, unchanged` + tag, st.ev && st.ev.length);
+  const other = await page.evaluate(() => { const d = JSON.parse(localStorage.getItem(NS + ':data:dlo-other') || 'null'); return d && d.drugs ? d.drugs.ev : null; });
+  check(other && other.length === 1 && other[0].r === 'knew', 'the other profile\'s one rating is stored under it alone' + tag, other);
+
+  // Export, Erase my history, Import back
+  await page.evaluate(() => show('settings'));
+  const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#btnExport')]);
+  const fileText = fs.readFileSync(await dl.path(), 'utf8'), exported = JSON.parse(fileText);
+  check(exported.db && exported.db.drugs && JSON.stringify(exported.db.drugs.ev) === JSON.stringify(mine), `Export progress includes DB.drugs, its ${mine.length} ratings as stored` + tag);
+  await page.click('#btnReset');
+  await v2Reload(page);
+  st = await v2State(page);
+  check(st.ev === null && st.stored === null && st.answers === 0, 'Erase my history clears the ratings with the answers, also after a reload' + tag, st);
+  const f = path.join(require('os').tmpdir(), `dlo-${process.pid}-${width}.json`);
+  fs.writeFileSync(f, fileText);
+  await page.evaluate(() => show('settings'));
+  await page.setInputFiles('#fileIn', f);
+  await page.waitForFunction(() => { const b = document.getElementById('importPlan'); return b && b.textContent.trim(); }, null, {timeout: 5000}).catch(() => {});
+  if(await page.$('#importGo')){ await page.click('#importGo'); await page.waitForSelector('#importResult', {timeout: 5000}).catch(() => {}); }
+  await v2Reload(page);
+  st = await v2State(page);
+  check(JSON.stringify(st.stored) === JSON.stringify(mine) && st.profile === before.profile, 'Import of that file into the erased profile puts the ratings back, also after a reload' + tag, {profile: st.profile, n: st.stored && st.stored.length});
+  fs.rmSync(f, {force: true});
+  check(!(await sideways(page)), 'no sideways scroll' + tag);
+  check(!errors.length && !(await page.evaluate(() => window.__cerr)).length, 'no page or console error' + tag, errors.concat(await page.evaluate(() => window.__cerr)).slice(0, 3));
+  await ctx.close();
+}
+
+/* "Kept on a later day" (DEENT drugfacts.js status(), for the ratings as the DEENT session gave
+   it on 2026-11-09), with the core's dayKey: ratings planted on chosen days, read after a reload */
+async function v2Days(browser, file){
+  // in America/Chicago, so that the browser's day (dayKey) and the UTC day differ late in the evening
+  const {ctx, page, errors} = await L.openPage(browser, file, {viewport: {width: 820, height: 900}, timezoneId: 'America/Chicago'}, consoleTrap);
+  const ids = FIX.tables[0].rows.map(r => slugOf(r.generic));
+  const day = (d, h, m) => [d, h, m || 0];      // made into a time in the page, in its time zone (November 2026)
+  const cases = [
+    // row 0's fact also has bank questions, whose part follows the ratings
+    ['2:0', [['knew', day(2, 12)], ['knew', day(3, 12)]], /\(2 ratings; Kept on a later day\) · bank questions: /, 'Knew on 11/2, then Knew on 11/3: Kept on a later day'],
+    ['2:1', [['knew', day(2, 9)], ['knew', day(2, 20)]], /on Nov 2, 2026 \(2 ratings\)$/, 'Knew twice on one day: Knew, not Kept (same-day repeats never count)'],
+    ['2:2', [['knew', day(2, 12)], ['partly', day(3, 12)], ['knew', day(4, 12)]], /last rated Knew on Nov 4, 2026 \(3 ratings\)$/, 'Knew, Partly, Knew on three days: the Partly breaks the run, not Kept'],
+    ['2:3', [['knew', day(2, 12)], ['knew', day(3, 12)], ['forgot', day(4, 12)]], /last rated Forgot on Nov 4, 2026 \(3 ratings\)$/, 'two Knew days, then Forgot: Forgot'],
+    ['2:4', [['knew', day(2, 23, 30)], ['knew', day(3, 0, 30)]], /\(2 ratings; Kept on a later day\)$/, 'Knew at 23:30 and at 00:30 the next day: two calendar days (dayKey), Kept'],
+    ['2:5', [['knew', day(3, 12)], ['knew', day(2, 12)]], /last rated Knew on Nov 3, 2026 \(2 ratings; Kept on a later day\)$/, 'ratings read in time order, whatever their order in the list'],
+  ];
+  await page.evaluate(([cs, ids]) => { const t = ([d, h, m]) => new Date(2026, 10, d, h, m).getTime();
+    DB.drugs = {v: 1, ev: cs.flatMap(([ref, rs]) => rs.map(([r, at]) => ({f: ids[+ref.split(':')[1]] + ':indication', r, at: t(at)})))}; save(); }, [cases.map(c => c.slice(0, 2)), ids]);
+  // bank answers on two days, read with the same day rule: Kept on a later day
+  await page.evaluate(([da, db]) => { const t = ([d, h, m]) => new Date(2026, 10, d, h, m).getTime(), a = t(da), b = t(db), o = Date.now; try { Date.now = () => a; record(byId('s1-1'), 'correct', 0, 1000); Date.now = () => b; record(byId('s1-2'), 'correct', 0, 1000); } finally { Date.now = o; } save(); }, [day(2, 12), day(3, 12)]);
+  await v2Reload(page);
+  await v2Open(page, 'indication');
+  for(const [ref, , re, what] of cases){
+    const t = await statusOf(page, '0:' + ref.split(':')[1]);
+    check(re.test(t || ''), 'v2 days: ' + what, t);
+  }
+  const b = await statusOf(page, '0:0');
+  check(/· bank questions: Kept on a later day \(2 answers\)$/.test(b || ''), 'v2 days: bank answers right on 11/2 and 11/3: Kept on a later day (2 answers)', b);
+  check(!errors.length, 'v2 days: no page error', errors.slice(0, 3));
+  await ctx.close();
+}
+
+/* The note under the ratings says "Saved" only when the rating is stored (the review of #92, M1):
+   the normal save, a write the browser refuses, a stale second tab without Web Locks. And the
+   2,000-rating cap, by time, with its storage measured. */
+const noteOf = (page, ref) => page.$eval(`${pane} tr.dlt-recall[data-for="${ref}"] [data-ratenote]`, p => [p.dataset.saved, p.textContent.replace(/\s+/g, ' ').trim()]).catch(() => [null, null]);
+const storedEv = page => page.evaluate(() => { try { const d = JSON.parse(localStorage.getItem(NS + ':data:' + PROFILE) || 'null'); return d && d.drugs ? d.drugs.ev : null; } catch(e){ return 'unreadable'; } });
+async function v2Saved(browser, file, tag){
+  tag = tag || '';
+  const R0 = '0:0';
+  // the normal path: the note is read at once after the click
+  {
+    const {ctx, page} = await L.openPage(browser, file, {viewport: {width: 820, height: 900}}, consoleTrap);
+    await v2Open(page, 'indication');
+    await page.click(`${pane} [data-reveal="${R0}"]`); await page.click(`${pane} [data-rate="${R0}"][data-r="knew"]`);
+    const n = await noteOf(page, R0), st = await storedEv(page);
+    check(n[0] === '1' && n[1] === 'Saved in this profile\'s progress: Knew.' && Array.isArray(st) && st.length === 1 && st[0].r === 'knew',
+          'save: right after the click the note says Saved, and the stored progress holds the rating' + tag, {n, st});
+    // where the core writes progText(DB) (a part kept outside localStorage, #81), the comparison uses it:
+    // a stored text equal to progText(DB) and not to JSON.stringify(DB) is stored; without progText it is not
+    const ptCheck = () => page.evaluate(() => { const k = keyFor(PROFILE), was = localStorage.getItem(k), api = FX.api('drug-list-tab');
+      // the core's own progText (a top-level function, as #81's ink layer has) cannot be deleted: save and restore it
+      const core = typeof progText === 'function' ? progText : null;
+      window.progText = db => 'progress-as-written:' + db.answers.length;
+      localStorage.setItem(k, progText(DB)); const withPt = api.stored();
+      let withoutPt = null;
+      if(core) window.progText = core; else { delete window.progText; withoutPt = api.stored(); }
+      localStorage.setItem(k, was); return {core: !!core, withPt, withoutPt, back: api.stored()}; });
+    const pt = await ptCheck();
+    check(pt.withPt === true && (pt.core ? pt.withoutPt === null : pt.withoutPt === false) && pt.back === true, 'save: the stored text is compared with progText(DB) when the core has it, else with JSON.stringify(DB)' + tag, pt);
+    // a core with a top-level progText of its own (the follow-up review of #92): it is put back, and the note reads it
+    await page.evaluate(() => { const sc = document.createElement('script'); sc.textContent = 'function progText(db){ return JSON.stringify(db); }'; document.head.appendChild(sc); });
+    const pt2 = await ptCheck();
+    check(pt2.core === true && pt2.withPt === true && pt2.back === true && (await page.evaluate(() => typeof progText === 'function' && progText({answers: []}) === '{"answers":[]}')),
+          'save: with a top-level progText in the core, the check stubs it and puts the core\'s own back, and the stored progress still reads as stored' + tag, pt2);
+    await ctx.close();
+  }
+  // the browser refuses the write of the progress
+  {
+    const refuse = () => { const o = Storage.prototype.setItem; Storage.prototype.setItem = function(k, v){ if(window.__refuse && String(k).includes(':data:')) throw new DOMException('quota', 'QuotaExceededError'); return o.apply(this, arguments); }; };
+    const {ctx, page} = await L.openPage(browser, file, {viewport: {width: 820, height: 900}}, refuse);
+    await v2Open(page, 'indication');
+    await page.evaluate(() => { window.__refuse = true; });
+    await page.click(`${pane} [data-reveal="${R0}"]`); await page.click(`${pane} [data-rate="${R0}"][data-r="knew"]`);
+    const n = await noteOf(page, R0), st = await storedEv(page), failed = await page.evaluate(() => FAILED.has(keyFor(PROFILE)));
+    check(failed && st === null && n[0] === '0' && /^Not saved: Knew is on this page only\./.test(n[1] || ''),
+          'save: with the write refused (FAILED), the note says Not saved, and nothing is stored' + tag, {failed, st, n});
+    await ctx.close();
+  }
+  // a stale second tab, without Web Locks: the other tab saved since this one loaded
+  {
+    const noLocks = () => { try { Object.defineProperty(Navigator.prototype, 'locks', {get(){ return undefined; }, configurable: true}); } catch(e){} };
+    const {ctx, page: a} = await L.openPage(browser, file, {viewport: {width: 820, height: 900}}, noLocks);
+    const b = await ctx.newPage(); await b.goto(a.url()); await b.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+    const locks = await a.evaluate(() => HAS_LOCKS);
+    await v2Open(a, 'indication'); await v2Open(b, 'indication');
+    await a.click(`${pane} [data-reveal="${R0}"]`); await a.click(`${pane} [data-rate="${R0}"][data-r="knew"]`);
+    await b.waitForFunction(() => { try { const d = JSON.parse(localStorage.getItem(NS + ':data:' + PROFILE) || 'null'); return d && d.drugs; } catch(e){ return false; } }, null, {timeout: 5000}).catch(() => {});
+    await b.click(`${pane} [data-reveal="${R0}"]`); await b.click(`${pane} [data-rate="${R0}"][data-r="forgot"]`);
+    const na = await noteOf(a, R0), nb = await noteOf(b, R0), st = await storedEv(b);
+    check(locks === false && na[0] === '1' && nb[0] === '0' && /^Not saved: Forgot is on this page only\./.test(nb[1] || '') && Array.isArray(st) && st.length === 1 && st[0].r === 'knew',
+          'save: in a stale second tab without Web Locks, the note says Not saved; the store holds only the other tab\'s rating' + tag, {locks, na, nb, st});
+    await ctx.close();
+  }
+}
+async function v2Cap(browser, file){
+  const {ctx, page} = await L.openPage(browser, file, {viewport: {width: 820, height: 900}}, consoleTrap);
+  const ids = FIX.tables.flatMap(t => t.rows.map(r => slugOf(r.generic)));
+  const base = Date.UTC(2026, 9, 1);
+  // 2,000 ratings, one minute apart, stored newest first (as an Import or a replaced rating can leave them)
+  const plan = Array.from({length: 2000}, (_, k) => ({f: ids[k % ids.length] + ':indication', r: ['forgot', 'partly', 'knew'][k % 3], at: base + k * 60000})).reverse();
+  const empty = await page.evaluate(() => (localStorage.getItem(NS + ':data:' + PROFILE) || JSON.stringify(DB)).length);
+  await page.evaluate(ev => { DB.drugs = {v: 1, ev}; save(); saveNow(); }, plan);
+  await v2Reload(page);
+  const full = await page.evaluate(() => ({data: (localStorage.getItem(NS + ':data:' + PROFILE) || '').length, part: JSON.stringify(DB.drugs).length,
+    rec: (() => { try { const r = JSON.parse(localStorage.getItem(myPendingKey()) || 'null'); return r && r.db && r.db.drugs ? JSON.stringify(r.db.drugs).length : null; } catch(e){ return null; } })()}));
+  await v2Open(page, 'indication');
+  await page.click(`${pane} [data-reveal="0:0"]`); await page.click(`${pane} [data-rate="0:0"][data-r="partly"]`);
+  // this tab's own record (#69) is written with its next save: it holds the part again
+  await page.waitForFunction(() => { try { const r = JSON.parse(localStorage.getItem(myPendingKey()) || 'null'); return r && r.db && r.db.drugs && r.db.drugs.ev.length === 2000; } catch(e){ return false; } }, null, {timeout: 3000}).catch(() => {});
+  full.rec = await page.evaluate(() => { try { const r = JSON.parse(localStorage.getItem(myPendingKey()) || 'null'); return r && r.db && r.db.drugs ? JSON.stringify(r.db.drugs).length : null; } catch(e){ return null; } });
+  await v2Reload(page);
+  const ev = await storedEv(page), ats = Array.isArray(ev) ? ev.map(e => e.at) : [];
+  const oldest = base, newestPlanted = base + 1999 * 60000;
+  check(Array.isArray(ev) && ev.length === 2000 && !ats.includes(oldest) && ats.includes(newestPlanted) && ats.includes(base + 60000) && ev.some(e => e.r === 'partly' && e.at > newestPlanted),
+        'cap: 2,000 ratings stored newest first, one more rating, a reload: 2,000 kept, the oldest by time gone, the newest planted and the new one kept', {n: ev && ev.length, oldestKept: ats.includes(oldest), newestKept: ats.includes(newestPlanted)});
+  console.log(`  report  cap: the progress text is ${empty} characters with no ratings and ${full.data} with 2,000 (the DB.drugs part: ${full.part}); this tab's own record holds the part again: ${full.rec}`);
+  check(full.part > 0 && full.data - empty >= full.part && full.rec > 0, `cap: the ratings part at 2,000 ratings measured (${full.part} characters), in the progress and again in this tab's own record (${full.rec})`, full);
+  await ctx.close();
+}
+
+/* What Import does with a file when only the ratings differ (core/README.md 805-816): measured,
+   reported, and checked against the rule as the README states it. */
+async function v2ImportMeasure(browser, file){
+  const {ctx, page} = await L.openPage(browser, file, {viewport: {width: 820, height: 900}}, consoleTrap);
+  page.on('dialog', d => d.accept().catch(() => {}));
+  const exportNow = async () => { await page.evaluate(() => show('settings'));
+    const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#btnExport')]); return fs.readFileSync(await dl.path(), 'utf8'); };
+  const planOf = async text => { const f = path.join(require('os').tmpdir(), `dlo-m-${process.pid}-${Math.random().toString(36).slice(2)}.json`); fs.writeFileSync(f, text);
+    await page.evaluate(() => { if(!window.__planWrapped){ const o = showImportPlan; showImportPlan = p => { window.__plan = p; return o(p); }; window.__planWrapped = 1; } window.__plan = null; show('settings'); });
+    await page.setInputFiles('#fileIn', f);
+    await page.waitForFunction(() => { const b = document.getElementById('importPlan'); return b && b.textContent.trim(); }, null, {timeout: 5000}).catch(() => {});
+    const plan = await page.evaluate(() => (document.getElementById('importPlan') || {}).textContent || ''); fs.rmSync(f, {force: true});
+    const action = await page.evaluate(() => window.__plan ? window.__plan.action : null);
+    return {action, text: plan.replace(/\s+/g, ' ').trim()}; };
+  const texts = [];
+  const kind = p => { texts.push(p.text); return p.action || 'no plan: ' + p.text.slice(0, 80); };
+  const rate = async (ref, r) => { await v2Open(page, 'indication'); if(!(await page.$(`${pane} [data-rate="${ref}"]`))) await page.click(`${pane} [data-reveal="${ref}"]`);
+    await page.click(`${pane} [data-rate="${ref}"][data-r="${r}"]`); };
+  await page.evaluate(() => { record(byId('s1-1'), 'correct', 0, 1000); record(byId('s1-2'), 'correct', 0, 1000); });
+  await rate('0:0', 'partly');
+  const A = await exportNow();
+  const res = [];
+  res.push(['M1 the same file again (answers and ratings as here)', kind(await planOf(A)), 'nothing']);
+  await rate('0:1', 'knew');          // a rating here, no answer: this profile is ahead of the file by one rating
+  res.push(['M2 an older file of this profile, behind it by one rating and no answer', kind(await planOf(A)), 'separate']);
+  const B = JSON.parse(await exportNow());
+  const C = JSON.parse(JSON.stringify(B)); C.db.drugs.ev.push({f: ID1 + ':essential', r: 'forgot', at: Date.now()});
+  res.push(['M3 a file with the same answers and one more rating (rated on another device)', kind(await planOf(JSON.stringify(C))), 'separate']);
+  const D = JSON.parse(JSON.stringify(B)); delete D.db.drugs;
+  // the file adds nothing this profile lacks (Import compares every part of the file with this profile's, addsTo,
+  // core/README.md 792-800), so nothing changes and nothing is lost
+  res.push(['M4 a file with the same answers and no ratings', kind(await planOf(JSON.stringify(D))), 'nothing']);
+  console.log('\n  Import with ratings only differing (REPORT, core/README.md 805-816):');
+  res.forEach(([what, got, rule], k) => console.log(`  report  ${what}: ${got} (the README's rule: ${rule}); the plan: "${texts[k]}"`));
+  for(const [what, got, rule] of res){
+    check(got === rule, `Import measure, ${what}: ${got}, as the README's rule says`, got); }
+  await ctx.close();
+  return res;
+}
+
 (async () => {
   console.log('\n=== the course\'s own drug tables ===');
   L.PAGE.need(NAME);
@@ -602,6 +965,11 @@ async function optionView(browser, file, o){
     check(b.code !== 0 && re.test(b.out) && !fs.existsSync(b.page), `${what}: the build stops with "${re.source.replace(/\\/g, '')}"`, b.out.split('\n').pop());
     b.rm();
   }
+  for(const [what, label, tables, o, facts, re] of v2Refuse()){
+    const b = buildV2('dlt-' + label, tables, o, facts);
+    check(b.code !== 0 && re.test(b.out) && !fs.existsSync(b.page), `v2, ${what}: the build stops with "${re.source.replace(/\\/g, '')}"`, b.out.split('\n').pop());
+    b.rm();
+  }
 
   console.log('\n=== BDK\'s list in the browser (scratch copy) ===');
   const s = build('dlt-bdk', T, BDK_OPT);
@@ -615,6 +983,10 @@ async function optionView(browser, file, o){
   const o3 = opts({columns: [['generic', 'Generic', 'activity', 'Activity against: ']], searchFields: ['generic'], groups: [], defaultGroup: '',
     recallDefault: true, recallShow: ['generic', 'activity'], recallClassField: ''});
   const s3 = build('dlt-subshow', actTables, o3);
+  const s4 = buildV2('dlt-v2', T, V2_OPT, V2_FACTS);
+  // a course whose core has a top-level progText (as #81's ink layer has), declared in course.js
+  const s5 = L.scratchBuild('dlt-v2pt', {files: {[FILE]: dataFileV2(T, V2_FACTS)},
+    courseLine: `COURSE.files = (COURSE.files || ['atlas.js', 'diagrams.js', 'q1_topics.js']).concat([${JSON.stringify(FILE)}]);` + L.featureOn(__dirname, V2_OPT) + '\nfunction progText(db){ return JSON.stringify(db); }\n'});
   const {browser} = await L.launch(NAME);
   try {
     for(const w of [390, 820]){ console.log(`\n--- ${w} px ---`); await bdkView(browser, s.page, w); }
@@ -634,9 +1006,31 @@ async function optionView(browser, file, o){
       check(on === 'true' && want.length > 0 && got.every(Boolean), `with recall on, a sub-field named in recallShow is shown before Reveal (activity on ${want.length} rows)`, {on, n: want.length, missing: got.filter(x => !x).length});
       await ctx.close();
     }
+    console.log('\n=== v2: ratings kept in the progress (scratch copy: recallFields and DRUG_FACTS) ===');
+    if(s4.code !== 0) check(false, 'the scratch copy with recallFields and DRUG_FACTS builds', s4.out.split('\n').pop());
+    else {
+      check(/build step done/.test(s4.out), 'the v2 copy builds');
+      for(const w of [390, 820]){ console.log(`\n--- v2, ${w} px ---`); await v2View(browser, s4.page, w); }
+      console.log('\n--- v2, Kept on a later day ---');
+      await v2Days(browser, s4.page);
+      console.log('\n--- v2, the note says Saved only when stored ---');
+      await v2Saved(browser, s4.page);
+      if(s5.code !== 0) check(false, 'the scratch copy with a top-level progText in course.js builds', s5.out.split('\n').pop());
+      else { console.log('\n--- v2, the Saved note with a top-level progText in the core ---'); await v2Saved(browser, s5.page, ' (a core with a top-level progText)'); }
+      console.log('\n--- v2, the 2,000-rating cap ---');
+      await v2Cap(browser, s4.page);
+      console.log('\n--- v2, Import measured ---');
+      await v2ImportMeasure(browser, s4.page);
+    }
+    {
+      const {ctx, page} = await L.openPage(browser, s.page, {viewport: {width: 820, height: 900}});
+      await page.click(`#nav button[data-v="${BDK_OPT.tab}"]`); await page.click(`${pane} [data-dl="recall"]`);
+      check(!(await page.$(`${pane} [data-dl="ask"]`)), 'with recallFields empty (the default) recall mode has no Ask for and rates nothing (v1)');
+      await ctx.close();
+    }
   } finally {
     await browser.close();
-    s.rm(); s2.rm(); s3.rm();
+    s.rm(); s2.rm(); s3.rm(); s4.rm(); s5.rm();
   }
   L.finish(NAME);
 })().catch(e => { console.log('FAIL: ' + NAME + ': crashed: ' + (e && e.stack || e)); process.exit(1); });
