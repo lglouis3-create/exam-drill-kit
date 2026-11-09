@@ -79,7 +79,7 @@ async function open(browser, page_, at, init){
   const page = await ctx.newPage();
   const errors = [];
   page.on('pageerror', e => errors.push(e.message));
-  page.on('dialog', d => d.accept());
+  page.on('dialog', d => d.accept().catch(() => {}));
   await page.clock.setFixedTime(new Date(at));
   await page.goto(await L.pageUrl(page_));
   await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
@@ -729,7 +729,7 @@ COURSE.exams.push({id:'zsA', name:'Test exam', date:'12 Nov', when:'2026-11-12T0
           localStorage.setItem(ns + ':profile', 'TestUser'); localStorage.setItem(ns + ':data:TestUser', JSON.stringify(db));
           localStorage.setItem(ns + ':log:TestUser', JSON.stringify(log)); }, [ns, db, F.log]);
         const page = await ctx.newPage(); const errors = [];
-        page.on('pageerror', e => errors.push(e.message)); page.on('dialog', d => d.accept());
+        page.on('pageerror', e => errors.push(e.message)); page.on('dialog', d => d.accept().catch(() => {}));
         await page.clock.setFixedTime(new Date(F.end));
         await page.goto(await L.pageUrl(v.page));
         await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
