@@ -151,7 +151,7 @@ is off says so on its card and offers the next question.
 |---|---|---|---|
 | `formulas-in-text` | v1 | Basic-Pharmacokinetics `ac2eb73` | formulas set as the slides print them: stacked fractions, powers, the course's subscripts |
 | `chained-problem-sets` | v2 | Basic-Pharmacokinetics `ac2eb73` | problems asked in parts, worked in the professor's order; parts kept together on a paper |
-| `drug-list-tab` | v1 | BDK `05c36c3`; recall mode from DEENT `0281922` | a Drug list tab: a table per page, group chips, a search across every table, a row's essential knowledge under it, a recall mode with Reveal per row; nothing stored |
+| `drug-list-tab` | v2 | BDK `05c36c3`; recall mode from DEENT `0281922`; ratings from DEENT `b747e49` | a Drug list tab: a table per page, group chips, a search across every table, a row's essential knowledge under it, a recall mode with Reveal per row; with `recallFields`, Forgot / Partly / Knew ratings kept in the profile's progress (`DB.drugs`); without, nothing stored |
 | `field-colours` | v1 | BDK `05c36c3` | the headings of the fields a course names as hardest coloured (drug-list-tab's columns; any `data-field` heading in a feature pane); nothing stored |
 | `compare-tab` | v1 | BDK `05c36c3` | a Compare tab: 2 to 5 drugs side by side, each item marked shared or different, Only differences; a Compare button in drug-list-tab's detail row; nothing stored |
 | `equation-drill` | v2 | Basic-Pharmacokinetics `ac2eb73` | an Equations tab: every equation with its symbols and conditions, typed or built from pieces; needs `formulas-in-text` |
