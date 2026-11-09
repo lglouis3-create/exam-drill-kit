@@ -118,8 +118,9 @@ COURSE = {id, title, short, ns, output, professors:[…],
   'VDR', …], why or teach, cite, …}`, `accept[0]` the answer shown. Typed text is compared
   after normalizing case, spaces, hyphens, en dashes, a final period and α β γ δ κ; a
   one-letter slip in an answer of 5 or more characters is wrong with "Close: check the
-  spelling" (`blank:{typo:1}` counts it right, except where the letter is a digit or in a
-  one-character token: "vitamin E" for "vitamin D" is wrong in both modes). Write `why` or
+  spelling" (`blank:{typo:1}` counts it right, except where the letter is a digit, in a
+  one-character token or in a Roman numeral: "vitamin E" for "vitamin D" and "type III"
+  for "type II" are wrong in both modes). Write `why` or
   `teach` on each. Exam papers draw them with `exams[].typed:true`; `blanks:n` asks for n
   per paper where the pools allow (`core/README.md` "Fill in the blank"; source: Louis,
   after DEENT Exam 1, 2026-11-09, around 5 of the 50 questions).

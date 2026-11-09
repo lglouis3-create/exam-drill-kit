@@ -1859,13 +1859,16 @@ const matchComplete = q => (Q.picked || []).length === q.pairs.length && (Q.pick
    more characters is a near miss: wrong, with "Close: check the spelling", or
    right with that note when course.js sets `blank: {typo: 1}`. A one-edit
    difference is not a near miss, and is plain wrong in both modes, when the
-   character that differs is a digit ("5 ht3" for "5 ht2") or lies in a token of
-   one character ("vitamin E" for "vitamin D"): there the answer names another
-   thing, not a misspelling. accept[0] is the answer shown. Recorded like a
-   calculation: the typed text is what was picked, cut to a length cap: the
-   longest accepted answer plus 100 characters (blankCap), in the text box
-   (maxlength) and again wherever the text is graded or recorded, so a pasted,
-   scripted or imported value cannot be larger. */
+   character that differs is a digit ("5 ht3" for "5 ht2"), lies in a token of
+   one character ("vitamin E" for "vitamin D") or lies in a Roman numeral
+   ("type III" for "type II", "factor Xb" for "factor Xa"): there the answer
+   names another thing, not a misspelling. accept[0] is the answer shown.
+   Recorded like a calculation: the typed text is what was picked, cut to a
+   length cap: the longest accepted answer plus 100 characters (blankCap), in
+   the text box (maxlength) and again where the text is graded, recorded and
+   displayed, so a pasted or scripted value is stored at the cap. Import is not
+   changed: an imported answer with a longer `picked` is stored whole, and only
+   the grading and the display cut it. */
 const BLANK_GREEK = {'α':'alpha', 'β':'beta', 'γ':'gamma', 'δ':'delta', 'κ':'kappa'};
 function blankNorm(s){
   return String(s === null || s === undefined ? '' : s).toLowerCase()
@@ -1885,9 +1888,13 @@ function blankToken(s, i){
   while(to < s.length && s[to] !== ' ') to++;
   return s.slice(from, to);
 }
+/* A token that reads as a Roman numeral, with at most one letter after it: i, ii, iii, iv, ia, ib, xa, xb.
+   4 characters or fewer (the text is already lower case). */
+const blankRoman = t => t.length <= 4 && /^[ivx]+[a-z]?$/.test(t);
 /* true when a and b differ by one letter added, left out or changed (Levenshtein distance 1) and
-   the difference is a spelling slip: not a digit, and not in a token of one character, in
-   either text (another number or another one-letter name is another thing) */
+   the difference is a spelling slip: not a digit, and not in a token of one character or in a
+   Roman numeral, in either text (another number, another one-letter name or another numeral is
+   another thing) */
 function blankOneEdit(a, b){
   if(a === b || Math.abs(a.length - b.length) > 1) return false;
   let i = 0;
@@ -1904,7 +1911,7 @@ function blankOneEdit(a, b){
   }
   if(/[0-9]/.test(seen[0] + seen[1])) return false;
   const ta = blankToken(a, seen[2][0]), tb = blankToken(b, seen[2][1]);
-  return !(ta.length === 1 || tb.length === 1);
+  return !(ta.length === 1 || tb.length === 1 || blankRoman(ta) || blankRoman(tb));
 }
 const blankTypo = () => !!(COURSE.blank && COURSE.blank.typo === 1);
 /* {ok, near}: near is a one-edit miss of an accepted answer of 5 or more characters */

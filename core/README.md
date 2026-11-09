@@ -1119,14 +1119,18 @@ spelling" before the answer; with `course.js` `blank: {typo: 1}` it counts as ri
 with the same note. A one-edit difference is not a near miss, and is plain wrong in both
 modes with no note, when the character that differs is a digit ("5 ht3" for "5 ht2",
 "CYP3A5" for "CYP3A4", "beta-2" for "beta-1") or lies in a token of one character
-("vitamin E" for "vitamin D"): there the text names another thing. **Remaining risk:**
+("vitamin E" for "vitamin D") or in a Roman numeral, a token of up to 4 characters that
+matches `^[ivx]+[a-z]?$` ("type I" or "type III" for "type II", "factor Xb" for
+"factor Xa", "IB" for "IA"): there the text names another thing. **Remaining risk:**
 even so, a one-letter slip can sometimes be a different term (for example two drug names
-one letter apart), so strict is the default and `blank: {typo: 1}` is for a course that
-accepts that. A transposition is two edits and is never near; an answer under 5
+one letter apart, or "factor Xa" and "factor Xb" written without a space), so strict is
+the default and `blank: {typo: 1}` is for a course that accepts that. A transposition is two edits and is never near; an answer under 5
 characters gets no leniency. The typed text is cut to a length cap, the longest accepted
 answer plus 100 characters (`blankCap`): the text box carries it as `maxlength`, and the
-grading, the record (Quiz and paper) and the display cut again, so a pasted, scripted or
-imported value cannot store more (a 3 MB paste had been stored whole). `accept[0]` is the answer shown; the reveal lists every accepted
+grading, the record (Quiz and paper) and the display cut again, so a pasted or scripted
+value is stored at the cap (a 3 MB paste had been stored whole). Import is not changed:
+an imported answer with a longer `picked` is stored whole, and only the grading and the
+display cut it. `accept[0]` is the answer shown; the reveal lists every accepted
 answer, then `why` and `teach`. The answer goes through `record()` as a calculation's
 does, the typed text as `picked`; no storage key or progress field is added, and the
 answer history's item type is `blank`. Weak spots, the list of missed questions and the

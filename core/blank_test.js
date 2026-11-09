@@ -88,6 +88,14 @@ for(const [mode, set] of [['strict', undefined], ['typo: 1', {typo: 1}]]){
   wrong('CYP3A4', 'CYP3A45', `${mode}: a digit added to "CYP3A4" is wrong, no note`);
   wrong('CYP3A4', 'CYP3A', `${mode}: a digit left out of "CYP3A4" is wrong, no note`);
   wrong('calcipotriene', 'calcipotrien3', `${mode}: a digit typed for a letter is wrong, no note`);
+  // a Roman numeral names another thing when one letter changes
+  wrong('type II diabetes', 'type I diabetes', `${mode}: "type I diabetes" for "type II diabetes" (a Roman numeral) is wrong, no note`);
+  wrong('type II diabetes', 'type III diabetes', `${mode}: "type III diabetes" for "type II diabetes" (a Roman numeral) is wrong, no note`);
+  wrong('type II diabetes', 'type IV diabetes', `${mode}: "type IV diabetes" for "type II diabetes" (a Roman numeral) is wrong, no note`);
+  wrong('type I diabetes', 'type II diabetes', `${mode}: "type II diabetes" for "type I diabetes" is wrong, no note`);
+  wrong('factor Xa inhibitor', 'factor Xb inhibitor', `${mode}: "factor Xb inhibitor" for "factor Xa inhibitor" (a Roman numeral with a letter) is wrong, no note`);
+  wrong('class IA antiarrhythmic', 'class IB antiarrhythmic', `${mode}: "class IB" for "class IA" is wrong, no note`);
+  wrong('class IV agent', 'class V agent', `${mode}: "class V" for "class IV" is wrong, no note`);
 }
 X.COURSE.blank = undefined;
 // ordinary slips stay near (wrong in strict mode) and are right with typo: 1
@@ -95,9 +103,15 @@ wrong('calcipotriene', 'calcipotrine', 'strict: "calcipotrine" for "calcipotrien
 wrong('tacrolimus', 'tacrolimis', 'strict: "tacrolimis" for "tacrolimus" is a near miss, wrong', true);
 wrong('vitamin D receptor', 'vitamin D receptr', 'strict: a letter left out inside a long token of a longer answer is a near miss', true);
 wrong('vitamin D', 'vitamind', 'strict: "vitamind" for "vitamin D" (a space left out) is a near miss', true);
+wrong('vitamin D', 'vitamn D', 'strict: "vitamn D" for "vitamin D" (a letter left out of a word) is a near miss', true);
+wrong('type II diabetes', 'type II diabets', 'strict: a letter left out of "diabetes" next to a Roman numeral is a near miss', true);
+wrong('class IV antiarrhythmic', 'class IV antiarrythmic', 'strict: a slip in a long word of an answer that holds a Roman numeral is a near miss', true);
+wrong('via the portal vein', 'via the portal vain', 'strict: a slip after the word "via" (which fits the numeral pattern) is a near miss', true);
+wrong('mixed function oxidase', 'mixed funtion oxidase', 'strict: a slip in a phrase with "mix"-like words is a near miss', true);
 wrong('calcineurin', 'calcineruin', 'strict: two letters swapped is two edits, not a near miss');
 X.COURSE.blank = {typo: 1};
-for(const [acc, typed] of [['calcipotriene', 'calcipotrine'], ['tacrolimus', 'tacrolimis'], ['vitamin D receptor', 'vitamin D receptr']]){
+for(const [acc, typed] of [['calcipotriene', 'calcipotrine'], ['tacrolimus', 'tacrolimis'], ['vitamin D receptor', 'vitamin D receptr'], ['vitamin D', 'vitamn D'],
+                           ['type II diabetes', 'type II diabets'], ['class IV antiarrhythmic', 'class IV antiarrythmic']]){
   const g = G(acc, typed); check(g.ok && g.near, `typo: 1: "${typed}" for "${acc}" is right, with the note`, g);
 }
 { const g = G('calcineurin', 'calcineruin'); check(!g.ok && !g.near, 'typo: 1: two letters swapped is still wrong, no note', g); }
