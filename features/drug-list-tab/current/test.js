@@ -77,7 +77,10 @@
  * record (#69) holds the ratings; another profile holds none, and its own rating stays
  * under it; the first profile's ratings after a switch back and a reload; Export holds
  * them; Erase my history clears them, also after a reload; Import of the exported file
- * puts them back, also after a reload; no sideways scroll; no error. Import measured
+ * puts them back, also after a reload; no sideways scroll; no error. Kept on a later day
+ * (DEENT's rule, the core's dayKey), on ratings and on bank answers planted on chosen days
+ * and read after a reload: two days, one day, a broken run, a last Forgot, either side of
+ * midnight, the list out of time order. Import measured
  * with only the ratings differing (reported, and checked against core/README.md
  * 792-840): the same file, nothing; an older file one rating behind, a new profile; a
  * file with one more rating, a new profile; a file without the ratings, nothing. The
@@ -737,6 +740,37 @@ async function v2View(browser, file, width){
   await ctx.close();
 }
 
+/* "Kept on a later day" (DEENT drugfacts.js status(), for the ratings as the DEENT session gave
+   it on 2026-11-09), with the core's dayKey: ratings planted on chosen days, read after a reload */
+async function v2Days(browser, file){
+  // in America/Chicago, so that the browser's day (dayKey) and the UTC day differ late in the evening
+  const {ctx, page, errors} = await L.openPage(browser, file, {viewport: {width: 820, height: 900}, timezoneId: 'America/Chicago'}, consoleTrap);
+  const ids = FIX.tables[0].rows.map(r => slugOf(r.generic));
+  const day = (d, h, m) => [d, h, m || 0];      // made into a time in the page, in its time zone (November 2026)
+  const cases = [
+    ['2:0', [['knew', day(2, 12)], ['knew', day(3, 12)]], /\(2 ratings; Kept on a later day\)$/, 'Knew on 11/2, then Knew on 11/3: Kept on a later day'],
+    ['2:1', [['knew', day(2, 9)], ['knew', day(2, 20)]], /on Nov 2, 2026 \(2 ratings\)$/, 'Knew twice on one day: Knew, not Kept (same-day repeats never count)'],
+    ['2:2', [['knew', day(2, 12)], ['partly', day(3, 12)], ['knew', day(4, 12)]], /last rated Knew on Nov 4, 2026 \(3 ratings\)$/, 'Knew, Partly, Knew on three days: the Partly breaks the run, not Kept'],
+    ['2:3', [['knew', day(2, 12)], ['knew', day(3, 12)], ['forgot', day(4, 12)]], /last rated Forgot on Nov 4, 2026 \(3 ratings\)$/, 'two Knew days, then Forgot: Forgot'],
+    ['2:4', [['knew', day(2, 23, 30)], ['knew', day(3, 0, 30)]], /\(2 ratings; Kept on a later day\)$/, 'Knew at 23:30 and at 00:30 the next day: two calendar days (dayKey), Kept'],
+    ['2:5', [['knew', day(3, 12)], ['knew', day(2, 12)]], /last rated Knew on Nov 3, 2026 \(2 ratings; Kept on a later day\)$/, 'ratings read in time order, whatever their order in the list'],
+  ];
+  await page.evaluate(([cs, ids]) => { const t = ([d, h, m]) => new Date(2026, 10, d, h, m).getTime();
+    DB.drugs = {v: 1, ev: cs.flatMap(([ref, rs]) => rs.map(([r, at]) => ({f: ids[+ref.split(':')[1]] + ':indication', r, at: t(at)})))}; save(); }, [cases.map(c => c.slice(0, 2)), ids]);
+  // bank answers on two days, read with the same day rule: Kept on a later day
+  await page.evaluate(([da, db]) => { const t = ([d, h, m]) => new Date(2026, 10, d, h, m).getTime(), a = t(da), b = t(db), o = Date.now; try { Date.now = () => a; record(byId('s1-1'), 'correct', 0, 1000); Date.now = () => b; record(byId('s1-2'), 'correct', 0, 1000); } finally { Date.now = o; } save(); }, [day(2, 12), day(3, 12)]);
+  await v2Reload(page);
+  await v2Open(page, 'indication');
+  for(const [ref, , re, what] of cases){
+    const t = await statusOf(page, '0:' + ref.split(':')[1]);
+    check(re.test(t || ''), 'v2 days: ' + what, t);
+  }
+  const b = await statusOf(page, '0:0');
+  check(/· bank questions: Kept on a later day \(2 answers\)$/.test(b || ''), 'v2 days: bank answers right on 11/2 and 11/3: Kept on a later day (2 answers)', b);
+  check(!errors.length, 'v2 days: no page error', errors.slice(0, 3));
+  await ctx.close();
+}
+
 /* What Import does with a file when only the ratings differ (core/README.md 805-816): measured,
    reported, and checked against the rule as the README states it. */
 async function v2ImportMeasure(browser, file){
@@ -859,6 +893,8 @@ async function v2ImportMeasure(browser, file){
     else {
       check(/build step done/.test(s4.out), 'the v2 copy builds');
       for(const w of [390, 820]){ console.log(`\n--- v2, ${w} px ---`); await v2View(browser, s4.page, w); }
+      console.log('\n--- v2, Kept on a later day ---');
+      await v2Days(browser, s4.page);
       console.log('\n--- v2, Import measured ---');
       await v2ImportMeasure(browser, s4.page);
     }

@@ -224,7 +224,9 @@ function dloQs(fact){
 }
 /* DEENT drugfacts.js status() (lines 126-141), on the profile's answers: Not practised,
    Forgot, Right, but unsure, Remembered, Kept on a later day (the device's calendar day) */
-const dloDay = t => { const d = new Date(t); return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate(); };
+/* the day as the core's scheduler counts it (shell.html dayKey: the browser's calendar day,
+   YYYY-MM-DD; DEENT's dayOf is the same local day), worked out when read: only `at` is stored */
+const dloDay = t => typeof dayKey === 'function' ? dayKey(t) : new Date(t).toISOString().slice(0, 10);
 const dloSolid = a => a.result === 'correct' && a.conf !== 'shaky';
 function dloBank(qids){
   const set = new Set(qids);
@@ -237,15 +239,25 @@ function dloBank(qids){
   let i = n - 1; while(i > 0 && dloSolid(at[i - 1])) i--;
   return {label: at.slice(i, n - 1).some(a => dloDay(a.at) < dloDay(last.at)) ? 'Kept on a later day' : 'Remembered', n};
 }
+/* the ratings of one fact, with DEENT's "Kept on a later day" (drugfacts.js status(), as the
+   DEENT session gave it for ratings on 2026-11-09): the last rating is Knew, and an earlier
+   Knew in the unbroken run of Knew ratings that ends with it falls on an earlier day;
+   Forgot or Partly breaks the run, and ratings on the same day never count */
 function dloRecall(fact){
-  const ev = dloEvents().filter(e => e.f === fact);
-  return {n: ev.length, last: ev.length ? ev[ev.length - 1] : null};
+  const ev = dloEvents().filter(e => e.f === fact).slice().sort((a, b) => a.at - b.at);
+  const n = ev.length, last = n ? ev[n - 1] : null;
+  let kept = false;
+  if(last && last.r === 'knew'){
+    let i = n - 1; while(i > 0 && ev[i - 1].r === 'knew') i--;
+    kept = ev.slice(i, n - 1).some(e => dloDay(e.at) < dloDay(last.at));
+  }
+  return {n, last, kept};
 }
 const dloDate = t => new Date(t).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'});
 function dloStatus(ref){
   const fact = dloFact(ref, DLO.ask), rc = dloRecall(fact), qs = dloQs(fact);
   let out = `<b>${dltText(dloName(DLO.ask))}</b>: ` + (rc.last
-    ? `last rated ${dltText(DLO_NAME[rc.last.r])} on ${dltText(dloDate(rc.last.at))} (${rc.n} rating${rc.n === 1 ? '' : 's'})`
+    ? `last rated ${dltText(DLO_NAME[rc.last.r])} on ${dltText(dloDate(rc.last.at))} (${rc.n} rating${rc.n === 1 ? '' : 's'}${rc.kept ? '; Kept on a later day' : ''})`
     : 'not rated yet');
   if(qs.length){ const b = dloBank(qs); out += ` · bank question${qs.length === 1 ? '' : 's'}: ${dltText(b.label)}${b.n ? ` (${b.n} answer${b.n === 1 ? '' : 's'})` : ''}`; }
   return `<p class="dlo-status" data-status="${dltText(fact)}">${out}</p>`;
