@@ -46,6 +46,8 @@ const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
 // (a) no `share`
 {
   const {repo, src} = scratch('share-off');
+  // a course that sets its own `share` or `manifest.short_name` (DEENT does) is checked here as if it set neither
+  fs.appendFileSync(path.join(src, 'course.js'), '\n;delete COURSE.share; if(COURSE.manifest) delete COURSE.manifest.short_name;\n');
   const r = build(src);
   if(r.status !== 0) L.notRun(NAME, 'the template build failed in the scratch copy: ' + said(r).split('\n').pop());
   const page = fs.readFileSync(path.join(repo, 'index.html'), 'utf8');
@@ -63,6 +65,7 @@ const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
   }
   if(base){
     const b = scratch('share-base');
+    fs.copyFileSync(path.join(src, 'course.js'), path.join(b.src, 'course.js'));
     fs.writeFileSync(path.join(b.src, 'build.py'), base);
     const rb = build(b.src);
     L.check(rb.status === 0, `the same course builds with the base build.py (${from})`, said(rb).split('\n').pop());
