@@ -2,6 +2,9 @@
 
 Dated kit changes, newest first.
 
+## 2026-11-09 (figures)
+- Enlarge: the placeholder that holds a figure's place takes the figure's exact height (`getBoundingClientRect`), not the rounded `offsetHeight`. A figure with a fractional height (DEENT's acne-cascade, 487.22 px at 390x420) made the page 0.22 px shorter while enlarged, so at the end of the page Enlarge then Close moved the scroll by 1 px (DEENT's ux_test, y 18062 then 18061).
+
 ## 2026-11-09 (checks: scratch folders)
 - The checks' scratch folders are removed when their run passes and kept when it fails (reported by the DEENT session on 2026-11-08: 4,121 leftover folders, about 22 GB, filled its container's disk and stopped browser checks mid-run). `check_lib.js` records each folder `scratchRepo` makes (and so `scratchBuild`) and removes those, by exact path, when the check exits with no failed check; on a FAIL, a crash or a timeout it keeps them and prints `kept for inspection: <paths>`. `run_checks.sh` removes its `drill-checks-*` log folder when no check failed (it reads a check's summary from the line before the "kept" line, so every PASS, FAIL, NOT RUN and REPORT line reads as before). `ci_course.sh` removes its `kit-ci-*` work folder and the log folder when it exits 0, from a trap on EXIT, and otherwise keeps and names them. `state_check_test.js` lists its shallow clone (`state-test-*-shallow`) with its scratch copy. `KEEP_TEST_TMP=1` keeps everything. After SIGTERM or SIGINT nothing is removed, even if another handler then exits 0; `ci_course.sh` removes the log folder only when it is directly in `$TMPDIR`. `checks_test.js` section 7 checks the rule: a passing check removes its folder, a failing one keeps and names it, `KEEP_TEST_TMP=1` keeps it, and `run_checks.sh` still reads a REPORT as REPORT with the kept line after it. No other check's assertions or results change. Test only.
 
