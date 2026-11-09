@@ -715,11 +715,14 @@ async function v2ImportMeasure(browser, file){
   const exportNow = async () => { await page.evaluate(() => show('settings'));
     const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#btnExport')]); return fs.readFileSync(await dl.path(), 'utf8'); };
   const planOf = async text => { const f = path.join(require('os').tmpdir(), `dlo-m-${process.pid}-${Math.random().toString(36).slice(2)}.json`); fs.writeFileSync(f, text);
-    await page.evaluate(() => show('settings')); await page.setInputFiles('#fileIn', f);
+    await page.evaluate(() => { if(!window.__planWrapped){ const o = showImportPlan; showImportPlan = p => { window.__plan = p; return o(p); }; window.__planWrapped = 1; } window.__plan = null; show('settings'); });
+    await page.setInputFiles('#fileIn', f);
     await page.waitForFunction(() => { const b = document.getElementById('importPlan'); return b && b.textContent.trim(); }, null, {timeout: 5000}).catch(() => {});
     const plan = await page.evaluate(() => (document.getElementById('importPlan') || {}).textContent || ''); fs.rmSync(f, {force: true});
-    return plan.replace(/\s+/g, ' ').trim(); };
-  const kind = p => /nothing to import|already here|adds nothing/i.test(p) ? 'nothing' : /new profile/i.test(p) ? 'separate' : /replace/i.test(p) ? 'replace' : /history/i.test(p) ? 'history' : 'other: ' + p.slice(0, 80);
+    const action = await page.evaluate(() => window.__plan ? window.__plan.action : null);
+    return {action, text: plan.replace(/\s+/g, ' ').trim()}; };
+  const texts = [];
+  const kind = p => { texts.push(p.text); return p.action || 'no plan: ' + p.text.slice(0, 80); };
   const rate = async (ref, r) => { await v2Open(page, 'indication'); if(!(await page.$(`${pane} [data-rate="${ref}"]`))) await page.click(`${pane} [data-reveal="${ref}"]`);
     await page.click(`${pane} [data-rate="${ref}"][data-r="${r}"]`); };
   await page.evaluate(() => { record(byId('s1-1'), 'correct', 0, 1000); record(byId('s1-2'), 'correct', 0, 1000); });
@@ -735,7 +738,8 @@ async function v2ImportMeasure(browser, file){
   const D = JSON.parse(JSON.stringify(B)); delete D.db.drugs;
   res.push(['M4 a file with the same answers and no ratings', kind(await planOf(JSON.stringify(D))), 'separate']);
   console.log('\n  Import with ratings only differing (REPORT, core/README.md 805-816):');
-  for(const [what, got, rule] of res){ console.log(`  report  ${what}: ${got} (the README's rule: ${rule})`);
+  res.forEach(([what, got, rule], k) => console.log(`  report  ${what}: ${got} (the README's rule: ${rule}); the plan: "${texts[k]}"`));
+  for(const [what, got, rule] of res){
     check(got === rule, `Import measure, ${what}: ${got}, as the README's rule says`, got); }
   await ctx.close();
   return res;
