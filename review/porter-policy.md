@@ -53,7 +53,8 @@ heads).
   session; `coordinator/improvements.json`). Louis, 2026-11-09, answering the central session's recommendation:
   "Whatever you recommend is the best" (the central session's message to the porter at 01:06 UTC). The
   recommendation, now his decision: develop and test it, and bring the pull request to him before any merge or
-  any course switches it on. It is new progress storage with Import consequences, so it is handled as #81 is:
+  any course switches it on. It is new progress storage with Import consequences, so it is handled as #81
+  (the worksheet ink storage, waiting for Louis) is:
   it does not merge under decision 10, and it is built as drug-list-tab v2, off by default. Scope: a `DB.drugs`
   progress part (the equation-drill pattern) keyed by a stable fact id `drugId:field`, recording the outcome,
   recognition or recall, and the self-rating, never typed text; a fact-to-bank-question map, so that an answer
