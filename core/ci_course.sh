@@ -47,13 +47,17 @@ kit="$(cd "$(dirname "$0")/.." && pwd)"
 work="$(mktemp -d "${TMPDIR:-/tmp}/kit-ci-XXXXXX")"
 logs=""
 # on exit: remove this run's own folders when it passed, keep and name them otherwise
+# the log folder run_checks.sh named, only when it is a drill-checks-* folder directly in $TMPDIR
+own_logs() {
+  case "$logs" in "${TMPDIR:-/tmp}/drill-checks-"*) ;; *) return 1 ;; esac
+  [ "$(dirname -- "$logs")" = "${TMPDIR:-/tmp}" ] && [ -d "$logs" ]
+}
 cleanup() {
   local rc=$? kept="$work"
-  # the log folder run_checks.sh named, only when it is the drill-checks-* folder it made in $TMPDIR
-  case "$logs" in "${TMPDIR:-/tmp}/drill-checks-"*) [ -d "$logs" ] && kept="$kept $logs" ;; esac
+  own_logs && kept="$kept $logs"
   if [ "$rc" -eq 0 ] && [ "${KEEP_TEST_TMP:-}" != 1 ]; then
     rm -rf -- "$work"
-    case "$logs" in "${TMPDIR:-/tmp}/drill-checks-"*) rm -rf -- "$logs" ;; esac
+    if own_logs; then rm -rf -- "$logs"; fi
   else
     echo "kept for inspection: $kept$([ "${KEEP_TEST_TMP:-}" = 1 ] && echo '  (KEEP_TEST_TMP=1)')" >&2
   fi

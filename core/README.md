@@ -1205,7 +1205,7 @@ run passes, and kept when it fails, so the evidence survives:
 - `ci_course.sh` removes its work folder and the log folder when it exits 0, and
   otherwise keeps both and prints `kept for inspection: <paths>`.
 
-`KEEP_TEST_TMP=1` keeps every one of them whatever the result. Folders a check makes with
+`KEEP_TEST_TMP=1` keeps every one of them whatever the result. A check stopped by SIGTERM or SIGINT removes nothing. `checks_test.js` (section 7) checks these rules. Folders a check makes with
 its own `fs.mkdtempSync` (`startup_test.js`, `import_test.js`, `notruncase_test.js`) are
 removed by that check, as before. Before this (DEENT, 2026-11-08), no scratch folder was
 ever removed: 4,121 of them, about 5 MB each, filled a container's disk in one evening.

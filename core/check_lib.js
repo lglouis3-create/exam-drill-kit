@@ -294,15 +294,16 @@ function keptLine(why){
   const left = scratchRoots.filter(r => fs.existsSync(r));
   if(left.length) process.stdout.write(`kept for inspection: ${left.join(' ')}${why ? '  (' + why + ')' : ''}\n`);
 }
+let signalled = false;   // after SIGTERM or SIGINT nothing is removed, whatever the exit code
 process.on('exit', code => {
-  if(!scratchRoots.length) return;
+  if(!scratchRoots.length || signalled) return;
   if(KEEP_TMP) return keptLine('KEEP_TEST_TMP=1');
   if((code === 0 || code === 2) && !fails){
     for(const r of scratchRoots){ try { fs.rmSync(r, {recursive: true, force: true}); } catch(e){ process.stdout.write(`kept for inspection: ${r}  (could not remove it: ${e.message})\n`); } }
   } else keptLine();
 });
 for(const sig of ['SIGTERM', 'SIGINT']){
-  process.once(sig, () => { keptLine(sig); process.kill(process.pid, sig); });
+  process.once(sig, () => { signalled = true; keptLine(sig); process.kill(process.pid, sig); });
 }
 /* `course.js` line that switches module `name` on with these options (kept
    with any other module the course has on), at the version in its module.json. */
