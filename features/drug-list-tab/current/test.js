@@ -191,6 +191,20 @@ async function bdkView(browser, file, width){
   const r10 = FIX.tables.find(t => t.id === 10).rows[0];
   check(cell.length === 5 && cell[1] === r10.generic && cell[4] === r10.indication + 'Activity against: ' + r10.activity, 'a row\'s cells hold its fields, with "Activity against:" under the indications', cell);
   check(!(await sideways(page)), 'no sideways scroll with every table shown' + tag);
+  // each table's heading text and its tag against the heading's own colour, as the browser draws them
+  // (WCAG 2: 4.5 : 1; the tag's opacity is blended in), on every one of BDK's 26 table colours
+  const headC = await page.$$eval(`${pane} [data-body] .pagehead`, hs => {
+    const rgb = s => (s.match(/[\d.]+/g) || []).map(Number);
+    const lin = c => { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
+    const lum = ([r, g, b]) => 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+    const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+    return hs.map(h => { const bg = rgb(getComputedStyle(h).backgroundColor).slice(0, 3), out = [h.closest('section').dataset.table];
+      for(const el of [h, h.querySelector('.ed')]){ const cs = getComputedStyle(el), c = rgb(cs.color), a = (c[3] === undefined ? 1 : c[3]) * +cs.opacity;
+        out.push(+ratio(c.slice(0, 3).map((v, i) => v * a + bg[i] * (1 - a)), bg).toFixed(2)); }
+      return out; });
+  });
+  const lowHead = headC.filter(([, t, e]) => t < 4.5 || e < 4.5);
+  check(headC.length === FIX.tables.length && !lowHead.length, `each of the ${headC.length} table headings and its page tag reads at 4.5 : 1 or more on the table's colour (lowest tag ${Math.min(...headC.map(x => x[2]))} : 1)` + tag, lowHead);
   check(!(await page.$(`${pane} [data-listview]`)), 'no image view: BDK\'s data gives no image per table' + tag);
 
   // search: every page, and a drug outside the chosen group
