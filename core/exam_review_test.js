@@ -46,6 +46,7 @@ const spy = page => page.evaluate(SPY);
 const ANS = right => {
   const q = EX.qs[EX.i];
   if(q.type === 'numeric'){ const n = document.getElementById('exNum'); n.value = String(right ? q.answer : q.answer + 1000); n.dispatchEvent(new Event('input')); return; }
+  if(q.type === 'blank'){ const n = document.getElementById('exBlank'); n.value = right ? q.accept[0] : 'zzzz not the answer'; n.dispatchEvent(new Event('input')); return; }
   if(q.type === 'match'){ EX.picks[EX.i] = q.pairs.map((p, i) => right ? i : (i + 1) % q.pairs.length); saveExam(); return; }
   let want;
   if(isMulti(q)){ const c = correctSet(q), w = q.options.findIndex(o => !o.correct); want = right ? c : (w >= 0 ? [w] : c.slice(0, 1)); }

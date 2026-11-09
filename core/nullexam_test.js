@@ -92,7 +92,8 @@ const secs = t => { const m = TAKEN.exec(String(t || '').trim()); return m ? Num
 const ANSWER = right => {
   if(!(Q && Q.current)) startSweep('all');
   const q = Q && Q.current; if(!q) return null;
-  if(q.type === 'numeric'){ document.getElementById('numIn').value = String(right ? q.answer : q.answer + 1000); document.getElementById('btnCheck').click(); }
+  if(q.type === 'blank'){ document.getElementById('blankIn').value = right ? q.accept[0] : 'zzzz not the answer'; document.getElementById('btnCheck').click(); }
+  else if(q.type === 'numeric'){ document.getElementById('numIn').value = String(right ? q.answer : q.answer + 1000); document.getElementById('btnCheck').click(); }
   else if(q.type === 'match'){
     const sels = [...document.querySelectorAll('#v-quiz select[data-row]')];
     sels.forEach((s, i) => { s.value = String(right ? i : (i + 1) % sels.length); s.dispatchEvent(new Event('change')); });
@@ -315,7 +316,8 @@ const badWords = page => page.evaluate(src => {
     if(!A || !B) L.skip('pools with and without marks', 'the course has no two topics with questions a paper can draw (one with two concepts)');
     else {
       const n = A.qs.length + B.qs.length;
-      const line = `{ ${ACTIVE} E.questions = ${n}; delete E.blueprint;
+      // the paper's size is the two topics' untyped items, so typed items (exams[].typed, blanks) stay off it
+      const line = `{ ${ACTIVE} E.questions = ${n}; delete E.blueprint; E.typed = false; delete E.blanks;
         E.pools = [{key:'za', name:'Section A', marks:1, filter:{topic:${JSON.stringify(A.id)}}}, {key:'zb', name:'Section B', marks:null, filter:{topic:${JSON.stringify(B.id)}}}]; }`;
       const b = L.scratchBuild('nullexam-test', {courseLine: line});
       built.push(b);
