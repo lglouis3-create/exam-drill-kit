@@ -262,12 +262,21 @@ function dloStatus(ref){
   if(qs.length){ const b = dloBank(qs); out += ` · bank question${qs.length === 1 ? '' : 's'}: ${dltText(b.label)}${b.n ? ` (${b.n} answer${b.n === 1 ? '' : 's'})` : ''}`; }
   return `<p class="dlo-status" data-status="${dltText(fact)}">${out}</p>`;
 }
+/* whether the rating is stored: the stored progress of this profile is this page's progress,
+   and the browser did not refuse the write (the core's FAILED); a write that was refused, a
+   save another tab or window got in before (the core shows its notice and writes nothing) or
+   a save still waiting on its timer is not stored (the review of #92, M1) */
+function dloStored(){
+  try { const k = keyFor(PROFILE); return !FAILED.has(k) && localStorage.getItem(k) === JSON.stringify(DB); } catch(e){ return false; }
+}
 function dloRateBlock(ref){
   const open = dloMine(), cur = open[ref] ? open[ref].r : '';
   return `<div class="dlo-rate" role="group" aria-label="How well did you recall it?">${DLO_RATE.map(([r, l]) =>
     `<button type="button" class="chip" data-rate="${ref}" data-r="${r}" aria-pressed="${cur === r}">${l}</button>`).join('')}</div>
     <ul class="dlo-crit">${DLO_RATE.map(([, l, c]) => `<li><b>${l}:</b> ${dltText(c)}</li>`).join('')}</ul>
-    <p class="dlt-note" data-ratenote>${cur ? 'Saved in this profile\'s progress: ' + DLO_NAME[cur] + '.' : 'Not counted until you choose one.'}</p>`;
+    <p class="dlt-note" data-ratenote${cur ? ` data-saved="${dloStored() ? 1 : 0}"` : ''}>${!cur ? 'Not counted until you choose one.'
+      : dloStored() ? 'Saved in this profile\'s progress: ' + DLO_NAME[cur] + '.'
+      : 'Not saved: ' + DLO_NAME[cur] + ' is on this page only. The notice on this page about saving says why.'}</p>`;
 }
 /* a rating of the row's current opening: the first one adds a rating, a later one replaces it */
 function dloRate(ref, r){
@@ -277,8 +286,10 @@ function dloRate(ref, r){
   const keep = mine && mine.f === fact && DB.drugs.ev.indexOf(mine) >= 0;
   if(keep){ mine.r = r; mine.at = Date.now(); }
   else { const e = {f: fact, r, at: Date.now()}; DB.drugs.ev.push(e); DLO.open[ref] = e; }
-  if(DB.drugs.ev.length > DLO_MAX) DB.drugs.ev.splice(0, DB.drugs.ev.length - DLO_MAX);
-  save();
+  // past the cap the oldest go, by time (an Import or a replaced rating leaves the list out of time order)
+  if(DB.drugs.ev.length > DLO_MAX){ DB.drugs.ev.sort((a, b) => a.at - b.at); DB.drugs.ev.splice(0, DB.drugs.ev.length - DLO_MAX); }
+  // written at once (the core's saveNow, as on leaving the page), so the note can say whether it was stored
+  save(); saveNow();
 }
 const dloNotKnew = ref => { const l = dloRecall(dloFact(ref, DLO.ask)).last; return !l || l.r !== 'knew'; };
 

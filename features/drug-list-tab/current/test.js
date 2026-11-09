@@ -772,6 +772,74 @@ async function v2Days(browser, file){
   await ctx.close();
 }
 
+/* The note under the ratings says "Saved" only when the rating is stored (the review of #92, M1):
+   the normal save, a write the browser refuses, a stale second tab without Web Locks. And the
+   2,000-rating cap, by time, with its storage measured. */
+const noteOf = (page, ref) => page.$eval(`${pane} tr.dlt-recall[data-for="${ref}"] [data-ratenote]`, p => [p.dataset.saved, p.textContent.replace(/\s+/g, ' ').trim()]).catch(() => [null, null]);
+const storedEv = page => page.evaluate(() => { try { const d = JSON.parse(localStorage.getItem(NS + ':data:' + PROFILE) || 'null'); return d && d.drugs ? d.drugs.ev : null; } catch(e){ return 'unreadable'; } });
+async function v2Saved(browser, file){
+  const R0 = '0:0';
+  // the normal path: the note is read at once after the click
+  {
+    const {ctx, page} = await L.openPage(browser, file, {viewport: {width: 820, height: 900}}, consoleTrap);
+    await v2Open(page, 'indication');
+    await page.click(`${pane} [data-reveal="${R0}"]`); await page.click(`${pane} [data-rate="${R0}"][data-r="knew"]`);
+    const n = await noteOf(page, R0), st = await storedEv(page);
+    check(n[0] === '1' && n[1] === 'Saved in this profile\'s progress: Knew.' && Array.isArray(st) && st.length === 1 && st[0].r === 'knew',
+          'save: right after the click the note says Saved, and the stored progress holds the rating', {n, st});
+    await ctx.close();
+  }
+  // the browser refuses the write of the progress
+  {
+    const refuse = () => { const o = Storage.prototype.setItem; Storage.prototype.setItem = function(k, v){ if(window.__refuse && String(k).includes(':data:')) throw new DOMException('quota', 'QuotaExceededError'); return o.apply(this, arguments); }; };
+    const {ctx, page} = await L.openPage(browser, file, {viewport: {width: 820, height: 900}}, refuse);
+    await v2Open(page, 'indication');
+    await page.evaluate(() => { window.__refuse = true; });
+    await page.click(`${pane} [data-reveal="${R0}"]`); await page.click(`${pane} [data-rate="${R0}"][data-r="knew"]`);
+    const n = await noteOf(page, R0), st = await storedEv(page), failed = await page.evaluate(() => FAILED.has(keyFor(PROFILE)));
+    check(failed && st === null && n[0] === '0' && /^Not saved: Knew is on this page only\./.test(n[1] || ''),
+          'save: with the write refused (FAILED), the note says Not saved, and nothing is stored', {failed, st, n});
+    await ctx.close();
+  }
+  // a stale second tab, without Web Locks: the other tab saved since this one loaded
+  {
+    const noLocks = () => { try { Object.defineProperty(Navigator.prototype, 'locks', {get(){ return undefined; }, configurable: true}); } catch(e){} };
+    const {ctx, page: a} = await L.openPage(browser, file, {viewport: {width: 820, height: 900}}, noLocks);
+    const b = await ctx.newPage(); await b.goto(a.url()); await b.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+    const locks = await a.evaluate(() => HAS_LOCKS);
+    await v2Open(a, 'indication'); await v2Open(b, 'indication');
+    await a.click(`${pane} [data-reveal="${R0}"]`); await a.click(`${pane} [data-rate="${R0}"][data-r="knew"]`);
+    await b.waitForFunction(() => { try { const d = JSON.parse(localStorage.getItem(NS + ':data:' + PROFILE) || 'null'); return d && d.drugs; } catch(e){ return false; } }, null, {timeout: 5000}).catch(() => {});
+    await b.click(`${pane} [data-reveal="${R0}"]`); await b.click(`${pane} [data-rate="${R0}"][data-r="forgot"]`);
+    const na = await noteOf(a, R0), nb = await noteOf(b, R0), st = await storedEv(b);
+    check(locks === false && na[0] === '1' && nb[0] === '0' && /^Not saved: Forgot is on this page only\./.test(nb[1] || '') && Array.isArray(st) && st.length === 1 && st[0].r === 'knew',
+          'save: in a stale second tab without Web Locks, the note says Not saved; the store holds only the other tab\'s rating', {locks, na, nb, st});
+    await ctx.close();
+  }
+}
+async function v2Cap(browser, file){
+  const {ctx, page} = await L.openPage(browser, file, {viewport: {width: 820, height: 900}}, consoleTrap);
+  const ids = FIX.tables.flatMap(t => t.rows.map(r => slugOf(r.generic)));
+  const base = Date.UTC(2026, 9, 1);
+  // 2,000 ratings, one minute apart, stored newest first (as an Import or a replaced rating can leave them)
+  const plan = Array.from({length: 2000}, (_, k) => ({f: ids[k % ids.length] + ':indication', r: ['forgot', 'partly', 'knew'][k % 3], at: base + k * 60000})).reverse();
+  const empty = await page.evaluate(() => (localStorage.getItem(NS + ':data:' + PROFILE) || JSON.stringify(DB)).length);
+  await page.evaluate(ev => { DB.drugs = {v: 1, ev}; save(); saveNow(); }, plan);
+  await v2Reload(page);
+  const full = await page.evaluate(() => ({data: (localStorage.getItem(NS + ':data:' + PROFILE) || '').length, part: JSON.stringify(DB.drugs).length,
+    rec: (() => { try { const r = JSON.parse(localStorage.getItem(myPendingKey()) || 'null'); return r && r.db && r.db.drugs ? JSON.stringify(r.db.drugs).length : null; } catch(e){ return null; } })()}));
+  await v2Open(page, 'indication');
+  await page.click(`${pane} [data-reveal="0:0"]`); await page.click(`${pane} [data-rate="0:0"][data-r="partly"]`);
+  await v2Reload(page);
+  const ev = await storedEv(page), ats = Array.isArray(ev) ? ev.map(e => e.at) : [];
+  const oldest = base, newestPlanted = base + 1999 * 60000;
+  check(Array.isArray(ev) && ev.length === 2000 && !ats.includes(oldest) && ats.includes(newestPlanted) && ats.includes(base + 60000) && ev.some(e => e.r === 'partly' && e.at > newestPlanted),
+        'cap: 2,000 ratings stored newest first, one more rating, a reload: 2,000 kept, the oldest by time gone, the newest planted and the new one kept', {n: ev && ev.length, oldestKept: ats.includes(oldest), newestKept: ats.includes(newestPlanted)});
+  console.log(`  report  cap: the progress text is ${empty} characters with no ratings and ${full.data} with 2,000 (the DB.drugs part: ${full.part}); this tab's own record holds the part again: ${full.rec}`);
+  check(full.part > 0 && full.data - empty >= full.part, `cap: the ratings part at 2,000 ratings measured (${full.part} characters)`, full);
+  await ctx.close();
+}
+
 /* What Import does with a file when only the ratings differ (core/README.md 805-816): measured,
    reported, and checked against the rule as the README states it. */
 async function v2ImportMeasure(browser, file){
@@ -896,6 +964,10 @@ async function v2ImportMeasure(browser, file){
       for(const w of [390, 820]){ console.log(`\n--- v2, ${w} px ---`); await v2View(browser, s4.page, w); }
       console.log('\n--- v2, Kept on a later day ---');
       await v2Days(browser, s4.page);
+      console.log('\n--- v2, the note says Saved only when stored ---');
+      await v2Saved(browser, s4.page);
+      console.log('\n--- v2, the 2,000-rating cap ---');
+      await v2Cap(browser, s4.page);
       console.log('\n--- v2, Import measured ---');
       await v2ImportMeasure(browser, s4.page);
     }
