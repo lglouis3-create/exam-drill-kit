@@ -44,3 +44,10 @@ input.search{width:100%;padding:12px 14px;border-radius:10px;border:1px solid va
 .dlt-recall textarea{width:100%;min-height:58px;font:inherit;font-size:16px;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text);resize:vertical}
 .dlt-recall label{display:block;font-size:12.5px;color:var(--text-dim);margin-bottom:3px}
 .dlt-recall .btn.sm{padding:6px 12px;font-size:14px;margin-top:6px;min-height:44px}
+/* v2: the field asked, the ratings and the status line (DEENT src/druglist_ui.js, rateBlock) */
+.dlo-ask{display:inline-flex;align-items:center;gap:6px;font-size:14px;min-height:44px}
+.dlo-ask select{min-height:44px;font:inherit;font-size:15px}
+.dlo-rate{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 4px}
+.dlo-rate .chip{min-height:44px}
+.dlo-crit{margin:4px 0;padding-left:18px;font-size:13px;color:var(--text-dim)}
+.dlo-status{margin:6px 0 0;font-size:13.5px;color:var(--text)}
