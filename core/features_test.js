@@ -243,7 +243,7 @@ const ALL = {'fx-probe': {version: 'v1', word: 'zz-word'}, 'fx-probe-throws': {v
       window.__paperMode = 'reverse';
       return out;
     });
-    if(!contract.replace.others) L.notRunCase('a paper hook may put other questions in place',
+    if(contract.replace.others === 0) L.notRunCase('a paper hook may put other questions in place',
       'every question in the bank is on the paper, so there is no other question to put in');
     else check(contract.replace.want && contract.replace.want.length && JSON.stringify(contract.replace.got) === JSON.stringify(contract.replace.want),
           `a paper hook may put other questions in place (same length): its paper is the one drawn (${contract.replace.others} of ${contract.replace.want.length} replaced)`, contract.replace);
