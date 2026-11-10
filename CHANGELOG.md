@@ -147,6 +147,24 @@ Dated kit changes, newest first.
 - Checks open built pages over HTTP from 127.0.0.1, not from disk, so WebKit no longer refuses the manifest.
 - Kit checks on GitHub: each changed feature module, and each module that needs it, is checked on a course of its own.
 - `core/render_test.js`: answers calculation and matching items with their own controls; no more random failures.
+- New feature module `short-answer-graphs` v1 (`features/short-answer-graphs/`), from
+  Intro-Pharmacology `929cd62` (`exam1-drill/src/app.js` 2402-2444, 3716-3778 and
+  3821-3854): a Short answer page, where the student writes an answer, shows the model
+  answer and ticks the key points it covers (self-check, as in that course; the draft and
+  ticks are kept in the progress as `DB.sa`), and a Graphs page, one card per figure of the
+  professor's, where "Drill this figure" asks that figure's questions in turn, a wrong pick
+  names the reading question skipped, each answer shows how to read the figure, and the end
+  of the pass lists what was skipped. The prompts, the figures and the miss-tag tables are
+  the course's `SHORT_ANSWERS`, `GRAPHS`, `GRAPH_MISS` and `GRAPH_EXAMS` data; each page
+  appears only when its data is there. A prompt's quote is shown through the course's
+  `tidySpeech`, as its short-answer page shows it. Not ported: the same tidying of the
+  questions' quotes, the page cache and the one-exam focus mode. A saved short answer of another shape is
+  cleaned when the progress is read in. `ci/oncourse.js` writes the module's own course
+  from that course's data. Its test (that course's `browser_test.js` 114-123 and C8 and
+  `test.js` 60-84 ported, with persistence checks): 70 checks pass (2026-11-08), 7 of them build
+  refusals; with the module's code left out, 1 of 1 fails. Port queue item 20 is partial
+  (left: the same tidying of the questions' quotes, notes and explanations, and of page
+  text, `tidyHtml`).
 
 ## 2026-11-01
 - `core/`: an exam with `questions: null` or a pool with `marks: null` no longer breaks the page (`nullexam.js`).
