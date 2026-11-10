@@ -1,0 +1,13 @@
+{
+ "name": "notes",
+ "version": "v1",
+ "does": "A \"✎ Note\" button on every question card (the quiz, the exam paper and its results, and study-controls' one-page cards when that module is on) that opens a box under the card's head for what the student is thinking or wants to ask, saved as it is typed; a Notes tab that lists every noted question, newest first, with the student's last answer, the key and the working (left out while the question is on a paper still running), to edit, delete or drill, with a filter by topic, \"Copy for AI\" and \"Download (.md)\" giving every note as one Markdown text; a line on Weak spots with the number of notes; a Settings line saying what is kept. Notes are kept in the profile's progress as DB.notes {question id: {t, at}}, so Export, Import, Erase and the profile switch cover them. When study-controls is on, a flagged question's card on the Notes tab says so (read through FX.api('study-controls')). Reads no course data.",
+ "source": "Basic-Pharmacokinetics src/views.js lines 5564-5654 (notes, the Notes tab), 2062-2063 (the Weak spots line), 1494, 1587, 1791, 3309 and 3425 (the Note button on the cards) and 6361-6375 (the Note box and saving), src/shell.html line 1073, at ac2eb73",
+ "js": ["notes.js"],
+ "css": ["notes.css"],
+ "options": {
+  "request": {"default": "", "about": "the request at the top of the copied and downloaded text, to whoever reads it (an AI or the professor); without it, a request to answer each question, say where the reasoning went wrong and show the working step by step"},
+  "file": {"default": "", "about": "the file name of Download (.md); without it, <COURSE.id>-my-questions.md"}
+ },
+ "test": "test.js"
+}
