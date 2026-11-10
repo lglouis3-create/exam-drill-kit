@@ -1856,8 +1856,11 @@ const matchComplete = q => (Q.picked || []).length === q.pairs.length && (Q.pick
    counts as one space; a final period is dropped; α β γ δ κ read as alpha,
    beta, gamma, delta, kappa. Digits and the percent sign are kept. A text one
    edit (one letter added, left out or changed) from an accepted answer of 5 or
-   more characters is a near miss: wrong, with "Close: check the spelling", or
-   right with that note when course.js sets `blank: {typo: 1}`. A one-edit
+   more characters is a near miss: wrong, with the note BLANK_NOTE_NO, or
+   right with the note BLANK_NOTE_YES when course.js sets `blank: {typo: 1}`.
+   A text that is another blank item's accepted answer (IL-17RA for IL-17A,
+   cystine for cysteine) is plain wrong with no note, in both modes: it is
+   another term, not a slip. A one-edit
    difference is not a near miss, and is plain wrong in both modes, when the
    character that differs is a digit ("5 ht3" for "5 ht2"), lies in a token of
    one character ("vitamin E" for "vitamin D") or lies in a Roman numeral
@@ -1914,18 +1917,37 @@ function blankOneEdit(a, b){
   return !(ta.length === 1 || tb.length === 1 || blankRoman(ta) || blankRoman(tb));
 }
 const blankTypo = () => !!(COURSE.blank && COURSE.blank.typo === 1);
+// the notes under a near miss: wrong (the default), and counted as right (blank: {typo: 1})
+const BLANK_NOTE_NO = 'Not accepted: it is close to an accepted answer. Check the exact term.';
+const BLANK_NOTE_YES = 'Counted as right: one letter differs from an accepted answer. Check the spelling.';
+/* Every normalized accepted answer of every blank item, with the ids of the items that accept it, built
+   once per page (again only if the bank changes size). A text that another item accepts is that item's
+   answer, whatever it is one edit from here. */
+let BLANK_KNOWN = null;
+function blankKnown(){
+  if(BLANK_KNOWN && BLANK_KNOWN.n === QUESTIONS.length) return BLANK_KNOWN.by;
+  const by = new Map();
+  for(const x of QUESTIONS) if(x.type === 'blank') for(const a of (x.accept || [])){
+    const k = blankNorm(a); if(!k) continue;
+    if(!by.has(k)) by.set(k, []);
+    by.get(k).push(x.id);
+  }
+  BLANK_KNOWN = {n: QUESTIONS.length, by};
+  return by;
+}
 /* {ok, near}: near is a one-edit miss of an accepted answer of 5 or more characters */
 function gradeBlank(q, typed){
   const t = blankNorm(blankClip(q, typed)), acc = (q.accept || []).map(blankNorm);
   if(!t) return {ok:false, near:false};
   if(acc.includes(t)) return {ok:true, near:false};
+  if((blankKnown().get(t) || []).some(id => id !== q.id)) return {ok:false, near:false};   // another item's answer
   const near = acc.some(a => a.length >= 5 && blankOneEdit(t, a));
   return {ok: near && blankTypo(), near};
 }
 /* the verdict, the answer and the other accepted answers, for the quiz and the exam's result page */
 function blankVerdict(q, typed, ok){
   const g = gradeBlank(q, typed), acc = q.accept || [], wrote = typed !== null && typed !== undefined && String(typed).trim() !== '';
-  return `<p class="verdict ${ok?'ok':'bad'}">${ok ? '✓ Correct' : '✗ Not correct'} — ${g.near ? 'Close: check the spelling. ' : ''}the answer is ${esc(acc[0] || '')}${
+  return `<p class="verdict ${ok?'ok':'bad'}">${ok ? '✓ Correct' : '✗ Not correct'} — ${g.near ? (ok ? BLANK_NOTE_YES : BLANK_NOTE_NO) + ' The answer is' : 'the answer is'} ${esc(acc[0] || '')}${
       wrote ? `; you wrote ${esc(blankClip(q, typed))}` : '; left blank'}</p>${
     acc.length > 1 ? `<p class="sub blankacc">Accepted answers: ${acc.map(esc).join(' · ')}</p>` : ''}`;
 }
@@ -2148,7 +2170,7 @@ function renderGaps(){
   /* what a typed item's miss was, since those carry no option text */
   const typedMiss = (q, e) => q.type === 'numeric'
       ? `you wrote ${e.picked === undefined ? '—' : e.picked}${e.miss ? ' · ' + (MISS_KINDS[e.miss] || e.miss) : ''}`
-      : q.type === 'blank' ? `you wrote ${e.picked === undefined ? '—' : blankClip(q, e.picked)}${gradeBlank(q, e.picked).near ? ' · close: check the spelling' : ''}`
+      : q.type === 'blank' ? `you wrote ${e.picked === undefined ? '—' : blankClip(q, e.picked)}${gradeBlank(q, e.picked).near ? ' · not accepted: close to an accepted answer' : ''}`
       : q.type === 'match' && Array.isArray(e.pairOk)
         ? `${e.pairOk.filter(x => !x).length} of ${e.pairOk.length} pairs wrong` : '';
   if(ranked.length){
