@@ -282,7 +282,7 @@ const NAMES = ['Zylonol', 'Quarbate', 'Fenmorine'];
         check(place.y0 > 0 && place.y1 === place.y0 && place.y2 === place.y0 && place.y3 === place.y0,
           `Enlarge, then Escape or Close, leaves the page where it was (${where === 'top' ? 'figure at the top of the screen' : 'page scrolled to its end'})`, JSON.stringify(place));
       }
-      // a figure of fractional height (487.45 px, which offsetHeight rounds to 487)
+      // a figure of fractional height (487.45 px, or taller when the figure's content is: offsetHeight rounds it)
       // with a 0.6 px spacer after it, the page scrolled to its end: the exact scroll
       // position and page height stay the same while enlarged and after Close and
       // Escape (kit #90; the rounded checks above pass with this defect present)
@@ -293,9 +293,12 @@ const NAMES = ['Zylonol', 'Quarbate', 'Fenmorine'];
         const fig = figs[figs.length - 1];
         if(!fig) return null;
         const oldH = fig.style.height;
+        // 487.45 px, or the figure's own height rounded up plus .45 if that is taller: a smaller fixed height
+        // would push a taller figure's content out of its box and move the page for another reason
+        const fracH = Math.max(487, Math.ceil(fig.scrollHeight)) + 0.45;
         const spacer = document.createElement('div');
         spacer.id = 'ux-frac-spacer'; spacer.style.height = '0.6px';
-        fig.style.height = '487.45px'; fig.after(spacer);
+        fig.style.height = fracH + 'px'; fig.after(spacer);
         const big = () => fig.querySelector('[data-go="big"]');
         const at = () => ({y: window.scrollY, h: document.documentElement.scrollHeight});
         const out = {};
