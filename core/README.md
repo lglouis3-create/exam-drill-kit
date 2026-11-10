@@ -1114,9 +1114,16 @@ a few fill-in-the-blanks on drug mechanisms"). The student types the missing wor
 both: lower case, no space at either end, a run of spaces, hyphens or en dashes as one
 space, a final period dropped, α β γ δ κ as alpha beta gamma delta kappa; digits and the
 percent sign are kept. A text one edit (Levenshtein distance 1) from an accepted answer
-of 5 or more characters is a near miss: wrong, and the reveal says "Close: check the
-spelling" before the answer; with `course.js` `blank: {typo: 1}` it counts as right,
-with the same note. A one-edit difference is not a near miss, and is plain wrong in both
+of 5 or more characters is a near miss: wrong, and the reveal says "Not accepted: it is
+close to an accepted answer. Check the exact term." before the answer (it does not call
+the text a spelling slip: one letter can make another term); with `course.js`
+`blank: {typo: 1}` it counts as right, with the note "Counted as right: one letter
+differs from an accepted answer. Check the spelling." A text that is the accepted answer
+of another blank item in the bank (the accepted answers of every blank item except this
+one, normalized, collected once per page: `IL-17RA` typed for `IL-17A`, `cystine` for
+`cysteine`) is plain wrong with no note in both modes, and `typo: 1` never counts it
+right; a bank with no other blank item behaves as before. An answer that two items both
+accept is right for each. A one-edit difference is not a near miss, and is plain wrong in both
 modes with no note, when the character that differs is a digit ("5 ht3" for "5 ht2",
 "CYP3A5" for "CYP3A4", "beta-2" for "beta-1") or lies in a token of one character
 ("vitamin E" for "vitamin D") or in a Roman numeral, a token of up to 4 characters that
