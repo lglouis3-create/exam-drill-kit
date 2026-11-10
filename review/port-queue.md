@@ -58,7 +58,7 @@ this table are from c2f87ae; the plan cites BDK at 05c36c3. `field-colours`
 | 15 | match-game (timed pairs) | BDK ~2160 | — | planned (part 2) |
 | 16 | flashcards (flip, Know it / Still learning) | BDK ~1647 | — | planned (part 2) |
 | 17 | progress-dashboard (today's plan, readiness by page, trouble cards) | BDK `viewProgress` ~2320, `todaysPlan` ~1345 | — | planned (part 3, approval) |
-| 18 | glossary-tap (tap a term for its definition; upgrade of the Terms work in item 3) | BDK; Intro to Pharmacology `app.js` 1769-1922 | 2026-11-02 11:00 CT | pending |
+| 18 | glossary-tap (tap a term for its definition; upgrade of the Terms work in item 3) | BDK; Intro to Pharmacology `app.js` 1769-1922 | 2026-11-02 11:00 CT | partial (left: the per-exam scope of the list, which needs the several-exams core change; Intro to Pharmacology's glossary only, from `929cd62`; BDK's glossary stays with the BDK move) |
 | 19 | pair-up and table-recall drills (drug ↔ receptor, poisoning table) | Intro to Pharmacology `app.js` 1923-2060 | 2026-11-02 11:00 CT | pending |
 | 20 | short-answer page and graphs drill | Intro to Pharmacology `app.js` 2308-2351, 3518-3580 | 2026-11-02 11:00 CT | pending |
 | 21 | flags, one-page layout, keyboard shortcuts, strict exam mode | Intro to Pharmacology; BDK | 2026-11-02 11:00 CT | pending |
