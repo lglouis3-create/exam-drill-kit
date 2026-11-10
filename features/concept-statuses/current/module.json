@@ -1,0 +1,12 @@
+{
+ "name": "concept-statuses",
+ "version": "v1",
+ "does": "A Concepts section on Weak spots: each concept answered gets a status read from the answer log (Unfamiliar, Struggling, Improving, Mastered, Returning, Learning) with the exact counts behind it, the wrong option chosen most often and why it is not the answer, the most common kind of miss on missed calculations, and Practice this concept; mastered concepts are folded away, and those whose spaced check is due are listed with Check and Run the checks. Reads DB.answers, DB.concepts and the review pace and changes neither, so the scheduler picks questions as it does without the module. No course data file.",
+ "source": "Basic-Pharmacokinetics src/views.js lines 2506-2725 (concepts) and src/shell.html lines 636-649 (their styles), at ac2eb73",
+ "js": ["concept-statuses.js"],
+ "css": ["concept-statuses.css"],
+ "options": {
+  "words": {"default": {}, "about": "{word in a concept id: how to write it}, e.g. {\"vd\": \"VD\"}, for the concept names on the cards; without it, the id's words as written"}
+ },
+ "test": "test.js"
+}

@@ -19,7 +19,7 @@ item's status to `done`.
 | 1 | plan-the-problem (set-up drill) | `views.js` 4754-5120 | listed | pending |
 | 2 | worksheets-ink (write-on worksheets and ink) | `views.js` 5122-5434, 6040-6322 | listed | pending |
 | 3 | terms-variables (Terms tab and variables quiz) | `views.js` 1029-1260, 1072-1147 | listed (glossary entry omits PK) | pending |
-| 4 | concept-statuses | `views.js` 2506-2725 | FEATURES.md line 36 wrongly says the core has them | pending |
+| 4 | concept-statuses | `views.js` 2506-2725 | FEATURES.md line 36 wrongly said the core has them (corrected) | partial (left: names and statuses of term and extra-practice concepts, after the Terms and extra-practice ports) |
 | 5 | theme (light and dark) | `views.js` 6323-6383 | none | pending |
 | 6 | paper-picker (choose a practice paper, paper history) | `shell.html` 1099-1217; `views.js` 3083-3170 | none | pending |
 | 7 | quiz-prep-cards | `views.js` 466-546 | none | pending |
