@@ -156,6 +156,7 @@ is off says so on its card and offers the next question.
 | `compare-tab` | v1 | BDK `05c36c3` | a Compare tab: 2 to 5 drugs side by side, each item marked shared or different, Only differences; a Compare button in drug-list-tab's detail row; nothing stored |
 | `equation-drill` | v2 | Basic-Pharmacokinetics `ac2eb73` | an Equations tab: every equation with its symbols and conditions, typed or built from pieces; needs `formulas-in-text` |
 | `wrong-number-diagnosis` | v1 | Basic-Pharmacokinetics `ac2eb73` | what a wrong typed number says about the slip behind it, beside the miss chips; converts PK's saved `missKind` |
+| `terms-variables` | v1 | Basic-Pharmacokinetics `ac2eb73` | a Terms tab: flashcards and questions over the course's `TERMS`, and the variables quiz over its `ASKS` (which symbol a stem asks for, what each symbol means) |
 
 `port_from_pk.py` beside a module's `current/` (equation-drill, wrong-number-diagnosis) is the
 script that wrote the module's code from Basic-Pharmacokinetics' files; each of its

@@ -13,6 +13,12 @@ glossary-tap,formulas-in-text
 study-controls,paper-picker
 notes,study-controls
 theme,*
+# terms-variables with equation-drill: the Equations tab offers terms-variables' variables quiz.
+# Purpose: run terms-variables' test with equation-drill on, the only course where its checks
+# "the Equations tab offers the variables quiz" and "its Start drills the variables quiz" run
+# (with equation-drill off they are SKIPPED). Not one Louis named; added by the port of queue
+# item 3, 2026-11-02.
+terms-variables,equation-drill
 drug-list-tab,field-colours
 # field-colours' ci/oncourse.js switches drug-list-tab on itself (copied in, with its own
 # ci/oncourse.js) when the course does not have it on; drug-list-tab's script stops on a
