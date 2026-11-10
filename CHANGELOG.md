@@ -146,6 +146,18 @@ Dated kit changes, newest first.
 - Kit checks on GitHub: every pull request runs the checks in Chromium and, as information, in WebKit.
 - Checks open built pages over HTTP from 127.0.0.1, not from disk, so WebKit no longer refuses the manifest.
 - Kit checks on GitHub: each changed feature module, and each module that needs it, is checked on a course of its own.
+- New feature module `paper-picker` v1 (`features/paper-picker/`), from Basic-Pharmacokinetics
+  `ac2eb73` (`pickExam`, `chooseExam`, `examPicker`, `examHistory`): on the Exam view and in
+  Settings, a chip per exam a paper can be drawn for; a paper for an earlier exam is drawn
+  from that exam's pools through the `X.paper` hook, at the current exam's length and clock
+  (an exam of another length, clock or `typed` setting is left off the chips, with the
+  reason shown); "Your papers so far" lists each paper submitted on a page with the module
+  on (`DB.paperPicker`). Topics, Weak spots and the weighted pass still follow the current
+  exam. No course switches it on yet. Test: `features/paper-picker/current/test.js`, on
+  Basic-Pharmacokinetics' own exams and questions (`test_fixture.js`, every field as the
+  course has it, the professor's name included); `ci/oncourse.js` writes the same data into the kit's CI course, with
+  its question, topic, subtopic and lecture ids prefixed `pp-`; the test's Chromium part
+  also runs on a course with one exam or with other modules' data.
 - `core/render_test.js`: answers calculation and matching items with their own controls; no more random failures.
 
 ## 2026-11-01
