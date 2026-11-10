@@ -103,6 +103,10 @@ Dated kit changes, newest first.
 - A coordinator run records improvements and prepares none, and writes a retrospective only
   when Louis asks; preparing improvements and automatic retrospectives are a separate
   proposal.
+- `worksheets-ink` (kit PR #17, draft): the writing is saved through the core's own save (`save()`, `saveNow()`, `store`)
+  instead of a direct browser-storage write, which had made the core stop the page with its "saved in another tab"
+  wall after writing, so nothing done on the page afterwards was saved. A second tab's newer progress is not written
+  over by ink, a failed save's notices say what was and was not saved, and ink saved before is kept as it was.
 
 ## 2026-11-05
 - The answer history is no longer cut silently at 20,000 entries: past it a notice offers Export progress and a removal of the oldest entries that names how many and their dates and needs an OK; until then new entries go on being added (`cap_test.js`).
@@ -147,6 +151,25 @@ Dated kit changes, newest first.
 - Checks open built pages over HTTP from 127.0.0.1, not from disk, so WebKit no longer refuses the manifest.
 - Kit checks on GitHub: each changed feature module, and each module that needs it, is checked on a course of its own.
 - `core/render_test.js`: answers calculation and matching items with their own controls; no more random failures.
+- New feature module `worksheets-ink` v1 (`features/worksheets-ink/`), from
+  Basic-Pharmacokinetics `ac2eb73` (`src/views.js` 5122-5434 and 6040-6322): a Worksheets
+  tab of the documents the course's questions come from (`SOURCES`), each worksheet opened
+  over the page to write on with a pen, a finger or a mouse (pen, highlighter, eraser,
+  undo, More room, Pencil only, Hold to snap, two-finger undo, Show solutions, Save as
+  PDF), Practice in the drill, and Scratch paper beside a calculation in the quiz and on an
+  exam paper. The writing is kept in the profile's progress (`DB.ink`), so Export, Import
+  and Erase cover it. Its build step checks every document against the bank. PK's
+  headings, number-variant id patterns and audit phrases are options, not code. Not
+  ported: the PDF files, the source line under an answer, the likely-paper marks.
+  Its test (PK `src/ink_test.py` ported to Node Playwright, Chromium only): 114 checks
+  pass; with the module's code left out, 1 of 1 fails. Port queue item 2 is partial (left: the PDF
+  files, the source line under an answer, each part's vignette line on a sheet of several sets,
+  the missed-on-this-sheet marks). Hardened the same evening: the writing is written when the pen
+  lifts, and a change that would make the progress too big for the browser's storage is refused
+  with a notice on screen, keeping the last saved progress, so later answers are still saved (before,
+  every later save failed and the answers given after it were lost on reload); the test now has 157
+  checks (persistence, chained-problem-sets on and off) on 8 Pharmacokinetics documents taken
+  verbatim, and `ci/oncourse.js` builds the module's own course from 4 of them.
 
 ## 2026-11-01
 - `core/`: an exam with `questions: null` or a pool with `marks: null` no longer breaks the page (`nullexam.js`).

@@ -1,0 +1,22 @@
+{
+ "name": "worksheets-ink",
+ "version": "v1",
+ "does": "A Worksheets tab: each document the course's questions come from (SOURCES, a data file listed in course.js `files`; its problem sets from CHAINS when the course has them), under its module, with Write on it (the professor's problems with room to work, written on with a pen, a finger or a mouse: pen, highlighter, eraser, undo, More room, Pencil only, Hold to snap, Show solutions, Save as PDF) and Practice in the drill; under an answer, in the quiz and on an exam's result page, the line \"From: <document>, <number> · Worksheet · Original\"; Scratch paper beside a calculation's answer box in the quiz and on an exam paper. The writing is kept in the profile's progress (DB.ink), so Export, Import and Erase cover it.",
+ "source": "Basic-Pharmacokinetics src/views.js WORKSHEETS and Write on a worksheet (lines 5122-5434 and 6040-6322), numericInput's Scratch paper (lines 970-981), kindOf (lines 210-219), the From line (lines 5342-5348, shown at 1735 and 3457), src/shell.html styles (lines 787-808, 813-856, 902-934) and src/ink_test.py, at ac2eb73",
+ "js": ["worksheets-ink.js"],
+ "css": ["worksheets-ink.css"],
+ "step": "step.js",
+ "options": {
+  "tab": {"default": "sheets", "about": "the tab's id (its pane is #v-<tab>)"},
+  "label": {"default": "Worksheets", "about": "the tab's name in the navigation"},
+  "before": {"default": "settings", "about": "the tab it is placed before"},
+  "modules": {"default": [], "about": "[[module value, short name, heading], ...] in teaching order, as the documents' `module` fields spell the value; without it the modules come in the order the documents first name them, headed 'Module <value>'"},
+  "originalIds": {"default": "", "about": "a regular expression (source text, no lookbehind) matched against problem set and question ids: a set whose id or every part matches is in the professor's own numbers"},
+  "changedIds": {"default": "", "about": "a regular expression matched against question ids: an unnamed set whose parts match is the drill's re-numbered copy, kept as the extra-practice worksheet when a set in the professor's numbers is on the sheet"},
+  "drillWorked": {"default": "", "about": "a regular expression matched against a question's audit and note: a match says the drill worked the answer, not the professor's key"},
+  "spokenOnly": {"default": "", "about": "a regular expression matched against a question's audit: a match says the working was only heard in the lecture recording ..."},
+  "writtenWorking": {"default": "", "about": "... unless this regular expression matches the audit or the document's note (the working is also written on the professor's sheet)"},
+  "calcSkills": {"default": [], "about": "skill ids of COURSE.skills: a matching question of one of these skills whose every pair's answer is a quantity is a calculation, and its part on a worksheet gets the tall work area (Basic-Pharmacokinetics: the skills its course.js marks kind 'calc')"}
+ },
+ "test": "test.js"
+}
