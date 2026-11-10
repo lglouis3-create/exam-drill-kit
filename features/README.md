@@ -156,8 +156,10 @@ is off says so on its card and offers the next question.
 | `compare-tab` | v1 | BDK `05c36c3` | a Compare tab: 2 to 5 drugs side by side, each item marked shared or different, Only differences; a Compare button in drug-list-tab's detail row; nothing stored |
 | `equation-drill` | v2 | Basic-Pharmacokinetics `ac2eb73` | an Equations tab: every equation with its symbols and conditions, typed or built from pieces; needs `formulas-in-text` |
 | `wrong-number-diagnosis` | v1 | Basic-Pharmacokinetics `ac2eb73` | what a wrong typed number says about the slip behind it, beside the miss chips; converts PK's saved `missKind` |
+| `pair-up-drills` | v1 | Intro-Pharmacology- `929cd62` | a Pair up tab (chips into boxes, checked with why) and one tab per course table (each row asked column from column; Cover and reveal), from the course's `PAIR_SETS` and `RECALL_TABLES` |
 
 `port_from_pk.py` beside a module's `current/` (equation-drill, wrong-number-diagnosis) is the
-script that wrote the module's code from Basic-Pharmacokinetics' files; each of its
+script that wrote the module's code from Basic-Pharmacokinetics' files (`port_from_ip.js` beside
+pair-up-drills' `current/` writes that module's test fixture from Intro to Pharmacology's files); each of its
 replacements must match exactly once, so run on other files it stops instead of writing a
 different module. It is not copied into a course.
