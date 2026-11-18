@@ -361,7 +361,9 @@ With a part registered:
   there, or this layer while the database was unavailable) stays there (`OUT.inline`) until its copy
   in the database is written and read back equal; only the next progress save after that leaves it
   out. A move stopped at any point (a closed page, a refused write) leaves it in localStorage, and
-  the next load moves it again; a page in both places is merged, each stroke once.
+  the next load moves it again; a page in both places is merged, each stroke once. A newer value
+  written for a page while its copy is being read back keeps the page inside the progress until that
+  value is written and read back as well (the review of #81 at f15fe3b, R1).
 - Mixed versions. A tab on an earlier core sees no moved page and writes the pages it changes
   inside the progress; the next load of a page on this core merges them into the database.
 - Storage full. The database refusing a write (`QuotaExceededError`) leaves the page on this page in
@@ -379,6 +381,17 @@ With a part registered:
   imports it. An Import into this profile puts the file's pages into `DB` and merges them with the
   stored ones (`outsideAdopt`); an Import into a new profile writes them for that profile
   (`outsideImport`). Exporting another profile reads its pages from the database (`outsideFill`).
+  An Import that replaces this profile's progress merges the ink: it never deletes a stored page
+  (only Erase does), and the progress it replaces is kept as a copy that holds no ink, because the
+  ink is in the database. While the database cannot take the file's pages yet (it is still opening,
+  a read of the profile is pending, or that read failed), the replacing Import marks the file's
+  pages as not yet moved (`outsideKeepInline`), so they stay inside the stored progress, in
+  localStorage, until each is written to the database and read back equal; a refusal of that
+  localStorage write is the existing "nothing was imported" result (R2). With the database ready
+  the pages go to it first and the result waits for them. The file of an export of another profile
+  carries the writing a closed tab left in recovery records (kept, set apart or unsure), put into
+  the file only; it does not carry the recovery copy of a tab that is still open (its writing is in
+  that tab, and its record is not read for another profile's file) (R3).
 - A preview (`/preview/`) has its own database (`exam-drill:<ns>-preview`); the first time it opens it
   copies the live database's records, when the browser lists that database (`indexedDB.databases`).
 

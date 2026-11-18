@@ -1237,7 +1237,9 @@ function outsideWriteOne(p, part, page, v, verify){
     else if(OUT.held[k] !== undefined && !OUT.again[k]) OUT.again[k] = true;
     // a page moved from localStorage leaves it only once its copy here is read back equal
     const check = verify ? outsideReadBack(k, finalV).then(ok => {
-      if(ok && OUT.inline[p] && OUT.inline[p][part]){ OUT.inline[p][part].delete(page); try { if(p === PROFILE && canSave()) save(); } catch(e){} }
+      // a newer value kept for this page (written inside the progress meanwhile) is not in the database yet: the
+      // flag stays until that value is written and read back too (the review of #81 at f15fe3b, R1)
+      if(ok && OUT.held[k] === undefined && !OUT.again[k] && OUT.inline[p] && OUT.inline[p][part]){ OUT.inline[p][part].delete(page); try { if(p === PROFILE && canSave()) save(); } catch(e){} }
     }) : Promise.resolve();
     return check.then(() => {
       OUT.busy[k] = false;
@@ -1269,7 +1271,7 @@ function outsideAgain(p, part, page, k){
   if(!OUT.again[k]) return;
   OUT.again[k] = false;
   const v = p === PROFILE && isPlainObj(DB[part]) && DB[part][page] !== undefined ? DB[part][page] : OUT.held[k];
-  if(v !== undefined && outMay(p)) outsideWriteOne(p, part, page, v, false);
+  if(v !== undefined && outMay(p)) outsideWriteOne(p, part, page, v, !!(OUT.inline[p] && OUT.inline[p][part] && OUT.inline[p][part].has(page)));   // still inside the progress: verified too (R1)
   else { if(OUT.status[k] === 'saving') OUT.status[k] = OUT.held[k] !== undefined ? 'unsaved' : 'saved'; outsideNotify(k); }
 }
 /* The progress as it is written to localStorage: without the parts kept in the database,
@@ -1403,6 +1405,12 @@ function outsideImport(p, db){
   }, () => false);
 }
 /* Resolves once no write of these keys runs; true when each is stored (none refused or failed). */
+/* Pages that must stay inside the stored progress until the database holds them (as for Put back): a
+   replacing Import's pages while the database is still opening, a read is pending or its read failed (R2). */
+function outsideKeepInline(p, db){
+  const inl = OUT.inline[p] = OUT.inline[p] || {};
+  for(const part of OUT.parts) if(isPlainObj(db && db[part])){ inl[part] = inl[part] || new Set(); Object.keys(db[part]).forEach(pg => inl[part].add(pg)); }
+}
 function outsideSettled(keys){
   return new Promise(res => {
     const t0 = Date.now();
@@ -1421,6 +1429,9 @@ function outsideFill(p, db){
   const add = (part, page, v) => { if(!OUT.parts.has(part) || v === undefined) return; if(!isPlainObj(db[part])) db[part] = {}; db[part][page] = db[part][page] === undefined ? v : outsideMerge(part, v, db[part][page]); };
   return outsideRead(p).then(m => {
     for(const k of Object.keys(m)){ const [, part, page] = outSplit(k); add(part, page, m[k].v); }
+    // writing a closed tab left in recovery records (kept, set apart or unsure), put into the copy only;
+    // a live tab's own record is not in it (R3)
+    for(const {rk, r} of (m.__rec || [])){ const rest = rk.slice(1).split('\u0001'); if(rest.length < 4 || rest[0] !== p || !r) continue; for(const f of ['held', 'parked', 'amb']) if(r[f] !== undefined) add(rest[1], rest[2], r[f]); }
     for(const k of outKeysOf(OUT.held, p)){ const [, part, page] = outSplit(k); add(part, page, OUT.held[k]); }
     for(const k of outKeysOf(OUT.parked, p)){ const [, part, page] = outSplit(k); add(part, page, OUT.parked[k]); }
     for(const k of outKeysOf(OUT.amb, p)){ const [, part, page] = outSplit(k); add(part, page, OUT.amb[k]); }

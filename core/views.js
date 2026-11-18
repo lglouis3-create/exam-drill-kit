@@ -967,6 +967,9 @@ function runImportNow(plan){
     const db = JSON.parse(JSON.stringify(f.db));
     db.settings = Object.assign({}, db.settings || {});
     for(const k of IMPORT_DEVICE){ if(DB.settings && k in DB.settings) db.settings[k] = DB.settings[k]; else delete db.settings[k]; }
+    // the database cannot take the file's pages now (still opening, a read pending or failed): they stay inside the
+    // stored progress until each is written and read back (outsideAdopt(p, true) does the same for Put back; R2)
+    if(OUT.parts.size && !(OUT.state === 'ready' && OUT.have[PROFILE] && !OUT.reading[PROFILE])) outsideKeepInline(PROFILE, db);
     const dbText = progText(db);
     pendingMark();
     if(!store.trySet(keyFor(PROFILE), dbText)){
