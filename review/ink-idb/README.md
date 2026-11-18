@@ -44,7 +44,18 @@ What replaces each place that holds ink inline today (the porter's list for #17)
 - A page an earlier core kept inside the stored progress stays there until its copy in the database
   is written and then read back equal (`OUT.inline`, `outsideReadBack`). Only the next progress save
   after that leaves it out. A stop at any point leaves the page in localStorage; the next load moves
-  it again; a page found in both places is merged (every stroke kept once).
+  it again; a page found in both places is merged (every stroke kept once). A newer value written for
+  such a page while its copy is being read back keeps the page inside the progress until that value
+  is written and read back too (the review of #81 at f15fe3b, R1).
+- A replacing Import merges the ink: it never deletes a stored page, and the progress it replaces is
+  kept as a copy without ink (the ink is in the database). While the database cannot take the file's
+  pages yet (still opening, a read of the profile pending, or that read failed) the file's pages
+  stay inside the stored progress, in localStorage, until each is written to the database and read
+  back equal; the localStorage write the Import already makes is the explicit result when they do
+  not fit ("nothing was imported", the progress unchanged). With the database ready the pages go to
+  it first and the result waits for them (R2). The file an export of another profile makes carries
+  the writing a closed tab left in recovery records; it does not carry the recovery copy of a tab
+  that is still open (R3).
 - A tab on an earlier core does not see moved pages, and writes the pages it changes inside the
   progress. The next load on this core merges them into the database. A merge can bring back a
   stroke one tab erased while the other still had it; it never loses one.
@@ -209,19 +220,37 @@ The built page and its deploy steps are in `device-page/` (`device-page/README.m
 
 **On each device** (an iPhone or iPad in Safari, and an Android phone in Chrome), one sample at a time:
 1. Open the page. Note the line at the top of the panel (browser, Event Timing yes or no, database).
-2. Press "1. Answers at both caps". Wait for "prepared".
+   The panel says that the page writes generated strokes straight into the page store: it does not use
+   a worksheet's draw or erase, so it checks storage and timing only. A check with a real worksheet
+   draw and erase needs worksheets-ink (#17, not merged) and stays open.
+2. Press "1. Answers at both caps". Each "prepare" first erases the test profile (as Erase my history
+   does), so a sample never carries the pages of an earlier one, and then records a manifest: every
+   page id, a hash of each page's content, and the answer count. Wait for "prepared".
 3. Press "Run 3 rounds of 5 saves". After each "tap the blue button now", tap the blue button about
-   8 times in 2 seconds. The run takes about 45 seconds.
-4. Reload the page, press "Check after reload": the pages and strokes must all be there.
-5. Repeat 2-4 with "2. + ink, 69 pages", then "3. + ink, 171 pages".
+   8 times in 2 seconds. The run takes about 45 seconds. Before each save the manifest is recorded
+   again with that save's change; with no ink page (sample 1) the change is one more answer, and no
+   page is created.
+4. Reload the page, press "Check after reload". The panel shows a PASS or FAIL line: the pages and
+   the answer count must equal the manifest exactly (the page ids, each page's hash, the count), and
+   the numbers must be: sample 1, 0 pages and 0 strokes; sample 2, 69 pages and 2,085 strokes
+   (69 x 30 and the run's 15); sample 3, 171 pages and 5,145 strokes (171 x 30 and 15).
+5. Repeat 2-4 with "2. + ink, 69 pages", then "3. + ink, 171 pages" (no "Clean up" between them).
 6. Press "Copy results" and paste the text to the kit session.
-7. Only on this separate site: press "Storage-full test" (it asks first), wait until it says the
-   browser refused a write, reload, press "Check after reload", then "Copy results" again.
+7. Only on this separate site: press "Storage-full test" (it asks first). It records a manifest of
+   the pages stored before it and fills the storage. It says PASS only when a write ended in state
+   `refused` (the browser's QuotaExceededError) and every page stored before the test still matches
+   the database's copy; it says FAIL when no write was refused after the pages it adds (40,000), when
+   a write ended in another state, or when a stored page differs. Then reload, press "Check after
+   reload" (every page stored before the test must be there; pages added by the test may be), then
+   "Copy results" again.
 8. Press "Clean up".
 
 Accept (provisional targets): for each sample and phone, the median save (commit) is 200 ms or
 less in each of the 3 rounds, and the slowest tap is 200 ms or less (Event Timing; without it, the
-fallback of §5); every check after a reload shows every page; the storage-full test reports
-`refused`, shows the notice, and the pages saved before it are there after the reload. A phone that
+fallback of §5); every check after a reload reads PASS; the storage-full test reads PASS (it reports
+`refused`), shows the notice, and the pages saved before it are there after the reload. A phone that
 fails a part is reported with its numbers; nothing is decided on the desktop results alone.
 
+`device_page_test.js` presses these buttons in Chromium (the sample sequence without "Clean up", the exact
+counts, the manifest PASS and FAIL lines, and the storage-full verdict with a planted refusal and a planted
+other error): `TMPDIR=/dev/shm NODE_PATH=$(npm root -g) node review/ink-idb/device_page_test.js`.
