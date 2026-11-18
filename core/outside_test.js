@@ -28,6 +28,9 @@
  *               new page keeps both
  *   export      Export carries every page; the file imported into an empty browser brings them back
  *               after a reload; an earlier core's backup (DB.ink in the file) imports the same way
+ *   R1-R3       the review of #81 at f15fe3b: a newer revision written while a moved page is read back (R1); a
+ *               replacing Import while the database opens, a read is pending or a read failed (R2); the Export of a
+ *               profile that is not on screen carries its orphaned recovery record, and Import brings it back (R3)
  *   closing     a change written by saveNow on pagehide: reported, not required (see the PR)
  *
  * OUTSIDE_BREAK=<name> runs the same checks on a page with one deliberate fault (the names are in
@@ -1080,6 +1083,188 @@ const stroke = n => ({t: 'pen', c: '#111111', w: 0.003, p: [0.1 * n, 0.2, 0.3, 0
         await clickIf(b, '#outwarn [data-outdrop]'); await reload(b);
         check(!(await inkNow(b)).s, 'two tabs\' marks: after Leave it out and a reload, the Erase stands', Object.keys(await inkNow(b)));
         await ctx.close();
+      }
+    }
+    // ---- the review of #81 at f15fe3b (R1: migration, R2: replacing Import, R3: Export of another profile) ----
+    {
+      const openNR = async (ctx, file, init) => {   // does not wait for the database
+        const page = await ctx.newPage();
+        page.on('dialog', d => d.accept().catch(() => {}));
+        if(init) await page.addInitScript(init);
+        await page.goto(await L.pageUrl(file || PART_PAGE));
+        await page.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
+        return page;
+      };
+      const plantInk = (p, ink) => p.evaluate(ink => { const k = keyFor(PROFILE); const v = JSON.parse(localStorage.getItem(k) || JSON.stringify(BLANK())); v.ink = ink; localStorage.setItem(k, JSON.stringify(v)); }, ink);
+      const pg = (...ns) => ({parts: {work: ns.map(stroke)}, room: {}, at: 1 + ns.length});
+      const nIdb = (rec, name) => { const k = Object.keys(rec || {}).filter(x => !x.startsWith('\u0002') && x.endsWith('\u0001ink\u0001' + name))[0]; return k ? rec[k].v.parts.work.length : 0; };
+      const nLs = (st, name) => st && st.ink && st.ink[name] ? st.ink[name].parts.work.length : 0;
+      // a request whose success handler is held until released: the read-back of a moved page (R1)
+      const holdReadBack = () => { const put = IDBObjectStore.prototype.put;
+        IDBObjectStore.prototype.put = function(){ if(window.__refuse && this.name === 'parts') throw new DOMException('planted refusal', 'QuotaExceededError'); return put.apply(this, arguments); };
+        const get = IDBObjectStore.prototype.get;
+        IDBObjectStore.prototype.get = function(key){
+          const r = get.apply(this, arguments);
+          if(window.__armRB && this.name === 'parts' && this.transaction.mode === 'readonly' && typeof key === 'string' && key.includes('\u0001ink\u0001')){
+            window.__armRB = false; let fn = null, done = false;
+            r.addEventListener('success', () => { done = true; });
+            Object.defineProperty(r, 'onsuccess', {set(f){ fn = f; }, get(){ return fn; }, configurable: true});
+            window.__rbHeld = true;
+            window.__rbRelease = () => new Promise(res => { const go = () => { if(!done) return setTimeout(go, 5); window.__rbHeld = false; fn && fn.call(r, new Event('success')); res(); }; go(); });
+          }
+          return r;
+        }; };
+      // R1: revision A of a moved page is being read back; revision B is written inline meanwhile
+      for(const refuse of [true, false]){
+        const A = pg(3, 4), B = pg(3, 4, 9), tag = refuse ? 'R1 (B refused)' : 'R1 (B not refused)';
+        const ctx = await newCtx(holdReadBack);
+        const {page: o} = await open(ctx, L.PAGE.PAGE);
+        await put(o, {}); await plantInk(o, {a: A}); await o.close();
+        const p = await openNR(ctx, PART_PAGE, () => { window.__armRB = true; });
+        await p.waitForFunction(() => window.__rbHeld === true, null, {timeout: 15000}).catch(() => {});
+        check(await p.evaluate(() => window.__rbHeld === true), tag + ': the read-back of revision A is pending', null);
+        await p.evaluate(B => { DB.ink.a = B; save(); }, B);
+        await p.waitForTimeout(500);
+        check(nLs(await storedProg(p), 'a') === 3, tag + ': revision B is stored inside the progress while A awaits verification', nLs(await storedProg(p), 'a'));
+        if(refuse) await p.evaluate(() => { window.__refuse = true; });
+        await p.evaluate(() => window.__rbRelease());
+        await p.waitForTimeout(1200);
+        const ls = nLs(await storedProg(p), 'a'), idb = nIdb(await idbPages(p), 'a');
+        if(refuse){
+          check(ls === 3 || idb === 3, tag + ': B is stored in localStorage or in the database after A was verified and B was refused', {localStorage: ls, database: idb});
+          await p.close({runBeforeUnload: false});
+          const q = (await open(ctx)).page;
+          check(strokesOf(await inkNow(q), 'a').length === 3, tag + ': after the tab is closed and the page opened again, B is back', strokesOf(await inkNow(q), 'a').length);
+        } else {
+          check(idb === 3 && ls === 0, tag + ': B ends in the database only and leaves localStorage', {localStorage: ls, database: idb});
+          await reload(p);
+          check(strokesOf(await inkNow(p), 'a').length === 3, tag + ': after a reload B is back, once', strokesOf(await inkNow(p), 'a').length);
+        }
+        await ctx.close();
+      }
+      // R2: a replacing Import while the database cannot take the file's pages yet
+      const fileOf = async () => {
+        const c = await newCtx(); const {page: p} = await open(c);
+        await put(p, {f1: pg(1), f2: pg(2, 3)}); await settled(p, ['f1', 'f2']);
+        await p.evaluate(() => { record(QUESTIONS[0], 'correct', undefined, 1000); saveNow(); show('settings'); });
+        const [dl] = await Promise.all([p.waitForEvent('download'), p.click('#btnExport')]);
+        const file = JSON.parse(fs.readFileSync(await dl.path(), 'utf8')); await c.close();
+        const f = path.join(TMP, 'r2-file.json'); fs.writeFileSync(f, JSON.stringify(file)); return f;
+      };
+      const r2file = await fileOf();
+      const importIn = async p => {
+        await p.evaluate(() => show('settings'));
+        await p.setInputFiles('#fileIn', r2file);
+        await p.waitForSelector('#importGo', {timeout: 8000}); await p.click('#importGo');
+        await p.waitForSelector('#importResult', {timeout: 15000}).catch(() => {});
+        await p.waitForTimeout(300);
+        return p.evaluate(() => { const b = document.getElementById('importPlan'); return b ? b.textContent.replace(/\s+/g, ' ').trim() : ''; });
+      };
+      const heldOpen = () => { const open = IDBFactory.prototype.open;   // the first open of the page's database is held
+        IDBFactory.prototype.open = function(name){ const r = open.apply(this, arguments);
+          if(window.__slowOpen && typeof name === 'string' && name.startsWith('exam-drill:')){ window.__slowOpen = false; let fn = null, done = false; r.addEventListener('success', () => { done = true; });
+            Object.defineProperty(r, 'onsuccess', {set(f){ fn = f; }, get(){ return fn; }, configurable: true});
+            window.__openRelease = () => { const go = () => { if(!done) return setTimeout(go, 5); fn && fn.call(r, new Event('success')); }; go(); }; }
+          return r; }; };
+      const heldRead = () => { const gk = IDBObjectStore.prototype.getAllKeys;   // the first read of a profile's pages is held
+        IDBObjectStore.prototype.getAllKeys = function(range){ const r = gk.apply(this, arguments);
+          if(window.__holdRead && this.name === 'parts' && range && typeof range === 'object' && range.lower === 'me\u0001'){ window.__holdRead = false; let fn = null, done = false; r.addEventListener('success', () => { done = true; });
+            Object.defineProperty(r, 'onsuccess', {set(f){ fn = f; }, get(){ return fn; }, configurable: true});
+            window.__readHeld = true;
+            window.__readRelease = () => { const go = () => { if(!done) return setTimeout(go, 5); window.__readHeld = false; fn && fn.call(r, new Event('success')); }; go(); }; }
+          return r; }; };
+      const failRead = () => { const gk = IDBObjectStore.prototype.getAllKeys;   // reads fail while localStorage '__fr' is '1'
+        IDBObjectStore.prototype.getAllKeys = function(range){ if(localStorage.getItem('__fr') === '1' && this.name === 'parts' && range && typeof range === 'object') throw new DOMException('planted read failure', 'UnknownError'); return gk.apply(this, arguments); }; };
+      const where = async p => { const st = await storedProg(p), idb = (await idbPages(p)) || {};
+        const has = n => nLs(st, n) > 0 || nIdb(idb, n) > 0;
+        return {has: has('f1') && has('f2'), ls: st && st.ink ? Object.keys(st.ink) : null, idb: Object.keys(idb).filter(k => !k.startsWith('\u0002') && k.includes('\u0001ink\u0001')).length}; };
+      const states = {
+        opening: {init: heldOpen, start: () => { window.__slowOpen = true; }},
+        'read pending': {init: heldRead, start: () => { window.__holdRead = true; }},
+        'read failed': {init: failRead, start: () => { if(localStorage.getItem('__fr') === null) localStorage.setItem('__fr', '1'); }},
+      };
+      for(const name of Object.keys(states)){
+        const S = states[name], tag = 'R2 (' + name + ')';
+        let ctx = await newCtx(S.init);
+        let p = await openNR(ctx, PART_PAGE, S.start);
+        if(name === 'read pending') await p.waitForFunction(() => window.__readHeld === true, null, {timeout: 10000}).catch(() => {});
+        const text = await importIn(p), w = await where(p);
+        check(/Imported/.test(text), tag + ': the replacing Import reports success', text.slice(0, 80));
+        check(w.has, tag + ': right after the success text the file\'s ink is in localStorage or in the database', w);
+        if(name === 'read failed') await p.evaluate(() => { localStorage.setItem('__fr', '0'); });   // the read works when the page is opened again
+        await p.close({runBeforeUnload: false});   // closed during the state
+        const q = (await open(ctx)).page;
+        const back = await inkNow(q);
+        check(strokesOf(back, 'f1').length === 1 && strokesOf(back, 'f2').length === 2, tag + ': after the tab is closed and the page opened again the file\'s ink is back, each stroke once', Object.keys(back));
+        await ctx.close();
+        if(name === 'opening' || name === 'read pending'){
+          // the state ends with the page open: the ink is written to the database and leaves localStorage
+          ctx = await newCtx(S.init);
+          p = await openNR(ctx, PART_PAGE, S.start);
+          if(name === 'read pending') await p.waitForFunction(() => window.__readHeld === true, null, {timeout: 10000}).catch(() => {});
+          await importIn(p);
+          await p.evaluate(() => (window.__openRelease || window.__readRelease || (() => {}))());
+          await p.waitForFunction(() => ['f1', 'f2'].every(k => outsideState('ink', k) === 'saved'), null, {timeout: 15000}).catch(() => {});
+          await p.waitForFunction(() => !('ink' in JSON.parse(localStorage.getItem(keyFor(PROFILE)) || '{}')), null, {timeout: 10000}).catch(() => {});
+          const w2 = await where(p);
+          check(w2.idb === 2 && w2.ls === null, tag + ': once the database answers, both pages are in it and not in localStorage', w2);
+          await ctx.close();
+        }
+      }
+      // a read that fails: the stored old page stays, and after the read works again old and file pages are both there
+      {
+        const ctx = await newCtx(failRead);
+        const {page: a} = await open(ctx);
+        await put(a, {old1: pg(8, 9)}); await settled(a, ['old1']); await a.close();
+        const p = await openNR(ctx, PART_PAGE, states['read failed'].start);
+        await importIn(p);
+        check(nIdb((await idbPages(p)) || {}, 'old1') === 2, 'R2 (read failed): the stored old page is still in the database after the Import', null);
+        await p.evaluate(() => { localStorage.setItem('__fr', '0'); });
+        await reload(p);
+        const ink = await inkNow(p);
+        check(strokesOf(ink, 'old1').length === 2 && strokesOf(ink, 'f1').length === 1 && strokesOf(ink, 'f2').length === 2, 'R2 (read failed): after a reload with the read working, the old page and the file\'s pages are all there', Object.keys(ink));
+        await ctx.close();
+      }
+      // control: the ready state
+      {
+        const ctx = await newCtx();
+        const {page: p} = await open(ctx);
+        const text = await importIn(p);
+        await p.waitForFunction(() => ['f1', 'f2'].every(k => outsideState('ink', k) === 'saved'), null, {timeout: 15000}).catch(() => {});
+        const w = await where(p);
+        check(/Imported/.test(text) && w.idb === 2 && w.ls === null, 'R2 (ready, control): success with both pages in the database and none inside the progress', {text: text.slice(0, 40), w});
+        await ctx.close();
+      }
+      // R3: the Export of a profile that is not on screen carries the orphaned recovery record; Import brings the stroke back
+      {
+        const ctx = await newCtx();
+        const {page: p} = await open(ctx);
+        await p.evaluate(() => { record(QUESTIONS[0], 'correct', undefined, 1000); saveNow(); });
+        const first = await p.evaluate(() => PROFILE);
+        await p.evaluate(() => { window.__name = 'Other'; });
+        await p.evaluate(R => new Promise((res, rej) => {
+          const t = OUT.db.transaction('parts', 'readwrite');
+          t.objectStore('parts').put({tab: 'deadtab', at: Date.now() - 1000, held: R, heldAt: 1}, '\u0002' + PROFILE + '\u0001ink\u0001orph\u0001deadtab');
+          t.oncomplete = () => res(); t.onerror = () => rej(t.error);
+        }), pg(5, 6, 7));
+        await p.evaluate(() => useProfile('Other')); await ready(p);
+        check(await p.evaluate(f => PROFILE !== f, first), 'R3: another profile is on screen', null);
+        const [dl] = await Promise.all([p.waitForEvent('download'), p.evaluate(f => exportAway(f), first)]);
+        const raw = fs.readFileSync(await dl.path(), 'utf8'), file = JSON.parse(raw);
+        check(file.db && file.db.ink && strokesOf(file.db.ink, 'orph').length === 3, 'R3: the Export of a profile that is not on screen carries its orphaned recovery record', file.db && file.db.ink && Object.keys(file.db.ink));
+        check((await inkNow(p)).orph === undefined, 'R3: the Export does not put the recovery writing on the profile on screen', Object.keys(await inkNow(p)));
+        await ctx.close();
+        const f = path.join(TMP, 'r3-file.json'); fs.writeFileSync(f, raw);
+        const c2 = await newCtx(); const {page: q} = await open(c2);
+        await q.evaluate(() => show('settings')); await q.setInputFiles('#fileIn', f);
+        await q.waitForSelector('#importGo', {timeout: 8000}).catch(() => {});
+        if(await q.$('#importGo')){ await q.click('#importGo'); await q.waitForSelector('#importResult', {timeout: 8000}).catch(() => {}); }
+        await q.waitForTimeout(500); await reload(q);
+        let ink = await inkNow(q);
+        if(!ink.orph){ const others = await q.evaluate(() => { const out = []; for(let i = 0; i < localStorage.length; i++){ const k = localStorage.key(i); if(k.startsWith(NS + ':data:')) out.push(k.slice((NS + ':data:').length)); } return out; });
+          for(const o of others){ await q.evaluate(o => useProfile(o), o); await ready(q); ink = await inkNow(q); if(ink.orph) break; } }
+        check(strokesOf(ink, 'orph').length === 3, 'R3: Import of that file brings the 3 strokes back', Object.keys(ink));
+        await c2.close();
       }
     }
     // closing: a change still on save()'s 150 ms timer when the page is reloaded (pagehide writes it)
