@@ -49,7 +49,7 @@ function sourceCounts(){
   const errors = [], consoleErrors = [];
   page.on('pageerror', e => errors.push(String(e)));
   page.on('console', m => { if(m.type() === 'error') consoleErrors.push(m.text()); });
-  page.on('dialog', d => d.dismiss());
+  page.on('dialog', d => d.dismiss().catch(() => {}));
 
   console.log('\n=== Browser smoke test ===');
   await page.goto(URL_);
@@ -103,6 +103,11 @@ function sourceCounts(){
   await page.evaluate(() => {
     window.answerCurrent = (allCorrect) => {
       const q = Q && Q.current; if(!q) return false;
+      if(q.type === 'blank'){
+        const inp = document.getElementById('blankIn'); if(!inp) return false;
+        inp.value = allCorrect ? q.accept[0] : 'zzzz not the answer';
+        document.getElementById('btnCheck').click(); return true;
+      }
       if(q.type === 'numeric'){
         const inp = document.getElementById('numIn'); if(!inp) return false;
         inp.value = allCorrect ? String(q.answer) : String(q.answer + 1000);
@@ -135,8 +140,11 @@ function sourceCounts(){
   await page.waitForTimeout(400);
 
   const opts = await page.$$('#v-quiz button[data-o]');
-  check(opts.length >= 2, `question options render (${opts.length} found)`);
-  if(opts.length){
+  // a typed item (numeric, matching, fill in the blank) drawn first has its own control instead of options
+  const typedFirst = await page.evaluate(() => !!(Q && Q.current && Q.current.type));
+  if(typedFirst) check(!!(await page.$('#numIn, #blankIn, #v-quiz select[data-row]')), 'the typed question drawn first renders its input');
+  else check(opts.length >= 2, `question options render (${opts.length} found)`);
+  if(opts.length || typedFirst){
     await page.evaluate(() => answerCurrent(false));
     await page.waitForTimeout(500);
     const after = await page.innerText('body');
@@ -245,7 +253,7 @@ function sourceCounts(){
   const denied = await browser.newPage({viewport: {width: 1280, height: 900}, serviceWorkers: 'block'});
   const deniedErrors = [];
   denied.on('pageerror', e => deniedErrors.push(String(e)));
-  denied.on('dialog', d => d.dismiss());
+  denied.on('dialog', d => d.dismiss().catch(() => {}));
   await denied.addInitScript(() => {
     const boom = () => { throw new DOMException('denied', 'SecurityError'); };
     Object.defineProperty(window, 'localStorage', {configurable: true, get: boom});
@@ -788,7 +796,7 @@ function sourceCounts(){
       const p2 = await browser.newPage({viewport: {width: w, height: 820}, colorScheme: scheme, serviceWorkers: 'block'});
       const errs2 = [];
       p2.on('pageerror', e => errs2.push(String(e)));
-      p2.on('dialog', d => d.dismiss());
+      p2.on('dialog', d => d.dismiss().catch(() => {}));
       await p2.addInitScript(() => { window.prompt = () => 'TestUser'; });
       await p2.goto(URL_);
       await p2.waitForTimeout(700);

@@ -53,6 +53,7 @@ L.check(r.code === 1 && /L03/.test(r.last), 'a lecture not committed yet, CLAUDE
 commit('L03');
 
 const shallow = path.join(path.dirname(repo), path.basename(repo) + '-shallow');
+L.scratchAdd(shallow);   // removed with the scratch copy when this check passes
 child.spawnSync('git', ['clone', '-q', '--depth', '1', 'file://' + repo, shallow], {encoding: 'utf8'});
 r = state(path.join(shallow, 'src'));
 L.check(r.code === 2 && /shallow/.test(r.last), 'a depth-1 clone where the newest lecture is in the first commit: NOT RUN', r.last);

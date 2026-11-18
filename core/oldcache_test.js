@@ -52,7 +52,7 @@ for(const bad of [ns, ns.split('-')[0] + '-', 'nodash']){
     const ctx = await browser.newContext({viewport: {width: 390, height: 844}});
     await ctx.addInitScript(() => { window.prompt = () => 'TestUser'; });
     const page = await ctx.newPage();
-    page.on('dialog', d => d.accept());
+    page.on('dialog', d => d.accept().catch(() => {}));
     const GONE = [OLD + 'v7', OLD + 'images'];
     const KEPT = ['old-drillx-v1', 'bdk-v18', 'other-' + OLD + 'v1'];
     await page.goto(S.origin + '/other-site/index.html');

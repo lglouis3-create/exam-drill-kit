@@ -54,7 +54,8 @@ const MARK = `/* optional_test.js: one topic marked optional on a scratch copy *
 // answers the question on screen through its controls, then Next (nullexam_test.js)
 const ANSWER = right => {
   const q = Q && Q.current; if(!q) return null;
-  if(q.type === 'numeric'){ document.getElementById('numIn').value = String(right ? q.answer : q.answer + 1000); document.getElementById('btnCheck').click(); }
+  if(q.type === 'blank'){ document.getElementById('blankIn').value = right ? q.accept[0] : 'zzzz not the answer'; document.getElementById('btnCheck').click(); }
+  else if(q.type === 'numeric'){ document.getElementById('numIn').value = String(right ? q.answer : q.answer + 1000); document.getElementById('btnCheck').click(); }
   else if(q.type === 'match'){
     const sels = [...document.querySelectorAll('#v-quiz select[data-row]')];
     sels.forEach((s, i) => { s.value = String(right ? i : (i + 1) % sels.length); s.dispatchEvent(new Event('change')); });

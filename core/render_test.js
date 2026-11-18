@@ -37,7 +37,8 @@ X.startQuiz(X.TOPICS[0].id, X.TOPICS[0].subs[0].id);ok &= check('quiz, unanswere
 // matching item has no options, so answer(0) would read q.options[0] of undefined
 function answerShown(){
   const q=X.Qref().current;
-  if(q.type==='numeric'){ mk('#numIn').value=String(q.answer); mk('#btnCheck').onclick(); }
+  if(q.type==='blank'){ mk('#blankIn').value=q.accept[0]; mk('#btnCheck').onclick(); }
+  else if(q.type==='numeric'){ mk('#numIn').value=String(q.answer); mk('#btnCheck').onclick(); }
   else if(q.type==='match'){ X.Qref().picked=q.pairs.map((p,i)=>i); mk('#btnCheck').onclick(); }
   else X.answer(0);
 }
@@ -60,7 +61,7 @@ if(imgQ){
 // a calculation and a matching item answered through their own controls, on every run
 // (before 2026-11-02 the test reached one only when the quiz happened to draw it, and then
 // answered it as if it had options, which threw: about 1 run in 20 on Medicinal-chemistry)
-for(const type of ['numeric', 'match']){
+for(const type of ['numeric', 'match', 'blank']){
   const q = X.QUESTIONS.find(x => x.type === type);
   if(!q){ console.log(`  skip  quiz, ${type} item answered   no ${type} item in this bank`); continue; }
   Object.assign(X.Qref(), {current:q, order:(q.options||[]).map((o,i)=>i), picked:null, revealed:false, rights:null, startedAt:Date.now()});

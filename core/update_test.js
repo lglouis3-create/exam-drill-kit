@@ -76,7 +76,7 @@ async function sameLine(page, before, label){
     const errors = [];
     page.on('pageerror', e => errors.push(e.message));
     page.on('console', m => { if(m.type() === 'error' && !/Failed to load resource/.test(m.text())) errors.push(m.text()); });
-    page.on('dialog', d => d.accept());
+    page.on('dialog', d => d.accept().catch(() => {}));
     // Playwright's fake clock, once installed, also runs on with real time; paused,
     // it moves only in runFor. The 15-minute check counts on that: running on, the
     // test's own waits (600 + 500 + 800 ms) and the load of a large page used up all
@@ -180,7 +180,8 @@ async function sameLine(page, before, label){
       // 5. the same question answered: it comes back answered, and nothing is recorded twice
       await page.evaluate(() => {
         const q = Q.current;
-        if(q.type === 'numeric'){ document.getElementById('numIn').value = String(q.answer); document.getElementById('btnCheck').click(); }
+        if(q.type === 'blank'){ document.getElementById('blankIn').value = q.accept[0]; document.getElementById('btnCheck').click(); }
+        else if(q.type === 'numeric'){ document.getElementById('numIn').value = String(q.answer); document.getElementById('btnCheck').click(); }
         else if(q.type === 'match'){
           document.querySelectorAll('#v-quiz select[data-row]').forEach((s, i) => { s.value = String(i); s.dispatchEvent(new Event('change')); });
           document.getElementById('btnCheck').click();

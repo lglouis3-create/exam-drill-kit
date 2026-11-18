@@ -96,7 +96,8 @@ def course_fields():
           "oldCachePrefix:C.oldCachePrefix||'',files:C.files===undefined?null:C.files,"
           "manifest:C.manifest===undefined?null:C.manifest,tools:C.tools===undefined?null:C.tools,"
           "features:C.features===undefined?null:C.features,numeric:C.numeric===undefined?null:C.numeric,"
-          "share:C.share===undefined?null:C.share,"
+          "share:C.share===undefined?null:C.share,blank:C.blank===undefined?null:C.blank,"
+          "blankExams:(C.exams||[]).filter(e=>e&&e.blanks!==undefined).map(e=>({id:e.id,blanks:e.blanks,typed:e.typed===true})),"
           "typedExams:(C.exams||[]).filter(e=>e&&e.typed!==undefined).map(e=>({id:e.id,typed:e.typed})),"
           "unset:(E=>E?{questions:E.questions==null,marks:(E.pools||[]).some(p=>p&&p.marks==null),minutes:E.minutes==null}:null)"
           "((C.exams||[]).find(e=>e&&e.id===C.activeExam)||(C.exams||[])[0])}))")
@@ -375,6 +376,18 @@ def calc_options(c):
         sys.exit(f'ERROR: course.js exams {bad}: `typed` is true or false')
     if any(e['typed'] for e in typed):
         out.append('exam_typed.js')
+    # fill in the blank (views.js gradeBlank): `blank: {typo: 1}` counts a one-edit near miss as right;
+    # `exams[].blanks: n` asks for n blank items on that exam's papers, which needs `typed: true`
+    b = c.get('blank')
+    if b is not None and (not isinstance(b, dict) or set(b) - {'typo'} or isinstance(b.get('typo'), bool)
+                          or b.get('typo', 0) not in (0, 1)):
+        sys.exit('ERROR: course.js `blank` takes only `typo`: 1 (a one-letter slip counts as right, with a spelling note) or 0 (strict, the default)')
+    for e in c.get('blankExams') or []:
+        n = e['blanks']
+        if not isinstance(n, int) or isinstance(n, bool) or n < 0:
+            sys.exit(f'ERROR: course.js exam {e["id"]!r}: `blanks` is a whole number of fill-in-the-blank items (0 or more)')
+        if not e['typed']:
+            sys.exit(f'ERROR: course.js exam {e["id"]!r}: `blanks` needs `typed: true` on the same exam, which puts typed items on its papers')
     return out
 
 
@@ -559,9 +572,9 @@ BANK = bank_size(DATA)
 n_q = BANK['questions']
 print(f'  {n_q} questions in {BANK["topics"]} topics, from {len(QUESTION_FILES)} question file'
       f'{"" if len(QUESTION_FILES) == 1 else "s"}: {", ".join(QUESTION_FILES)}')
-# A question type the core does not draw (it draws mc, select-all, numeric and
-# match) needs the switched-on module that renders and grades it.
-CORE_TYPES = {'numeric', 'match'}
+# A question type the core does not draw (it draws mc, select-all, numeric,
+# match and blank) needs the switched-on module that renders and grades it.
+CORE_TYPES = {'numeric', 'match', 'blank'}
 module_types = {t: m['name'] for m in MODULES for t in (m['meta'].get('types') or [])}
 orphans = [t for t in BANK.get('types', []) if t not in CORE_TYPES and t not in module_types]
 if orphans:

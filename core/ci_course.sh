@@ -31,6 +31,11 @@
 # PASS with at least one passed check printed after the browser it started (check_lib.js
 # launch) was the run's browser.
 #
+# Scratch folders: the work folder ($TMPDIR/kit-ci-XXXXXX, with the course and checks.log)
+# and run_checks.sh's log folder ($TMPDIR/drill-checks-XXXXXX) are removed when the run
+# exits 0, each by its exact path; on any other exit status both are kept and named
+# ("kept for inspection: ..."). KEEP_TEST_TMP=1 keeps them whatever the result.
+#
 # Documented exclusions: core/ci_exclusions.sh lists them (cite_check.py without lecture
 # PDFs; stepper_test.js on medicinal-chemistry; and one case, the worksheets-ink PDF's size
 # in WebKit only). Any other NOT RUN, of a whole check or of one case, fails the run.
@@ -40,6 +45,25 @@ browser="${2:-chromium}"; browser="${browser,,}"
 order=""   # the modules switched on (module courses only), never taken from the environment
 kit="$(cd "$(dirname "$0")/.." && pwd)"
 work="$(mktemp -d "${TMPDIR:-/tmp}/kit-ci-XXXXXX")"
+logs=""
+# on exit: remove this run's own folders when it passed, keep and name them otherwise
+# the log folder run_checks.sh named, only when it is a drill-checks-* folder directly in $TMPDIR
+own_logs() {
+  case "$logs" in "${TMPDIR:-/tmp}/drill-checks-"*) ;; *) return 1 ;; esac
+  [ "$(dirname -- "$logs")" = "${TMPDIR:-/tmp}" ] && [ -d "$logs" ]
+}
+cleanup() {
+  local rc=$? kept="$work"
+  own_logs && kept="$kept $logs"
+  if [ "$rc" -eq 0 ] && [ "${KEEP_TEST_TMP:-}" != 1 ]; then
+    rm -rf -- "$work"
+    if own_logs; then rm -rf -- "$logs"; fi
+  else
+    echo "kept for inspection: $kept$([ "${KEEP_TEST_TMP:-}" = 1 ] && echo '  (KEEP_TEST_TMP=1)')" >&2
+  fi
+  exit "$rc"
+}
+trap cleanup EXIT
 course="$work/course"
 git_quiet() { git -c user.email=ci@example.invalid -c user.name="kit checks" "$@" >/dev/null; }
 
@@ -108,7 +132,7 @@ esac
 
 echo "== $kind, $browser, kit $(git -C "$kit" rev-parse --short HEAD 2>/dev/null || echo '?')"
 set +e
-(cd "$course/src" && DRILL_BROWSER="$browser" bash ./run_checks.sh) 2>&1 | tee "$work/checks.log"
+(cd "$course/src" && DRILL_BROWSER="$browser" DRILL_CHECKS_KEEP_LOGS=1 bash ./run_checks.sh) 2>&1 | tee "$work/checks.log"
 status=${PIPESTATUS[0]}
 set -e
 # the full log of each failing check, so the reason is in the workflow's output

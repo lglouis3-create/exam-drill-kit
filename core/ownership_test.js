@@ -66,6 +66,11 @@ const startAndPick = page => page.evaluate(() => {
   show('exam');
   const s = document.getElementById('startExam'); if(!s) return null;
   s.click();
+  // a paper with exams[].typed may open on a typed item (no options): an item with options is put first
+  if(EX && EX.qs[0] && !EX.qs[0].options){
+    const k = EX.qs.findIndex(q => q.options);
+    if(k > 0){ for(const f of ['qs', 'picks', 'orders']){ const t = EX[f][0]; EX[f][0] = EX[f][k]; EX[f][k] = t; } saveExam(); renderExamQ(); }
+  }
   const b = document.querySelector('#v-exam .opt'); if(!b) return null;
   const oi = +b.dataset.o; b.click();
   return oi;
@@ -273,7 +278,7 @@ const startAndPick = page => page.evaluate(() => {
     if(!q) skip('the two-tab reload case', 'this course has no question answered with option buttons');
     else {
       // tab 2 of the same browser switches the profile (shared by every tab) to B
-      const p2 = await ctx.newPage(); p2.on('dialog', d => d.accept());
+      const p2 = await ctx.newPage(); p2.on('dialog', d => d.accept().catch(() => {}));
       await p2.goto(page.url());
       await p2.waitForFunction(() => document.querySelectorAll('#nav button').length > 3, null, {timeout: 15000});
       // tab 2 opened on A, which tab 1 holds, so it shows the stop wall; its Switch profile button switches

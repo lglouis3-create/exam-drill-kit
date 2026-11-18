@@ -30,7 +30,7 @@ sandbox.globalThis = sandbox;
 vm.createContext(sandbox);
 // DIA, DIAGRAMS and READ_LINKS are optional: a course without drawn figures or
 // read links may leave them out (views.js reads them the same way).
-code += "\nglobalThis.__X={QUESTIONS,TOPICS,IMAGES,COURSE,EXAM,VIEWS,DIA_LIST,ATLAS:typeof ATLAS!=='undefined'?ATLAS:{boards:[]},GUIDE_HTML:typeof GUIDE_HTML!=='undefined'?GUIDE_HTML:'',TELL_HTML:typeof TELL_HTML!=='undefined'?TELL_HTML:'',REFERENCE_HTML:typeof REFERENCE_HTML!=='undefined'?REFERENCE_HTML:'',DIA:typeof DIA!=='undefined'?DIA:{},DIAGRAMS:typeof DIAGRAMS!=='undefined'?DIAGRAMS:[],READ_LINKS:typeof READ_LINKS!=='undefined'?READ_LINKS:{},BUILD,record,pickNext,st,score,drawN,drawMixed,drawPaper,drawBlueprint,bpCat,EXAM_SATA,askProfile,markGuessed,markShaky,isMulti,gradeMulti,correctSet,gradeNumeric,NUMERIC:typeof NUMERIC!=='undefined'?NUMERIC:null,lecOf,skillOf,linksFor,sessionLog,solidEntry,getDB:()=>DB};\n";
+code += "\nglobalThis.__X={QUESTIONS,TOPICS,IMAGES,COURSE,EXAM,VIEWS,DIA_LIST,ATLAS:typeof ATLAS!=='undefined'?ATLAS:{boards:[]},GUIDE_HTML:typeof GUIDE_HTML!=='undefined'?GUIDE_HTML:'',TELL_HTML:typeof TELL_HTML!=='undefined'?TELL_HTML:'',REFERENCE_HTML:typeof REFERENCE_HTML!=='undefined'?REFERENCE_HTML:'',DIA:typeof DIA!=='undefined'?DIA:{},DIAGRAMS:typeof DIAGRAMS!=='undefined'?DIAGRAMS:[],READ_LINKS:typeof READ_LINKS!=='undefined'?READ_LINKS:{},BUILD,record,pickNext,st,score,drawN,drawMixed,drawPaper,drawBlueprint,bpCat,EXAM_SATA,askProfile,markGuessed,markShaky,isMulti,gradeMulti,correctSet,gradeNumeric,blankNorm,gradeBlank,NUMERIC:typeof NUMERIC!=='undefined'?NUMERIC:null,lecOf,skillOf,linksFor,sessionLog,solidEntry,getDB:()=>DB};\n";
 try { vm.runInContext(code, sandbox); }
 catch (e) { console.error('FAIL: script threw at load — ' + e.message + '\n' + e.stack); process.exit(1); }
 
@@ -63,6 +63,21 @@ for (const q of QUESTIONS) {
     if (typeof q.answer !== 'number') bad(`${q.id}: numeric item without a numeric answer`);
     if (!Array.isArray(q.steps) || q.steps.length < 2) bad(`${q.id}: numeric item needs worked steps`);
     (q.steps||[]).forEach(s => { if(!['setup','unit','algebra','round'].includes(s.k)) bad(`${q.id}: step kind "${s.k}" unknown`); });
+    if (!q.skill) bad(`${q.id}: typed item without a skill tag`);
+    continue;
+  }
+  if (q.type === 'blank') {
+    // accept: one or more answers, each a non-empty string, no two the same once normalized (views.js blankNorm)
+    if (!Array.isArray(q.accept) || !q.accept.length) bad(`${q.id}: fill-in-the-blank item needs a non-empty \`accept\` list`);
+    else {
+      if (q.accept.some(a => typeof a !== 'string' || !X.blankNorm(a))) bad(`${q.id}: fill-in-the-blank \`accept\` holds an empty or non-text entry`);
+      const norm = q.accept.filter(a => typeof a === 'string').map(X.blankNorm);
+      if (new Set(norm).size !== norm.length) bad(`${q.id}: fill-in-the-blank \`accept\` holds two entries that are the same once normalized`);
+    }
+    if (q.options) bad(`${q.id}: fill-in-the-blank item carries options`);
+    // the reveal shows the explanation, so a blank item needs one: `why` (text) or `teach` (text or parts)
+    { const has = v => Array.isArray(v) ? v.length > 0 : typeof v === 'string' && v.trim() !== '';
+      if (!has(q.why) && !has(q.teach)) bad(`${q.id}: fill-in-the-blank item needs a non-empty \`why\` or \`teach\` (the reveal shows it)`); }
     if (!q.skill) bad(`${q.id}: typed item without a skill tag`);
     continue;
   }
@@ -242,8 +257,8 @@ if (!COUNT_SET) {
   if (paper.length !== EXAMQ) bad(`exam paper is ${paper.length} questions, expected ${EXAMQ}`);
   if (new Set(paper.map(q=>q.id)).size !== paper.length) bad('duplicate questions on one exam paper');
   else console.log('  ok    no duplicate questions on a single paper');
-  // with exams[].typed (exam_typed.js) numeric and matching items may be on the paper; nothing else typed is
-  if (paper.some(q => q.type && !(X.EXAM.typed && (q.type === 'numeric' || q.type === 'match')))) bad(X.EXAM.typed ? 'an item of a type the exam paper cannot draw reached the paper' : 'a typed (numeric or matching) item reached the paper');
+  // with exams[].typed (exam_typed.js) numeric, matching and fill-in-the-blank items may be on the paper; nothing else typed is
+  if (paper.some(q => q.type && !(X.EXAM.typed && (q.type === 'numeric' || q.type === 'match' || q.type === 'blank')))) bad(X.EXAM.typed ? 'an item of a type the exam paper cannot draw reached the paper' : 'a typed (numeric, matching or fill-in-the-blank) item reached the paper');
   // 20 papers never carry a question with its dupOf partner or a lowYield item
   let clash=0, low=0, shape=0;
   for(let k=0;k<20;k++){
@@ -281,6 +296,11 @@ if (!COUNT_SET) {
   if (nq){ const okA = X.gradeNumeric(nq, String(nq.answer)), okB = X.gradeNumeric(nq, String(nq.answer + (X.NUMERIC ? X.NUMERIC.tol(nq) : (nq.tol||1))*3)), okC = X.gradeNumeric(nq, 'abc');
     if (!okA || okB || okC) bad('numeric grading: exact answer, far answer or junk misgraded');
     else console.log('  ok    numeric grading accepts the answer within tolerance and rejects the rest'); } }
+// fill-in-the-blank grading: every accepted answer is right as written; junk is wrong
+{ const bq = QUESTIONS.filter(q => q.type === 'blank' && Array.isArray(q.accept));
+  if (bq.length){ const off = bq.filter(q => q.accept.some(a => !X.gradeBlank(q, a).ok) || X.gradeBlank(q, 'zzzz qqqq xxxx').ok);
+    if (off.length) bad(`fill-in-the-blank grading: an accepted answer graded wrong or junk graded right on ${off.slice(0, 6).map(q => q.id).join(', ')}`);
+    else console.log(`  ok    fill-in-the-blank grading accepts every accepted answer of the ${bq.length} items and rejects junk`); } }
 
 console.log('\n=== 6. Storage isolation ===');
 const keys = Object.keys(store);

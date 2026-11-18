@@ -1,5 +1,5 @@
 /* ==========================================================================
-   DRUG LIST: A TABLE PER PAGE, GROUP CHIPS, SEARCH (feature module drug-list-tab v1)
+   DRUG LIST: A TABLE PER PAGE, GROUP CHIPS, SEARCH (feature module drug-list-tab v2)
    ==========================================================================
    Ported from BDK assets/app.js at 05c36c3: the Drug list (viewBrowse, lines
    2553-2618), its quiz chips (QUIZZES, line 42), the essential-knowledge box
@@ -61,6 +61,29 @@
    - each column heading carries data-field="<field>", the hook the module
      field-colours colours (BDK marks its two coloured headings th.k-cat and
      th.k-ind, app.js line 2598);
+   - v2 (2026-11-09, queue item 23, drug-list-persistent-outcomes; Louis: develop
+     and test, the pull request goes to him before any merge or any course switches
+     it on): ratings kept in the profile's progress. With the option recallFields
+     ([field, name] pairs; empty, the default: v1's recall mode, nothing stored),
+     recall mode asks for one field at a time ("Ask for", DEENT's Recall field
+     st.rfield, src/druglist_ui.js at b747e49); once a row is revealed, Forgot /
+     Partly / Knew with DEENT's criteria (lines 117-118, rateBlock 415-422) rate
+     that fact, `<drug id>:<field>`. DEENT keeps its ratings for the visit only
+     (events, line 98-99; note(), 424-428); here they go into the progress as
+     DB.drugs = {v: 1, ev: [{f: fact id, r: 'forgot'|'partly'|'knew', at: ms}]},
+     the equation-drill pattern (a module's own part: Reset, profiles, Export
+     and Import carry it as they carry DB.eq). A new rating of the same opening
+     replaces the earlier one, as DEENT's note() does with its token; a new
+     opening (Hide again, then Reveal) is a new rating. Nothing typed is kept,
+     no answer is recorded (record() is never called) and no bank question is
+     changed. A rating never counts as a bank answer, so nothing is counted
+     twice: the line under each row shows the recall ratings from DB.drugs and,
+     apart from them, the bank questions that test the fact (the course's
+     optional DRUG_FACTS, {question id: [fact ids]}, DEENT drugfacts.js MAP
+     shape) with DEENT's status words (drugfacts.js status(), lines 126-141),
+     read from DB.answers only. "Not yet Knew" shows the rows whose fact's last
+     rating is not Knew. The drug id is a slug of the row's option idField
+     (default generic; DEENT's cards: id); the build refuses two rows with one id;
    - left out: saved personal lists ("My drug lists"), the "Compare the N drugs
      in this class" button (compare-tab), Quizlet download files, the glossary
      pop-ups, the "· next" chip mark (date logic).
@@ -172,6 +195,108 @@ const dltShows = f => (OPT.recallShow || []).includes(f) || (DLR.showCls && OPT.
 const dltOpen = ref => !DLR.recall || DLR.revealed.has(ref);
 const dltId = ref => ref.replace(':', '-');
 
+/* ---- v2: the ratings kept in the progress (DB.drugs) ---- */
+const DLO_ON = Array.isArray(OPT.recallFields) && OPT.recallFields.length > 0;
+const DLO_MAX = 2000;          // ratings kept; past it the oldest go (about 60 bytes each)
+const DLO_RATE = [['forgot', 'Forgot', 'I could not produce it.'], ['partly', 'Partly', 'I had the idea but missed the key term or one part.'],
+  ['knew', 'Knew', 'I wrote the key term without looking.']];     // DEENT src/druglist_ui.js lines 117-118
+const DLO_NAME = {forgot: 'Forgot', partly: 'Partly', knew: 'Knew'};
+/* the visit's choices (memory only): the field asked, the Not yet Knew filter, and each
+   row's rating of its current opening (DEENT's openTok) */
+const DLO = {ask: '', notKnew: false, open: {}, db: null};
+/* the openings belong to the progress on screen: a profile switch, an Import or Erase my
+   history (a new DB) starts them again, so no rating of another profile shows or is replaced */
+const dloMine = () => { if(DLO.db !== DB){ DLO.open = {}; DLO.db = DB; } return DLO.open; };
+const dloSlug = s => String(s == null ? '' : s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const dloRow = ref => { const [ti, i] = ref.split(':').map(Number); return dltTables()[ti].rows[i]; };
+const dloFact = (ref, f) => dloSlug(dloRow(ref)[OPT.idField]) + ':' + f;
+const dloName = f => { const e = (OPT.recallFields || []).find(x => x[0] === f); return e ? e[1] : f; };
+const dloEvents = () => (DB.drugs && Array.isArray(DB.drugs.ev)) ? DB.drugs.ev : [];
+/* the bank questions of each fact, from the course's DRUG_FACTS ({qid: [fact ids]}) */
+let DLO_QS = null;
+function dloQs(fact){
+  if(!DLO_QS){
+    DLO_QS = {};
+    const M = typeof DRUG_FACTS !== 'undefined' && DRUG_FACTS && typeof DRUG_FACTS === 'object' ? DRUG_FACTS : {};
+    for(const [qid, fs] of Object.entries(M)) for(const f of (fs || [])) (DLO_QS[f] = DLO_QS[f] || []).push(qid);
+  }
+  return DLO_QS[fact] || [];
+}
+/* DEENT drugfacts.js status() (lines 126-141), on the profile's answers: Not practised,
+   Forgot, Right, but unsure, Remembered, Kept on a later day (the device's calendar day) */
+/* the day as the core's scheduler counts it (shell.html dayKey: the browser's calendar day,
+   YYYY-MM-DD; DEENT's dayOf is the same local day), worked out when read: only `at` is stored */
+const dloDay = t => typeof dayKey === 'function' ? dayKey(t) : new Date(t).toISOString().slice(0, 10);
+const dloSolid = a => a.result === 'correct' && a.conf !== 'shaky';
+function dloBank(qids){
+  const set = new Set(qids);
+  const at = (DB.answers || []).filter(a => a && set.has(a.qid)).slice().sort((a, b) => a.at - b.at);
+  const n = at.length;
+  if(!n) return {label: 'Not practised', n};
+  const last = at[n - 1];
+  if(last.result === 'wrong') return {label: 'Forgot', n};
+  if(!dloSolid(last)) return {label: 'Right, but unsure', n};
+  let i = n - 1; while(i > 0 && dloSolid(at[i - 1])) i--;
+  return {label: at.slice(i, n - 1).some(a => dloDay(a.at) < dloDay(last.at)) ? 'Kept on a later day' : 'Remembered', n};
+}
+/* the ratings of one fact, with DEENT's "Kept on a later day" (drugfacts.js status(), as the
+   DEENT session gave it for ratings on 2026-11-09): the last rating is Knew, and an earlier
+   Knew in the unbroken run of Knew ratings that ends with it falls on an earlier day;
+   Forgot or Partly breaks the run, and ratings on the same day never count */
+function dloRecall(fact){
+  const ev = dloEvents().filter(e => e.f === fact).slice().sort((a, b) => a.at - b.at);
+  const n = ev.length, last = n ? ev[n - 1] : null;
+  let kept = false;
+  if(last && last.r === 'knew'){
+    let i = n - 1; while(i > 0 && ev[i - 1].r === 'knew') i--;
+    kept = ev.slice(i, n - 1).some(e => dloDay(e.at) < dloDay(last.at));
+  }
+  return {n, last, kept};
+}
+const dloDate = t => new Date(t).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'});
+function dloStatus(ref){
+  const fact = dloFact(ref, DLO.ask), rc = dloRecall(fact), qs = dloQs(fact);
+  let out = `<b>${dltText(dloName(DLO.ask))}</b>: ` + (rc.last
+    ? `last rated ${dltText(DLO_NAME[rc.last.r])} on ${dltText(dloDate(rc.last.at))} (${rc.n} rating${rc.n === 1 ? '' : 's'}${rc.kept ? '; Kept on a later day' : ''})`
+    : 'not rated yet');
+  if(qs.length){ const b = dloBank(qs); out += ` · bank question${qs.length === 1 ? '' : 's'}: ${dltText(b.label)}${b.n ? ` (${b.n} answer${b.n === 1 ? '' : 's'})` : ''}`; }
+  return `<p class="dlo-status" data-status="${dltText(fact)}">${out}</p>`;
+}
+/* whether the rating is stored: the stored progress of this profile is this page's progress,
+   and the browser did not refuse the write (the core's FAILED); a write that was refused, a
+   save another tab or window got in before (the core shows its notice and writes nothing) or
+   a save still waiting on its timer is not stored (the review of #92, M1). The stored text is
+   compared with what the core writes: progText(DB) where the core has it (a course with a part
+   kept outside localStorage, such as #81's ink, writes the progress without that part), else
+   JSON.stringify(DB) (the follow-up review of #92) */
+function dloStored(){
+  try { const k = keyFor(PROFILE), txt = typeof progText === 'function' ? progText(DB) : JSON.stringify(DB);
+    return !FAILED.has(k) && localStorage.getItem(k) === txt; } catch(e){ return false; }
+}
+function dloRateBlock(ref){
+  const open = dloMine(), cur = open[ref] ? open[ref].r : '';
+  return `<div class="dlo-rate" role="group" aria-label="How well did you recall it?">${DLO_RATE.map(([r, l]) =>
+    `<button type="button" class="chip" data-rate="${ref}" data-r="${r}" aria-pressed="${cur === r}">${l}</button>`).join('')}</div>
+    <ul class="dlo-crit">${DLO_RATE.map(([, l, c]) => `<li><b>${l}:</b> ${dltText(c)}</li>`).join('')}</ul>
+    <p class="dlt-note" data-ratenote${cur ? ` data-saved="${dloStored() ? 1 : 0}"` : ''}>${!cur ? 'Not counted until you choose one.'
+      : dloStored() ? 'Saved in this profile\'s progress: ' + DLO_NAME[cur] + '.'
+      : 'Not saved: ' + DLO_NAME[cur] + ' is on this page only. The notice on this page about saving says why.'}</p>`;
+}
+/* a rating of the row's current opening: the first one adds a rating, a later one replaces it */
+function dloRate(ref, r){
+  if(!DLO_RATE.some(x => x[0] === r) || !DLO.ask) return;
+  if(!DB.drugs || !Array.isArray(DB.drugs.ev)) DB.drugs = {v: 1, ev: []};
+  const fact = dloFact(ref, DLO.ask), mine = dloMine()[ref];
+  const keep = mine && mine.f === fact && DB.drugs.ev.indexOf(mine) >= 0;
+  if(keep){ mine.r = r; mine.at = Date.now(); }
+  else { const e = {f: fact, r, at: Date.now()}; DB.drugs.ev.push(e); DLO.open[ref] = e; }
+  // past the cap the oldest go, by time (an Import or a replaced rating leaves the list out of time order)
+  if(DB.drugs.ev.length > DLO_MAX){ DB.drugs.ev.sort((a, b) => a.at - b.at); DB.drugs.ev.splice(0, DB.drugs.ev.length - DLO_MAX); }
+  // written at once (the core's saveNow, as on leaving the page), so the note can say whether it was stored
+  save(); saveNow();
+}
+const dloNotKnew = ref => { const l = dloRecall(dloFact(ref, DLO.ask)).last; return !l || l.r !== 'knew'; };
+
 function dltCell(row, c, open){
   const [f, , sub, subLabel] = c;
   // DEENT line 174 draws the answer only when the card is open: a hidden cell holds none of its text
@@ -187,9 +312,10 @@ function dltRowHtml(T, ti, r, i){
   let h = `<tr data-ref="${ref}" id="dlt-r-${id}"${DLR.recall ? '' : ' tabindex="0"'}>${C.map(c => dltCell(r, c, open)).join('')}</tr>`;
   if(!DLR.recall) return h;
   h += `<tr class="dlt-recall" data-for="${ref}"><td colspan="${C.length}"><div class="detailin">
-    <label for="dlt-w-${id}">${dltText(OPT.recallPrompt)}</label>
+    <label for="dlt-w-${id}">${dltText(DLO.ask ? 'Write the ' + dloName(DLO.ask).toLowerCase() + ' first (self-check: not graded; what you type is not saved)' : OPT.recallPrompt)}</label>
     <textarea id="dlt-w-${id}" autocomplete="off" autocapitalize="off" data-typed="${ref}">${dltText(DLR.typed[ref] || '')}</textarea>
-    <button type="button" class="btn sm${open ? ' ghost' : ''}" data-reveal="${ref}" aria-expanded="${open}" aria-controls="dlt-r-${id} dlt-a-${id}">${open ? 'Hide again' : 'Reveal'}</button></div></td></tr>`;
+    <button type="button" class="btn sm${open ? ' ghost' : ''}" data-reveal="${ref}" aria-expanded="${open}" aria-controls="dlt-r-${id} dlt-a-${id}">${open ? 'Hide again' : 'Reveal'}</button>
+    ${DLO.ask ? dloStatus(ref) + (open ? dloRateBlock(ref) : '') : ''}</div></td></tr>`;
   h += open ? `<tr class="detail" id="dlt-a-${id}" data-for="${ref}"><td colspan="${C.length}"><div class="detailin">${dltDetail(T[ti], i) || `<p class="dlt-note">${dltText(OPT.noDetail)}</p>`}</div></td></tr>`
             : `<tr class="detail" id="dlt-a-${id}" data-for="${ref}" hidden></tr>`;
   return h;
@@ -223,8 +349,11 @@ function dltRender(pane, keepTerm){
     ${`<div class="dlt-row dlt-recallbar"><button type="button" class="chip" data-dl="recall" aria-pressed="${DLR.recall}">Recall mode</button>
       ${DLR.recall ? `${OPT.recallClassField ? `<button type="button" class="chip" data-dl="showcls" aria-pressed="${DLR.showCls}">Show class</button>` : ''}
         <button type="button" class="chip" data-dl="revealall">Reveal all shown</button>
-        <button type="button" class="chip" data-dl="hideall">Hide all</button>` : ''}</div>`}
-    ${DLR.recall ? `<p class="dlt-self" data-recallnote>Recall mode: each row shows the drug only. Write what you recall, then Reveal and compare. This is a self-check: what you type is not graded and not saved, and it is gone when the page reloads. The search looks only in the fields shown${OPT.recallClassField ? ' and in the class, so searching by class shows which drugs are in that class' : ''}.</p>` : ''}
+        <button type="button" class="chip" data-dl="hideall">Hide all</button>
+        ${DLO_ON ? `<label class="dlo-ask">Ask for <select data-dl="ask"><option value="">Every hidden field</option>${OPT.recallFields.map(([f, n]) =>
+          `<option value="${dltText(f)}"${DLO.ask === f ? ' selected' : ''}>${dltText(n)}</option>`).join('')}</select></label>
+          ${DLO.ask ? `<button type="button" class="chip" data-dl="notknew" aria-pressed="${DLO.notKnew}">Not yet Knew</button>` : ''}` : ''}` : ''}</div>`}
+    ${DLR.recall ? `<p class="dlt-self" data-recallnote>Recall mode: each row shows the drug only. Write what you recall, then Reveal and compare. This is a self-check: what you type is not graded and not saved, and it is gone when the page reloads.${DLO.ask ? ' After Reveal, rate how well you recalled the ' + dltText(dloName(DLO.ask).toLowerCase()) + ': Forgot, Partly or Knew. The ratings are saved in this profile\'s progress (Export progress includes them; Erase my history clears them) and never count as answers to the bank\'s questions.' : ''} The search looks only in the fields shown${OPT.recallClassField ? ' and in the class, so searching by class shows which drugs are in that class' : ''}.</p>` : ''}
     <div class="jump">${shown.map(t => `<a href="#${dltAnchor(t)}" class="pchip" style="--pc:${dltText(t.color || 'var(--surface)')}">${dltText(t.id)}</a>`).join('')}</div>
     ${table ? `<input class="search" data-q type="search" placeholder="${dltText(DLR.recall ? OPT.recallPlaceholder : OPT.placeholder)}" aria-label="Search">${OPT.rowNote && !DLR.recall ? `<p class="dlt-note">${dltText(OPT.rowNote)}</p>` : ''}`
       : '<p class="dlt-note">The pages as they appear in the PDF. Pinch to zoom, or tap a page to open it full size.</p>'}
@@ -244,8 +373,10 @@ function dltRender(pane, keepTerm){
   // DEENT 256-257: the recall and Show class chips redraw the pane, keeping the search
   pane.querySelectorAll('[data-dl="showcls"]').forEach(b => b.onclick = () => { DLR.showCls = !DLR.showCls; dltRender(pane, true); });
   // DEENT 258: every row shown now (after the group and the search); 259: every row
-  pane.querySelectorAll('[data-dl="revealall"]').forEach(b => b.onclick = () => { body.querySelectorAll('tr[data-ref]').forEach(tr => DLR.revealed.add(tr.dataset.ref)); draw(input.value); });
+  pane.querySelectorAll('[data-dl="revealall"]').forEach(b => b.onclick = () => { body.querySelectorAll('tr[data-ref]').forEach(tr => { if(!DLR.revealed.has(tr.dataset.ref)){ DLR.revealed.add(tr.dataset.ref); delete DLO.open[tr.dataset.ref]; } }); draw(input.value); });
   pane.querySelectorAll('[data-dl="hideall"]').forEach(b => b.onclick = () => { DLR.revealed.clear(); draw(input.value); });
+  pane.querySelectorAll('[data-dl="ask"]').forEach(s => s.onchange = () => { DLO.ask = s.value; DLO.open = {}; if(!DLO.ask) DLO.notKnew = false; dltRender(pane, true); });
+  pane.querySelectorAll('[data-dl="notknew"]').forEach(b => b.onclick = () => { DLO.notKnew = !DLO.notKnew; dltRender(pane, true); });
   // DEENT's search (findText, line 99) looks in the name, other names, brands and class:
   // in recall mode the search looks only in recallShow and recallClassField
   const fields = DLR.recall ? [...new Set((OPT.recallShow || []).concat(OPT.recallClassField ? [OPT.recallClassField] : []))] : OPT.searchFields;
@@ -254,7 +385,8 @@ function dltRender(pane, keepTerm){
     let html = '';
     for(const t of (tq ? T : shown)){     // a search looks at every table, not only the chosen group's
       const ti = T.indexOf(t);
-      const rows = (t.rows || []).map((r, i) => [r, i]).filter(([r]) => !tq || fields.some(f => String(r[f] == null ? '' : r[f]).toLowerCase().includes(tq)));
+      const rows = (t.rows || []).map((r, i) => [r, i]).filter(([r]) => !tq || fields.some(f => String(r[f] == null ? '' : r[f]).toLowerCase().includes(tq)))
+        .filter(([, i]) => !(DLR.recall && DLO.ask && DLO.notKnew) || dloNotKnew(ti + ':' + i));
       if(!rows.length) continue;
       html += dltTable(t, ti, rows);
     }
@@ -269,16 +401,32 @@ function dltRender(pane, keepTerm){
   /* DEENT 248-253: Reveal / Hide again redraws that one drug and puts the focus back on its button */
   const reveal = ref => {
     if(DLR.revealed.has(ref)) DLR.revealed.delete(ref); else DLR.revealed.add(ref);
+    delete DLO.open[ref];                 // a new opening is a new rating (DEENT's openTok)
+    // Not yet Knew is on and this row's last rating is Knew: hiding it ends its place in the list,
+    // so it is dropped now and the focus goes to the next row's Reveal, else to the filter chip
+    if(!DLR.revealed.has(ref) && DLR.recall && DLO.ask && DLO.notKnew && !dloNotKnew(ref)){
+      const refs = [...body.querySelectorAll('tr[data-ref]')].map(x => x.dataset.ref);
+      const nxt = refs[refs.indexOf(ref) + 1];
+      draw(input.value);
+      const nb = (nxt && body.querySelector('[data-reveal="' + nxt + '"]')) || pane.querySelector('[data-dl="notknew"]');
+      if(nb) nb.focus();
+      return;
+    }
+    redraw(ref, '[data-reveal="' + ref + '"]');
+  };
+  const redraw = (ref, focus) => {
     const tr = body.querySelector(`tr[data-ref="${ref}"]`); if(!tr) return;
     body.querySelectorAll(`tr[data-for="${ref}"]`).forEach(x => x.remove());
     const [ti, i] = ref.split(':').map(Number);
     tr.insertAdjacentHTML('afterend', dltRowHtml(T, ti, T[ti].rows[i], i));
     tr.remove();
-    const nb = body.querySelector(`[data-reveal="${ref}"]`); if(nb) nb.focus();
+    const nb = body.querySelector(focus); if(nb) nb.focus();
   };
   body.onclick = e => {
     const rb = e.target.closest('[data-reveal]');
     if(rb) return reveal(rb.dataset.reveal);
+    const kb = e.target.closest('[data-rate]');
+    if(kb){ dloRate(kb.dataset.rate, kb.dataset.r); return redraw(kb.dataset.rate, `[data-rate="${kb.dataset.rate}"][data-r="${kb.dataset.r}"]`); }
     if(DLR.recall) return;            // in recall mode Reveal opens a row
     const tr = e.target.closest('tr[data-ref]'); if(tr && !e.target.closest('button')) toggleRow(tr);
   };
@@ -292,4 +440,5 @@ function dltRender(pane, keepTerm){
 }
 
 X.tab({id: OPT.tab, label: OPT.label, before: OPT.before, render: pane => dltRender(pane)});
-X.api({split: dltSplit, parts: dltParts, groups: dltGroups, state: () => ({group: DLT.group, view: DLT.view, recall: DLR.recall, showCls: DLR.showCls, revealed: [...DLR.revealed]})});
+X.api({split: dltSplit, parts: dltParts, groups: dltGroups, fact: dloFact, bank: dloBank, stored: dloStored,
+  state: () => ({group: DLT.group, view: DLT.view, recall: DLR.recall, showCls: DLR.showCls, revealed: [...DLR.revealed], ask: DLO.ask, notKnew: DLO.notKnew})});

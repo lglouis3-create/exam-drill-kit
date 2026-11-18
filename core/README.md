@@ -48,7 +48,8 @@ that course's repository. Both folders come from the recovered exam-drill templa
 | `share_test.js` | core | `course.js` `share` and `manifest.short_name`: without `share` the page's `<head>` is the shell's and every file is what a base `build.py` writes (`SHARE_BASE_BUILD=<file>`; skipped when it is not set); with it the title and the link-preview tags, HTML-escaped; og:url on a preview; the image copied to the root; each value the build refuses; `short_name` in the manifest only |
 | `scheduler_test.js` | core | the scheduler (`review/scheduler-proposal.md` §4-§5), with a fixed clock, on scratch builds with a test topic |
 | `features.js` | core | the hooks a feature module uses (tab, question type, step after an answer, pass after a view is drawn, reading-tab HTML, a new exam paper, Settings section, start-up step, progress converter); in the page only when `course.js` `features` switches a module on |
-| `exam_typed.js`, `exam_typed_test.js` | core | `course.js` `exams[].typed`: numeric and matching items drawn onto that exam's papers, typed and picked there, graded and reviewed; in the page and run only when an exam sets it |
+| `exam_typed.js`, `exam_typed_test.js` | core | `course.js` `exams[].typed`: numeric, matching and fill-in-the-blank items drawn onto that exam's papers, typed and picked there, graded and reviewed; `exams[].blanks` sets the number of blank items; in the page and run only when an exam sets it |
+| `blank_test.js` | core | fill in the blank (`type:'blank'`): every grading rule, the near miss strict and with `blank: {typo: 1}`; on scratch copies the Quiz (Enter, the reveal, recorded once, a reload, Weak spots), papers with `typed` and `blanks: n` (the count, pools' marks, `dupOf`), a fixed paper typed, reloaded, graded and reviewed; `test.js` and the build refusing bad items and options |
 | `nullexam.js`, `nullexam_test.js` | core | an active exam with `questions: null`, a pool with `marks: null` or `minutes: null`: no paper without a count, unweighted without marks, untimed without a time limit; in the page only when the active exam leaves one unset, the test runs on every course |
 | `exam_review_test.js` | core | the running paper's controls: the last question's Review opens an overview (numbers, answered or not, a way back, one submit) that grades and records nothing; every hand submit asks the same question; a chosen answer is drawn in the neutral selection colour; the opening page names only the formats the draw puts on the paper; Back, Next, reload, the clock, partial and full scores |
 | `numeric.js`, `numeric_test.js` | core | `course.js` `numeric`: a typed number read with its unit, never two numbers joined, graded to a course margin; in the page and run only when the course sets it |
@@ -1307,6 +1308,57 @@ quiz (with `numeric`, to the course's margin), recorded on submit with what was 
 and picked, and shown on the result page with the answer, the margin and the working or
 the pairs. Without `typed` the papers are as before. `exam_typed_test.js` checks it.
 
+**Fill in the blank.** A question `{type:'blank', stem, accept:[…], why or teach, …}`
+(source: Louis, after DEENT Exam 1, 2026-11-09: around 5 of the 50 questions were fill in
+the blank, for example "Calcipotriene binds to what ___ receptor"; DEENT `src/course.js`
+(main 4d3b3f6), Exam 1 blurb: "Dr. Smith says her questions are mostly multiple choice with
+a few fill-in-the-blanks on drug mechanisms"). The student types the missing words;
+`gradeBlank` (`views.js`) compares the text with each `accept` entry after normalizing
+both: lower case, no space at either end, a run of spaces, hyphens or en dashes as one
+space, a final period dropped, α β γ δ κ as alpha beta gamma delta kappa; digits and the
+percent sign are kept. A text one edit (Levenshtein distance 1) from an accepted answer
+of 5 or more characters is a near miss: wrong, and the reveal says "Not accepted: it is
+close to an accepted answer. Check the exact term." before the answer (it does not call
+the text a spelling slip: one letter can make another term); with `course.js`
+`blank: {typo: 1}` it counts as right, with the note "Counted as right: one letter
+differs from an accepted answer. Check the spelling." A text that is the accepted answer
+of another blank item in the bank (the accepted answers of every blank item except this
+one, normalized, collected once per page: `IL-17RA` typed for `IL-17A`, `cystine` for
+`cysteine`) is plain wrong with no note in both modes, and `typo: 1` never counts it
+right; a bank with no other blank item behaves as before. An answer that two items both
+accept is right for each. A one-edit difference is not a near miss, and is plain wrong in both
+modes with no note, when the character that differs is a digit ("5 ht3" for "5 ht2",
+"CYP3A5" for "CYP3A4", "beta-2" for "beta-1") or lies in a token of one character
+("vitamin E" for "vitamin D") or in a Roman numeral, a token of up to 4 characters that
+matches `^[ivx]+[a-z]?$` ("type I" or "type III" for "type II", "factor Xb" for
+"factor Xa", "IB" for "IA"): there the text names another thing. **Remaining risk:**
+even so, a one-letter slip can sometimes be a different term (for example two drug names
+one letter apart, or "factor Xa" and "factor Xb" written without a space), so strict is
+the default and `blank: {typo: 1}` is for a course that accepts that. A transposition is two edits and is never near; an answer under 5
+characters gets no leniency. The typed text is cut to a length cap, the longest accepted
+answer plus 100 characters (`blankCap`): the text box carries it as `maxlength`, and the
+grading, the record (Quiz and paper) and the display cut again, so a pasted or scripted
+value is stored at the cap (a 3 MB paste had been stored whole). Import is not changed:
+an imported answer with a longer `picked` is stored whole, and only the grading and the
+display cut it. `accept[0]` is the answer shown; the reveal lists every accepted
+answer, then `why` and `teach`. The answer goes through `record()` as a calculation's
+does, the typed text as `picked`; no storage key or progress field is added, and the
+answer history's item type is `blank`. Weak spots, the list of missed questions and the
+bank export show the stem, the typed answer and the accepted answers. On a paper they
+need `typed: true` (above) and are typed, kept through a reload, graded on submit and
+shown with the accepted answers. `exams[].blanks: n` (needs `typed: true`; the build
+stops otherwise) asks for n blank items on each paper: after the engine's draw a
+single-answer multiple-choice item is exchanged for a blank item of the same pools (and
+blueprint category) whose `dupOf` family is not on the paper, a concept not yet on the
+paper first, or the other way round, until the paper holds n or no exchange is left. The
+paper's size, each pool's marks, the select-all count and the calculations and matching
+items stay as drawn, and a bank with fewer gives all it can. `test.js` fails a blank item
+without a non-empty `accept` of non-empty strings, with two entries the same once
+normalized, or without a non-empty `why` or `teach` (the reveal shows it). The bank
+export (`bankJson`) adds `accept` and `why` for a blank item only; every other item
+exports with the keys it had. A course with no blank item draws, stores and shows everything as before.
+`blank_test.js` checks it on every course.
+
 **A count, marks or time limit not set.** `skill/SKILL.md` allows `questions: null` and
 `minutes: null` on an exam and `marks: null` on a pool (a missing field counts the same). Until `nullexam.js` such a
 course drew a paper of 0 questions and stopped with a TypeError in `renderExamQ`, Topics
@@ -1393,6 +1445,25 @@ hand before BDK goes live. No branch protection is set up, so GitHub enforces no
 check; kit sessions read the results and merge only when every applicable job concluded
 "success" on the final head commit (`KIT_DESIGN.md` §12 decision 10 defines which jobs
 apply: a module job the plan intentionally did not select does not).
+
+**Scratch folders.** Checks that build a copy of the course (`check_lib.js` `scratchRepo`
+and `scratchBuild`: `sched-*`, `oldcache-test-*`, `preview-test-*`, `state-test-*` and
+the others), `ci_course.sh`'s work folder (`kit-ci-*`) and `run_checks.sh`'s log folder
+(`drill-checks-*`) are made under `$TMPDIR`. Each is removed, by its exact path, when its
+run passes, and kept when it fails, so the evidence survives:
+- a check removes the copies it made when it exits with no failed check (PASS, REPORT or
+  NOT RUN); on a FAIL, a crash or a timeout it keeps them and prints
+  `kept for inspection: <paths>` (`run_checks.sh` reads the check's summary from the line
+  before it);
+- `run_checks.sh` removes its log folder when no check failed, and otherwise names it on
+  its last line ("logs in ...");
+- `ci_course.sh` removes its work folder and the log folder when it exits 0, and
+  otherwise keeps both and prints `kept for inspection: <paths>`.
+
+`KEEP_TEST_TMP=1` keeps every one of them whatever the result. A check stopped by SIGTERM or SIGINT removes nothing. `checks_test.js` (section 7) checks these rules. Folders a check makes with
+its own `fs.mkdtempSync` (`startup_test.js`, `import_test.js`, `notruncase_test.js`) are
+removed by that check, as before. Before this (DEENT, 2026-11-08), no scratch folder was
+ever removed: 4,121 of them, about 5 MB each, filled a container's disk in one evening.
 
 | Line | Exit code of the check | Meaning |
 |---|---|---|
