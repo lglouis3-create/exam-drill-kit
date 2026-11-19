@@ -969,10 +969,12 @@ function runImportNow(plan){
     for(const k of IMPORT_DEVICE){ if(DB.settings && k in DB.settings) db.settings[k] = DB.settings[k]; else delete db.settings[k]; }
     // the database cannot take the file's pages now (still opening, a read pending or failed): they stay inside the
     // stored progress until each is written and read back (outsideAdopt(p, true) does the same for Put back; R2)
-    if(OUT.parts.size && !(OUT.state === 'ready' && OUT.have[PROFILE] && !OUT.reading[PROFILE])) outsideKeepInline(PROFILE, db);
+    let keptInline = null;
+    if(OUT.parts.size && !(OUT.state === 'ready' && OUT.have[PROFILE] && !OUT.reading[PROFILE])) keptInline = outsideKeepInline(PROFILE, db);
     const dbText = progText(db);
     pendingMark();
     if(!store.trySet(keyFor(PROFILE), dbText)){
+      if(keptInline) outsideDropInline(PROFILE, keptInline);   // nothing was imported: the file's pages are not waiting to be moved
       // the copy written just before is not needed: the list goes back as it was
       let undone = now === null;
       if(!undone && beforeRaw === null){ store.del(backupKey(PROFILE)); undone = store.get(backupKey(PROFILE)) === null; }

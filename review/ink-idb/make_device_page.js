@@ -59,25 +59,25 @@ const panel = `
   $('#vtap').addEventListener('click', e => { nTap++; $('#vtap').textContent = 'Tap here: ' + nTap; const ts = e.timeStamp;
     requestAnimationFrame(() => requestAnimationFrame(() => taps.push(performance.now() - ts))); });
   const wait = ms => new Promise(r => setTimeout(r, ms));
-  // the manifest: page ids, a hash of each page's content, the answer count; written before a save, compared after a reload
+  // the manifest: page ids, a hash of each page's content, the answer count and a hash of the answer list; written before a save, compared after a reload
   const MK = NS + ':vman';
   const fnv = t => { let h = 0x811c9dc5; for(let i = 0; i < t.length; i++){ h ^= t.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; } return h.toString(16); };
-  const manifestOf = () => { const pages = {}; for(const k of Object.keys(DB.ink || {})) pages[k] = fnv(JSON.stringify(DB.ink[k])); return {pages, answers: DB.answers.length}; };
-  const saveManifest = (m, mode, sample) => { try { localStorage.setItem(MK, JSON.stringify({mode, sample, at: new Date().toISOString(), pages: m.pages, answers: m.answers})); } catch(e){} };
+  const manifestOf = () => { const pages = {}; for(const k of Object.keys(DB.ink || {})) pages[k] = fnv(JSON.stringify(DB.ink[k])); return {pages, answers: DB.answers.length, answersHash: fnv(JSON.stringify(DB.answers))}; };
+  const saveManifest = (m, mode, sample) => { try { localStorage.setItem(MK, JSON.stringify({mode, sample, at: new Date().toISOString(), pages: m.pages, answers: m.answers, answersHash: m.answersHash})); } catch(e){} };
   const compareManifest = (fromStore) => {
     let m = null; try { m = JSON.parse(localStorage.getItem(MK) || 'null'); } catch(e){}
     if(!m) return {verdict: 'FAIL', why: 'no manifest was recorded before the saves'};
     const now = fromStore || manifestOf(), missing = [], changed = [];
     for(const k of Object.keys(m.pages)){ if(!(k in now.pages)) missing.push(k); else if(now.pages[k] !== m.pages[k]) changed.push(k); }
     const extra = Object.keys(now.pages).filter(k => !(k in m.pages));
-    const bad = missing.length + changed.length + (m.mode === 'exact' ? extra.length : 0) + (now.answers !== m.answers ? 1 : 0);
-    return {verdict: bad ? 'FAIL' : 'PASS', mode: m.mode, sample: m.sample, expectedPages: Object.keys(m.pages).length, foundPages: Object.keys(now.pages).length, missing: missing.slice(0, 5), changed: changed.slice(0, 5), extra: extra.length, expectedAnswers: m.answers, foundAnswers: now.answers};
+    const bad = missing.length + changed.length + (m.mode === 'exact' ? extra.length : 0) + (now.answers !== m.answers || now.answersHash !== m.answersHash ? 1 : 0);
+    return {verdict: bad ? 'FAIL' : 'PASS', mode: m.mode, sample: m.sample, expectedPages: Object.keys(m.pages).length, foundPages: Object.keys(now.pages).length, missing: missing.slice(0, 5), changed: changed.slice(0, 5), extra: extra.length, expectedAnswers: m.answers, foundAnswers: now.answers, answersChanged: now.answersHash !== m.answersHash};
   };
   // the pages as the database holds them now (not as this page holds them): ids and hashes
   const storedManifest = () => new Promise((res, rej) => {
     const lo = PROFILE + '\\u0001ink\\u0001', range = IDBKeyRange.bound(lo, lo + '\\uffff');
     const t = OUT.db.transaction('parts', 'readonly'), s = t.objectStore('parts'), ks = s.getAllKeys(range), vs = s.getAll(range);
-    t.oncomplete = () => { const pages = {}; ks.result.forEach((k, i) => { pages[k.slice(lo.length)] = fnv(JSON.stringify(vs.result[i].v)); }); res({pages, answers: DB.answers.length}); };
+    t.oncomplete = () => { const pages = {}; ks.result.forEach((k, i) => { pages[k.slice(lo.length)] = fnv(JSON.stringify(vs.result[i].v)); }); res({pages, answers: DB.answers.length, answersHash: fnv(JSON.stringify(DB.answers))}); };
     t.onerror = t.onabort = () => rej(t.error);
   });
   // what "prepare" does first: the profile's pages, answers and history are erased, as Erase my history does
@@ -130,7 +130,7 @@ const panel = `
     const ks = Object.keys(DB.ink || {});
     const cmp = compareManifest();
     log(Object.assign({step: 'after reload', pages: ks.length, strokes: ks.reduce((n, k) => n + ((DB.ink[k].parts || {}).work || []).length, 0), states: [...new Set(ks.map(k => outsideState('ink', k)))], progressAnswers: DB.answers.length, database: OUT.state}, {manifest: cmp}));
-    say(cmp.verdict + ': manifest of ' + cmp.expectedPages + ' pages and ' + cmp.expectedAnswers + ' answers (' + cmp.mode + '): found ' + cmp.foundPages + ' pages and ' + cmp.foundAnswers + ' answers' + (cmp.missing.length ? '; missing ' + cmp.missing.join(', ') : '') + (cmp.changed.length ? '; changed ' + cmp.changed.join(', ') : '') + (cmp.mode === 'exact' && cmp.extra ? '; ' + cmp.extra + ' extra' : ''));
+    say(cmp.verdict + ': manifest of ' + cmp.expectedPages + ' pages and ' + cmp.expectedAnswers + ' answers and their hash (' + cmp.mode + '): found ' + cmp.foundPages + ' pages and ' + cmp.foundAnswers + ' answers' + (cmp.answersChanged ? '; the answers differ' : '') + (cmp.missing.length ? '; missing ' + cmp.missing.join(', ') : '') + (cmp.changed.length ? '; changed ' + cmp.changed.join(', ') : '') + (cmp.mode === 'exact' && cmp.extra ? '; ' + cmp.extra + ' extra' : ''));
   };
   $('#vquota').onclick = async () => {
     if(!confirm('This fills this site\\'s storage with test writing until the browser refuses it. Use it only on the separate test site, never on lglouis3-create.github.io. Continue?')) return;

@@ -392,7 +392,8 @@ With a part registered:
   the pages go to it first and the result waits for them. The file of an export of another profile
   carries the writing a closed tab left in recovery records (kept, set apart or unsure), put into
   the file only; it does not carry the recovery copy of a tab that is still open (its writing is in
-  that tab, and its record is not read for another profile's file) (R3).
+  that tab, and its record is not read for another profile's file), nor, without Web Locks, a record
+  younger than 5 minutes (the tab may still be open) (R3).
 - A preview (`/preview/`) has its own database (`exam-drill:<ns>-preview`); the first time it opens it
   copies the live database's records, when the browser lists that database (`indexedDB.databases`).
 

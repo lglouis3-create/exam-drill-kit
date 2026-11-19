@@ -55,7 +55,7 @@ What replaces each place that holds ink inline today (the porter's list for #17)
   not fit ("nothing was imported", the progress unchanged). With the database ready the pages go to
   it first and the result waits for them (R2). The file an export of another profile makes carries
   the writing a closed tab left in recovery records; it does not carry the recovery copy of a tab
-  that is still open (R3).
+  that is still open, nor, without Web Locks, a record younger than 5 minutes (R3).
 - A tab on an earlier core does not see moved pages, and writes the pages it changes inside the
   progress. The next load on this core merges them into the database. A merge can bring back a
   stroke one tab erased while the other still had it; it never loses one.

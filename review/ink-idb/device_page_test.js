@@ -44,6 +44,12 @@ const DEV = path.resolve(process.argv[2] || path.join(__dirname, 'device-page', 
       check(/^PASS/.test(await page.evaluate(() => document.querySelector('#vstate').textContent)), `sample ${n}: the panel shows a PASS line`, await page.evaluate(() => document.querySelector('#vstate').textContent));
       check(!r.states.some(s => s !== 'saved'), `sample ${n}: every page is saved`, r.states);
     }
+    // a changed answer is reported as FAIL (the manifest holds a hash of the answer list)
+    await page.evaluate(() => { DB.answers[5] = Object.assign({}, DB.answers[5], {at: DB.answers[5].at + 1}); save(); saveNow(); });
+    await page.waitForTimeout(800); await reloadPage(page);
+    await page.click('#vcheck'); await page.waitForFunction(() => window.__vres[window.__vres.length - 1].step === 'after reload', null, {timeout: 20000});
+    const ans = await last(page);
+    check(ans.manifest && ans.manifest.verdict === 'FAIL' && ans.manifest.answersChanged === true && ans.manifest.expectedAnswers === ans.manifest.foundAnswers, 'a changed answer (same count) is reported as FAIL', ans.manifest);
     // a changed page is reported: change one stored stroke, reload, check
     await page.evaluate(() => { const k = Object.keys(DB.ink)[3]; DB.ink[k] = JSON.parse(JSON.stringify(DB.ink[k])); DB.ink[k].parts.work[0].w = 0.5; save(); saveNow(); });
     await page.waitForTimeout(800); await reloadPage(page);

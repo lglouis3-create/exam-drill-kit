@@ -952,7 +952,9 @@ function outsideHold(p){
       if(OUT.state === 'unavailable') continue;   // inside the stored progress: localStorage's own rules
       // the same outer object as stored (identity: a module puts a new outer object in DB when it changes a
       // page, so an unchanged page costs nothing here); else the same content (V2)
-      if(OUT.known[k] && (OUT.known[k].v === v || OUT.known[k].src === v) && !OUT.busy[k] && OUT.held[k] === undefined) continue;
+      // (also while a write of the page is being read back, when the content is checked: the page on screen is then the
+      // stored copy, and keeping it again would leave a saved page unsaved for the rest of the visit)
+      if(OUT.known[k] && (OUT.known[k].v === v || OUT.known[k].src === v) && (!OUT.busy[k] || sameVal(OUT.known[k].v, v)) && OUT.held[k] === undefined) continue;
       if(OUT.heldSrc[k] === v) continue;
       if(OUT.known[k] && !OUT.busy[k] && OUT.held[k] === undefined && sameVal(OUT.known[k].v, v)){ OUT.known[k].src = v; continue; }
       if(OUT.held[k] === undefined){ OUT.heldAt[k] = Date.now(); OUT.heldBase[k] = OUT.known[k] ? OUT.known[k].rev : 0; }
@@ -1409,8 +1411,12 @@ function outsideImport(p, db){
 /* Pages that must stay inside the stored progress until the database holds them (as for Put back): a
    replacing Import's pages while the database is still opening, a read is pending or its read failed (R2). */
 function outsideKeepInline(p, db){
-  const inl = OUT.inline[p] = OUT.inline[p] || {};
-  for(const part of OUT.parts) if(isPlainObj(db && db[part])){ inl[part] = inl[part] || new Set(); Object.keys(db[part]).forEach(pg => inl[part].add(pg)); }
+  const inl = OUT.inline[p] = OUT.inline[p] || {}, added = [];
+  for(const part of OUT.parts) if(isPlainObj(db && db[part])){ inl[part] = inl[part] || new Set(); Object.keys(db[part]).forEach(pg => { if(!inl[part].has(pg)){ inl[part].add(pg); added.push([part, pg]); } }); }
+  return added;   // the names this call added: an Import whose progress write is refused takes them out again (N1)
+}
+function outsideDropInline(p, added){
+  for(const [part, pg] of added || []) if(OUT.inline[p] && OUT.inline[p][part]) OUT.inline[p][part].delete(pg);
 }
 function outsideSettled(keys){
   return new Promise(res => {
