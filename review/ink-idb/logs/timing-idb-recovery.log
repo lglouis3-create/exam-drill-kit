@@ -1,0 +1,16 @@
+the page with registerOutside('ink')
+  browser  Chromium started
+153.0.8010.12; rates 4; 3 runs x 5 changes, 8 clicks 40 ms apart after each
+profile {"answers":4000,"chars":546993,"questions":479}
+{"sample":"answers at both caps","placed":{"inkChars":2,"pages":0,"notSaved":0,"progressChars":546993}}
+{"sample":"answers at both caps","rate":4,"run":1,"saveCallMs":{"median":7,"max":26},"commitMs":{"median":22,"max":42},"states":["saved"],"progressMs":{"median":47,"max":52,"n":5},"clickEventTiming":{"p75":16,"max":32,"entries":15},"clickFallback":{"p75":27,"max":65,"n":40},"longTasks":{"count":3,"maxMs":57}}
+{"sample":"answers at both caps","rate":4,"run":2,"saveCallMs":{"median":5,"max":6},"commitMs":{"median":18,"max":22},"states":["saved"],"progressMs":{"median":43,"max":45,"n":5},"clickEventTiming":{"p75":16,"max":32,"entries":14},"clickFallback":{"p75":29,"max":72,"n":40},"longTasks":{"count":0,"maxMs":0}}
+{"sample":"answers at both caps","rate":4,"run":3,"saveCallMs":{"median":6,"max":6},"commitMs":{"median":18,"max":21},"states":["saved"],"progressMs":{"median":42,"max":71,"n":5},"clickEventTiming":{"p75":16,"max":56,"entries":14},"clickFallback":{"p75":25,"max":67,"n":40},"longTasks":{"count":2,"maxMs":77}}
+{"sample":"answers + ink 69 pages","placed":{"inkChars":1796377,"pages":69,"notSaved":0,"progressChars":546993}}
+{"sample":"answers + ink 69 pages","rate":4,"run":1,"saveCallMs":{"median":9,"max":11},"commitMs":{"median":25,"max":29},"states":["saved"],"progressMs":{"median":48,"max":60,"n":5},"clickEventTiming":{"p75":16,"max":40,"entries":15},"clickFallback":{"p75":30,"max":77,"n":40},"longTasks":{"count":3,"maxMs":63}}
+{"sample":"answers + ink 69 pages","rate":4,"run":2,"saveCallMs":{"median":11,"max":17},"commitMs":{"median":28,"max":54},"states":["saved"],"progressMs":{"median":43,"max":59,"n":5},"clickEventTiming":{"p75":16,"max":40,"entries":18},"clickFallback":{"p75":31,"max":82,"n":40},"longTasks":{"count":2,"maxMs":63}}
+{"sample":"answers + ink 69 pages","rate":4,"run":3,"saveCallMs":{"median":10,"max":11},"commitMs":{"median":26,"max":35},"states":["saved"],"progressMs":{"median":44,"max":48,"n":5},"clickEventTiming":{"p75":16,"max":32,"entries":18},"clickFallback":{"p75":31,"max":76,"n":40},"longTasks":{"count":2,"maxMs":52}}
+{"sample":"answers + ink 171 pages","placed":{"inkChars":4452807,"pages":171,"notSaved":0,"progressChars":546993}}
+{"sample":"answers + ink 171 pages","rate":4,"run":1,"saveCallMs":{"median":11,"max":14},"commitMs":{"median":30,"max":38},"states":["saved"],"progressMs":{"median":44,"max":48,"n":5},"clickEventTiming":{"p75":16,"max":32,"entries":15},"clickFallback":{"p75":29,"max":62,"n":40},"longTasks":{"count":1,"maxMs":52}}
+{"sample":"answers + ink 171 pages","rate":4,"run":2,"saveCallMs":{"median":11,"max":15},"commitMs":{"median":36,"max":41},"states":["saved"],"progressMs":{"median":44,"max":73,"n":5},"clickEventTiming":{"p75":16,"max":64,"entries":19},"clickFallback":{"p75":29,"max":112,"n":40},"longTasks":{"count":1,"maxMs":80}}
+{"sample":"answers + ink 171 pages","rate":4,"run":3,"saveCallMs":{"median":11,"max":12},"commitMs":{"median":26,"max":29},"states":["saved"],"progressMs":{"median":45,"max":67,"n":5},"clickEventTiming":{"p75":16,"max":48,"entries":15},"clickFallback":{"p75":28,"max":74,"n":40},"longTasks":{"count":2,"maxMs":70}}
