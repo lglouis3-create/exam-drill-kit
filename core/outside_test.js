@@ -1235,6 +1235,49 @@ const stroke = n => ({t: 'pen', c: '#111111', w: 0.003, p: [0.1 * n, 0.2, 0.3, 0
         check(/Imported/.test(text) && w.idb === 2 && w.ls === null, 'R2 (ready, control): success with both pages in the database and none inside the progress', {text: text.slice(0, 40), w});
         await ctx.close();
       }
+      // S1: after a migration, or a replacing Import whose database was still opening, the pages are saved and
+      // STAY saved (a state read once is not enough: it must hold after the page has settled)
+      const stableState = async (p, keys, tag) => {
+        await p.waitForFunction(keys => keys.every(k => outsideState('ink', k) === 'saved'), keys, {timeout: 15000}).catch(() => {});
+        await p.waitForFunction(() => !('ink' in JSON.parse(localStorage.getItem(keyFor(PROFILE)) || '{}')), null, {timeout: 10000}).catch(() => {});
+        await p.waitForTimeout(700);
+        const r = await p.evaluate(keys => ({states: keys.map(k => outsideState('ink', k)), unsaved: unsavedHere(), recs: Object.keys(OUT.recLast).concat(Object.keys(OUT.recState)).length}), keys);
+        const idb = (await idbPages(p)) || {};
+        check(r.states.every(s => s === 'saved'), tag + ': each page is saved and still saved after the page has settled', r.states);
+        check(r.unsaved === false, tag + ': nothing is counted as unsaved here', r.unsaved);
+        check(r.recs === 0 && !Object.keys(idb).some(k => k.startsWith('\u0002')), tag + ': no recovery record is kept for a page equal to the stored page', {memory: r.recs, database: Object.keys(idb).filter(k => k.startsWith('\u0002')).length});
+        await p.evaluate(() => { window.__name = 'Other'; useProfile('Other'); }); await ready(p);
+        const warn = await p.evaluate(() => { const d = document.getElementById('outwarn'); return d ? d.textContent : ''; });
+        check(!/not saved yet/.test(warn), tag + ': switching to another profile shows no "not saved yet" notice', warn.slice(0, 120));
+      };
+      {
+        const old = {a: pg(3), b: pg(4, 5)};
+        const ctx = await newCtx();
+        const {page: o} = await open(ctx, L.PAGE.PAGE);
+        await put(o, {}); await plantInk(o, old); await o.close();
+        const {page: p} = await open(ctx);
+        await stableState(p, ['a', 'b'], 'S1 (plain migration)');
+        await ctx.close();
+      }
+      {
+        const ctx = await newCtx(heldOpen);
+        const p = await openNR(ctx, PART_PAGE, () => { window.__slowOpen = true; });
+        await importIn(p);
+        await p.evaluate(() => window.__openRelease && window.__openRelease());
+        await stableState(p, ['f1', 'f2'], 'S1 (replacing Import, database opening then released)');
+        await ctx.close();
+      }
+      // N1: a replacing Import whose localStorage write is refused leaves none of the file's page names in OUT.inline
+      {
+        const ctx = await newCtx(() => { const gk = IDBObjectStore.prototype.getAllKeys; IDBObjectStore.prototype.getAllKeys = function(range){ if(localStorage.getItem('__fr') === '1' && this.name === 'parts' && range && typeof range === 'object') throw new DOMException('planted read failure', 'UnknownError'); return gk.apply(this, arguments); }; const set = Storage.prototype.setItem; Storage.prototype.setItem = function(k, v){ if(window.__lsRefuse && String(k).includes(':data:')) throw new DOMException('planted refusal', 'QuotaExceededError'); return set.apply(this, arguments); }; });
+        const p = await openNR(ctx, PART_PAGE, states['read failed'].start);
+        await p.evaluate(() => { window.__lsRefuse = true; });
+        const text = await importIn(p);
+        const inl = await p.evaluate(() => Object.keys(OUT.inline[PROFILE] || {}).map(part => [part, [...OUT.inline[PROFILE][part]]]));
+        check(/refused|nothing was imported/.test(text), 'N1: the Import whose progress write is refused says nothing was imported', text.slice(0, 120));
+        check(inl.every(x => x[1].length === 0), 'N1: the refused Import leaves none of the file\'s page names in the list of pages not yet moved', inl);
+        await ctx.close();
+      }
       // R3: the Export of a profile that is not on screen carries the orphaned recovery record; Import brings the stroke back
       {
         const ctx = await newCtx();
