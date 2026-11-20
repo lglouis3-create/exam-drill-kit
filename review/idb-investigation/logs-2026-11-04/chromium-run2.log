@@ -1,0 +1,26 @@
+2026-11-04T23:55:39Z
+[chromium] launched 153.0.8010.12
+[chromium] serving http://localhost:45617/page.html
+[chromium] T0 probe {"default":"default","strict":"strict","relaxed":"relaxed","hasCommit":true,"hasLocks":true}
+[chromium] T1 idb durability=default tabs=3 tx per tab=500 results per tab=[{"complete":500},{"complete":500},{"complete":500}] elapsed_ms~3169
+[chromium] T1 idb durability=default count=1500 seq.length=1500 expected=1500 lost=0 saw==position:1500 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=212 per tab={"T1":500,"T2":500,"T0":500}
+[chromium] T1 idb durability=relaxed tabs=3 tx per tab=300 results per tab=[{"complete":300},{"complete":300},{"complete":300}] elapsed_ms~1557
+[chromium] T1 idb durability=relaxed count=900 seq.length=900 expected=900 lost=0 saw==position:900 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=137 per tab={"T1":300,"T2":300,"T0":300}
+[chromium] T1 idb durability=strict tabs=3 tx per tab=300 results per tab=[{"complete":300},{"complete":300},{"complete":300}] elapsed_ms~1050
+[chromium] T1 idb durability=strict count=900 seq.length=900 expected=900 lost=0 saw==position:900 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=148 per tab={"T0":300,"T2":300,"T1":300}
+[chromium] T2 close rep=1 victim created at close=325 victim complete events at close=100 victim complete events total=100 victim abort events=0 victim entries persisted=100 victim marks persisted=100 complete-but-missing=0 persisted-without-complete-event=0 entry-without-mark=0 mark-without-entry=0 gaps below highest persisted i=0
+[chromium] T2 close rep=1 survivor tx complete=300/300 survivor snapshots=376 snapshots with a half-done transaction=0
+[chromium] T2 close rep=1 count=400 seq.length=400 expected=400 lost=0 saw==position:400 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=38 per tab={"S":300,"V":100}
+[chromium] T2 close rep=2 victim created at close=555 victim complete events at close=200 victim complete events total=200 victim abort events=0 victim entries persisted=200 victim marks persisted=200 complete-but-missing=0 persisted-without-complete-event=0 entry-without-mark=0 mark-without-entry=0 gaps below highest persisted i=0
+[chromium] T2 close rep=2 survivor tx complete=300/300 survivor snapshots=395 snapshots with a half-done transaction=0
+[chromium] T2 close rep=2 count=500 seq.length=500 expected=500 lost=0 saw==position:500 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=112 per tab={"S":300,"V":200}
+[chromium] T2 close rep=3 victim created at close=720 victim complete events at close=300 victim complete events total=301 victim abort events=0 victim entries persisted=303 victim marks persisted=303 complete-but-missing=0 persisted-without-complete-event=2 entry-without-mark=0 mark-without-entry=0 gaps below highest persisted i=0
+[chromium] T2 close rep=3 survivor tx complete=300/300 survivor snapshots=343 snapshots with a half-done transaction=0
+[chromium] T2 close rep=3 count=603 seq.length=603 expected=603 lost=0 saw==position:603 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=131 per tab={"S":300,"V":303}
+[chromium] T3 localStorage gap=none(sync) count=503 seq.length=503 expected=900 lost=397 saw==position:503 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=31 per tab={"T0":103,"T1":100,"T2":300}
+[chromium] T3 localStorage gap=1ms count=100 seq.length=100 expected=300 lost=200 saw==position:100 mismatched:0 duplicates=0 per-tab order kept=true tab switches in order=0 per tab={"T1":100}
+[chromium] T4 versionchange old-tab policy=keep old tab events=["versionchange 1->2"] new tab after 700ms: events=["blocked"] result=null
+[chromium] T4 versionchange old-tab policy=keep after old tab close(): new tab events=["blocked"] result=opened v2
+[chromium] T4 versionchange old-tab policy=close old tab events=["versionchange 1->2"] new tab after 700ms: events=[] result=opened v2
+[chromium] T5 old tab page.close() before: events=["blocked"] result=null after: events=["blocked"] result=opened v2
+[chromium] done
