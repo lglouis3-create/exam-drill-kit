@@ -1,0 +1,8 @@
+lz-string 1.5.0, fflate 0.8.2 (deflateSync level 6; stored characters counted at 15 bits each)
+  browser  Chromium started
+rate 1  ink, the porter's generator      {"progressChars":1355486,"stringify":12,"setItem":5,"lz":{"ms":187,"unMs":43,"chars":191863,"ratio":0.142,"exact":true},"fflate":{"ms":141,"unMs":19,"bytes":390890,"packedChars":208475,"ratio":0.154,"exact":true},"idbPutToComplete":9}
+rate 1  ink, random-walk strokes         {"progressChars":1563704,"stringify":12,"setItem":6,"lz":{"ms":257,"unMs":54,"chars":255012,"ratio":0.163,"exact":true},"fflate":{"ms":102,"unMs":19,"bytes":507620,"packedChars":270731,"ratio":0.173,"exact":true},"idbPutToComplete":15}
+rate 1  answers: 4,000 on 600 concepts   {"progressChars":526734,"stringify":2,"setItem":1,"lz":{"ms":56,"unMs":15,"chars":57094,"ratio":0.108,"exact":true},"fflate":{"ms":21,"unMs":5,"bytes":102430,"packedChars":54630,"ratio":0.104,"exact":true},"idbPutToComplete":3}
+rate 4  ink, the porter's generator      {"progressChars":1355486,"stringify":59,"setItem":23,"lz":{"ms":1115,"unMs":201,"chars":191863,"ratio":0.142,"exact":true},"fflate":{"ms":675,"unMs":60,"bytes":390890,"packedChars":208475,"ratio":0.154,"exact":true},"idbPutToComplete":15}
+rate 4  ink, random-walk strokes         {"progressChars":1563704,"stringify":58,"setItem":27,"lz":{"ms":1279,"unMs":211,"chars":255012,"ratio":0.163,"exact":true},"fflate":{"ms":440,"unMs":74,"bytes":507620,"packedChars":270731,"ratio":0.173,"exact":true},"idbPutToComplete":23}
+rate 4  answers: 4,000 on 600 concepts   {"progressChars":526734,"stringify":7,"setItem":6,"lz":{"ms":269,"unMs":48,"chars":57094,"ratio":0.108,"exact":true},"fflate":{"ms":86,"unMs":21,"bytes":102430,"packedChars":54630,"ratio":0.104,"exact":true},"idbPutToComplete":6}

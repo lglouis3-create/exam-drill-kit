@@ -1,0 +1,12 @@
+  browser  Chromium started
+14:11:15 progress written {"progressChars":1475679,"profile":"me","ok":true,"failed":[]}
+14:11:15 steady state {"total":2951873,"by":{"other":67,"log":185,"data:me":1475702,"pending:mw51yptw-jmhj1":1475919}}
+14:11:15 answer after reload {"ok":true,"failed":[],"recOff":false}
+14:11:15 after reload and one save {"total":4428443,"by":{"other":67,"log":262,"pending-seen":161,"data:me":1475951,"pending:mw51yq63-1vfz2":1476083,"pending:mw51yptw-jmhj1":1475919}}
+14:11:16 Import within the minute after the reload {"offered":true,"storedOtherChars":null,"result":"The browser refused to save (storage is full or blocked), so nothing was imported. Your progress is unchanged. OK"}
+14:11:16 after that Import {"total":4428443,"by":{"other":67,"log":262,"pending-seen":161,"data:me":1475951,"pending:mw51yq63-1vfz2":1476083,"pending:mw51yptw-jmhj1":1475919}}
+14:12:21 earlier record removed about 65 s after the post-reload save {"total":2952363,"by":{"other":67,"log":262,"data:me":1475951,"pending:mw51yq63-1vfz2":1476083}}
+14:12:21 Import again after the cleanup {"offered":true,"storedOtherChars":1475928,"result":"The file's progress is now the profile \"Other (imported 2026-11-06)\" (3 answers). The progress of \"me\" is unchanged. Open \"Other (imported 2026-11-06)\"OK"}
+14:12:21 end {"total":4428339,"by":{"log":262,"other":67,"data:Other (imported 2026-11-06)":1475976,"data:me":1475951,"pending:mw51yq63-1vfz2":1476083}}
+14:12:21 page errors []
+SUMMARY {"P":1475679,"forcedQuota":null,"progressChars":1475679,"steady":2951873,"steadyRatio":2,"afterReload":4428443,"afterReloadRatio":3,"importInMinute":{"stored":null,"refused":true},"cleanupSeconds":65,"importAfter":{"stored":1475928}}

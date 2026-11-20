@@ -1,0 +1,12 @@
+  browser  Chromium started
+14:13:55 progress written {"progressChars":3000000,"profile":"me","ok":true,"failed":[]}
+14:13:55 steady state {"total":3000275,"by":{"other":67,"log":185,"data:me":3000023}}
+14:13:55 answer after reload {"ok":true,"failed":[],"recOff":true}
+14:13:55 after reload and one save {"total":3000601,"by":{"other":67,"log":262,"data:me":3000272}}
+14:13:56 Import within the minute after the reload {"offered":true,"storedOtherChars":null,"result":"The browser refused to save (storage is full or blocked), so nothing was imported. Your progress is unchanged. OK"}
+14:13:56 after that Import {"total":3000601,"by":{"other":67,"log":262,"data:me":3000272}}
+14:14:01 earlier record removed about 5 s after the post-reload save {"total":3000601,"by":{"other":67,"log":262,"data:me":3000272}}
+14:14:01 Import again after the cleanup {"offered":true,"storedOtherChars":null,"result":"The browser refused to save (storage is full or blocked), so nothing was imported. Your progress is unchanged. OK"}
+14:14:01 end {"total":3000601,"by":{"other":67,"log":262,"data:me":3000272}}
+14:14:01 page errors []
+SUMMARY {"P":3000000,"forcedQuota":null,"progressChars":3000000,"steady":3000275,"steadyRatio":1,"afterReload":3000601,"afterReloadRatio":1,"importInMinute":{"stored":null,"refused":true},"cleanupSeconds":5,"importAfter":{"stored":null}}

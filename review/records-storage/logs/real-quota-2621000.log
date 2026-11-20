@@ -1,0 +1,12 @@
+  browser  Chromium started
+14:50:05 progress written {"progressChars":2621000,"profile":"me","ok":true,"failed":[]}
+14:50:05 steady state {"total":5242515,"by":{"other":67,"log":185,"data:me":2621023,"pending:mw53cnq2-veqmp":2621240}}
+14:50:05 answer after reload {"ok":true,"failed":["course-id-drill:data:me"],"recOff":false}
+14:50:05 after reload and one save {"total":5242753,"by":{"other":67,"log":262,"pending-seen":161,"data:me":2621023,"pending:mw53cnq2-veqmp":2621240}}
+14:50:05 Import within the minute after the reload {"offered":false,"storedOtherChars":null,"result":"This profile's progress could not be saved in this visit (storage is full or blocked), so what this page shows is not what is stored, and nothing was imported. Export progress first, free some space, reload, and import again. OK"}
+14:50:05 after that Import {"total":5242753,"by":{"other":67,"log":262,"pending-seen":161,"data:me":2621023,"pending:mw53cnq2-veqmp":2621240}}
+14:50:10 earlier record removed about 5 s after the post-reload save {"total":5242753,"by":{"other":67,"log":262,"pending-seen":161,"data:me":2621023,"pending:mw53cnq2-veqmp":2621240}}
+14:50:10 Import again after the cleanup {"offered":false,"storedOtherChars":null,"result":"This profile's progress could not be saved in this visit (storage is full or blocked), so what this page shows is not what is stored, and nothing was imported. Export progress first, free some space, reload, and import again. OK"}
+14:50:10 end {"total":5242753,"by":{"other":67,"log":262,"pending-seen":161,"data:me":2621023,"pending:mw53cnq2-veqmp":2621240}}
+14:50:10 page errors []
+SUMMARY {"P":2621000,"forcedQuota":null,"progressChars":2621000,"steady":5242515,"steadyRatio":2,"afterReload":5242753,"afterReloadRatio":2,"importInMinute":{"stored":null,"refused":true},"cleanupSeconds":5,"importAfter":{"stored":null}}

@@ -1,0 +1,5 @@
+unthrottled 45
+newCDPSession(worker) failed: page: expected Page or Frame
+worker target true
+reply {"id":1,"error":{"code":-32000,"message":"Operation is only supported for pages, not workers"}}
+method browser session after rate 4 44
